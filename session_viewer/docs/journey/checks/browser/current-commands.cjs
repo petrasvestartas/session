@@ -19,5 +19,5 @@ module.exports=async(page,helpers)=>{
     for(const line of ['Close','CPlane XY','View Top','Line w-2,0,0 w2,0,0','Line w0,-2,0 w0,2,0','Select None','Trim'])await helpers.command(page,line);
     assert.equal((await value('data-trim')).phase,'Targets');await helpers.command(page,'Escape');assert.equal(await value('data-trim'),null);
     await helpers.command(page,'Measure Distance w0,0,0 w3,4,0');const before=await value('data-measurement');await page.mouse.move(canvas.x+canvas.width*0.7,canvas.y+canvas.height*0.6);await page.mouse.down({button:'right'});await page.mouse.move(canvas.x+canvas.width*0.65,canvas.y+canvas.height*0.65,{steps:4});await page.mouse.up({button:'right'});assert.deepEqual(await value('data-measurement'),before);
-    await helpers.command(page,'Escape');assert.equal(await value('data-measurement'),null);
+    await page.keyboard.press('Escape');assert.equal(await value('data-measurement'),null);
 };

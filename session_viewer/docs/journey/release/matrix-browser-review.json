@@ -1,0 +1,1913 @@
+{
+  "reviewedUtc": "2026-10-23T17:20:40.739794+00:00",
+  "status": "passed-scoped-behavior-and-saved-image-review",
+  "scope": "Corrected97d learner Matrix browser behavior and all24 saved PNG artifacts reviewed. Together with matching eight native production/course pairs, this covers the two declared finite Matrix feature requirements at the recorded fixture/settings. Global course and release gates remain separate.",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "fixture": {
+    "path": "target/course-windows-20261018/matrix-production-pairs/matrix.pb",
+    "bytes": 1746,
+    "sha256": "b44c5b9cec32df2a77de1eaaac607273d2a6950df46740558ca1e3882f462646",
+    "values": [
+      [
+        -2,
+        1.2,
+        5
+      ],
+      [
+        0,
+        1.005,
+        5
+      ]
+    ],
+    "cell": 0.3,
+    "title": "stiffness",
+    "matrixGuid": "6d0aaee0-0430-4000-8000-000000000701",
+    "distantGuardGuid": "6d0aaee0-0430-4000-8000-000000000702",
+    "placement": [
+      -0.3,
+      0.2,
+      -0.4
+    ]
+  },
+  "behavior": {
+    "status": "passed",
+    "cases": 6,
+    "densities": [
+      1,
+      2
+    ],
+    "sampleSequence": [
+      1,
+      4,
+      1
+    ],
+    "elapsedSeconds": 599.714,
+    "peakJobCommitBytes": 993091584,
+    "asserted": [
+      "Actual min/max/zero cell colors and six -2 glyphstroke probes",
+      "Original Matrix and separate title integer GPU owners",
+      "Selected borders preserve sampled cellinteriors; selectionclear exactpixels",
+      "Hide/Show and unrelatedLines/Edges/Points controls exactrestoration",
+      "Title remains drawn andpickable while Matrixhidden",
+      "Original componentsemantic fields and precise central placement preserved through realSave/Open",
+      "Saved independenttitle source retained; archive pixelrestoration and1/4/1sample exactreturns"
+    ],
+    "caseRecords": [
+      {
+        "density": 1,
+        "samples": 1,
+        "cells": {
+          "colors": [
+            [
+              255,
+              0,
+              0,
+              255
+            ],
+            [
+              0,
+              255,
+              0,
+              255
+            ],
+            [
+              0,
+              0,
+              255,
+              255
+            ]
+          ],
+          "glyph": [
+            {
+              "world": [
+                -0.334375,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                146,
+                146,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.22916666666666663,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.25312500000000004,
+                0.22083333333333333,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                146,
+                146,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.296875,
+                0.1791666666666667,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.17083333333333328,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            }
+          ]
+        },
+        "identity": {
+          "owner": 5,
+          "title": {
+            "guid": "matrix-title/c4e4b6bf-dca7-418b-9081-84f02710452e",
+            "id": 6,
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "source": {
+              "guid": "matrix-title/c4e4b6bf-dca7-418b-9081-84f02710452e",
+              "label": {
+                "bare": true,
+                "clip": null,
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font_size": 18,
+                "id": 1,
+                "line_height": 26,
+                "object": null,
+                "placement": {
+                  "WorldPlane": {
+                    "right": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "up": [
+                      0,
+                      1,
+                      0
+                    ],
+                    "world": [
+                      -0.44999999999999996,
+                      0.518,
+                      -0.4
+                    ],
+                    "world_height": 0.105
+                  }
+                },
+                "text": "stiffness"
+              },
+              "locked": false,
+              "name": "stiffness",
+              "visible": true
+            }
+          }
+        },
+        "renderMatrix": [
+          1.7970853,
+          0,
+          0,
+          0,
+          0,
+          2.1281273,
+          -4.100428e-21,
+          0,
+          0,
+          4.961156e-16,
+          1.7589111e-05,
+          0,
+          0.08910548,
+          -0.33300576,
+          0.49999273,
+          1
+        ],
+        "titleInkPixels": 5547,
+        "archiveSha256": "986e1ca14a215b4d0717a234033029715e4141fa8aeb9bac949e597df26e21fd",
+        "status": "passed"
+      },
+      {
+        "density": 1,
+        "samples": 4,
+        "cells": {
+          "colors": [
+            [
+              255,
+              0,
+              0,
+              255
+            ],
+            [
+              0,
+              255,
+              0,
+              255
+            ],
+            [
+              0,
+              0,
+              255,
+              255
+            ]
+          ],
+          "glyph": [
+            {
+              "world": [
+                -0.334375,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                146,
+                146,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.22916666666666663,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.25312500000000004,
+                0.22083333333333333,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                146,
+                146,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.296875,
+                0.1791666666666667,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.17083333333333328,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            }
+          ]
+        },
+        "identity": {
+          "owner": 9,
+          "title": {
+            "guid": "matrix-title/c4e4b6bf-dca7-418b-9081-84f02710452e",
+            "id": 12,
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "source": {
+              "guid": "matrix-title/c4e4b6bf-dca7-418b-9081-84f02710452e",
+              "label": {
+                "bare": true,
+                "clip": null,
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font_size": 18,
+                "id": 1,
+                "line_height": 26,
+                "object": null,
+                "placement": {
+                  "WorldPlane": {
+                    "right": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "up": [
+                      0,
+                      1,
+                      0
+                    ],
+                    "world": [
+                      -0.44999999999999996,
+                      0.518,
+                      -0.4
+                    ],
+                    "world_height": 0.105
+                  }
+                },
+                "text": "stiffness"
+              },
+              "locked": false,
+              "name": "stiffness",
+              "visible": true
+            }
+          }
+        },
+        "renderMatrix": [
+          1.7970853,
+          0,
+          0,
+          0,
+          0,
+          2.1281273,
+          -4.100428e-21,
+          0,
+          0,
+          4.961156e-16,
+          1.7589111e-05,
+          0,
+          0.08910548,
+          -0.33300576,
+          0.49999273,
+          1
+        ],
+        "titleInkPixels": 5547,
+        "archiveSha256": "48053c2b8299d745af214e585c9e9aa02517616d83f2aa636fb30a647bebe684",
+        "status": "passed"
+      },
+      {
+        "density": 1,
+        "samples": 1,
+        "cells": {
+          "colors": [
+            [
+              255,
+              0,
+              0,
+              255
+            ],
+            [
+              0,
+              255,
+              0,
+              255
+            ],
+            [
+              0,
+              0,
+              255,
+              255
+            ]
+          ],
+          "glyph": [
+            {
+              "world": [
+                -0.334375,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                146,
+                146,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.22916666666666663,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.25312500000000004,
+                0.22083333333333333,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                146,
+                146,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.296875,
+                0.1791666666666667,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.17083333333333328,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            }
+          ]
+        },
+        "identity": {
+          "owner": 15,
+          "title": {
+            "guid": "matrix-title/c4e4b6bf-dca7-418b-9081-84f02710452e",
+            "id": 19,
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "source": {
+              "guid": "matrix-title/c4e4b6bf-dca7-418b-9081-84f02710452e",
+              "label": {
+                "bare": true,
+                "clip": null,
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font_size": 18,
+                "id": 1,
+                "line_height": 26,
+                "object": null,
+                "placement": {
+                  "WorldPlane": {
+                    "right": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "up": [
+                      0,
+                      1,
+                      0
+                    ],
+                    "world": [
+                      -0.44999999999999996,
+                      0.518,
+                      -0.4
+                    ],
+                    "world_height": 0.105
+                  }
+                },
+                "text": "stiffness"
+              },
+              "locked": false,
+              "name": "stiffness",
+              "visible": true
+            }
+          }
+        },
+        "renderMatrix": [
+          1.7970853,
+          0,
+          0,
+          0,
+          0,
+          2.1281273,
+          -4.100428e-21,
+          0,
+          0,
+          4.961156e-16,
+          1.7589111e-05,
+          0,
+          0.08910548,
+          -0.33300576,
+          0.49999273,
+          1
+        ],
+        "titleInkPixels": 5547,
+        "archiveSha256": "0ac02b533c4da74d315175cb862902e1444f365ce5a203f0804c8d03dbae94f7",
+        "status": "passed"
+      },
+      {
+        "density": 2,
+        "samples": 1,
+        "cells": {
+          "colors": [
+            [
+              255,
+              0,
+              0,
+              255
+            ],
+            [
+              0,
+              255,
+              0,
+              255
+            ],
+            [
+              0,
+              0,
+              255,
+              255
+            ]
+          ],
+          "glyph": [
+            {
+              "world": [
+                -0.334375,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                200,
+                200,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.22916666666666663,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.25312500000000004,
+                0.22083333333333333,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                200,
+                200,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.296875,
+                0.1791666666666667,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.17083333333333328,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            }
+          ]
+        },
+        "identity": {
+          "owner": 5,
+          "title": {
+            "guid": "matrix-title/c93cd43a-d8a8-4090-99ed-194e7f94fae6",
+            "id": 6,
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "source": {
+              "guid": "matrix-title/c93cd43a-d8a8-4090-99ed-194e7f94fae6",
+              "label": {
+                "bare": true,
+                "clip": null,
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font_size": 18,
+                "id": 1,
+                "line_height": 26,
+                "object": null,
+                "placement": {
+                  "WorldPlane": {
+                    "right": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "up": [
+                      0,
+                      1,
+                      0
+                    ],
+                    "world": [
+                      -0.44999999999999996,
+                      0.518,
+                      -0.4
+                    ],
+                    "world_height": 0.105
+                  }
+                },
+                "text": "stiffness"
+              },
+              "locked": false,
+              "name": "stiffness",
+              "visible": true
+            }
+          }
+        },
+        "renderMatrix": [
+          1.7970853,
+          0,
+          0,
+          0,
+          0,
+          2.1281273,
+          -4.100428e-21,
+          0,
+          0,
+          4.961156e-16,
+          1.7589111e-05,
+          0,
+          0.08910548,
+          -0.33300576,
+          0.49999273,
+          1
+        ],
+        "titleInkPixels": 22266,
+        "archiveSha256": "1e69bb61cc5a8d8b04a64b024d6c0dba49b5fcee1b8861f6720f6c49a3872783",
+        "status": "passed"
+      },
+      {
+        "density": 2,
+        "samples": 4,
+        "cells": {
+          "colors": [
+            [
+              255,
+              0,
+              0,
+              255
+            ],
+            [
+              0,
+              255,
+              0,
+              255
+            ],
+            [
+              0,
+              0,
+              255,
+              255
+            ]
+          ],
+          "glyph": [
+            {
+              "world": [
+                -0.334375,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                200,
+                200,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.22916666666666663,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.25312500000000004,
+                0.22083333333333333,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                200,
+                200,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.296875,
+                0.1791666666666667,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.17083333333333328,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            }
+          ]
+        },
+        "identity": {
+          "owner": 9,
+          "title": {
+            "guid": "matrix-title/c93cd43a-d8a8-4090-99ed-194e7f94fae6",
+            "id": 12,
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "source": {
+              "guid": "matrix-title/c93cd43a-d8a8-4090-99ed-194e7f94fae6",
+              "label": {
+                "bare": true,
+                "clip": null,
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font_size": 18,
+                "id": 1,
+                "line_height": 26,
+                "object": null,
+                "placement": {
+                  "WorldPlane": {
+                    "right": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "up": [
+                      0,
+                      1,
+                      0
+                    ],
+                    "world": [
+                      -0.44999999999999996,
+                      0.518,
+                      -0.4
+                    ],
+                    "world_height": 0.105
+                  }
+                },
+                "text": "stiffness"
+              },
+              "locked": false,
+              "name": "stiffness",
+              "visible": true
+            }
+          }
+        },
+        "renderMatrix": [
+          1.7970853,
+          0,
+          0,
+          0,
+          0,
+          2.1281273,
+          -4.100428e-21,
+          0,
+          0,
+          4.961156e-16,
+          1.7589111e-05,
+          0,
+          0.08910548,
+          -0.33300576,
+          0.49999273,
+          1
+        ],
+        "titleInkPixels": 22266,
+        "archiveSha256": "775cdf5de90a86fe276727f6d4986680eeef64073eaf5a5a46b2bdae3645af22",
+        "status": "passed"
+      },
+      {
+        "density": 2,
+        "samples": 1,
+        "cells": {
+          "colors": [
+            [
+              255,
+              0,
+              0,
+              255
+            ],
+            [
+              0,
+              255,
+              0,
+              255
+            ],
+            [
+              0,
+              0,
+              255,
+              255
+            ]
+          ],
+          "glyph": [
+            {
+              "world": [
+                -0.334375,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                200,
+                200,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.22916666666666663,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.25312500000000004,
+                0.22083333333333333,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.20416666666666672,
+                -0.4
+              ],
+              "color": [
+                255,
+                200,
+                200,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.296875,
+                0.1791666666666667,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            },
+            {
+              "world": [
+                -0.27812499999999996,
+                0.17083333333333328,
+                -0.4
+              ],
+              "color": [
+                255,
+                255,
+                255,
+                255
+              ]
+            }
+          ]
+        },
+        "identity": {
+          "owner": 15,
+          "title": {
+            "guid": "matrix-title/c93cd43a-d8a8-4090-99ed-194e7f94fae6",
+            "id": 19,
+            "model": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "source": {
+              "guid": "matrix-title/c93cd43a-d8a8-4090-99ed-194e7f94fae6",
+              "label": {
+                "bare": true,
+                "clip": null,
+                "color": [
+                  0,
+                  0,
+                  0,
+                  255
+                ],
+                "font_size": 18,
+                "id": 1,
+                "line_height": 26,
+                "object": null,
+                "placement": {
+                  "WorldPlane": {
+                    "right": [
+                      1,
+                      0,
+                      0
+                    ],
+                    "up": [
+                      0,
+                      1,
+                      0
+                    ],
+                    "world": [
+                      -0.44999999999999996,
+                      0.518,
+                      -0.4
+                    ],
+                    "world_height": 0.105
+                  }
+                },
+                "text": "stiffness"
+              },
+              "locked": false,
+              "name": "stiffness",
+              "visible": true
+            }
+          }
+        },
+        "renderMatrix": [
+          1.7970853,
+          0,
+          0,
+          0,
+          0,
+          2.1281273,
+          -4.100428e-21,
+          0,
+          0,
+          4.961156e-16,
+          1.7589111e-05,
+          0,
+          0.08910548,
+          -0.33300576,
+          0.49999273,
+          1
+        ],
+        "titleInkPixels": 22266,
+        "archiveSha256": "7573dd68d569f1699dd97aa62934c85ee864d1a9ced257f361debbfd9bc365d5",
+        "status": "passed"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "finding": "Normal saved images retain the complete black stiffness title and six original cells: -2,1.2,5 / blank blue zero,1.005,5. Selected states have yellow boundaries and a transform gizmo over part of the1.2cell; selection preserves sampled original interiors."
+    },
+    {
+      "finding": "Title-only states retain black title pixels after the Matrix is hidden. Integer picking selects the independent title owner; Show and actual Save/Open restore exact original drawing and complete component fields/central placement."
+    },
+    {
+      "finding": "All24 files individually opened at original detail. Direct decoding corroborates title coverage in all24 and -2 glyph coverage in all16 Matrix images. All12 saved page/canvas scene pairs have zero RGBA pixel differences above the command dock."
+    },
+    {
+      "finding": "Image-tool previews sometimes visually omit text present in the actual PNG bytes. This repeats the documented preview limitation; source hashes, decoded metrics and actual behavioral pixel assertions are retained. It is not treated as a runtime defect."
+    }
+  ],
+  "sourceReview": {
+    "selection": "src/shaders/matrix.wgsl matrix_color/fs_main: selectedflag changesedgepen only; samefragment computes originalfillanddigits.",
+    "independentTitle": "Course src/production_matrix.rs::title createsbareWorldPlane text; src/scene_document.rs imports it as independent source and archiveopening restores savedtitle metadata.",
+    "maintainedQuality": "src/engine/performance.rs::drag_tier returns0atrest; wheelhold200ms. TIER_RETRY_MS1000 is tier-retry timing, not an unconditional one-second capture barrier. src/engine/gpu/render.rs stillcalls ink/widget/UI aftertier choice.",
+    "currentDriver": "target/course-windows-20261018/matrix-browser-contract.cjs::settle awaits onlytwoRAFs, not an explicitlyobservedGPUqueuefence. Existing quality-settings.cjs and presentation-probe.cjs awaittwoRAFs thenqueue.onSubmittedWorkDone().",
+    "correctedWorldTextMSAA": "Canonical retarget-cached-text checkpoint retains the production world-text pixel-center WGSL interpolation for1/4samples while preserving count-specific4sample pipelines/attachments. The full97d native production/course comparison includes the independent title with zero exclusions."
+  },
+  "pairedNativeReview": "release/matrix-native-review.json",
+  "declaredFiniteRequirements": {
+    "feature-18-1": "Eight strict native production/course pairs include complete independently framed title; six browser cases cover the declared display toggles/selection/MSAA returns.",
+    "feature-18-2": "Six current browser cases pass original Matrix/title picks, component/archive/title identity and saved-image review."
+  },
+  "stableCapturePrerequisite": "Capture-method limitation: driver uses two requestAnimationFrame callbacks after sample readiness and input. It does not observe an explicit GPU queue completion fence. No queue-fence or hardware-speed guarantee is claimed; this remains a capture-method improvement, not an additional gate invented for these saved images.",
+  "scenePairComparison": {
+    "pairs": 12,
+    "allChangedScenePixels": 0,
+    "scope": "Saved page/canvas scene corroboration, excluding command dock only; nativeproduction/course acceptance separately compares completeRGBAframes."
+  },
+  "limits": [
+    "Six behavior records use samples1/4/1 at DPR1/2. Final1sample return reuses filenames, leaving24 saved PNG files rather than36 sequential captures.",
+    "Browser picks are learner original Matrix/title owner checks; production owner picking is not asserted.",
+    "The finite Matrix requirements do not imply arbitrary camera/occlusion/material combinations, hardware performance, complete chapter or global release acceptance.",
+    "DoubleRAF capture does not establish explicit GPU queue-fence completion."
+  ],
+  "representatives": [
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-unselected-dpr1.png",
+      "source": "matrix-unselected-dpr1-samples4.png",
+      "sha256": "b8eca78a1fad41f475c42f2a4d1bf357b78c45f275ba35f1d85d4d1d122b83bc",
+      "density": 1,
+      "samples": 4,
+      "state": "unselected",
+      "individuallyViewed": true,
+      "viewDetail": "original",
+      "publicationMeaning": "Corrected97d Matrix browser state, scoped to declared fixture/control contract."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-selected-dpr1.png",
+      "source": "matrix-selected-dpr1-samples4.png",
+      "sha256": "52952630885ee9ce0ea54d143eec43b9411ba9f6a04e78ba7dea6a4a635734cf",
+      "density": 1,
+      "samples": 4,
+      "state": "selected",
+      "individuallyViewed": true,
+      "viewDetail": "original",
+      "publicationMeaning": "Corrected97d Matrix browser state, scoped to declared fixture/control contract."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr1.png",
+      "source": "matrix-title-only-dpr1-samples4.png",
+      "sha256": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+      "density": 1,
+      "samples": 4,
+      "state": "title-only",
+      "individuallyViewed": true,
+      "viewDetail": "original",
+      "publicationMeaning": "Corrected97d Matrix browser state, scoped to declared fixture/control contract."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-unselected-dpr2.png",
+      "source": "matrix-unselected-dpr2-samples4.png",
+      "sha256": "5cb26b8ac86fa624130966bad48914588e7783b57a23a32ea16492da4eb27dd4",
+      "density": 2,
+      "samples": 4,
+      "state": "unselected",
+      "individuallyViewed": true,
+      "viewDetail": "original",
+      "publicationMeaning": "Corrected97d Matrix browser state, scoped to declared fixture/control contract."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-selected-dpr2.png",
+      "source": "matrix-selected-dpr2-samples4.png",
+      "sha256": "abc1a87fe731b3b5ac8871c1d73c2d01f124d851c682ef03516235d45c7afb05",
+      "density": 2,
+      "samples": 4,
+      "state": "selected",
+      "individuallyViewed": true,
+      "viewDetail": "original",
+      "publicationMeaning": "Corrected97d Matrix browser state, scoped to declared fixture/control contract."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr2.png",
+      "source": "matrix-title-only-dpr2-samples4.png",
+      "sha256": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+      "density": 2,
+      "samples": 4,
+      "state": "title-only",
+      "individuallyViewed": true,
+      "viewDetail": "original",
+      "publicationMeaning": "Corrected97d Matrix browser state, scoped to declared fixture/control contract."
+    }
+  ],
+  "evidence": {
+    "results": "../../target/course-windows-20261018/matrix-browser-97d/results.json",
+    "resources": "../../target/course-windows-20261018/matrix-browser-97d.resources.json",
+    "provenance": "../../target/course-windows-20261018/matrix-browser-97d.provenance.json",
+    "fullImageReview": "../../target/course-windows-20261018/matrix-browser-97d/decoded-image-review.json",
+    "driverSha256": "1b7126b9942cfc9870927b1c0bb9446ff6da16e141f9d42a28ccaad4bc2bf29b",
+    "canonicalHelperSha256": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9"
+  },
+  "guard": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-10-23T17:08:43.3187440Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-contract.cjs",
+      "http://127.0.0.1:8781/windows-original-owners-final-97d/",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-production-pairs\\matrix.pb",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-97d",
+      "b44c5b9cec32df2a77de1eaaac607273d2a6950df46740558ca1e3882f462646"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+    "timeoutSeconds": 1800,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 599.714,
+    "peakJobCommitBytes": 993091584,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 33836,
+    "descendantsAtCleanup": 0
+  },
+  "buildProvenance": {
+    "status": "passed",
+    "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+    "buildProvenance": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-97d-web-build\\provenance.json",
+      "sha256": "1eff746d7f0da091ba868eaca14c53852905ec1766b1a8f7656b9364f6dfce04"
+    },
+    "buildResources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-97d-web-build\\resources.json",
+      "sha256": "fcc5a5a99a59919ac5d60fe2c1182c400650457ff11ca750f953152b99026f5f"
+    },
+    "bundleHashes": {
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+      "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "index.html": "6f7874fcb8e862a53ce9ad72df8b2cfa223a2eea574d3eb397cfacbe92493e6d",
+      "snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "viewer_journey-8f9cce4104b7de63.js": "71e2ab7b32f734d393535a507b3cfc6ec1fb18b15038ce1570c1a34816c13df2",
+      "viewer_journey-8f9cce4104b7de63_bg.wasm": "368967bed76e0a45d69580bc7af7d252e30747b0e0cf0208a8b4521f4be49f3d"
+    },
+    "fixture": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-production-pairs\\matrix.pb",
+      "bytes": 1746,
+      "sha256": "b44c5b9cec32df2a77de1eaaac607273d2a6950df46740558ca1e3882f462646"
+    },
+    "checker": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-contract.cjs",
+      "sha256": "1b7126b9942cfc9870927b1c0bb9446ff6da16e141f9d42a28ccaad4bc2bf29b"
+    },
+    "executable": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\chrome-headless-shell.exe",
+      "sha256": "ac9bc025ed6be1ba6cf403116a68d2467c3e8da03844e642498e77cc2c799ac2"
+    },
+    "warp": {
+      "name": "Microsoft Basic Render Driver",
+      "vendor": 5140,
+      "device": 140,
+      "luid": "0,86727"
+    },
+    "warpScriptSha256": "3a463f8234283bc93f00b9285b550bfbd9e4c86991bcf57e977bba5918c63d94",
+    "environment": {
+      "NODE_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-tools\\node_modules",
+      "VIEWER_BROWSER_EXECUTABLE": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\chrome-headless-shell.exe",
+      "VIEWER_CHROME_ARGS": "[\"--enable-unsafe-webgpu\",\"--ignore-gpu-blocklist\",\"--use-gl=angle\",\"--use-angle=d3d11\",\"--use-adapter-luid=0,86727\",\"--enable-dawn-features=d3d_skip_shader_optimizations\"]"
+    },
+    "command": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\run-guarded.cjs",
+      "-MemoryLimitMiB",
+      "6144",
+      "-TimeoutSeconds",
+      "1800",
+      "-WorkingDirectory",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+      "-ManifestPath",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-97d.resources.json",
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-contract.cjs",
+      "http://127.0.0.1:8781/windows-original-owners-final-97d/",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-production-pairs\\matrix.pb",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-97d",
+      "b44c5b9cec32df2a77de1eaaac607273d2a6950df46740558ca1e3882f462646"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+    "memoryMiB": 6144,
+    "timeoutSeconds": 1800,
+    "output": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-97d",
+    "log": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-97d.log",
+    "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\matrix-browser-97d.resources.json",
+    "scope": "Existing exact six-case Matrix browser contract only (DPR1/2 x samples1/4/1), exact retained native specimen. No broader feature, native-paired or release acceptance.",
+    "exitCode": 0
+  },
+  "allImageHashes": {
+    "matrix-selected-dpr1-samples1-canvas.png": "954acdca384eb2b0d4b4838944372d4c465fab666eddb11c2a7491f1f79c2d69",
+    "matrix-selected-dpr1-samples1.png": "198611481d1351aba5d74eea2147df0135b0644b562b88666b70964ddcfb54a8",
+    "matrix-selected-dpr1-samples4-canvas.png": "be9fd270d280263e8a59f0a0d220ace9debf36fb79540aba05fe4ee19bdd1968",
+    "matrix-selected-dpr1-samples4.png": "52952630885ee9ce0ea54d143eec43b9411ba9f6a04e78ba7dea6a4a635734cf",
+    "matrix-selected-dpr2-samples1-canvas.png": "4e3d4c6931044ac8a63f8f634bf65c9014a66e4c96b47215c1dcb3d1a7444470",
+    "matrix-selected-dpr2-samples1.png": "4f1a4f78b31c24996ca80038911376477323cd391e37eb0e92ee2b87198f6d5d",
+    "matrix-selected-dpr2-samples4-canvas.png": "657735a2e331f89ccd99a60ca2f8ce381a4ca3216467499bcb3f9468df624f65",
+    "matrix-selected-dpr2-samples4.png": "abc1a87fe731b3b5ac8871c1d73c2d01f124d851c682ef03516235d45c7afb05",
+    "matrix-title-only-dpr1-samples1-canvas.png": "2e90633f7769ee9b6060c798f8d00dee0cb897ba10dddb9003c3df7f8a39f994",
+    "matrix-title-only-dpr1-samples1.png": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+    "matrix-title-only-dpr1-samples4-canvas.png": "2e90633f7769ee9b6060c798f8d00dee0cb897ba10dddb9003c3df7f8a39f994",
+    "matrix-title-only-dpr1-samples4.png": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+    "matrix-title-only-dpr2-samples1-canvas.png": "8a7daa83a815d1b6b10faad1d9a6947068a286781f6e3d70f0b6873d3c5dca2a",
+    "matrix-title-only-dpr2-samples1.png": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+    "matrix-title-only-dpr2-samples4-canvas.png": "8a7daa83a815d1b6b10faad1d9a6947068a286781f6e3d70f0b6873d3c5dca2a",
+    "matrix-title-only-dpr2-samples4.png": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+    "matrix-unselected-dpr1-samples1-canvas.png": "1dba1b38b996211eed011cea246b74344a78d9339a6fc6f3ba42adfed86e8ef0",
+    "matrix-unselected-dpr1-samples1.png": "2bbb3c61c42a26f1bb6a7247c077fb09b2d8a4fadafdad2f0a1055702a1607b4",
+    "matrix-unselected-dpr1-samples4-canvas.png": "aec3120f021afe33ab5efc5bd8b0f217d2325b88cc6a18a0b1a4815eb69b7ef2",
+    "matrix-unselected-dpr1-samples4.png": "b8eca78a1fad41f475c42f2a4d1bf357b78c45f275ba35f1d85d4d1d122b83bc",
+    "matrix-unselected-dpr2-samples1-canvas.png": "72d92cef068116fd586ba7a918e62318318a2aa07db3eccac480e4b951819cce",
+    "matrix-unselected-dpr2-samples1.png": "3295e3ac9d3d4f88645bb7714b5f3d62599b7f42d1366700c361ec84b34b62e3",
+    "matrix-unselected-dpr2-samples4-canvas.png": "d3d4f75525453a938bfbe5d546e6d8d392c43ab712b0283c34defcd1576f62f5",
+    "matrix-unselected-dpr2-samples4.png": "5cb26b8ac86fa624130966bad48914588e7783b57a23a32ea16492da4eb27dd4"
+  },
+  "decodedImageMetrics": [
+    {
+      "file": "matrix-selected-dpr1-samples1-canvas.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "954acdca384eb2b0d4b4838944372d4c465fab666eddb11c2a7491f1f79c2d69",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1284,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr1-samples1.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "198611481d1351aba5d74eea2147df0135b0644b562b88666b70964ddcfb54a8",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1284,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr1-samples4-canvas.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "be9fd270d280263e8a59f0a0d220ace9debf36fb79540aba05fe4ee19bdd1968",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1512,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr1-samples4.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "52952630885ee9ce0ea54d143eec43b9411ba9f6a04e78ba7dea6a4a635734cf",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1512,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr2-samples1-canvas.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "4e3d4c6931044ac8a63f8f634bf65c9014a66e4c96b47215c1dcb3d1a7444470",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 4745,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr2-samples1.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "4f1a4f78b31c24996ca80038911376477323cd391e37eb0e92ee2b87198f6d5d",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 4745,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr2-samples4-canvas.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "657735a2e331f89ccd99a60ca2f8ce381a4ca3216467499bcb3f9468df624f65",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 5201,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-selected-dpr2-samples4.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "abc1a87fe731b3b5ac8871c1d73c2d01f124d851c682ef03516235d45c7afb05",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 5201,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr1-samples1-canvas.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "2e90633f7769ee9b6060c798f8d00dee0cb897ba10dddb9003c3df7f8a39f994",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr1-samples1.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr1-samples4-canvas.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "2e90633f7769ee9b6060c798f8d00dee0cb897ba10dddb9003c3df7f8a39f994",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr1-samples4.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr2-samples1-canvas.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "8a7daa83a815d1b6b10faad1d9a6947068a286781f6e3d70f0b6873d3c5dca2a",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr2-samples1.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr2-samples4-canvas.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "8a7daa83a815d1b6b10faad1d9a6947068a286781f6e3d70f0b6873d3c5dca2a",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-title-only-dpr2-samples4.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": null,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr1-samples1-canvas.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "1dba1b38b996211eed011cea246b74344a78d9339a6fc6f3ba42adfed86e8ef0",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1284,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr1-samples1.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "2bbb3c61c42a26f1bb6a7247c077fb09b2d8a4fadafdad2f0a1055702a1607b4",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1284,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr1-samples4-canvas.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "aec3120f021afe33ab5efc5bd8b0f217d2325b88cc6a18a0b1a4815eb69b7ef2",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1284,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr1-samples4.png",
+      "width": 900,
+      "height": 760,
+      "sha256": "b8eca78a1fad41f475c42f2a4d1bf357b78c45f275ba35f1d85d4d1d122b83bc",
+      "titleBlackPixels": 5547,
+      "redCellGlyphCoveredPixels": 1284,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr2-samples1-canvas.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "72d92cef068116fd586ba7a918e62318318a2aa07db3eccac480e4b951819cce",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 4745,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr2-samples1.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "3295e3ac9d3d4f88645bb7714b5f3d62599b7f42d1366700c361ec84b34b62e3",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 4745,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr2-samples4-canvas.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "d3d4f75525453a938bfbe5d546e6d8d392c43ab712b0283c34defcd1576f62f5",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 4745,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    },
+    {
+      "file": "matrix-unselected-dpr2-samples4.png",
+      "width": 1800,
+      "height": 1520,
+      "sha256": "5cb26b8ac86fa624130966bad48914588e7783b57a23a32ea16492da4eb27dd4",
+      "titleBlackPixels": 22266,
+      "redCellGlyphCoveredPixels": 4745,
+      "individuallyViewed": true,
+      "viewDetail": "original"
+    }
+  ],
+  "pathBases": {
+    "evidence": "Relative to docs/journey; target records are local-only artifacts.",
+    "representativeFiles": "Relative to docs; six image copies are public documentation assets."
+  },
+  "historical34dReview": {
+    "reviewedUtc": "2026-10-23T16:33:42.648501+00:00",
+    "status": "passed-scoped-behavior-and-saved-image-review",
+    "scope": "Focused current learner Matrix browser behavior and independent review of all24unique savedPNG artifacts passed at the recordedsource/fixture/settings. Native production/course pairedacceptance and completeMatrixfeature/finalreleaseacceptance remain separate.",
+    "sourceFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+    "fixture": {
+      "path": "target/course-windows-20261018/matrix-production-pairs/matrix.pb",
+      "bytes": 1746,
+      "sha256": "b44c5b9cec32df2a77de1eaaac607273d2a6950df46740558ca1e3882f462646",
+      "values": [
+        [
+          -2,
+          1.2,
+          5
+        ],
+        [
+          0,
+          1.005,
+          5
+        ]
+      ],
+      "cell": 0.3,
+      "title": "stiffness",
+      "matrixGuid": "6d0aaee0-0430-4000-8000-000000000701",
+      "distantGuardGuid": "6d0aaee0-0430-4000-8000-000000000702",
+      "placement": [
+        -0.3,
+        0.2,
+        -0.4
+      ]
+    },
+    "behavior": {
+      "status": "passed",
+      "cases": 6,
+      "densities": [
+        1,
+        2
+      ],
+      "sampleSequence": [
+        1,
+        4,
+        1
+      ],
+      "elapsedSeconds": 594.58,
+      "peakJobCommitBytes": 1003307008,
+      "asserted": [
+        "Actual min/max/zero cell colors and six -2 glyphstroke probes",
+        "Original Matrix and separate title integer GPU owners",
+        "Selected borders preserve sampled cellinteriors; selectionclear exactpixels",
+        "Hide/Show and unrelatedLines/Edges/Points controls exactrestoration",
+        "Title remains drawn andpickable while Matrixhidden",
+        "Original componentsemantic fields and precise central placement preserved through realSave/Open",
+        "Saved independenttitle source retained; archive pixelrestoration and1/4/1sample exactreturns"
+      ]
+    },
+    "findings": [
+      {
+        "finding": "All displayed original values are legible in representative normalrenders: -2,1.2,5 / blankbluezero,1.005,5. The zero cell emits no numericzero. Selectednormalrenders show yellow boundarylines and the transformgizmo over part ofthe1.2cell.",
+        "scope": "Actual recordedviewport/pose/font/MSAAonly."
+      },
+      {
+        "finding": "The independent black stiffness title is present in actualPNGpixel data for all24images and remains alone when theMatrix ishidden. Metadata bare=true and independentworldplacement match currenttitle policy.",
+        "scope": "No confirmed selection-based title-hiding policy or rendererdefect."
+      },
+      {
+        "finding": "Initial image-tool previews misleadingly appeared to omit title/digits/gizmo. This diagnosis was retracted after directPNGdecoding: all12fullpage/canvaspairs have exactlyzero sceneRGBApixel differences, each24image has titleblackpixels, and each16Matriximage has -2glyphcoverage. Sourcefiles/hashes stayed unchanged.",
+        "scope": "Previewpresentation limitation; no runtimecodechange justified. The rawPNGs and allhashes are retained."
+      }
+    ],
+    "sourceReview": {
+      "selection": "src/shaders/matrix.wgsl matrix_color/fs_main: selectedflag changesedgepen only; samefragment computes originalfillanddigits.",
+      "independentTitle": "Course src/production_matrix.rs::title createsbareWorldPlane text; src/scene_document.rs imports it as independent source and archiveopening restores savedtitle metadata.",
+      "maintainedQuality": "src/engine/performance.rs::drag_tier returns0atrest; wheelhold200ms. TIER_RETRY_MS1000 is tier-retry timing, not an unconditional one-second capture barrier. src/engine/gpu/render.rs stillcalls ink/widget/UI aftertier choice.",
+      "currentDriver": "target/course-windows-20261018/matrix-browser-contract.cjs::settle awaits onlytwoRAFs, not an explicitlyobservedGPUqueuefence. Existing quality-settings.cjs and presentation-probe.cjs awaittwoRAFs thenqueue.onSubmittedWorkDone()."
+    },
+    "stableCapturePrerequisite": "Capture-method limitation and future recommendation, not an additional acceptance gate: this driver awaitedtwoRAFs without anexplicit observedGPUqueuefence. Future captures should reuse existingquality/presentation-probe settling: stop input, confirmrequested samplecount, awaittwoRAFs thenactualdevice.queue.onSubmittedWorkDone(). Original-resolution inspection anddecodedPNGmetrics established the current saved-image result; no rendererchange is justified by misleadingtoolpreviews.",
+    "scenePairComparison": {
+      "pairs": 12,
+      "comparison": "Fullpage and correspondingcanvasRGBA, excluding onlybottom34CSSpixel commanddock",
+      "changedScenePixelsPerPair": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "performedOn": "DecodedoriginalPNGbuffers, no tolerance"
+    },
+    "limits": [
+      "This is a scoped PASS for the six behavioral cases and review of actual savedimages; it does not complete the wholeMatrixfeature or production/course pairedacceptance.",
+      "The driverreuses samples1filenames onthe finalsample-return, so24uniquePNGfiles remain; they are not36distinct sequentialframecaptures. Sixbehaviorcase records stillremain.",
+      "The browsercase doesnotestablish production/course nativeimageparity, arbitrarycamera/occlusion, performance, allMatrixfamilycontrols or entirecoursecompletion.",
+      "Some image-toolpreviews were incomplete despite identicaldecodedscene data; sourcePNGhashes andcorroborating pixelrecords are provided ratherthan aninventedrenderer diagnosis."
+    ],
+    "representatives": [
+      {
+        "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-unselected-dpr1.png",
+        "source": "matrix-unselected-dpr1-samples4.png",
+        "sha256": "3bb21ab9a72189992b1bcc518d07e3ff7a49008ca175fce4c521d31583a530f6",
+        "density": 1,
+        "samples": 4,
+        "state": "unselected",
+        "individuallyViewed": true,
+        "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+      },
+      {
+        "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-selected-dpr1.png",
+        "source": "matrix-selected-dpr1-samples4.png",
+        "sha256": "5dd85d5c5373a554fbb35dac94921ee51a4aedd2fdc642796a2e4d93b9b9e125",
+        "density": 1,
+        "samples": 4,
+        "state": "selected",
+        "individuallyViewed": true,
+        "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+      },
+      {
+        "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-title-only-dpr1.png",
+        "source": "matrix-title-only-dpr1-samples4.png",
+        "sha256": "6ebd672a4387cade7bc10d2d54012d612cd5940a679c29a65f8139e6f70d6634",
+        "density": 1,
+        "samples": 4,
+        "state": "title-only",
+        "individuallyViewed": true,
+        "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+      },
+      {
+        "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-unselected-dpr2.png",
+        "source": "matrix-unselected-dpr2-samples4.png",
+        "sha256": "1354354fb195692f2a23837edb4952e0feb6d6cabd44c128a9b74241b4c7ba84",
+        "density": 2,
+        "samples": 4,
+        "state": "unselected",
+        "individuallyViewed": true,
+        "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+      },
+      {
+        "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-selected-dpr2.png",
+        "source": "matrix-selected-dpr2-samples4.png",
+        "sha256": "17bd2b0c63f0a6acaaad7f2167f29071f970092eb7914161d9b6b19fa9356b13",
+        "density": 2,
+        "samples": 4,
+        "state": "selected",
+        "individuallyViewed": true,
+        "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+      },
+      {
+        "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-title-only-dpr2.png",
+        "source": "matrix-title-only-dpr2-samples4.png",
+        "sha256": "d34ade55b170a2611df65a8c7b32c4cc449f7057bfa05a3a43494232d445803f",
+        "density": 2,
+        "samples": 4,
+        "state": "title-only",
+        "individuallyViewed": true,
+        "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+      }
+    ],
+    "evidence": {
+      "results": "../../target/course-windows-20261018/matrix-browser-current/results.json",
+      "resources": "../../target/course-windows-20261018/matrix-browser-current.resources.json",
+      "fullImageReview": "../../target/course-windows-20261018/matrix-browser-visual-review.json",
+      "driverSha256": "1b7126b9942cfc9870927b1c0bb9446ff6da16e141f9d42a28ccaad4bc2bf29b",
+      "canonicalHelperSha256": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9"
+    },
+    "allImageHashes": {
+      "matrix-selected-dpr1-samples1-canvas.png": "954acdca384eb2b0d4b4838944372d4c465fab666eddb11c2a7491f1f79c2d69",
+      "matrix-selected-dpr1-samples1.png": "198611481d1351aba5d74eea2147df0135b0644b562b88666b70964ddcfb54a8",
+      "matrix-selected-dpr1-samples4-canvas.png": "e191bf01b07be7e738425bf8a1259470bfea0858416cb411f7ae2d87404946ff",
+      "matrix-selected-dpr1-samples4.png": "5dd85d5c5373a554fbb35dac94921ee51a4aedd2fdc642796a2e4d93b9b9e125",
+      "matrix-selected-dpr2-samples1-canvas.png": "4e3d4c6931044ac8a63f8f634bf65c9014a66e4c96b47215c1dcb3d1a7444470",
+      "matrix-selected-dpr2-samples1.png": "4f1a4f78b31c24996ca80038911376477323cd391e37eb0e92ee2b87198f6d5d",
+      "matrix-selected-dpr2-samples4-canvas.png": "309b2c6b85bf27e14b89098518469bdd56e6250ffe9ee105638191671aa5ebab",
+      "matrix-selected-dpr2-samples4.png": "17bd2b0c63f0a6acaaad7f2167f29071f970092eb7914161d9b6b19fa9356b13",
+      "matrix-title-only-dpr1-samples1-canvas.png": "2e90633f7769ee9b6060c798f8d00dee0cb897ba10dddb9003c3df7f8a39f994",
+      "matrix-title-only-dpr1-samples1.png": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+      "matrix-title-only-dpr1-samples4-canvas.png": "86a4be4dea222696480c29db5f0f996acd5a5766229034ea9d565256fa9eb82d",
+      "matrix-title-only-dpr1-samples4.png": "6ebd672a4387cade7bc10d2d54012d612cd5940a679c29a65f8139e6f70d6634",
+      "matrix-title-only-dpr2-samples1-canvas.png": "8a7daa83a815d1b6b10faad1d9a6947068a286781f6e3d70f0b6873d3c5dca2a",
+      "matrix-title-only-dpr2-samples1.png": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+      "matrix-title-only-dpr2-samples4-canvas.png": "86647ee4202141f89a2dc533cbedbf03d443c518ec87368a1fd901c082268e46",
+      "matrix-title-only-dpr2-samples4.png": "d34ade55b170a2611df65a8c7b32c4cc449f7057bfa05a3a43494232d445803f",
+      "matrix-unselected-dpr1-samples1-canvas.png": "1dba1b38b996211eed011cea246b74344a78d9339a6fc6f3ba42adfed86e8ef0",
+      "matrix-unselected-dpr1-samples1.png": "2bbb3c61c42a26f1bb6a7247c077fb09b2d8a4fadafdad2f0a1055702a1607b4",
+      "matrix-unselected-dpr1-samples4-canvas.png": "204f9743f74d7cb4613151b7f6af940c6ebbeb19f8d2f9ee3aaf67334d6ae294",
+      "matrix-unselected-dpr1-samples4.png": "3bb21ab9a72189992b1bcc518d07e3ff7a49008ca175fce4c521d31583a530f6",
+      "matrix-unselected-dpr2-samples1-canvas.png": "72d92cef068116fd586ba7a918e62318318a2aa07db3eccac480e4b951819cce",
+      "matrix-unselected-dpr2-samples1.png": "3295e3ac9d3d4f88645bb7714b5f3d62599b7f42d1366700c361ec84b34b62e3",
+      "matrix-unselected-dpr2-samples4-canvas.png": "a4718ad0a86940f066b569c079f7de235c45861e2cd583e59a243671c51cc161",
+      "matrix-unselected-dpr2-samples4.png": "1354354fb195692f2a23837edb4952e0feb6d6cabd44c128a9b74241b4c7ba84"
+    },
+    "pathBases": {
+      "evidence": "Relative to docs/journey; target records are local-only artifacts.",
+      "representativeFiles": "Relative to docs; six image copies are public documentation assets."
+    },
+    "captureMethodDecision": "Integrator confirmed explicitqueuefencing was not a pre-existing requiredgate. Its absence remains a capture-method limitation andfuture improvement, not a blocker after the previewconcern was disproven."
+  },
+  "captureMethodDecision": "The recorded driver preserves its twoRAF capture method. Explicit queue fencing is neither performed nor claimed; prior raw evidence and all historical figures remain preserved."
+}

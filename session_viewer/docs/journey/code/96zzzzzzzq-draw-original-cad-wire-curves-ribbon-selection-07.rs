@@ -1,0 +1,2 @@
+        self.strokes.set_highlight(&self.device,scene,target)?;
+        let anchor=self.anchor();self.highlight.set_at(&self.device,&self.surfaces.active.0.get_bind_group_layout(1),scene,target,anchor)

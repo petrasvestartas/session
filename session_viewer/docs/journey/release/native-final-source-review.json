@@ -1,0 +1,167 @@
+{
+  "status": "Historical source audit PASS at 64e13; current native acceptance pending",
+  "scope": "Original1059 native proof stays ata45 and bounded source audit at64e13. Current97d includes later hierarchy and TextPlane4x runtime changes; c54-to97d changes only src/text_plane.rs. Final native execution acceptance pending.",
+  "recordedAt": "2026-10-23T14:46:08.639153+00:00",
+  "links": {
+    "state": "../consolidation/current-state.json",
+    "sourceMap": "../production-course-map.json",
+    "pathBase": "Stage/artifact paths are relative to session_viewer. Ignored target evidence is local."
+  },
+  "observedSource": {
+    "sessionHead": "253ec420f35db5e6de28b0b0a820342b1637997f",
+    "rootHead": "a89c5ba7222b4d843aa9d12101e336bb884a1a6f",
+    "note": "Historical heads at the 64e13 audit, not current-source or clean-tree claims; fingerprints identify the compared application source."
+  },
+  "originalFullNativeRun": {
+    "applicationFingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+    "passed": 1059,
+    "failed": 0,
+    "ignored": 0,
+    "elapsedSeconds": 1468.642,
+    "peakJobCommitBytes": 1480597504,
+    "resources": {
+      "path": "target/course-windows-20261018/integrated-full-native-source-freeze.json",
+      "sha256": "50a430ff2a313a5907abf2ed38640d5e22e8f828e7a7c5dde7624d3bb72af205"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/integrated-full-native-source-freeze.log",
+      "sha256": "73c29e219e0db64842cfcca136b6727d436ff954e75b8d5a247ea133ae3699e2",
+      "encoding": "UTF-16LE BOM",
+      "resultLine": 1063
+    }
+  },
+  "comparison": {
+    "frozenStage": "target/course-endpoint-integrated-final",
+    "freshStage": "target/course-endpoint-escape-handoff",
+    "freshApplicationFingerprint": "64e13d5f3f0fdfbbf7a75b7da0c0d47d93dbbd5ae33dc1a81f80f3b59ea86bd9",
+    "canonicalFiles": 713,
+    "unchangedCanonicalFiles": 710,
+    "changedFiles": [
+      "src/browser.rs",
+      "src/panel.rs",
+      "src/current_inventory.json"
+    ],
+    "compiledCodeScope": "a45 to63acaf79 changes browser pagehide disposal ordering;63acaf79 to 64e13d5f adds panel/canvas Escape handoff. Both modules are WASM-only. No additional native runtime/shader/dependency delta found.",
+    "moduleGates": [
+      {
+        "path": "src/lib.rs",
+        "attributeLine": 257,
+        "attribute": "#[cfg(target_arch = \"wasm32\")]",
+        "moduleLine": 258,
+        "module": "mod browser;"
+      },
+      {
+        "path": "src/lib.rs",
+        "attributeLine": 300,
+        "attribute": "#[cfg(target_arch = \"wasm32\")]",
+        "moduleLine": 301,
+        "module": "mod panel;"
+      }
+    ],
+    "status": "Historical bounded comparison; not applicable to current 34d5e443 native runtime",
+    "matchesExpectedModelAtAudit": true
+  },
+  "nativeMetadata": {
+    "file": "src/current_inventory.json",
+    "onlyStructuralDelta": {
+      "record": "viewer/Trunk.toml",
+      "pointer": "/files/2/sha256",
+      "before": "e36cf10ae1b9029bdcaa6b55468bef4dab8a3211db52763dcfc1e7521bebb9f8",
+      "after": "b597b1d06c7d8bbfcdf80a16d71de27bc3aa2f20c10a57742ac58d3cb027742a"
+    },
+    "consumer": "src/source_audit.rs:6 includes current_inventory.json",
+    "externalEntriesVerified": 433,
+    "externalMismatches": 0,
+    "hashPolicy": "All433 viewer/kernel/wood entries match disk: valid UTF-8 uses CRLF-to-LF normalization; invalid UTF-8 stays raw.",
+    "scope": "Historical 64e13 audit: 433 external entries were verified then. This retained result is not a new verification of current 34d5e443."
+  },
+  "physicalStageExceptions": {
+    "cargo": "Frozen Cargo.toml has eight extra diagnostic examples. Removing only that suffix reproduces a45; dependency/non-example tables match.",
+    "examples": [
+      "vector-witness",
+      "cad-witness",
+      "cloud-lod-witness",
+      "canonical-precise-sample",
+      "plane-witness",
+      "glyph-witness",
+      "grid-witness",
+      "sheet-witness"
+    ],
+    "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+    "lockStatus": "Both stages and canonical94-Cargo.lock are byte-identical.",
+    "historicalPpm": "Non-Windows current-grid-physical-{256,512}-2026-10-15.ppm headers change CRLF to LF; pixels match. Windows tests use separate October23 fixtures from viewer cwd; both raw hashes match.",
+    "frozenOnlyFiles": [
+      "assets/course-boxes.pb",
+      "assets/pb/course-boxes.pb",
+      "assets/pb/view_mixed_teapot.pb",
+      "assets/text/README.md"
+    ],
+    "scope": "Exceptions between the recorded a45 and 64e13 materialized stages only."
+  },
+  "reproduction": {
+    "audit": "target/course-windows-20261018/native-final-reuse-boundary.json",
+    "auditSha256": "af1898e9e3c5c8820f0497017675a6bfd23b3bf97676dc5be3b19f97a38057c9",
+    "contents": "Contains 713 recorded hashes, exact diffs, cfg gates, inventory delta and asset exceptions for a45 versus 64e13. Use those frozen identities, not the current final model; canonical Cargo.toml with frozen files reproduces a45.",
+    "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves"
+  },
+  "freshExecution": {
+    "nativeCompile": "pending for final97d",
+    "inventoryTest": {
+      "status": "Native execution pending for final97d;433-entry source preflight separate.",
+      "filter": "inventory_tests::all_declared_current_rust_sources_and_external_dependencies_match"
+    },
+    "optimizedWasm": "source-matching final97d acceptance pending",
+    "browser": "Final97d complete callbacks pending; scoped96y and34d Matrix browser records remain separate.",
+    "fullNativeRun": "Original1059/1059 remains at a45. Final97d full native acceptance pending.",
+    "applicationFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "nativeRuntimeTests": "Matrix native8/8 exact at97d and inspected figures:release/matrix-native-review.json,112.052s/810409984B.96yfocused2/2/full831 remain at recorded hierarchy checkpoint; current final full suite pending.",
+    "lastRecordedOptimizedBuild": {
+      "status": "passed-at-recorded-source",
+      "fingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
+      "resources": "target/course-windows-20261018/final-original-owners-web.resources.json",
+      "elapsedSeconds": 184.718,
+      "peakJobCommitBytes": 1368760320,
+      "scope": "c54 optimized web build; root verified WASM byte-identical to34d (digest prefix9e23a49d,suffix471d1e8a). This does not validate97d TextPlane change."
+    }
+  },
+  "limits": "Historical64e13 reuse audit excludes later hierarchy and97d TextPlane changes. Current inventory hash remains493e57a9; metadata verification does not replace fresh runtime tests. No old native/browser result rebound.",
+  "updatedAt": "2026-10-23T17:02:35.831075+00:00",
+  "currentSource": {
+    "applicationFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "changeIntroducedAt": "96y-address-feature-pixels-to-original-cad-owners",
+    "nativeRuntimeChanges": [
+      "src/hierarchy.rs",
+      "src/tree_panel.rs",
+      "src/layer_properties.rs",
+      "src/text_plane.rs"
+    ],
+    "nativeTestChange": "src/feature_pick_tests.rs",
+    "scope": "Separate original editing targets from complete display membership, plus production pixel-center TextPlane shader interpolation at4x. These native/WASM runtime changes exceed the historical reuse audit.",
+    "acceptance": "Scoped Matrix native8/8 exact at97d; full final native/inventory and optimized/full browser acceptance pending.",
+    "deltaFrom34d": {
+      "fromFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+      "changedLearnerFiles": [
+        "src/current_inventory.json"
+      ],
+      "unchangedLearnerFiles": 712,
+      "externalRecord": "viewer/src/selftest/stroke_witness.rs",
+      "sha256": "493e57a9a0a049e906738bfca8072947d022607c3458c4c0b53b2ed5d8b6ad4b",
+      "preflight": "21reader+5queued gates PASS;433entries",
+      "proof": "../../target/course-windows-20261018/matrix-title-labels-inventory-refresh.json",
+      "priorProof": "../../target/course-windows-20261018/matrix-title-inventory-refresh.json"
+    },
+    "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+    "deltaFromC54": {
+      "fromFingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
+      "toFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+      "changedFiles": [
+        "src/text_plane.rs"
+      ],
+      "unchangedFiles": 712,
+      "scope": "Removed4x-only WGSL per-sample interpolation rewrite; all sample counts include exact production text_plane.wgsl. Four-sample pipeline retained. Native and WASM runtime inputs changed; no new runtime acceptance claimed.",
+      "freeze": "target/course-windows-20261018/matrix-canonical-msaa-fix.json",
+      "stageAll713Match": true
+    }
+  }
+}

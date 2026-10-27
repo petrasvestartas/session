@@ -214,35 +214,22 @@ impl State {
         ))
     }
 
-    /// In View mode the grid lies on the plane points land on, so Front shows the front grid.
-    pub(crate) fn follow_view_grid(&mut self) {
-        if self.features.construction_plane.is_some() {
-            return;
-        }
-
-        let shown = self.facing();
-
-        if self.features.view_grid != Some(shown) {
-            self.gpu
-                .backdrop
-                .set_grid_frame(&self.gpu.ctx, shown.matrix());
-            self.features.view_grid = Some(shown);
-        }
+    /// The displayed world plane changes only with a construction-plane command.
+    pub(crate) fn grid_plane(&self) -> CPlane {
+        self.features.view_grid.unwrap_or(CPlane::Xy)
     }
 
     /// Fix the construction plane, or None to follow the view again; the grid moves onto it and a running draft lands on it.
     pub(crate) fn set_construction_plane(&mut self, plane: Option<CPlane>) {
         self.features.construction_plane = plane;
         coords::set_plane(plane); // typed points are measured in it
-        let shown = plane.unwrap_or(CPlane::Xy);
-        self.gpu
-            .backdrop
-            .set_grid_frame(&self.gpu.ctx, shown.matrix());
-        self.features.view_grid = None; // View mode lays it again next frame
-        self.camera.grid = plane.map(|plane| {
-            let o = plane.origin();
-            [o[0], o[1], o[2]]
-        });
+        let shown = self.facing();
+        if self.grid_plane().matrix64() != shown.matrix64() {
+            self.gpu.backdrop.set_grid_frame(&self.gpu.ctx, shown.matrix64());
+            self.features.view_grid = Some(shown);
+            let o = shown.origin();
+            self.camera.grid = (shown != CPlane::Xy).then_some([o[0], o[1], o[2]]);
+        }
         let facing = self.facing();
 
         if let Some(draft) = self.features.draft.as_mut() {

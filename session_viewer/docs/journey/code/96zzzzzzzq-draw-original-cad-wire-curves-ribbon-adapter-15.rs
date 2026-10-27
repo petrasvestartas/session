@@ -1,0 +1,2 @@
+for lane in [&self.mesh_ink,&self.paths,&self.markers]{lane.finite_frame(&self.device,&tables,&self.targets.depth);}
+        self.strokes.prepare(&self.device,&self.queue,*transform,self.size,self.density,self.opacity.get(),&self.clipping.borrow().buffer,&tables,&self.targets.depth);

@@ -331,6 +331,12 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32, boundary: bool) -> 
         }
     }
 
+    // Points and the grid have no triangle for the exact fallback to test.
+    let source_pixel = floor(axis.at) + fract(pixel);
+    if (ink_primitive(source_pixel, sample) == 0u && ink_depth(source_pixel, sample) > axis.depth + ink_tolerance(axis.depth, 0.0, 0.0)) {
+        return false;
+    }
+
     let plane_visible = ink_visible_plane(fit_at, axis, sample);
     if (plane_visible && !boundary) {
         return true;

@@ -1,0 +1,725 @@
+{
+  "status": "PASS scoped currentfef4 complete originaldefault quality/attachment/device-recovery callback plus individually reviewed5images; no wholefeature closure",
+  "source": {
+    "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "files": 713,
+    "fingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+    "retainedOptimizedBuild": {
+      "path": "target/course-checks/windows-final-two-fixture-isolation-v2/final-two-fixture-build-provenance.json",
+      "sha256": "1f65fdeb19dccba1441e281c46dfd51feb9cf09d46241fe94a4e0596bf852416"
+    },
+    "retainedCurrentNativeIntegration": "release/native-final-two-fixture-integration-review.json",
+    "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+    "recursiveFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+    "preparation": {
+      "path": "target/startup-finite-criteria-preparation/final-quality-preparation/preparation.json",
+      "sha256": "accea5646d08a3ac10e32ab6a793b2afeb4c90f49d510e3c5c7dacba0338a79d"
+    },
+    "unchangedBodies": "Byte-identical callback/fixture mirror redirects only built-in artifactoutput location; complete default export and recursive prerequisites run with originalassertions/cases."
+  },
+  "execution": {
+    "report": {
+      "path": "target/startup-finite-criteria-preparation/final-quality-preparation/final-quality-fef4-v1/report.json",
+      "sha256": "a0b1be69a0e73ce5b3ed21c7a0c74ca154bc81e55b0bb47f27f416b881e5624e"
+    },
+    "resources": {
+      "path": "target/startup-finite-criteria-preparation/final-quality-preparation/final-quality-fef4-v1.resources.json",
+      "sha256": "8a7242a6b59a0e6d01971144e5a4415f46ea207916a3800c64c8bd3b5cabe891"
+    },
+    "log": {
+      "path": "target/startup-finite-criteria-preparation/final-quality-preparation/final-quality-fef4-v1.log",
+      "sha256": "118ad07f498a2b0fb3a3c3c0fcb2aa5b207de4dcf6b7dc1cdab81093c966dc3a"
+    },
+    "result": {
+      "path": "target/startup-finite-criteria-preparation/final-quality-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-quality/result.json",
+      "sha256": "36cf960b9ff3e3a8e9778e26dae76399e7cbc9e181f8d0eed0940206b8631175"
+    },
+    "exitCode": 0,
+    "guardElapsedSeconds": 281.988,
+    "peakJobCommitBytes": 942997504,
+    "memoryCapBytes": 6442450944,
+    "processors": 2,
+    "adapterMetadata": {
+      "status": "PASS read-only NVIDIA DXGI enumeration; GPU device not created",
+      "readOnly": true,
+      "selected": {
+        "index": 0,
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "vendor": 4318,
+        "device": 10208,
+        "luid": "0,86780",
+        "luidHigh": 0,
+        "luidLow": 86780,
+        "dedicatedVideoMemoryBytes": 12577669120,
+        "flags": 0
+      },
+      "adapters": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+          "vendor": 4318,
+          "device": 10208,
+          "luid": "0,86780",
+          "luidHigh": 0,
+          "luidLow": 86780,
+          "dedicatedVideoMemoryBytes": 12577669120,
+          "flags": 0
+        },
+        {
+          "index": 1,
+          "name": "Intel(R) UHD Graphics",
+          "vendor": 32902,
+          "device": 42888,
+          "luid": "0,85866",
+          "luidHigh": 0,
+          "luidLow": 85866,
+          "dedicatedVideoMemoryBytes": 134217728,
+          "flags": 0
+        },
+        {
+          "index": 2,
+          "name": "Microsoft Basic Render Driver",
+          "vendor": 5140,
+          "device": 140,
+          "luid": "0,86727",
+          "luidHigh": 0,
+          "luidLow": 86727,
+          "dedicatedVideoMemoryBytes": 0,
+          "flags": 2
+        }
+      ],
+      "driver": {
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "driverVersion": "32.0.15.9579",
+        "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+        "status": "OK"
+      },
+      "scope": "DXGI enumeration and CIM only; no WebGPU, D3D device, renderer or performance acceptance."
+    },
+    "actualApplicationAdapterDevices": [
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      }
+    ],
+    "chromeArgs": [
+      "--enable-unsafe-webgpu",
+      "--ignore-gpu-blocklist",
+      "--use-gl=angle",
+      "--use-angle=d3d11",
+      "--use-adapter-luid=0,86780",
+      "--enable-dawn-features=d3d_skip_shader_optimizations"
+    ],
+    "browser": "145.0.7632.6",
+    "httpPayloadsBefore": 16,
+    "httpPayloadsAfter": 16
+  },
+  "qualityAndAttachments": [
+    {
+      "density": 1,
+      "automatic": 4,
+      "automaticAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "resizedAttachments": {
+        "samples": 4,
+        "size": [
+          620,
+          420
+        ],
+        "cssSize": [
+          620,
+          420
+        ],
+        "viewport": [
+          620,
+          420
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              620,
+              420,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              620,
+              420,
+              1
+            ]
+          }
+        ]
+      },
+      "restoredAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedFour": true,
+      "otherForcedOne": true,
+      "exactReturns": true,
+      "originalOwner": true,
+      "originalSourceArchive": true,
+      "realResize": true,
+      "repeatedCountAllocations": 0
+    },
+    {
+      "density": 2,
+      "automatic": 1,
+      "automaticAttachments": {
+        "samples": 1,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedAttachments": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "resizedAttachments": {
+        "samples": 1,
+        "size": [
+          1240,
+          840
+        ],
+        "cssSize": [
+          620,
+          420
+        ],
+        "viewport": [
+          620,
+          420
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              1240,
+              840,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              1240,
+              840,
+              1
+            ]
+          }
+        ]
+      },
+      "restoredAttachments": {
+        "samples": 1,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedFour": true,
+      "otherForcedOne": true,
+      "exactReturns": true,
+      "originalOwner": true,
+      "originalSourceArchive": true,
+      "realResize": true,
+      "repeatedCountAllocations": 0
+    }
+  ],
+  "actualDeviceRecovery": {
+    "beforeLoss": {
+      "samples": 4,
+      "size": [
+        960,
+        720
+      ],
+      "cssSize": [
+        480,
+        360
+      ],
+      "viewport": [
+        480,
+        360
+      ],
+      "attachments": [
+        {
+          "label": "scene depth",
+          "count": 4,
+          "format": "depth32float",
+          "size": [
+            960,
+            720,
+            1
+          ]
+        },
+        {
+          "label": "physical triangle addresses",
+          "count": 4,
+          "format": "rg16uint",
+          "size": [
+            960,
+            720,
+            1
+          ]
+        }
+      ]
+    },
+    "reduced": {
+      "samples": 1,
+      "size": [
+        480,
+        360
+      ],
+      "cssSize": [
+        480,
+        360
+      ],
+      "viewport": [
+        480,
+        360
+      ],
+      "attachments": [
+        {
+          "label": "scene depth",
+          "count": 1,
+          "format": "depth32float",
+          "size": [
+            480,
+            360,
+            1
+          ]
+        },
+        {
+          "label": "physical triangle addresses",
+          "count": 1,
+          "format": "rg16uint",
+          "size": [
+            480,
+            360,
+            1
+          ]
+        }
+      ]
+    },
+    "normal": {
+      "samples": 4,
+      "size": [
+        960,
+        720
+      ],
+      "cssSize": [
+        480,
+        360
+      ],
+      "viewport": [
+        480,
+        360
+      ],
+      "attachments": [
+        {
+          "label": "scene depth",
+          "count": 4,
+          "format": "depth32float",
+          "size": [
+            960,
+            720,
+            1
+          ]
+        },
+        {
+          "label": "physical triangle addresses",
+          "count": 4,
+          "format": "rg16uint",
+          "size": [
+            960,
+            720,
+            1
+          ]
+        }
+      ]
+    },
+    "errors": [],
+    "recoveredErrors": [],
+    "normalErrors": [],
+    "urlForcedFour": true,
+    "realDeviceLoss": true,
+    "reducedOverridesForced": true,
+    "ordinaryReloadRestoresFour": true,
+    "unrelatedUrlPreserved": true,
+    "oldLostGpuCalls": 0
+  },
+  "images": [
+    {
+      "source": "target/startup-finite-criteria-preparation/final-quality-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-quality/automatic-dpr1.png",
+      "figure": "journey/release/final-quality-automatic-dpr1.png",
+      "sha256": "f5da22df153ad2fa2fcf6b440373008224a90a2c093067e4665afa6256bc7929",
+      "width": 480,
+      "height": 360,
+      "visualReview": "Root individually reviewed cleanblueplate/redU/graybox at this exactautomatic/forced sample state."
+    },
+    {
+      "source": "target/startup-finite-criteria-preparation/final-quality-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-quality/automatic-dpr2.png",
+      "figure": "journey/release/final-quality-automatic-dpr2.png",
+      "sha256": "bfbf01e57a661ea68bd02c76ecddf78bfe10d08ce1e288ba8d98493dbdbb041e",
+      "width": 960,
+      "height": 720,
+      "visualReview": "Root individually reviewed cleanblueplate/redU/graybox at this exactautomatic/forced sample state."
+    },
+    {
+      "source": "target/startup-finite-criteria-preparation/final-quality-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-quality/forced-four-dpr1.png",
+      "figure": "journey/release/final-quality-forced-four-dpr1.png",
+      "sha256": "f5da22df153ad2fa2fcf6b440373008224a90a2c093067e4665afa6256bc7929",
+      "width": 480,
+      "height": 360,
+      "visualReview": "Root individually reviewed cleanblueplate/redU/graybox at this exactautomatic/forced sample state."
+    },
+    {
+      "source": "target/startup-finite-criteria-preparation/final-quality-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-quality/forced-four-dpr2.png",
+      "figure": "journey/release/final-quality-forced-four-dpr2.png",
+      "sha256": "9420bf48b85092cff9ca03a879f5c455fa8524b8d8ae9d369d2007892eb81dc9",
+      "width": 960,
+      "height": 720,
+      "visualReview": "Root individually reviewed cleanblueplate/redU/graybox at this exactautomatic/forced sample state."
+    },
+    {
+      "source": "target/startup-finite-criteria-preparation/final-quality-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-quality/recovered-forced-four.png",
+      "figure": "journey/release/final-quality-recovered-forced-four.png",
+      "sha256": "90a428adc12d4287bbdc268477e8cf381d4aed738975236b49686c1c7ad39537",
+      "width": 960,
+      "height": 720,
+      "visualReview": "Root individually reviewed expected near-white defaultscene/tinygray ink and intentional recovered-mode lossreason notice."
+    }
+  ],
+  "criticalVisualInterpretation": {
+    "audit": {
+      "path": "target/startup-finite-criteria-preparation/final-quality-preparation/recovery-visual-critical-audit.json",
+      "sha256": "7d19e63a6b42cd4a60083db8e0ffa1b0b4cc6aad5f1ef28fdec28ed82188c8d8"
+    },
+    "recoveryCase": "quality-settings.cjs25 opens NEW480x360CSS/DPR2 context and calls contacts.start ONLY, not contacts.open/OpenReplace/Fit. It does not contain the plate/U/box fixture shown in four previous images.",
+    "initialScene": "browser.run creates drawing_document::new -> Editor::default -> Scene::demo(two~1-unit triangles) with millimeter Camera::default distance3000; nogrid1. Defaultunfittedgeometry is tiny, not a restored plate scene.",
+    "navigation": "Device-loss recovery uses fullwindow.location.replace; new runtime initializes freshdefaultscene. No unsaved-document restoration contract.",
+    "notice": "browser_recovery.adopt intentionally returns old lossreason plus drawingatdevicescale1untilnextreload. browser.rs121 panel.result and585 report retain that notice; newdiagnosticready is independently asserted.",
+    "dimensions": "ContextDPR2 PNG960x720 contains480x360CSS viewport; recoveredcanvas backingimage480x360 at1sample. Ordinaryreload restores960x720 backingimage and4samples.",
+    "observationLimits": "Originalcase waits for diagnosticready but does not store recoveredscene counts/camera/pixel equality or a diagnosticJSONsnapshot. No objectcount, plate preservation, unsaved-document persistence or pixelparity is claimed."
+  },
+  "acceptedComponents": {
+    "startup": "Actual final713 device-loss/owned-frame recovery, reducedmode and ordinaryreload only; existing qualifiedEscape and accepted orderedinput/lifecycle/disposal/idle parts retain their separate originalproof scopes.",
+    "resourceLifetime": "Sameextent attachmentreuse, exact coherent resizepair replacement, source/archive/owner stability under existingquality/resize controls and zero oldlostGPUcalls afteractualdevice loss. Streaming/latestgeneration/deferredload contracts remain separate.",
+    "quality": "Existing namedautomaticDPR1/2,forced1/4/repeatedcounts/invalidvalues/resize-return/MSAAattachment/originalowner controls and realdevice loss pass onactualfinal713."
+  },
+  "remaining": [
+    "Historical656 qualitycheckpoint originalsource-specific defaultcallback remains pending independently.",
+    "Startup,streaming/resource-lifetime and frame/performance feature statuses and literalremainingcriteria stay partial/unchanged. Lifecycle assertions outside this qualitybody retain accepted originalsource scopes; none are reopened or newlyclaimed.",
+    "No hardwareFPS/speedup, universalquality matrix, full714maintained native suite or globalrelease acceptance."
+  ],
+  "countersUnchanged": {
+    "callbacksAccepted": 4,
+    "callbacksPending": 14,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "historicalFixturesAccepted": 1,
+    "historicalFixturesTotal": 4,
+    "releaseGatesDone": 0,
+    "releaseGatesTotal": 5
+  }
+}

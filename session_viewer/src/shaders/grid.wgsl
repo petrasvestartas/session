@@ -66,7 +66,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let world = grid_frame.origin.xyz + wp.x * grid_frame.x.xyz + wp.y * grid_frame.y.xyz + wp.z * grid_frame.z.xyz;
     var o: VsOut;
     // world to clip, relative to the scene origin
-    o.pos = mvp * vec4<f32>(world - line.anchor, 1.0);
+    o.pos = mvp * vec4<f32>(world, 1.0);
     o.color = c;
     return o;
 }

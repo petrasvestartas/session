@@ -1,0 +1,27 @@
+{
+  "status": "ROOT_PERSONALLY_VIEWED_ORIGINAL_AND_APPROVED_SOURCE_BOUND_IMAGE",
+  "reviewer": "/root",
+  "sourceRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\capture.json",
+    "sha256": "ffb998e9fc25c8544d546d01bbec61b6c7ea0a1e3efea26595f8c64b43a8d207"
+  },
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\current-native-floor-output.png",
+      "sha256": "67217e5e18903c9979b15a32c12db8253e21a357517d2699805036c7b5397d76",
+      "width": 1280,
+      "height": 960,
+      "destination": "docs/screenshots/journey/current-native-floor-output.png",
+      "raw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\current-native-floor-output.ppm",
+        "sha256": "d4a751c2e9fc7befe91fba530f1eb5012335c208511eebf6319e9aadc151b346"
+      }
+    }
+  ],
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootPublicationApproval": {
+    "approved": true,
+    "assessment": "Complete floor/legs/arch/margins, bed regions/fasteners readable, long fan triangulation bands removed. Remaining short stacked strokes localized to member crossings/source boundary patches.",
+    "scope": "Approved exact source-bound high-density IMAGE; not zero536coplanar edges, not whole geometry validity (66/153PASS87FAIL), private unpromoted generator; no global artifact-free claim. Every drawn BRep edge remains the maintained exact curve path; no mesh-wire overlay or coarse-tessellation workaround."
+  }
+}

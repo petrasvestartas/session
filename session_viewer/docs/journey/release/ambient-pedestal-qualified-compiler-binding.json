@@ -1,0 +1,59 @@
+{
+  "status": "PASS existing actual completed build; both unique course and production freshly compiled and actual witness-linked",
+  "candidateFingerprint": "5d114c4e187c05f90c293a23a3212cdc0faa26af4c28d2743f93aaadf9c5dbda",
+  "originalBinding": {
+    "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/compiler-source-binding-qualified-v4.json",
+    "sha256": "22fa5918b35924da9d8c67fe6db6eb770fdd7aa9ddf0d5adc17489a4f1e9c75a"
+  },
+  "build": {
+    "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/resources.json",
+    "sha256": "ca590cd05837e40f2aef96ad0cfd535193368865c884024c7aa6dec0a1cdb70c"
+  },
+  "buildLog": {
+    "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/output.log",
+    "sha256": "9977288ad0b8ac8c026339de95bf57dc197710e85a4810b4106d42788992d812"
+  },
+  "metadata": {
+    "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/metadata.json",
+    "sha256": "d04f397d40ce68b8919a8d65be6b5bbe9726f5adba20ca184bde247c36069d3c"
+  },
+  "binary": {
+    "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/ambient-normal-v5-scope3-qualified-v4.exe",
+    "sha256": "38e841a5d111a6d6ae7758086ed9e19d7a66e30710088e189cd262096eb9c8aa"
+  },
+  "actualV5ShaderLiterals": [
+    "source_normal_y",
+    "source_normal_z"
+  ],
+  "artifacts": [
+    {
+      "name": "viewer_journey_ambient_pair_v5_scope3",
+      "manifestPath": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/course-native-frame/Cargo.toml",
+      "sourcePath": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/source/src/lib.rs",
+      "fresh": false,
+      "rlib": {
+        "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/compiler-artifacts-qualified-v4/libviewer_journey_ambient_pair_v5_scope3-31bd8c02d3d92d32.rlib",
+        "sha256": "6ac66cc0e55dd505451ff542c1152e3207f4b625a62aa6924e8382a278effee1"
+      },
+      "depInfo": {
+        "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/compiler-artifacts-qualified-v4/viewer_journey_ambient_pair_v5_scope3-31bd8c02d3d92d32.d",
+        "sha256": "d6b1a8a3c249caea21f4f1226902db0b17ea707b596927185180619cd110b71d"
+      }
+    },
+    {
+      "name": "session_viewer_ambient_pair_v5_scope2",
+      "manifestPath": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v2/maintained/Cargo.toml",
+      "sourcePath": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v2/maintained/src/lib.rs",
+      "fresh": false,
+      "rlib": {
+        "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/compiler-artifacts-qualified-v4/libsession_viewer_ambient_pair_v5_scope2.rlib",
+        "sha256": "8f256d5db2da0eaa8e4e12815ed9abf2000a51abf1bf5ae6f1682296d8fdec94"
+      },
+      "depInfo": {
+        "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/compiler-artifacts-qualified-v4/session_viewer_ambient_pair_v5_scope2.d",
+        "sha256": "c56059505c1f4fd4b9519e8a09ade875773b8d62fe598c0a0d401c1e62e1786c"
+      }
+    }
+  ],
+  "qualification": "Actual verbose witness rustc extern line retained in originalBinding (not rewritten); both exact new rlibs/dep-info and actual linked EXE are retained. No build replay."
+}

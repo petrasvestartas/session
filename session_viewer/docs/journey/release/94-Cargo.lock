@@ -2335,6 +2335,7 @@ name = "session_rust"
 version = "0.1.0"
 dependencies = [
  "bytemuck",
+ "getrandom 0.2.17",
  "inventory",
  "libc",
  "once_cell",

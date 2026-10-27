@@ -1,0 +1,1 @@
+    let adapter = crate::gpu_test_adapter::adapter();

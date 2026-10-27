@@ -1,0 +1,128 @@
+{
+  "status": "PASS canonical53u native compilation and unchanged CPU focus regression; first10 lesson code handoff prepared",
+  "recordedUtc": "2026-10-23T22:18:13.705Z",
+  "change": "Move the identical existing context_key introduction from54a into53u before the layer-focus test uses it. No test assertion or helper implementation change.",
+  "courseBeforeSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+  "courseSha256": "a0e3163a416e2c869fb42408bbedc7578e12f74d97b689238cc486d768bf364f",
+  "affectedRuntimeCheckpoints": [
+    {
+      "id": "53u-layers",
+      "beforeFingerprint": "18eb495695603d7d059dcc4d3bbb18ee8217e8910137dc3837911d6999db6ee5",
+      "afterFingerprint": "b7a52df01af3478a52d009190b83e230d0682b7db35c0cb7cb13c21efe68f2ed",
+      "changed": true,
+      "beforeSignature": "73c445c79c36650eca6e51ab82e2226e6da288ffd19731a3874ce8339402dd4a",
+      "afterSignature": "89b12021376c51f35c1736dcb10a6d0088fb96482903a9eca15298cf2b7fe1ae"
+    },
+    {
+      "id": "54-camera",
+      "beforeFingerprint": "8f097512c7d068f578d26b0c166a8dee7adfbc53bf9c8af71a17608348271e1e",
+      "afterFingerprint": "44344a6f32f768e2eedf411501b4b3dfca56821c207b0b9cf00de3c0fa5b5426",
+      "changed": true,
+      "beforeSignature": "681d664c5cf8ac6046c7601e7d46e2e4454cfecf8c8644cf25f731206932c5ea",
+      "afterSignature": "3360ad7fa7cf586a3a1912006ec047162ff715eb6d2a3138141cba77877f21b7"
+    },
+    {
+      "id": "54aa-view-actions",
+      "beforeFingerprint": "4fb86e884f28a13be6785b4693eb9af9dd70d920b95fd517e2c7b3157a0ff083",
+      "afterFingerprint": "59cdbcaf3fb0f06c460447a9787c64def532c1c5570a3436a45bd435a14e3b04",
+      "changed": true,
+      "beforeSignature": "9e18df5d953f43e480b7f8d1f404885acc4855ba4b672295943f7683e286e7d4",
+      "afterSignature": "7a4c9fe75b51ed0522f393a69271e516d51edd245c9cb8408a73d9a4e498047f"
+    }
+  ],
+  "convergence": "Every file equals original at54a and every later edit is identical; full source reconstruction remains identical thereafter, including final713 and maintained97. No final native1060 or final frame runtime input changes.",
+  "finalSource": {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "files": 713,
+    "fingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "actualStageComparison": "Every source file matches target/course-final-original-owners; prior native1060/frame/material/browser evidence retains its original execution metadata."
+  },
+  "nativeCompiler": {
+    "record": "target/course-windows-20261018/reader-compile-v2/reader-compile-current-v2/042-native.json",
+    "sha256": "c3e2d9800f043d4e221047a5f40e87ced0e362babbda83428e7f6c8d983efafd"
+  },
+  "focusedCpuTest": {
+    "record": "target/course-windows-20261018/reader-compile-v2/reader-v2-53u-focus-20261023T220956702Z.json",
+    "sha256": "71bbe645f0b08b24158f47e2ba32da714df44ea8a6da2e9390712504090c341f",
+    "test": "layer_ui_tests::an_open_command_dock_does_not_steal_layer_editing_focus",
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-23T22:09:57.1610263Z",
+      "executable": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+      "arguments": [
+        "test",
+        "--lib",
+        "--locked",
+        "--offline",
+        "--target",
+        "x86_64-pc-windows-msvc",
+        "-j1",
+        "layer_ui_tests::an_open_command_dock_does_not_steal_layer_editing_focus",
+        "--",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-reader-042-8b45d1ffe7d66a7c",
+      "timeoutSeconds": 1800,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 98.721,
+      "peakJobCommitBytes": 1743515648,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 4340,
+      "descendantsAtCleanup": 1
+    }
+  },
+  "lessonHandoff": {
+    "status": "Two generated checkpoint code/reference pages updated; only two consolidated reader lessons remain prepared for Gemini/Argo ownership handoff",
+    "patch": "docs/journey/release/53u-focus-code-handoff.patch",
+    "sha256": "6b50fc38d7969a714cd4d7f3c01edc6d9a8d13934728aad6e78c6ba2ef07517c",
+    "appliedGeneratedPages": [
+      {
+        "file": "docs/journey/53u-layers.md",
+        "beforeSha256": "14327c06c2c1b7b53d610a62121a0b4d22be2f68949ea19f4a47b2a9af4b31a0",
+        "afterSha256": "0c565318144ec66535149c8e1e8d4b3213655b9db337515daf764b02c47fdab3"
+      },
+      {
+        "file": "docs/journey/54a-selection.md",
+        "beforeSha256": "a45e6b7ef25762f0902980bebcad2b70d85df3fac69cf283243bbcfa64be0d07",
+        "afterSha256": "7750f4d5d84db0f4a7e7497be5ec9ff3e496aff728ce66ba9bf9d087886de18c"
+      }
+    ],
+    "pendingOwnerProposals": [
+      {
+        "file": "docs/journey/consolidation/53-flags.md",
+        "proposal": "target\\course-windows-20261018\\53u-first10-code-handoff\\2-53-flags.md",
+        "beforeSha256": "e588242ab9c95f8ae046b6a8033d8879ec92b3c815661728e45bc2f114cb1c10",
+        "afterSha256": "6f6faedae38cc216f6ed079524f2d04a9245658e38b65e1ad3c4e37388ff1fc9",
+        "svgPreserved": true,
+        "scope": "Only earlier focus helper introduction, removed later duplication and consequent source-heading numbering. Authored introductions and diagrams preserved."
+      },
+      {
+        "file": "docs/journey/consolidation/54-camera.md",
+        "proposal": "target\\course-windows-20261018\\53u-first10-code-handoff\\3-54-camera.md",
+        "beforeSha256": "75eb12d58b54a3862f1509a6278d05a653de4c1aa4b361c7c33a35300de47af4",
+        "afterSha256": "ff8fa0ef0f46ffeed3cdefa953f58f304c9edd65586e58f1408b4c6024ecb883",
+        "svgPreserved": true,
+        "scope": "Only earlier focus helper introduction, removed later duplication and consequent source-heading numbering. Authored introductions and diagrams preserved."
+      }
+    ]
+  },
+  "normalization": "The CRLF proposal is normalized to the existing LF canonical JSON before its reviewed SHA and exact moved-edit semantics are checked.",
+  "authoring": {
+    "status": "passed22/22",
+    "log": "target/course-windows-20261018/53u-prerequisite-authoring-tests-v2.log",
+    "sha256": "70c10d6c3d7db896df23220326dcb062f0000561278960cf3ccd42287a56b85d",
+    "elapsedMilliseconds": 10205.5241
+  },
+  "structure": {
+    "status": "passed1361-307; reference43-351",
+    "log": "target/course-windows-20261018/53u-prerequisite-structure-v2.log",
+    "sha256": "f67d61e2545f41eecc39f4532f95ea95b090ee7f1b9238033cc676d07284d0d2"
+  }
+}

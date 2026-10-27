@@ -1,0 +1,60 @@
+{
+  "status": "PASS four actual new BRep semantics; final full-suite and rendering checks pending",
+  "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "tests": [
+    {
+      "name": "cad_wire_tests::exact_straight_cad_curve_does_not_follow_displaced_mesh_vertices",
+      "log": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-1/output.log",
+        "sha256": "554716538b5ecf565d8976b5543171ff7ed873f9ea49bf0b3501f7d0db50b962"
+      },
+      "resources": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-1/resources.json",
+        "sha256": "52fffd1ca82f084d5d78acfbb5ed4d0fdc89a589e724482f387f8434bed2b462"
+      }
+    },
+    {
+      "name": "cad_wire_tests::exact_curved_cad_anchors_split_at_projected_parameters_and_keep_span_depth",
+      "log": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-2/output.log",
+        "sha256": "0708fe34128852e9c19717c17f7c99c628d791e622f933df6b8df68c99b0cbbc"
+      },
+      "resources": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-2/resources.json",
+        "sha256": "0485d58226616f86aa49c7716628cfffd1f5ffe8ca1a6e0353cf1b6dd9fbd793"
+      }
+    },
+    {
+      "name": "cad_wire_tests::foreign_cad_chain_ends_are_rejected_and_valid_curve_falls_back_without_facing",
+      "log": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-3/output.log",
+        "sha256": "fc5f5e3fdfb4626ff79fec516bc2204b704292c05e09931669ba97887bbbb9bc"
+      },
+      "resources": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-3/resources.json",
+        "sha256": "0f8bd3d5dd11897dc8d3a84fd0c2ff50a8436eb4bad6a159f97ec863912ef48f"
+      }
+    },
+    {
+      "name": "cad_wire_tests::cad_curve_facing_stays_with_flat_triangle_normals",
+      "log": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-4/output.log",
+        "sha256": "a87591b77422f2bcae05d209d38fb42e4f14fbe17f09daeef9eb85f65bc1f8c3"
+      },
+      "resources": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-native-suite-v2-preparation\\focused-4/resources.json",
+        "sha256": "d71245cfe8707bb6da12122e34c87567d6658ea6c76e6dd5cfb76f77c3f1b70a"
+      }
+    }
+  ],
+  "actualCompiledTestInventory": 1068,
+  "binarySha256": "f99415b6b315cbbf7143fd58216021830116389c54e8c53253e67c3db800b577",
+  "kernel": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+  "production": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
+  "correction": "The new test fixture uses Scene::empty; original Scene::default compile failure is retained. All behavioral assertions and renderer code are unchanged.",
+  "all1361SourcePostflight": {
+    "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/source-postflight-v2.json",
+    "sha256": "e08604a6e7c9f4d3654ebdfc70c7c1fa45abbd5c67e43e91114b3934776868f6"
+  },
+  "scope": "Four exact test executions from one actual source-bound compiled EXE; no unfiltered1068 pass or visual parity inferred."
+}

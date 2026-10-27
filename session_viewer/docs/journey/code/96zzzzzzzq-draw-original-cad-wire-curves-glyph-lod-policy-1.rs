@@ -1,0 +1,3 @@
+fn actual_large_cloud_changes_detail_with_the_view_and_reuses_its_original_upload() {
+    let source=Rc::new(crate::cloud::large_example());assert_eq!(source.len(),2_000_064);let mut scene=Scene::demo();scene.clear();scene.insert_cloud(crate::cloud::Prepared::new(source.clone()).unwrap()).unwrap();let mut renderer=renderer(&scene);renderer.set_display_settings(crate::display_settings::Settings{lod:2.,..Default::default()});
+    let mut camera=crate::camera_defaults_tests::top_fixture();camera.aspect=320./240.;camera.projection=crate::camera::Projection::Orthographic;camera.distance=100./std::f64::consts::FRAC_PI_6.tan();

@@ -14,7 +14,7 @@ module.exports = async (page, helpers) => {
     for (const command of ['Layers All', 'View Grid Off', 'View Front', 'View Orthographic', 'Fit', 'Select None']) await helpers.command(page, command);
     const rows = await value('data-tree');
     const first = rows.find(row => row.label === 'Pick first'), locked = rows.find(row => row.label === 'Pick locked');
-    assert(first && locked); assert.equal((await value('data-path-cpu'))[0],2);
+    assert(first && locked); assert.equal((await value('data-path-gpu'))[0],2);
     const click = async point => {
         await page.keyboard.press('Escape');
         const matrix = await value('data-camera-matrix'), box = await canvas.boundingBox();
@@ -27,11 +27,11 @@ module.exports = async (page, helpers) => {
     await click([2.5,.4,.2]); assert.deepEqual(await value('data-selected-ids'),[], 'A locked original cannot be selected through its generated line');
     await click([.5,.4,.2]); assert.deepEqual(await value('data-selected-ids'),first.ids, 'The feature pixel selects the original Element');
     assert(Number(await canvas.getAttribute('data-highlight-bytes'))>0);
-    await helpers.command(page,'Delete'); assert.equal(await value('data-object-count'),1);assert.equal((await value('data-path-cpu'))[0],1);
-    await helpers.command(page,'Undo');assert.equal(await value('data-object-count'),2);assert.equal((await value('data-path-cpu'))[0],2);
+    await helpers.command(page,'Delete'); assert.equal(await value('data-object-count'),1);assert.equal((await value('data-path-gpu'))[0],1);
+    await helpers.command(page,'Undo');assert.equal(await value('data-object-count'),2);assert.equal((await value('data-path-gpu'))[0],2);
     const downloading=page.waitForEvent('download');await helpers.command(page,'Save');const saved=await(await downloading).path();
     await helpers.command(page,'Close');await open(saved);
     await page.waitForFunction(()=>document.querySelector('#status').textContent==='Document replaced. Undo restores the previous document.');
-    assert.equal((await value('data-path-cpu'))[0],2);assert.equal((await value('data-tree')).filter(row=>row.label.startsWith('piece ')).length,2);
+    assert.equal((await value('data-path-gpu'))[0],2);assert.equal((await value('data-tree')).filter(row=>row.label.startsWith('piece ')).length,2);
     console.log(`${helpers.step.id}: actual feature pixels target original CAD owners, enforce locking and regenerate once after archive reopen`);
 };

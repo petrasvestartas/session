@@ -1,0 +1,1 @@
+self.instance_rows=crate::instance_gpu::batch_rows(self.meshes.iter().filter(|mesh|!mesh.printed()).map(

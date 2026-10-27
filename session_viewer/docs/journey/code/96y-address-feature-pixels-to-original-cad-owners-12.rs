@@ -1,0 +1,1 @@
+view.hide(&row.members,on)

@@ -1,0 +1,2529 @@
+# 3.5 · Save, replace and asynchronous transaction results
+
+**Steps:** 11 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
+
+## <a id="checkpoint-29-identity"></a>1. Give each saved object a stable identity
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-fa4d154f" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-fa4d154f" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">27..30 · XFORM &amp; ARCHIVE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">4×4 Affine Placement (p_world = M · p_local), Dual f64/f32 Residency &amp; .pb Round-Trip</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">p_w = M * p_l · ||save(scene) - open|| = 0</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-fa4d154f)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Local f64 Kernel Source + 4×4 Xform M</text>
+  <rect x="44" y="76" width="124" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Kernel Mesh</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="120" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Exact f64 coords</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="106" y="140" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">GUID preserved</text>
+  <line x1="168" y1="124" x2="198" y2="124" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-fa4d154f)"/>
+  <rect x="202" y="76" width="130" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="102" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Placement M</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="120" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">[ R_3x3 | T_3x1 ]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="267" y="140" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Move dx dy dz</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-fa4d154f)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-fa4d154f)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · GPU Model Uniform &amp; Protobuf Snapshot</text>
+  <rect x="414" y="76" width="292" height="48" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">GPU: clip = u_view_proj * u_model * vec4(p,1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Vertex buffer stays immutable in local space</text>
+  <rect x="414" y="134" width="292" height="48" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Save / Open .pb + Ticket(u64) Guard</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">Stale async file reads rejected on cancel</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-fa4d154f)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-fa4d154f)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Placed &amp; Round-Tripped Scene</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="836" y="112" width="54" height="54" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="890" y1="138" x2="942" y2="112" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r-fa4d154f)"/>
+  <rect x="948" y="82" width="64" height="64" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+</svg>
+</div>
+
+### 1. `Cargo.toml`
+
+**Locate this existing block:**
+
+```toml
+prost = "=0.14.4"
+js-sys = "=0.3.105"
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```toml
+prost = "=0.14.4"
+uuid = { version = "=1.26.1", features = ["v4", "js"] }
+js-sys = "=0.3.105"
+```
+
+### 2. `src/scene.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            .ok_or("Object IDs exhausted")?;
+        let id = ObjectId(self.next_id);
+        self.next_id = next;
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(prepared.display),
+```
+
+Replace it with:
+
+```rust
+            .ok_or("Object IDs exhausted")?;
+        let id = ObjectId(self.next_id);
+        self.next_id = next;
+        let mut guid = prepared.geometry.guid().to_owned();
+        while self
+            .objects
+            .iter()
+            .any(|object| object.guid == guid)
+        {
+            guid = uuid::Uuid::new_v4().to_string();
+        }
+        self.objects.push(Object {
+            id,
+            guid,
+            mesh: Rc::new(prepared.display),
+```
+
+**Locate this block:**
+
+```rust
+    pub id: ObjectId,
+    pub mesh: Rc<Mesh>,
+    pub geometry: Rc<session_rust::Mesh>,
+    pub model: session_rust::Xform,
+```
+
+Replace it with:
+
+```rust
+    pub id: ObjectId,
+    pub guid: String,
+    pub mesh: Rc<Mesh>,
+    pub geometry: Rc<session_rust::Mesh>,
+    pub model: session_rust::Xform,
+```
+
+### 3. `src/file_identity_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    editor::{Action, Editor},
+    specimen,
+};
+use std::collections::HashSet;
+
+#[test]
+fn duplicate_imports_keep_distinct_stored_identity_through_history() {
+    let mut editor = Editor::default();
+    let bytes = specimen::bytes();
+    editor
+        .apply(Action::Import(bytes.clone()))
+        .unwrap();
+    editor.apply(Action::Import(bytes)).unwrap();
+    let objects = editor.scene.objects();
+    assert_eq!(objects.len(), 8);
+    let distinct: HashSet<_> = objects
+        .iter()
+        .map(|object| object.guid.as_str())
+        .collect();
+    assert_eq!(distinct.len(), objects.len());
+    assert_eq!(objects[2].guid, objects[2].geometry.guid());
+    assert_eq!(
+        objects[2].geometry.guid(),
+        objects[5].geometry.guid()
+    );
+    assert_eq!(
+        objects[2].source.as_ref().unwrap().guid,
+        objects[5].source.as_ref().unwrap().guid
+    );
+    assert_ne!(objects[2].guid, objects[5].guid);
+    assert!(uuid::Uuid::parse_str(&objects[5].guid).is_ok());
+    let copy = objects[5].clone();
+    editor.apply(Action::SelectNext).unwrap();
+    editor.apply(Action::Delete).unwrap();
+    let current = editor
+        .scene
+        .objects()
+        .iter()
+        .find(|object| object.id == copy.id)
+        .unwrap();
+    assert_eq!(current.guid, copy.guid);
+    editor.apply(Action::Undo).unwrap();
+    editor.apply(Action::Redo).unwrap();
+    let current = editor
+        .scene
+        .objects()
+        .iter()
+        .find(|object| object.id == copy.id)
+        .unwrap();
+    assert_eq!(current.guid, copy.guid);
+    assert_eq!(current.geometry.guid(), copy.geometry.guid());
+}
+```
+
+### 4. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+mod document_tests;
+#[cfg(target_arch = "wasm32")]
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod document_tests;
+#[cfg(test)]
+mod file_identity_tests;
+#[cfg(target_arch = "wasm32")]
+```
+
+## <a id="checkpoint-29a-snapshot"></a>2. Write a snapshot from the editable sources
+
+### 1. `src/document.rs`
+
+**Locate this existing block:**
+
+```rust
+}
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+}
+
+pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
+    let mut objects = proto::Objects::default();
+    let mut children = Vec::new();
+    let mut xforms = Vec::new();
+    for object in scene.objects() {
+        let mut mesh = object.geometry.to_proto();
+        mesh.guid = object.guid.clone();
+        objects.meshes.push(mesh);
+        children.push(proto::TreeNode {
+            name: object.guid.clone(),
+            ..Default::default()
+        });
+        if object.model.m != session_rust::Xform::identity().m {
+            xforms.push(proto::XformEntry {
+                guid: object.guid.clone(),
+                xform: Some(object.model.to_proto()),
+            });
+        }
+    }
+    let message = proto::Session {
+        name: "Viewer document".into(),
+        objects: Some(objects),
+        tree: Some(proto::Tree {
+            root: Some(proto::TreeNode {
+                name: "Objects".into(),
+                children,
+                ..Default::default()
+            }),
+            ..Default::default()
+        }),
+        xforms,
+        ..Default::default()
+    };
+    // Source validation; placements come next.
+    let mut geometry = message.clone();
+    geometry.xforms.clear();
+    validate(&geometry)?;
+    let bytes = message.encode_to_vec();
+    if bytes.len() > MAX_BYTES {
+        return Err("The saved document exceeds 4 MiB");
+    }
+    Ok(bytes)
+}
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+```
+
+### 2. `src/snapshot_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    document,
+    editor::{Action, Editor},
+};
+use prost::Message;
+use session_rust::proto;
+
+#[test]
+fn snapshot_uses_live_local_sources_and_separate_placements() {
+    let mut editor = Editor::default();
+    editor.apply(Action::SelectNext).unwrap();
+    editor.apply(Action::Delete).unwrap();
+    editor.apply(Action::AddBox).unwrap();
+    let object = editor
+        .scene
+        .objects()
+        .last()
+        .unwrap()
+        .clone();
+    let source = object.geometry.to_proto();
+    let message = proto::Session::decode(
+        document::snapshot(&editor.scene)
+            .unwrap()
+            .as_slice(),
+    )
+    .unwrap();
+    let meshes = &message.objects.as_ref().unwrap().meshes;
+    assert_eq!(meshes.len(), 2);
+    let saved = meshes
+        .iter()
+        .find(|mesh| mesh.guid == object.guid)
+        .unwrap();
+    assert_eq!(saved.vertices, source.vertices);
+    assert_eq!(saved.faces, source.faces);
+    assert_eq!(saved.objectcolor, source.objectcolor);
+    assert_eq!(
+        (saved.is_visible, saved.is_locked),
+        (source.is_visible, source.is_locked)
+    );
+    let placement = message
+        .xforms
+        .iter()
+        .find(|entry| entry.guid == object.guid)
+        .unwrap();
+    assert_eq!(
+        placement.xform.as_ref().unwrap().matrix,
+        object.model.m.to_vec()
+    );
+    assert_eq!(
+        message
+            .tree
+            .unwrap()
+            .root
+            .unwrap()
+            .children
+            .len(),
+        meshes.len()
+    );
+    assert_eq!(object.geometry.guid(), source.guid);
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(
+        editor.scene.objects().len(),
+        1,
+        "Saving must not create a history entry"
+    );
+}
+
+#[test]
+fn an_empty_scene_has_no_saveable_mesh_document_yet() {
+    let mut editor = Editor::default();
+    let ids: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|object| object.id)
+        .collect();
+    for id in ids {
+        editor.scene.remove(id);
+    }
+    assert!(document::snapshot(&editor.scene).is_err());
+}
+```
+
+### 3. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+#[cfg(test)]
+mod source_tests;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+#[cfg(test)]
+mod snapshot_tests;
+#[cfg(test)]
+mod source_tests;
+```
+
+## <a id="checkpoint-29b-placements"></a>3. Reopen source geometry with its placement
+
+### 1. `src/placement.rs`
+
+Create the file and type:
+
+```rust
+pub fn valid(matrix: &[f64]) -> bool {
+    matrix.len() == 16
+        && matrix.iter().all(|value| value.is_finite())
+        && [matrix[3], matrix[7], matrix[11], matrix[15]] == [0.0, 0.0, 0.0, 1.0]
+}
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod picking;
+pub mod prepared;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod picking;
+pub mod placement;
+pub mod prepared;
+```
+
+### 3. `src/scene.rs`
+
+**Locate this existing block:**
+
+```rust
+    ) -> Result<(), &'static str> {
+        if !model.m.iter().all(|v| v.is_finite())
+            || [
+                model.m[3],
+                model.m[7],
+                model.m[11],
+                model.m[15],
+            ] != [0.0, 0.0, 0.0, 1.0]
+        {
+            return Err("Placement must be finite and affine");
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    ) -> Result<(), &'static str> {
+        if !crate::placement::valid(&model.m) {
+            return Err("Placement must be finite and affine");
+```
+
+### 4. `src/prepared.rs`
+
+**Locate this existing block:**
+
+```rust
+    pub source: Option<Source>,
+}
+
+impl PreparedMesh {
+    pub fn triangle(
+        points: [[f64; 3]; 3],
+        colour: [f32; 3],
+    ) -> Result<Self, &'static str> {
+        let vertices = points
+            .into_iter()
+            .map(|p| session_rust::Point::new(p[0], p[1], p[2]))
+            .collect();
+        let mut geometry =
+            session_rust::Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2]]);
+        geometry.set_objectcolor(session_rust::Color::new(
+            colour[0], colour[1], colour[2], 1.0,
+        ));
+        Self::new(geometry)
+    }
+
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
+        Self::from_shared(Rc::new(geometry))
+    }
+
+    pub fn from_shared(geometry: Rc<session_rust::Mesh>) -> Result<Self, &'static str> {
+        // The kernel creates a GUID lazily; establish identity before sharing.
+        let _ = geometry.guid();
+        let display = Mesh::from_kernel(&geometry)?;
+        Ok(Self {
+            geometry,
+            display,
+            source: None,
+        })
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    pub source: Option<Source>,
+    pub model: session_rust::Xform,
+}
+
+impl PreparedMesh {
+    pub fn triangle(
+        points: [[f64; 3]; 3],
+        colour: [f32; 3],
+    ) -> Result<Self, &'static str> {
+        let vertices = points
+            .into_iter()
+            .map(|p| session_rust::Point::new(p[0], p[1], p[2]))
+            .collect();
+        let mut geometry =
+            session_rust::Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2]]);
+        geometry.set_objectcolor(session_rust::Color::new(
+            colour[0], colour[1], colour[2], 1.0,
+        ));
+        Self::new(geometry)
+    }
+
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
+        Self::from_shared(Rc::new(geometry))
+    }
+
+    pub fn from_shared(geometry: Rc<session_rust::Mesh>) -> Result<Self, &'static str> {
+        // The kernel creates a GUID lazily; establish identity before sharing.
+        let _ = geometry.guid();
+        let display = Mesh::from_kernel(&geometry)?;
+        Ok(Self {
+            geometry,
+            display,
+            source: None,
+            model: session_rust::Xform::identity(),
+        })
+```
+
+### 5. `src/document.rs`
+
+**Locate this existing block:**
+
+```rust
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.source = Some(Source {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.model = document
+            .xforms
+            .get(mesh.guid())
+            .cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
+        prepared.source = Some(Source {
+```
+
+### 6. `src/scene.rs`
+
+**Locate this existing block:**
+
+```rust
+            geometry: prepared.geometry,
+            model: session_rust::Xform::identity(),
+            source: prepared.source,
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+            geometry: prepared.geometry,
+            model: prepared.model,
+            source: prepared.source,
+```
+
+### 7. `src/document.rs`
+
+**Locate this existing block:**
+
+```rust
+    };
+    // Source validation; placements come next.
+    let mut geometry = message.clone();
+    geometry.xforms.clear();
+    validate(&geometry)?;
+    let bytes = message.encode_to_vec();
+    if bytes.len() > MAX_BYTES {
+        return Err("The saved document exceeds 4 MiB");
+    }
+    Ok(bytes)
+}
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+    let objects = message
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !message.xforms.is_empty()
+        || message.definitions.is_some()
+        || !message.interactions.is_empty()
+    {
+        return Err(
+            "Placements, definitions and interactions arrive in later checkpoints",
+        );
+    }
+    let other = objects.points.len()
+        + objects.lines.len()
+        + objects.planes.len()
+        + objects.bboxes.len()
+        + objects.polylines.len()
+        + objects.pointclouds.len()
+        + objects.nurbscurves.len()
+        + objects.nurbssurfaces.len()
+        + objects.breps.len()
+        + objects.elements.len()
+        + objects.components.len()
+        + objects.sheets.len()
+        + objects.instances.len();
+    if other != 0 || objects.meshes.is_empty() || objects.meshes.len() > 64 {
+        return Err("This checkpoint accepts 1–64 meshes and no other geometry types");
+    }
+    let mut guids = HashSet::new();
+    for mesh in &objects.meshes {
+        if mesh.guid.is_empty() || !guids.insert(mesh.guid.as_str()) {
+            return Err("Every mesh needs a distinct source GUID");
+        }
+        validate_mesh(mesh)?;
+    }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    };
+    validate(&message)?;
+    let bytes = message.encode_to_vec();
+    if bytes.len() > MAX_BYTES {
+        return Err("The saved document exceeds 4 MiB");
+    }
+    Ok(bytes)
+}
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+    let objects = message
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if message.definitions.is_some() || !message.interactions.is_empty() {
+        return Err("Definitions and interactions arrive in later checkpoints");
+    }
+    let other = objects.points.len()
+        + objects.lines.len()
+        + objects.planes.len()
+        + objects.bboxes.len()
+        + objects.polylines.len()
+        + objects.pointclouds.len()
+        + objects.nurbscurves.len()
+        + objects.nurbssurfaces.len()
+        + objects.breps.len()
+        + objects.elements.len()
+        + objects.components.len()
+        + objects.sheets.len()
+        + objects.instances.len();
+    if other != 0 || objects.meshes.is_empty() || objects.meshes.len() > 64 {
+        return Err("This checkpoint accepts 1–64 meshes and no other geometry types");
+    }
+    let mut guids = HashSet::new();
+    for mesh in &objects.meshes {
+        if mesh.guid.is_empty() || !guids.insert(mesh.guid.as_str()) {
+            return Err("Every mesh needs a distinct source GUID");
+        }
+        validate_mesh(mesh)?;
+    }
+    let mut placed = HashSet::new();
+    for entry in &message.xforms {
+        let matrix = &entry
+            .xform
+            .as_ref()
+            .ok_or("Missing placement matrix")?
+            .matrix;
+        if !guids.contains(entry.guid.as_str())
+            || !placed.insert(entry.guid.as_str())
+            || !crate::placement::valid(matrix)
+        {
+            return Err("Invalid mesh placement");
+        }
+    }
+```
+
+### 8. `src/placement_load_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{document, specimen};
+use prost::Message;
+use session_rust::{Xform, proto};
+
+#[test]
+fn malformed_placements_are_rejected_before_construction() {
+    let base = proto::Session::decode(specimen::bytes().as_slice()).unwrap();
+    let guid = base.objects.as_ref().unwrap().meshes[0]
+        .guid
+        .clone();
+    let entry = proto::XformEntry {
+        guid,
+        xform: Some(Xform::identity().to_proto()),
+    };
+    let mut nonfinite = Xform::identity().m.to_vec();
+    nonfinite[0] = f64::NAN;
+    let mut projective = Xform::identity().m.to_vec();
+    projective[3] = 0.5;
+    for matrix in [
+        Vec::new(),
+        vec![0.0; 15],
+        nonfinite,
+        projective,
+    ] {
+        let mut message = base.clone();
+        let mut invalid = entry.clone();
+        invalid.xform.as_mut().unwrap().matrix = matrix;
+        message.xforms = vec![invalid];
+        assert!(document::load(&message.encode_to_vec()).is_err());
+    }
+    let mut missing = entry.clone();
+    missing.xform = None;
+    let mut orphan = entry.clone();
+    orphan.guid = "not-a-mesh".into();
+    for entries in [
+        vec![missing],
+        vec![orphan],
+        vec![entry.clone(), entry.clone()],
+    ] {
+        let mut message = base.clone();
+        message.xforms = entries;
+        assert!(document::load(&message.encode_to_vec()).is_err());
+    }
+}
+```
+
+### 9. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+#[cfg(test)]
+mod placement_tests;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+#[cfg(test)]
+mod placement_load_tests;
+#[cfg(test)]
+mod placement_tests;
+```
+
+## <a id="checkpoint-29c-roundtrip"></a>4. Prove the saved document reopens faithfully
+
+### 1. `src/save_roundtrip_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    document,
+    editor::{Action, Editor},
+    prepared::PreparedMesh,
+    specimen,
+};
+use session_rust::{Mesh, Point, Xform};
+
+#[test]
+fn source_precision_attributes_and_placement_reopen_exactly() {
+    let mut editor = Editor::default();
+    let ids: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|object| object.id)
+        .collect();
+    for id in ids {
+        editor.scene.remove(id);
+    }
+    let x = 100000000.125;
+    let mut source = Mesh::from_vertices_and_faces(
+        vec![
+            Point::new(x, 0.0, 0.0),
+            Point::new(x + 16.0, 0.0, 0.0),
+            Point::new(x, 16.0, 0.0),
+        ],
+        vec![vec![0, 1, 2]],
+    );
+    source.name = "Exact source".into();
+    source.is_visible = false;
+    source.is_locked = true;
+    let id = editor
+        .scene
+        .insert(PreparedMesh::new(source).unwrap())
+        .unwrap();
+    let model = Xform::translation(1.25, -2.5, 3.75);
+    editor
+        .scene
+        .place(id, model.clone())
+        .unwrap();
+    let bytes = document::snapshot(&editor.scene).unwrap();
+    let reopened = document::load(&bytes).unwrap();
+    let mesh = &reopened.meshes[0];
+    assert_eq!(mesh.geometry.vertex_point(0).unwrap()[0], x);
+    assert_eq!(mesh.geometry.name, "Exact source");
+    assert!(!mesh.geometry.is_visible && mesh.geometry.is_locked);
+    assert_eq!(
+        mesh.geometry.guid(),
+        editor.scene.objects()[0].guid
+    );
+    assert_eq!(mesh.model.m, model.m);
+    assert_ne!(x as f32 as f64, x);
+}
+
+#[test]
+fn both_imported_copies_reopen_with_their_stored_identity() {
+    let mut editor = Editor::default();
+    let bytes = specimen::bytes();
+    editor
+        .apply(Action::Import(bytes.clone()))
+        .unwrap();
+    editor.apply(Action::Import(bytes)).unwrap();
+    let saved = document::snapshot(&editor.scene).unwrap();
+    let reopened = document::load(&saved).unwrap();
+    assert_eq!(
+        reopened.meshes.len(),
+        editor.scene.objects().len()
+    );
+    for object in editor.scene.objects() {
+        let prepared = reopened
+            .meshes
+            .iter()
+            .find(|mesh| mesh.geometry.guid() == object.guid)
+            .unwrap();
+        assert_eq!(prepared.model.m, object.model.m);
+        assert_eq!(prepared.geometry.name, object.geometry.name);
+    }
+    assert_eq!(
+        editor.scene.objects()[2].geometry.guid(),
+        editor.scene.objects()[5].geometry.guid()
+    );
+    assert_ne!(
+        editor.scene.objects()[2].guid,
+        editor.scene.objects()[5].guid
+    );
+}
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+#[cfg(test)]
+mod selected_fit_tests;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+#[cfg(test)]
+mod save_roundtrip_tests;
+#[cfg(test)]
+mod selected_fit_tests;
+```
+
+## <a id="checkpoint-29d-save"></a>5. Download the editable document from the command line
+
+### 1. `Cargo.toml`
+
+**Locate this existing block:**
+
+```toml
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions"] }
+console_error_panic_hook = "=0.1.7"
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```toml
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement"] }
+console_error_panic_hook = "=0.1.7"
+```
+
+### 2. `src/file_output.rs`
+
+Create the file and type:
+
+```rust
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub fn download(bytes: &[u8]) -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let body = document.body().ok_or("No document body")?;
+    let anchor: web_sys::HtmlAnchorElement =
+        document.create_element("a")?.dyn_into()?;
+    anchor.set_hidden(true);
+    anchor.set_download("viewer.session");
+    body.append_child(&anchor)?;
+    let parts = js_sys::Array::new();
+    parts.push(&js_sys::Uint8Array::from(bytes));
+    let blob = match web_sys::Blob::new_with_u8_array_sequence(&parts) {
+        Ok(blob) => blob,
+        Err(error) => {
+            anchor.remove();
+            return Err(error);
+        }
+    };
+    let url = match web_sys::Url::create_object_url_with_blob(&blob) {
+        Ok(url) => url,
+        Err(error) => {
+            anchor.remove();
+            return Err(error);
+        }
+    };
+    anchor.set_href(&url);
+    anchor.click();
+    anchor.remove();
+    let cleanup: js_sys::Function = Closure::once_into_js(move || {
+        let _ = web_sys::Url::revoke_object_url(&url);
+    })
+    .unchecked_into();
+    if let Err(error) =
+        window.set_timeout_with_callback_and_timeout_and_arguments_0(&cleanup, 10_000)
+    {
+        let _ = cleanup.call0(&JsValue::NULL);
+        return Err(error);
+    }
+    Ok(())
+}
+```
+
+### 3. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+mod file_input;
+#[cfg(test)]
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod file_input;
+#[cfg(target_arch = "wasm32")]
+mod file_output;
+#[cfg(test)]
+```
+
+### 4. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                    {
+                        input.click();
+                    }
+```
+
+Replace it with:
+
+```rust
+                    {
+                        input.click();
+                    }
+                    None
+                } else if line == "save" {
+                    match crate::document::snapshot(&editor.scene) {
+                        Ok(bytes) => match crate::file_output::download(&bytes) {
+                            Ok(()) => panel.result(&format!(
+                                "Saved editable document ({} bytes)",
+                                bytes.len()
+                            )),
+                            Err(error) => {
+                                panel.result(&format!("Save failed: {error:?}"))
+                            }
+                        },
+                        Err(error) => panel.result(error),
+                    }
+```
+
+**Locate this block:**
+
+```rust
+            "Open",
+            "Example Box",
+            "Example Triangle",
+            "Select Next",
+```
+
+Replace it with:
+
+```rust
+            "Open",
+            "Save",
+            "Example Box",
+            "Example Triangle",
+            "Select Next",
+```
+
+### 5. `index.html`
+
+**Locate this existing block:**
+
+```html
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <input id="open" type="file" accept=".pb" hidden>
+</body>
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```html
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <input id="open" type="file" accept=".pb,.session" hidden>
+</body>
+```
+
+## <a id="checkpoint-30-feedback"></a>6. Report the result that actually committed
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-ee2881c2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-ee2881c2" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">30-TICKETS · ASYNC GUARD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Monotonic LoadTicket(u64) Generation Guard, Cancellation &amp; Error Recovery</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">complete(ticket) accepted iff ticket == active_ticket</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-ee2881c2)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Overlapping Async File Reads</text>
+  <rect x="44" y="78" width="284" height="44" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Ticket #1 (huge_a.pb) — Stale ✗</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Superseded when user picks file B</text>
+  <rect x="44" y="132" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Ticket #2 (part_b.pb) — Active ✓</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">active_ticket == Some(Ticket(2))</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-ee2881c2)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-ee2881c2)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Ticket Gate &amp; Atomic Scene Replace</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">if active_ticket != Some(ticket) { return; }</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="124" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">• Cancel clears active_ticket -&gt; drops late bytes</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="146" text-anchor="middle" font-family="monospace" font-size="9" fill="#dc2626">• Decode error keeps existing scene intact</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="168" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">• Valid decode swaps scene &amp; fits camera</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-ee2881c2)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-ee2881c2)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Race-Free Browser File Workflow</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="114" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#16a34a">Only Ticket #2 Applied ✓</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">Ticket #1 silently ignored</text>
+</svg>
+</div>
+
+### 1. `src/browser.rs`
+
+**Locate this existing block:**
+
+```rust
+            status.set_text_content(Some(message));
+            if message.starts_with("Cannot") {
+                let _ = status.remove_attribute("hidden");
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+            status.set_text_content(Some(message));
+            if message.starts_with("Cannot draw:") {
+                let _ = status.remove_attribute("hidden");
+```
+
+### 2. `src/file_input.rs`
+
+**Locate this existing block:**
+
+```rust
+    if file.size() > crate::document::MAX_BYTES as f64 {
+        super::browser::report("This checkpoint accepts files up to 4 MiB");
+        return;
+    }
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        if request.get() != id {
+            return;
+        }
+        let result = result.and_then(deliver);
+        if let Err(error) = result {
+            super::browser::report(&format!("Cannot read file: {error:?}"));
+        }
+    });
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    if file.size() > crate::document::MAX_BYTES as f64 {
+        failure("This checkpoint accepts files up to 4 MiB");
+        return;
+    }
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        if request.get() != id {
+            return;
+        }
+        let result = result.and_then(deliver);
+        if let Err(error) = result {
+            failure(&format!("Cannot read file: {error:?}"));
+        }
+    });
+}
+
+fn failure(message: &str) {
+    let detail = web_sys::CustomEventInit::new();
+    detail.set_detail(&JsValue::from_str(message));
+    let result =
+        web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
+            .and_then(|event| {
+                web_sys::window()
+                    .ok_or_else(|| JsValue::from_str("No window"))?
+                    .dispatch_event(&event)
+            });
+    if result.is_err() {
+        super::browser::report(message);
+    }
+}
+```
+
+### 3. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+    window.add_event_listener_with_callback(
+        "viewer-file",
+        update.as_ref().unchecked_ref(),
+```
+
+Replace it with:
+
+```rust
+    window.add_event_listener_with_callback(
+        "viewer-file",
+        update.as_ref().unchecked_ref(),
+    )?;
+    window.add_event_listener_with_callback(
+        "viewer-file-error",
+        update.as_ref().unchecked_ref(),
+```
+
+**Locate this block:**
+
+```rust
+                ));
+                return;
+            }
+            if event.type_() == "viewer-file" {
+                report("File imported. Undo removes the entire import.");
+            }
+            if resize(
+                &browser_window,
+                &pointer_canvas,
+```
+
+Replace it with:
+
+```rust
+                ));
+                return;
+            }
+            if resize(
+                &browser_window,
+                &pointer_canvas,
+```
+
+**Locate this block:**
+
+```rust
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected)
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+```
+
+Replace it with:
+
+```rust
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if event.type_() == "viewer-file" {
+                            report("File imported. Undo removes the entire import.");
+                        }
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+```
+
+**Locate this block:**
+
+```rust
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+```
+
+Replace it with:
+
+```rust
+                None
+            } else if event.type_() == "viewer-file-error" {
+                if let Some(message) = event
+                    .dyn_ref::<web_sys::CustomEvent>()
+                    .and_then(|event| event.detail().as_string())
+                {
+                    report(&message);
+                    panel.result(&message);
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+```
+
+### 4. `src/file_input.rs`
+
+**Locate this existing block:**
+
+```rust
+    request.set(id);
+    if file.size() > crate::document::MAX_BYTES as f64 {
+        failure("This checkpoint accepts files up to 4 MiB");
+        return;
+    }
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    request.set(id);
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        if request.get() != id {
+            return;
+        }
+        if file.size() > crate::document::MAX_BYTES as f64 {
+            failure("This checkpoint accepts files up to 4 MiB");
+            return;
+        }
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+```
+
+## <a id="checkpoint-30a-tickets"></a>7. Give a pending read an explicit ticket
+
+### 1. `src/read_gate.rs`
+
+Create the file and type:
+
+```rust
+#[derive(Default)]
+pub struct ReadGate {
+    issued: u64,
+    pending: Option<u64>,
+}
+
+impl ReadGate {
+    pub fn begin(&mut self) -> Result<u64, &'static str> {
+        self.pending = None;
+        let ticket = self
+            .issued
+            .checked_add(1)
+            .ok_or("Read tickets exhausted; reload the viewer")?;
+        self.issued = ticket;
+        self.pending = Some(ticket);
+        Ok(ticket)
+    }
+
+    pub fn pending(&self) -> Option<u64> {
+        self.pending
+    }
+
+    pub fn finish(&mut self, ticket: u64) -> bool {
+        if self.pending != Some(ticket) {
+            return false;
+        }
+        self.pending = None;
+        true
+    }
+
+    pub fn cancel(&mut self) {
+        self.pending = None;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ReadGate;
+
+    #[test]
+    fn stale_and_duplicate_completions_cannot_consume_current_work() {
+        let mut gate = ReadGate::default();
+        let first = gate.begin().unwrap();
+        let second = gate.begin().unwrap();
+        assert!(second > first);
+        assert!(!gate.finish(first));
+        assert_eq!(gate.pending(), Some(second));
+        assert!(gate.finish(second));
+        assert_eq!(gate.pending(), None);
+        assert!(!gate.finish(second));
+    }
+
+    #[test]
+    fn cancellation_revokes_the_pending_ticket() {
+        let mut gate = ReadGate::default();
+        let ticket = gate.begin().unwrap();
+        gate.cancel();
+        assert!(!gate.finish(ticket));
+        assert!(gate.begin().unwrap() > ticket);
+    }
+
+    #[test]
+    fn exhausted_ids_do_not_wrap_or_leave_old_work_pending() {
+        let mut gate = ReadGate {
+            issued: u64::MAX,
+            pending: Some(u64::MAX),
+        };
+        assert!(gate.begin().is_err());
+        assert_eq!(gate.pending(), None);
+    }
+}
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+mod projection_tests;
+pub mod renderer;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod projection_tests;
+pub mod read_gate;
+pub mod renderer;
+```
+
+## <a id="checkpoint-30b-cancel"></a>8. Cancel reads without accepting their late result
+
+### 1. `src/file_input.rs`
+
+**Locate this existing block:**
+
+```rust
+use std::{cell::Cell, rc::Rc};
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        return;
+    };
+    input.set_value("");
+    let id = request.get() + 1;
+    request.set(id);
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        if request.get() != id {
+            return;
+        }
+        if file.size() > crate::document::MAX_BYTES as f64 {
+            failure("This checkpoint accepts files up to 4 MiB");
+            return;
+        }
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        if request.get() != id {
+            return;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+use std::{cell::RefCell, rc::Rc};
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn choose(
+    event: &web_sys::Event,
+    request: Rc<RefCell<crate::read_gate::ReadGate>>,
+) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        return;
+    };
+    input.set_value("");
+    let id = match request.borrow_mut().begin() {
+        Ok(id) => id,
+        Err(error) => {
+            wasm_bindgen_futures::spawn_local(async move {
+                failure(error);
+            });
+            return;
+        }
+    };
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        if request.borrow().pending() != Some(id) {
+            return;
+        }
+        if file.size() > crate::document::MAX_BYTES as f64 {
+            let accepted = request.borrow_mut().finish(id);
+            if accepted {
+                failure("This checkpoint accepts files up to 4 MiB");
+            }
+            return;
+        }
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        let accepted = request.borrow_mut().finish(id);
+        if !accepted {
+            return;
+```
+
+### 2. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    canvas.set_attribute(
+        "data-projection",
+        &format!("{:?}", camera.projection),
+    )
+```
+
+Replace it with:
+
+```rust
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    canvas.set_attribute(
+        "data-object-count",
+        &editor.scene.objects().len().to_string(),
+    )?;
+    canvas.set_attribute(
+        "data-projection",
+        &format!("{:?}", editor.camera.projection),
+    )
+```
+
+**Locate this block:**
+
+```rust
+    Ok(())
+}
+
+fn show_projection(camera: &crate::camera::Camera) -> Result<(), JsValue> {
+    let document = web_sys::window()
+        .and_then(|window| window.document())
+        .ok_or("No document")?;
+```
+
+Replace it with:
+
+```rust
+    Ok(())
+}
+
+fn inspect(editor: &Editor) -> Result<(), JsValue> {
+    let document = web_sys::window()
+        .and_then(|window| window.document())
+        .ok_or("No document")?;
+```
+
+**Locate this block:**
+
+```rust
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if event.type_() == "viewer-file" {
+                            report("File imported. Undo removes the entire import.");
+                        }
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        panel.result(error);
+                    }
+                }
+            }
+            if let Err(error) = show_projection(&editor.camera) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
+                ));
+```
+
+Replace it with:
+
+```rust
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if event.type_() == "viewer-file" {
+                            report("File imported. Undo removes the entire import.");
+                            panel.answer(
+                                "Open",
+                                "File imported. Undo removes the entire import.",
+                            );
+                        }
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        if event.type_() == "viewer-file" {
+                            panel.answer("Open", error);
+                        } else {
+                            panel.result(error);
+                        }
+                    }
+                }
+            }
+            if let Err(error) = inspect(&editor) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
+                ));
+```
+
+**Locate this block:**
+
+```rust
+                    .and_then(|event| event.detail().as_string())
+                {
+                    report(&message);
+                    panel.result(&message);
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+                if line == "open" {
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+```
+
+Replace it with:
+
+```rust
+                    .and_then(|event| event.detail().as_string())
+                {
+                    report(&message);
+                    panel.answer("Open", &message);
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+                if line == "cancel open" {
+                    request.borrow_mut().cancel();
+                    report("Open cancelled.");
+                    panel.result("Open cancelled.");
+                    None
+                } else if line == "open" {
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+```
+
+**Locate this block:**
+
+```rust
+    let browser_window = window.clone();
+    let pointer_canvas = canvas.clone();
+    let mut gesture = Gesture::default();
+    let request = std::rc::Rc::new(std::cell::Cell::new(0));
+    let update =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let shortcut = event
+```
+
+Replace it with:
+
+```rust
+    let browser_window = window.clone();
+    let pointer_canvas = canvas.clone();
+    let mut gesture = Gesture::default();
+    let request = std::rc::Rc::new(std::cell::RefCell::new(
+        crate::read_gate::ReadGate::default(),
+    ));
+    let update =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let shortcut = event
+```
+
+**Locate this block:**
+
+```rust
+        &[
+            "Help",
+            "Open",
+            "Save",
+            "Example Box",
+            "Example Triangle",
+```
+
+Replace it with:
+
+```rust
+        &[
+            "Help",
+            "Open",
+            "Cancel Open",
+            "Save",
+            "Example Box",
+            "Example Triangle",
+```
+
+**Locate this block:**
+
+```rust
+    let mut editor = Editor::default();
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+```
+
+Replace it with:
+
+```rust
+    let mut editor = Editor::default();
+    inspect(&editor)?;
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+```
+
+## <a id="checkpoint-30c-replace"></a>9. Replace a document as one reversible change
+
+### 1. `src/scene.rs`
+
+**Locate this existing block:**
+
+```rust
+    }
+
+    pub fn import(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    }
+
+    pub fn replace(
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
+        self.objects.clear();
+        self.extra = None;
+        self.import(loaded)
+    }
+
+    pub fn import(
+```
+
+### 2. `src/editor.rs`
+
+**Locate this existing block:**
+
+```rust
+    Import(Vec<u8>),
+    AddBox,
+    Translate([f64; 3]),
+    ToggleExtra,
+    SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+    Fit,
+    FitSelected,
+    Projection(crate::camera::Projection),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+        }
+    }
+}
+
+impl Editor {
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+                self.selected = self
+                    .camera
+                    .ray(screen)
+                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
+            }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    Import(Vec<u8>),
+    Replace(Vec<u8>),
+    AddBox,
+    Translate([f64; 3]),
+    ToggleExtra,
+    SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+    Fit,
+    FitSelected,
+    Projection(crate::camera::Projection),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+        }
+    }
+}
+
+impl Editor {
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+                self.selected = self
+                    .camera
+                    .ray(screen)
+                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
+            }
+            Action::Replace(bytes) => {
+                let loaded = crate::document::load(&bytes)?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.replace(loaded)
+                    })?;
+            }
+```
+
+### 3. `src/replace_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    editor::{Action, Editor},
+    specimen,
+};
+use std::rc::Rc;
+
+#[test]
+fn replacement_history_retains_camera_and_distinct_local_identity() {
+    let mut editor = Editor::default();
+    editor.apply(Action::SelectNext).unwrap();
+    let old = editor.scene.objects()[0].clone();
+    editor.camera.distance = 7.0;
+    editor.camera.aspect = 2.0;
+    editor
+        .apply(Action::Replace(specimen::bytes()))
+        .unwrap();
+    let ids: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|object| object.id)
+        .collect();
+    assert_eq!(ids.len(), 3);
+    assert!(!editor.scene.contains(old.id));
+    assert!(editor.selected.is_none());
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert_eq!(editor.scene.objects()[0].id, old.id);
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].geometry,
+        &old.geometry
+    ));
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].mesh,
+        &old.mesh
+    ));
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(
+        editor
+            .scene
+            .objects()
+            .iter()
+            .map(|object| object.id)
+            .collect::<Vec<_>>(),
+        ids
+    );
+    assert_eq!(
+        (editor.camera.distance, editor.camera.aspect),
+        (7.0, 2.0)
+    );
+}
+```
+
+### 4. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+#[cfg(test)]
+mod save_roundtrip_tests;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+#[cfg(test)]
+mod replace_tests;
+#[cfg(test)]
+mod save_roundtrip_tests;
+```
+
+## <a id="checkpoint-30d-bridge"></a>10. Choose append or replace before opening the picker
+
+### 1. `src/file_input.rs`
+
+**Locate this existing block:**
+
+```rust
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn choose(
+    event: &web_sys::Event,
+    request: Rc<RefCell<crate::read_gate::ReadGate>>,
+) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        return;
+    };
+    input.set_value("");
+    let id = match request.borrow_mut().begin() {
+        Ok(id) => id,
+        Err(error) => {
+            wasm_bindgen_futures::spawn_local(async move {
+                failure(error);
+            });
+            return;
+        }
+    };
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        if request.borrow().pending() != Some(id) {
+            return;
+        }
+        if file.size() > crate::document::MAX_BYTES as f64 {
+            let accepted = request.borrow_mut().finish(id);
+            if accepted {
+                failure("This checkpoint accepts files up to 4 MiB");
+            }
+            return;
+        }
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        let accepted = request.borrow_mut().finish(id);
+        if !accepted {
+            return;
+        }
+        let result = result.and_then(deliver);
+        if let Err(error) = result {
+            failure(&format!("Cannot read file: {error:?}"));
+        }
+    });
+}
+
+fn failure(message: &str) {
+    let detail = web_sys::CustomEventInit::new();
+    detail.set_detail(&JsValue::from_str(message));
+    let result =
+        web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
+            .and_then(|event| {
+                web_sys::window()
+                    .ok_or_else(|| JsValue::from_str("No window"))?
+                    .dispatch_event(&event)
+            });
+    if result.is_err() {
+        super::browser::report(message);
+    }
+}
+
+fn deliver(buffer: JsValue) -> Result<(), JsValue> {
+    let detail = web_sys::CustomEventInit::new();
+    detail.set_detail(&js_sys::Uint8Array::new(&buffer));
+    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
+    web_sys::window()
+        .ok_or("No browser window")?
+        .dispatch_event(&event)?;
+    Ok(())
+}
+
+pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
+    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
+    let array = event
+        .detail()
+        .dyn_into::<js_sys::Uint8Array>()
+        .ok()?;
+    if array.length() as usize > crate::document::MAX_BYTES {
+        return None;
+    }
+    Some(array.to_vec())
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+use wasm_bindgen::{JsCast, JsValue};
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    Append,
+    Replace,
+}
+
+pub fn choose(
+    event: &web_sys::Event,
+    request: Rc<RefCell<crate::read_gate::ReadGate>>,
+    mode: Mode,
+) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        request.borrow_mut().cancel();
+        return;
+    };
+    input.set_value("");
+    let Some(id) = request.borrow().pending() else {
+        return;
+    };
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        if request.borrow().pending() != Some(id) {
+            return;
+        }
+        if file.size() > crate::document::MAX_BYTES as f64 {
+            let accepted = request.borrow_mut().finish(id);
+            if accepted {
+                failure("This checkpoint accepts files up to 4 MiB");
+            }
+            return;
+        }
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        let accepted = request.borrow_mut().finish(id);
+        if !accepted {
+            return;
+        }
+        let result = result.and_then(|buffer| deliver(buffer, mode));
+        if let Err(error) = result {
+            failure(&format!("Cannot read file: {error:?}"));
+        }
+    });
+}
+
+fn failure(message: &str) {
+    let detail = web_sys::CustomEventInit::new();
+    detail.set_detail(&JsValue::from_str(message));
+    let result =
+        web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
+            .and_then(|event| {
+                web_sys::window()
+                    .ok_or_else(|| JsValue::from_str("No window"))?
+                    .dispatch_event(&event)
+            });
+    if result.is_err() {
+        super::browser::report(message);
+    }
+}
+
+fn deliver(buffer: JsValue, mode: Mode) -> Result<(), JsValue> {
+    let detail = web_sys::CustomEventInit::new();
+    let payload = js_sys::Array::new();
+    payload.push(&JsValue::from_bool(mode == Mode::Replace));
+    payload.push(&js_sys::Uint8Array::new(&buffer));
+    detail.set_detail(&payload);
+    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
+    web_sys::window()
+        .ok_or("No browser window")?
+        .dispatch_event(&event)?;
+    Ok(())
+}
+
+pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {
+    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
+    let payload = event
+        .detail()
+        .dyn_into::<js_sys::Array>()
+        .ok()?;
+    if payload.length() != 2 {
+        return None;
+    }
+    let replace = payload.get(0).as_bool()?;
+    let array = payload
+        .get(1)
+        .dyn_into::<js_sys::Uint8Array>()
+        .ok()?;
+    if array.length() as usize > crate::document::MAX_BYTES {
+        return None;
+    }
+    Some(if replace {
+        crate::editor::Action::Replace(array.to_vec())
+    } else {
+        crate::editor::Action::Import(array.to_vec())
+    })
+}
+```
+
+### 2. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
+    document
+        .add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback(
+```
+
+Replace it with:
+
+```rust
+    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
+    document
+        .add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
+    document
+        .add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback(
+```
+
+**Locate this block:**
+
+```rust
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+            }
+        });
+    for name in [
+        "pointerdown",
+        "pointermove",
+```
+
+Replace it with:
+
+```rust
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "pointerdown",
+        "pointermove",
+```
+
+**Locate this block:**
+
+```rust
+                None
+            };
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if event.type_() == "viewer-file" {
+                            report("File imported. Undo removes the entire import.");
+                            panel.answer(
+                                "Open",
+                                "File imported. Undo removes the entire import.",
+                            );
+                        }
+                    }
+```
+
+Replace it with:
+
+```rust
+                None
+            };
+            if let Some(action) = action {
+                let replacement = matches!(&action, Action::Replace(_));
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if event.type_() == "viewer-file" {
+                            let message = if replacement {
+                                "Document replaced. Undo restores the previous document."
+                            } else {
+                                "File imported. Undo removes the entire import."
+                            };
+                            report(message);
+                            panel.answer(
+                                if replacement {
+                                    "Open Replace"
+                                } else {
+                                    "Open"
+                                },
+                                message,
+                            );
+                        }
+                    }
+```
+
+**Locate this block:**
+
+```rust
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+                if line == "cancel open" {
+                    request.borrow_mut().cancel();
+                    report("Open cancelled.");
+                    panel.result("Open cancelled.");
+                    None
+                } else if line == "open" {
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+```
+
+Replace it with:
+
+```rust
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::action(&event)
+            } else if let Some(line) = line {
+                if line == "cancel open" {
+                    request.borrow_mut().cancel();
+                    report("Open cancelled.");
+                    panel.result("Open cancelled.");
+                    None
+                } else if line == "open" || line == "open replace" {
+                    let ticket = request.borrow_mut().begin();
+                    if let Err(error) = ticket {
+                        report(error);
+                        panel.result(error);
+                        return;
+                    }
+                    read_mode.set(if line == "open replace" {
+                        crate::file_input::Mode::Replace
+                    } else {
+                        crate::file_input::Mode::Append
+                    });
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+```
+
+**Locate this block:**
+
+```rust
+                }
+            };
+
+            let action = if event.type_() == "change" {
+                crate::file_input::choose(&event, std::rc::Rc::clone(&request));
+                None
+            } else if event.type_() == "viewer-file-error" {
+                if let Some(message) = event
+```
+
+Replace it with:
+
+```rust
+                }
+            };
+
+            let action = if event.type_() == "cancel"
+                && event
+                    .target()
+                    .and_then(|target| {
+                        target
+                            .dyn_into::<web_sys::HtmlInputElement>()
+                            .ok()
+                    })
+                    .is_some_and(|input| input.id() == "open")
+            {
+                request.borrow_mut().cancel();
+                report("Open cancelled.");
+                panel.answer("Open", "Open cancelled.");
+                None
+            } else if event.type_() == "change" {
+                crate::file_input::choose(
+                    &event,
+                    std::rc::Rc::clone(&request),
+                    read_mode.get(),
+                );
+                None
+            } else if event.type_() == "viewer-file-error" {
+                if let Some(message) = event
+```
+
+**Locate this block:**
+
+```rust
+    let request = std::rc::Rc::new(std::cell::RefCell::new(
+        crate::read_gate::ReadGate::default(),
+    ));
+    let update =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let shortcut = event
+                .dyn_ref::<web_sys::KeyboardEvent>()
+                .and_then(|key| panel.shortcut(key));
+```
+
+Replace it with:
+
+```rust
+    let request = std::rc::Rc::new(std::cell::RefCell::new(
+        crate::read_gate::ReadGate::default(),
+    ));
+    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            let shortcut = event
+                .dyn_ref::<web_sys::KeyboardEvent>()
+                .and_then(|key| panel.shortcut(key));
+```
+
+**Locate this block:**
+
+```rust
+            "Open",
+            "Cancel Open",
+            "Save",
+            "Example Box",
+```
+
+Replace it with:
+
+```rust
+            "Open",
+            "Open Replace",
+            "Cancel Open",
+            "Save",
+            "Example Box",
+```
+
+## <a id="checkpoint-30e-recovery"></a>11. Prove recovery at the transaction and display boundaries
+
+### 1. `src/placement.rs`
+
+**Locate this existing block:**
+
+```rust
+    matrix.len() == 16
+        && matrix.iter().all(|value| value.is_finite())
+        && [matrix[3], matrix[7], matrix[11], matrix[15]] == [0.0, 0.0, 0.0, 1.0]
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    matrix.len() == 16
+        && matrix
+            .iter()
+            .all(|value| value.is_finite() && (*value as f32).is_finite())
+        && [matrix[3], matrix[7], matrix[11], matrix[15]] == [0.0, 0.0, 0.0, 1.0]
+```
+
+### 2. `src/scene.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+    use super::*;
+
+    #[test]
+```
+
+Replace it with:
+
+```rust
+    use super::*;
+
+    #[test]
+    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
+        let mut scene = Scene::demo();
+        let before = scene.objects.clone();
+        scene.next_id = u32::MAX - 1;
+        let loaded = crate::document::load(&crate::specimen::bytes()).unwrap();
+        let mut history = crate::history::History::default();
+        assert!(
+            history
+                .try_edit(&mut scene, |scene| scene.replace(loaded))
+                .is_err()
+        );
+        assert_eq!(scene.next_id, u32::MAX);
+        assert_eq!(scene.objects.len(), before.len());
+        for (object, old) in scene.objects.iter().zip(&before) {
+            assert_eq!(object.id, old.id);
+            assert!(Rc::ptr_eq(&object.geometry, &old.geometry));
+            assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
+        }
+        assert!(!history.undo(&mut scene));
+    }
+
+    #[test]
+```
+
+**Locate this block:**
+
+```rust
+        if !crate::placement::valid(&model.m) {
+            return Err("Placement must be finite and affine");
+        }
+        let object = self
+            .objects
+```
+
+Replace it with:
+
+```rust
+        if !crate::placement::valid(&model.m) {
+            return Err("Placement must be finite, affine and fit the display range");
+        }
+        let object = self
+            .objects
+```
+
+### 3. `src/replace_tests.rs`
+
+**Locate this existing block:**
+
+```rust
+    );
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    );
+}
+
+#[test]
+fn refused_replacement_preserves_selection_source_owners_and_redo() {
+    let mut editor = Editor::default();
+    editor.apply(Action::AddBox).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    let selected = editor.selected;
+    let old = editor.scene.objects()[0].clone();
+    assert!(
+        editor
+            .apply(Action::Replace(vec![255]))
+            .is_err()
+    );
+    assert_eq!(editor.selected, selected);
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].geometry,
+        &old.geometry
+    ));
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 3);
+}
+
+#[test]
+fn a_finite_double_matrix_can_exceed_the_current_float_upload() {
+    let mut editor = Editor::default();
+    let id = editor.scene.objects()[0].id;
+    let before = editor.scene.objects()[0].model.m;
+    let mut model = session_rust::Xform::identity();
+    model.m[0] = f64::MAX;
+    assert!(model.m.iter().all(|value| value.is_finite()));
+    assert!(!(model.m[0] as f32).is_finite());
+    assert!(
+        editor
+            .scene
+            .place(id, model.clone())
+            .is_err()
+    );
+    assert_eq!(editor.scene.objects()[0].model.m, before);
+    use prost::Message;
+    let bytes = crate::document::snapshot(&editor.scene).unwrap();
+    let mut message = session_rust::proto::Session::decode(bytes.as_slice()).unwrap();
+    message
+        .xforms
+        .push(session_rust::proto::XformEntry {
+            guid: editor.scene.objects()[0].guid.clone(),
+            xform: Some(model.to_proto()),
+        });
+    assert!(crate::document::load(&message.encode_to_vec()).is_err());
+}
+```
+
+## Build & Run
+
+![Recorded visual output for Lesson 3.5 (30e-recovery)](../../../screenshots/journey/30e-recovery-browser.png)
+
+```sh
+npm --prefix ../session_tests run course -- dependencies 3.5
+cd workspace/journey
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 3.5
+npm --prefix ../session_tests run course -- save 3.5
+```
+
+Continue with [3.6 · Shared GPU geometry and releasable source ownership](../../consolidation/31-settings.md).

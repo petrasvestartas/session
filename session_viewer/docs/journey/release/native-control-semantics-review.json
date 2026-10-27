@@ -1,0 +1,309 @@
+{
+  "status": "PASS:18 inspected native semantic test bodies and their individual successful entries in the current1060-test suite",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "nativeSuite": {
+    "record": "native-97d-integration-review.json",
+    "tests": {
+      "passed": 1060,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "threads": 1
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stdout.log",
+      "sha256": "17df2d8db27d2f76718efdc54fd9025965d659e40bd357ebe14563eafa08d465"
+    },
+    "runResources": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/run.resources.json",
+      "sha256": "2a492d076171c8bb22c9b7a8fd4fa27dd3d6b698814bf49d27411e50c7609ee6",
+      "elapsedSeconds": 1385.144,
+      "peakJobCommitBytes": 1512873984
+    }
+  },
+  "proofs": [
+    {
+      "test": "scene::production_plane_tests::actual_plane_grid_arrows_size_visibility_selection_and_owner_picking",
+      "source": "target/course-final-original-owners/src/production_plane_tests.rs",
+      "sourceSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "normalizedLfSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "line": 98,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "samples1/4; original Plane id16777217; actual grid grey>200 and both colored arrows>20 pixels",
+        "integer GPU pick resolves to original Plane owner; selected frame differs in>100 pixels",
+        "size100?50 narrows grey extent to40?60%, row usage unchanged; size100 restores exact frame",
+        "lines=false produces all-white frame; edges/points=false with lines=true preserves Plane",
+        "opaque lid hides>90% grey grid; colored arrows retain>=80%; source protobuf exact"
+      ],
+      "scopeLimit": "Bounded native orthographic specimen; no covered Plane pick assertion and no browser input proof. Existing80 matched pairs separately establish production/course RGBA equality."
+    },
+    {
+      "test": "scene::production_plane_tests::plane_size_command_is_presentation_only_and_validates_its_argument",
+      "source": "target/course-final-original-owners/src/production_plane_tests.rs",
+      "sourceSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "normalizedLfSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "line": 68,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "View Plane Size250 returns Change::View; selection/history/source protobuf unchanged",
+        "missing,zero,negative,NaN and extra-token arguments rejected"
+      ],
+      "scopeLimit": "Native command semantics, not browser delivery."
+    },
+    {
+      "test": "scene::production_mesh_ink_tests::actual_mesh_edges_use_global_production_pen_aa_selection_and_family_switches",
+      "source": "target/course-final-original-owners/src/production_mesh_ink_tests.rs",
+      "sourceSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "normalizedLfSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "line": 66,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "samples1/4 ?density1/2; global thickness4 yields>100 additional black pixels versus1",
+        "feather4 yields EXACT same ribbon image: production ribbon AA analytic, feather applies to glyphs",
+        "original sparse MeshEdge(11,700) GPU pick; selected highlight yellow",
+        "edges=false removes black even with lines=true; archive/source placement semantics preserved"
+      ],
+      "scopeLimit": "Actual course production-extracted path. Existing matched14 ink pairs complement fixed fixture parity; does not prove arbitrary material or browser controls."
+    },
+    {
+      "test": "renderer::source_pen_tests::actual_surface_and_brep_boundary_widths_use_css_pens",
+      "source": "target/course-final-original-owners/src/source_pen_tests.rs",
+      "sourceSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "normalizedLfSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "line": 44,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "mesh,surface,BRep widths1,7,0,-2 atdensity1/2; seven-CSS-pixel pen wider by>=4*density",
+        "surface/BRep zero defaults to width1; negative defaults across all3; archive unchanged"
+      ],
+      "scopeLimit": "Finite native width contract already tested; no need invent continuous width Cartesian sweep."
+    },
+    {
+      "test": "renderer::source_pen_tests::authored_mesh_pens_retain_sparse_keys_colors_and_flat_face_queries",
+      "source": "target/course-final-original-owners/src/source_pen_tests.rs",
+      "sourceSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "normalizedLfSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "line": 30,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "both projections ?density1/2; sparse face keys17/93; red7px/blue3px source edge spans measured",
+        "coplanar seam and authored zero-width edge have no Edge pick; true edge maps original sparse vertex keys",
+        "source/archive exact after frames; explicit magenta edge override wins without geometry upload"
+      ],
+      "scopeLimit": "Sparse Mesh native controls; not universal CAD material/source browser proof."
+    },
+    {
+      "test": "renderer::source_pen_tests::prepared_pens_survive_unload_and_shared_placement",
+      "source": "target/course-final-original-owners/src/source_pen_tests.rs",
+      "sourceSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "normalizedLfSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "line": 54,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "unload releases original Mesh/Document ownership; numeric prepared pens retain exact pixels/no uploads",
+        "rehydrate archive and pixels exact; shared mirrored/nonuniform placed instances retain geometry sharing",
+        "moving one placement changes frame; returning placement restores exact pixels/archive with no uploads"
+      ],
+      "scopeLimit": "No new independent all-transform matrix is entailed."
+    },
+    {
+      "test": "renderer::source_pen_tests::printed_and_dense_originals_keep_faces_without_decoration",
+      "source": "target/course-final-original-owners/src/source_pen_tests.rs",
+      "sourceSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "normalizedLfSha256": "299bad0ac52791ea35acc59fa6ffc0d910ccccaa1f00ec98865095fd91de8697",
+      "line": 61,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "printed zero-width fill has no decorative ink; Object pick succeeds but physical Face pick deliberately None",
+        ">200000-face dense original retains all triangles, empty decorative edge/pen/dot buffers and actual Object pick"
+      ],
+      "scopeLimit": "Inventing required physical Face picking on printed fills contradicts explicitly tested production contract."
+    },
+    {
+      "test": "renderer::visibility_tests::actual_mixed_families_keep_shared_sources_highlights_queries_and_active_controls",
+      "source": "target/course-final-original-owners/src/ink_visibility_gpu_tests.rs",
+      "sourceSha256": "752c281837f9ac14b7d799916bbc41eb71ed76465f0057ccfc9d4fa2332184ac",
+      "normalizedLfSha256": "752c281837f9ac14b7d799916bbc41eb71ed76465f0057ccfc9d4fa2332184ac",
+      "line": 186,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "orthographic/perspective ?samples1/4: lines/edges/points/vertices off and all-ink off each change actual frame",
+        "original Line,Sheet,Point owner picks follow their flags; both placed MeshEdge picks follow edges flag",
+        "active curve Control(0) remains pickable independently of ordinary family flags",
+        "no geometry/upload/row counters change; reenabling restores EXACT frame",
+        "selected-edge highlight hides with edges; original documents and Rc geometry sharing unchanged"
+      ],
+      "scopeLimit": "This native family-control requirement is satisfied for specified mixed fixture; callbacks remain separately required."
+    },
+    {
+      "test": "finite_visibility_tests::original_lines_headed_chains_and_points_share_actual_color_and_integer_occlusion",
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "normalizedLfSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "line": 16,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "DPR1/2 ?plainLine/headedLine/Point: hidden original loses first pick to solid before color; visible wins",
+        "near camera cut yields no clipped original pick; kept side retains owner",
+        "every differing clipped-vs-explicit-end pixel constrained to actual production cap/filter radius; genuine cap adds pixels; cut stays flat",
+        "original Line Rc identity retained"
+      ],
+      "scopeLimit": "Already tests finite clipping and cap/filter support; not a full independent production parity sweep or CAD-sag tolerance proof."
+    },
+    {
+      "test": "finite_visibility_tests::a_line_on_a_sloping_original_face_keeps_its_full_css_width",
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "normalizedLfSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "line": 44,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "DPR1/2: sloping-surface four-CSS-pixel ribbon red pixel count EXACTLY equals flat count; owner pick retained"
+      ],
+      "scopeLimit": "Native finite centerline visibility already tested."
+    },
+    {
+      "test": "finite_visibility_tests::a_device_limit_retains_physical_color_and_pick_occlusion",
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "normalizedLfSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "line": 54,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "64KiB storage binding limit; expected tile rows96/16; hidden red0/solid pick, visible red>30/ink pick"
+      ],
+      "scopeLimit": "Bounded actual triangle addressing/device limit proof; not all theoretical limits."
+    },
+    {
+      "test": "finite_visibility_tests::translucent_faces_reveal_original_ink_without_giving_it_pick_ownership",
+      "source": "target/course-final-original-owners/src/finite_visibility_tests.rs",
+      "sourceSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "normalizedLfSha256": "d67908d4906f50817045d24f4c539b8e9c8e6e3e2031b4d9592fa1c32d41f0d6",
+      "line": 81,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "DPR1/2 ?plainLine/headedLine/Point with opacity.1: through-glass red>30 while solid retains pick before/after color"
+      ],
+      "scopeLimit": "A requirement that visible through-glass ink necessarily owns pick contradicts explicit contract."
+    },
+    {
+      "test": "clipping_gpu_tests::clipping_all_original_ink_families_preserve_kept_integer_owners_and_release_cut_occluders",
+      "source": "target/course-final-original-owners/src/clipping_gpu_tests.rs",
+      "sourceSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "normalizedLfSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "line": 23,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "plainLine/headedLine/Point atdensity1/2: kept original owner picked,cut side None before color",
+        "clip disable increases actual red coverage; cut solid releases retained ink visibility/picking"
+      ],
+      "scopeLimit": "Exact named native clipping contract accepted; independent arbitrary production clipping sweep unsupported."
+    },
+    {
+      "test": "clipping_gpu_tests::clipping_sheet_centerline_color_and_crop_ids_preserve_original_source_entities",
+      "source": "target/course-final-original-owners/src/clipping_gpu_tests.rs",
+      "sourceSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "normalizedLfSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "line": 32,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "Sheet original entity16777217:kept owner succeeds/cut None; disabling restores cut owner and increases pixels",
+        "Sheet uploads unchanged; exact original source retained"
+      ],
+      "scopeLimit": "Sheet finite native clipping already covered; no browser ingress claim."
+    },
+    {
+      "test": "camera_navigation_tests::zoom_at_matches_current_cursor_anchor_and_preserves_originals",
+      "source": "target/course-final-original-owners/src/camera_navigation_tests.rs",
+      "sourceSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "normalizedLfSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "line": 19,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "meters/mm ?both projections ?DPR1/2/3: distance/target match actual maintained reference within relative1e-10",
+        "original object IDs,protobuf geometry and f64 model matrices unchanged"
+      ],
+      "scopeLimit": "Native reference comparison; existing4 reload browser cases cover latest pose during deferred loading, not historical76d tool callback."
+    },
+    {
+      "test": "camera_navigation_tests::framed_projection_matches_current_clipped_corners_and_mode_guards",
+      "source": "target/course-final-original-owners/src/camera_navigation_tests.rs",
+      "sourceSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "normalizedLfSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "line": 29,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "meters/mm ?aspects.4/1.5/3 ?full/cropped frames ?2targets:distance,target,extent and all16 normalized matrix values match maintained reference",
+        "repeated Perspective mode and Orthographic return preserve pose/frame"
+      ],
+      "scopeLimit": "Native camera requirements satisfied in declared finite domain; no new arbitrary projection grid required."
+    },
+    {
+      "test": "scene::production_vector_tests::production_joined_neighbours_heads_and_degenerate_ends_are_exact",
+      "source": "target/course-final-original-owners/src/production_vector_tests.rs",
+      "sourceSha256": "d317153758ba502929b8a587fe343c3f44d01cd36c5825ee5aee9043bd280e93",
+      "normalizedLfSha256": "d317153758ba502929b8a587fe343c3f44d01cd36c5825ee5aee9043bd280e93",
+      "line": 24,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "duplicate middle point produces exactly2 ribbons and2heads; exact head directions/masks and neighbor indices",
+        "source width3 gives radius-1.5; closed head markers/indices exact; zero-length Line has no heads"
+      ],
+      "scopeLimit": "Native row topology; existing open-arrowed/closed-headless/placed-selected exact pairs provide actual fixed-frame parity."
+    },
+    {
+      "test": "scene::production_mesh_ink_tests::production_brep_pipe_rows_keep_curve_sag_silhouettes_and_rigid_replay_normals",
+      "source": "target/course-final-original-owners/src/production_mesh_ink_tests.rs",
+      "sourceSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "normalizedLfSha256": "141a1de312899f928ce792b06f7e9111e2793628bb362c2582daf5e71b27697a",
+      "line": 26,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "actual curved boundary sag>0; nonpickable silhouettes have negative sag and u32MAX ids",
+        "rigid cached replay versus independent preparation:walks1/replays1; packed normals correct; endpoints within1e-4; sag bits identical; source protobuf exact"
+      ],
+      "scopeLimit": "Addresses native sag/ownership/replay contract, not every possible finite-sag visual tolerance."
+    }
+  ],
+  "complementaryMatchedRecords": [
+    "release/plane-plain-native-review.json",
+    "release/plane-placed-native-review.json",
+    "release/plane-generated-covered-native-review.json",
+    "release/plane-generated-print-native-review.json",
+    "release/plane-original-covered-matrix-native-review.json",
+    "release/ink-family-controls-native-review.json",
+    "release/cad-baseline-native-review.json",
+    "release/reload-grid-browser-review.json"
+  ],
+  "unsupportedCriteriaCorrections": [
+    {
+      "claim": "Plane colored arrows visible above a lid must also win covered integer picks",
+      "actualSource": "production_plane.wgsl:218?237",
+      "sourceSha256": "da61272c559bce5199eb81fe3d7ac6d901f674b387413f4696a45df5c85e2736",
+      "finding": "Color fs_main bypasses ink_visible for over=(color.a>1.5); fs_id ALWAYS checks ink_visible and discards occluded fragments. Visible overlay is explicitly not automatic pick ownership. Native open Plane owner/size/selection/visibility already passes; covered pick remains unasserted, not presumed."
+    },
+    {
+      "claim": "Ribbon feather control must change anti-alias pixels",
+      "finding": "actual_mesh_edges_use_global_production_pen_aa_selection_and_family_switches asserts exact unchanged pixels for feather4; analytic ribbon AA and glyph feather have different contracts."
+    },
+    {
+      "claim": "Printed fill must own physical source Face queries",
+      "finding": "printed_and_dense_originals_keep_faces_without_decoration explicitly requires None for Face but original Object pick succeeds."
+    },
+    {
+      "claim": "Every historical supported Cartesian driver profile is a mandatory new acceptance matrix",
+      "finding": "Existing accepted14 ink/80Plane/32Sheet/etc and named1060 suite assertions cover finite contracts. No fresh60CAD/44joined sweep is inferred from executable capabilities."
+    }
+  ],
+  "remaining": {
+    "native": "Do not repeat the exact named assertions above. Uncovered arbitrary material/lighting/sag/tolerance or production-versus-course clipping parity is not established by this audit; retain only actually declared requirements with a concrete contract.",
+    "browser": [
+      "Complete actual named canonical/source-specific callbacks, including cad-wire, caps, network/freeform and slot/arena where declared.",
+      "Full native success does not execute browser command focus, input delivery, source-specific DOM ownership, saved browser frame review or docs/navigation."
+    ],
+    "featureClosure": "Camera/Plane original three finite requirements close separately in camera-plane-finite-review.json. All other feature statuses require their own actual finite criteria and browser obligations; these18 assertions do not imply arbitrary parity/material/tolerance sweeps."
+  },
+  "execution": "Source/evidence review only; no additional test execution. Existing1060-suite record and bounded matched records retain their own bindings.",
+  "scope": "Native semantics only at97d; exact assertions and fixture limits below. No independent production/course pixel comparison is inferred from aggregate native totals."
+}

@@ -1,0 +1,1 @@
+Some(&mut self.caps.borrow_mut()),Some(&self.instances),Some(&self.strokes)); }

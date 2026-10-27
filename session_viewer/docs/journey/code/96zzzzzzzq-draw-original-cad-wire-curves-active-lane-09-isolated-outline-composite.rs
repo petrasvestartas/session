@@ -1,0 +1,1 @@
+let original=scene.objects()[0].geometry().unwrap().to_proto();let mut r=renderer(&scene);r.set_ink_visibility(crate::ink_ranges::Visibility{edges:false,..Default::default()});let plain=pixels(&r);

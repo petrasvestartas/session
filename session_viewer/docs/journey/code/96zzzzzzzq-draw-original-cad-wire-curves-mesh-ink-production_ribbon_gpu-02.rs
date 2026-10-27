@@ -1,0 +1,7 @@
+            ids: Vec::new(),
+            selected: Vec::new(),
+            highlighted: None,
+            visible: true,edges_visible:true,
+            uploads: 0,
+            uploaded_bytes: 0,
+            anchor: [0.0; 3],

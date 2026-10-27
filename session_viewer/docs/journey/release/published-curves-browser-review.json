@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-25T23:02:12.320Z",
+  "status": "PASS: published high-density curve image loads in existing desktop and phone tutorial layouts",
+  "scope": "Existing76d image and layouts only; full documentation rebuild after entire image queue remains pending.",
+  "checks": [
+    {
+      "name": "desktop",
+      "state": {
+        "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png?v=4aa1f469da97",
+        "natural": [
+          1800,
+          1520
+        ],
+        "rendered": [
+          521.183349609375,
+          440.11669921875
+        ],
+        "viewport": 853,
+        "bodyWidth": 853
+      },
+      "errors": [],
+      "screenshot": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\published-curves-desktop.png"
+    },
+    {
+      "name": "phone",
+      "state": {
+        "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png?v=4aa1f469da97",
+        "natural": [
+          1800,
+          1520
+        ],
+        "rendered": [
+          218.12501525878906,
+          184.20001220703125
+        ],
+        "viewport": 260,
+        "bodyWidth": 260
+      },
+      "errors": [],
+      "screenshot": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\published-curves-phone.png"
+    }
+  ],
+  "rootPersonallyViewedDesktopAndPhone": true,
+  "inspectionNote": "Existing phone drawer transition is awaited before the final screenshot; no Vue, CSS or layout source changed. Reported viewport values are actual CSS dimensions in the existing browser zoom environment."
+}

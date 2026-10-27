@@ -3,7 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {read, json, hash, docs, viewer, filesIn, referenceFiles, reference, write, materialize, referenceAssets} from './model.ts';
 import type {Files} from './model.ts';
-import {runCommand, evidence} from './verify.ts';
+import {runCommand, evidence, nativeTarget} from './verify.ts';
 import {ppm} from './png.ts';
 
 function originalFingerprint(files: Files) {
@@ -18,7 +18,7 @@ export function verifyReference(ids: string[], stored: boolean) {
     const report = path.join(viewer, 'target/course-steps/results.json');
     const previous = fs.existsSync(report) ? json(report) : {};
     const checker = path.join(docs, 'journey/reference_pixels.rs');
-    const executable = path.join(evidence, 'reference-pixels');
+    const executable = path.join(evidence, `reference-pixels${process.platform === 'win32' ? '.exe' : ''}`);
     if (!stored) runCommand('reference-pixels-compile', ['rustc', '--edition', '2024', checker, '-o', executable], viewer);
     for (const id of ids.length ? ids : known) {
         const files = referenceFiles(id);
@@ -51,9 +51,10 @@ export function verifyReference(ids: string[], stored: boolean) {
             run(`pixels-${mode}`, [executable, mode, path.join(target, file), output, ...extra]);
             return {...json(output), sha256: hash(ppm(path.join(target, file)).pixels)};
         };
-        run('build', ['cargo', 'build', '--lib', '--locked', '-j4']);
-        run('tests', ['cargo', 'xtest', '--lib', '--locked', '-j4']);
-        const frame = ['cargo', 'run', '--example', 'course_frame', '--locked', '--target', 'x86_64-unknown-linux-gnu', '-j4'];
+        run('build', ['cargo', 'build', '--lib', '--locked', '-j1']);
+        // The checkpoint's xtest alias is test --target x86_64-unknown-linux-gnu; use this host instead.
+        run('tests', ['cargo', 'test', '--lib', '--locked', '--target', nativeTarget(), '-j1']);
+        const frame = ['cargo', 'run', '--example', 'course_frame', '--locked', '--target', nativeTarget(), '-j1'];
         if (id !== '00') {
             run('frame', frame);
             record.frame = inspect('white', 'lesson.ppm');
@@ -73,7 +74,7 @@ export function verifyReference(ids: string[], stored: boolean) {
         }
         if (id === '37') {
             const ids = path.join(evidence, 'reference-37.ids');
-            run('scene', ['cargo', 'run', '--example', 'selftest', '--locked', '--target', 'x86_64-unknown-linux-gnu', '-j4',
+            run('scene', ['cargo', 'run', '--example', 'selftest', '--locked', '--target', nativeTarget(), '-j1',
                 '--', 'final.ppm', 'assets/view_local.yaml'], {VIEWER_IDS: ids});
             const objects = Object.values(json(ids + '.json')) as {object_id: number}[];
             record.scene = inspect('scene', 'final.ppm', [ids, objects.map(object => object.object_id).join(',')]);

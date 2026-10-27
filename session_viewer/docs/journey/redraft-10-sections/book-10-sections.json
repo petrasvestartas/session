@@ -1,0 +1,2787 @@
+{
+  "chapters": [
+    {
+      "title": "WebGPU Foundations, Shaders, and the Command Dock",
+      "sections": [
+        {
+          "title": "Rust and the first GPU frame",
+          "first": "01-canvas"
+        },
+        {
+          "title": "Browser presentation",
+          "first": "02-clear"
+        },
+        {
+          "title": "Shaders and the command dock",
+          "first": "03-triangle"
+        },
+        {
+          "title": "Commands that change the view",
+          "first": "04-input"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "01-canvas",
+          "title": "Rust and the first GPU frame",
+          "page": "journey/consolidation/01-canvas.md",
+          "steps": [
+            "01-canvas",
+            "01a-gpu"
+          ],
+          "checkpoint": "01a-gpu"
+        },
+        {
+          "id": "02-clear",
+          "title": "Browser presentation",
+          "page": "journey/consolidation/02-clear.md",
+          "steps": [
+            "02-clear"
+          ],
+          "checkpoint": "02-clear"
+        },
+        {
+          "id": "03-triangle",
+          "title": "Shaders and the command dock",
+          "page": "journey/consolidation/03-triangle.md",
+          "steps": [
+            "03-triangle",
+            "03a-fonts",
+            "03a-paint",
+            "03a-panel",
+            "03b-memory",
+            "03b-state",
+            "03c-history",
+            "03ca-typing",
+            "03cb-submit",
+            "03cc-edit",
+            "03cd-vocabulary",
+            "03ce-complete",
+            "03cf-accept",
+            "03cg-keys",
+            "03ch-popup",
+            "03ci-browse",
+            "03cj-prepare",
+            "03ck-rects",
+            "03ck-pointer",
+            "03cl-wheel",
+            "03c-layout",
+            "03co-align",
+            "03cp-options",
+            "03cn-handoff",
+            "03d-input"
+          ],
+          "checkpoint": "03d-input"
+        },
+        {
+          "id": "04-input",
+          "title": "Commands that change the view",
+          "page": "journey/consolidation/04-input.md",
+          "steps": [
+            "04-input"
+          ],
+          "checkpoint": "04-input"
+        }
+      ]
+    },
+    {
+      "title": "3D Meshes, Camera Matrices, Depth, and Ray Picking",
+      "sections": [
+        {
+          "title": "CPU geometry",
+          "first": "05-vertices"
+        },
+        {
+          "title": "Indexed triangles",
+          "first": "06-indices"
+        },
+        {
+          "title": "Shared view settings",
+          "first": "07-uniforms"
+        },
+        {
+          "title": "Moving the camera",
+          "first": "08-camera"
+        },
+        {
+          "title": "View matrices",
+          "first": "09-matrices"
+        },
+        {
+          "title": "Depth and validated meshes",
+          "first": "10-depth"
+        },
+        {
+          "title": "GPU meshes and object identity",
+          "first": "11-scene"
+        },
+        {
+          "title": "Selection and CPU queries",
+          "first": "12-identity"
+        },
+        {
+          "title": "Mouse selection and history",
+          "first": "13-picking"
+        },
+        {
+          "title": "Undo, Redo and viewing rays",
+          "first": "14-history"
+        },
+        {
+          "title": "Nearest-surface picking",
+          "first": "15-perspective"
+        },
+        {
+          "title": "Orbit navigation",
+          "first": "16-orbit"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "05-vertices",
+          "title": "Buffers that describe a shared mesh",
+          "page": "journey/consolidation/05-vertices.md",
+          "steps": [
+            "05-vertices",
+            "06-indices"
+          ],
+          "checkpoint": "06-indices"
+        },
+        {
+          "id": "07-uniforms",
+          "title": "Camera state and the world-to-clip transform",
+          "page": "journey/consolidation/07-uniforms.md",
+          "steps": [
+            "07-uniforms",
+            "08-camera",
+            "09-matrices"
+          ],
+          "checkpoint": "09-matrices"
+        },
+        {
+          "id": "10-depth",
+          "title": "Depth, validated geometry and stable objects",
+          "page": "journey/consolidation/10-depth.md",
+          "steps": [
+            "10-depth",
+            "10a-mesh",
+            "11-scene",
+            "11a-identity"
+          ],
+          "checkpoint": "11a-identity"
+        },
+        {
+          "id": "12-identity",
+          "title": "Selection that agrees with the displayed view",
+          "page": "journey/consolidation/12-identity.md",
+          "steps": [
+            "12-identity",
+            "12a-coordinates",
+            "12b-picking",
+            "13-picking"
+          ],
+          "checkpoint": "13-picking"
+        },
+        {
+          "id": "13a-history",
+          "title": "Document history and perspective rays",
+          "page": "journey/consolidation/13a-history.md",
+          "steps": [
+            "13a-history",
+            "14-history",
+            "14a-perspective",
+            "14b-ray"
+          ],
+          "checkpoint": "14b-ray"
+        },
+        {
+          "id": "15-perspective",
+          "title": "Perspective picking and orbit navigation",
+          "page": "journey/consolidation/15-perspective.md",
+          "steps": [
+            "15-perspective",
+            "16-orbit"
+          ],
+          "checkpoint": "16-orbit"
+        }
+      ]
+    },
+    {
+      "title": "Scene Documents, Transactions, and Browser GPU Lifetime",
+      "sections": [
+        {
+          "title": "Kernel solids",
+          "first": "17-solid"
+        },
+        {
+          "title": "Surface lighting and editor actions",
+          "first": "18-light"
+        },
+        {
+          "title": "Browser input and drawing size",
+          "first": "19-actions"
+        },
+        {
+          "title": "Resize and pointer motion",
+          "first": "20-resize"
+        },
+        {
+          "title": "Captured pointers and wheel units",
+          "first": "21-gestures"
+        },
+        {
+          "title": "Shortcuts and asynchronous files",
+          "first": "22-shortcuts"
+        },
+        {
+          "title": "Opening files and scene bounds",
+          "first": "23-import"
+        },
+        {
+          "title": "Fit and projection changes",
+          "first": "24-fit"
+        },
+        {
+          "title": "Named projections",
+          "first": "25-projection"
+        },
+        {
+          "title": "Object framing and keyboard history",
+          "first": "26-selected"
+        },
+        {
+          "title": "Object placement and transforms",
+          "first": "27-placement"
+        },
+        {
+          "title": "Owned source meshes",
+          "first": "28-record"
+        },
+        {
+          "title": "Stable identity and saving",
+          "first": "29-identity"
+        },
+        {
+          "title": "Transactions and recovery",
+          "first": "30-feedback"
+        },
+        {
+          "title": "Incremental GPU settings",
+          "first": "31-settings"
+        },
+        {
+          "title": "Source ownership and restoration",
+          "first": "32-history"
+        },
+        {
+          "title": "Listener and page lifetime",
+          "first": "33-owner"
+        },
+        {
+          "title": "GPU diagnostics and recovery",
+          "first": "34-fault"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "17-solid",
+          "title": "Kernel geometry and a single editor owner",
+          "page": "journey/consolidation/17-solid.md",
+          "steps": [
+            "17-solid",
+            "18-light",
+            "18a-editor",
+            "18b-actions",
+            "19-actions"
+          ],
+          "checkpoint": "19-actions"
+        },
+        {
+          "id": "19a-viewport",
+          "title": "One drawing size and one captured gesture",
+          "page": "journey/consolidation/19a-viewport.md",
+          "steps": [
+            "19a-viewport",
+            "20-resize",
+            "20a-press",
+            "20b-release",
+            "20c-motion",
+            "21-gestures",
+            "21a-wheel",
+            "22-shortcuts"
+          ],
+          "checkpoint": "22-shortcuts"
+        },
+        {
+          "id": "22a-records",
+          "title": "Validated files, bounds and useful projections",
+          "page": "journey/consolidation/22a-records.md",
+          "steps": [
+            "22a-records",
+            "22b-session",
+            "22c-decode",
+            "22d-import",
+            "22e-file-reader",
+            "23-import",
+            "23a-bounds",
+            "23b-fit-camera",
+            "24-fit",
+            "24a-projection",
+            "24b-projection-actions",
+            "25-projection",
+            "26-selected",
+            "26a-keys"
+          ],
+          "checkpoint": "26a-keys"
+        },
+        {
+          "id": "27-placement",
+          "title": "Local sources, world placement and display caches",
+          "page": "journey/consolidation/27-placement.md",
+          "steps": [
+            "27-placement",
+            "27a-world",
+            "27b-model",
+            "27c-move",
+            "27d-history",
+            "28-record",
+            "28a-imported",
+            "28b-generated",
+            "28c-ownership"
+          ],
+          "checkpoint": "28c-ownership"
+        },
+        {
+          "id": "29-identity",
+          "title": "Save, replace and asynchronous transaction results",
+          "page": "journey/consolidation/29-identity.md",
+          "steps": [
+            "29-identity",
+            "29a-snapshot",
+            "29b-placements",
+            "29c-roundtrip",
+            "29d-save",
+            "30-feedback",
+            "30a-tickets",
+            "30b-cancel",
+            "30c-replace",
+            "30d-bridge",
+            "30e-recovery"
+          ],
+          "checkpoint": "30e-recovery"
+        },
+        {
+          "id": "31-settings",
+          "title": "Shared GPU geometry and releasable source ownership",
+          "page": "journey/consolidation/31-settings.md",
+          "steps": [
+            "31-settings",
+            "31a-geometry",
+            "31b-cache",
+            "31c-incremental",
+            "32-history",
+            "32a-cpu",
+            "32b-gpu",
+            "32c-close",
+            "32d-command",
+            "32e-release",
+            "32f-metadata",
+            "32fa-access",
+            "32fb-boundary",
+            "32fc-version",
+            "32fd-origin",
+            "32fe-location",
+            "32ff-bridge",
+            "32fg-state",
+            "32fh-policy",
+            "32fi-history",
+            "32fj-proof",
+            "32fk-command",
+            "32fl-guards"
+          ],
+          "checkpoint": "32fl-guards"
+        },
+        {
+          "id": "32g-keys",
+          "title": "Restore exact sources and replay the captured edit",
+          "page": "journey/consolidation/32g-keys.md",
+          "steps": [
+            "32g-keys",
+            "32ga-prepare",
+            "32gb-adopt",
+            "32gc-roundtrip",
+            "32gd-rejections",
+            "32ge-stale",
+            "32gf-request",
+            "32gfa-ownership",
+            "32gg-fetch",
+            "32gga-flight",
+            "32ggb-delivery",
+            "32gh-command",
+            "32gha-cancel",
+            "32gi-capture",
+            "32gia-scope",
+            "32gib-move",
+            "32giba-delete",
+            "32gibb-reply",
+            "32gic-owner",
+            "32gica-reply",
+            "32gicb-bridge",
+            "32gid-complete",
+            "32gie-response",
+            "32gif-auto",
+            "32gj-precision",
+            "32gja-failures"
+          ],
+          "checkpoint": "32gja-failures"
+        },
+        {
+          "id": "33-owner",
+          "title": "Browser callbacks with a real lifetime",
+          "page": "journey/consolidation/33-owner.md",
+          "steps": [
+            "33-owner",
+            "33a-runtime",
+            "33b-cache"
+          ],
+          "checkpoint": "33b-cache"
+        },
+        {
+          "id": "34-fault",
+          "title": "First failure and independent diagnostic reports",
+          "page": "journey/consolidation/34-fault.md",
+          "steps": [
+            "34-fault",
+            "34a-stop",
+            "34b-report",
+            "34ba-events",
+            "34c-browser",
+            "34d-download"
+          ],
+          "checkpoint": "34d-download"
+        },
+        {
+          "id": "34e-schema",
+          "title": "Admit useful evidence and bound stored runs",
+          "page": "journey/consolidation/34e-schema.md",
+          "steps": [
+            "34e-schema",
+            "34ea-decode",
+            "34eb-recency",
+            "34ec-proof",
+            "34f-storage",
+            "34fa-retain",
+            "34fb-store",
+            "34fc-retention"
+          ],
+          "checkpoint": "34fc-retention"
+        },
+        {
+          "id": "34g-heartbeat",
+          "title": "Heartbeat suspension and revocable startup",
+          "page": "journey/consolidation/34g-heartbeat.md",
+          "steps": [
+            "34g-heartbeat",
+            "34ga-timer",
+            "34gb-close",
+            "34gba-lifecycle",
+            "34gbb-suspension",
+            "34gbba-browser",
+            "34gbc-authority",
+            "34gbca-startup"
+          ],
+          "checkpoint": "34gbca-startup"
+        },
+        {
+          "id": "34gc-messages",
+          "title": "Measured phases and conservative GPU recovery",
+          "page": "journey/consolidation/34gc-messages.md",
+          "steps": [
+            "34gc-messages",
+            "34gca-errors",
+            "34gd-adapter",
+            "34gda-browser",
+            "34gdb-phases",
+            "34gdc-startup",
+            "34gdd-read",
+            "34gde-measure",
+            "34gdea-import",
+            "34gdf-upload",
+            "34gdg-network",
+            "34gdga-revision",
+            "34ge-owner",
+            "34gea-policy",
+            "34geb-reload"
+          ],
+          "checkpoint": "34geb-reload"
+        }
+      ]
+    },
+    {
+      "title": "Screen-Space Ink, Point Markers, NURBS Curves, and GPU Integer Picking",
+      "sections": [
+        {
+          "title": "Original lines",
+          "first": "35-stroke"
+        },
+        {
+          "title": "Connected paths and arrows",
+          "first": "36-chain"
+        },
+        {
+          "title": "Original points and controls",
+          "first": "37-point"
+        },
+        {
+          "title": "NURBS curves",
+          "first": "38-layout"
+        },
+        {
+          "title": "Visibility and shared ink depth",
+          "first": "39-visible"
+        },
+        {
+          "title": "Mesh color modes",
+          "first": "40-colour"
+        },
+        {
+          "title": "Normals and construction grids",
+          "first": "41-normals"
+        },
+        {
+          "title": "GPU picking",
+          "first": "42-window"
+        },
+        {
+          "title": "Pick request lifetime",
+          "first": "43-ticket"
+        },
+        {
+          "title": "Faces, edges and original controls",
+          "first": "44-topology"
+        },
+        {
+          "title": "Multiple selection",
+          "first": "45-order"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "35-stroke",
+          "title": "Original lines and a screen-space stroke lane",
+          "page": "journey/consolidation/35-stroke.md",
+          "steps": [
+            "35-stroke",
+            "35a-document",
+            "35b-extrude",
+            "35c-lane",
+            "35ca-sync",
+            "35cb-render",
+            "35d-input"
+          ],
+          "checkpoint": "35d-input"
+        },
+        {
+          "id": "36-chain",
+          "title": "Joined paths and headed ends",
+          "page": "journey/consolidation/36-chain.md",
+          "steps": [
+            "36-chain",
+            "36a-links",
+            "36b-join",
+            "36ba-body",
+            "36bb-heads",
+            "36c-lane",
+            "36d-document",
+            "36db-placement",
+            "36da-render",
+            "36e-input"
+          ],
+          "checkpoint": "36e-input"
+        },
+        {
+          "id": "37-point",
+          "title": "Original point markers and curve control identities",
+          "page": "journey/consolidation/37-point.md",
+          "steps": [
+            "37-point",
+            "37a-disc",
+            "37b-lane",
+            "37c-document",
+            "37d-render",
+            "37da-input",
+            "37e-controls"
+          ],
+          "checkpoint": "37e-controls"
+        },
+        {
+          "id": "38-layout",
+          "title": "NURBS source ownership and derived samples",
+          "page": "journey/consolidation/38-layout.md",
+          "steps": [
+            "38-layout",
+            "38a-samples",
+            "38b-source",
+            "38c-controls",
+            "38d-input"
+          ],
+          "checkpoint": "38d-input"
+        },
+        {
+          "id": "39-visible",
+          "title": "One visibility policy and shared surface depth",
+          "page": "journey/consolidation/39-visible.md",
+          "steps": [
+            "39-visible",
+            "39a-depth"
+          ],
+          "checkpoint": "39a-depth"
+        },
+        {
+          "id": "40-colour",
+          "title": "Original mesh colours and large index buffers",
+          "page": "journey/consolidation/40-colour.md",
+          "steps": [
+            "40-colour",
+            "40a-input",
+            "40b-indices"
+          ],
+          "checkpoint": "40b-indices"
+        },
+        {
+          "id": "41-normals",
+          "title": "Normals, placement and a depth-correct construction grid",
+          "page": "journey/consolidation/41-normals.md",
+          "steps": [
+            "41-normals",
+            "41a-placement",
+            "41b-drawing",
+            "41c-view",
+            "41ca-input",
+            "41d-grid",
+            "41e-drawing",
+            "41f-input"
+          ],
+          "checkpoint": "41f-input"
+        },
+        {
+          "id": "42-window",
+          "title": "A bounded integer picking pass",
+          "page": "journey/consolidation/42-window.md",
+          "steps": [
+            "42-window",
+            "42a-id",
+            "42b-ink",
+            "42c-path",
+            "42d-owners",
+            "42e-pass",
+            "42f-mesh",
+            "42g-image",
+            "42h-owner",
+            "42i-copy",
+            "42j-read",
+            "42k-input"
+          ],
+          "checkpoint": "42k-input"
+        },
+        {
+          "id": "43-ticket",
+          "title": "Accept a hit only for its current view",
+          "page": "journey/consolidation/43-ticket.md",
+          "steps": [
+            "43-ticket",
+            "43a-flight",
+            "43b-view"
+          ],
+          "checkpoint": "43b-view"
+        },
+        {
+          "id": "44-topology",
+          "title": "Pick original faces, edges and controls",
+          "page": "journey/consolidation/44-topology.md",
+          "steps": [
+            "44-topology",
+            "44a-tags",
+            "44b-sources",
+            "44c-resolve",
+            "44d-pulling",
+            "44e-pipeline",
+            "44f-metadata",
+            "44g-edge-ink",
+            "44h-mode-gpu",
+            "44i-ink-highlight",
+            "44ia-original-ink",
+            "44j-face-highlight",
+            "44k-selection",
+            "44l-input"
+          ],
+          "checkpoint": "44l-input"
+        },
+        {
+          "id": "45-order",
+          "title": "Ordered multi-selection and atomic edits",
+          "page": "journey/consolidation/45-order.md",
+          "steps": [
+            "45-order",
+            "45a-batch",
+            "45b-membership",
+            "45bb-cycle",
+            "45c-input"
+          ],
+          "checkpoint": "45c-input"
+        }
+      ]
+    },
+    {
+      "title": "Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy",
+      "sections": [
+        {
+          "title": "Active tools and the command panel",
+          "first": "46-tool-panel"
+        },
+        {
+          "title": "Typed commands and browser requests",
+          "first": "47-registry"
+        },
+        {
+          "title": "Construction-plane drawing",
+          "first": "48-coordinates"
+        },
+        {
+          "title": "Object and grid snapping",
+          "first": "49-settings"
+        },
+        {
+          "title": "Transform previews",
+          "first": "50-placements"
+        },
+        {
+          "title": "Move, rotate and scale handles",
+          "first": "51-handles"
+        },
+        {
+          "title": "Nested source trees",
+          "first": "52-tree"
+        },
+        {
+          "title": "Layers and presentation",
+          "first": "53-flags"
+        },
+        {
+          "title": "Free-canvas navigation and direct editing",
+          "first": "54-camera"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "46-tool-panel",
+          "title": "Active tools own their command input",
+          "page": "journey/consolidation/46-tool-panel.md",
+          "steps": [
+            "46-tool-panel"
+          ],
+          "checkpoint": "46-tool-panel"
+        },
+        {
+          "id": "47-registry",
+          "title": "Typed commands and host requests",
+          "page": "journey/consolidation/47-registry.md",
+          "steps": [
+            "47-registry",
+            "47a-actions",
+            "47b-parse",
+            "47c-route"
+          ],
+          "checkpoint": "47c-route"
+        },
+        {
+          "id": "48-coordinates",
+          "title": "Construction-plane drafts and one final commit",
+          "page": "journey/consolidation/48-coordinates.md",
+          "steps": [
+            "48-coordinates",
+            "48a-draft",
+            "48b-preview",
+            "48c-commit",
+            "48d-input"
+          ],
+          "checkpoint": "48d-input"
+        },
+        {
+          "id": "49-settings",
+          "title": "Precise snapping with derived search caches",
+          "page": "journey/consolidation/49-settings.md",
+          "steps": [
+            "49-settings",
+            "49a-math",
+            "49b-sources",
+            "49c-bins",
+            "49d-index",
+            "49e-cache",
+            "49ea-state",
+            "49f-input"
+          ],
+          "checkpoint": "49f-input"
+        },
+        {
+          "id": "50-placements",
+          "title": "Temporary transforms with a fixed baseline",
+          "page": "journey/consolidation/50-placements.md",
+          "steps": [
+            "50-placements",
+            "50a-preview",
+            "50b-display",
+            "50c-move",
+            "50d-ownership"
+          ],
+          "checkpoint": "50d-ownership"
+        },
+        {
+          "id": "51-handles",
+          "title": "Handles, numeric edits and source-part deformation",
+          "page": "journey/consolidation/51-handles.md",
+          "steps": [
+            "51-handles",
+            "51a-rays",
+            "51b-pivot",
+            "51c-hit",
+            "51d-grab",
+            "51e-transform",
+            "51ez-pack-and-sample-local-handle-vertices",
+            "51f-mesh",
+            "51g-layout",
+            "51h-shader",
+            "51i-image",
+            "51j-pipelines",
+            "51k-tile",
+            "51l-upload",
+            "51m-prepare",
+            "51n-draw",
+            "51o-renderer",
+            "51p-part-points",
+            "51q-deform",
+            "51r-part-preview",
+            "51s-edit-owner",
+            "51t-capture",
+            "51u-selection",
+            "51v-press",
+            "51w-release",
+            "51x-number-model",
+            "51y-number-field",
+            "51z-number-submit",
+            "51za-panel",
+            "51zb-presentation",
+            "51zc-pointer",
+            "51zd-interruption",
+            "51ze-ledger",
+            "51zf-handles"
+          ],
+          "checkpoint": "51zf-handles"
+        },
+        {
+          "id": "52-tree",
+          "title": "Nested original sources and exact parent edits",
+          "page": "journey/consolidation/52-tree.md",
+          "steps": [
+            "52-tree",
+            "52a-records",
+            "52b-index",
+            "52c-load",
+            "52d-preview",
+            "52e-edits",
+            "52f-save"
+          ],
+          "checkpoint": "52f-save"
+        },
+        {
+          "id": "52g-rows",
+          "title": "Tree presentation with explicit input ownership",
+          "page": "journey/consolidation/52g-rows.md",
+          "steps": [
+            "52g-rows",
+            "52h-expansion",
+            "52i-panel",
+            "52j-input",
+            "52k-tree"
+          ],
+          "checkpoint": "52k-tree"
+        },
+        {
+          "id": "53-flags",
+          "title": "Layers, visibility and source-preserving properties",
+          "page": "journey/consolidation/53-flags.md",
+          "steps": [
+            "53-flags",
+            "53a-ids",
+            "53b-uniform",
+            "53bb-eligibility",
+            "53c-presentation",
+            "53d-hide-show",
+            "53e-properties",
+            "53f-portable",
+            "53g-branches",
+            "53h-layer-targets",
+            "53i-copy-records",
+            "53j-transfers",
+            "53k-new-rename",
+            "53l-delete-duplicate",
+            "53m-actions",
+            "53n-routing",
+            "53o-palette",
+            "53p-panel-state",
+            "53q-properties-ui",
+            "53r-name",
+            "53s-tree-controls",
+            "53t-input",
+            "53u-layers"
+          ],
+          "checkpoint": "53u-layers"
+        },
+        {
+          "id": "54-camera",
+          "title": "Navigation, delayed picks and direct dragging",
+          "page": "journey/consolidation/54-camera.md",
+          "steps": [
+            "54-camera",
+            "54aa-view-actions",
+            "54a-selection",
+            "54b-finger",
+            "54c-rectangle",
+            "54d-samples",
+            "54e-drag",
+            "54f-drag-state",
+            "54g-drag-actions",
+            "54h-mouse",
+            "54i-touch",
+            "54j-taps",
+            "54k-overlay",
+            "54l-navigation",
+            "54m-pick-release",
+            "54n-cancellation",
+            "54o-frame",
+            "54p-navigation"
+          ],
+          "checkpoint": "54p-navigation"
+        }
+      ]
+    },
+    {
+      "title": "CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds",
+      "sections": [
+        {
+          "title": "Surface controls and trimming",
+          "first": "55-validation"
+        },
+        {
+          "title": "Shared CAD edges",
+          "first": "56-chains"
+        },
+        {
+          "title": "Trimmed curved faces",
+          "first": "57-parameters"
+        },
+        {
+          "title": "Seams and face directions",
+          "first": "58-uses"
+        },
+        {
+          "title": "Solid orientation and bores",
+          "first": "59-orientation"
+        },
+        {
+          "title": "Fonts and text shaping",
+          "first": "60-fonts"
+        },
+        {
+          "title": "Glyph atlases",
+          "first": "61-atlas"
+        },
+        {
+          "title": "Original scene labels",
+          "first": "62-source"
+        },
+        {
+          "title": "Screen-space outlines",
+          "first": "63-radius"
+        },
+        {
+          "title": "Point clouds and detail levels",
+          "first": "64-nodes"
+        },
+        {
+          "title": "Point identity and manifest records",
+          "first": "65-originals"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "55-validation",
+          "title": "Original surfaces, analytic normals and trim boundaries",
+          "page": "journey/consolidation/55-validation.md",
+          "steps": [
+            "55-validation",
+            "55a-grid",
+            "55b-normals",
+            "55c-display",
+            "55d-source-row",
+            "55e-identities",
+            "55f-ownership",
+            "55g-surface",
+            "55za-read-original-edge-use-samples",
+            "55zb-follow-original-isoparametric-boundaries",
+            "55zc-follow-original-constrained-trim-labels"
+          ],
+          "checkpoint": "55zc-follow-original-constrained-trim-labels"
+        },
+        {
+          "id": "56-chains",
+          "title": "Shared CAD boundaries across incident faces",
+          "page": "journey/consolidation/56-chains.md",
+          "steps": [
+            "56-chains",
+            "56a-shared",
+            "56b-boundaries"
+          ],
+          "checkpoint": "56b-boundaries"
+        },
+        {
+          "id": "57-parameters",
+          "title": "Trimmed curved faces with real open holes",
+          "page": "journey/consolidation/57-parameters.md",
+          "steps": [
+            "57-parameters",
+            "57a-trims"
+          ],
+          "checkpoint": "57a-trims"
+        },
+        {
+          "id": "58-uses",
+          "title": "Periodic seams and face-edge direction",
+          "page": "journey/consolidation/58-uses.md",
+          "steps": [
+            "58-uses",
+            "58a-periodic",
+            "58za-match-original-face-edge-directions"
+          ],
+          "checkpoint": "58za-match-original-face-edge-directions"
+        },
+        {
+          "id": "59-orientation",
+          "title": "Oriented CAD solids, original picks and empty bores",
+          "page": "journey/consolidation/59-orientation.md",
+          "steps": [
+            "59-orientation",
+            "59a-face-data",
+            "59b-display",
+            "59c-source-row",
+            "59d-identities",
+            "59e-cache",
+            "59f-cad"
+          ],
+          "checkpoint": "59f-cad"
+        },
+        {
+          "id": "60-fonts",
+          "title": "Explicit fonts and source label placement",
+          "page": "journey/consolidation/60-fonts.md",
+          "steps": [
+            "60-fonts",
+            "60a-labels",
+            "60b-coverage"
+          ],
+          "checkpoint": "60b-coverage"
+        },
+        {
+          "id": "60ba-validation",
+          "title": "Validated shaping and revision-based reuse",
+          "page": "journey/consolidation/60ba-validation.md",
+          "steps": [
+            "60ba-validation",
+            "60bb-shaping",
+            "60c-document",
+            "60d-reuse",
+            "60e-font-reload",
+            "60f-diagnostics",
+            "60g-text-shaping"
+          ],
+          "checkpoint": "60g-text-shaping"
+        },
+        {
+          "id": "61-atlas",
+          "title": "A shared glyph atlas and lazy text drawing",
+          "page": "journey/consolidation/61-atlas.md",
+          "steps": [
+            "61-atlas",
+            "61a-coverage",
+            "61b-specimen",
+            "61c-renderer",
+            "61d-glyphs"
+          ],
+          "checkpoint": "61d-glyphs"
+        },
+        {
+          "id": "62-source",
+          "title": "Original world labels, plates and integer picks",
+          "page": "journey/consolidation/62-source.md",
+          "steps": [
+            "62-source",
+            "62a-placements",
+            "62b-bounds",
+            "62c-rows",
+            "62d-identity",
+            "62e-rectangles",
+            "62f-gpu-support",
+            "62g-plane-shader",
+            "62h-plate-shader",
+            "62i-coverage",
+            "62ia-project-an-original-label-into-framebuffer-coordinates",
+            "62ib-give-nameplate-vertices-one-gpu-owner",
+            "62ic-build-nameplate-color-and-object-id-pipelines",
+            "62id-own-and-release-nameplate-draw-resources",
+            "62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system",
+            "62if-place-the-plate-around-the-shaped-label",
+            "62ig-give-world-text-a-bounded-coverage-cache",
+            "62ih-choose-bounded-glyph-raster-resolution",
+            "62ii-rasterize-the-shaped-run-into-owned-coverage-bytes",
+            "62ij-upload-and-bind-one-world-text-coverage-texture",
+            "62ik-build-the-world-plane-text-quad",
+            "62il-build-world-text-color-and-id-pipelines",
+            "62im-own-the-world-text-buffer-and-pipeline-lifetime",
+            "62in-rebuild-only-invalid-world-text-cache-entries",
+            "62io-prepare-and-draw-the-retained-world-text-planes",
+            "62ip-collect-anchored-and-overlay-glyph-work-separately",
+            "62iq-give-the-text-lane-its-retained-resource-owners",
+            "62ir-construct-and-rebuild-the-text-lane-once",
+            "62is-reset-the-text-lane-and-record-scoped-preparation-costs",
+            "62it-prepare-glyphs-only-when-the-witness-changes",
+            "62iu-draw-the-prepared-text-passes-in-order",
+            "62j-frame-pass",
+            "62k-lane-labels",
+            "62l-picking",
+            "62m-whole-fonts",
+            "62n-diagnostics",
+            "62o-labels"
+          ],
+          "checkpoint": "62o-labels"
+        },
+        {
+          "id": "63-radius",
+          "title": "Coverage-based screen-space outlines",
+          "page": "journey/consolidation/63-radius.md",
+          "steps": [
+            "63-radius",
+            "63a-coverage",
+            "63aa-pool-and-dilate-a-conservative-outline-mask",
+            "63b-resources",
+            "63c-pipelines",
+            "63d-bindings",
+            "63e-reuse",
+            "63f-union",
+            "63g-composite",
+            "63h-outline"
+          ],
+          "checkpoint": "63h-outline"
+        },
+        {
+          "id": "64-nodes",
+          "title": "Validated original cloud columns and placed owners",
+          "page": "journey/consolidation/64-nodes.md",
+          "steps": [
+            "64-nodes",
+            "64a-tree",
+            "64b-source",
+            "64c-placements",
+            "64d-scene",
+            "64e-identity"
+          ],
+          "checkpoint": "64e-identity"
+        },
+        {
+          "id": "64f-projection",
+          "title": "View-dependent LOD and cached point splats",
+          "page": "journey/consolidation/64f-projection.md",
+          "steps": [
+            "64f-projection",
+            "64g-detail",
+            "64h-shaders",
+            "64ha-project-original-cloud-rows-to-bounded-point-splats",
+            "64hb-rasterize-source-point-discs-with-integer-ownership",
+            "64hc-encode-original-cloud-normals-and-resolve-point-targets",
+            "64hd-check-cloud-shaders-on-the-actual-browser-device",
+            "64i-columns",
+            "64j-targets",
+            "64k-layouts",
+            "64l-pipelines",
+            "64m-cache",
+            "64n-records",
+            "64o-runs",
+            "64p-frame",
+            "64q-owner",
+            "64r-draw",
+            "64s-diagnostics",
+            "64t-clouds"
+          ],
+          "checkpoint": "64t-clouds"
+        },
+        {
+          "id": "65-originals",
+          "title": "Original point identity and manifest source records",
+          "page": "journey/consolidation/65-originals.md",
+          "steps": [
+            "65-originals",
+            "65a-addresses",
+            "65b-controls",
+            "65c-cloud-point",
+            "65za-read-original-manifest-records-and-placements",
+            "65zb-validate-original-manifest-text-and-source-keys"
+          ],
+          "checkpoint": "65zb-validate-original-manifest-text-and-source-keys"
+        }
+      ]
+    },
+    {
+      "title": "Out-of-Core HTTP Range Streaming, Shared Instances, and Drawing Sheets",
+      "sections": [
+        {
+          "title": "Scene manifests and range reads",
+          "first": "66-read-scene-manifests"
+        },
+        {
+          "title": "Bounded read scheduling and cancellation",
+          "first": "67-supply-checked-array-layout-readers"
+        },
+        {
+          "title": "Streaming page budgets and rendering",
+          "first": "68-reserve-page-bytes-before-reading"
+        },
+        {
+          "title": "Shared CAD definitions",
+          "first": "69-validate-original-definition-references"
+        },
+        {
+          "title": "Feature ancestry and sheet metadata",
+          "first": "70-evaluate-source-ancestry-once-per-document"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "66-read-scene-manifests",
+          "title": "Complete viewer files and published scene sources",
+          "page": "journey/consolidation/66-read-scene-manifests.md",
+          "steps": [
+            "66-read-scene-manifests",
+            "66a-compare-live-byte-revisions",
+            "66b-validate-source-records-before-allocation",
+            "66ba-validate-one-nurbs-knot-axis",
+            "66bb-read-bounded-json-count-and-knot-fields",
+            "66bc-match-json-control-layout-to-declared-counts",
+            "66bd-walk-json-records-within-a-depth-limit",
+            "66be-validate-original-points-lines-and-placements",
+            "66bf-validate-original-mesh-indices-and-vertex-attributes",
+            "66bg-validate-curve-and-surface-control-addresses",
+            "66bh-validate-cloud-columns-and-octree-addresses",
+            "66bi-validate-brep-element-payloads-and-shared-definitions",
+            "66bj-validate-the-complete-original-protobuf-session",
+            "66bk-connect-retained-session-validation-and-independent-witnesses",
+            "66c-describe-the-saved-scene-metadata",
+            "66d-encode-decode-the-viewer-file",
+            "66e-give-copied-lines-independent-identities",
+            "66f-snapshot-geometry-types",
+            "66g-retain-geometry-free-document-headers",
+            "66h-inventory-saved-document-namespaces",
+            "66i-map-saved-source-identities",
+            "66j-store-cloud-size-as-presentation",
+            "66k-prepare-saved-documents",
+            "66l-save-document-display-settings",
+            "66m-save-the-complete-supported-scene",
+            "66n-prepare-document-sources",
+            "66o-prepare-every-supported-geometry-row",
+            "66p-adopt-a-complete-source-document",
+            "66q-restore-world-labels-layer-links",
+            "66r-restore-scoped-presentation-settings",
+            "66s-reopen-a-complete-viewer-file",
+            "66t-prepare-file-adoption-live-history",
+            "66u-share-repeated-source-placements",
+            "66v-start-an-empty-scene-without-examples",
+            "66w-assemble-placed-manifest-entries",
+            "66x-resolve-scene-live-urls",
+            "66y-retain-validated-live-source-revisions",
+            "66z-fetch-bounded-source-bodies",
+            "66aa-read-a-complete-url-source-revision",
+            "66ab-own-cancel-the-url-loader",
+            "66ac-accept-only-current-url-completions",
+            "66ad-watch-published-source-changes",
+            "66ae-inspect-published-source-identities",
+            "66af-connect-browser-save-open-url-adoption"
+          ],
+          "checkpoint": "66af-connect-browser-save-open-url-adoption"
+        },
+        {
+          "id": "67-supply-checked-array-layout-readers",
+          "title": "Locate original arrays without downloading their bodies",
+          "page": "journey/consolidation/67-supply-checked-array-layout-readers.md",
+          "steps": [
+            "67-supply-checked-array-layout-readers",
+            "67sa-locate-original-cloud-and-sheet-array-fields",
+            "67sb-convert-bounded-doubles-and-cache-metadata-windows",
+            "67sc-decode-packed-arrays-for-existing-gpu-owners",
+            "67sd-descend-bounded-original-protobuf-messages",
+            "67se-find-coordinate-arrays-without-downloading-their-bodies",
+            "67sf-validate-sheet-side-array-lengths",
+            "67sg-collect-original-octree-node-columns",
+            "67sh-check-octree-bounds-and-unique-child-ownership",
+            "67si-validate-complete-octrees-before-range-streaming"
+          ],
+          "checkpoint": "67si-validate-complete-octrees-before-range-streaming"
+        },
+        {
+          "id": "66za-own-original-range-read-permits",
+          "title": "Bounded scheduling, exact replies and cancellation",
+          "page": "journey/consolidation/66za-own-original-range-read-permits.md",
+          "steps": [
+            "66za-own-original-range-read-permits",
+            "67a-queue-range-reads-in-arrival-order",
+            "67b-validate-exact-http-range-replies",
+            "67c-retain-original-point-page-values",
+            "67d-own-cancellable-range-requests",
+            "67e-time-out-stalled-source-reads",
+            "67f-bound-incoming-range-body-chunks",
+            "67g-request-and-accept-one-source-interval",
+            "67h-keep-range-revisions-and-background-results",
+            "67hza-queue-original-source-range-reads",
+            "67hzb-probe-original-source-array-layouts",
+            "67hzc-read-original-cloud-node-tables",
+            "67i-read-source-arrays-through-the-bounded-queue",
+            "67j-keep-original-ranged-source-identity",
+            "67k-prepare-a-revision-bound-remote-source",
+            "67l-fetch-precise-coordinates-and-original-ids",
+            "67m-cancel-range-work-when-its-runtime-closes"
+          ],
+          "checkpoint": "67m-cancel-range-work-when-its-runtime-closes"
+        },
+        {
+          "id": "68-reserve-page-bytes-before-reading",
+          "title": "Charged residency and current streamed pages",
+          "page": "journey/consolidation/68-reserve-page-bytes-before-reading.md",
+          "steps": [
+            "68-reserve-page-bytes-before-reading",
+            "68a-keep-shared-pages-alive-during-eviction",
+            "68b-evict-unpinned-pages-in-access-order",
+            "68c-reject-late-source-generations",
+            "68d-bound-source-prefixes-and-decode-work",
+            "68e-validate-original-streamed-presentation",
+            "68f-reuse-a-checked-source-probe",
+            "68fa-validate-complete-source-metadata",
+            "68g-slice-original-pages-without-losing-attributes",
+            "68h-prepare-shared-remote-source-owners",
+            "68i-keep-independent-streamed-placements",
+            "68j-pin-coarse-pages-and-adopt-checked-ranges",
+            "68k-supply-coarse-and-detailed-page-specimens",
+            "68l-insert-streamed-rows-on-the-current-layer",
+            "68m-carry-source-placement-through-scene-operations",
+            "68n-resolve-compact-picks-to-original-point-ids",
+            "68o-account-for-original-and-retained-source-data",
+            "68p-keep-original-attributes-in-ranged-pages",
+            "68q-retain-page-owners-beside-gpu-buffers",
+            "68r-describe-resident-and-streamed-draw-rows",
+            "68s-draw-shared-source-pages-at-independent-placements",
+            "68t-validate-encoded-source-metadata",
+            "68u-decode-bounded-cancellable-source-streams",
+            "68v-refuse-conflicting-source-encoding-revisions",
+            "68w-adopt-remote-original-revisions-independently",
+            "68x-prepare-a-coarse-pin-and-bounded-prefix",
+            "68y-redraw-before-reusing-evicted-page-addresses",
+            "68z-continue-pages-only-for-current-source-owners",
+            "68aa-own-cancellation-for-each-published-source",
+            "68ab-choose-bounded-range-loading-for-large-originals",
+            "68ac-connect-current-pages-to-the-browser-renderer"
+          ],
+          "checkpoint": "68ac-connect-current-pages-to-the-browser-renderer"
+        },
+        {
+          "id": "69-validate-original-definition-references",
+          "title": "Shared original definitions and independently placed instances",
+          "page": "journey/consolidation/69-validate-original-definition-references.md",
+          "steps": [
+            "69-validate-original-definition-references",
+            "69b-prepare-each-used-definition-once",
+            "69c-keep-instance-bindings-through-scene-history",
+            "69d-append-independently-placed-shared-rows",
+            "69e-import-canonical-original-instance-placements",
+            "69f-protect-shared-originals-during-part-edits",
+            "69g-collect-shared-definitions-without-flattening",
+            "69h-save-original-instance-references-and-namespaces",
+            "69i-check-sharing-precision-history-and-release"
+          ],
+          "checkpoint": "69i-check-sharing-precision-history-and-release"
+        },
+        {
+          "id": "69j-preserve-per-instance-original-colours",
+          "title": "Independent presentation and reusable CAD preparation",
+          "page": "journey/consolidation/69j-preserve-per-instance-original-colours.md",
+          "steps": [
+            "69j-preserve-per-instance-original-colours",
+            "69k-create-a-shared-definition-face-pipeline",
+            "69l-reuse-bounded-independent-draw-records",
+            "69m-draw-batched-faces-with-independent-integer-owners",
+            "69n-inspect-and-exercise-original-definition-instances",
+            "69zza-move-between-original-rigid-frames",
+            "69zzb-find-an-original-frame-and-pack-key-words",
+            "69zzc-encode-original-parameters-and-topology",
+            "69a-describe-a-rigid-frame-and-original-shape-key",
+            "69aa-retain-cloneable-derived-cad-values",
+            "69ab-replay-sampled-geometry-in-the-new-rigid-frame",
+            "69ac-guard-reusable-walks-with-source-validity-and-size",
+            "69ad-share-recordings-only-during-document-preparation",
+            "69ae-compare-actual-replay-pixels-and-integer-owners",
+            "69af-exercise-independent-original-cad-reuse"
+          ],
+          "checkpoint": "69af-exercise-independent-original-cad-reuse"
+        },
+        {
+          "id": "70-evaluate-source-ancestry-once-per-document",
+          "title": "Feature ancestry and canonical local-to-world placement",
+          "page": "journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
+          "steps": [
+            "70-evaluate-source-ancestry-once-per-document",
+            "70a-keep-original-local-parent-and-world-matrices",
+            "70b-connect-canonical-cached-models-to-every-source-owner",
+            "70c-save-nested-local-frames-without-flattening",
+            "70d-exercise-rotated-and-mirrored-original-references"
+          ],
+          "checkpoint": "70d-exercise-rotated-and-mirrored-original-references"
+        },
+        {
+          "id": "70za-read-original-sheet-metadata-records",
+          "title": "Original sheet entity metadata",
+          "page": "journey/consolidation/70za-read-original-sheet-metadata-records.md",
+          "steps": [
+            "70za-read-original-sheet-metadata-records"
+          ],
+          "checkpoint": "70za-read-original-sheet-metadata-records"
+        }
+      ]
+    },
+    {
+      "title": "Precision Coordinate Frames, Solid Primitives, Surfacing, and CAD Editing",
+      "sections": [
+        {
+          "title": "Sheet queries and construction planes",
+          "first": "71-read-original-sheet-entity-metadata"
+        },
+        {
+          "title": "Coordinates and drawing tools",
+          "first": "72-copy-current-construction-planes-and-coordinate-forms"
+        },
+        {
+          "title": "Planar shapes and regular solids",
+          "first": "73-construct-rectangles-and-polygons-in-plane-axes"
+        },
+        {
+          "title": "Polyhedra and round solids",
+          "first": "74-copy-current-solid-geometry-and-question-definitions"
+        },
+        {
+          "title": "Tori, circles and conics",
+          "first": "75-reuse-current-round-solid-builders"
+        },
+        {
+          "title": "Parabolas and exact curve editing",
+          "first": "76-copy-exact-planar-curve-definitions"
+        },
+        {
+          "title": "Transforms, extrusions and revolutions",
+          "first": "77-copy-current-transformation-and-source-edit-algorithms"
+        },
+        {
+          "title": "Profile collection and surfacing",
+          "first": "78-copy-current-curve-collection-and-surfacing-recipes"
+        },
+        {
+          "title": "Lofts, sweeps and Gordon surfaces",
+          "first": "79-retain-current-loft-section-order-and-degree-options"
+        },
+        {
+          "title": "Curve networks and projection planes",
+          "first": "80-build-a-surface-through-two-directions-of-original-curves"
+        },
+        {
+          "title": "Projection and Split inputs",
+          "first": "81-project-originals-through-the-current-plane-algorithms"
+        },
+        {
+          "title": "Curve pieces and joined faces",
+          "first": "82-divide-current-original-curve-families"
+        },
+        {
+          "title": "Surface and curve measurement",
+          "first": "83-split-original-faces-without-separating-the-solid"
+        },
+        {
+          "title": "Solid volume, extension and Explode",
+          "first": "84-measure-original-curves-surfaces-and-closed-solids"
+        },
+        {
+          "title": "Text, styles and command integration",
+          "first": "85-copy-current-original-command-recipes"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "71-read-original-sheet-entity-metadata",
+          "title": "Original drawings, entity queries and construction frames",
+          "page": "journey/consolidation/71-read-original-sheet-entity-metadata.md",
+          "steps": [
+            "71-read-original-sheet-entity-metadata",
+            "71a-bound-original-entity-records-before-reading",
+            "71b-give-metadata-reads-their-own-cancellation-signal",
+            "71c-fetch-one-revision-matched-metadata-answer",
+            "71d-decode-precise-original-sheet-columns",
+            "71e-measure-original-sheet-pages-and-world-pens",
+            "71f-retain-charged-pages-beside-resident-pages",
+            "71g-own-the-complete-original-drawing-source",
+            "71h-place-drawing-rows-without-changing-endpoints",
+            "71i-register-original-drawing-rows-on-the-current-layer",
+            "71j-carry-drawing-identity-through-scene-operations",
+            "71k-save-and-reopen-complete-original-sheets",
+            "71l-locate-original-drawing-identity-and-fixed-ranges",
+            "71m-validate-the-bounded-drawing-envelope-tail",
+            "71n-scan-drawing-columns-under-one-revision",
+            "71o-read-drawing-page-columns-through-the-shared-queue",
+            "71p-adopt-nonoverlapping-charged-drawing-pages",
+            "71q-keep-partial-drawing-sources-explicit",
+            "71r-reserve-memory-before-the-drawing-prefix",
+            "71s-continue-drawing-reads-without-reviving-closed-sources",
+            "71t-resolve-sheet-picks-to-original-entity-ids",
+            "71u-project-authored-world-pens-into-drawing-quads",
+            "71v-use-the-same-sheet-coverage-for-color-and-picks",
+            "71w-build-sheet-color-and-integer-pipelines",
+            "71x-own-the-shared-drawing-lane-resources",
+            "71y-bound-drawing-buffers-and-pack-independent-settings",
+            "71z-upload-each-original-drawing-page-once",
+            "71aa-reuse-independent-drawing-placement-records",
+            "71ab-draw-world-pens-with-the-current-camera-lens",
+            "71ac-connect-sheet-batches-to-rendering-and-bounded-picks",
+            "71ad-own-metadata-delivery-without-pinning-drawings",
+            "71ae-query-metadata-only-for-the-current-selected-entity",
+            "71af-keep-published-drawing-sources-and-url-bases-independent",
+            "71ag-retire-staged-drawing-reads-with-their-publication-owner",
+            "71ah-stage-bounded-drawings-through-publication-loading",
+            "71ai-show-current-sheet-resources-and-selected-entity-answers",
+            "71aj-exercise-complete-and-ranged-original-drawings",
+            "71za-build-original-construction-plane-frames",
+            "71zb-map-original-plane-and-world-coordinates",
+            "71zc-guard-original-plane-and-ray-projections",
+            "71zd-parse-original-drawing-coordinate-forms",
+            "71ze-resolve-original-relative-and-polar-coordinates"
+          ],
+          "checkpoint": "71ze-resolve-original-relative-and-polar-coordinates"
+        },
+        {
+          "id": "72-copy-current-construction-planes-and-coordinate-forms",
+          "title": "Precise coordinates and original drawing drafts",
+          "page": "journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md",
+          "steps": [
+            "72-copy-current-construction-planes-and-coordinate-forms",
+            "72a-resolve-bounded-typed-batches-in-the-current-plane",
+            "72b-place-clicks-on-stable-construction-planes",
+            "72c-name-the-construction-plane-chooser-options",
+            "72d-add-original-polylines-to-the-point-tool",
+            "72e-keep-construction-frames-and-plane-points-in-drafts",
+            "72f-replay-finished-drafts-with-explicit-world-prefixes",
+            "72g-own-the-fixed-construction-plane-in-the-editor",
+            "72h-commit-completed-original-geometry-exactly-once",
+            "72i-change-fixed-planes-without-rewriting-accepted-points",
+            "72j-open-the-plane-chooser-and-collect-its-frame",
+            "72k-resolve-typed-input-against-the-current-draft",
+            "72l-finish-open-tools-with-enter-and-route-typed-forms",
+            "72m-validate-complete-drawing-commands-before-adoption",
+            "72n-close-original-polylines-as-one-transaction",
+            "72o-snap-draft-starts-and-use-the-construction-frame-grid",
+            "72p-register-current-drawing-commands-and-plane-choices",
+            "72q-preview-accepted-segments-without-committing-originals",
+            "72r-expose-original-drawing-coordinates-and-cancellation-state",
+            "72s-exercise-current-drawing-tools-and-original-persistence"
+          ],
+          "checkpoint": "72s-exercise-current-drawing-tools-and-original-persistence"
+        },
+        {
+          "id": "73-construct-rectangles-and-polygons-in-plane-axes",
+          "title": "Planar boundaries and checked solid foundations",
+          "page": "journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md",
+          "steps": [
+            "73-construct-rectangles-and-polygons-in-plane-axes",
+            "73a-bound-generated-original-construction-points",
+            "73b-give-point-tools-a-plane-aware-construction-hook",
+            "73c-build-original-rectangle-and-polygon-tool-results",
+            "73d-preserve-world-replay-for-multiword-construction-names",
+            "73e-keep-polygon-sides-in-the-current-draft",
+            "73f-register-current-planar-options-and-temporary-outlines",
+            "73g-exercise-oriented-original-planar-constructions",
+            "73h-match-solid-command-options",
+            "73i-describe-solid-command-questions",
+            "73j-build-a-right-handed-solid-frame",
+            "73k-sample-solid-preview-wires",
+            "73l-describe-solid-builders-and-dimensions",
+            "73m-validate-solid-sizes-and-radius",
+            "73n-weld-solid-tessellation-once",
+            "73o-scale-and-cache-polyhedron-faces",
+            "73p-build-a-placed-kernel-box",
+            "73q-read-box-questions-and-corner-clicks",
+            "73r-build-an-oriented-kernel-pyramid",
+            "73s-build-a-block-with-a-kernel-hole",
+            "73t-build-regular-kernel-polyhedra"
+          ],
+          "checkpoint": "73t-build-regular-kernel-polyhedra"
+        },
+        {
+          "id": "74-copy-current-solid-geometry-and-question-definitions",
+          "title": "Solid questions, previews and one original commit",
+          "page": "journey/consolidation/74-copy-current-solid-geometry-and-question-definitions.md",
+          "steps": [
+            "74-copy-current-solid-geometry-and-question-definitions",
+            "74a-own-current-shape-questions-and-answer-state",
+            "74b-validate-a-new-answer-before-changing-its-original-state",
+            "74c-build-only-after-the-last-shape-question",
+            "74d-answer-shape-dimensions-with-atomic-typed-batches",
+            "74e-preview-solid-wires-and-measure-normal-axis-clicks",
+            "74f-adopt-original-primitive-geometry-through-existing-rows",
+            "74g-keep-primitive-answers-beside-the-existing-drawing-draft",
+            "74h-route-clicked-points-to-the-current-shape-question",
+            "74i-route-typed-shape-input-and-preserve-detailed-errors",
+            "74j-synchronize-shape-frames-before-accepting-plane-changes",
+            "74k-resolve-height-clicks-without-closing-an-open-shape-collector",
+            "74l-prepare-complete-solid-commands-before-replacing-a-draft",
+            "74m-register-every-current-solid-name-and-representation",
+            "74n-draw-temporary-solid-wire-sets-and-report-current-input-failures",
+            "74o-keep-quick-mouse-drift-as-a-click-using-current-event-time",
+            "74p-exercise-current-solid-input-and-original-persistence",
+            "74za-build-original-cylinders-with-signed-height",
+            "74zb-build-original-cones-and-spheres"
+          ],
+          "checkpoint": "74zb-build-original-cones-and-spheres"
+        },
+        {
+          "id": "75-reuse-current-round-solid-builders",
+          "title": "Round solids and exact planar conics",
+          "page": "journey/consolidation/75-reuse-current-round-solid-builders.md",
+          "steps": [
+            "75-reuse-current-round-solid-builders",
+            "75aa-build-original-capsules-with-shared-dimensions",
+            "75a-retain-mesh-only-round-families",
+            "75b-register-current-round-names-and-choices",
+            "75c-exercise-round-originals-and-one-transaction",
+            "75za-build-original-planar-circles",
+            "75zb-build-original-planar-ellipses",
+            "75zc-build-exact-rational-arc-spans",
+            "75zd-read-original-arcs-from-center-and-angle",
+            "75ze-read-three-point-arcs-and-connect-the-recipe",
+            "75zf-build-original-parabola-previews-and-sources"
+          ],
+          "checkpoint": "75zf-build-original-parabola-previews-and-sources"
+        },
+        {
+          "id": "76-copy-exact-planar-curve-definitions",
+          "title": "Exact parabola recipes and editable freeform controls",
+          "page": "journey/consolidation/76-copy-exact-planar-curve-definitions.md",
+          "steps": [
+            "76-copy-exact-planar-curve-definitions",
+            "76a-expose-exact-curve-choices-in-the-existing-registry",
+            "76b-retain-editable-freeform-controls-in-the-point-collector",
+            "76c-inspect-original-curve-data-through-the-browser-contract",
+            "76d-exercise-exact-curves-and-rational-control-edits"
+          ],
+          "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits"
+        },
+        {
+          "id": "77-copy-current-transformation-and-source-edit-algorithms",
+          "title": "Original transforms, part edits and solid recipes",
+          "page": "journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms.md",
+          "steps": [
+            "77-copy-current-transformation-and-source-edit-algorithms",
+            "77sa-compute-signed-construction-plane-rotation",
+            "77sb-address-original-controls-and-exclusive-part-selections",
+            "77sc-collect-finite-original-controls-and-mesh-vertices",
+            "77sd-connect-curve-polygons-and-surface-control-nets",
+            "77se-reuse-control-collectors-across-original-geometry-families",
+            "77sf-represent-original-geometry-edit-targets",
+            "77sg-resolve-original-mesh-vertices-for-part-edits",
+            "77sh-resolve-surface-grids-and-individual-source-controls",
+            "77si-collect-affected-points-across-cad-geometry-families",
+            "77sj-preserve-rational-weights-and-validate-brep-boundaries",
+            "77sk-transform-original-mesh-and-surface-controls",
+            "77sl-transform-original-line-polyline-point-and-curve-controls",
+            "77sm-transform-shared-brep-boundary-positions-coherently",
+            "77sn-dispatch-original-part-edits-and-retain-element-ownership",
+            "77so-map-sparse-original-vertex-keys-to-display-slots",
+            "77sp-compute-polygon-normals-from-original-boundaries",
+            "77sq-build-one-original-edge-table-and-record-incident-faces",
+            "77sr-preserve-hole-winding-and-complete-original-mesh-topology",
+            "77a-own-transformation-questions-and-the-selected-original-targets",
+            "77b-validate-point-and-number-transformation-answers",
+            "77c-resolve-typed-batches-and-temporary-transformation-previews",
+            "77d-resolve-original-cad-parts-and-complete-selected-bounds",
+            "77e-rebuild-an-edited-original-cad-source-before-adoption",
+            "77f-copy-original-rows-beside-their-existing-parents",
+            "77g-carry-transformation-state-through-the-existing-drawing-owner",
+            "77h-validate-selected-originals-before-beginning-or-committing-a-transform",
+            "77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions",
+            "77j-route-transform-input-cancellation-and-current-plane-changes",
+            "77k-connect-transformation-lifecycle-and-part-move-dispatch",
+            "77l-register-copy-scale-rotate-and-their-current-aliases",
+            "77m-apply-direct-scale-and-rotate-about-the-current-selection-center",
+            "77n-retain-earlier-selection-checks-with-source-part-support",
+            "77o-exercise-original-copy-transforms-history-and-exact-persistence",
+            "77zza-describe-curve-gathering-answers",
+            "77zzb-read-curve-gathering-values",
+            "77zzc-connect-gathering-recipes",
+            "77zzd-parse-gathering-command-words",
+            "77zze-track-ordered-curve-picks",
+            "77zzf-advance-and-cancel-curve-picks",
+            "77zzg-prepare-placed-kernel-curves",
+            "77zzh-check-original-loops-and-surface-controls",
+            "77zzi-align-original-sections-and-loft-through-them",
+            "77zzj-find-extrusion-axes-and-cap-eligibility",
+            "77zzk-map-cap-curves-to-surface-parameters",
+            "77zzl-build-closed-curved-extrusion-topology",
+            "77zzm-extrude-original-corners-and-curves",
+            "77zzn-connect-the-original-extrusion-recipe",
+            "77zzo-revolve-original-profiles-around-an-axis"
+          ],
+          "checkpoint": "77zzo-revolve-original-profiles-around-an-axis"
+        },
+        {
+          "id": "78-copy-current-curve-collection-and-surfacing-recipes",
+          "title": "Profile collection and one surfacing transaction",
+          "page": "journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md",
+          "steps": [
+            "78-copy-current-curve-collection-and-surfacing-recipes",
+            "78a-own-picked-originals-and-world-profile-copies",
+            "78b-resolve-a-recipe-input-and-guard-picked-source-freshness",
+            "78c-accept-curve-picks-and-geometric-answers-atomically",
+            "78d-read-options-and-typed-batches-without-partial-results",
+            "78e-constrain-distance-input-and-draw-lifted-profile-wires",
+            "78f-carry-gather-state-through-the-current-tool-owner",
+            "78g-adopt-every-generated-original-in-one-history-transaction",
+            "78h-start-and-advance-the-recipe-through-the-existing-editor",
+            "78i-route-typed-answers-and-axis-cursor-input",
+            "78j-restore-selection-and-preserve-the-gather-lifecycle",
+            "78k-register-extrusion-revolution-and-browser-curve-picking",
+            "78l-pick-original-profiles-through-the-browser-integer-pass",
+            "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
+          ],
+          "checkpoint": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
+        },
+        {
+          "id": "79-retain-current-loft-section-order-and-degree-options",
+          "title": "Lofts, rail sweeps and network foundations",
+          "page": "journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md",
+          "steps": [
+            "79-retain-current-loft-section-order-and-degree-options",
+            "79aa-frame-original-profiles-on-their-rail",
+            "79ab-carry-and-blend-original-profiles-along-the-rail",
+            "79a-carry-original-profiles-along-one-rail",
+            "79b-align-shape-curves-between-two-original-rails",
+            "79c-register-loft-sweep-names-options-and-aliases",
+            "79d-exercise-original-sections-rail-groups-and-exact-persistence",
+            "79zza-sample-original-network-curve-stations",
+            "79zzb-classify-two-original-network-directions",
+            "79zzc-order-and-orient-original-network-curves",
+            "79zzd-sample-original-network-lofts-and-tensor",
+            "79zze-fit-the-original-gordon-surface"
+          ],
+          "checkpoint": "79zze-fit-the-original-gordon-surface"
+        },
+        {
+          "id": "80-build-a-surface-through-two-directions-of-original-curves",
+          "title": "Two-direction networks and corner patches",
+          "page": "journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md",
+          "steps": [
+            "80-build-a-surface-through-two-directions-of-original-curves",
+            "80a-construct-the-patch-through-four-ordered-corners",
+            "80b-guide-corner-questions-without-retaining-unrelated-profiles",
+            "80c-register-network-patch-aliases-and-initial-corner-arity",
+            "80d-exercise-networks-corner-retries-and-exact-original-archives",
+            "80za-read-original-projection-planes"
+          ],
+          "checkpoint": "80za-read-original-projection-planes"
+        },
+        {
+          "id": "81-project-originals-through-the-current-plane-algorithms",
+          "title": "Projection, extension and stable edit targets",
+          "page": "journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md",
+          "steps": [
+            "81-project-originals-through-the-current-plane-algorithms",
+            "81zza-read-original-cutters-in-object-frames",
+            "81zzb-find-original-cutters-near-the-pointer",
+            "81zzc-grow-original-domains-and-extract-the-tail",
+            "81zzd-find-original-end-directions-and-length-reach",
+            "81zze-stop-straight-growth-at-the-first-boundary",
+            "81zzf-stop-curved-growth-at-an-original-boundary",
+            "81zzg-dispatch-original-extension-families",
+            "81a-find-source-cutters-and-current-extension-reach",
+            "81b-capture-eligible-original-identity-and-placement",
+            "81c-replace-an-original-without-replacing-its-row",
+            "81d-own-the-originals-selected-for-projection",
+            "81e-validate-candidate-plane-answers-before-accepting-them",
+            "81f-prepare-projection-results-as-one-transaction",
+            "81g-own-extension-candidates-and-screen-bounds",
+            "81h-gather-boundaries-and-sample-eligible-curve-owners",
+            "81i-cache-current-boundary-meshes-and-start-the-end-phase",
+            "81j-resolve-distance-and-boundary-reach-in-source-coordinates",
+            "81k-find-the-nearest-visible-curve-end-in-css-pixels",
+            "81l-preview-extension-and-refresh-only-changed-originals",
+            "81m-keep-projection-and-extension-in-the-pending-tool-owner",
+            "81n-connect-checked-projection-to-one-editor-transaction",
+            "81o-connect-boundary-picks-repeated-end-clicks-and-cancellation",
+            "81p-expose-editing-actions-and-normalized-interval-extension",
+            "81q-route-accepted-editing-input-and-owner-lifecycle-1",
+            "81r-route-accepted-editing-input-and-owner-lifecycle-2",
+            "81s-route-accepted-editing-input-and-owner-lifecycle-3",
+            "81t-register-current-projection-and-extension-commands",
+            "81u-route-whole-boundary-picks-and-observe-pending-edits",
+            "81v-exercise-original-projection-retry-and-repeated-extension",
+            "81za-validate-original-split-inputs-and-name-pieces"
+          ],
+          "checkpoint": "81za-validate-original-split-inputs-and-name-pieces"
+        },
+        {
+          "id": "82-divide-current-original-curve-families",
+          "title": "Split original curves and joined faces",
+          "page": "journey/consolidation/82-divide-current-original-curve-families.md",
+          "steps": [
+            "82-divide-current-original-curve-families",
+            "82a-own-the-split-target-and-toggle-original-cutters",
+            "82b-transform-cutters-into-the-target-frame-before-dividing",
+            "82c-adopt-sibling-pieces-beside-the-original-target",
+            "82d-connect-pending-split-completion-to-one-history-change",
+            "82e-route-cutter-picks-cancellation-and-temporary-highlights",
+            "82f-register-split-and-route-mouse-touch-and-confirmation",
+            "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"
+          ],
+          "checkpoint": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"
+        },
+        {
+          "id": "83-split-original-faces-without-separating-the-solid",
+          "title": "Joined-face topology and exact surface measures",
+          "page": "journey/consolidation/83-split-original-faces-without-separating-the-solid.md",
+          "steps": [
+            "83-split-original-faces-without-separating-the-solid",
+            "83za-visit-original-mesh-triangles-and-format-measures",
+            "83zb-compute-original-mesh-measures-and-curve-length",
+            "83ze-integrate-original-surface-area"
+          ],
+          "checkpoint": "83ze-integrate-original-surface-area"
+        },
+        {
+          "id": "84-measure-original-curves-surfaces-and-closed-solids",
+          "title": "Measurements, temporary marks and retained CAD pieces",
+          "page": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md",
+          "steps": [
+            "84-measure-original-curves-surfaces-and-closed-solids",
+            "84a-validate-an-original-box-and-derive-wire-only-display",
+            "84b-adopt-original-boxes-and-retain-precise-placed-bounds",
+            "84c-save-and-reopen-the-original-box-frame",
+            "84d-own-temporary-measurement-labels-without-scene-identities",
+            "84e-report-distance-and-world-bounding-lengths",
+            "84f-collect-only-supported-finite-original-measurements",
+            "84g-format-totals-refusals-and-three-axis-box-extents",
+            "84h-keep-measurements-outside-geometry-history",
+            "84i-accept-two-distance-points-through-the-drawing-tool",
+            "84j-register-measurements-and-end-temporary-marks-predictably",
+            "84k-draw-cached-unpickable-measurement-strokes",
+            "84l-merge-measurement-chips-with-cached-scene-text",
+            "84m-exercise-original-boxes-and-temporary-distance-annotations",
+            "84zza-describe-removable-cad-parts",
+            "84zzb-read-trim-part-previews",
+            "84zzc-collect-curve-crossings",
+            "84zzd-preserve-trimmed-source-types",
+            "84zze-group-faces-by-cutting-planes",
+            "84zzf-cut-planar-brep-faces",
+            "84zzg-assemble-removable-face-groups",
+            "84zzh-mark-retained-brep-topology",
+            "84zzi-rebuild-retained-brep-tables",
+            "84zzj-split-mesh-faces-at-a-plane",
+            "84zzk-compact-both-trimmed-mesh-sides",
+            "84zzl-rebuild-kept-cad-parts",
+            "84zzm-connect-original-trim-recipes",
+            "84zna-index-selection-loops-by-pixel-row",
+            "84znb-test-window-membership-and-segment-crossings",
+            "84znc-sample-original-cad-families-for-selection",
+            "84znd-collect-original-boundary-strokes",
+            "84zne-test-crossing-selection-on-original-strokes",
+            "84znf-connect-window-and-bounds-selection-tests",
+            "84zoa-classify-originals-and-isolate-one-mesh-face",
+            "84zob-copy-original-brep-edges-and-pcurves",
+            "84zoc-build-one-original-brep-face",
+            "84zod-explode-supported-original-families"
+          ],
+          "checkpoint": "84zod-explode-supported-original-families"
+        },
+        {
+          "id": "85-copy-current-original-command-recipes",
+          "title": "Text, Plane, Trim and integrated editing commands",
+          "page": "journey/consolidation/85-copy-current-original-command-recipes.md",
+          "steps": [
+            "85-copy-current-original-command-recipes",
+            "85a-validate-original-plane-display-and-precise-bounds",
+            "85b-retain-original-plane-and-text-edit-eligibility",
+            "85c-find-eligible-objects-by-name-or-world-size",
+            "85d-plan-sibling-pieces-from-original-owners",
+            "85e-own-text-height-and-words-before-placement",
+            "85f-own-unpickable-cached-guide-data",
+            "85g-shade-explicit-dashed-guides",
+            "85h-cache-guide-buffers-and-actual-allocation",
+            "85i-draw-cached-guides-through-the-overlay-owner",
+            "85j-own-trim-targets-cutters-and-part-state",
+            "85k-prepare-local-cuts-from-world-cutters",
+            "85l-hit-remaining-trim-parts-in-canvas-pixels",
+            "85m-preview-cuts-without-changing-originals",
+            "85n-show-remaining-cuts-and-removed-part-guides",
+            "85o-sample-bounded-physical-pixel-lasso-loops",
+            "85p-own-document-scoped-groups-and-links",
+            "85q-resolve-current-graph-and-group-identities",
+            "85r-connect-two-original-owners-and-save-their-links",
+            "85s-remap-appended-links-and-remove-deleted-owners",
+            "85t-plan-world-preserving-original-groups",
+            "85u-adopt-group-branches-with-one-reversible-edit",
+            "85v-append-namespaced-graphs-and-preserve-original-row-identities",
+            "85w-replace-original-families-without-changing-world-placement",
+            "85x-save-group-namespaces-and-original-planes",
+            "85y-keep-named-views-and-grid-on-the-drawing-plane",
+            "85z-connect-cached-guide-and-placed-grid-lanes",
+            "85aa-expose-graph-links-and-the-lasso-overlay",
+            "85ab-own-current-pending-command-state",
+            "85ac-retain-text-answers-inside-the-existing-point-draft",
+            "85ad-complete-original-text-and-headed-arrow-tools",
+            "85ae-present-cached-extension-guides-and-error-endpoints",
+            "85af-commit-prepared-trims-once",
+            "85ag-advance-trim-through-targets-cutters-and-parts",
+            "85ah-adopt-original-pieces-and-arrowhead-changes-atomically",
+            "85ai-dispatch-current-original-commands-through-checked-owners",
+            "85aj-preserve-previews-selection-and-accepted-tool-answers",
+            "85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input",
+            "85al-preserve-pending-originals-during-view-changes",
+            "85am-route-named-views-and-whole-trim-picks",
+            "85an-capture-source-backed-command-arguments",
+            "85ao-restore-typed-requests-and-their-selected-owners",
+            "85ap-witness-identities-and-placement-during-source-loading",
+            "85aq-deduplicate-original-fetches-and-replay-safely",
+            "85ar-route-source-backed-edits-through-guarded-replay",
+            "85as-register-current-names-views-and-command-aliases",
+            "85at-validate-current-command-words-and-options",
+            "85au-capture-lasso-pointer-ownership-in-the-browser",
+            "85av-route-trim-and-lasso-pointer-input",
+            "85aw-refresh-command-panels-source-loading-and-cached-previews",
+            "85ax-observe-current-original-command-state",
+            "85ay-exercise-current-original-commands-together"
+          ],
+          "checkpoint": "85ay-exercise-current-original-commands-together"
+        }
+      ]
+    },
+    {
+      "title": "Compute Tile Visibility, Clipping Half-Spaces, Section Caps, and Ambient Occlusion",
+      "sections": [
+        {
+          "title": "Finite ink and tiled visibility",
+          "first": "86-copy-finite-tile-allocation-rules"
+        },
+        {
+          "title": "Clipping half-spaces",
+          "first": "87-copy-current-original-plane-modes"
+        },
+        {
+          "title": "Closed sections and cap rendering",
+          "first": "88-copy-original-closedness-and-winding"
+        },
+        {
+          "title": "Depth pyramids",
+          "first": "89-copy-density-scaled-depth-reduction"
+        },
+        {
+          "title": "Contact and ambient light",
+          "first": "90-copy-maintained-original-contact-radius"
+        },
+        {
+          "title": "Section coverage and Wood builders",
+          "first": "91-include-visible-section-coverage"
+        },
+        {
+          "title": "Wood Elements and archives",
+          "first": "92-link-current-wood-element-builders"
+        },
+        {
+          "title": "Glass and X-ray",
+          "first": "93-classify-original-solids-independently-of-clipping"
+        },
+        {
+          "title": "Rendering comparisons",
+          "first": "94-declare-the-rendering-comparison-contract"
+        },
+        {
+          "title": "Performance and cache reports",
+          "first": "95-record-comparable-large-scene-conditions"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "86-copy-finite-tile-allocation-rules",
+          "title": "Bounded projected triangles and tile lists",
+          "page": "journey/consolidation/86-copy-finite-tile-allocation-rules.md",
+          "steps": [
+            "86-copy-finite-tile-allocation-rules",
+            "86ma-grow-projection-and-reference-pools-from-demand",
+            "86a-copy-maintained-projection-and-scan-recipes",
+            "86b-copy-the-project-recipe",
+            "86ba-clip-original-triangles-before-dividing-by-depth",
+            "86bb-write-bounded-projected-triangle-records-on-the-gpu",
+            "86c-project-existing-original-mesh-buffers",
+            "86d-copy-the-triangle-tiles-recipe",
+            "86da-count-conservative-triangle-coverage-per-tile",
+            "86db-fill-bounded-original-triangle-reference-lists",
+            "86e-count-and-fill-original-triangle-references",
+            "86f-copy-the-scan-triangle-tiles-recipe",
+            "86fa-scan-tile-blocks-and-their-block-totals",
+            "86fb-finalize-bounded-tile-list-offsets-and-demand",
+            "86fc-assemble-and-validate-the-bounded-scan-shader",
+            "86g-wake-only-after-a-tile-report-arrives",
+            "86h-read-actual-pool-demand-asynchronously",
+            "86i-describe-explicit-finite-gpu-layouts",
+            "86j-build-compute-and-count-pipeline-helpers",
+            "86k-connect-projection-count-scan-and-fill-pipelines",
+            "86l-own-bounded-finite-tile-resources",
+            "86m-allocate-empty-tile-placeholders",
+            "86n-witness-original-buffers-and-world-placement",
+            "86o-release-obsolete-tile-lists-and-bindings",
+            "86p-grow-lists-only-from-actual-demand",
+            "86q-rasterize-bounded-tile-counts-and-references",
+            "86r-cache-projection-and-finish-current-reports"
+          ],
+          "checkpoint": "86r-cache-projection-and-finish-current-reports"
+        },
+        {
+          "id": "86s-test-visibility-at-the-original-center-line",
+          "title": "Finite ink visibility and original colour/pick ownership",
+          "page": "journey/consolidation/86s-test-visibility-at-the-original-center-line.md",
+          "steps": [
+            "86s-test-visibility-at-the-original-center-line",
+            "86t-reuse-original-stroke-coverage",
+            "86u-carry-stroke-axis-and-depth",
+            "86v-reuse-original-stroke-integer-coverage",
+            "86w-keep-stroke-crop-ownership-aligned",
+            "86x-reuse-original-chain-coverage",
+            "86y-carry-chain-axis-and-depth",
+            "86z-reuse-original-chain-integer-coverage",
+            "86aa-keep-chain-crop-ownership-aligned",
+            "86ab-reuse-original-marker-coverage",
+            "86ac-carry-marker-axis-and-depth",
+            "86ad-reuse-original-marker-integer-coverage",
+            "86ae-keep-marker-crop-ownership-aligned",
+            "86af-assemble-one-shared-finite-shader-predicate",
+            "86ag-own-finite-color-and-integer-pipelines",
+            "86ah-build-finite-shader-pipelines-with-original-layouts",
+            "86ai-bind-finite-coverage-for-original-families",
+            "86aj-reuse-bindings-and-draw-original-owners",
+            "86ak-expose-original-gpu-models-to-projection",
+            "86al-connect-finite-visibility-to-all-original-ink-lanes",
+            "86am-separate-integer-depth-writers-and-sampled-ink",
+            "86an-own-tile-state-before-color-and-first-picks",
+            "86ao-split-opaque-finite-ink-and-cloud-composition",
+            "86ap-observe-actual-derived-tile-resources",
+            "86aq-exercise-finite-color-and-original-picking"
+          ],
+          "checkpoint": "86aq-exercise-finite-color-and-original-picking"
+        },
+        {
+          "id": "87-copy-current-original-plane-modes",
+          "title": "Original clipping half-spaces across drawing families",
+          "page": "journey/consolidation/87-copy-current-original-plane-modes.md",
+          "steps": [
+            "87-copy-current-original-plane-modes",
+            "87sa-describe-clipping-construction-choices-once",
+            "87sb-construct-and-reverse-original-clipping-planes",
+            "87sc-derive-placed-world-half-spaces-from-original-planes",
+            "87a-gather-six-visible-original-world-planes",
+            "87b-copy-the-maintained-clipping-uniform-layout",
+            "87c-copy-conditioned-screen-and-hatch-projections",
+            "87ca-project-a-stable-hatch-coordinate-onto-a-plane",
+            "87cb-fill-one-bounded-clipping-uniform-from-original-planes",
+            "87cc-match-the-clipping-uniform-and-sample-conventions",
+            "87cd-apply-shared-original-half-space-tests",
+            "87ce-compute-clipping-coverage-in-framebuffer-sample-space",
+            "87cf-address-section-depth-and-original-cap-records",
+            "87d-parse-strict-clipping-modes-and-presentation-switches",
+            "87e-preserve-mode-prefixes-in-generic-point-drafts",
+            "87f-build-original-clipping-planes-through-the-shared-tool",
+            "87g-own-clipping-presentation-and-one-history-transaction",
+            "87h-route-clipping-plane-and-preserve-pending-points",
+            "87i-own-one-shared-clipping-gpu-uniform",
+            "87j-retain-clipping-state-beside-the-renderer",
+            "87k-prepare-shared-clipping-shader-declarations",
+            "87l-connect-mesh-and-instance-color-half-spaces",
+            "87m-prepare-explicit-original-mesh-pick-clipping",
+            "87n-bind-shared-clipping-before-the-first-integer-request",
+            "87o-preserve-sparse-source-face-ids-across-the-cut",
+            "87p-invalidate-selected-masks-on-clipping-changes",
+            "87q-share-clipping-at-finite-original-center-lines",
+            "87r-cache-explicit-original-plane-ink-flags",
+            "87s-bind-original-flags-without-changing-instance-strides",
+            "87t-keep-stroke-color-and-pick-exemptions-aligned",
+            "87u-keep-chain-color-and-pick-exemptions-aligned",
+            "87v-keep-marker-color-and-pick-exemptions-aligned",
+            "87w-resolve-locked-and-selected-original-plane-boundaries",
+            "87x-clip-cached-original-point-cloud-discs",
+            "87y-clip-original-sheet-pens-and-integer-entities",
+            "87z-clip-text-anchors-with-all-six-original-planes",
+            "87aa-observe-actual-clipping-resources-and-errors",
+            "87ab-exercise-original-clipping-color-and-picking"
+          ],
+          "checkpoint": "87ab-exercise-original-clipping-color-and-picking"
+        },
+        {
+          "id": "88-copy-original-closedness-and-winding",
+          "title": "Verified closed sections and exact cap picks",
+          "page": "journey/consolidation/88-copy-original-closedness-and-winding.md",
+          "steps": [
+            "88-copy-original-closedness-and-winding",
+            "88a-cache-verified-original-solids-weakly",
+            "88b-copy-conservative-plane-crossing-bounds",
+            "88c-cache-local-bounds-and-apply-placement-once",
+            "88d-carry-closedness-and-dense-cap-addresses",
+            "88e-count-original-closed-solid-crossings",
+            "88f-count-exact-original-cap-pick-candidates",
+            "88g-copy-section-coverage-and-hatch-filtering",
+            "88ga-fade-hatch-detail-and-detect-section-boundaries",
+            "88gb-shade-sections-with-shared-original-depth-and-sample-ownership",
+            "88h-adapt-color-sections-to-forward-depth",
+            "88i-return-original-integer-section-owners",
+            "88j-own-lazy-section-images",
+            "88k-build-compatible-section-render-pipelines",
+            "88l-add-signed-counts-and-grey-hatch-color",
+            "88m-build-bounded-integer-section-pipelines",
+            "88n-own-bounded-cap-pick-storage",
+            "88o-prepare-exact-cap-crop-and-owners",
+            "88p-draw-cap-count-nearest-owner-and-integer-id",
+            "88q-own-section-caches-and-placeholders",
+            "88r-gather-crossing-original-owners",
+            "88s-prepare-active-section-images",
+            "88t-draw-the-closed-union-and-section-depth",
+            "88u-route-exact-original-cap-picks-and-allocation",
+            "88v-connect-sections-after-opaque-originals",
+            "88x-expose-section-data-to-finite-ink-tables",
+            "88y-cache-finite-section-bindings",
+            "88z-retain-ink-exactly-on-sloping-sections",
+            "88aa-hide-original-ink-behind-visible-caps",
+            "88ab-pick-sections-before-any-color-frame",
+            "88ac-observe-actual-section-owners-and-errors",
+            "88ad-exercise-original-sections-bores-and-ink"
+          ],
+          "checkpoint": "88ad-exercise-original-sections-bores-and-ink"
+        },
+        {
+          "id": "89-copy-density-scaled-depth-reduction",
+          "title": "A retained depth and radius pyramid",
+          "page": "journey/consolidation/89-copy-density-scaled-depth-reduction.md",
+          "steps": [
+            "89-copy-density-scaled-depth-reduction",
+            "89a-prepare-linear-original-depth-and-radius-addresses",
+            "89b-own-six-real-depth-and-radius-levels",
+            "89c-build-prepare-and-nearest-depth-pipelines",
+            "89d-prepare-cached-pyramid-inputs-and-images",
+            "89e-encode-six-levels-only-when-inputs-change",
+            "89f-expose-actual-pyramid-allocation-and-levels",
+            "89g-route-original-depth-into-the-pyramid-owner",
+            "89h-exercise-actual-depth-levels-and-cache-release"
+          ],
+          "checkpoint": "89h-exercise-actual-depth-levels-and-cache-release"
+        },
+        {
+          "id": "90-copy-maintained-original-contact-radius",
+          "title": "Original contact metadata and ambient light",
+          "page": "journey/consolidation/90-copy-maintained-original-contact-radius.md",
+          "steps": [
+            "90-copy-maintained-original-contact-radius",
+            "90a-copy-current-viewing-rays",
+            "90b-adapt-the-earlier-forward-camera",
+            "90c-gather-weak-original-ambient-properties",
+            "90d-copy-current-horizon-and-bilateral-recipes",
+            "90da-reconstruct-original-surfaces-from-depth",
+            "90db-encode-normals-and-read-original-contact-metadata",
+            "90dc-prepare-a-compact-depth-radius-and-normal-target",
+            "90dd-measure-ground-contact-along-bounded-horizons",
+            "90de-integrate-cosine-weighted-surface-visibility",
+            "90df-filter-contact-without-crossing-unrelated-surfaces",
+            "90dg-reject-invalid-ambient-history-before-blending",
+            "90dh-reconstruct-full-resolution-contact-from-low-resolution-samples",
+            "90di-collect-bounded-sample-corrections-with-gpu-atomics",
+            "90dj-composite-contact-as-black-alpha-over-the-original-scene",
+            "90e-bind-real-original-normals-and-radii",
+            "90f-write-original-surface-contact-properties",
+            "90g-build-the-depth-equal-original-property-pass",
+            "90h-cache-original-radius-buffers-and-draw-properties",
+            "90i-own-actual-ambient-image-allocation",
+            "90j-prepare-reduced-and-full-ambient-targets",
+            "90k-build-explicit-ambient-fullscreen-pipelines",
+            "90l-match-current-ambient-sampling-layouts",
+            "90m-cache-reduced-levels-and-filtered-samples",
+            "90n-bind-exact-current-ambient-source-images",
+            "90o-record-explicit-ambient-passes",
+            "90p-own-cached-ambient-pipelines-and-release-images",
+            "90q-prepare-changed-ambient-framebuffer-inputs",
+            "90r-render-a-complete-ambient-result-in-one-frame",
+            "90s-count-actual-ambient-resources-and-work",
+            "90t-route-original-scene-properties-into-ambient-shading",
+            "90u-enable-arctic-as-a-presentation-change",
+            "90v-exercise-actual-contacts-cache-and-source-ownership"
+          ],
+          "checkpoint": "90v-exercise-actual-contacts-cache-and-source-ownership"
+        },
+        {
+          "id": "91-include-visible-section-coverage",
+          "title": "Section-aware outlines and one presentation composite",
+          "page": "journey/consolidation/91-include-visible-section-coverage.md",
+          "steps": [
+            "91-include-visible-section-coverage",
+            "91a-cache-visible-section-bindings",
+            "91b-combine-outline-alpha-once",
+            "91c-cache-one-black-outline-composite",
+            "91d-separate-source-scope-from-outline-selection",
+            "91e-prepare-masks-without-a-second-blend",
+            "91f-own-independent-global-outline-resources",
+            "91g-draw-all-solid-and-selected-coverage-consistently",
+            "91h-connect-outline-and-arctic-presentation-commands",
+            "91i-prove-actual-outlines-and-original-ownership"
+          ],
+          "checkpoint": "91i-prove-actual-outlines-and-original-ownership"
+        },
+        {
+          "id": "92-link-current-wood-element-builders",
+          "title": "Original Wood Elements and portable source records",
+          "page": "journey/consolidation/92-link-current-wood-element-builders.md",
+          "steps": [
+            "92-link-current-wood-element-builders",
+            "91zza-write-original-beam-column-and-plate-builders",
+            "92a-retain-current-positive-lengths-and-six-builders",
+            "92b-own-original-element-geometry",
+            "92c-read-current-element-command-defaults",
+            "92d-build-typed-elements-from-ordered-world-picks",
+            "92e-capture-original-picks-while-the-tool-runs",
+            "92f-teach-named-and-bare-element-values",
+            "92g-make-element-input-batches-atomic",
+            "92h-attach-readonly-element-attributes",
+            "92i-adopt-elements-and-consume-sources-once",
+            "92j-save-and-open-original-element-records",
+            "92k-own-independent-element-tool-state",
+            "92l-commit-one-element-creation-and-retry-errors",
+            "92m-route-current-element-commands-and-feature-visibility",
+            "92n-pick-elements-through-the-real-command-dock",
+            "92o-prove-element-recipes-source-history-and-archives"
+          ],
+          "checkpoint": "92o-prove-element-recipes-source-history-and-archives"
+        },
+        {
+          "id": "93-classify-original-solids-independently-of-clipping",
+          "title": "Glass, X-ray and shared visibility rules",
+          "page": "journey/consolidation/93-classify-original-solids-independently-of-clipping.md",
+          "steps": [
+            "93-classify-original-solids-independently-of-clipping",
+            "93a-own-opacity-in-the-existing-surface-frame",
+            "93b-blend-closed-faces-and-retain-opaque-open-surfaces",
+            "93c-exclude-x-ray-faces-from-original-picks-and-masks",
+            "93d-carry-opacity-into-finite-original-ink",
+            "93e-fade-hidden-ink-without-showing-clipped-geometry",
+            "93f-invalidate-presentation-and-preserve-cached-geometry",
+            "93g-connect-strict-opacity-presentation-commands",
+            "93h-prove-actual-glass-x-ray-and-source-ownership"
+          ],
+          "checkpoint": "93h-prove-actual-glass-x-ray-and-source-ownership"
+        },
+        {
+          "id": "94-declare-the-rendering-comparison-contract",
+          "title": "Matched rendering comparisons from original sources",
+          "page": "journey/consolidation/94-declare-the-rendering-comparison-contract.md",
+          "steps": [
+            "94-declare-the-rendering-comparison-contract",
+            "94a-link-the-maintained-native-rendering-reference",
+            "94b-read-actual-maintained-frames-without-source-mutation",
+            "94c-prove-the-original-comparison-and-inspect-differences"
+          ],
+          "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences"
+        },
+        {
+          "id": "95-record-comparable-large-scene-conditions",
+          "title": "Measured frame costs and dependency-aware cache reports",
+          "page": "journey/consolidation/95-record-comparable-large-scene-conditions.md",
+          "steps": [
+            "95-record-comparable-large-scene-conditions",
+            "95a-measure-warmed-frame-times-and-the-slow-tail",
+            "95b-reject-incomparable-before-and-after-runs",
+            "95c-witness-immutable-tree-inputs-across-camera-frames",
+            "95d-reuse-layer-rows-while-rotating-and-zooming",
+            "95e-borrow-graph-edges-and-index-their-labels",
+            "95f-prove-cache-invalidation-and-honest-performance-reports"
+          ],
+          "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports"
+        }
+      ]
+    },
+    {
+      "title": "Shared GPU Arenas, Floating-Origin Precision, Multisampling, and Production Parity",
+      "sections": [
+        {
+          "title": "Complete source metadata and the actual command contract",
+          "first": "96-retain-non-drawing-originals-and-validate-raw-planes"
+        },
+        {
+          "title": "Original Element ancestry and derived feature trees",
+          "first": "96i-separate-own-and-hosted-element-features"
+        },
+        {
+          "title": "Original owners across selection, copying and display",
+          "first": "96s-resolve-feature-rows-to-original-element-owners"
+        },
+        {
+          "title": "Family-aware original controls and source previews",
+          "first": "96za-address-original-controls-with-family-keys"
+        },
+        {
+          "title": "Shared surface geometry and finite visibility addresses",
+          "first": "96zh-bind-the-shared-geometry-as-storage"
+        },
+        {
+          "title": "Physical formats, shared section inputs and display defaults",
+          "first": "96zzc-share-section-addresses-with-outlines-and-ambient"
+        },
+        {
+          "title": "Shared arenas, object records and source preparation",
+          "first": "96zzg-grow-buffers-without-losing-rows"
+        },
+        {
+          "title": "Slots, independent instance owners and stable record updates",
+          "first": "96zzu-separate-primitive-addresses-from-selection"
+        },
+        {
+          "title": "Original picks, ambient metadata and cap consumers",
+          "first": "96zzzs-allocate-stable-object-record-rows"
+        },
+        {
+          "title": "Retained allocation, live lookup and safe reclamation",
+          "first": "96zzzzi-adapt-incremental-slots-to-pulled-draws"
+        },
+        {
+          "title": "Units and one precise render origin",
+          "first": "96zzzzy-prepare-unit-aware-anchored-camera-space"
+        },
+        {
+          "title": "Precise CPU queries and origin-stamped picks",
+          "first": "96zzzzzj-project-cpu-queries-around-the-precise-target"
+        },
+        {
+          "title": "Browser ownership of frame matrices and wakeups",
+          "first": "96zzzzzq-prepare-one-shared-render-origin"
+        },
+        {
+          "title": "Reversed depth and homogeneous near clipping",
+          "first": "96zzzzzt-share-depth-endpoints-and-comparisons"
+        },
+        {
+          "title": "Physical camera, world grid and framed navigation",
+          "first": "96zzzzzza-match-physical-camera-defaults-and-limits"
+        },
+        {
+          "title": "Original surface colours and lighting controls",
+          "first": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms"
+        },
+        {
+          "title": "Contact fills and original face queries",
+          "first": "96zzzzzzi-share-one-frame-across-color-and-ink"
+        },
+        {
+          "title": "Original boundary pens, joins and vertex markers",
+          "first": "96zzzzzzn-respect-original-boundary-pens"
+        },
+        {
+          "title": "Original ambient inputs and real pass ordering",
+          "first": "96zzzzzzr-share-geometric-ambient-inputs"
+        },
+        {
+          "title": "Coherent multisampling and frame-resource ownership",
+          "first": "96zzzzzzu-keep-depth-and-address-samples-separate"
+        },
+        {
+          "title": "Original display controls and remaining integration boundaries",
+          "first": "96zzzzzzzm-retain-visible-instance-ranges"
+        }
+      ],
+      "consolidated": [
+        {
+          "id": "96-retain-non-drawing-originals-and-validate-raw-planes",
+          "title": "Complete source metadata and the actual command contract",
+          "page": "journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md",
+          "steps": [
+            "96-retain-non-drawing-originals-and-validate-raw-planes",
+            "96a-merge-unused-definitions-with-displayed-instances",
+            "96b-preserve-component-and-interaction-metadata-in-archives",
+            "96c-keep-current-element-and-frame-definition-families",
+            "96d-observe-the-real-current-registry-and-parser",
+            "96e-verify-the-complete-declared-current-source-closure",
+            "96f-report-retained-original-metadata-in-the-real-viewer",
+            "96g-prove-exact-metadata-and-definition-round-trips",
+            "96h-prove-current-source-grammar-and-explicit-differences"
+          ],
+          "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences"
+        },
+        {
+          "id": "96i-separate-own-and-hosted-element-features",
+          "title": "Original Element ancestry and derived feature trees",
+          "page": "journey/consolidation/96i-separate-own-and-hosted-element-features.md",
+          "steps": [
+            "96i-separate-own-and-hosted-element-features",
+            "96j-group-features-by-original-interaction",
+            "96k-separate-derived-rows-from-editable-elements",
+            "96l-attach-a-bounded-derived-feature-tree",
+            "96m-project-original-feature-outlines",
+            "96n-connect-imported-interaction-hierarchies",
+            "96o-reuse-projections-for-created-elements",
+            "96p-build-an-imported-interaction-specimen",
+            "96q-prove-imported-feature-ownership-and-roundtrips",
+            "96r-preserve-exact-command-completions"
+          ],
+          "checkpoint": "96r-preserve-exact-command-completions"
+        },
+        {
+          "id": "96s-resolve-feature-rows-to-original-element-owners",
+          "title": "Original owners across selection, copying and display",
+          "page": "journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md",
+          "steps": [
+            "96s-resolve-feature-rows-to-original-element-owners",
+            "96t-select-and-highlight-original-feature-owners",
+            "96u-fit-original-box-corners-to-the-free-canvas",
+            "96v-project-definition-and-per-instance-features",
+            "96w-detach-copied-original-source-identity",
+            "96x-regenerate-display-for-copied-feature-owners",
+            "96y-address-feature-pixels-to-original-cad-owners",
+            "96z-preserve-source-feature-visibility-and-pixel-styles"
+          ],
+          "checkpoint": "96z-preserve-source-feature-visibility-and-pixel-styles"
+        },
+        {
+          "id": "96za-address-original-controls-with-family-keys",
+          "title": "Family-aware original controls and source previews",
+          "page": "journey/consolidation/96za-address-original-controls-with-family-keys.md",
+          "steps": [
+            "96za-address-original-controls-with-family-keys",
+            "96zb-draw-and-pick-original-cad-control-points",
+            "96zc-share-the-current-control-point-style",
+            "96zd-reuse-world-controls-for-their-display-nets",
+            "96ze-scope-controls-to-the-selected-original",
+            "96zf-edit-original-controls-through-the-source-preview",
+            "96zg-rebuild-an-edited-element-without-replacing-its-owner"
+          ],
+          "checkpoint": "96zg-rebuild-an-edited-element-without-replacing-its-owner"
+        },
+        {
+          "id": "96zh-bind-the-shared-geometry-as-storage",
+          "title": "Shared surface geometry and finite visibility addresses",
+          "page": "journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md",
+          "steps": [
+            "96zh-bind-the-shared-geometry-as-storage",
+            "96zi-read-source-vertices-through-one-shader-helper",
+            "96zj-activate-shared-vertex-pulling-for-color",
+            "96zk-assign-frame-triangle-ranges",
+            "96zl-own-the-integer-primitive-image",
+            "96zm-write-triangle-addresses-beside-color",
+            "96zn-bind-visible-triangle-addresses-for-ink",
+            "96zo-describe-ink-depth-and-surface-slack",
+            "96zp-fit-a-neighboring-surface-along-the-stroke",
+            "96zq-own-a-cropped-primitive-image-for-picks",
+            "96zr-share-crop-and-clipping-bindings-for-pulled-picks",
+            "96zs-write-first-pick-primitives-from-shared-geometry",
+            "96zt-fit-surface-depth-beneath-a-point-disc",
+            "96zu-test-the-disc-center-against-a-surface",
+            "96zv-carry-the-rasterized-triangle-gradient-to-ink",
+            "96zw-connect-surface-fitted-point-visibility",
+            "96zx-test-the-rasterized-neighbors-at-the-stroke-source",
+            "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion",
+            "96zz-separate-hidden-ink-color-from-pick-ownership",
+            "96zza-connect-section-primitive-images",
+            "96zzb-read-section-visibility-from-one-image"
+          ],
+          "checkpoint": "96zzb-read-section-visibility-from-one-image"
+        },
+        {
+          "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+          "title": "Physical formats, shared section inputs and display defaults",
+          "page": "journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md",
+          "steps": [
+            "96zzc-share-section-addresses-with-outlines-and-ambient",
+            "96zzd-pack-surface-position-normal-and-color",
+            "96zze-retain-rgba-in-prepared-displays",
+            "96zzf-start-with-current-browser-display-defaults"
+          ],
+          "checkpoint": "96zzf-start-with-current-browser-display-defaults"
+        },
+        {
+          "id": "96zzg-grow-buffers-without-losing-rows",
+          "title": "Shared arenas, object records and source preparation",
+          "page": "journey/consolidation/96zzg-grow-buffers-without-losing-rows.md",
+          "steps": [
+            "96zzg-grow-buffers-without-losing-rows",
+            "96zzh-prepare-shared-compact-mesh-ranges",
+            "96zzi-upload-compact-ranges-to-shared-gpu-storage",
+            "96zzj-share-the-object-record-layout",
+            "96zzk-borrow-the-current-arena-buffers",
+            "96zzl-read-shared-ranges-through-object-records",
+            "96zzm-connect-the-renderer-to-one-mesh-arena",
+            "96zzn-describe-eight-byte-draw-slots",
+            "96zzo-read-instance-properties-through-draw-slots",
+            "96zzp-classify-contact-fill-shading",
+            "96zzq-open-files-through-one-measured-session-reader",
+            "96zzr-route-current-close-and-opacity-commands",
+            "96zzs-reuse-full-source-preparation-for-editor-and-reload",
+            "96zzt-share-the-current-selection-yellow"
+          ],
+          "checkpoint": "96zzt-share-the-current-selection-yellow"
+        },
+        {
+          "id": "96zzu-separate-primitive-addresses-from-selection",
+          "title": "Slots, independent instance owners and stable record updates",
+          "page": "journey/consolidation/96zzu-separate-primitive-addresses-from-selection.md",
+          "steps": [
+            "96zzu-separate-primitive-addresses-from-selection",
+            "96zzv-bind-the-own-row-slot-for-ordinary-surfaces",
+            "96zzw-reload-scenes-through-the-existing-publication-owner",
+            "96zzx-update-only-changed-slot-runs",
+            "96zzy-share-one-slot-buffer-across-surface-draws",
+            "96zzz-prepare-the-integer-primitive-slot-texture",
+            "96zzza-describe-slot-and-triangle-runs",
+            "96zzzb-read-slot-runs-and-lookup-texels",
+            "96zzzc-reuse-and-merge-free-slot-ranges",
+            "96zzzd-follow-arena-growth-with-slot-headroom",
+            "96zzze-report-only-changed-instance-slots",
+            "96zzzf-project-triangles-at-their-physical-addresses",
+            "96zzzg-clear-the-current-arctic-background",
+            "96zzzh-share-changed-record-runs",
+            "96zzzi-prepare-one-shared-object-record-table",
+            "96zzzj-share-instance-object-records-across-definitions",
+            "96zzzk-reuse-checked-curve-control-coordinates",
+            "96zzzl-publish-allocator-texels-through-the-integer-table",
+            "96zzzm-resolve-physical-triangles-with-integer-slots",
+            "96zzzn-batch-shared-geometry-with-original-ownership",
+            "96zzzo-shrink-record-ranges-without-rewriting-live-prefixes",
+            "96zzzp-share-opaque-ordinary-surface-records",
+            "96zzzq-blend-ordinary-surface-records",
+            "96zzzr-share-transparent-instance-records"
+          ],
+          "checkpoint": "96zzzr-share-transparent-instance-records"
+        },
+        {
+          "id": "96zzzs-allocate-stable-object-record-rows",
+          "title": "Original picks, ambient metadata and cap consumers",
+          "page": "journey/consolidation/96zzzs-allocate-stable-object-record-rows.md",
+          "steps": [
+            "96zzzs-allocate-stable-object-record-rows",
+            "96zzzt-retain-live-surface-record-rows",
+            "96zzzu-prepare-shared-record-pick-consumers",
+            "96zzzv-pick-originals-through-shared-records",
+            "96zzzw-read-source-faces-through-shared-records",
+            "96zzzx-pack-existing-ambient-radius-in-object-records",
+            "96zzzy-read-ambient-properties-through-shared-records",
+            "96zzzz-share-the-object-record-shader-schema",
+            "96zzzza-prepare-shared-record-triangle-projection",
+            "96zzzzb-project-triangles-through-shared-records",
+            "96zzzzc-prepare-shared-record-cap-counting",
+            "96zzzzd-prepare-cap-plane-and-arena-bindings",
+            "96zzzze-count-cap-color-through-shared-records",
+            "96zzzzf-prepare-shared-record-cap-picks",
+            "96zzzzg-own-shared-record-cap-pick-resources",
+            "96zzzzh-pick-caps-through-shared-records"
+          ],
+          "checkpoint": "96zzzzh-pick-caps-through-shared-records"
+        },
+        {
+          "id": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+          "title": "Retained allocation, live lookup and safe reclamation",
+          "page": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md",
+          "steps": [
+            "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+            "96zzzzj-prepare-exact-arena-slot-definitions",
+            "96zzzzk-retain-live-allocator-member-runs",
+            "96zzzzl-prepare-one-plan-for-draw-slots-and-lookup",
+            "96zzzzm-prepare-one-owner-for-live-address-updates",
+            "96zzzzn-adopt-retained-gpu-slots-and-physical-bases",
+            "96zzzzo-separate-projection-rows-and-arena-offsets",
+            "96zzzzp-prepare-lookup-selected-triangle-projection",
+            "96zzzzq-prepare-the-lookup-projection-pipeline",
+            "96zzzzr-own-current-lookup-projection-bindings",
+            "96zzzzs-project-live-triangles-through-the-lookup",
+            "96zzzzt-plan-reusable-arena-spans",
+            "96zzzzu-reuse-retired-arena-record-ranges",
+            "96zzzzv-upload-reused-arena-spans-in-place",
+            "96zzzzw-reclaim-ranges-after-the-last-gpu-lease",
+            "96zzzzx-retire-empty-arena-ranges-after-tail-trimming"
+          ],
+          "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming"
+        },
+        {
+          "id": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+          "title": "Units and one precise render origin",
+          "page": "journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md",
+          "steps": [
+            "96zzzzy-prepare-unit-aware-anchored-camera-space",
+            "96zzzzz-prepare-precise-anchor-relative-object-records",
+            "96zzzzza-prepare-anchor-relative-original-ink",
+            "96zzzzzb-prepare-shared-origin-frame-inputs",
+            "96zzzzzc-prepare-cloud-and-sheet-frame-placements",
+            "96zzzzzd-prepare-local-temporary-overlays",
+            "96zzzzze-preserve-local-precision-before-source-placement",
+            "96zzzzzf-prepare-precise-construction-grid-origins",
+            "96zzzzzg-initialize-object-records-in-the-local-frame",
+            "96zzzzzh-prepare-anchor-relative-original-highlights",
+            "96zzzzzi-share-one-camera-and-measurement-unit"
+          ],
+          "checkpoint": "96zzzzzi-share-one-camera-and-measurement-unit"
+        },
+        {
+          "id": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+          "title": "Precise CPU queries and origin-stamped picks",
+          "page": "journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md",
+          "steps": [
+            "96zzzzzj-project-cpu-queries-around-the-precise-target",
+            "96zzzzzk-prepare-precise-text-selection-polygons",
+            "96zzzzzl-connect-precise-rectangle-selection-queries",
+            "96zzzzzm-finish-precise-lasso-and-handle-queries",
+            "96zzzzzn-stamp-asynchronous-picks-with-the-origin",
+            "96zzzzzo-retry-rebased-picks-with-the-latest-cursor",
+            "96zzzzzp-share-derived-inputs-for-origin-refresh"
+          ],
+          "checkpoint": "96zzzzzp-share-derived-inputs-for-origin-refresh"
+        },
+        {
+          "id": "96zzzzzq-prepare-one-shared-render-origin",
+          "title": "Browser ownership of frame matrices and wakeups",
+          "page": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md",
+          "steps": [
+            "96zzzzzq-prepare-one-shared-render-origin",
+            "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes",
+            "96zzzzzs-adopt-the-shared-origin-in-the-browser"
+          ],
+          "checkpoint": "96zzzzzs-adopt-the-shared-origin-in-the-browser"
+        },
+        {
+          "id": "96zzzzzt-share-depth-endpoints-and-comparisons",
+          "title": "Reversed depth and homogeneous near clipping",
+          "page": "journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md",
+          "steps": [
+            "96zzzzzt-share-depth-endpoints-and-comparisons",
+            "96zzzzzu-share-homogeneous-near-plane-ink-clipping",
+            "96zzzzzz-use-reversed-depth-across-the-frame"
+          ],
+          "checkpoint": "96zzzzzz-use-reversed-depth-across-the-frame"
+        },
+        {
+          "id": "96zzzzzza-match-physical-camera-defaults-and-limits",
+          "title": "Physical camera, world grid and framed navigation",
+          "page": "journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md",
+          "steps": [
+            "96zzzzzza-match-physical-camera-defaults-and-limits",
+            "96zzzzzzb-omit-unused-background-pick-pipelines",
+            "96zzzzzzc-draw-the-construction-grid-as-physical-lines",
+            "96zzzzzzd-build-viewing-rays-without-matrix-inversion",
+            "96zzzzzze-grow-camera-depth-from-cached-world-bounds",
+            "96zzzzzzf-match-wheel-input-and-framed-projection"
+          ],
+          "checkpoint": "96zzzzzzf-match-wheel-input-and-framed-projection"
+        },
+        {
+          "id": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+          "title": "Original surface colours and lighting controls",
+          "page": "journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md",
+          "steps": [
+            "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+            "96zzzzzzh-connect-headlight-and-backface-controls"
+          ],
+          "checkpoint": "96zzzzzzh-connect-headlight-and-backface-controls"
+        },
+        {
+          "id": "96zzzzzzi-share-one-frame-across-color-and-ink",
+          "title": "Contact fills and original face queries",
+          "page": "journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md",
+          "steps": [
+            "96zzzzzzi-share-one-frame-across-color-and-ink",
+            "96zzzzzzj-fill-original-contact-polygons",
+            "96zzzzzzk-broadcast-ordinary-ink-metadata",
+            "96zzzzzzl-layer-original-contact-boundaries",
+            "96zzzzzzm-query-original-faces-under-contact-overlays"
+          ],
+          "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays"
+        },
+        {
+          "id": "96zzzzzzn-respect-original-boundary-pens",
+          "title": "Original boundary pens, joins and vertex markers",
+          "page": "journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md",
+          "steps": [
+            "96zzzzzzn-respect-original-boundary-pens",
+            "96zzzzzzo-close-original-boundary-joins",
+            "96zzzzzzp-draw-default-mesh-vertex-dots",
+            "96zzzzzzq-taper-crowded-original-mesh-vertices"
+          ],
+          "checkpoint": "96zzzzzzq-taper-crowded-original-mesh-vertices"
+        },
+        {
+          "id": "96zzzzzzr-share-geometric-ambient-inputs",
+          "title": "Original ambient inputs and real pass ordering",
+          "page": "journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md",
+          "steps": [
+            "96zzzzzzr-share-geometric-ambient-inputs",
+            "96zzzzzzs-shade-surfaces-before-drawing-ink",
+            "96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+          ],
+          "checkpoint": "96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+        },
+        {
+          "id": "96zzzzzzu-keep-depth-and-address-samples-separate",
+          "title": "Coherent multisampling and frame-resource ownership",
+          "page": "journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md",
+          "steps": [
+            "96zzzzzzu-keep-depth-and-address-samples-separate",
+            "96zzzzzzv-reuse-coherent-frame-targets",
+            "96zzzzzzw-match-resolve-base-and-view-formats",
+            "96zzzzzzx-reuse-count-specific-surface-pipelines",
+            "96zzzzzzy-generate-ink-for-physical-samples",
+            "96zzzzzzz-cache-ink-pipelines-with-independent-queries",
+            "96zzzzzzza-retarget-existing-overlay-lanes",
+            "96zzzzzzzb-read-section-crossings-at-each-sample",
+            "96zzzzzzzc-compose-cloud-depth-with-physical-addresses",
+            "96zzzzzzzca-cache-cloud-and-sheet-samples",
+            "96zzzzzzzd-retarget-cached-text",
+            "96zzzzzzze-cache-outline-section-recipes",
+            "96zzzzzzzf-resolve-float-outline-coverage",
+            "96zzzzzzzg-retarget-original-ambient-properties",
+            "96zzzzzzzh-share-ambient-shader-recipes",
+            "96zzzzzzzi-correct-ambient-at-physical-samples",
+            "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+            "96zzzzzzzk-retarget-the-complete-colour-frame",
+            "96zzzzzzzl-choose-bounded-frame-quality"
+          ],
+          "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality"
+        },
+        {
+          "id": "96zzzzzzzm-retain-visible-instance-ranges",
+          "title": "Original display controls and remaining integration boundaries",
+          "page": "journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+          "steps": [
+            "96zzzzzzzm-retain-visible-instance-ranges",
+            "96zzzzzzzn-prepare-original-ink-families",
+            "96zzzzzzzo-show-original-ink-families",
+            "96zzzzzzzp-apply-semantic-view-controls",
+            "96zzzzzzzq-draw-original-cad-wire-curves"
+          ],
+          "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves"
+        }
+      ]
+    }
+  ],
+  "comparison": "97-finish-with-the-maintained-browser-runtime"
+}

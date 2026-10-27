@@ -1,0 +1,450 @@
+{
+  "status": "PASS original complete76d canonical browser callback and root individually reviewed actual Sheet/finalcurve images",
+  "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "sourceFiles": 377,
+  "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+  "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+  "callback": {
+    "path": "journey/checks/browser/freeform.cjs",
+    "recursiveFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+    "capture": "docs/capture_journey.cjs",
+    "captureSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "original60msTypingUnchanged": true
+  },
+  "build": {
+    "proof": {
+      "path": "target/course-windows-20261018/76d-nvidia-sheet-observation-preparation/76d-mask-fixed-current-v1-driver-qualified/proof.json",
+      "sha256": "25f27c2d7148a217c83d6eee3227397a03112415d3471ac995dcab283f7d136a"
+    },
+    "phases": {
+      "native-check": {
+        "input": {
+          "id": "76d-exercise-exact-curves-and-rational-control-edits",
+          "files": 377,
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/freeform.cjs",
+          "callbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+          "frame": "journey/checks/76-freeform.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "command": {
+          "name": "76d-mask-fixed-current-v1-native-check-20261024T022011322Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "check",
+            "--tests",
+            "--examples",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/76d-mask-fixed-current-v1-native-check-20261024T022011322Z.resources.json",
+          "sha256": "515dc30d8f0381333fd7b6e7cb1b46348f835a43a2615b7a84b27eb0acfd7087"
+        },
+        "elapsedSeconds": 7.778,
+        "peakJobCommitBytes": 878100480
+      },
+      "wasm": {
+        "input": {
+          "id": "76d-exercise-exact-curves-and-rational-control-edits",
+          "files": 377,
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/freeform.cjs",
+          "callbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+          "frame": "journey/checks/76-freeform.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "command": {
+          "name": "76d-mask-fixed-current-v1-wasm-20261024T022022440Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "build",
+            "--lib",
+            "--locked",
+            "--offline",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/76d-mask-fixed-current-v1-wasm-20261024T022022440Z.resources.json",
+          "sha256": "bdd6e4793e368431073e4133a77ace02a703c2c1afefd0ca85d8b473e1dbaee4"
+        },
+        "elapsedSeconds": 12.329,
+        "peakJobCommitBytes": 1288572928
+      },
+      "web": {
+        "input": {
+          "id": "76d-exercise-exact-curves-and-rational-control-edits",
+          "files": 377,
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/freeform.cjs",
+          "callbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+          "frame": "journey/checks/76-freeform.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "command": {
+          "name": "76d-mask-fixed-current-v1-web-20261024T022037933Z",
+          "args": [
+            "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/76d-mask-fixed-current-v1-web-20261024T022037933Z.resources.json",
+          "sha256": "2dcbc7060a404d2aafe9cfac530d3af81c9c1fbb3fcde9d72a74bf7fdd74bb63"
+        },
+        "elapsedSeconds": 114.042,
+        "peakJobCommitBytes": 996188160
+      },
+      "frame": {
+        "input": {
+          "id": "76d-exercise-exact-curves-and-rational-control-edits",
+          "files": 377,
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/freeform.cjs",
+          "callbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+          "frame": "journey/checks/76-freeform.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "command": {
+          "name": "76d-mask-fixed-current-v1-frame-20261024T022235293Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/76d-mask-fixed-current-v1-frame-20261024T022235293Z.resources.json",
+          "sha256": "d54881c0a4572f1828c145e9fab245bc690c2d7d05b92af9b06e7aef67549cfc"
+        },
+        "elapsedSeconds": 25.822,
+        "peakJobCommitBytes": 1993400320
+      },
+      "sample": {
+        "input": {
+          "id": "76d-exercise-exact-curves-and-rational-control-edits",
+          "files": 377,
+          "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+          "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/freeform.cjs",
+          "callbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+          "frame": "journey/checks/76-freeform.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "command": {
+          "name": "76d-mask-fixed-current-v1-sample-20261024T022304595Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "sample",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/76d-mask-fixed-current-v1-sample-20261024T022304595Z.resources.json",
+          "sha256": "97ed606e03a2f510fef4ee331c8b63938ec3ce9904e65d41cd5dd6833c6a136e"
+        },
+        "elapsedSeconds": 5.053,
+        "peakJobCommitBytes": 1839853568
+      }
+    },
+    "buildDriverQualification": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\mask-fixed-367065-preparation\\build-driver-relevance.json",
+      "sha256": "f9c1096e86160f3675bca8c901a729bcc7896d05d4d26f99d0a36cce31a83226",
+      "scope": "Actual original build phases retained at original launcher/input hashes; later browser-only freeze and this exact pin-qualification guard do not execute or alter build phases."
+    },
+    "qualifiedOriginalSelfPins": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\76d-nvidia-observed-launch.mjs",
+        "originalExecutedSha256": "e1d3de474ac4e849e19cb54b439070bd1d8f93e705f8f7976517920a8ee6e73f",
+        "archive": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\mask-fixed-367065-preparation\\executed-build-launcher-e1d3.mjs.bin",
+          "sha256": "e1d3de474ac4e849e19cb54b439070bd1d8f93e705f8f7976517920a8ee6e73f"
+        },
+        "current": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\76d-nvidia-observed-launch.mjs",
+          "sha256": "c2fabf8be4d3e43e68764247c32e9654f017d5cc1d5e10732e93eb8c5ca056d4"
+        },
+        "qualification": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\mask-fixed-367065-preparation\\build-driver-relevance.json",
+          "sha256": "f9c1096e86160f3675bca8c901a729bcc7896d05d4d26f99d0a36cce31a83226",
+          "scope": "Actual original build phases retained at original launcher/input hashes; later browser-only freeze and this exact pin-qualification guard do not execute or alter build phases."
+        }
+      }
+    ],
+    "canonicalVerifyComplete": false,
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    },
+    "nativeFrame": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\76d-mask-fixed-current-v1\\native-frame.png",
+      "sha256": "30d65b4a30872dc0dbaf3a7f53927a9d9c770c0f85a4818ed5d2a14e7c1dc1cb",
+      "ppmSha256": "35c508980dc66ea9c55337dda7e398c0a006c5a29a391f5491a70f3ced0fcc67",
+      "pixelsSha256": "3a4a687fc51975e88e58ecb6fe643788120e5f2d0fd94304ddd3483a3e1b45de",
+      "width": 640,
+      "height": 480,
+      "inspection": "Root explicitly supplied exact frame PNG SHA",
+      "rootIndividuallyReviewed": true
+    },
+    "sample": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-76d-exercise-exact-curves-and-rational-control-edits\\sample.pb",
+      "sha256": "b5aabf52672200fec58fab9056512d7f1bee00200003eae66b9396ef3565acbf"
+    },
+    "scope": "Five actual source-matching phases passed. Executed original launcher retained; exact browser-only driver self-pin change qualified without runtime rebuild. Fullhistoricalnative suite not run."
+  },
+  "browser": {
+    "proof": {
+      "path": "target/course-windows-20261018/76d-nvidia-sheet-observation-preparation/76d-mask-fixed-current-v1-driver-qualified/browser-20261024T022623107Z.json",
+      "sha256": "ac64e07592f1cbf17114bda8d75493397312be327f3e370f1de834f1fa1868ff"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/76d-mask-fixed-current-v1-driver-qualified-proportional-browser-20261024T022623786Z.resources.json",
+      "sha256": "34572922d075ae2e8a0db9b65b62f4f30097de0fe6de5e585337ba083cb4732d"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/76d-mask-fixed-current-v1-driver-qualified-proportional-browser-20261024T022623786Z.log",
+      "sha256": "53181ee15dedbea7f9be7ef2b48fbce11ca77c30e8554282ab0cc383f3319278"
+    },
+    "elapsedSeconds": 1865.56,
+    "peakJobCommitBytes": 1834889216,
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    },
+    "canonicalStep": {
+      "source": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T02:57:29.652Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "e85d041e3f05d65f250efff280f59784e44c9b30c2b1e2d12394d2463c0a7beb",
+      "file": "76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "ee988d00d040375cb16cb1271579b5c17f37334e2857aa6173dac2cc687f2cd9",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "canonicalStatusMeaning": "Saved status field is startup browser_status; terminal exact assertion separately used browser_result_status. ReceiptPASS includes original terminal equality, no status rewrite.",
+    "terminalExpectedStatus": "Document closed.",
+    "frozenBeforePublication": {
+      "results": {
+        "path": "target/course-windows-20261018/sheet-finite-closure-preparation/publication-76-pass/results-at-76-pass.json",
+        "sha256": "496136e2e36b8f3b7bcd5191fda64dae67988d39b43b231ed02e2dfdf5d6e114"
+      },
+      "browserContainer": {
+        "path": "target/course-windows-20261018/sheet-finite-closure-preparation/publication-76-pass/browser-at-76-pass.json",
+        "sha256": "8e11b8eac6942a95895451420034efbd7df078a374369d85acef46de315f0d09"
+      },
+      "binding": {
+        "path": "target/course-windows-20261018/sheet-finite-closure-preparation/publication-76-pass/live-input-binding.json",
+        "sha256": "c13fb8b97c112ce8e8a70dab9438bf0682182d4460aeb1990980f1a590b4d64c"
+      }
+    },
+    "observer": {
+      "record": {
+        "path": "target/course-windows-20261018/76d-nvidia-sheet-observation-preparation/76d-mask-fixed-current-v1-driver-qualified/sheet-observation-20261024T022623703Z/observation.json",
+        "sha256": "22ee2458878e39b6b9d378634ed82e1a6f585d2f83b7b2fbcf69606ea67bd46b"
+      },
+      "observerSha256": "d5982efb6ccafae92eab20a777d1baf7191656cb33359cf01a289276c922a0d2",
+      "status": "original Sheet callback completed; passive state/screenshot captured before drawing callback resumes",
+      "source": {
+        "id": "76d-exercise-exact-curves-and-rational-control-edits",
+        "files": 377,
+        "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+        "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+        "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+        "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+        },
+        "callback": "journey/checks/browser/freeform.cjs",
+        "callbackFingerprint": "ccd17c3381b2ece48d149b925cddbb5ed0b39c40cea6397f3ce7e610865a4b30",
+        "frame": "journey/checks/76-freeform.rs",
+        "frameConstructor": "make_renderer(device, queue, format)",
+        "frameSize": [
+          640,
+          480
+        ],
+        "sampleRequired": true,
+        "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+      },
+      "actualSheet": "[{\"entities\":3,\"guid\":\"00000000-0000-0000-0000-000000000711\",\"meta\":\"plan.shm\",\"model\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],\"resident\":5,\"row\":65,\"segments\":5,\"source\":\"00000000-0000-0000-0000-000000000711\",\"streamed\":false}]",
+      "scope": "No commands, camera/view changes, body skipping, timeout changes or assertion edits. Screenshot does not assert GPU queue completion or full outer76d callback acceptance."
+    },
+    "images": [
+      {
+        "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\76d-mask-fixed-current-v1-driver-qualified\\sheet-observation-20261024T022623703Z\\actual-sheet-before-drawing.png",
+        "figure": "journey/release/76d-current-sheet-before-drawing.png",
+        "sha256": "69698b390864f5ca72cfb3d5edbc50601fc56b3a8636b68171886118377696e8",
+        "kind": "Actual resident Sheet state immediately after unchanged Sheet body, before drawing resumes",
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "source": "docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+        "figure": "journey/release/76d-current-final-curves.png",
+        "sha256": "4aa1f469da97467da184efd103cacc03f010318d5109951a6a89022f2e0bd013",
+        "kind": "Actual final canonical five-curve frame after complete current76callback",
+        "rootIndividuallyReviewed": true
+      }
+    ]
+  },
+  "priorFailure": {
+    "path": "docs/journey/release/76d-browser-failure-review.json",
+    "sha256": "b6e7caa1ba396164f1fcca1ae89b023147a8daa21016b91aea19f07e7165859d"
+  },
+  "scope": [
+    "Accepts only current377-file76source-specificcallback at recorded NVIDIA environment, including actual awaited default inheritedbodies and unchanged assertions.",
+    "Old60306 failed outer capture and its earlier images remain historical; same Sheet image bytes are a fresh capture bound to current76source/observer/time.",
+    "Native/control/pixel evidence from other source stages retains original bindings; no fullstoredverify/fullnative-suite or wholebook/globalrelease claim.",
+    "Only76callback increments accepted source callbacks3/18,15pending; finiteSheet closure has separate criterion record."
+  ]
+}

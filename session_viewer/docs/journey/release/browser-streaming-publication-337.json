@@ -1,0 +1,286 @@
+{
+  "status": "PASS 1 browser figure regenerated, delegated-reviewed, root-approved and source/served HTTP verified",
+  "date": "2026-10-26T19:57:26.723Z",
+  "rootPersonallyViewedAllNewOriginals": true,
+  "rootPersonallyViewedOriginalIds": [
+    "97-finish-with-the-maintained-browser-runtime"
+  ],
+  "rootApprovedDelegatedReview": true,
+  "delegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\root-original-review.json",
+    "sha256": "d12fe3bb1aa6333945d9dc9a2c3965a56faf18ee494e2d43d2bbc64b6e89f027"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-337-preparation\\root-review.json",
+    "sha256": "ea35470afd5c97164befaf167f0b07372071dce91d3659e2321bf1abc0e5a1f3"
+  },
+  "canonicalBehaviorExecuted": "Per-image original source record; no new canonical validation-profile execution",
+  "canonicalValidationProfile": false,
+  "scope": "Original maintained DPR1/DPR2 behavior and pixel assertions actually passed under approved image-only resource profile. Both public filenames use one actual DPR2 output; no extra execution or canonical validation-profile claim.",
+  "images": [
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "destination": "docs/screenshots/journey/97-finish-with-the-maintained-browser-runtime-browser.png",
+      "sha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-337-preparation\\originals\\docs\\screenshots\\journey\\97-finish-with-the-maintained-browser-runtime-browser.png",
+      "originalSha256": "ab519bd9ff19a16c73771ea73ee370111202fa1dd68f10e0ac08c03dcaf444ea",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\capture.json",
+        "sha256": "a73a2f492f5861c144ceccbc6803c237ad55d94d50eefe659e16f142e17c2a4e"
+      },
+      "source": {
+        "checkpoint": "97-finish-with-the-maintained-browser-runtime",
+        "files": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19",
+          "assets/diagnostics.js": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "sourceStartupStatusQualification": null,
+      "scope": "Both public filenames may use this one actual new-source DPR2 image after root review. Original DPR1 image and both-density behavior evidence remain private and preserved.",
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T19:54:28.3318520Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\adapter.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-899ac3af951aae6a\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-899ac3af951aae6a\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 32.923,
+        "peakJobCommitBytes": 1014579200,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 65888,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "status": "ROOT_APPROVED actual final97 maintained behavior and both public DPR2 filenames",
+        "rootPersonallyViewedOriginalResolution": true,
+        "record": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\capture.json",
+          "sha256": "a73a2f492f5861c144ceccbc6803c237ad55d94d50eefe659e16f142e17c2a4e"
+        },
+        "imageSha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21",
+        "approval": "Root personally viewed original35bf6cf: full blue pedestal/base/cylinder/disc contained with clear margins, continuous exact silhouette/curved boundaries at fine subdivision, no displayed triangle diagonals; soft shadow/label/dock readable. Ordinary native-resolution pixel steps remain; no blanket artifact-free or MSAA claim. Main and exact duplicate DPR2 variant appearance approved provided same bytes.",
+        "actualDualDensity": {
+          "source": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
+          "checker": "fe1c0deb8e6b410023c3813ee58365e721e0276db13e8ed652b9f61d55d918cc",
+          "extraChecker": "62b84d01763fec03c2a9993f97017d5448c5daa9dcd1fd1110d4a010025908d4",
+          "browser": "145.0.7632.6",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-gl=angle",
+            "--use-angle=d3d11",
+            "--use-adapter-luid=0,86780",
+            "--enable-dawn-features=d3d_skip_shader_optimizations"
+          ],
+          "captured": "2026-10-26T19:55:01.169Z",
+          "file": "97-finish-with-the-maintained-browser-runtime-browser.png",
+          "images": [
+            {
+              "density": 1,
+              "file": "97-finish-with-the-maintained-browser-runtime-browser.png",
+              "sha256": "837cc0114752e73273a2c1b63c000a683207390401f4efc3a766b93b3096610c",
+              "viewport": {
+                "width": 900,
+                "height": 760
+              },
+              "physical": [
+                900,
+                760
+              ],
+              "blue": 128632,
+              "black": 8036
+            },
+            {
+              "density": 2,
+              "file": "97-finish-with-the-maintained-browser-runtime-browser-dpr2.png",
+              "sha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21",
+              "viewport": {
+                "width": 900,
+                "height": 760
+              },
+              "physical": [
+                1800,
+                1520
+              ],
+              "blue": 511991,
+              "black": 39686
+            }
+          ],
+          "bundle": "49a53feb9bc5e4beb06b5867ac44bec264e73055e9ab3439cfd7d4f1258c9468",
+          "scope": "Maintained runtime: original scene, Element/box deletion, history, command ownership, shortcuts, orbit/zoom, Close semantics and empty-manifest release, full canvas and actual original rendering at two pixel densities. Hardware performance and additional visual cases remain separate."
+        },
+        "actualResources": {
+          "platform": "windows-job-object",
+          "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+          "laneMutex": "Local\\SessionViewerCourseImageJob",
+          "affinityOffset": 8,
+          "requiredAffinityMask": "0xFF00",
+          "maximumOtherLaneProcessors": 8,
+          "maximumOtherLaneMemoryMiB": 8192,
+          "maximumAggregateOurProcessors": 16,
+          "maximumAggregateOurMemoryMiB": 16384,
+          "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-26T19:54:28.3318520Z",
+          "executable": "C:\\Program Files\\nodejs\\node.exe",
+          "arguments": [
+            "--require",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+            "--import",
+            "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\adapter.ts",
+            "--worker",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-899ac3af951aae6a\\config.json"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-899ac3af951aae6a\\workspace",
+          "timeoutSeconds": 2400,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 32.923,
+          "peakJobCommitBytes": 1014579200,
+          "affinityMask": "0xFF00",
+          "processors": 8,
+          "processId": 65888,
+          "descendantsAtCleanup": 0
+        },
+        "commandSchemaQualification": {
+          "record": {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\qualification.json",
+            "sha256": "baf29aa0552425f766118133dcb241fc83c0f8cfa48c29bc877e826ba6e89e6f"
+          },
+          "actual": {
+            "status": "PREPARED exact legacy command metadata transport; no new compilation",
+            "originalAdapter": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-image-lane-adapter\\adapter.ts",
+              "sha256": "1fcbe3ad57db523750273e2b500778f43f6d08adb988fa5c5ee08c2d250bcf5c"
+            },
+            "adaptedAdapter": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-command-schema-v2\\adapter.ts",
+              "sha256": "7a58a12a7074a3351dc62d35bcba30b5947c3d020fffef73b22ef914e7ad2680"
+            },
+            "originalBridge": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-image-lane-adapter\\bridge.json",
+              "sha256": "2fa7e0442e79b051a0a69f98f4eeb6d2c68cb5b5ca61c939ef5f70681a748fb9"
+            },
+            "built": {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\built.json",
+              "sha256": "5d4e0b7451ee278ec19a99b4e632f92c64e40dff4693c54e42bce3cf1bd26996"
+            },
+            "before": "    write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files, commands: built.commands}}, null, 2));",
+            "after": "    const qualifiedCommands = built.commands.map((command: any) => {\n        assert.equal(sha(command.log), command.logSha256);\n        assert.equal(sha(command.resourcesFile), command.resourcesSha256);\n        assert.deepEqual(json(command.resourcesFile), command.resources);\n        assert.equal(command.resources.exitCode, 0); assert.equal(command.resources.timedOut, false);\n        return {...command, returncode: command.resources.exitCode};\n    });\n    write(path.join(workspace, 'command-schema-qualification.json'), JSON.stringify({scope: 'Legacy results metadata only; exact actual completed command exitCode maps to returncode. Original endpoint assertion and all capture bodies unchanged.', commands: qualifiedCommands}, null, 2));\n    write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files, commands: qualifiedCommands}}, null, 2));",
+            "reverseExact": true,
+            "commands": [
+              {
+                "label": "sample",
+                "resources": {
+                  "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\sample.resources.json",
+                  "sha256": "cabcca0e8fbb2ec2fda564451cb42934ab711d9aad67bfb4303b68cb07d2c06e"
+                },
+                "actualExitCode": 0,
+                "legacyReturncode": 0
+              },
+              {
+                "label": "wasm",
+                "resources": {
+                  "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\wasm.resources.json",
+                  "sha256": "06ad7bffcded6b72a000271ea9f1aca64e5abd5e7cc9bf9364ee83ec754443f0"
+                },
+                "actualExitCode": 0,
+                "legacyReturncode": 0
+              },
+              {
+                "label": "bindgen",
+                "resources": {
+                  "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\bindgen.resources.json",
+                  "sha256": "733f2876b29622f1670531f46e06c4285db224b1894f483dba2a1a64400d91d3"
+                },
+                "actualExitCode": 0,
+                "legacyReturncode": 0
+              }
+            ],
+            "preservedFailure": {
+              "log": {
+                "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-b8aca5f86244ff6e\\image-browser.log",
+                "sha256": "98917470f03f609bea22f4de0c58dc0b6cbbcb3895455557a2f89fcd9444ede7"
+              },
+              "resources": {
+                "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\97-finish-with-the-maintained-browser-runtime-913965141748cb9bfc7d\\maintained-b8aca5f86244ff6e\\image-resources.json",
+                "sha256": "75ca2a1ee2c7a5db40db8eee106c99dbc045c96a47764fb8da1813af131d82bd"
+              }
+            },
+            "scope": "Only private serialized result-command schema changes. All original maintained DPR1/DPR2 assertions unchanged; current source/dist/WASM/compiler evidence reused exactly."
+          }
+        },
+        "scope": "Original maintained DPR1/DPR2 behavior and pixel assertions actually passed under approved image-only resource profile. Both public filenames use one actual DPR2 output; no extra execution or canonical validation-profile claim."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/97-finish-with-the-maintained-browser-runtime-browser.png?v=35bf6cf08920",
+        "status": 200,
+        "sha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21"
+      }
+    }
+  ]
+}

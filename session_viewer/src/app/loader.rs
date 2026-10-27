@@ -202,7 +202,8 @@ async fn post_live(src: &mut LiveSource) -> bool {
 
     clear_scene();
 
-    if let Some((view, grid)) = src.take_opening() {
+    let opening = src.take_opening();
+    if let Some((view, grid)) = opening {
         post(Msg::Open(view, grid));
     }
 
@@ -211,7 +212,9 @@ async fn post_live(src: &mut LiveSource) -> bool {
     }
 
     post(Msg::Texts(texts)); // register:scene_text
-    post(Msg::Fit);
+    if opening.is_some() {
+        post(Msg::Fit);
+    }
     super::feedback::status("");
     true
 }
@@ -499,7 +502,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
     }
 
     post(Msg::Texts(manifest.texts)); // register:scene_text
-    post(Msg::Fit);
+    if replacement.is_none() {
+        post(Msg::Fit);
+    }
 
     if !failed {
         super::feedback::status(&skipped_notice(&skipped, budget));

@@ -1,0 +1,220 @@
+{
+  "status": "PASS scoped material teaching-page publication",
+  "recordedUtc": "2026-10-23T22:05:54.219Z",
+  "scope": "Changed22.6 material explanation and six existing native-comparison figures only. This is source/served docs and original-detail visible review; no new material runtime/browser-feature, first10, whole-book or release acceptance.",
+  "lesson": {
+    "path": "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+    "sha256": "98bb951807cf0bd10a1b0db1ad00a45cc318aebc5d975df4427221a0c535b7a7"
+  },
+  "materialComparison": {
+    "path": "docs/journey/release/material-production-pairs-native-review.json",
+    "sha256": "00bda278a9710e1064d81a4296885f8b0bd65cca869a29acc86690d53674105e"
+  },
+  "build": {
+    "record": {
+      "path": "target/course-windows-20261018/material-page-docs.resources.json",
+      "sha256": "2874eb843f671c2086b81eebf897a84f6aaaae54c9cc1a656c4b5e675b95e7c2"
+    },
+    "elapsedSeconds": 48.251,
+    "peakJobCommitBytes": 1556217856
+  },
+  "servedPage": {
+    "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzzm-retain-visible-instance-ranges-BMrIGg2u.json",
+    "sha256": "7d03a370eaa5612e1cca3b75b742f10da4ed2669a27b1b5a7074a6afcca62737"
+  },
+  "bundleHashes": {
+    "/docs/index.html": "7065993f6a8632e50e9447a7c446b770115241d6fffe27c0db76d094cdac4fd5",
+    "/docs/assets/main-Cd-pqjig.js": "daf8a6baa40b5a0ae077de5b72b5c5bfd0567977f5b2886d6c9dfe627010b003",
+    "/docs/assets/main-C6Uhv5Jp.css": "eadd30f0a124dd6701e61a0e457df5d0aff23a4cb160205ab6c30032cf834309"
+  },
+  "counts": {
+    "materialFigures": 6,
+    "decodedPageImages": 27,
+    "introImages": 26,
+    "individuallyReviewedCaptures": 8
+  },
+  "images": [
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/journey/release/material-pairs-97d-closed-glass.png?v=240728dbccd9",
+      "width": 320,
+      "height": 240,
+      "intro": true,
+      "sha256": "240728dbccd9f555a994662e7ae3c6cbe6ee2ae21b66fa89fe2ccb7bb5672120"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/journey/release/material-pairs-97d-closed-restored-opaque.png?v=95d6b935206c",
+      "width": 320,
+      "height": 240,
+      "intro": true,
+      "sha256": "95d6b935206c10fb719ae5d613f3f0b26a7db6c6777b35f44fbbafce21b1154d"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/journey/release/material-pairs-97d-closed-xray.png?v=9902ae849d45",
+      "width": 320,
+      "height": 240,
+      "intro": true,
+      "sha256": "9902ae849d45dfae229b40e0c4937c6dafde1ad71f997ff76511354eba9d7ba0"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/journey/release/material-pairs-97d-winding-backface.png?v=38a48b422171",
+      "width": 640,
+      "height": 480,
+      "intro": true,
+      "sha256": "38a48b4221717b39495b6b88ab52df9e921a89a02b607b165b7cb1a78a7d1a4c"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/journey/release/material-pairs-97d-winding-headlight.png?v=08e1f3521af2",
+      "width": 640,
+      "height": 480,
+      "intro": true,
+      "sha256": "08e1f3521af27994fbd20a2b43e05614a12d7bdeaf6cab141131ec3b2c682b8a"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/journey/release/material-pairs-97d-winding-unlit.png?v=d98d48913552",
+      "width": 640,
+      "height": 480,
+      "intro": true,
+      "sha256": "d98d48913552b4b6fe476010ae92c7ee42bff33b506ee067b9958070ec1a313e"
+    }
+  ],
+  "captures": [
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-subsection-desktop.png",
+      "sha256": "2b5ce94ce6a12e7115840ae8a17acbd69142c1cf1843213fdcf9a36f3f7b00f4",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-material-pairs-97d-closed-glass-desktop.png",
+      "sha256": "81ea45c13b3ff59cec4b2d1352f66540913ea10aee95ea367cf04bdbe737aba8",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-material-pairs-97d-closed-restored-opaque-desktop.png",
+      "sha256": "e26347c69ca2cc26f7e1e755e264f530b96b1e3c1a6d992a0659df1fd7ea41a8",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-material-pairs-97d-closed-xray-desktop.png",
+      "sha256": "04f6ad10fa0e13be2ffec001754907950442cdd2153e2b78b2cb75b1de113dc7",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-material-pairs-97d-winding-backface-desktop.png",
+      "sha256": "b71cfccd591de0cbfe2372029843eb1450ba05570c696bb5f6d54516d3b8cd3e",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-material-pairs-97d-winding-headlight-desktop.png",
+      "sha256": "6d96c04ebc2ce71c90fe540a2aecd14ecb4a17100734d3e2d9a3e1f18016ac25",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-material-pairs-97d-winding-unlit-desktop.png",
+      "sha256": "3bb6fdbe4234843bdd96e4544cdf4081b97ddd4d9cf010476495be7fefc8fe8e",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 853,
+        "articleWidth": 521,
+        "articleScrollWidth": 521
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/material-teaching-visible-v1-winding-phone.png",
+      "sha256": "dff0dadf24c50198b1336594e99b04277ef9c13daa395f89291fe9b98f6fd429",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "viewport": {
+        "width": 260,
+        "height": 562,
+        "devicePixelRatio": 1.5000000223517418,
+        "documentWidth": 260,
+        "articleWidth": 218,
+        "articleScrollWidth": 218
+      }
+    }
+  ],
+  "evidence": {
+    "path": "target/course-windows-20261018/material-teaching-visible-v1-manifest.json",
+    "sha256": "535aabe3031e858e68e5bfc4ce3f596c7ea0017a9995d98326c23ba1f4e36171"
+  },
+  "visualInspection": {
+    "reviewer": "Root agent",
+    "authorization": "Explicit --root-reviewed after individual inspection of all eight source-bound screenshots.",
+    "scope": "Material subsection and six actual desktop figures plus one phone view; actual CSS/DPR/pixel sizes retained."
+  },
+  "limits": "Native8 material comparison keeps its own fixture/settings/source and fresh-instance limits. Prior59-lesson and navigation reviews retain their original source/build scope; broader handoff/global gates remain pending."
+}

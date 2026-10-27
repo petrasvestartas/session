@@ -1,0 +1,1 @@
+let mut r=renderer(&scene);generic_markers(&mut r,&scene);r.set_samples(samples);

@@ -1,0 +1,190 @@
+{
+  "date": "2026-10-25T23:04:29.021Z",
+  "status": "PASS:root-reviewed source-exact22illustration published and HTTP bytes verified",
+  "scope": "Exact checkpoint browser_actions only, with source-bound observed rendering. Inherited callback terminal state and original behavior checks are not claimed.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "canonicalBehaviorExecuted": false,
+  "canonicalTerminalStateClaimed": false,
+  "source": {
+    "checkpoint": "22-shortcuts",
+    "files": "9d1f2fc2324bbd1f03fb89c494dc8f3961ed721bc9a774a754549d0a890e4b23",
+    "lock": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+    "assets": {
+      "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+    },
+    "dependencies": {},
+    "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+    "fixture": "2e2618201548afee49b17b8904f93cb18bea41ae67ae687b1bb8ebb42565e3e3",
+    "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+    "constructor": "make_renderer(device, queue, format)",
+    "logicalSize": [
+      640,
+      480
+    ],
+    "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+  },
+  "recipe": {
+    "kind": "source-exact-declared-browser-actions",
+    "actions": [
+      {
+        "command": "Example Box"
+      },
+      {
+        "command": "View Isometric"
+      },
+      {
+        "wheel": -120
+      },
+      {
+        "command": "Pan Right"
+      }
+    ],
+    "callback": "journey/checks/browser/navigation.cjs",
+    "declaredMetadataStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+    "authority": "Exact browser_actions from this checkpoint. Its documented source illustration is captured; inherited callbacks, current callback terminal scene and whole behavior validation are not executed or claimed."
+  },
+  "semantic": {
+    "attributes": {
+      "data-command-ui": {
+        "command": "",
+        "completion_rect": null,
+        "controls": [
+          {
+            "key": "command/input",
+            "label": "Command",
+            "rect": [
+              86.375,
+              734,
+              840,
+              756
+            ]
+          },
+          {
+            "key": "command/collapse",
+            "label": "Collapse or expand history",
+            "rect": [
+              848,
+              734.5,
+              864,
+              755.5
+            ]
+          },
+          {
+            "key": "command/resize",
+            "label": "Drag to resize command history",
+            "rect": [
+              0,
+              726,
+              900,
+              734
+            ]
+          }
+        ],
+        "focused": true,
+        "history": [
+          "> Example Box\nCommand submitted.",
+          "> View Isometric\nCommand submitted.",
+          "> Pan Right\nCommand submitted."
+        ],
+        "pointer_owned": false,
+        "top": 726
+      }
+    },
+    "cameraEvidence": {
+      "observed": null,
+      "declaredCameraActions": [
+        {
+          "command": "View Isometric"
+        },
+        {
+          "wheel": -120
+        },
+        {
+          "command": "Pan Right"
+        }
+      ],
+      "scope": "This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality."
+    },
+    "visiblePixels": 367386
+  },
+  "statusText": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0xFF00",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 16,
+    "maximumAggregateOurMemoryMiB": 16384,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 8,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-10-25T23:03:02.6601545Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+      "--import",
+      "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\historical-browser-actions-presentation.ts",
+      "--worker",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\22-shortcuts-e6b32007be141f8769ce\\config.json"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-22-shortcuts-93f9691e13e61779-dpr2\\workspace",
+    "timeoutSeconds": 2400,
+    "jobCommitLimitBytes": 8589934592,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 3.216,
+    "peakJobCommitBytes": 711876608,
+    "affinityMask": "0xFF00",
+    "processors": 8,
+    "processId": 39512,
+    "descendantsAtCleanup": 0
+  },
+  "sourceRecord": {
+    "path": "target\\course-presentation\\historical-action-scenes\\22-shortcuts-e6b32007be141f8769ce\\capture.json",
+    "sha256": "fc694626a742a59bee5855dac338ab5bd87c9955bd9fc883966209e152986fbb"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\22-shortcuts-e6b32007be141f8769ce\\22-shortcuts-dpr2.png",
+    "sha256": "cb6e693f68feb989022036c55fb00d9b34331299cf16d963cc2cd39ac64747a6",
+    "width": 1800,
+    "height": 1520
+  },
+  "destination": "docs/screenshots/journey/22-shortcuts-browser.png",
+  "backups": [
+    {
+      "path": "target\\course-presentation\\historical-primary-batch\\22-original-images\\source\\22-shortcuts-browser.png",
+      "sha256": "040f5100db7d0bda26e84a5ca4bbe619adcef6dfc6b6124a28a5c9bd4e458860"
+    },
+    {
+      "path": "target\\course-presentation\\historical-primary-batch\\22-original-images\\served\\22-shortcuts-browser.png",
+      "sha256": "040f5100db7d0bda26e84a5ca4bbe619adcef6dfc6b6124a28a5c9bd4e458860"
+    }
+  ],
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/22-shortcuts-browser.png?v=040f5100db7d",
+    "status": 200,
+    "contentType": "image/png",
+    "sha256": "cb6e693f68feb989022036c55fb00d9b34331299cf16d963cc2cd39ac64747a6"
+  },
+  "preservedInheritedCallbackFailure": {
+    "log": {
+      "path": "target\\course-presentation\\image-fallback\\22-shortcuts-607a7469972773e25398\\image-browser.log",
+      "sha256": "a3735f75c640cdbf68a60df23b0e00a00132737c4335c4ac6750150a016b2534"
+    },
+    "resources": {
+      "path": "target\\course-presentation\\image-fallback\\22-shortcuts-607a7469972773e25398\\image-resources.json",
+      "sha256": "51414cdec32467252b5ad9475b27c1ab25d8a7677e5b2e3256b8a5631139b246"
+    },
+    "scope": "Original fullcallback remains failed:laterfile-read prerequisite requiredsample.pb before this checkpoint supplies it. No fixture fabricated and no canonical assertion changed."
+  }
+}

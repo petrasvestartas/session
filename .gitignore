@@ -42,6 +42,7 @@ venv.bak/
 target/
 **/target/
 Cargo.lock
+!session_viewer/docs/journey/fixtures/Cargo.lock
 **/*.rs.bk
 
 # IDE files

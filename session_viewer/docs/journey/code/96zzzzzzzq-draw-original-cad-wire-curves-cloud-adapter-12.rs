@@ -1,0 +1,1 @@
+self.draws.iter().map(|d| d.records.size() + d.address.size()).sum::<u64>()

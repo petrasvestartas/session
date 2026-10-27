@@ -1,0 +1,110 @@
+{
+  "status": "PASS scoped progress-roadmap DOM/HTTP and root individual desktop image review",
+  "scope": "The exact pre-copyedit roadmap bound below only; no fullbook/phone/runtime callback acceptance or later copyedit validation.",
+  "source": {
+    "roadmapSha256": "c736aab24fd4168dafbdc7d4e6774b5cd9da490d081dea49ea010a2425ab4584",
+    "currentStateSha256": "b90a1a1e067af4a8f032639e0f8de3643396b636cb255b09d8f939e27c0fc7a2",
+    "courseSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+    "inputManifest": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v2/inputs.json",
+      "sha256": "9c204ba4c877f372ec540bce86b81ecd7e37ee7e1e314dd26fb3ed9fd5ea7d5f"
+    }
+  },
+  "build": {
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v2/resources.json",
+      "sha256": "3c92d1af93f795b2f075c699b044362593ef5682a1caa8cf61038785ce4c8585"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v2/build.log",
+      "sha256": "919aefa63b4a43992a13ff97ac69fe48139cfd2e5aa22f72175a9bdbc614dd42"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v2/command.json",
+      "sha256": "1bac0c30c7767d5ad6009f545de02a20a6411f79dca045b0b34502396759b36f"
+    },
+    "elapsedSeconds": 38.227,
+    "peakJobCommitBytes": 1343062016,
+    "base": "/docs/",
+    "servedOutput": "target/docs/vue"
+  },
+  "probe": {
+    "review": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v2/visible-roadmap-v2/review.json",
+      "sha256": "c74a31ca99fc1ed5c24e317b317d87cc69532c35324070c3c9e411faf6b0dd9b"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v2/probe-v2-resources.json",
+      "sha256": "88ee232266be6a33c353f413c6f8fe00b5bb1e25b878ed5c1d5954555dd42534"
+    },
+    "script": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/probe-v2.cjs",
+      "sha256": "d0bc907c9b9dca4666df8c5ef3da6ae5a5d438acf0e8bb349d615e892a9c80a5"
+    },
+    "elapsedSeconds": 12.702,
+    "peakJobCommitBytes": 251052032,
+    "served": {
+      "url": "http://localhost:8788/docs/assets/course-journey-roadmap-DVTXSdsq.json",
+      "sha256": "e8a66872ba07b0900636052eb29711bb28ea4d9abfa78845ef0b571ce7d82776"
+    },
+    "checkboxCount": 1474,
+    "summary": "Full tutorial callbacks: 1/18 accepted, 17 left. Historical fixture callbacks: 1/4 accepted, 3 left. Final release: 0/5 gates closed.",
+    "proofLinks": [
+      {
+        "label": "Lesson publication",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/clipping-guide-two-fixture-docs-visible-review.json?v=0c93b2bd74f3",
+        "sha256": "0c93b2bd74f3f1f7d327a183d14d69379a84d2e4a26776d34ac8e875b7c18d68",
+        "status": "PASS scoped22.6 six source additions and corrected authored fixtures"
+      },
+      {
+        "label": "Native recovery",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/native-ribbon-v4-qualified-recovery-review.json?v=a2d4516e9743",
+        "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d",
+        "status": "QUALIFIED recovery:original full run FAIL1060/1062;two exact corrected-fixture focused cases PASS"
+      },
+      {
+        "label": "Artifact review",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-artifact-review.json?v=59be90667e77",
+        "sha256": "59be90667e771cef30162b2751deddbf01fdde539e1620abb3f1f96c85263c34",
+        "status": "PASS finite current-source nativeframe, WASM, optimized webartifact and browserboot/render; broader tutorial/release acceptance remains separate"
+      }
+    ],
+    "figures": [
+      {
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-native-frame.png",
+        "sha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+        "width": 640,
+        "height": 480
+      },
+      {
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-browser-boot.png",
+        "sha256": "b34f1ec8e712448260d1d33d31fb0b8f1f669d2bb4590944f6a5df31fcfcf4b7",
+        "width": 900,
+        "height": 760
+      }
+    ],
+    "fit": {
+      "viewport": 1400,
+      "document": 1400,
+      "articleClient": 793,
+      "articleScroll": 793,
+      "mainClient": 1095,
+      "mainScroll": 1095
+    },
+    "pageErrors": [],
+    "startingPagesPreserved": true
+  },
+  "image": {
+    "figure": "journey/release/docs-progress-roadmap-desktop.png",
+    "sha256": "6041613d3dbe89dbf511d97aa8103792a07639fae181871bf67ca18a617652c4",
+    "width": 1400,
+    "height": 900,
+    "rootIndividuallyReviewed": true
+  },
+  "limitations": [
+    "V1 failure retained: exact image URLs returned HTML SPA fallback because figures inside proofJSON were not discovered as assets. Two explicit Markdown PNG links corrected actual publication; V2 fresh build and strict image/png/SHA checks pass.",
+    "This new record and screenshot are not linked into the just-reviewed page; no rebuild claimed for adding them.",
+    "Root noted dense progress text and requested a separate unapplied eight-stage copyedit. This proof does not validate that future rewrite.",
+    "Counts remain22/22authored,111lessons/0drafting,3/18featurescomplete15partial,1/18callbacksaccepted17remaining,fixtures1/4,release0/5."
+  ]
+}

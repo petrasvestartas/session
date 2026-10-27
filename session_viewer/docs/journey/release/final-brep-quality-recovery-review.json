@@ -1,0 +1,1478 @@
+{
+  "status": "PASS actual final713 unchanged quality/recovery callback and direct resource prerequisites",
+  "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "sourceFiles": 713,
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "sourceFreeze": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/prepared-v3.json",
+    "sha256": "8a22a381fca60dc7d1618b6ec607eb945cf2d2b0c917c71db616f27226d8275e"
+  },
+  "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+  "recursiveCallbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+  "execution": {
+    "report": {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/final-quality-integrated-v1/report.json",
+      "sha256": "11f549283116ca3927508beff56434391a86c5945731232ac383d19e996972df"
+    },
+    "preparation": {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/preparation.json",
+      "sha256": "a9a9e40742054dad59a93cd406d293f76ace77e36cf539cd606080bc81cb8d7b"
+    },
+    "resources": {
+      "record": {
+        "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/final-quality-integrated-v1.resources.json",
+        "sha256": "64d6b8b10d907cc4373a7fa7f96bbce49889004f12b07fdc0b7868e177910b22"
+      },
+      "elapsedSeconds": 75.832,
+      "peakJobCommitBytes": 1101811712,
+      "processors": 2,
+      "memoryMiB": 6144,
+      "timedOut": false,
+      "actual": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-10-24T20:48:56.4595431Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "../session_tests/scripts/course/warp-browser-timeout.cjs",
+          "target/course-windows-20261018/final-brep-quality-recovery-preparation/run.cjs",
+          "final-quality-integrated-v1"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 75.832,
+        "peakJobCommitBytes": 1101811712,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 62072,
+        "descendantsAtCleanup": 1
+      }
+    },
+    "callbackResult": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-quality-recovery-preparation\\mirror\\docs\\screenshots\\journey\\review\\96zzzzzzzq-draw-original-cad-wire-curves-quality\\result.json",
+      "sha256": "36cf960b9ff3e3a8e9778e26dae76399e7cbc9e181f8d0eed0940206b8631175",
+      "value": {
+        "status": "Actual quality browser checks passed; every current image still requires direct critical inspection.",
+        "results": [
+          {
+            "density": 1,
+            "automatic": 4,
+            "automaticAttachments": {
+              "samples": 4,
+              "size": [
+                480,
+                360
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                }
+              ]
+            },
+            "forcedAttachments": {
+              "samples": 4,
+              "size": [
+                480,
+                360
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                }
+              ]
+            },
+            "resizedAttachments": {
+              "samples": 4,
+              "size": [
+                620,
+                420
+              ],
+              "cssSize": [
+                620,
+                420
+              ],
+              "viewport": [
+                620,
+                420
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    620,
+                    420,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    620,
+                    420,
+                    1
+                  ]
+                }
+              ]
+            },
+            "restoredAttachments": {
+              "samples": 4,
+              "size": [
+                480,
+                360
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                }
+              ]
+            },
+            "forcedFour": true,
+            "otherForcedOne": true,
+            "exactReturns": true,
+            "originalOwner": true,
+            "originalSourceArchive": true,
+            "realResize": true,
+            "repeatedCountAllocations": 0
+          },
+          {
+            "density": 2,
+            "automatic": 1,
+            "automaticAttachments": {
+              "samples": 1,
+              "size": [
+                960,
+                720
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 1,
+                  "format": "depth32float",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 1,
+                  "format": "rg16uint",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                }
+              ]
+            },
+            "forcedAttachments": {
+              "samples": 4,
+              "size": [
+                960,
+                720
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                }
+              ]
+            },
+            "resizedAttachments": {
+              "samples": 1,
+              "size": [
+                1240,
+                840
+              ],
+              "cssSize": [
+                620,
+                420
+              ],
+              "viewport": [
+                620,
+                420
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 1,
+                  "format": "depth32float",
+                  "size": [
+                    1240,
+                    840,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 1,
+                  "format": "rg16uint",
+                  "size": [
+                    1240,
+                    840,
+                    1
+                  ]
+                }
+              ]
+            },
+            "restoredAttachments": {
+              "samples": 1,
+              "size": [
+                960,
+                720
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 1,
+                  "format": "depth32float",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 1,
+                  "format": "rg16uint",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                }
+              ]
+            },
+            "forcedFour": true,
+            "otherForcedOne": true,
+            "exactReturns": true,
+            "originalOwner": true,
+            "originalSourceArchive": true,
+            "realResize": true,
+            "repeatedCountAllocations": 0
+          },
+          {
+            "beforeLoss": {
+              "samples": 4,
+              "size": [
+                960,
+                720
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                }
+              ]
+            },
+            "reduced": {
+              "samples": 1,
+              "size": [
+                480,
+                360
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 1,
+                  "format": "depth32float",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 1,
+                  "format": "rg16uint",
+                  "size": [
+                    480,
+                    360,
+                    1
+                  ]
+                }
+              ]
+            },
+            "normal": {
+              "samples": 4,
+              "size": [
+                960,
+                720
+              ],
+              "cssSize": [
+                480,
+                360
+              ],
+              "viewport": [
+                480,
+                360
+              ],
+              "attachments": [
+                {
+                  "label": "scene depth",
+                  "count": 4,
+                  "format": "depth32float",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                },
+                {
+                  "label": "physical triangle addresses",
+                  "count": 4,
+                  "format": "rg16uint",
+                  "size": [
+                    960,
+                    720,
+                    1
+                  ]
+                }
+              ]
+            },
+            "errors": [],
+            "recoveredErrors": [],
+            "normalErrors": [],
+            "urlForcedFour": true,
+            "realDeviceLoss": true,
+            "reducedOverridesForced": true,
+            "ordinaryReloadRestoresFour": true,
+            "unrelatedUrlPreserved": true,
+            "oldLostGpuCalls": 0
+          }
+        ]
+      }
+    },
+    "actualAdapterMetadata": {
+      "status": "PASS read-only NVIDIA DXGI enumeration; GPU device not created",
+      "readOnly": true,
+      "selected": {
+        "index": 0,
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "vendor": 4318,
+        "device": 10208,
+        "luid": "0,86780",
+        "luidHigh": 0,
+        "luidLow": 86780,
+        "dedicatedVideoMemoryBytes": 12577669120,
+        "flags": 0
+      },
+      "adapters": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+          "vendor": 4318,
+          "device": 10208,
+          "luid": "0,86780",
+          "luidHigh": 0,
+          "luidLow": 86780,
+          "dedicatedVideoMemoryBytes": 12577669120,
+          "flags": 0
+        },
+        {
+          "index": 1,
+          "name": "Intel(R) UHD Graphics",
+          "vendor": 32902,
+          "device": 42888,
+          "luid": "0,85866",
+          "luidHigh": 0,
+          "luidLow": 85866,
+          "dedicatedVideoMemoryBytes": 134217728,
+          "flags": 0
+        },
+        {
+          "index": 2,
+          "name": "Microsoft Basic Render Driver",
+          "vendor": 5140,
+          "device": 140,
+          "luid": "0,86727",
+          "luidHigh": 0,
+          "luidLow": 86727,
+          "dedicatedVideoMemoryBytes": 0,
+          "flags": 2
+        }
+      ],
+      "driver": {
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "driverVersion": "32.0.15.9579",
+        "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+        "status": "OK"
+      },
+      "scope": "DXGI enumeration and CIM only; no WebGPU, D3D device, renderer or performance acceptance."
+    },
+    "actualApplicationAdapterDevices": [
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      },
+      {
+        "adapter": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "device": "",
+          "description": "",
+          "architecture": "lovelace",
+          "isFallbackAdapter": false
+        }
+      }
+    ],
+    "httpBefore": [
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-comparison.pb",
+        "status": 200,
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+      },
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-feature-pick.pb",
+        "status": 200,
+        "sha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+      },
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-instance-features.pb",
+        "status": 200,
+        "sha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500"
+      },
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-metadata.pb",
+        "status": 200,
+        "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+      },
+      {
+        "url": "http://127.0.0.1:59885/index.html",
+        "status": 200,
+        "sha256": "6375dd7a86acb2854a2498a58c9bc949584547885fdf3b63bf2871a997e9fd5d"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+        "status": 200,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/session_viewer_freeze_d5dd5b80bb27fbf8bee367f3-429fbfd79e1a64b5/inline0.js",
+        "status": 200,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey-7519825317df163d/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_713_555490d4cb3dd18014984afc-f2a8dc965501de35/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_713_6947664b26863adf65ef7bfc-6ba2909db89e4682/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_713_f339c9ac8c75353caca48e1d-652925f48abafd90/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_714_b0313bae6b71646b94247765-84d12fc9a0275994/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_714_b5a415856167f657d7eb02e9-cb60b5505964b2a0/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_85ay_a996eb6ee6c34ec807819036_approved5-1f15d30325c5d5ed/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_88ad_8caaafa12e5a8295e8eef18c_approved5-e17de1028f81a8d4/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-671277802784d3a6/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_96h_dfe346a7d230533e917c6809_approved5-012e2a34b76d6941/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-d3f9927b677daf62/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSans-Regular.subset.ttf",
+        "status": 200,
+        "sha256": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSans-Regular.ttf",
+        "status": 200,
+        "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols-Regular.subset.ttf",
+        "status": 200,
+        "sha256": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols-Regular.ttf",
+        "status": 200,
+        "sha256": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols2-Regular.subset.ttf",
+        "status": 200,
+        "sha256": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols2-Regular.ttf",
+        "status": 200,
+        "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/OFL.txt",
+        "status": 200,
+        "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/viewer_journey_713_f339c9ac8c75353caca48e1d-95d72d5e25c9093c.js",
+        "status": 200,
+        "sha256": "ee7d13a216dd6cc86bde3162cc9cfb0912bc0e57275f6f97b1574406caac7734"
+      },
+      {
+        "url": "http://127.0.0.1:59885/viewer_journey_713_f339c9ac8c75353caca48e1d-95d72d5e25c9093c_bg.wasm",
+        "status": 200,
+        "sha256": "b7bf63013c5657c9c2c5fea76e682f7e877742c6187aca54cb11752f2e165065"
+      }
+    ],
+    "httpAfter": [
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-comparison.pb",
+        "status": 200,
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+      },
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-feature-pick.pb",
+        "status": 200,
+        "sha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+      },
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-instance-features.pb",
+        "status": 200,
+        "sha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500"
+      },
+      {
+        "url": "http://127.0.0.1:59885/assets/pb/course-metadata.pb",
+        "status": 200,
+        "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+      },
+      {
+        "url": "http://127.0.0.1:59885/index.html",
+        "status": 200,
+        "sha256": "6375dd7a86acb2854a2498a58c9bc949584547885fdf3b63bf2871a997e9fd5d"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+        "status": 200,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/session_viewer_freeze_d5dd5b80bb27fbf8bee367f3-429fbfd79e1a64b5/inline0.js",
+        "status": 200,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey-7519825317df163d/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_713_555490d4cb3dd18014984afc-f2a8dc965501de35/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_713_6947664b26863adf65ef7bfc-6ba2909db89e4682/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_713_f339c9ac8c75353caca48e1d-652925f48abafd90/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_714_b0313bae6b71646b94247765-84d12fc9a0275994/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_714_b5a415856167f657d7eb02e9-cb60b5505964b2a0/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_85ay_a996eb6ee6c34ec807819036_approved5-1f15d30325c5d5ed/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_88ad_8caaafa12e5a8295e8eef18c_approved5-e17de1028f81a8d4/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-671277802784d3a6/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_96h_dfe346a7d230533e917c6809_approved5-012e2a34b76d6941/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/snippets/viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-d3f9927b677daf62/src/adapter_info.js",
+        "status": 200,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSans-Regular.subset.ttf",
+        "status": 200,
+        "sha256": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSans-Regular.ttf",
+        "status": 200,
+        "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols-Regular.subset.ttf",
+        "status": 200,
+        "sha256": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols-Regular.ttf",
+        "status": 200,
+        "sha256": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols2-Regular.subset.ttf",
+        "status": 200,
+        "sha256": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/NotoSansSymbols2-Regular.ttf",
+        "status": 200,
+        "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+      },
+      {
+        "url": "http://127.0.0.1:59885/text/OFL.txt",
+        "status": 200,
+        "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      },
+      {
+        "url": "http://127.0.0.1:59885/viewer_journey_713_f339c9ac8c75353caca48e1d-95d72d5e25c9093c.js",
+        "status": 200,
+        "sha256": "ee7d13a216dd6cc86bde3162cc9cfb0912bc0e57275f6f97b1574406caac7734"
+      },
+      {
+        "url": "http://127.0.0.1:59885/viewer_journey_713_f339c9ac8c75353caca48e1d-95d72d5e25c9093c_bg.wasm",
+        "status": 200,
+        "sha256": "b7bf63013c5657c9c2c5fea76e682f7e877742c6187aca54cb11752f2e165065"
+      }
+    ],
+    "privateServer": {
+      "url": "http://127.0.0.1:59885/",
+      "dist": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-refreeze-v2-preparation\\dist-713"
+    }
+  },
+  "actualQualityResults": [
+    {
+      "density": 1,
+      "automatic": 4,
+      "automaticAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "resizedAttachments": {
+        "samples": 4,
+        "size": [
+          620,
+          420
+        ],
+        "cssSize": [
+          620,
+          420
+        ],
+        "viewport": [
+          620,
+          420
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              620,
+              420,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              620,
+              420,
+              1
+            ]
+          }
+        ]
+      },
+      "restoredAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedFour": true,
+      "otherForcedOne": true,
+      "exactReturns": true,
+      "originalOwner": true,
+      "originalSourceArchive": true,
+      "realResize": true,
+      "repeatedCountAllocations": 0
+    },
+    {
+      "density": 2,
+      "automatic": 1,
+      "automaticAttachments": {
+        "samples": 1,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedAttachments": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "resizedAttachments": {
+        "samples": 1,
+        "size": [
+          1240,
+          840
+        ],
+        "cssSize": [
+          620,
+          420
+        ],
+        "viewport": [
+          620,
+          420
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              1240,
+              840,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              1240,
+              840,
+              1
+            ]
+          }
+        ]
+      },
+      "restoredAttachments": {
+        "samples": 1,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedFour": true,
+      "otherForcedOne": true,
+      "exactReturns": true,
+      "originalOwner": true,
+      "originalSourceArchive": true,
+      "realResize": true,
+      "repeatedCountAllocations": 0
+    },
+    {
+      "beforeLoss": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "reduced": {
+        "samples": 1,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "normal": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "errors": [],
+      "recoveredErrors": [],
+      "normalErrors": [],
+      "urlForcedFour": true,
+      "realDeviceLoss": true,
+      "reducedOverridesForced": true,
+      "ordinaryReloadRestoresFour": true,
+      "unrelatedUrlPreserved": true,
+      "oldLostGpuCalls": 0
+    }
+  ],
+  "prerequisiteOriginalOutputRefs": [
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-contact-shading-dpr1.png",
+      "sha256": "d693cfd9fa289720b6bed5307ea9f01323113e2209725a715f21dc8749f33bd1"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-contact-shading-dpr2.png",
+      "sha256": "df42c930ff51b3eea115dca6210259e0b2bae0a5ba1624ff2590c82850065f7f"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-480-dpr1.png",
+      "sha256": "dd11f30234b143e00ca37c5e41d3953267561a8e5950bef598518e485caf9474"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-480-dpr2.png",
+      "sha256": "35d9ae6d8ccc24a30395ccd51e8de05dcc8157b3e6a4eb85827f9f86089eec5c"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-620-dpr1.png",
+      "sha256": "cd4c61b2dfb31bc7a398fb1e87af0b3a565ac164c200b53126e2074fc46467fd"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-620-dpr2.png",
+      "sha256": "d9344bddf268e21d1ff80573eb2be999b93b5fc927daaa1d144caba85278be44"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-shared-originals-dpr1.png",
+      "sha256": "55c7edc9c9c88846766af4bac989f29314c348645757a26cc28b05b87d57b1ca"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-shared-originals-dpr2.png",
+      "sha256": "7c760c484701f7ba4ae9d4b79cb5f9f1029a40d8fa13c8fbaa1d94956300d512"
+    },
+    {
+      "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/mirror/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-target-reuse.json",
+      "sha256": "12aeb44f281efc973287e2a0f39aea32fa6e633190415f8cb1eef578c9125661"
+    }
+  ],
+  "rootReview": {
+    "path": "target/course-windows-20261018/final-brep-quality-recovery-preparation/actual-root-quality-review.json",
+    "sha256": "bfaed90d857ba83c620be312289992d85f32e6c5356e67b33b947596f7b126ab"
+  },
+  "images": [
+    {
+      "name": "automatic-dpr1",
+      "file": "final-brep-quality-automatic-dpr1.png",
+      "figure": "journey/release/final-brep-quality-automatic-dpr1.png",
+      "sha256": "d29fc705da91c711100d2090759e48751f665e6e022f5c6fd7a5fea22f5f05d3",
+      "width": 480,
+      "height": 360,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "automatic-dpr2",
+      "file": "final-brep-quality-automatic-dpr2.png",
+      "figure": "journey/release/final-brep-quality-automatic-dpr2.png",
+      "sha256": "9e90a6a243e7bf5e2ba422449d782bf350be02d20ae9d1f4a79df11478ace29d",
+      "width": 960,
+      "height": 720,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "forced-four-dpr1",
+      "file": "final-brep-quality-forced-four-dpr1.png",
+      "figure": "journey/release/final-brep-quality-forced-four-dpr1.png",
+      "sha256": "d29fc705da91c711100d2090759e48751f665e6e022f5c6fd7a5fea22f5f05d3",
+      "width": 480,
+      "height": 360,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "forced-four-dpr2",
+      "file": "final-brep-quality-forced-four-dpr2.png",
+      "figure": "journey/release/final-brep-quality-forced-four-dpr2.png",
+      "sha256": "742fcdb617189be63a8b07114494c3c04a4d9f9688fce119d792d970d73d4802",
+      "width": 960,
+      "height": 720,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "recovered-forced-four",
+      "file": "final-brep-quality-recovered-forced-four.png",
+      "figure": "journey/release/final-brep-quality-recovered-forced-four.png",
+      "sha256": "90a428adc12d4287bbdc268477e8cf381d4aed738975236b49686c1c7ad39537",
+      "width": 960,
+      "height": 720,
+      "rootPersonallyReviewedOriginalResolution": true
+    }
+  ],
+  "recoveryIntent": "Real device loss recovers a fresh runtime with tiny default Scene::demo/default camera and retained loss-reason notice, overrides forced4 URL with one-sample physical canvas, preserves unrelated URL parameters/hash, submits zero calls to old lost device, and ordinary reload returns4 samples. No original plate or unsaved-document preservation assertion exists.",
+  "scope": "Actual new final713 GPU allocation/pipeline recovery after ambient and BRep integration; direct target-resize/contact/shared-original prerequisite body retained. No historical656 prefix/global callback replay, no hardware FPS claim.",
+  "limits": [
+    "Earlier fef4/656 quality evidence remains at its original source; this record is a new final-source execution.",
+    "Only five quality PNGs are copied here; prerequisite original outputs retain their actual hashed locations and callback assertions.",
+    "No whole-feature/release closure inferred; root reviewed the actual images including intended tiny recovery scene."
+  ]
+}

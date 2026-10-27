@@ -922,6 +922,23 @@ After that block, append this supplied code:
 
 </details>
 
+### 5. `src/outline_mask.wgsl`
+
+Project the local position through the model matrix first, then through the view matrix, exactly as the visible surface does. Reassociating these f32 multiplications can change the depth result and produce stripes on a selected rotated or mirrored instance. Keep geometry, instance owners and selection unchanged.
+
+Replace this shader with the matching projection order:
+
+```wgsl
+--8<-- "journey/code/70d-exercise-rotated-and-mirrored-original-references-matching-mask-projection.rs"
+```
+
+The focused selected/unselected comparison is clean on both recorded adapters. This repair does not accept the complete chapter browser callback. [Focused repair and source scope](release/70d-mask-projection-repair-review.json).
+
+![Selected rotated and mirrored instances after the matching mask projection repair on NVIDIA.](release/70d-mask-projection-nvidia-selected.png)
+
+[The same repaired selected state on WARP](release/70d-mask-projection-warp-selected.png).
+
+
 ## Run and check
 
 Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:

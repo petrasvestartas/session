@@ -1,0 +1,56 @@
+{
+  "status": "PASS authored exact-BRep integration and complete preserved checkpoint structure",
+  "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+  "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "checkpoints": 1361,
+  "preservedEarlierCheckpoints": 1359,
+  "readerLessons": 111,
+  "authoringTests": {
+    "passed": 22,
+    "resources": {
+      "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/authoring-tests-v2.resources.json",
+      "sha256": "aeb229653cc372f809cf39a508bef3c12e50a7e731ad145cfeb27c37caa8d1f9"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/authoring-tests-v2.log",
+      "sha256": "a7b357e9e7c5c3d980967e0fecb0380b4bc1d587596071a95fa826f26e365374"
+    }
+  },
+  "structure": {
+    "checkpoints": 1361,
+    "viewerSourceFiles": 307,
+    "referenceHistories": 43,
+    "referenceFinalFiles": 351,
+    "resources": {
+      "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/structure-v3.resources.json",
+      "sha256": "7e69a976dc4ebd113df8ca6a6827dcf2ef3f181ae28b05c9e674b73c9bb3d86a"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/structure-v3.log",
+      "sha256": "f67d61e2545f41eecc39f4532f95ea95b090ee7f1b9238033cc676d07284d0d2"
+    }
+  },
+  "sourcePostflight": {
+    "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/source-postflight-v2.json",
+    "sha256": "e08604a6e7c9f4d3654ebdfc70c7c1fa45abbd5c67e43e91114b3934776868f6"
+  },
+  "application": {
+    "path": "target/course-windows-20261018/production-exact-brep-curves-preparation/transition-commands/actual-fixture-correction/application.json",
+    "sha256": "4123860cec957aad3abe9f5a9dd342bf970c947ee039ad79e3fea41dba31b1c0"
+  },
+  "preservation": "All1359earlier checkpoint metadata, reconstructed sources and snippets match the pretransition baseline. All979typing files and their43reference histories remain unchanged. The two existing final-section paragraphs and six appended source includes retain other Gemini bytes; no Vue/style/layout/routes changed.",
+  "currentInventory": {
+    "file": "current-viewer-2026-10-23.json",
+    "sha256": "5dce24b77ac687f295135f485934f250fe6f5cbfe58cbe385799a843c0abdb48",
+    "scope": "Actual3 maintained source hashes refreshed; exact earlier dated inventory retained under consolidation/history/current-viewer-2026-10-23-before-exact-brep.json."
+  },
+  "limits": "Source/authoring structure only; full native, final compiler/browser/recovery and website publication remain separate.",
+  "teachingDisplayCorrection": {
+    "scope": "Exactly two include operands changed410->16902, derived from the actual character offset of fn exact_curve_fixture; allotherMarkdownbytes/source/compiler inputs unchanged. No runtime or authoring-test acceptance inferred from this display correction.",
+    "application": {
+      "path": "target/course-windows-20261018/final-brep-teaching-skip-correction/application.json",
+      "sha256": "1866b716d0c8a859e4d5f1b3c3e33476dbfc2dc2c5a60d2293d2a3a1b36949e3"
+    }
+  }
+}

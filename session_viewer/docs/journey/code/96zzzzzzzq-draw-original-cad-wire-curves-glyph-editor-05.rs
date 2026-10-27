@@ -1,0 +1,7 @@
+            },
+            Action::Opacity(_)=>unreachable!("Opacity presentation returned before document mutation"),
+            Action::ViewInk(..)|Action::ViewXray(_)=>unreachable!("View presentation returned before document mutation"),
+            Action::ViewOutline(_)|Action::PlaneSize(_)|Action::PointSize(_)=>unreachable!("Outline presentation returned before editor mutation"),
+            Action::Arctic(_)|Action::Lighting(_)|Action::Backfaces(_)=>unreachable!("Presentation returned before editor mutation"),
+            Action::Clipping(request)=>{return self.clipping_request(request)},
+            Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},

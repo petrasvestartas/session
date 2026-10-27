@@ -1,0 +1,11 @@
+    "Matrix RGB output is opaque. Only whole-object picking and selected borders are supported.",
+    "Clipping tests quad vertices. Titles have independent text IDs and lifetime."
+  ],
+  "shared_visibility_fix": "Current working-tree production ink_visibility.wgsl rejects an opaque nearer depth with primitive ID zero before coplanar triangle fallback. Matrix code and numeric packing are unchanged.",
+  "pristine_sha256": "7e52df4e188e6ef7e1ff6ad7468c6c74f05fc3f7aeaded4fc113dae5dbdf0e65",
+  "ownership_adapter": {
+    "original": "return vec2<u32>(words[in.block + INSTANCE] + 1u, 0u);",
+    "replacement": "return vec2<u32>(course_owners[words[in.block + INSTANCE]], 0u);",
+    "declaration": "\n@group(3) @binding(1) var<storage, read> course_owners: array<u32>;\n"
+  }
+}

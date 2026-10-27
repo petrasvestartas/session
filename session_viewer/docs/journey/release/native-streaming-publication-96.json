@@ -1,0 +1,1982 @@
+{
+  "date": "2026-10-25T22:37:04.070Z",
+  "status": "PASS: 29 independent native captures published from three actually reviewed original PNG groups",
+  "scope": "Original-resolution visual review performed by /root/capture_quality_options; /root separately approved publication. Every member retains its actual source/executable/capture receipt. Capture progress remains separately owned by the running batch.",
+  "published": 29,
+  "originalResolutionImageGroups": 3,
+  "rootPublicationApproval": {
+    "approved": true,
+    "agentId": "/root",
+    "approvedAt": "2026-10-25T22:33:19.256Z",
+    "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+    "delegatedReview": {
+      "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+      "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+    }
+  },
+  "delegatedReview": {
+    "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+    "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+  },
+  "publisher": {
+    "path": "../session_tests/scripts/course/incremental-native-publication.ts",
+    "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+  },
+  "publicationRun": {
+    "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-root-approved-first29-run.log",
+    "sha256": "547f42c881c561250af6e93acd25c75fa16d72de6c3758e22e65ce616641e658"
+  },
+  "images": [
+    {
+      "sequence": 3,
+      "previousEventSha256": "7f8dc78f61cf6c73c26893c80c0f9b155a10d4d8a38ee8d2c1b0f7d531cf5d1a",
+      "createdUtc": "2026-10-25T22:33:23.388Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "01a-gpu",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\01a-gpu.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\01a-gpu-5ac4bc0c2aafd3f10599\\01a-gpu-dpr2.png",
+        "sha256": "804cedabb8456992c72c65b4d17aa6dbcb6331b93bbf499735607e2b396c7d25",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\01a-gpu-5ac4bc0c2aafd3f10599\\result.json",
+        "sha256": "1ec233ab08650b8a91d3768807b9ad3fc7e28629bdeebe30091e67bf1f916828"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "804cedabb8456992c72c65b4d17aa6dbcb6331b93bbf499735607e2b396c7d25",
+        "sourceRecordSha256": "1ec233ab08650b8a91d3768807b9ad3fc7e28629bdeebe30091e67bf1f916828",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original is a uniform white clear-only frame. Both members are explicitly marked blankExpected; no geometry is expected at this stage."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\01a-gpu-428a3b53552ec202956dd43e6ca60b7e66eb65e9a7b440a246421b8bb1fb80c9.png",
+        "sha256": "428a3b53552ec202956dd43e6ca60b7e66eb65e9a7b440a246421b8bb1fb80c9"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000003-57def8c10a874daf.json",
+        "sha256": "57def8c10a874daf7079778a64eafdd5b097ac38222d5737dca96d1c76b5284a"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/01a-gpu.png"
+    },
+    {
+      "sequence": 5,
+      "previousEventSha256": "83e7ac870fd40c13c50974df7226d88ba71c8f7ed41670ba97749b516b9f8b51",
+      "createdUtc": "2026-10-25T22:33:23.424Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "02-clear",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\02-clear.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\02-clear-287392642a2c7ae25110\\02-clear-dpr2.png",
+        "sha256": "804cedabb8456992c72c65b4d17aa6dbcb6331b93bbf499735607e2b396c7d25",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\02-clear-287392642a2c7ae25110\\result.json",
+        "sha256": "213e71d1e50f3805c28bf22744b15a96132f966db76af1b129d6c42e28cfe81e"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "804cedabb8456992c72c65b4d17aa6dbcb6331b93bbf499735607e2b396c7d25",
+        "sourceRecordSha256": "1ec233ab08650b8a91d3768807b9ad3fc7e28629bdeebe30091e67bf1f916828",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original is a uniform white clear-only frame. Both members are explicitly marked blankExpected; no geometry is expected at this stage."
+      },
+      "reviewedRepresentative": {
+        "id": "01a-gpu",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\01a-gpu-5ac4bc0c2aafd3f10599\\result.json",
+          "sha256": "1ec233ab08650b8a91d3768807b9ad3fc7e28629bdeebe30091e67bf1f916828"
+        }
+      },
+      "duplicateOfReviewedSHA": "804cedabb8456992c72c65b4d17aa6dbcb6331b93bbf499735607e2b396c7d25",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\02-clear-428a3b53552ec202956dd43e6ca60b7e66eb65e9a7b440a246421b8bb1fb80c9.png",
+        "sha256": "428a3b53552ec202956dd43e6ca60b7e66eb65e9a7b440a246421b8bb1fb80c9"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000005-4e0bca8204ba1026.json",
+        "sha256": "4e0bca8204ba1026ea3ae91135bc5a151578eb668b2ecd4f9fa6a10a17569567"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/02-clear.png"
+    },
+    {
+      "sequence": 7,
+      "previousEventSha256": "58c4a629090d82fb53afb31f348860cc27b03b90ea1ff5d4fbfd322d43b3f626",
+      "createdUtc": "2026-10-25T22:33:23.461Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03-triangle",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03-triangle.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\03-triangle-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+        "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03-triangle-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000007-e4b5842dcf2c223a.json",
+        "sha256": "e4b5842dcf2c223a94f576aac773b5d9651dbfb6be84fb26692ed19c832e9589"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03-triangle.png"
+    },
+    {
+      "sequence": 9,
+      "previousEventSha256": "fc90169ad0ea4ae67f3406711554fccb6c53c674efba2e1dc7c6d48cd7f56f8d",
+      "createdUtc": "2026-10-25T22:33:23.502Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03a-fonts",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03a-fonts.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03a-fonts-154b54bb6cb425ca3631\\03a-fonts-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03a-fonts-154b54bb6cb425ca3631\\result.json",
+        "sha256": "3272b119d9f4ca314764484bd46dd6f93cbf34606a69ee3401a768f809e49ba2"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03a-fonts-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000009-f4db0fcb1a131f16.json",
+        "sha256": "f4db0fcb1a131f161718ccd3ffd2563ca16b91075121d870c5486eb21161d3e8"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03a-fonts.png"
+    },
+    {
+      "sequence": 11,
+      "previousEventSha256": "9456317f912c19c134e43ec300c07052b89d905839b54360214aa702bcd31412",
+      "createdUtc": "2026-10-25T22:33:23.543Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03a-paint",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03a-paint.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03a-paint-8109982c66842b10c045\\03a-paint-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03a-paint-8109982c66842b10c045\\result.json",
+        "sha256": "059ffccccaa49c6d15d7efef85996ffb50818d84905c24e6c750a6e518b23106"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03a-paint-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000011-9688499478512ac0.json",
+        "sha256": "9688499478512ac0efeb74d1487989f110e71f7f6b9506ce28536d3dc86a98ff"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03a-paint.png"
+    },
+    {
+      "sequence": 13,
+      "previousEventSha256": "a619e8d25638005e81267548af9bfd15ad42b461df7f18cc1fd8e1a4a616c657",
+      "createdUtc": "2026-10-25T22:33:23.585Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03a-panel",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03a-panel.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03a-panel-5733cd9225677d1dc51f\\03a-panel-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03a-panel-5733cd9225677d1dc51f\\result.json",
+        "sha256": "698801446e2d1bf357925d9f891eea6c28142011e8ae9cc42fad89d40da349a1"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03a-panel-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000013-b1f745d9b5ae86e1.json",
+        "sha256": "b1f745d9b5ae86e1b9b573d676c5fb9621eba06bf38e83dd53e9919590d7d7c0"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03a-panel.png"
+    },
+    {
+      "sequence": 15,
+      "previousEventSha256": "e125a4bcadc0b3e2b522cb851bf38e0ab7f3f639bc5df4dc26af3b8bfbddcd6a",
+      "createdUtc": "2026-10-25T22:33:23.634Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03b-memory",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03b-memory.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03b-memory-60761a1c92c0d26ebe79\\03b-memory-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03b-memory-60761a1c92c0d26ebe79\\result.json",
+        "sha256": "c9215debdf6e45aab064931de343b3f22f904a0b5d4a8936d138fe31b2aa7327"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03b-memory-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000015-136159da4c244438.json",
+        "sha256": "136159da4c2444387757e4b3447b56bdc4423351adf0d44c41ded58c227bd25b"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03b-memory.png"
+    },
+    {
+      "sequence": 17,
+      "previousEventSha256": "ccf331562f9c89a89e09fc1bdefdae83ea1eab66eec2a2ad3d2f98840ed5a9f6",
+      "createdUtc": "2026-10-25T22:33:23.682Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03b-state",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03b-state.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03b-state-b122d586f17d70bfe214\\03b-state-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03b-state-b122d586f17d70bfe214\\result.json",
+        "sha256": "fe0db46d5cad1bd1e9eb204edc0d1b384d48ae039fceb52db174d472de9ab019"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03b-state-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000017-7c692f025b59c8e6.json",
+        "sha256": "7c692f025b59c8e6788741ac25f6d2c48885117d93310e9a88c3f3ea7aaaf397"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03b-state.png"
+    },
+    {
+      "sequence": 19,
+      "previousEventSha256": "cac3dd33b7cc930461e912e75e74ca56289a4477fed30783a747035195993277",
+      "createdUtc": "2026-10-25T22:33:23.739Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03c-history",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03c-history.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03c-history-b2e4eff698842a49d7b3\\03c-history-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03c-history-b2e4eff698842a49d7b3\\result.json",
+        "sha256": "c6d126ab0b8209b688f3b22c52a5191a6872cb6067c62d85d679f4df10cdfb26"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03c-history-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000019-16090567b93f2437.json",
+        "sha256": "16090567b93f2437351a3149d6f7520b4fd37b9b1c4d3f21e52893071ab19741"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03c-history.png"
+    },
+    {
+      "sequence": 21,
+      "previousEventSha256": "e8691be1fe964d5e490988b579280191a32130f8c70c7fb41648bff7b8cdd537",
+      "createdUtc": "2026-10-25T22:33:23.800Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03ca-typing",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03ca-typing.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ca-typing-4306804a97c3ed5843ac\\03ca-typing-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ca-typing-4306804a97c3ed5843ac\\result.json",
+        "sha256": "65834309cc205b49b2088c4672d4b7ec9e386f4eda8918d00b89f60f4f2471f0"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03ca-typing-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000021-c130e7e30612e5ed.json",
+        "sha256": "c130e7e30612e5ed45f81555ef6425c2b241ec9f64a05e342342cea1248e2126"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03ca-typing.png"
+    },
+    {
+      "sequence": 23,
+      "previousEventSha256": "a4dfd828fd84d2b05491aba2542733a15d181fedbb1b691052c7782a7a3f2bfb",
+      "createdUtc": "2026-10-25T22:33:23.864Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cb-submit",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cb-submit.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cb-submit-5cc26dce9f5efb8e153d\\03cb-submit-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cb-submit-5cc26dce9f5efb8e153d\\result.json",
+        "sha256": "70a109e5d76b605d6c27e8be142baa0bb45ac9ecc6c3c998f8b9ef26a5784b3d"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cb-submit-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000023-e4d4985631f29069.json",
+        "sha256": "e4d4985631f290690c1d0539374bfe36c7b4038b1d16e3012aacde315021fc20"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cb-submit.png"
+    },
+    {
+      "sequence": 25,
+      "previousEventSha256": "390158371fb132e0596ab1453e68044f4106c205ba610304f31a615dde07c99b",
+      "createdUtc": "2026-10-25T22:33:23.929Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cc-edit",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cc-edit.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cc-edit-219b69af2e7d36ecaefe\\03cc-edit-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cc-edit-219b69af2e7d36ecaefe\\result.json",
+        "sha256": "094ff48c28db10add96f3b499f2344ad940983d30bb3fb58f6c0445afe141b87"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cc-edit-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000025-4c18eeb2190e3293.json",
+        "sha256": "4c18eeb2190e32932b30ab96d25f27b19c34ab19ae35adb034e573990bca5187"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cc-edit.png"
+    },
+    {
+      "sequence": 27,
+      "previousEventSha256": "975ad97297f36ece0a5d0fd406c098eaedc76f2147511f604e0f67c1d3a30dcd",
+      "createdUtc": "2026-10-25T22:33:24.000Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cd-vocabulary",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cd-vocabulary.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cd-vocabulary-bc22c079b7be41b5d779\\03cd-vocabulary-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cd-vocabulary-bc22c079b7be41b5d779\\result.json",
+        "sha256": "93e92cab3223324af549ec33f3964d3e4bdbd0085aa1ee9de3ad0d3a5091a2cb"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cd-vocabulary-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000027-be9b8d2727ed6a64.json",
+        "sha256": "be9b8d2727ed6a64a35853bfb5b1ece2c269fe2002e11ff9bbca7edf6b266b84"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cd-vocabulary.png"
+    },
+    {
+      "sequence": 29,
+      "previousEventSha256": "75e4e58e184a71e909d4e6a36f43231c61b1ad2364c079eb3f0b80b99a7595d6",
+      "createdUtc": "2026-10-25T22:33:24.077Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03ce-complete",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03ce-complete.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ce-complete-3c17f1876ae77bdd768f\\03ce-complete-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ce-complete-3c17f1876ae77bdd768f\\result.json",
+        "sha256": "96b1fa1d83b09acb25544983bfa2a779892f6b905b9efa7170970a9cecc9d09c"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03ce-complete-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000029-6054a119c54133b2.json",
+        "sha256": "6054a119c54133b2115eaa973beeeaa565f18547d0b33efc8df06b4fab82a4ab"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03ce-complete.png"
+    },
+    {
+      "sequence": 31,
+      "previousEventSha256": "50986679b175d1c7e943e28ccdf9a8816f86f6e71f189eb7a68edeadaa776ef2",
+      "createdUtc": "2026-10-25T22:33:24.145Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cf-accept",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cf-accept.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cf-accept-d2772e47c5301e13b82a\\03cf-accept-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cf-accept-d2772e47c5301e13b82a\\result.json",
+        "sha256": "71746e8558af1ff992347073adbde6a8bec60d3e695fcd4122768f73e6187600"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cf-accept-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000031-816d61c243e00340.json",
+        "sha256": "816d61c243e003403de3dd310f0758ae4cea5a7cda0beeeb80747565a53de4d4"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cf-accept.png"
+    },
+    {
+      "sequence": 33,
+      "previousEventSha256": "066d9f9c4ec2915991b6d44b786cbcfb4c027d9e04642e651e6fbb17af35dba3",
+      "createdUtc": "2026-10-25T22:33:24.221Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cg-keys",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cg-keys.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cg-keys-d4f0d21acc3fc248f28d\\03cg-keys-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cg-keys-d4f0d21acc3fc248f28d\\result.json",
+        "sha256": "a556c3fb2b6dca7a3dde1c218b8fe934c20c661a35e25503a61e3a9145c6a863"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cg-keys-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000033-b9c65378a01e245f.json",
+        "sha256": "b9c65378a01e245f5d48cf64aa24473cfb12dd3edd0977274ca27f7298aa41dc"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cg-keys.png"
+    },
+    {
+      "sequence": 35,
+      "previousEventSha256": "a2fcb7c976fd8386a30f5034780dbdc3c9d60d990ac4e0c0a7447b8c76678d33",
+      "createdUtc": "2026-10-25T22:33:24.302Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03ch-popup",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03ch-popup.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ch-popup-86172d2afa23cb901655\\03ch-popup-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ch-popup-86172d2afa23cb901655\\result.json",
+        "sha256": "0d5e22178c99ed93777fe519324e801c332de5cebb0f46dde0628f86f8a7e614"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03ch-popup-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000035-8ab279378d1acf3d.json",
+        "sha256": "8ab279378d1acf3d31d7b2aed150db57d93700838f171750b9f681733b409fc1"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03ch-popup.png"
+    },
+    {
+      "sequence": 37,
+      "previousEventSha256": "3e64177c5314aeb04629a32d72c2dbf9595d9d1b1831ca7f42e991bd389e77fa",
+      "createdUtc": "2026-10-25T22:33:24.382Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03ci-browse",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03ci-browse.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ci-browse-0434ca573242fca6086d\\03ci-browse-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ci-browse-0434ca573242fca6086d\\result.json",
+        "sha256": "ee2114cc4a9529228ebd5cf88c2b090d9254726b3727d7d6f54c6002818f41bc"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03ci-browse-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000037-867112be9c7b2d81.json",
+        "sha256": "867112be9c7b2d81239a4505f598e34b788cb588e19e5508545354ae373f1488"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03ci-browse.png"
+    },
+    {
+      "sequence": 39,
+      "previousEventSha256": "ab61687871e39ce1412c4eba33a96369e8c7b2b1e87bf1887a8a87f6f7fbaf08",
+      "createdUtc": "2026-10-25T22:33:24.450Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cj-prepare",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cj-prepare.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cj-prepare-01b253b52cb17263792e\\03cj-prepare-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cj-prepare-01b253b52cb17263792e\\result.json",
+        "sha256": "a7be056094e84c0521a0701c5a20f5947087e231c2f6971e2063be5082c01d4e"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cj-prepare-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000039-22d6b72dfd65a328.json",
+        "sha256": "22d6b72dfd65a3288791f285b1e118c4d4ea9aeba99695046035471b0a7489fe"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cj-prepare.png"
+    },
+    {
+      "sequence": 41,
+      "previousEventSha256": "cf6c5871bcb7db5ecfa747179c7a062ac76cc65a955d5fad0e706d77f5a80c87",
+      "createdUtc": "2026-10-25T22:33:24.526Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03ck-rects",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03ck-rects.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ck-rects-89561d27483da7311695\\03ck-rects-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ck-rects-89561d27483da7311695\\result.json",
+        "sha256": "a3dbb5a184dadc2c61a9b42ca08ffe0e4ba6dd67488f213a7ee844d5c28fb0d8"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03ck-rects-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000041-fe2b555c4176c637.json",
+        "sha256": "fe2b555c4176c6376de01cea7d061fe6c6fed45bb3555ba328dfbdab68bbd005"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03ck-rects.png"
+    },
+    {
+      "sequence": 43,
+      "previousEventSha256": "68bf1fdc2cbc5097da6fd38830564a280da7e082759e469041ac530c3de29a48",
+      "createdUtc": "2026-10-25T22:33:24.598Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03ck-pointer",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03ck-pointer.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ck-pointer-8d021897fb147bb258fc\\03ck-pointer-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03ck-pointer-8d021897fb147bb258fc\\result.json",
+        "sha256": "0c809135a9f6c2911011ac2df032116677ecb5b1a6ea2cda2142548b95183b5d"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03ck-pointer-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000043-5b9232fc84709468.json",
+        "sha256": "5b9232fc847094685ad013186c1e2c721333d14f7a40b3eea4067a866c11609c"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03ck-pointer.png"
+    },
+    {
+      "sequence": 45,
+      "previousEventSha256": "85442eec044a9ca459bff30b768dd45722b006ebddf6e197cae225b875d8ea91",
+      "createdUtc": "2026-10-25T22:33:24.676Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cl-wheel",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cl-wheel.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cl-wheel-a9bd2c3d6bf77711cf6e\\03cl-wheel-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cl-wheel-a9bd2c3d6bf77711cf6e\\result.json",
+        "sha256": "9d3a994cda619b74413a15fe55d4b99d2ef0d5c40f97a920f7282a14bc394d72"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cl-wheel-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000045-ceadc4ea7cb308f4.json",
+        "sha256": "ceadc4ea7cb308f49a7ff2cd3d796f50c10c5d4b6e70ace046c02110ce058b29"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cl-wheel.png"
+    },
+    {
+      "sequence": 47,
+      "previousEventSha256": "9152dad009e8813bea67a58bea0f1d660fd523b32ec2fd74f1ec85a47bdd2f4f",
+      "createdUtc": "2026-10-25T22:33:24.768Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03c-layout",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03c-layout.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03c-layout-30f43b9d51f7c1a24dd3\\03c-layout-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03c-layout-30f43b9d51f7c1a24dd3\\result.json",
+        "sha256": "4cdc70e84b2d94256c9df76534507e9e37c0bb471def0a807896a7d687d888f9"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03c-layout-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000047-fe64be9a43e04b4f.json",
+        "sha256": "fe64be9a43e04b4f86d6c2d109e7450f1ce76e2d9198e2f278bba89087d83b71"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03c-layout.png"
+    },
+    {
+      "sequence": 49,
+      "previousEventSha256": "927bd10da321ad27d71fff0c7c92a25766c925d5da30eeabbdfad368c65bca5b",
+      "createdUtc": "2026-10-25T22:33:24.863Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03co-align",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03co-align.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03co-align-0e887a29ee27ecbad1e4\\03co-align-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03co-align-0e887a29ee27ecbad1e4\\result.json",
+        "sha256": "ded1be7c0b80aa1739f4e15346abc3bc4ab309a172647fd756c6787bf1777243"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03co-align-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000049-6522f98f9e19222a.json",
+        "sha256": "6522f98f9e19222a282347568e6c7cf328604990a6c779e4a488eb1b0ca94fd3"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03co-align.png"
+    },
+    {
+      "sequence": 51,
+      "previousEventSha256": "8010b866cfcfc26534549fe5040aad8cf222aec1b2189e5acb67a400ef0aedac",
+      "createdUtc": "2026-10-25T22:33:24.957Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cp-options",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cp-options.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cp-options-4537c169dd9fead6f984\\03cp-options-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cp-options-4537c169dd9fead6f984\\result.json",
+        "sha256": "d2d5c1ca04620e9252e6d204c1c57282a03eddbfcce6c0f05f536cc3a6435aea"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cp-options-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000051-f73bb64303989801.json",
+        "sha256": "f73bb643039898017fbc9c068099a511b8ac36d4ec1afe50a6ae506476627d2e"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cp-options.png"
+    },
+    {
+      "sequence": 53,
+      "previousEventSha256": "7573b666ae21c263dcdba18815b5dd98be8fbb9b3f73cd9334f50f040aa2c2ef",
+      "createdUtc": "2026-10-25T22:33:25.056Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03cn-handoff",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03cn-handoff.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cn-handoff-6afbea16bf973b76576e\\03cn-handoff-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03cn-handoff-6afbea16bf973b76576e\\result.json",
+        "sha256": "35f171555367def48346cef842cf12bd156e2ec9467e5411aff3ec359abbd452"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03cn-handoff-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000053-52d118eabc936997.json",
+        "sha256": "52d118eabc9369976c356468bd89107f1baf9c633a054f4b95bba333c4ac6600"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03cn-handoff.png"
+    },
+    {
+      "sequence": 55,
+      "previousEventSha256": "736f4d0a3ce39177a834fb4f528109762a41d796db5f5d9d8cc96aa019672b47",
+      "createdUtc": "2026-10-25T22:33:25.158Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "03d-input",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\03d-input.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03d-input-636141cdfbff2fc211fa\\03d-input-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03d-input-636141cdfbff2fc211fa\\result.json",
+        "sha256": "6d34c9d9c84bf37db381b714c95d95705c8e910cf99d8b24dfa7b725a32670ab"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\03d-input-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000055-eb808ee394a8c23b.json",
+        "sha256": "eb808ee394a8c23bc14cd431cba5d492d05154ffa08d6ada79985978954772db"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/03d-input.png"
+    },
+    {
+      "sequence": 57,
+      "previousEventSha256": "ef585ad06decdb180ef2ec6f28df022f42df52dd7a9ddcc4c4423042cdc5831a",
+      "createdUtc": "2026-10-25T22:33:25.260Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "04-input",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\04-input.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\04-input-d8e094c495790831eba8\\04-input-dpr2.png",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\04-input-d8e094c495790831eba8\\result.json",
+        "sha256": "ee583f9749777a2bbfcb4d2230280dfdbd6ff09b9740378b136744bd116ec967"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+        "sourceRecordSha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows the expected centered pink introductory triangle on white, fully contained with clear margins. This native frame represents the initial GPU scene; browser UI behavior has separate evidence."
+      },
+      "reviewedRepresentative": {
+        "id": "03-triangle",
+        "sourceRecord": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\03-triangle-4816c5023e8ddc6a2160\\result.json",
+          "sha256": "3204a066f62990f4708066ee47a87cfa8a201101e738ae7504bc13b3e355d497"
+        }
+      },
+      "duplicateOfReviewedSHA": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\04-input-9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553.png",
+        "sha256": "9e7683bc08e394a48be1d4273068d9d4db1d01842fe4648f56e885638f848553"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000057-4ed6973f72c715dc.json",
+        "sha256": "4ed6973f72c715dca510617119acf5da87d9a1830abb96d6ac503cf591b1b7dd"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/04-input.png"
+    },
+    {
+      "sequence": 59,
+      "previousEventSha256": "5d79ab523bf4f64216bf6f209607232ab16f545279c53672fba7528b2b7996d1",
+      "createdUtc": "2026-10-25T22:33:25.365Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "05-vertices",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\05-vertices.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\05-vertices-5f7c242cab281a10bd0b\\05-vertices-dpr2.png",
+        "sha256": "7e509df7e318f524af3bd6194c074dbaaba90d67d5c36f512773ec6825cff4ab",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\05-vertices-5f7c242cab281a10bd0b\\result.json",
+        "sha256": "25d0dad6c4a3326da8aa9bd679ff624d603462d5b7b83e284e3e7914bab8700a"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "7e509df7e318f524af3bd6194c074dbaaba90d67d5c36f512773ec6825cff4ab",
+        "sourceRecordSha256": "25d0dad6c4a3326da8aa9bd679ff624d603462d5b7b83e284e3e7914bab8700a",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Actual1280x960 original shows a filled pink rectangle with clear white margins. The six source vertices form two triangles spanning x=-0.6..0.6,y=-0.5..0.6; the rectangular silhouette is expected at this vertex-buffer step."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "approvedAt": "2026-10-25T22:33:19.256Z",
+        "scope": "Approve publication from actual delegated original-resolution review and independently source-bound per-image receipts.",
+        "delegatedReview": {
+          "path": "target/course-presentation/incremental-batches/23639a9ee49402a71f10/publication-delegated-review-first29.json",
+          "sha256": "efeca53578d2ee5cf73ff424c469e6f2f7f25409f9022583ca13799bc4a8b4de"
+        }
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c.json",
+        "sha256": "eeb342640e88eeb914a99c0c01a8ec88ffe0236af285f3fe74882d4d165ee32c"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\05-vertices-c54a3d51d710f839ffe1dc690ae9b077c63de05f07465632ae57cd0d1c09d04c.png",
+        "sha256": "c54a3d51d710f839ffe1dc690ae9b077c63de05f07465632ae57cd0d1c09d04c"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000059-b9ce09836c32a643.json",
+        "sha256": "b9ce09836c32a643f156badd5a4290ff8ad4ae6073b40ba0f2506345340ef996"
+      },
+      "httpStatus": 200,
+      "publicPath": "docs/screenshots/journey/05-vertices.png"
+    }
+  ]
+}

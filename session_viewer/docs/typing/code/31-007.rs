@@ -1,6 +1,6 @@
 // Split: cut a curve, or one face of a surface or solid, with cutter curves; the kernel does the geometry.
 use super::scene::{Scene, sync};
-use session_rust::simple_split;
+use session_rust::split;
 use session_rust::{BRep, Geometry, NurbsCurve, TreeNode};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -111,7 +111,7 @@ impl Scene {
         // the new geometries and how many regions the cut made
         let (mut pieces, regions) = match source {
             Geometry::Line(line) => {
-                let pieces: Vec<_> = simple_split::split_line_by_curves(line, &tools, tolerance)?
+                let pieces: Vec<_> = split::split_line_by_curves(line, &tools, tolerance)?
                     .into_iter()
                     .map(|p| Geometry::Line(Rc::new(p)))
                     .collect();
@@ -120,7 +120,7 @@ impl Scene {
             }
             Geometry::Polyline(line) => {
                 let pieces: Vec<_> =
-                    simple_split::split_polyline_by_curves(line, &tools, tolerance)?
+                    split::split_polyline_by_curves(line, &tools, tolerance)?
                         .into_iter()
                         .map(|p| Geometry::Polyline(Rc::new(p)))
                         .collect();
@@ -128,7 +128,7 @@ impl Scene {
                 (pieces, count)
             }
             Geometry::NurbsCurve(curve) => {
-                let pieces: Vec<_> = simple_split::split_curve_by_curves(curve, &tools, tolerance)?
+                let pieces: Vec<_> = split::split_curve_by_curves(curve, &tools, tolerance)?
                     .into_iter()
                     .map(|p| Geometry::NurbsCurve(Rc::new(p)))
                     .collect();
@@ -136,13 +136,13 @@ impl Scene {
                 (pieces, count)
             }
             Geometry::NurbsSurface(surface) => {
-                let mut brep = simple_split::split_surface_by_curves(surface, &tools, tolerance)?;
+                let mut brep = split::split_surface_by_curves(surface, &tools, tolerance)?;
                 brep.name = surface.name.clone();
                 let count = brep.face_count();
                 (vec![Geometry::BRep(Rc::new(brep))], count)
             }
             Geometry::BRep(brep) => {
-                let next = simple_split::split_brep_face_by_curves(
+                let next = split::split_brep_face_by_curves(
                     brep,
                     face.ok_or("Select a face")?,
                     &tools,
@@ -155,7 +155,7 @@ impl Scene {
                 let session_rust::element::ElementGeometry::BRep(brep) = element.geometry() else {
                     return Err("Element has no BRep".into());
                 };
-                let next = simple_split::split_brep_face_by_curves(
+                let next = split::split_brep_face_by_curves(
                     brep,
                     face.ok_or("Select a face")?,
                     &tools,

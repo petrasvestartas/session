@@ -10,7 +10,28 @@ The new layer-name field and the command dock share egui keyboard focus.
 
 Continue from [Route layer controls before handles and canvas input](53t-input.md). [Save or recover your work](recovery.md).
 
-### 1. `src/command_dock/mod.rs`
+### 1. `src/shortcuts.rs`
+
+Route keyboard shortcuts through the actual egui focus owner before exercising layer editing. Append this helper after `key`; popup controls and nonempty focused fields retain their keyboard input.
+
+```rust
+pub fn context_key(context:&egui::Context,command_text:&str,text:&str,command:bool,shift:bool,alt:bool,composing:bool)->Option<Shortcut> {
+    if egui::Popup::is_any_open(context) {return None;}
+    let empty_command=context.memory(|memory|memory.focused())==Some(egui::Id::new("command-input"))&&command_text.is_empty();
+    key(text,command,shift,alt,composing,context.egui_wants_keyboard_input(),empty_command)
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+```text
+--8<-- "journey/code/54a-selection-03.rs"
+```
+
+</details>
+
+### 2. `src/command_dock/mod.rs`
 
 Request command focus once; an open dock must allow the layer name to own typing. Show completions only while their actual field owns focus. Keep Escape with its focused field; an open dock is not keyboard ownership.
 
@@ -792,7 +813,7 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
-### 2. `src/view_flags_tests.rs`
+### 3. `src/view_flags_tests.rs`
 
 Copy the full source ownership, history and actual control regressions.
 
@@ -804,7 +825,7 @@ Copy this supplied file:
 
 </details>
 
-### 3. `src/lib.rs`
+### 4. `src/lib.rs`
 
 Register the new source component.
 
@@ -829,7 +850,7 @@ After that block, type:
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
-### 4. `src/layer_edit_tests.rs`
+### 5. `src/layer_edit_tests.rs`
 
 Copy the full source ownership, history and actual control regressions.
 
@@ -841,7 +862,7 @@ Copy this supplied file:
 
 </details>
 
-### 5. `src/lib.rs`
+### 6. `src/lib.rs`
 
 Register the new source component.
 
@@ -866,7 +887,7 @@ After that block, type:
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
-### 6. `src/layer_ui_tests.rs`
+### 7. `src/layer_ui_tests.rs`
 
 Copy the full source ownership, history and actual control regressions.
 
@@ -878,7 +899,7 @@ Copy this supplied file:
 
 </details>
 
-### 7. `src/lib.rs`
+### 8. `src/lib.rs`
 
 Register the new source component.
 
@@ -903,7 +924,7 @@ After that block, type:
 
 Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
-### 8. `src/pick_gpu_tests.rs`
+### 9. `src/pick_gpu_tests.rs`
 
 Copy the actual GPU colour, independent channel and geometry-reuse regression.
 

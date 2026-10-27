@@ -1,38 +1,102 @@
 # 22.4 · Original ambient inputs and real pass ordering
 
-Shade current source surfaces before drawing their ink while retaining correct original contact metadata.
+**Steps:** 3 · **Source:** [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">4× MSAA Subpixel Samples (s0..s3) Inside Pixel Square</text>
+  <rect x="108" y="50" width="108" height="104" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <line x1="116" y1="146" x2="208" y2="56" stroke="#2563eb" stroke-width="2.5"/>
+  <polygon points="116,146 208,56 216,56 216,154 116,154" fill="#dbeafe" fill-opacity="0.65"/>
+  <circle cx="142" cy="76" r="5" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="188" cy="68" r="5" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="136" cy="124" r="5" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="182" cy="116" r="5" fill="#2563eb" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="252" y="106" font-family="monospace" font-size="10" font-weight="700" fill="#111111">cov = 3/4</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Key + Fill + Rim Rig + Ground Plane Major/Minor Grid</text>
+  <polygon points="432,140 492,98 688,98 628,140" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="462" y1="119" x2="658" y2="119" stroke="#dc2626" stroke-width="1.75"/>
+  <line x1="560" y1="98" x2="500" y2="140" stroke="#16a34a" stroke-width="1.75"/>
+  <polygon points="520,122 560,62 600,122" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <ellipse cx="560" cy="126" rx="34" ry="8" fill="#64748b" fill-opacity="0.45"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Anti-Aliased CAD Viewport + Ground Grid &amp; Contact Shadow</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="826,144 876,104 1042,104 992,144" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <ellipse cx="934" cy="130" rx="36" ry="8" fill="#94a3b8" fill-opacity="0.5"/>
+  <polygon points="894,126 934,58 974,126" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+</svg>
+</div>
 
-Geometric ambient inputs borrow current original properties and placed surface facts, not a stale selected overlay. The frame’s dependency order is explicit: prepare optional passes, project finite tiles, render cached points, draw faces/sections/cloud depth, apply ambient and outline hooks, draw ink/text, service pending picks, then widget and UI. Contact features keep their original ambient classification and cannot contaminate an unrelated parent’s material metadata.
+## <a id="checkpoint-96zzzzzzr-share-geometric-ambient-inputs"></a>1. Share geometric ambient inputs
 
-## The maintained implementation
-
-engine/gpu/render.rs encode_frame and pass.rs PASSES are the maintained order; clip precedes ssao and surface_outline hooks. ssao.rs and objects.rs provide actual contact properties and resources; src/shaders/ambient_geometry.wgsl, ssao.wgsl and ambient_composite.wgsl supply maintained reconstruction/shading. Preserve these algorithms and dependencies during course extraction.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-96zzzzzzr-share-geometric-ambient-inputs"></a>
-
-<details>
-<summary>Implementation 96zzzzzzr-share-geometric-ambient-inputs: Share geometric ambient inputs</summary>
-
-Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
-
-Data flow: Original mesh and placement → retained object radius → geometric source normal → ambient contact shading.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
 
 ### 1. `src/ambient_sources.wgsl`
 
 Read both source paths from the existing object record instead of a separate radius uniform. Ambient contacts use geometric normals; lighting normals remain in the surface shading path. Use one radius owner and avoid decoding or interpolating a lighting normal for the ambient source pass. A face normal follows the rendered geometry even when the source provides a different lighting normal.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```wgsl
 @group(3) @binding(0) var<uniform> ambient_radius:vec4<f32>;
@@ -48,10 +112,7 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
  let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
  let normal=normalize(select(select(face,-face,front),in.normal,dot(in.normal,in.normal)>0.));
  return Source(in.radius,encode_normal(normal)*0.5+0.5);
-}
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -68,124 +129,308 @@ struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
  let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
  let normal=normalize(select(face,-face,front));
  return Source(in.radius,encode_normal(normal)*0.5+0.5);
-}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-04.rs"
-```
-
-</details>
 
 ### 2. `src/ambient_source_gpu.rs`
 
 Remove the redundant per-object property cache. The source owner retains only its two existing pipelines. No per-object radius buffers or bind groups are allocated. The existing object records already contain each placed contact radius. Both actual storage and uniform object paths use the same retained radius, without a second per-mesh binding. There is no separate ambient source buffer allocation to report.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 use std::collections::HashMap;
-pub struct Sources{pipes:crate::ambient_source_pipeline::Pipeline,rows:HashMap<u32,(wgpu::Buffer,wgpu::BindGroup,f32)>,pub writes:u64,pub draws:u64}
-impl Sources{
- pub fn new(device:&wgpu::Device)->Self{Self{pipes:crate::ambient_source_pipeline::Pipeline::new(device),rows:Default::default(),writes:0,draws:0}}
- pub fn set(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,specs:&[(u32,f32)]){
-  let live=specs.iter().map(|(id,_)|*id).collect::<std::collections::HashSet<_>>();self.rows.retain(|id,_|live.contains(id));for &(id,radius)in specs{let row=self.rows.entry(id).or_insert_with(||{let buffer=device.create_buffer(&wgpu::BufferDescriptor{label:Some("original ambient contact radius"),size:16,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});let group=crate::gpu_layout::group(device,&self.pipes.radius,&buffer);(buffer,group,f32::NAN)});if row.2!=radius{queue.write_buffer(&row.0,0,&radius.to_ne_bytes());row.2=radius;self.writes+=1;}}if self.rows.is_empty(){self.rows.shrink_to_fit();}
- }
- pub fn encode(&mut self,encoder:&mut wgpu::CommandEncoder,radius:&wgpu::TextureView,normals:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clip:&wgpu::BindGroup,meshes:&[crate::gpu_mesh::GpuMesh],records:Option<&crate::instance_gpu::Lane>){
-  let attachments=[radius,normals].map(|view|Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}));let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original ambient source properties"),color_attachments:&attachments,depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&self.pipes.draw);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clip,&[]);for mesh in meshes{if let Some((_,group,_))=self.rows.get(&mesh.id.value()){if records.is_some_and(|rows|rows.bind_record(&mut pass,mesh)){pass.set_pipeline(&self.pipes.record_draw);mesh.geometry.draw_pulled(&mut pass,1);}else{pass.set_pipeline(&self.pipes.draw);mesh.bind_model(&mut pass);pass.set_bind_group(3,group,&[]);mesh.geometry.draw(&mut pass);}self.draws+=1;}}
- }
- pub fn bytes(&self)->u64{self.rows.values().map(|r|r.0.size()).sum()}
+pub struct Sources {
+    pipes: crate::ambient_source_pipeline::Pipeline,
+    rows: HashMap<u32, (wgpu::Buffer, wgpu::BindGroup, f32)>,
+    pub writes: u64,
+    pub draws: u64,
 }
+impl Sources {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            pipes: crate::ambient_source_pipeline::Pipeline::new(device),
+            rows: Default::default(),
+            writes: 0,
+            draws: 0,
+        }
+    }
+    pub fn set(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        specs: &[(u32, f32)],
+    ) {
+        let live = specs
+            .iter()
+            .map(|(id, _)| *id)
+            .collect::<std::collections::HashSet<_>>();
+        self.rows.retain(|id, _| live.contains(id));
+        for &(id, radius) in specs {
+            let row = self.rows.entry(id).or_insert_with(|| {
+                let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("original ambient contact radius"),
+                    size: 16,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                let group =
+                    crate::gpu_layout::group(device, &self.pipes.radius, &buffer);
+                (buffer, group, f32::NAN)
+            });
+            if row.2 != radius {
+                queue.write_buffer(&row.0, 0, &radius.to_ne_bytes());
+                row.2 = radius;
+                self.writes += 1;
+            }
+        }
+        if self.rows.is_empty() {
+            self.rows.shrink_to_fit();
+        }
+    }
+    pub fn encode(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        radius: &wgpu::TextureView,
+        normals: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        view: &wgpu::BindGroup,
+        clip: &wgpu::BindGroup,
+        meshes: &[crate::gpu_mesh::GpuMesh],
+        records: Option<&crate::instance_gpu::Lane>,
+    ) {
+        let attachments = [radius, normals].map(|view| {
+            Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })
+        });
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("original ambient source properties"),
+            color_attachments: &attachments,
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(&self.pipes.draw);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(2, clip, &[]);
+        for mesh in meshes {
+            if let Some((_, group, _)) = self.rows.get(&mesh.id.value()) {
+                if records.is_some_and(|rows| rows.bind_record(&mut pass, mesh)) {
+                    pass.set_pipeline(&self.pipes.record_draw);
+                    mesh.geometry.draw_pulled(&mut pass, 1);
+                } else {
+                    pass.set_pipeline(&self.pipes.draw);
+                    mesh.bind_model(&mut pass);
+                    pass.set_bind_group(3, group, &[]);
+                    mesh.geometry.draw(&mut pass);
+                }
+                self.draws += 1;
+            }
+        }
+    }
+    pub fn bytes(&self) -> u64 {
+        self.rows.values().map(|r| r.0.size()).sum()
+    }
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub struct Sources{pipes:crate::ambient_source_pipeline::Pipeline}
-impl Sources{
- pub fn new(device:&wgpu::Device)->Self{Self{pipes:crate::ambient_source_pipeline::Pipeline::new(device)}}
- pub fn encode(&mut self,encoder:&mut wgpu::CommandEncoder,radius:&wgpu::TextureView,normals:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clip:&wgpu::BindGroup,meshes:&[crate::gpu_mesh::GpuMesh],records:Option<&crate::instance_gpu::Lane>){
-  let attachments=[radius,normals].map(|view|Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}));let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("original ambient source properties"),color_attachments:&attachments,depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});pass.set_pipeline(&self.pipes.draw);pass.set_bind_group(0,view,&[]);pass.set_bind_group(2,clip,&[]);for mesh in meshes{if records.is_some_and(|rows|rows.bind_record(&mut pass,mesh)){pass.set_pipeline(&self.pipes.record_draw);mesh.geometry.draw_pulled(&mut pass,1);}else{pass.set_pipeline(&self.pipes.draw);mesh.bind_model(&mut pass);mesh.geometry.draw(&mut pass);}}
- }
+pub struct Sources {
+    pipes: crate::ambient_source_pipeline::Pipeline,
 }
+impl Sources {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            pipes: crate::ambient_source_pipeline::Pipeline::new(device),
+        }
+    }
+    pub fn encode(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        radius: &wgpu::TextureView,
+        normals: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        view: &wgpu::BindGroup,
+        clip: &wgpu::BindGroup,
+        meshes: &[crate::gpu_mesh::GpuMesh],
+        records: Option<&crate::instance_gpu::Lane>,
+    ) {
+        let attachments = [radius, normals].map(|view| {
+            Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })
+        });
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("original ambient source properties"),
+            color_attachments: &attachments,
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(&self.pipes.draw);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(2, clip, &[]);
+        for mesh in meshes {
+            if records.is_some_and(|rows| rows.bind_record(&mut pass, mesh)) {
+                pass.set_pipeline(&self.pipes.record_draw);
+                mesh.geometry.draw_pulled(&mut pass, 1);
+            } else {
+                pass.set_pipeline(&self.pipes.draw);
+                mesh.bind_model(&mut pass);
+                mesh.geometry.draw(&mut pass);
+            }
+        }
+    }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-09.rs"
-```
-
-</details>
 
 ### 3. `src/ambient_source_pipeline.rs`
 
 Keep only the actual render pipelines. Remove the unused radius layout. Shared vertex pulling still needs its geometry storage group; the uniform object path needs only the first three groups. The geometric source pass reads positions only. Cache the existing source pipelines without a radius layout owner.
 
-<details>
-<summary>Locate the existing block</summary>
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-pub struct Pipeline{pub draw:wgpu::RenderPipeline,pub record_draw:wgpu::RenderPipeline,pub radius:wgpu::BindGroupLayout}
-impl Pipeline{
- pub fn new(device:&wgpu::Device)->Self{
-  let radius=crate::gpu_layout::uniform(device,16);let create=|shared| {
-  let view=crate::surface_view::layout(device);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(if shared {&geometry}else{&radius})],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
-",include_str!("ambient_sources.wgsl"));let source=if shared {crate::object_rows::source(source)}else{source.into()};let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient original normals and radii"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(&source,2,0).into())});
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3,2=>Uint32];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw,radius}
- }
-}
+        Self {
+            draw,
+            record_draw,
+            radius,
+        }
 ```
 
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
+Replace it with:
 
 ```rust
-pub struct Pipeline{pub draw:wgpu::RenderPipeline,pub record_draw:wgpu::RenderPipeline}
-impl Pipeline{
- pub fn new(device:&wgpu::Device)->Self{
-  let create=|shared| {
-  let view=crate::surface_view::layout(device);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let groups=[Some(&view),Some(&model),Some(&clip),Some(&geometry)];let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&groups[..if shared{4}else{3}],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
-",include_str!("ambient_sources.wgsl"));let source=if shared {crate::object_rows::source(source)}else{source.into()};let module=device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some("ambient original normals and radii"),source:wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(&source,2,0).into())});
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw}
- }
+        Self {
+            draw,
+            record_draw,
+        }
+```
+
+**Locate this block:**
+
+```rust
+                    crate::clipping_gpu::source(&source, 2, 0).into(),
+                ),
+            });
+            let attributes = wgpu::vertex_attr_array![0=>Float32x3,2=>Uint32];
+            let draw = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("ambient original normals and radii"),
+                layout: Some(&layout),
+```
+
+Replace it with:
+
+```rust
+                    crate::clipping_gpu::source(&source, 2, 0).into(),
+                ),
+            });
+            let attributes = wgpu::vertex_attr_array![0=>Float32x3];
+            let draw = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("ambient original normals and radii"),
+                layout: Some(&layout),
+```
+
+**Locate this block:**
+
+```rust
+            };
+            let clip = crate::clipping_gpu::layout(device);
+            let geometry = crate::gpu_geometry::GpuGeometry::storage_layout(device);
+            let layout =
+                device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("ambient original source metadata"),
+                    bind_group_layouts: &[
+                        Some(&view),
+                        Some(&model),
+                        Some(&clip),
+                        Some(if shared {
+                            &geometry
+                        } else {
+                            &radius
+                        }),
+                    ],
+                    immediate_size: 0,
+                });
+            let source = concat!(
+```
+
+Replace it with:
+
+```rust
+            };
+            let clip = crate::clipping_gpu::layout(device);
+            let geometry = crate::gpu_geometry::GpuGeometry::storage_layout(device);
+            let groups = [
+                Some(&view),
+                Some(&model),
+                Some(&clip),
+                Some(&geometry),
+            ];
+            let layout =
+                device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("ambient original source metadata"),
+                    bind_group_layouts: &groups[..if shared {
+                        4
+                    } else {
+                        3
+                    }],
+                    immediate_size: 0,
+                });
+            let source = concat!(
+```
+
+**Locate this block:**
+
+```rust
+    pub record_draw: wgpu::RenderPipeline,
+    pub radius: wgpu::BindGroupLayout,
 }
+impl Pipeline {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let radius = crate::gpu_layout::uniform(device, 16);
+        let create = |shared| {
+            let view = crate::surface_view::layout(device);
+            let model = if shared {
 ```
 
-<details>
-<summary>Optional patch references</summary>
+Replace it with:
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-13.rs"
+```rust
+    pub record_draw: wgpu::RenderPipeline,
+}
+impl Pipeline {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let create = |shared| {
+            let view = crate::surface_view::layout(device);
+            let model = if shared {
 ```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-14.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-15.rs"
-```
-
-</details>
 
 ### 4. `src/renderer.rs`
 
@@ -193,881 +438,638 @@ Prepare bounds and object radii once, without maintaining a second property stor
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_lighting(&self,on:bool,backfaces:bool){self.surface_options.set([on,backfaces]);}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));owner.sources.set(&self.device,&self.queue,&self.ambient_rows.specs);}else if let Some(owner)=ambient.as_mut(){owner.clear(&self.device,&self.queue);}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_lighting(&self,on:bool,backfaces:bool){self.surface_options.set([on,backfaces]);}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));}else if let Some(owner)=ambient.as_mut(){owner.clear();}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        let anchor=self.anchor();
-        self.ambient_rows.set(scene);if let Some(ambient)=self.ambient.borrow_mut().as_mut(){if self.ambient_enabled.get(){ambient.sources.set(&self.device,&self.queue,&self.ambient_rows.specs);}}
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-        self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        let anchor=self.anchor();
-        self.ambient_rows.set(scene);
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-        self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    surface_options:std::cell::Cell<[bool;2]>,
-    world_bounds:std::cell::RefCell<Option<crate::bounds::Bounds>>,
-    space:crate::render_space::Origin,
-    opacity:std::cell::Cell<f32>,
-    ambient_enabled:std::cell::Cell<bool>,
-    ambient:std::cell::RefCell<Option<crate::ambient_gpu::Ambient>>,
-    ambient_rows:crate::ambient_rows::Rows,
-    pyramid:std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
-    pyramid_revision:u64,
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
-    clipping:std::cell::RefCell<crate::clipping_gpu::Clipping>,
-    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
-    guides:crate::guide_gpu::Guide,
-    measurement:crate::measure_gpu::Measurement,
-    sheets:crate::sheet_gpu::Lane,
-    clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
-    cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
-    cloud_error:std::cell::RefCell<Option<String>>,
-    outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    global_outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    outlines_enabled:std::cell::Cell<bool>,
-    outline_composite:std::cell::RefCell<Option<crate::outline_composite::Composite>>,
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    instances:crate::instance_gpu::Lane,
-    instance_rows:std::collections::HashSet<ObjectId>,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    primitive:crate::primitive_image::Image,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    grid_plane:crate::cplane::CPlane,grid_anchor:[f64;3],
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode:crate::pick_sources::Mode,
-    pick_cursor:Option<([f32;2],[u64;3])>,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        crate::shader_check::check(&device, crate::clipping_gpu::source(include_str!("cloud_points.wgsl"),2,0), "Cloud points");
-        crate::shader_check::check(&device, include_str!("cloud_resolve.wgsl").into(), "Cloud resolve");
-        crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
-        crate::shader_check::check(&device, crate::finite_project_source::tiles(), "Finite tiles");
-        crate::shader_check::check(&device, crate::finite_project_source::scan(), "Finite scan");
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0).into()),
-        });
-        let view_layout = crate::surface_view::layout(&device);
-        let model_layout = crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
-        let mesh_pipeline = |depth,primitive_write| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[crate::draw_slots::layout()],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState{format,blend:Some(wgpu::BlendState::ALPHA_BLENDING),write_mask:wgpu::ColorWrites::ALL}),Some(crate::primitive_image::target(primitive_write))],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface(),true);
-        let tiles=std::cell::RefCell::new(crate::tile_gpu::Tiles::new(&device,&view_layout));
-        let instances=crate::instance_gpu::Lane::new(&device,&queue,format,&view_layout);
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink(),false);
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: crate::surface_view::BYTES,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let primitive=crate::primitive_image::Image::new(&device,[640,480]);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {surface_options:Default::default(),world_bounds:Default::default(),space:Default::default(),opacity:std::cell::Cell::new(1.),ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),global_outline:Default::default(),outlines_enabled:Default::default(),outline_composite:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, primitive, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
-        renderer.mesh_ink.enable_finite(&renderer.device,format,true);
-        for lane in [&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format,false);}
-        renderer.highlight.enable_finite(&renderer.device,format);
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    pub fn anchor(&self)->[f64;3] {self.space.anchor()}
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.cancel_pick(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-        self.primitive=crate::primitive_image::Image::new(&self.device,self.size);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.cancel_pick(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    #[cfg(test)]
-    pub(crate) fn use_uniform_surface_records(&mut self) {self.instances.ordinary.clear();}
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        let anchor=self.anchor();
-        self.ambient_rows.set(scene);
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-        self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.cancel_pick(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.set_source_ink(scene);
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue), &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry_at(&self.device,&layout,object,
-                    style(scene,object.id,selected==Some(object.id)),geometry,anchor)
-            };
-            self.meshes.push(row);
         }
-        drop(old);
-        self.caps.borrow_mut().set_scene(&self.queue,scene,&mut self.meshes,&self.clipping.borrow().rows);
-        for mesh in &mut self.meshes{mesh.set_xray(&self.queue,self.opacity.get()==0.);}
-        let radii=self.ambient_rows.specs.iter().copied().collect::<std::collections::HashMap<_,_>>();for mesh in &mut self.meshes {mesh.set_ambient_radius(&self.queue,radii.get(&mesh.id.value()).copied().unwrap_or(0.));}
-        self.instance_rows=crate::instance_gpu::batch_rows(self.meshes.iter().map(|row|(row.id,std::rc::Rc::as_ptr(&row.geometry)as usize,scene.instances.contains_key(&row.id))),crate::object_rows::capacity(&self.device));
-        self.instances.set(&self.device,&self.queue,&mut self.meshes,&self.instance_rows,true).expect("Validated instance records fit device limits");
-        self.tiles.borrow_mut().set_records(&self.device,&self.meshes,Some(&self.instances));
-        self.sheets.set_anchored(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases,anchor).expect("Prepared original sheet batches fit device limits");
-        self.geometry.prune();
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if let Err(error)=self.set_clouds(scene,selected.as_slice()) {*self.cloud_error.borrow_mut()=Some(error.to_string());}
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-        *self.world_bounds.borrow_mut()=scene.bounds();
-    }
-
-    pub fn grow_camera(&self,camera:&mut crate::camera::Camera) {
-        if let Some(bounds)=self.world_bounds.borrow().as_ref() {camera.grow_extent(bounds);}
-    }
-
-    pub fn camera_matrix(&self,camera:&crate::camera::Camera)->[f32;16] {camera.view_projection_anchored(self.anchor()).to_f32()}
-    pub fn rebase_delay(&self,now:f64)->Option<u32> {self.space.retry_after_ms(now)}
-    pub fn prepare_origin(&mut self,camera:&crate::camera::Camera,scene:&Scene,target:Option<crate::pick_sources::Target>,ids:&[ObjectId],now:f64)->Result<crate::render_space::Rebase,&'static str> {
-        let previous=self.anchor();let mut frame=self.space.update(camera.target,camera.distance,now).ok_or("Invalid camera origin")?;
-        frame.moved&=previous.map(f64::to_bits)!=frame.anchor.map(f64::to_bits);
-        if frame.moved {
-            self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-            for mesh in &mut self.meshes {let[calls,bytes]=mesh.rebase(&self.queue,frame.anchor);self.settings_writes+=calls;self.settings_bytes+=bytes;}
-            self.set_source_ink(scene);
-            if !self.highlight.rebase_face(&self.queue,frame.anchor,target){self.set_highlight(scene,target)?;}
-            self.select_objects(scene,ids)?;
-            self.set_grid_on(self.grid_settings,self.grid_plane)?;
-        }
-        self.cloud_camera(camera);Ok(frame)
-    }
-
-    fn set_source_ink(&mut self,scene:&Scene) {
-        let anchor=self.anchor();
-        self.sources = crate::pick_sources::Sources::anchored(scene,anchor).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        self.mesh_ink.set_records(&self.device,std::mem::take(&mut self.sources.mesh_metadata)).expect("Original ink metadata");
-        self.markers.set_points(&self.device, std::mem::take(&mut self.sources.mesh_markers).into_iter().chain(scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {marker.colour=colour;}marker})).chain(scene.control_markers_at(anchor).into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {for segment in &mut segments {segment.stroke.colour=colour;}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {stroke.colour=colour;}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        let origin=self.anchor();self.picker.queue_anchored(crate::pick_gpu::Request{window,transform,density:self.density,mode:self.pick_mode},origin)?;
-        self.pick_cursor=Some((screen,origin.map(f64::to_bits)));self.pump_pick(transform);Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::anchored(transform,self.size,self.density,self.anchor()) else { self.cancel_pick(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases,&self.clipping.borrow().buffer);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        self.clipping.borrow_mut().frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) {
-            let mut clipping=self.clipping.borrow_mut();clipping.frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);
-            let bytes=crate::surface_view::bytes(transform,[0.;4],self.size,self.density);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),primitive:self.primitive.view.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::anchored(transform,self.size,self.density,self.anchor()) { Ok(view) => view, Err(error) => {
-            self.cancel_pick(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit)))=>{self.pick_cursor=None;Some(Ok(hit))},
-            Some(Ok(crate::pick_gpu::Reply::Stale))=>{
-                if let Some((screen,_))=self.pick_cursor.filter(|(_,origin)|*origin!=self.anchor().map(f64::to_bits)) {
-                    if let Err(error)=self.request_pick(screen,transform){self.cancel_pick();return Some(Err(error));}
-                } else {
-                    self.pump_pick(transform);
-                    if self.picker.usage()[0]==0&&!self.picker.queued(){self.pick_cursor=None;}
-                }
-                None
-            },
-            Some(Err(error))=>{self.cancel_pick();Some(Err(error))},None=>None,
-        }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.cancel_pick(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) {self.pick_cursor=None;self.picker.cancel();}
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self)->[u64;4]{let mut usage=crate::memory::gpu(&self.meshes);usage[1]+=self.geometry.allocated_bytes();usage}
-    pub fn arena_cpu_bytes(&self)->usize{self.geometry.cpu_bytes()}
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * crate::object_record::BYTES as u64 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self,settings:Option<crate::grid::Settings>)->Result<(),&'static str>{self.set_grid_on(settings,crate::cplane::CPlane::Xy)}
-    pub fn set_grid_on(&mut self,settings:Option<crate::grid::Settings>,plane:crate::cplane::CPlane)->Result<(),&'static str>{
-        let anchor=self.anchor();
-        if settings==self.grid_settings&&plane==self.grid_plane&&anchor==self.grid_anchor{return Ok(())}
-        let strokes=settings.map(|s|s.strokes_on_at(plane,anchor)).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device,strokes)?;self.grid_settings=settings;self.grid_plane=plane;self.grid_anchor=anchor;Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
-        let anchor=self.anchor();self.highlight.set_at(&self.device,&self.pipeline.get_bind_group_layout(1),scene,target,anchor)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        let anchor=self.anchor();
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        self.instances.set(&self.device,&self.queue,&mut self.meshes,&self.instance_rows,false)?;
-        self.tiles.borrow_mut().set_records(&self.device,&self.meshes,Some(&self.instances));
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        self.set_clouds(scene,ids)?;self.sheets.set_anchored(&self.device,&self.queue,scene,ids,&self.sources.sheet_bases,anchor)?;
-        if !ids.is_empty() { self.highlight.objects_at(&self.device,scene,ids,anchor)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_guides(&mut self,overlay:&crate::guide_gpu::Overlay)->Result<(),&'static str>{if self.guides.set(&self.device,overlay)?{self.set_scene_measure_text().map_err(|_|"Cannot prepare editing guide label")?}Ok(())}
-    pub fn guide_bytes(&self)->u64{self.guides.bytes()}
-    pub fn set_measurement(&mut self,mark:Option<&crate::measure_mark::Mark>)->Result<(),&'static str>{let anchor=self.anchor();if self.measurement.set_at(&self.device,mark,anchor)?{self.set_scene_measure_text().map_err(|_|"Cannot prepare measurement annotation")?;}Ok(())}
-    pub fn measurement_bytes(&self)->u64{self.measurement.bytes()}
-    fn merge_measurement(&self,mut labels:Vec<crate::text::TextLabel>)->Vec<crate::text::TextLabel>{if let Some(mark)=&self.measurement.mark{labels.extend(mark.labels(&labels));}labels.extend(self.guides.overlay.labels(&labels));labels}
-    fn set_scene_measure_text(&self)->anyhow::Result<()>{let mut labels=self.scene_text.borrow().clone();labels.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(labels))}
-    pub fn set_preview(&mut self,draft:Option<&crate::tool::Draft>)->Result<(),&'static str>{let anchor=self.anchor();self.preview.set_at(&self.device,draft,anchor)}
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let anchor=self.anchor();let matrix=camera.view_projection_anchored(anchor);
-        let layout=origin.map(|p|std::array::from_fn(|i|p[i]-anchor[i])).and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:self.anchor(),framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:{let clip=self.clipping.borrow();let mut planes=[[0.;4];6];if clip.enabled {for (p,row) in planes.iter_mut().zip(&clip.rows){*p=[row.plane.normal[0],row.plane.normal[1],row.plane.normal[2],row.plane.offset];}}planes}}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(self.merge_measurement(merged))?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(merged))?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene)->bool {
-        let mut changed=false;
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {
-            let extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);
-            if row.prepared.extent!=extent {row.prepared.extent=extent;changed=true;}
-        }}}
-        if changed {*self.world_bounds.borrow_mut()=scene.bounds();}
-        changed
-    }
-    pub fn text_stats(&self)->Option<crate::scene_text_gpu::TextStats> {self.text.borrow().as_ref().map(|lane|lane.stats.clone())}
-    pub fn text_scene_usage(&self)->[u64;4] {self.text.borrow().as_ref().map_or([0;4],|lane|[lane.allocated_bytes(),lane.texture_bytes(),lane.stats.world_plane_rasterizations,lane.document.runs.len() as u64])}
-    pub fn replace_text_fonts(&self,fonts:Vec<Vec<u8>>)->anyhow::Result<()> {if let Some(lane)=self.text.borrow_mut().as_mut() {lane.document.replace_fonts(fonts.clone())?;} else {let mut document=crate::text::TextDocument::new();document.replace_fonts(fonts.clone())?;}*self.full_text_fonts.borrow_mut()=Some(fonts);Ok(())}
-    pub fn clear_text_fonts(&self) {self.full_text_fonts.borrow_mut().take();}
-
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn cloud_camera(&self,camera:&crate::camera::Camera) {self.cloud_view.set(crate::cloud_gpu::View::anchored(camera,self.anchor()));self.sheets.camera(camera);}
-    pub fn cloud_usage(&self)->[u64;5] {self.clouds.borrow().as_ref().map_or([0;5],|lane|lane.usage())}
-    pub fn cloud_error(&self)->Option<String> {self.cloud_error.borrow().clone()}
-    fn set_clouds(&self,scene:&Scene,selected:&[ObjectId])->Result<(),&'static str> {
-        if scene.clouds().is_empty()&&scene.streams().is_empty() {self.clouds.borrow_mut().take();self.cloud_error.borrow_mut().take();return Ok(());}
-        let mut owner=self.clouds.borrow_mut();let lane=owner.get_or_insert_with(||crate::cloud_gpu::Lane::new(&self.text_context(),self.format,&self.clipping.borrow().group));lane.set_scene(&self.text_context(),scene,selected)
-    }
-    fn prepare_clouds(&self,transform:[f32;16]) {
-        if let Some(lane)=self.clouds.borrow_mut().as_mut() {lane.set_clipping(self.clipping.borrow().writes);if let Err(error)=lane.prepare(&self.text_context(),transform,self.size,self.density,self.cloud_view.get()) {lane.failed();*self.cloud_error.borrow_mut()=Some(error.to_string());} else {self.cloud_error.borrow_mut().take();}}
-    }
-    pub fn set_opacity(&mut self,value:f32){if !value.is_finite(){return;}let value=value.clamp(0.,1.);if self.opacity.get()==value{return;}self.opacity.set(value);self.cancel_pick();self.pyramid_revision=self.pyramid_revision.wrapping_add(1);for mesh in &mut self.meshes{mesh.set_xray(&self.queue,value==0.);}if let Some(o)=self.outline.borrow_mut().as_mut(){o.invalidate();}if let Some(o)=self.global_outline.borrow_mut().as_mut(){o.invalidate();}}
-    pub fn opacity(&self)->f32{self.opacity.get()}
-    pub fn set_outlines(&self,on:bool){self.outlines_enabled.set(on);if !on{self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();}}
-    pub fn global_outline_usage(&self)->[u64;4]{self.global_outline.borrow().as_ref().map_or([0;4],|o|o.usage())}
-    pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn sheet_camera(&self,camera:&crate::camera::Camera) {self.sheets.camera(camera);}
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_lighting(&self,on:bool,backfaces:bool){self.surface_options.set([on,backfaces]);}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));}else if let Some(owner)=ambient.as_mut(){owner.clear();}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-    pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
-    pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
-    pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
-    pub fn cap_usage(&self)->[u64;5]{self.caps.borrow().usage()}
-    pub fn clipping_usage(&self)->[u64;5]{let clip=self.clipping.borrow();[clip.rows.len()as u64,u64::from(clip.enabled),u64::from(clip.solid),clip.writes,clip.buffer.size()]}
-    pub fn clipping_ink_bytes(&self)->[u64;2]{[&self.mesh_ink,&self.strokes,&self.paths,&self.markers,&self.grid].into_iter().map(crate::stroke_gpu::Lane::clipping_bytes).fold(self.highlight.clipping_bytes(),|a,b|[a[0]+b[0],a[1]+b[1]])}
-    pub fn clipping_error(&self)->Option<&'static str>{self.clipping.borrow().error}
-    pub fn tile_usage(&self)->[u64;7]{self.tiles.borrow().usage()}
-    pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
-    pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
-    pub fn instance_allocations(&self)->[u64;3] {self.instances.allocation_parts()}
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
-        self.prepare_clouds(*transform);
-        let options=self.surface_options.get();
-        let display=[f32::from(normals),self.opacity.get(),if self.ambient_enabled.get(){2.}else{f32::from(options[0])},f32::from(options[1])];
-        let bytes=crate::surface_view::bytes(*transform,display,self.size,self.density);
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.sheets.view(&self.queue,transform,self.size,self.density);
-        let [r, g, b] = if self.ambient_enabled.get() { [0.94; 3] } else { background.rgb() };
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);tiles.encode(&self.device,&mut encoder,&self.view_group,*transform);
-        let tables=crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),primitive:self.primitive.view.clone()};for lane in [&self.mesh_ink,&self.strokes,&self.paths,&self.markers]{lane.finite_frame(&self.device,&tables,&self.depth);}self.highlight.finite_frame(&self.device,&tables,&self.depth);
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(crate::depth::FAR as f32),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                }),Some(wgpu::RenderPassColorAttachment{
-                    view:&self.primitive.view,depth_slice:None,resolve_target:None,
-                    ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store},
-                })],
-                ..Default::default()
+        let mut ambient = self.ambient.borrow_mut();
+        if enabled {
+            let owner = ambient.get_or_insert_with(|| {
+                crate::ambient_gpu::Ambient::new(&self.device, self.format)
             });
-            self.grid.draw(&mut pass,&self.view_group);
-            pass.set_bind_group(2,&clip_group,&[]);
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            self.instances.bind_own(&mut pass);
-            for mesh in self.meshes.iter().filter(|row|self.opacity.get()<1.||!self.instance_rows.contains(&row.id)) {if !self.instances.draw_ordinary(&mut pass,mesh){pass.set_pipeline(&self.pipeline);self.instances.bind_own(&mut pass);mesh.draw_pulled(&mut pass);}}
-            if self.opacity.get()>=1.{self.instances.draw(&mut pass);}
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.instances.bind_own(&mut pass);
-            self.highlight.mesh(&mut pass);
+            owner.sources.set(
+                &self.device,
+                &self.queue,
+                &self.ambient_rows.specs,
+            );
+        } else if let Some(owner) = ambient.as_mut() {
+            owner.clear(&self.device, &self.queue);
         }
-        self.caps.borrow_mut().draw(&self.device,&mut encoder,view,&self.primitive.view,&self.depth,&self.view_group,&clip_group,&self.meshes,if self.clipping.borrow().enabled{self.clipping.borrow().rows.len()as u32}else{0},Some(&self.instances));
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
-            pass.set_bind_group(2,&clip_group,&[]);
-            self.highlight.ink(&mut pass,&self.view_group);
-            self.mesh_ink.draw(&mut pass,&self.view_group);
-            self.strokes.draw(&mut pass,&self.view_group);self.sheets.draw(&mut pass);
-            self.paths.draw(&mut pass,&self.view_group);
-            self.markers.draw(&mut pass,&self.view_group);
-            self.highlight.points(&mut pass,&self.view_group);
-            self.preview.draw(&mut pass,&self.view_group);
+```
+
+Replace it with:
+
+```rust
         }
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass,&self.view_group);self.guides.draw(&mut pass,&self.view_group);}
-        if self.outlines_enabled.get()&&!self.meshes.is_empty(){
-            let ctx=self.text_context();
-            let mut global=self.global_outline.borrow_mut();let global=global.get_or_insert_with(||crate::outline_gpu::Outline::new(&ctx,self.format));
-            global.encode_masks(&ctx,&mut encoder,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision,true,Some(&self.primitive.view));
-            let mut selected=self.outline.borrow_mut();
-            if self.meshes.iter().any(GpuMesh::selected){let selected=selected.get_or_insert_with(||crate::outline_gpu::Outline::new(&ctx,self.format));selected.encode_masks(&ctx,&mut encoder,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision,false,Some(&self.primitive.view));}else{selected.take();}
-            if let Some(alpha)=global.alpha_view(){self.outline_composite.borrow_mut().get_or_insert_with(||crate::outline_composite::Composite::new(&self.device,self.format)).draw(&self.device,&mut encoder,view,alpha,selected.as_ref().and_then(|s|s.alpha_view()));}
-        }else{
-            self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
-            if self.meshes.iter().any(GpuMesh::selected){let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision);}else{self.outline.borrow_mut().take();}
+        let mut ambient = self.ambient.borrow_mut();
+        if enabled {
+            ambient.get_or_insert_with(|| {
+                crate::ambient_gpu::Ambient::new(&self.device, self.format)
+            });
+        } else if let Some(owner) = ambient.as_mut() {
+            owner.clear();
         }
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
+```
+
+**Locate this block:**
+
+```rust
+        self.ambient_rows.set(scene);
+        if let Some(ambient) = self.ambient.borrow_mut().as_mut() {
+            if self.ambient_enabled.get() {
+                ambient.sources.set(
+                    &self.device,
+                    &self.queue,
+                    &self.ambient_rows.specs,
+                );
             }
         }
-        if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.primitive.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground_at(self.anchor()),[self.pyramid_revision,clip_revision],Some(&self.instances));}}
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-}
-
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {source_faces:!scene.forest.derived(id),selected,owner:crate::feature_owner::display_owner(scene,id).map_or(0,ObjectId::value),colour:scene.face_rgba(id)}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-impl Renderer {
- pub fn outline_alpha(&self)->Vec<u8>{self.read_outline_alpha(false)}
- pub fn global_outline_alpha(&self)->Vec<u8>{self.read_outline_alpha(true)}
- fn read_outline_alpha(&self,global:bool)->Vec<u8> {
-  let owner=if global{self.global_outline.borrow()}else{self.outline.borrow()};let Some(outline)=owner.as_ref() else {return Vec::new();};let Some(texture)=outline.alpha_texture() else {return Vec::new();};let [width,height]=self.size;let pitch=width.div_ceil(256)*256;
-  let buffer=self.device.create_buffer(&wgpu::BufferDescriptor {label:Some("actual outline alpha readback"),size:pitch as u64*height as u64,usage:wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::MAP_READ,mapped_at_creation:false});let mut encoder=self.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo {buffer:&buffer,layout:wgpu::TexelCopyBufferLayout {offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},wgpu::Extent3d {width,height,depth_or_array_layers:1});self.queue.submit([encoder.finish()]);let (tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|r|tx.send(r).unwrap());self.device.poll(wgpu::PollType::Wait {submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();rx.recv().unwrap().unwrap();let bytes=buffer.slice(..).get_mapped_range();let pixels=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..width as usize].iter().copied()).collect();drop(bytes);buffer.unmap();pixels
- }
-}
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="pyramid_gpu_tests.rs"]
-mod pyramid_gpu_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="ambient_gpu_tests.rs"]
-mod ambient_gpu_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="global_outline_tests.rs"]
-mod global_outline_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="opacity_gpu_tests.rs"]
-mod opacity_gpu_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="camera_extent_tests.rs"]
-mod camera_extent_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="surface_lighting_tests.rs"]
-mod surface_lighting_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="surface_controls_gpu_tests.rs"]
-mod surface_controls_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="shared_view_tests.rs"]
-mod shared_view_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="contact_feature_tests.rs"]
-mod contact_feature_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="ink_metadata_tests.rs"]
-mod ink_metadata_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="contact_boundary_tests.rs"]
-mod contact_boundary_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="source_face_policy_tests.rs"]
-mod source_face_policy_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="source_pen_tests.rs"]
-mod source_pen_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="round_caps_tests.rs"]
-mod round_caps_tests;
-#[cfg(test)]
-#[path="mesh_marker_tests.rs"]
-mod mesh_marker_tests;
-#[cfg(test)]
-#[path="mesh_density_tests.rs"]
-mod mesh_density_tests;
+        self.pyramid_revision = self.pyramid_revision.wrapping_add(1);
+        self.clipping.borrow_mut().set(scene);
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
 ```
 
-</details>
+Replace it with:
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-16.rs"
+```rust
+        self.ambient_rows.set(scene);
+        self.pyramid_revision = self.pyramid_revision.wrapping_add(1);
+        self.clipping.borrow_mut().set(scene);
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
 ```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-17.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-18.rs"
-```
-
-</details>
 
 ### 5. `src/ambient_gpu.rs`
 
 Only image and camera state need clearing. Empty scenes release ambient images without per-object GPU properties. Report actual retained frame/image/work allocations.
 
-<details>
-<summary>Locate the existing block</summary>
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-use crate::{ambient_images::Images,ambient_groups::Groups,ambient_pass::draw};
-struct State{images:Images,groups:Groups,input:(wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)}
-pub struct Ambient{pipes:crate::ambient_pipeline::Pipelines,pub sources:crate::ambient_source_gpu::Sources,frame:wgpu::Buffer,state:Option<State>,cached:Option<([f32;80],[u64;2])>,pub preparations:u64,pub writes:u64,pub passes:u64,pub error:Option<&'static str>}
-impl Ambient{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self,device:&wgpu::Device,queue:&wgpu::Queue){self.state=None;self.cached=None;self.sources.set(device,queue,&[]);self.error=None;}
- fn prepare(&mut self,device:&wgpu::Device,full:[u32;2],density:f32,depth:&wgpu::TextureView,sections:&wgpu::TextureView,clip:&wgpu::Buffer){
-  let(w,h)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[w.max(32),h.max(32)];
-  if self.state.as_ref().is_none_or(|s|s.images.full!=full||s.images.size!=size){let images=Images::new(device,full,density);let groups=Groups::new(device,&self.pipes,&images);let group=Groups::source(device,&self.pipes,&images,depth,sections,&self.frame,clip);self.state=Some(State{images,groups,input:(depth.clone(),sections.clone(),group)});self.cached=None;self.preparations+=1;}
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
- pub fn draw(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,clip:&wgpu::Buffer,sections:&wgpu::TextureView,meshes:&[crate::gpu_mesh::GpuMesh],matrix:[f32;16],full:[u32;2],density:f32,ground:[f32;2],revision:[u64;2],records:Option<&crate::instance_gpu::Lane>){
-  if ground[1]<=0.0{self.clear(device,queue);return;}if matrix.iter().any(|v|!v.is_finite())||full.contains(&0)||!density.is_finite()||density<=0.{self.error=Some("Invalid ambient view");return;}
-  self.prepare(device,full,density,depth,sections,clip);let state=self.state.as_ref().unwrap();let Some(uniform)=crate::ambient_camera::uniform(matrix,full,state.images.size,ground)else{self.error=Some("Invalid ambient camera inverse");return;};
-  if self.cached!=Some((uniform,revision)){
-   queue.write_buffer(&self.frame,0,&uniform.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());self.writes+=1;
-   let images=&state.images;let groups=&state.groups;let source=&state.input.2;self.sources.encode(encoder,&images.source_radius.view,&images.source_normals.view,depth,view,clipping,meshes,records);self.passes+=1;
-   draw(encoder,&self.pipes.prepare,&[&images.linear.levels[0],&images.radii.levels[0],&images.normals.view],&[(0,source)],true);
-   for level in 1..6{draw(encoder,&self.pipes.reduce,&[&images.linear.levels[level],&images.radii.levels[level]],&[(0,&groups.levels[level-1])],true);}self.passes+=6;
-   draw(encoder,&self.pipes.occupancy,&[&images.occupancy.view],&[(0,&groups.levels[0])],true);
-   draw(encoder,&self.pipes.ground,&[&images.ground.view],&[(0,source),(1,&groups.levels[0]),(2,&groups.occupancy),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.raw,&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ground),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[0],&[&images.ao[1].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[1],&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[1]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.upsample,&[&images.ao[2].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);self.passes+=6;
-   self.cached=Some((uniform,revision));
-  }
-  draw(encoder,&self.pipes.composite,&[color],&[(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.sources.bytes()+self.state.as_ref().map_or(0,|s|s.images.bytes()+s.groups.buffers.iter().map(wgpu::Buffer::size).sum::<u64>()),1,self.preparations,self.writes,self.passes]}
-}
+    pub fn usage(&self) -> [u64; 5] {
+        [
+            self.frame.size()
+                + self.sources.bytes()
+                + self.state.as_ref().map_or(0, |s| {
 ```
 
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
+Replace it with:
 
 ```rust
-use crate::{ambient_images::Images,ambient_groups::Groups,ambient_pass::draw};
-struct State{images:Images,groups:Groups,input:(wgpu::TextureView,wgpu::TextureView,wgpu::BindGroup)}
-pub struct Ambient{pipes:crate::ambient_pipeline::Pipelines,pub sources:crate::ambient_source_gpu::Sources,frame:wgpu::Buffer,state:Option<State>,cached:Option<([f32;80],[u64;2])>,pub preparations:u64,pub writes:u64,pub passes:u64,pub error:Option<&'static str>}
-impl Ambient{
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self){self.state=None;self.cached=None;self.error=None;}
- fn prepare(&mut self,device:&wgpu::Device,full:[u32;2],density:f32,depth:&wgpu::TextureView,sections:&wgpu::TextureView,clip:&wgpu::Buffer){
-  let(w,h)=crate::pyramid_size::resolution((full[0],full[1]),f64::from(density));let size=[w.max(32),h.max(32)];
-  if self.state.as_ref().is_none_or(|s|s.images.full!=full||s.images.size!=size){let images=Images::new(device,full,density);let groups=Groups::new(device,&self.pipes,&images);let group=Groups::source(device,&self.pipes,&images,depth,sections,&self.frame,clip);self.state=Some(State{images,groups,input:(depth.clone(),sections.clone(),group)});self.cached=None;self.preparations+=1;}
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
- pub fn draw(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,encoder:&mut wgpu::CommandEncoder,color:&wgpu::TextureView,depth:&wgpu::TextureView,view:&wgpu::BindGroup,clipping:&wgpu::BindGroup,clip:&wgpu::Buffer,sections:&wgpu::TextureView,meshes:&[crate::gpu_mesh::GpuMesh],matrix:[f32;16],full:[u32;2],density:f32,ground:[f32;2],revision:[u64;2],records:Option<&crate::instance_gpu::Lane>){
-  if ground[1]<=0.0{self.clear();return;}if matrix.iter().any(|v|!v.is_finite())||full.contains(&0)||!density.is_finite()||density<=0.{self.error=Some("Invalid ambient view");return;}
-  self.prepare(device,full,density,depth,sections,clip);let state=self.state.as_ref().unwrap();let Some(uniform)=crate::ambient_camera::uniform(matrix,full,state.images.size,ground)else{self.error=Some("Invalid ambient camera inverse");return;};
-  if self.cached!=Some((uniform,revision)){
-   queue.write_buffer(&self.frame,0,&uniform.into_iter().flat_map(f32::to_ne_bytes).collect::<Vec<_>>());self.writes+=1;
-   let images=&state.images;let groups=&state.groups;let source=&state.input.2;self.sources.encode(encoder,&images.source_radius.view,&images.source_normals.view,depth,view,clipping,meshes,records);self.passes+=1;
-   draw(encoder,&self.pipes.prepare,&[&images.linear.levels[0],&images.radii.levels[0],&images.normals.view],&[(0,source)],true);
-   for level in 1..6{draw(encoder,&self.pipes.reduce,&[&images.linear.levels[level],&images.radii.levels[level]],&[(0,&groups.levels[level-1])],true);}self.passes+=6;
-   draw(encoder,&self.pipes.occupancy,&[&images.occupancy.view],&[(0,&groups.levels[0])],true);
-   draw(encoder,&self.pipes.ground,&[&images.ground.view],&[(0,source),(1,&groups.levels[0]),(2,&groups.occupancy),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.raw,&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ground),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[0],&[&images.ao[1].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.filter[1],&[&images.ao[0].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[1]),(3,&groups.history)],true);
-   draw(encoder,&self.pipes.upsample,&[&images.ao[2].view],&[(0,source),(1,&groups.levels[0]),(2,&groups.ao[0]),(3,&groups.history)],true);self.passes+=6;
-   self.cached=Some((uniform,revision));
-  }
-  draw(encoder,&self.pipes.composite,&[color],&[(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
- pub fn usage(&self)->[u64;5]{[self.frame.size()+self.state.as_ref().map_or(0,|s|s.images.bytes()+s.groups.buffers.iter().map(wgpu::Buffer::size).sum::<u64>()),1,self.preparations,self.writes,self.passes]}
-}
+    pub fn usage(&self) -> [u64; 5] {
+        [
+            self.frame.size()
+                + self.state.as_ref().map_or(0, |s| {
 ```
 
-<details>
-<summary>Optional patch references</summary>
+**Locate this block:**
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-19.rs"
+```rust
+        records: Option<&crate::instance_gpu::Lane>,
+    ) {
+        if ground[1] <= 0.0 {
+            self.clear(device, queue);
+            return;
+        }
+        if matrix.iter().any(|v| !v.is_finite())
 ```
 
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-20.rs"
+Replace it with:
+
+```rust
+        records: Option<&crate::instance_gpu::Lane>,
+    ) {
+        if ground[1] <= 0.0 {
+            self.clear();
+            return;
+        }
+        if matrix.iter().any(|v| !v.is_finite())
 ```
 
-</details>
+**Locate this block:**
 
-<details>
-<summary>Supplied validation fixture</summary>
+```rust
+    }
+    pub fn clear(&mut self, device: &wgpu::Device, queue: &wgpu::Queue) {
+        self.state = None;
+        self.cached = None;
+        self.sources.set(device, queue, &[]);
+        self.error = None;
+    }
+    fn prepare(
+```
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+Replace it with:
+
+```rust
+    }
+    pub fn clear(&mut self) {
+        self.state = None;
+        self.cached = None;
+        self.error = None;
+    }
+    fn prepare(
+```
 
 ### 6. `src/ambient_input_tests.rs`
 
 Check actual production property readbacks, preserved lighting, both object paths, shared placed radii and source release.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-22.rs"
+```rust
+use crate::{
+    cap_gpu_tests::{pixels_at, renderer, wait},
+    scene::Scene,
+};
+use prost::Message;
+use session_rust::{Color, Mesh, Session, Xform, proto};
+use std::rc::Rc;
+fn original() -> Mesh {
+    let mut mesh = crate::cap_gpu_tests::source(false);
+    mesh.set_objectcolor(Color::new(0.2, 0.4, 0.6, 1.));
+    for key in mesh.vertices() {
+        mesh.set_vertex_attribute(key, "nx", 1.);
+        mesh.set_vertex_attribute(key, "ny", 0.);
+        mesh.set_vertex_attribute(key, "nz", 0.);
+    }
+    mesh
+}
+fn document() -> Vec<u8> {
+    let mut doc = Session::new("Original lighting normals and geometric contacts");
+    doc.add_mesh(original(), None);
+    doc.to_proto().encode_to_vec()
+}
+fn scene(bytes: &[u8]) -> Scene {
+    let mut s = Scene::empty();
+    crate::scene_document::import(&mut s, bytes, "", &Xform::identity(), 0.).unwrap();
+    s
+}
+fn snapshot(s: &Scene) -> (Vec<proto::Session>, serde_json::Value) {
+    let b = crate::archive::Bundle::decode(&crate::scene_archive::save(s).unwrap())
+        .unwrap();
+    (
+        b.documents
+            .iter()
+            .map(|v| proto::Session::decode(v.as_slice()).unwrap())
+            .collect(),
+        serde_json::to_value(b.metadata).unwrap(),
+    )
+}
+fn camera() -> crate::camera::Camera {
+    let mut c = crate::camera_defaults_tests::top_fixture();
+    c.distance = 3.;
+    c.radius = 1.;
+    c.target = [0., 0., -0.5];
+    c.aspect = 4. / 3.;
+    c
+}
+fn texture(g: &super::Renderer, format: wgpu::TextureFormat) -> wgpu::Texture {
+    g.device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("actual geometric ambient property readback"),
+            size: wgpu::Extent3d {
+                width: 320,
+                height: 240,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        })
+}
+fn read(g: &super::Renderer, t: &wgpu::Texture, pitch: u32) -> Vec<u8> {
+    let b = g
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size: u64::from(pitch) * 240,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    e.copy_texture_to_buffer(
+        t.as_image_copy(),
+        wgpu::TexelCopyBufferInfo {
+            buffer: &b,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(pitch),
+                rows_per_image: Some(240),
+            },
+        },
+        t.size(),
+    );
+    g.queue.submit([e.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    b.slice(..)
+        .map_async(wgpu::MapMode::Read, move |v| {
+            tx.send(v).unwrap()
+        });
+    wait(g);
+    rx.recv().unwrap().unwrap();
+    let v = b.slice(..).get_mapped_range().to_vec();
+    b.unmap();
+    v
+}
+fn pixel(m: [f32; 16], p: [f64; 3]) -> [usize; 2] {
+    let clip: [f64; 4] = std::array::from_fn(|i| {
+        m[12 + i] as f64
+            + (0..3)
+                .map(|j| m[j * 4 + i] as f64 * p[j])
+                .sum::<f64>()
+    });
+    [
+        ((clip[0] / clip[3] + 1.) * 160.).floor() as usize,
+        ((1. - clip[1] / clip[3]) * 120.).floor() as usize,
+    ]
+}
+fn properties(
+    g: &super::Renderer,
+    m: [f32; 16],
+    points: &[[f64; 3]],
+) -> Vec<([u8; 2], f32)> {
+    let radius = texture(g, wgpu::TextureFormat::R32Float);
+    let normal = texture(g, wgpu::TextureFormat::Rg8Unorm);
+    let mut source = crate::ambient_source_gpu::Sources::new(&g.device);
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    source.encode(
+        &mut e,
+        &radius.create_view(&Default::default()),
+        &normal.create_view(&Default::default()),
+        &g.depth,
+        &g.view_group,
+        &g.clipping.borrow().group,
+        &g.meshes,
+        Some(&g.instances),
+    );
+    g.queue.submit([e.finish()]);
+    let normals = read(g, &normal, 768);
+    let radii = read(g, &radius, 1280);
+    points
+        .iter()
+        .map(|&p| {
+            let [x, y] = pixel(m, p);
+            assert!(x < 320 && y < 240);
+            let at = y * 768 + x * 2;
+            let n = [normals[at], normals[at + 1]];
+            let at = y * 1280 + x * 4;
+            (
+                n,
+                f32::from_ne_bytes(radii[at..at + 4].try_into().unwrap()),
+            )
+        })
+        .collect()
+}
+fn export(name: &str, s: &Scene, image: &[u8]) {
+    if let Some(root) = std::env::var_os("VIEWER_AMBIENT_INPUT_PROOF_DIR") {
+        use std::io::Write;
+        let p = std::path::Path::new(&root);
+        std::fs::create_dir_all(p).unwrap();
+        let archive = crate::scene_archive::save(s).unwrap();
+        let bundle = crate::archive::Bundle::decode(&archive).unwrap();
+        assert_eq!(bundle.documents.len(), 1);
+        std::fs::write(
+            p.join(format!("{name}.pb")),
+            &bundle.documents[0],
+        )
+        .unwrap();
+        std::fs::write(p.join(format!("{name}.session")), archive).unwrap();
+        let mut f = std::fs::File::create(p.join(format!("{name}.ppm"))).unwrap();
+        write!(f, "P6\n320 240\n255\n").unwrap();
+        for p in image.chunks_exact(4) {
+            f.write_all(&p[..3]).unwrap();
+        }
+    }
+}
+#[test]
+fn actual_geometric_normals_preserve_authored_lighting_in_both_object_paths() {
+    let s = scene(&document());
+    let original = snapshot(&s);
+    let owner = s.objects()[0].id;
+    assert!(
+        s.objects()[0]
+            .mesh
+            .normals()
+            .iter()
+            .all(|n| n[0] > 0.99 && n[2].abs() < 0.01)
+    );
+    let mut g = renderer(&s);
+    g.set_opacity(1.);
+    g.set_ambient(true);
+    let uploads = g.stats()[0];
+    let mut c = camera();
+    let p = [0.11, 0.13, -0.2];
+    for projection in [
+        crate::camera::Projection::Orthographic,
+        crate::camera::Projection::Perspective,
+    ] {
+        c.projection = projection;
+        let m = c.uniform();
+        for density in [1., 2.] {
+            g.set_density(density);
+            let image = pixels_at(&g, m);
+            let sample = properties(&g, m, &[p])[0];
+            assert!(
+                sample.0.iter().all(|v| v.abs_diff(128) <= 1),
+                "Geometric ambient normal must follow the actual top face: {:?}",
+                sample.0
+            );
+            assert_eq!(sample.1, g.ambient_rows.specs[0].1);
+            let [x, y] = pixel(m, p);
+            let rgb = crate::cap_gpu_tests::at(&image, x, y);
+            assert!(
+                rgb[..3]
+                    .iter()
+                    .zip([44u8, 88, 132])
+                    .all(|(a, b)| a.abs_diff(b) <= 2),
+                "Authored+x lighting remains intact without false geometric self-shadow: {rgb:?}"
+            );
+            g.set_pick_mode(crate::pick_sources::Mode::Object);
+            g.request_pick(
+                super::contact_feature_tests::project(m, p),
+                m,
+            )
+            .unwrap();
+            wait(&g);
+            let picked = g
+                .take_pick(m)
+                .unwrap()
+                .unwrap()
+                .and_then(|v| g.resolve_pick(&s, v));
+            assert_eq!(
+                picked,
+                Some(crate::pick_sources::Target {
+                    owner,
+                    part: crate::pick_sources::Part::Object
+                })
+            );
+            g.set_ambient(false);
+            g.use_uniform_surface_records();
+            g.set_ambient(true);
+            assert!(
+                pixels_at(&g, m) == image,
+                "Real uniform and storage object paths retain identical whole-frame pixels"
+            );
+            assert_eq!(properties(&g, m, &[p])[0], sample);
+            g.set_scene(&s, None);
+            assert!(pixels_at(&g, m) == image);
+            assert_eq!(g.stats()[0], uploads);
+            assert_eq!(snapshot(&s), original);
+            if density == 1. {
+                export(
+                    if projection == crate::camera::Projection::Orthographic {
+                        "authored-normal-top-dpr1"
+                    } else {
+                        "authored-normal-perspective-dpr1"
+                    },
+                    &s,
+                    &image,
+                );
+            }
+            if density == 2. {
+                export(
+                    if projection == crate::camera::Projection::Orthographic {
+                        "authored-normal-top"
+                    } else {
+                        "authored-normal-perspective"
+                    },
+                    &s,
+                    &image,
+                );
+            }
+        }
+    }
+}
+#[test]
+fn contact_radii_reuse_records_for_shared_placements_and_released_sources() {
+    let mesh = original();
+    let guid = mesh.guid().to_owned();
+    let mut proto = crate::instance_specimen::message();
+    proto.definitions.as_mut().unwrap().meshes = vec![mesh.to_proto()];
+    for row in &mut proto.objects.as_mut().unwrap().instances {
+        row.definition_guid = guid.clone();
+        row.xform = None;
+        row.flags = 0;
+    }
+    proto.xforms = vec![
+        proto::XformEntry {
+            guid: "first".into(),
+            xform: Some(Xform::translation(-1.4, 0., 0.).to_proto()),
+        },
+        proto::XformEntry {
+            guid: "second".into(),
+            xform: Some(
+                (&Xform::translation(1.4, 0., 0.) * &Xform::scale_xyz(-0.8, 1.2, 1.4))
+                    .to_proto(),
+            ),
+        },
+    ];
+    let bytes = proto.encode_to_vec();
+    let mut e = crate::editor::Editor::default();
+    e.apply(crate::editor::Action::ReplaceAt(
+        bytes.clone(),
+        Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:ambient-inputs".into(),
+        )),
+    ))
+    .unwrap();
+    assert_eq!(e.scene.instances.len(), 2);
+    let second = e.scene.objects()[1].id;
+    assert!(Rc::ptr_eq(
+        &e.scene.objects()[0].mesh,
+        &e.scene.objects()[1].mesh
+    ));
+    let weak = Rc::downgrade(e.scene.objects()[0].geometry().unwrap());
+    Rc::make_mut(&mut e.scene.view).hide(&[second], true);
+    let mut g = renderer(&e.scene);
+    g.set_opacity(1.);
+    g.set_ambient(true);
+    let mut c = camera();
+    c.distance = 6.;
+    c.radius = 3.;
+    c.projection = crate::camera::Projection::Orthographic;
+    let m = c.uniform();
+    pixels_at(&g, m);
+    let owned = g.ambient_usage()[0];
+    let uploads = g.stats()[0];
+    Rc::make_mut(&mut e.scene.view).hide(&[second], false);
+    g.set_scene(&e.scene, None);
+    let image = pixels_at(&g, m);
+    assert_eq!(
+        g.ambient_usage()[0],
+        owned,
+        "Another placed object must not allocate another ambient radius buffer or bind-group owner"
+    );
+    assert_eq!(g.stats()[0], uploads);
+    let original = snapshot(&e.scene);
+    let points = e
+        .scene
+        .objects()
+        .iter()
+        .map(|r| {
+            let p = r
+                .model
+                .transform_point(&session_rust::Point::new(0.11, 0.13, -0.2));
+            [p[0], p[1], p[2]]
+        })
+        .collect::<Vec<_>>();
+    let values = properties(&g, m, &points);
+    for (row, (normal, radius)) in e.scene.objects().iter().zip(&values) {
+        assert!(
+            (normal[0].abs_diff(128) <= 1 && normal[1].abs_diff(128) <= 1)
+                || normal.iter().all(|v| *v >= 254),
+            "Actual mirrored top normal stays geometric up to winding: {normal:?}"
+        );
+        assert_eq!(
+            *radius,
+            g.ambient_rows
+                .specs
+                .iter()
+                .find(|(id, _)| *id == row.id.value())
+                .unwrap()
+                .1
+        );
+        assert!(*radius > 0.);
+    }
+    assert_ne!(
+        values[0].1, values[1].1,
+        "Nonuniform placements retain their distinct world contact radii"
+    );
+    export("shared-contact-radii", &e.scene, &image);
+    assert_eq!(
+        e.apply(crate::editor::Action::UnloadSources)
+            .err(),
+        Some("No eligible imported sources to unload")
+    );
+    assert_eq!(snapshot(&e.scene), original);
+    assert!(pixels_at(&g, m) == image);
+    assert_eq!(properties(&g, m, &points), values);
+    drop(e);
+    assert!(
+        weak.upgrade().is_none(),
+        "Discarding definition instances releases their original geometry"
+    );
+    let bytes = document();
+    let mut e = crate::editor::Editor::default();
+    e.apply(crate::editor::Action::ReplaceAt(
+        bytes.clone(),
+        Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:ambient-original".into(),
+        )),
+    ))
+    .unwrap();
+    let weak = Rc::downgrade(e.scene.objects()[0].geometry().unwrap());
+    let original = snapshot(&e.scene);
+    c.distance = 3.;
+    c.radius = 1.;
+    let m = c.uniform();
+    g.set_scene(&e.scene, None);
+    let image = pixels_at(&g, m);
+    let uploads = g.stats()[0];
+    let point = [0.11, 0.13, -0.2];
+    let values = properties(&g, m, &[point]);
+    e.apply(crate::editor::Action::UnloadSources)
+        .unwrap();
+    assert!(
+        weak.upgrade().is_none(),
+        "Ambient inputs retain no eligible original source mesh owner"
+    );
+    g.set_scene(&e.scene, None);
+    assert!(pixels_at(&g, m) == image);
+    assert_eq!(properties(&g, m, &[point]), values);
+    assert_eq!(g.stats()[0], uploads);
+    let keys = e.reload_keys();
+    e.hydrate(
+        keys.into_iter()
+            .map(|k| (k, bytes.clone()))
+            .collect(),
+    )
+    .unwrap();
+    assert_eq!(snapshot(&e.scene), original);
+    g.set_scene(&e.scene, None);
+    assert!(pixels_at(&g, m) == image);
+    assert_eq!(g.stats()[0], uploads);
+    export("released-original-inputs", &e.scene, &image);
+}
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 7. `src/renderer.rs`
 
 Register the two actual geometric ambient-input GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-mod mesh_density_tests;
+```rust
+#[cfg(test)]
+#[path = "mesh_density_tests.rs"]
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/96zzzzzzr-share-geometric-ambient-inputs-23.rs" skip=23
+```rust
+#[cfg(test)]
+#[path = "ambient_input_tests.rs"]
+mod ambient_input_tests;
+#[cfg(test)]
+#[path = "mesh_density_tests.rs"]
 ```
 
-</details>
+## <a id="checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink"></a>2. Shade surfaces before drawing ink
 
-</details>
-
-<a id="checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink"></a>
-
-<details>
-<summary>Implementation 96zzzzzzs-shade-surfaces-before-drawing-ink: Shade surfaces before drawing ink</summary>
-
-Preserve authored drawing colours and independent widget pixels by ordering existing passes.
-
-Data flow: Faces, sections and cloud depth → ambient contacts → drawing ink and scene text → independent widget.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+</svg>
+</div>
 
 ### 1. `src/renderer.rs`
 
@@ -1075,829 +1077,582 @@ Remove ambient multiplication from the end of the completed scene. Finish ambien
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.primitive.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground_at(self.anchor()),[self.pyramid_revision,clip_revision],Some(&self.instances));}}
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        self.widget.draw(&mut encoder,view);
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
-            if self.meshes.iter().any(GpuMesh::selected){let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision);}else{self.outline.borrow_mut().take();}
-        }
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
-            if self.meshes.iter().any(GpuMesh::selected){let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision);}else{self.outline.borrow_mut().take();}
-        }
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        }
-        self.caps.borrow_mut().draw(&self.device,&mut encoder,view,&self.primitive.view,&self.depth,&self.view_group,&clip_group,&self.meshes,if self.clipping.borrow().enabled{self.clipping.borrow().rows.len()as u32}else{0},Some(&self.instances));
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
-            pass.set_bind_group(2,&clip_group,&[]);
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        }
-        self.caps.borrow_mut().draw(&self.device,&mut encoder,view,&self.primitive.view,&self.depth,&self.view_group,&clip_group,&self.meshes,if self.clipping.borrow().enabled{self.clipping.borrow().rows.len()as u32}else{0},Some(&self.instances));
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
-        if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.primitive.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground_at(self.anchor()),[self.pyramid_revision,clip_revision],Some(&self.instances));}}
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
-            pass.set_bind_group(2,&clip_group,&[]);
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    surface_options:std::cell::Cell<[bool;2]>,
-    world_bounds:std::cell::RefCell<Option<crate::bounds::Bounds>>,
-    space:crate::render_space::Origin,
-    opacity:std::cell::Cell<f32>,
-    ambient_enabled:std::cell::Cell<bool>,
-    ambient:std::cell::RefCell<Option<crate::ambient_gpu::Ambient>>,
-    ambient_rows:crate::ambient_rows::Rows,
-    pyramid:std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
-    pyramid_revision:u64,
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
-    clipping:std::cell::RefCell<crate::clipping_gpu::Clipping>,
-    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
-    guides:crate::guide_gpu::Guide,
-    measurement:crate::measure_gpu::Measurement,
-    sheets:crate::sheet_gpu::Lane,
-    clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
-    cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
-    cloud_error:std::cell::RefCell<Option<String>>,
-    outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    global_outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    outlines_enabled:std::cell::Cell<bool>,
-    outline_composite:std::cell::RefCell<Option<crate::outline_composite::Composite>>,
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    instances:crate::instance_gpu::Lane,
-    instance_rows:std::collections::HashSet<ObjectId>,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    primitive:crate::primitive_image::Image,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    grid_plane:crate::cplane::CPlane,grid_anchor:[f64;3],
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode:crate::pick_sources::Mode,
-    pick_cursor:Option<([f32;2],[u64;3])>,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        crate::shader_check::check(&device, crate::clipping_gpu::source(include_str!("cloud_points.wgsl"),2,0), "Cloud points");
-        crate::shader_check::check(&device, include_str!("cloud_resolve.wgsl").into(), "Cloud resolve");
-        crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
-        crate::shader_check::check(&device, crate::finite_project_source::tiles(), "Finite tiles");
-        crate::shader_check::check(&device, crate::finite_project_source::scan(), "Finite scan");
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0).into()),
-        });
-        let view_layout = crate::surface_view::layout(&device);
-        let model_layout = crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
-        let mesh_pipeline = |depth,primitive_write| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[crate::draw_slots::layout()],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState{format,blend:Some(wgpu::BlendState::ALPHA_BLENDING),write_mask:wgpu::ColorWrites::ALL}),Some(crate::primitive_image::target(primitive_write))],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface(),true);
-        let tiles=std::cell::RefCell::new(crate::tile_gpu::Tiles::new(&device,&view_layout));
-        let instances=crate::instance_gpu::Lane::new(&device,&queue,format,&view_layout);
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink(),false);
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: crate::surface_view::BYTES,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let primitive=crate::primitive_image::Image::new(&device,[640,480]);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {surface_options:Default::default(),world_bounds:Default::default(),space:Default::default(),opacity:std::cell::Cell::new(1.),ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),global_outline:Default::default(),outlines_enabled:Default::default(),outline_composite:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, primitive, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
-        renderer.mesh_ink.enable_finite(&renderer.device,format,true);
-        for lane in [&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format,false);}
-        renderer.highlight.enable_finite(&renderer.device,format);
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    pub fn anchor(&self)->[f64;3] {self.space.anchor()}
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.cancel_pick(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-        self.primitive=crate::primitive_image::Image::new(&self.device,self.size);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.cancel_pick(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    #[cfg(test)]
-    pub(crate) fn use_uniform_surface_records(&mut self) {self.instances.ordinary.clear();}
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        let anchor=self.anchor();
-        self.ambient_rows.set(scene);
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-        self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.cancel_pick(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.set_source_ink(scene);
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue), &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry_at(&self.device,&layout,object,
-                    style(scene,object.id,selected==Some(object.id)),geometry,anchor)
-            };
-            self.meshes.push(row);
-        }
-        drop(old);
-        self.caps.borrow_mut().set_scene(&self.queue,scene,&mut self.meshes,&self.clipping.borrow().rows);
-        for mesh in &mut self.meshes{mesh.set_xray(&self.queue,self.opacity.get()==0.);}
-        let radii=self.ambient_rows.specs.iter().copied().collect::<std::collections::HashMap<_,_>>();for mesh in &mut self.meshes {mesh.set_ambient_radius(&self.queue,radii.get(&mesh.id.value()).copied().unwrap_or(0.));}
-        self.instance_rows=crate::instance_gpu::batch_rows(self.meshes.iter().map(|row|(row.id,std::rc::Rc::as_ptr(&row.geometry)as usize,scene.instances.contains_key(&row.id))),crate::object_rows::capacity(&self.device));
-        self.instances.set(&self.device,&self.queue,&mut self.meshes,&self.instance_rows,true).expect("Validated instance records fit device limits");
-        self.tiles.borrow_mut().set_records(&self.device,&self.meshes,Some(&self.instances));
-        self.sheets.set_anchored(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases,anchor).expect("Prepared original sheet batches fit device limits");
-        self.geometry.prune();
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if let Err(error)=self.set_clouds(scene,selected.as_slice()) {*self.cloud_error.borrow_mut()=Some(error.to_string());}
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-        *self.world_bounds.borrow_mut()=scene.bounds();
-    }
-
-    pub fn grow_camera(&self,camera:&mut crate::camera::Camera) {
-        if let Some(bounds)=self.world_bounds.borrow().as_ref() {camera.grow_extent(bounds);}
-    }
-
-    pub fn camera_matrix(&self,camera:&crate::camera::Camera)->[f32;16] {camera.view_projection_anchored(self.anchor()).to_f32()}
-    pub fn rebase_delay(&self,now:f64)->Option<u32> {self.space.retry_after_ms(now)}
-    pub fn prepare_origin(&mut self,camera:&crate::camera::Camera,scene:&Scene,target:Option<crate::pick_sources::Target>,ids:&[ObjectId],now:f64)->Result<crate::render_space::Rebase,&'static str> {
-        let previous=self.anchor();let mut frame=self.space.update(camera.target,camera.distance,now).ok_or("Invalid camera origin")?;
-        frame.moved&=previous.map(f64::to_bits)!=frame.anchor.map(f64::to_bits);
-        if frame.moved {
-            self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-            for mesh in &mut self.meshes {let[calls,bytes]=mesh.rebase(&self.queue,frame.anchor);self.settings_writes+=calls;self.settings_bytes+=bytes;}
-            self.set_source_ink(scene);
-            if !self.highlight.rebase_face(&self.queue,frame.anchor,target){self.set_highlight(scene,target)?;}
-            self.select_objects(scene,ids)?;
-            self.set_grid_on(self.grid_settings,self.grid_plane)?;
-        }
-        self.cloud_camera(camera);Ok(frame)
-    }
-
-    fn set_source_ink(&mut self,scene:&Scene) {
-        let anchor=self.anchor();
-        self.sources = crate::pick_sources::Sources::anchored(scene,anchor).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        self.mesh_ink.set_records(&self.device,std::mem::take(&mut self.sources.mesh_metadata)).expect("Original ink metadata");
-        self.markers.set_points(&self.device, std::mem::take(&mut self.sources.mesh_markers).into_iter().chain(scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {marker.colour=colour;}marker})).chain(scene.control_markers_at(anchor).into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {for segment in &mut segments {segment.stroke.colour=colour;}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke_at(anchor);if let Some(colour)=scene.face_rgba(row.id) {stroke.colour=colour;}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        let origin=self.anchor();self.picker.queue_anchored(crate::pick_gpu::Request{window,transform,density:self.density,mode:self.pick_mode},origin)?;
-        self.pick_cursor=Some((screen,origin.map(f64::to_bits)));self.pump_pick(transform);Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::anchored(transform,self.size,self.density,self.anchor()) else { self.cancel_pick(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases,&self.clipping.borrow().buffer);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        self.clipping.borrow_mut().frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) {
-            let mut clipping=self.clipping.borrow_mut();clipping.frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);
-            let bytes=crate::surface_view::bytes(transform,[0.;4],self.size,self.density);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),primitive:self.primitive.view.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::anchored(transform,self.size,self.density,self.anchor()) { Ok(view) => view, Err(error) => {
-            self.cancel_pick(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit)))=>{self.pick_cursor=None;Some(Ok(hit))},
-            Some(Ok(crate::pick_gpu::Reply::Stale))=>{
-                if let Some((screen,_))=self.pick_cursor.filter(|(_,origin)|*origin!=self.anchor().map(f64::to_bits)) {
-                    if let Err(error)=self.request_pick(screen,transform){self.cancel_pick();return Some(Err(error));}
-                } else {
-                    self.pump_pick(transform);
-                    if self.picker.usage()[0]==0&&!self.picker.queued(){self.pick_cursor=None;}
                 }
-                None
-            },
-            Some(Err(error))=>{self.cancel_pick();Some(Err(error))},None=>None,
+            }
         }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.cancel_pick(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) {self.pick_cursor=None;self.picker.cancel();}
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self)->[u64;4]{let mut usage=crate::memory::gpu(&self.meshes);usage[1]+=self.geometry.allocated_bytes();usage}
-    pub fn arena_cpu_bytes(&self)->usize{self.geometry.cpu_bytes()}
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * crate::object_record::BYTES as u64 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self,settings:Option<crate::grid::Settings>)->Result<(),&'static str>{self.set_grid_on(settings,crate::cplane::CPlane::Xy)}
-    pub fn set_grid_on(&mut self,settings:Option<crate::grid::Settings>,plane:crate::cplane::CPlane)->Result<(),&'static str>{
-        let anchor=self.anchor();
-        if settings==self.grid_settings&&plane==self.grid_plane&&anchor==self.grid_anchor{return Ok(())}
-        let strokes=settings.map(|s|s.strokes_on_at(plane,anchor)).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device,strokes)?;self.grid_settings=settings;self.grid_plane=plane;self.grid_anchor=anchor;Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
-        let anchor=self.anchor();self.highlight.set_at(&self.device,&self.pipeline.get_bind_group_layout(1),scene,target,anchor)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        let anchor=self.anchor();
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        if let Some(outline)=self.global_outline.borrow_mut().as_mut() {outline.invalidate();}
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        self.instances.set(&self.device,&self.queue,&mut self.meshes,&self.instance_rows,false)?;
-        self.tiles.borrow_mut().set_records(&self.device,&self.meshes,Some(&self.instances));
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        self.set_clouds(scene,ids)?;self.sheets.set_anchored(&self.device,&self.queue,scene,ids,&self.sources.sheet_bases,anchor)?;
-        if !ids.is_empty() { self.highlight.objects_at(&self.device,scene,ids,anchor)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_guides(&mut self,overlay:&crate::guide_gpu::Overlay)->Result<(),&'static str>{if self.guides.set(&self.device,overlay)?{self.set_scene_measure_text().map_err(|_|"Cannot prepare editing guide label")?}Ok(())}
-    pub fn guide_bytes(&self)->u64{self.guides.bytes()}
-    pub fn set_measurement(&mut self,mark:Option<&crate::measure_mark::Mark>)->Result<(),&'static str>{let anchor=self.anchor();if self.measurement.set_at(&self.device,mark,anchor)?{self.set_scene_measure_text().map_err(|_|"Cannot prepare measurement annotation")?;}Ok(())}
-    pub fn measurement_bytes(&self)->u64{self.measurement.bytes()}
-    fn merge_measurement(&self,mut labels:Vec<crate::text::TextLabel>)->Vec<crate::text::TextLabel>{if let Some(mark)=&self.measurement.mark{labels.extend(mark.labels(&labels));}labels.extend(self.guides.overlay.labels(&labels));labels}
-    fn set_scene_measure_text(&self)->anyhow::Result<()>{let mut labels=self.scene_text.borrow().clone();labels.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(labels))}
-    pub fn set_preview(&mut self,draft:Option<&crate::tool::Draft>)->Result<(),&'static str>{let anchor=self.anchor();self.preview.set_at(&self.device,draft,anchor)}
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let anchor=self.anchor();let matrix=camera.view_projection_anchored(anchor);
-        let layout=origin.map(|p|std::array::from_fn(|i|p[i]-anchor[i])).and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:self.anchor(),framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:{let clip=self.clipping.borrow();let mut planes=[[0.;4];6];if clip.enabled {for (p,row) in planes.iter_mut().zip(&clip.rows){*p=[row.plane.normal[0],row.plane.normal[1],row.plane.normal[2],row.plane.offset];}}planes}}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(self.merge_measurement(merged))?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(merged))?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene)->bool {
-        let mut changed=false;
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {
-            let extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);
-            if row.prepared.extent!=extent {row.prepared.extent=extent;changed=true;}
-        }}}
-        if changed {*self.world_bounds.borrow_mut()=scene.bounds();}
-        changed
-    }
-    pub fn text_stats(&self)->Option<crate::scene_text_gpu::TextStats> {self.text.borrow().as_ref().map(|lane|lane.stats.clone())}
-    pub fn text_scene_usage(&self)->[u64;4] {self.text.borrow().as_ref().map_or([0;4],|lane|[lane.allocated_bytes(),lane.texture_bytes(),lane.stats.world_plane_rasterizations,lane.document.runs.len() as u64])}
-    pub fn replace_text_fonts(&self,fonts:Vec<Vec<u8>>)->anyhow::Result<()> {if let Some(lane)=self.text.borrow_mut().as_mut() {lane.document.replace_fonts(fonts.clone())?;} else {let mut document=crate::text::TextDocument::new();document.replace_fonts(fonts.clone())?;}*self.full_text_fonts.borrow_mut()=Some(fonts);Ok(())}
-    pub fn clear_text_fonts(&self) {self.full_text_fonts.borrow_mut().take();}
-
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn cloud_camera(&self,camera:&crate::camera::Camera) {self.cloud_view.set(crate::cloud_gpu::View::anchored(camera,self.anchor()));self.sheets.camera(camera);}
-    pub fn cloud_usage(&self)->[u64;5] {self.clouds.borrow().as_ref().map_or([0;5],|lane|lane.usage())}
-    pub fn cloud_error(&self)->Option<String> {self.cloud_error.borrow().clone()}
-    fn set_clouds(&self,scene:&Scene,selected:&[ObjectId])->Result<(),&'static str> {
-        if scene.clouds().is_empty()&&scene.streams().is_empty() {self.clouds.borrow_mut().take();self.cloud_error.borrow_mut().take();return Ok(());}
-        let mut owner=self.clouds.borrow_mut();let lane=owner.get_or_insert_with(||crate::cloud_gpu::Lane::new(&self.text_context(),self.format,&self.clipping.borrow().group));lane.set_scene(&self.text_context(),scene,selected)
-    }
-    fn prepare_clouds(&self,transform:[f32;16]) {
-        if let Some(lane)=self.clouds.borrow_mut().as_mut() {lane.set_clipping(self.clipping.borrow().writes);if let Err(error)=lane.prepare(&self.text_context(),transform,self.size,self.density,self.cloud_view.get()) {lane.failed();*self.cloud_error.borrow_mut()=Some(error.to_string());} else {self.cloud_error.borrow_mut().take();}}
-    }
-    pub fn set_opacity(&mut self,value:f32){if !value.is_finite(){return;}let value=value.clamp(0.,1.);if self.opacity.get()==value{return;}self.opacity.set(value);self.cancel_pick();self.pyramid_revision=self.pyramid_revision.wrapping_add(1);for mesh in &mut self.meshes{mesh.set_xray(&self.queue,value==0.);}if let Some(o)=self.outline.borrow_mut().as_mut(){o.invalidate();}if let Some(o)=self.global_outline.borrow_mut().as_mut(){o.invalidate();}}
-    pub fn opacity(&self)->f32{self.opacity.get()}
-    pub fn set_outlines(&self,on:bool){self.outlines_enabled.set(on);if !on{self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();}}
-    pub fn global_outline_usage(&self)->[u64;4]{self.global_outline.borrow().as_ref().map_or([0;4],|o|o.usage())}
-    pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn sheet_camera(&self,camera:&crate::camera::Camera) {self.sheets.camera(camera);}
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_lighting(&self,on:bool,backfaces:bool){self.surface_options.set([on,backfaces]);}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));}else if let Some(owner)=ambient.as_mut(){owner.clear();}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-    pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
-    pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
-    pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
-    pub fn cap_usage(&self)->[u64;5]{self.caps.borrow().usage()}
-    pub fn clipping_usage(&self)->[u64;5]{let clip=self.clipping.borrow();[clip.rows.len()as u64,u64::from(clip.enabled),u64::from(clip.solid),clip.writes,clip.buffer.size()]}
-    pub fn clipping_ink_bytes(&self)->[u64;2]{[&self.mesh_ink,&self.strokes,&self.paths,&self.markers,&self.grid].into_iter().map(crate::stroke_gpu::Lane::clipping_bytes).fold(self.highlight.clipping_bytes(),|a,b|[a[0]+b[0],a[1]+b[1]])}
-    pub fn clipping_error(&self)->Option<&'static str>{self.clipping.borrow().error}
-    pub fn tile_usage(&self)->[u64;7]{self.tiles.borrow().usage()}
-    pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
-    pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
-    pub fn instance_allocations(&self)->[u64;3] {self.instances.allocation_parts()}
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
-        self.prepare_clouds(*transform);
-        let options=self.surface_options.get();
-        let display=[f32::from(normals),self.opacity.get(),if self.ambient_enabled.get(){2.}else{f32::from(options[0])},f32::from(options[1])];
-        let bytes=crate::surface_view::bytes(*transform,display,self.size,self.density);
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.sheets.view(&self.queue,transform,self.size,self.density);
-        let [r, g, b] = if self.ambient_enabled.get() { [0.94; 3] } else { background.rgb() };
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);tiles.encode(&self.device,&mut encoder,&self.view_group,*transform);
-        let tables=crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),primitive:self.primitive.view.clone()};for lane in [&self.mesh_ink,&self.strokes,&self.paths,&self.markers]{lane.finite_frame(&self.device,&tables,&self.depth);}self.highlight.finite_frame(&self.device,&tables,&self.depth);
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(crate::depth::FAR as f32),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+        if self.ambient_enabled.get() {
+            let clip = self.clipping.borrow();
+            if let Some(ambient) = self.ambient.borrow_mut().as_mut() {
+                ambient.draw(
+                    &self.device,
+                    &self.queue,
+                    &mut encoder,
                     view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                }),Some(wgpu::RenderPassColorAttachment{
-                    view:&self.primitive.view,depth_slice:None,resolve_target:None,
-                    ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store},
-                })],
-                ..Default::default()
-            });
-            self.grid.draw(&mut pass,&self.view_group);
-            pass.set_bind_group(2,&clip_group,&[]);
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            self.instances.bind_own(&mut pass);
-            for mesh in self.meshes.iter().filter(|row|self.opacity.get()<1.||!self.instance_rows.contains(&row.id)) {if !self.instances.draw_ordinary(&mut pass,mesh){pass.set_pipeline(&self.pipeline);self.instances.bind_own(&mut pass);mesh.draw_pulled(&mut pass);}}
-            if self.opacity.get()>=1.{self.instances.draw(&mut pass);}
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.instances.bind_own(&mut pass);
-            self.highlight.mesh(&mut pass);
+                    &self.depth,
+                    &self.view_group,
+                    &clip_group,
+                    &clip.buffer,
+                    &self.primitive.view,
+                    &self.meshes,
+                    *transform,
+                    self.size,
+                    self.density,
+                    self.ambient_rows.ground_at(self.anchor()),
+                    [self.pyramid_revision, clip_revision],
+                    Some(&self.instances),
+                );
+            }
         }
-        self.caps.borrow_mut().draw(&self.device,&mut encoder,view,&self.primitive.view,&self.depth,&self.view_group,&clip_group,&self.meshes,if self.clipping.borrow().enabled{self.clipping.borrow().rows.len()as u32}else{0},Some(&self.instances));
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
-        if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.primitive.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground_at(self.anchor()),[self.pyramid_revision,clip_revision],Some(&self.instances));}}
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
-            pass.set_bind_group(2,&clip_group,&[]);
-            self.highlight.ink(&mut pass,&self.view_group);
-            self.mesh_ink.draw(&mut pass,&self.view_group);
-            self.strokes.draw(&mut pass,&self.view_group);self.sheets.draw(&mut pass);
-            self.paths.draw(&mut pass,&self.view_group);
-            self.markers.draw(&mut pass,&self.view_group);
-            self.highlight.points(&mut pass,&self.view_group);
-            self.preview.draw(&mut pass,&self.view_group);
+        if let Some(pyramid) = self.pyramid.borrow_mut().as_mut() {
+```
+
+Replace it with:
+
+```rust
+                }
+            }
         }
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass,&self.view_group);self.guides.draw(&mut pass,&self.view_group);}
-        if self.outlines_enabled.get()&&!self.meshes.is_empty(){
-            let ctx=self.text_context();
-            let mut global=self.global_outline.borrow_mut();let global=global.get_or_insert_with(||crate::outline_gpu::Outline::new(&ctx,self.format));
-            global.encode_masks(&ctx,&mut encoder,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision,true,Some(&self.primitive.view));
-            let mut selected=self.outline.borrow_mut();
-            if self.meshes.iter().any(GpuMesh::selected){let selected=selected.get_or_insert_with(||crate::outline_gpu::Outline::new(&ctx,self.format));selected.encode_masks(&ctx,&mut encoder,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision,false,Some(&self.primitive.view));}else{selected.take();}
-            if let Some(alpha)=global.alpha_view(){self.outline_composite.borrow_mut().get_or_insert_with(||crate::outline_composite::Composite::new(&self.device,self.format)).draw(&self.device,&mut encoder,view,alpha,selected.as_ref().and_then(|s|s.alpha_view()));}
-        }else{
-            self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();
-            if self.meshes.iter().any(GpuMesh::selected){let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision);}else{self.outline.borrow_mut().take();}
+        self.widget.draw(&mut encoder, view);
+        if let Some(pyramid) = self.pyramid.borrow_mut().as_mut() {
+```
+
+**Locate this block:**
+
+```rust
+                self.outline.borrow_mut().take();
+            }
+        }
+        self.widget.draw(&mut encoder, view);
+        self.text_error.borrow_mut().take();
+        if let Some(lane) = self.text.borrow_mut().as_mut() {
+            match lane.prepare(
+```
+
+Replace it with:
+
+```rust
+                self.outline.borrow_mut().take();
+            }
         }
         self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
+        if let Some(lane) = self.text.borrow_mut().as_mut() {
+            match lane.prepare(
+```
+
+**Locate this block:**
+
+```rust
+        }
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("finite scene ink"),
+```
+
+Replace it with:
+
+```rust
+        }
+        if self.ambient_enabled.get() {
+            let clip = self.clipping.borrow();
+            if let Some(ambient) = self.ambient.borrow_mut().as_mut() {
+                ambient.draw(
+                    &self.device,
+                    &self.queue,
+                    &mut encoder,
+                    view,
+                    &self.depth,
+                    &self.view_group,
+                    &clip_group,
+                    &clip.buffer,
+                    &self.primitive.view,
+                    &self.meshes,
+                    *transform,
+                    self.size,
+                    self.density,
+                    self.ambient_rows.ground_at(self.anchor()),
+                    [self.pyramid_revision, clip_revision],
+                    Some(&self.instances),
+                );
             }
         }
-        self.widget.draw(&mut encoder,view);
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-}
-
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {source_faces:!scene.forest.derived(id),selected,owner:crate::feature_owner::display_owner(scene,id).map_or(0,ObjectId::value),colour:scene.face_rgba(id)}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-impl Renderer {
- pub fn outline_alpha(&self)->Vec<u8>{self.read_outline_alpha(false)}
- pub fn global_outline_alpha(&self)->Vec<u8>{self.read_outline_alpha(true)}
- fn read_outline_alpha(&self,global:bool)->Vec<u8> {
-  let owner=if global{self.global_outline.borrow()}else{self.outline.borrow()};let Some(outline)=owner.as_ref() else {return Vec::new();};let Some(texture)=outline.alpha_texture() else {return Vec::new();};let [width,height]=self.size;let pitch=width.div_ceil(256)*256;
-  let buffer=self.device.create_buffer(&wgpu::BufferDescriptor {label:Some("actual outline alpha readback"),size:pitch as u64*height as u64,usage:wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::MAP_READ,mapped_at_creation:false});let mut encoder=self.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo {buffer:&buffer,layout:wgpu::TexelCopyBufferLayout {offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},wgpu::Extent3d {width,height,depth_or_array_layers:1});self.queue.submit([encoder.finish()]);let (tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|r|tx.send(r).unwrap());self.device.poll(wgpu::PollType::Wait {submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();rx.recv().unwrap().unwrap();let bytes=buffer.slice(..).get_mapped_range();let pixels=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..width as usize].iter().copied()).collect();drop(bytes);buffer.unmap();pixels
- }
-}
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="pyramid_gpu_tests.rs"]
-mod pyramid_gpu_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="ambient_gpu_tests.rs"]
-mod ambient_gpu_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="global_outline_tests.rs"]
-mod global_outline_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="opacity_gpu_tests.rs"]
-mod opacity_gpu_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="camera_extent_tests.rs"]
-mod camera_extent_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="surface_lighting_tests.rs"]
-mod surface_lighting_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="surface_controls_gpu_tests.rs"]
-mod surface_controls_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="shared_view_tests.rs"]
-mod shared_view_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="contact_feature_tests.rs"]
-mod contact_feature_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="ink_metadata_tests.rs"]
-mod ink_metadata_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="contact_boundary_tests.rs"]
-mod contact_boundary_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="source_face_policy_tests.rs"]
-mod source_face_policy_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="source_pen_tests.rs"]
-mod source_pen_tests;
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-#[path="round_caps_tests.rs"]
-mod round_caps_tests;
-#[cfg(test)]
-#[path="mesh_marker_tests.rs"]
-mod mesh_marker_tests;
-#[cfg(test)]
-#[path="mesh_density_tests.rs"]
-mod mesh_density_tests;
-#[cfg(test)]
-#[path="ambient_input_tests.rs"]
-mod ambient_input_tests;
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("finite scene ink"),
 ```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-04.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/ambient_order_tests.rs`
 
 Check real ground contacts, authored point/stroke colour, picks, source restoration and independent widget GPU output.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-05.rs"
+```rust
+use crate::{
+    camera::{Camera, Projection},
+    cap_gpu_tests::{renderer, wait},
+    scene::Scene,
+};
+use prost::Message;
+use session_rust::{Color, Point, Session, Xform, proto};
+use std::rc::Rc;
+
+fn camera(projection: Projection) -> Camera {
+    let mut c = Camera::default();
+    c.isometric();
+    c.distance = 3.;
+    c.radius = 1.;
+    c.target = [0., 0., -0.5];
+    c.aspect = 4. / 3.;
+    c.projection = projection;
+    c
+}
+fn document() -> Session {
+    let mut mesh = crate::cap_gpu_tests::source(false);
+    mesh.set_objectcolor(Color::new(0.2, 0.4, 0.6, 1.));
+    let mut d = Session::new("Original contacts and authored drawing colours");
+    d.add_mesh(mesh, None);
+    d
+}
+fn scene(d: &Session) -> Scene {
+    let mut s = Scene::empty();
+    crate::scene_document::import(
+        &mut s,
+        &d.to_proto().encode_to_vec(),
+        "",
+        &Xform::identity(),
+        0.,
+    )
+    .unwrap();
+    s
+}
+fn snapshot(s: &Scene) -> (Vec<proto::Session>, serde_json::Value) {
+    let b = crate::archive::Bundle::decode(&crate::scene_archive::save(s).unwrap())
+        .unwrap();
+    (
+        b.documents
+            .iter()
+            .map(|v| proto::Session::decode(v.as_slice()).unwrap())
+            .collect(),
+        serde_json::to_value(b.metadata).unwrap(),
+    )
+}
+fn pixels(g: &mut super::Renderer, c: &Camera, size: [u32; 2]) -> Vec<u8> {
+    crate::widget_tests::pixels(g, &c.uniform(), size)
+}
+fn at<'a>(image: &'a [u8], size: [u32; 2], p: [usize; 2]) -> &'a [u8] {
+    let i = (p[1] * size[0] as usize + p[0]) * 4;
+    &image[i..i + 4]
+}
+fn shadow(
+    g: &mut super::Renderer,
+    c: &Camera,
+    size: [u32; 2],
+) -> ([usize; 2], [f64; 3]) {
+    g.set_ambient(false);
+    let plain = pixels(g, c, size);
+    g.set_ambient(true);
+    let shaded = pixels(g, c, size);
+    let i = plain
+        .chunks_exact(4)
+        .zip(shaded.chunks_exact(4))
+        .enumerate()
+        .filter(|(_, (a, b))| {
+            a[..3] == [255, 255, 255] && b[..3].iter().all(|v| *v < 235)
+        })
+        .min_by_key(|(_, (_, b))| b[0])
+        .map(|(i, _)| i)
+        .expect("Actual virtual-ground contact shadow");
+    let p = [i % size[0] as usize, i / size[0] as usize];
+    let mut m = Xform::identity();
+    m.m = c.uniform().map(f64::from);
+    let inverse = m.inverse().unwrap();
+    let unproject = |z| {
+        inverse.transform_point(&Point::new(
+            (p[0] as f64 + 0.5) * 2. / size[0] as f64 - 1.,
+            1. - (p[1] as f64 + 0.5) * 2. / size[1] as f64,
+            z,
+        ))
+    };
+    let a = unproject(0.);
+    let b = unproject(1.);
+    let t = (-0.8 - a[2]) / (b[2] - a[2]);
+    (
+        p,
+        std::array::from_fn(|i| a[i] + t * (b[i] - a[i])),
+    )
+}
+fn export(name: &str, s: &Scene, image: &[u8], size: [u32; 2], world: [f64; 3]) {
+    if let Some(root) = std::env::var_os("VIEWER_AMBIENT_ORDER_PROOF_DIR") {
+        use std::io::Write;
+        let root = std::path::Path::new(&root);
+        std::fs::create_dir_all(root).unwrap();
+        std::fs::write(
+            root.join(format!("{name}.session")),
+            crate::scene_archive::save(s).unwrap(),
+        )
+        .unwrap();
+        let mut f = std::fs::File::create(root.join(format!("{name}.ppm"))).unwrap();
+        write!(f, "P6\n{} {}\n255\n", size[0], size[1]).unwrap();
+        for p in image.chunks_exact(4) {
+            f.write_all(&p[..3]).unwrap();
+        }
+        std::fs::write(
+            root.join(format!("{name}.json")),
+            serde_json::to_vec_pretty(
+                &serde_json::json!({"viewport":size,"worldMm":world}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    }
+}
+
+#[test]
+fn actual_original_ink_keeps_authored_colour_over_ambient_contacts() {
+    let mut g = renderer(&scene(&document()));
+    for projection in [
+        Projection::Perspective,
+        Projection::Orthographic,
+    ] {
+        let c = camera(projection);
+        for density in [1u32, 2] {
+            let size = [320 * density, 240 * density];
+            g.resize(crate::viewport::Viewport {
+                width: size[0],
+                height: size[1],
+            });
+            g.set_density(density as f32);
+            g.set_scene(&scene(&document()), None);
+            let (p, world) = shadow(&mut g, &c, size);
+            for kind in ["point", "line", "path"] {
+                let mut d = document();
+                let colour = Color::new(0.8, 0.1, 0.2, 1.);
+                let right = c
+                    .orientation
+                    .rotate_vector(session_rust::Vector::x_axis());
+                let ends = [-0.08, 0.08].map(|t| {
+                    Point::new(
+                        world[0] + right[0] * t,
+                        world[1] + right[1] * t,
+                        world[2] + right[2] * t,
+                    )
+                });
+                match kind {
+                    "point" => {
+                        let mut q = Point::new(world[0], world[1], world[2]);
+                        q.width = 11.;
+                        q.pointcolor = colour;
+                        d.add_point(q, None);
+                    }
+                    "line" => {
+                        let mut q = session_rust::Line::new(
+                            ends[0][0], ends[0][1], ends[0][2], ends[1][0], ends[1][1],
+                            ends[1][2],
+                        );
+                        q.width = 7.;
+                        q.linecolor = colour;
+                        d.add_line(q, None);
+                    }
+                    _ => {
+                        let mut q = session_rust::Polyline::new(ends.to_vec());
+                        q.width = 7.;
+                        q.linecolor = colour;
+                        d.add_polyline(q, None).unwrap();
+                    }
+                }
+                let bytes = d.to_proto().encode_to_vec();
+                let mut e = crate::editor::Editor::default();
+                e.apply(crate::editor::Action::ReplaceAt(
+                    bytes.clone(),
+                    Rc::new(crate::reload_url::ReloadUrl::new(
+                        "test:ambient-order".into(),
+                    )),
+                ))
+                .unwrap();
+                e.camera = camera(projection);
+                let original = snapshot(&e.scene);
+                let owner = match kind {
+                    "point" => e.scene.points()[0].id,
+                    "line" => e.scene.lines()[0].id,
+                    _ => e.scene.paths()[0].id,
+                };
+                g.set_scene(&e.scene, None);
+                let uploads = g.stats()[0];
+                g.set_ambient(false);
+                let plain = pixels(&mut g, &c, size);
+                assert_eq!(at(&plain, size, p), [204, 26, 51, 255]);
+                g.set_ambient(true);
+                let image = pixels(&mut g, &c, size);
+                assert_eq!(
+                    at(&image, size, p),
+                    [204, 26, 51, 255],
+                    "Ambient shading precedes actual original {kind} colour"
+                );
+                assert!(
+                    pixels(&mut g, &c, size) == image,
+                    "A complete frame is stable"
+                );
+                assert_eq!(snapshot(&e.scene), original);
+                g.set_pick_mode(crate::pick_sources::Mode::Object);
+                g.request_pick(
+                    super::contact_feature_tests::project(c.uniform(), world),
+                    c.uniform(),
+                )
+                .unwrap();
+                wait(&g);
+                let picked = g
+                    .take_pick(c.uniform())
+                    .unwrap()
+                    .unwrap()
+                    .and_then(|v| g.resolve_pick(&e.scene, v))
+                    .unwrap();
+                assert_eq!(picked.owner, owner);
+                assert_eq!(
+                    picked.part,
+                    crate::pick_sources::Part::Object
+                );
+                let old = e.scene.placement(owner).unwrap();
+                e.scene
+                    .translate(owner, [0.1, 0., 0.])
+                    .unwrap();
+                g.set_scene(&e.scene, None);
+                assert!(pixels(&mut g, &c, size) != image);
+                e.scene.place_owner(owner, old).unwrap();
+                g.set_scene(&e.scene, None);
+                assert!(pixels(&mut g, &c, size) == image);
+                assert_eq!(g.stats()[0], uploads);
+                assert_eq!(snapshot(&e.scene), original);
+                if kind == "point" {
+                    let name = format!(
+                        "point-{}-dpr{density}",
+                        if projection == Projection::Perspective {
+                            "perspective"
+                        } else {
+                            "orthographic"
+                        }
+                    );
+                    export(&name, &e.scene, &image, size, world);
+                    let retained = e.scene.objects()[0].mesh.clone();
+                    let weak = Rc::downgrade(e.scene.objects()[0].geometry().unwrap());
+                    e.apply(crate::editor::Action::UnloadSources)
+                        .unwrap();
+                    assert!(weak.upgrade().is_none());
+                    assert!(Rc::ptr_eq(
+                        &retained,
+                        &e.scene.objects()[0].mesh
+                    ));
+                    g.set_scene(&e.scene, None);
+                    assert!(pixels(&mut g, &c, size) == image);
+                    let keys = e.reload_keys();
+                    e.hydrate(
+                        keys.into_iter()
+                            .map(|k| (k, bytes.clone()))
+                            .collect(),
+                    )
+                    .unwrap();
+                    assert_eq!(snapshot(&e.scene), original);
+                    assert_eq!(
+                        e.camera.view_projection().m,
+                        c.view_projection().m
+                    );
+                    g.set_scene(&e.scene, None);
+                    assert!(pixels(&mut g, &c, size) == image);
+                    assert_eq!(g.stats()[0], uploads);
+                }
+            }
+        }
+    }
+}
+
+fn isolated_widget(g: &super::Renderer, size: [u32; 2]) -> Vec<u8> {
+    let t = g
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("actual independent widget reference"),
+            size: wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+    let view = t.create_view(&Default::default());
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    {
+        let _pass = e.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: None,
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            ..Default::default()
+        });
+    }
+    g.widget.draw(&mut e, &view);
+    let pitch = (size[0] * 4).div_ceil(256) * 256;
+    let b = g
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size: u64::from(pitch) * u64::from(size[1]),
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+    e.copy_texture_to_buffer(
+        t.as_image_copy(),
+        wgpu::TexelCopyBufferInfo {
+            buffer: &b,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(pitch),
+                rows_per_image: Some(size[1]),
+            },
+        },
+        t.size(),
+    );
+    g.queue.submit([e.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    b.slice(..)
+        .map_async(wgpu::MapMode::Read, move |v| {
+            tx.send(v).unwrap()
+        });
+    wait(g);
+    rx.recv().unwrap().unwrap();
+    let mapped = b.slice(..).get_mapped_range();
+    let image = mapped
+        .chunks_exact(pitch as usize)
+        .flat_map(|r| r[..size[0] as usize * 4].iter().copied())
+        .collect();
+    drop(mapped);
+    b.unmap();
+    image
+}
+#[test]
+fn actual_widget_overlay_matches_its_independent_gpu_reference() {
+    let s = scene(&document());
+    let original = snapshot(&s);
+    let mut g = renderer(&s);
+    for projection in [
+        Projection::Perspective,
+        Projection::Orthographic,
+    ] {
+        for density in [1u32, 2] {
+            let size = [320 * density, 240 * density];
+            g.resize(crate::viewport::Viewport {
+                width: size[0],
+                height: size[1],
+            });
+            g.set_density(density as f32);
+            let mut c = camera(projection);
+            let (_, world) = shadow(&mut g, &c, size);
+            c.target = world;
+            g.set_gizmo(&c, Some(world), -1.);
+            let usage = g.gizmo_usage();
+            let uploads = g.stats()[0];
+            let picks = g.pick_usage();
+            let reference = isolated_widget(&g, size);
+            g.set_ambient(true);
+            let image = pixels(&mut g, &c, size);
+            let mut opaque = 0;
+            let mut changed = 0;
+            for (a, b) in reference
+                .chunks_exact(4)
+                .zip(image.chunks_exact(4))
+            {
+                if a[3] == 255 {
+                    opaque += 1;
+                    if a[..3] != b[..3] {
+                        changed += 1;
+                    }
+                }
+            }
+            assert!(opaque > 100);
+            assert_eq!(
+                changed, 0,
+                "All opaque production widget pixels keep their actual independent GPU colour"
+            );
+            assert_eq!(g.gizmo_usage()[..3], usage[..3]);
+            assert_eq!(g.stats()[0], uploads);
+            assert_eq!(g.pick_usage(), picks);
+            assert_eq!(snapshot(&s), original);
+            let name = format!(
+                "widget-{}-dpr{density}",
+                if projection == Projection::Perspective {
+                    "perspective"
+                } else {
+                    "orthographic"
+                }
+            );
+            export(&name, &s, &image, size, world);
+            g.set_gizmo(&c, None, -1.);
+            assert_eq!(g.gizmo_usage()[1], 0);
+        }
+    }
+}
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/renderer.rs`
 
 Register the two actual pass-order GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-mod ambient_input_tests;
+```rust
+#[cfg(test)]
+#[path = "mesh_density_tests.rs"]
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/96zzzzzzs-shade-surfaces-before-drawing-ink-06.rs" skip=24
+```rust
+#[cfg(test)]
+#[path = "ambient_order_tests.rs"]
+mod ambient_order_tests;
+#[cfg(test)]
+#[path = "mesh_density_tests.rs"]
 ```
 
-</details>
-
-</details>
-
-<a id="checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals"></a>
-
-<details>
-<summary>Implementation 96zzzzzzt-keep-contact-ambient-inputs-on-originals: Keep contact ambient inputs on originals</summary>
-
-Match the displayed contact depth and original visual radius without adding GPU resources.
-
-Data flow: Original visual owner → existing radius word → shared contact geometry → exact source depth → geometric ambient normal.
+## <a id="checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals"></a>3. Keep contact ambient inputs on originals
 
 ### 1. `src/feature_owner.rs`
 
 Resolve the existing original visual ancestor before applying pickability. A locked original still owns its visible contact shading. Keep existing pick and highlight filtering while exposing raw visual ownership. Use the same original hierarchy for visual shading. Preserve the existing original picking contract.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-use crate::{hierarchy::Document, scene::{ObjectId, Scene}};
+};
 
 fn ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<ObjectId> {
     let mut parent = doc.nodes[index].parent;
     while let Some(index) = parent {
         let node = &doc.nodes[index];
         if let Some(id) = node.object {
-            if scene.instances.contains_key(&id) || scene.objects().iter().any(|row| row.id == id
-                && matches!(row.original.as_ref(), Some(session_rust::Geometry::Element(_)))) {
+            if scene.instances.contains_key(&id)
+                || scene.objects().iter().any(|row| {
+                    row.id == id
+                        && matches!(
+                            row.original.as_ref(),
+                            Some(session_rust::Geometry::Element(_))
+                        )
+                })
+            {
                 return scene.pick_id(id.value());
             }
         }
@@ -1907,55 +1662,41 @@ fn ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<ObjectId> {
 }
 
 pub fn display_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
-    if !scene.forest.derived(id) { return scene.pick_id(id.value()); }
+    if !scene.forest.derived(id) {
+        return scene.pick_id(id.value());
+    }
     for doc in &scene.forest.documents {
-        if let Some(index) = doc.nodes.iter().position(|node| node.object == Some(id)) {
+        if let Some(index) = doc
+            .nodes
+            .iter()
+            .position(|node| node.object == Some(id))
+        {
             return ancestor(scene, doc, index);
         }
     }
     None
 }
-
-pub fn row_owner(scene: &Scene, key: &str) -> Option<ObjectId> {
-    let (document, guid) = key.split_once('/')?;
-    let document = document.parse::<u32>().ok()?;
-    let doc = scene.forest.documents.iter().find(|doc| doc.key == document)?;
-    let index = doc.nodes.iter().position(|node| node.source.guid == guid)?;
-    if !doc.nodes[index].readonly { return None; }
-    ancestor(scene, doc, index)
-}
-
-pub fn highlighted(scene: &Scene, selected: &[ObjectId]) -> Vec<ObjectId> {
-    let mut ids = selected.to_vec();
-    for doc in &scene.forest.documents {
-        for (index, node) in doc.nodes.iter().enumerate() {
-            if !node.derived { continue; }
-            let Some(id) = node.object.filter(|id| scene.visible(*id)) else { continue; };
-            if ancestor(scene, doc, index).is_some_and(|owner| selected.contains(&owner)) {
-                ids.push(id);
-            }
-        }
-    }
-    ids.sort_unstable_by_key(|id| id.value());
-    ids.dedup();
-    ids
-}
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{hierarchy::Document, scene::{ObjectId, Scene}};
+};
 
 fn visual_ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<ObjectId> {
     let mut parent = doc.nodes[index].parent;
     while let Some(index) = parent {
         let node = &doc.nodes[index];
         if let Some(id) = node.object {
-            if scene.instances.contains_key(&id) || scene.objects().iter().any(|row| row.id == id
-                && matches!(row.original.as_ref(), Some(session_rust::Geometry::Element(_)))) {
+            if scene.instances.contains_key(&id)
+                || scene.objects().iter().any(|row| {
+                    row.id == id
+                        && matches!(
+                            row.original.as_ref(),
+                            Some(session_rust::Geometry::Element(_))
+                        )
+                })
+            {
                 return Some(id);
             }
         }
@@ -1965,13 +1706,19 @@ fn visual_ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<Object
 }
 
 fn ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<ObjectId> {
-    visual_ancestor(scene,doc,index).and_then(|id|scene.pick_id(id.value()))
+    visual_ancestor(scene, doc, index).and_then(|id| scene.pick_id(id.value()))
 }
 
 pub fn visual_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
-    if !scene.forest.derived(id) { return Some(id); }
+    if !scene.forest.derived(id) {
+        return Some(id);
+    }
     for doc in &scene.forest.documents {
-        if let Some(index) = doc.nodes.iter().position(|node| node.object == Some(id)) {
+        if let Some(index) = doc
+            .nodes
+            .iter()
+            .position(|node| node.object == Some(id))
+        {
             return visual_ancestor(scene, doc, index);
         }
     }
@@ -1979,108 +1726,87 @@ pub fn visual_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
 }
 
 pub fn display_owner(scene: &Scene, id: ObjectId) -> Option<ObjectId> {
-    visual_owner(scene,id).and_then(|id|scene.pick_id(id.value()))
-}
-
-pub fn row_owner(scene: &Scene, key: &str) -> Option<ObjectId> {
-    let (document, guid) = key.split_once('/')?;
-    let document = document.parse::<u32>().ok()?;
-    let doc = scene.forest.documents.iter().find(|doc| doc.key == document)?;
-    let index = doc.nodes.iter().position(|node| node.source.guid == guid)?;
-    if !doc.nodes[index].readonly { return None; }
-    ancestor(scene, doc, index)
-}
-
-pub fn highlighted(scene: &Scene, selected: &[ObjectId]) -> Vec<ObjectId> {
-    let mut ids = selected.to_vec();
-    for doc in &scene.forest.documents {
-        for (index, node) in doc.nodes.iter().enumerate() {
-            if !node.derived { continue; }
-            let Some(id) = node.object.filter(|id| scene.visible(*id)) else { continue; };
-            if ancestor(scene, doc, index).is_some_and(|owner| selected.contains(&owner)) {
-                ids.push(id);
-            }
-        }
-    }
-    ids.sort_unstable_by_key(|id| id.value());
-    ids.dedup();
-    ids
+    visual_owner(scene, id).and_then(|id| scene.pick_id(id.value()))
 }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-01.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-02.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-03.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-04.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-05.rs"
-```
-
-</details>
 
 ### 2. `src/ambient_rows.rs`
 
 Remove the obsolete maximum before visual-owner mapping. Compute the maximum after resolving original visual radii. Map temporary numeric radii to original visual owners, without retaining another source or property cache.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-#[derive(Default)]
-pub struct Rows{bounds:crate::cap_source_bounds::Bounds,pub specs:Vec<(u32,f32)>,pub ground:[f64;2]}
-impl Rows{
- pub fn ground_at(&self,anchor:[f64;3])->[f32;2] {[(self.ground[0]-anchor[2])as f32,self.ground[1]as f32]}
- pub fn set(&mut self,scene:&crate::scene::Scene){self.specs.clear();let mut floor=f64::INFINITY;let mut radius=0f32;for object in scene.objects().iter().filter(|r|scene.visible(r.id)&&!r.mesh.indices().is_empty()){if let Some(bounds)=self.bounds.placed(&object.mesh,&object.model){let r=crate::ambient_radius::ambient_radius(&bounds);self.specs.push((object.id.value(),r));floor=floor.min(bounds.cz-bounds.hz);radius=radius.max(r);}}self.ground=[if floor.is_finite(){floor}else{0.},f64::from(radius)];self.bounds.prune();if self.specs.is_empty(){self.specs.shrink_to_fit();}}
-}
+        let mut floor = f64::INFINITY;
+        let mut radius = 0f32;
+        for object in scene
+            .objects()
+            .iter()
+            .filter(|r| scene.visible(r.id) && !r.mesh.indices().is_empty())
+        {
+            if let Some(bounds) = self
+                .bounds
+                .placed(&object.mesh, &object.model)
+            {
+                let r = crate::ambient_radius::ambient_radius(&bounds);
+                self.specs.push((object.id.value(), r));
+                floor = floor.min(bounds.cz - bounds.hz);
+                radius = radius.max(r);
+            }
+        }
+        self.ground = [
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-#[derive(Default)]
-pub struct Rows{bounds:crate::cap_source_bounds::Bounds,pub specs:Vec<(u32,f32)>,pub ground:[f64;2]}
-impl Rows{
- pub fn ground_at(&self,anchor:[f64;3])->[f32;2] {[(self.ground[0]-anchor[2])as f32,self.ground[1]as f32]}
- pub fn set(&mut self,scene:&crate::scene::Scene){self.specs.clear();let mut floor=f64::INFINITY;for object in scene.objects().iter().filter(|r|scene.visible(r.id)&&!r.mesh.indices().is_empty()){if let Some(bounds)=self.bounds.placed(&object.mesh,&object.model){let r=crate::ambient_radius::ambient_radius(&bounds);self.specs.push((object.id.value(),r));floor=floor.min(bounds.cz-bounds.hz);}}let mut radii=self.specs.iter().copied().collect::<std::collections::HashMap<_,_>>();for object in scene.objects().iter().filter(|r|scene.forest.derived(r.id)){if let Some(radius)=crate::feature_owner::visual_owner(scene,object.id).and_then(|id|radii.get(&id.value())).copied(){radii.insert(object.id.value(),radius);}}for(id,radius)in &mut self.specs{*radius=radii[id];}let radius=self.specs.iter().fold(0f32,|radius,row|radius.max(row.1));self.ground=[if floor.is_finite(){floor}else{0.},f64::from(radius)];self.bounds.prune();if self.specs.is_empty(){self.specs.shrink_to_fit();}}
-}
+        let mut floor = f64::INFINITY;
+        for object in scene
+            .objects()
+            .iter()
+            .filter(|r| scene.visible(r.id) && !r.mesh.indices().is_empty())
+        {
+            if let Some(bounds) = self
+                .bounds
+                .placed(&object.mesh, &object.model)
+            {
+                let r = crate::ambient_radius::ambient_radius(&bounds);
+                self.specs.push((object.id.value(), r));
+                floor = floor.min(bounds.cz - bounds.hz);
+            }
+        }
+        let mut radii = self
+            .specs
+            .iter()
+            .copied()
+            .collect::<std::collections::HashMap<_, _>>();
+        for object in scene
+            .objects()
+            .iter()
+            .filter(|r| scene.forest.derived(r.id))
+        {
+            if let Some(radius) = crate::feature_owner::visual_owner(scene, object.id)
+                .and_then(|id| radii.get(&id.value()))
+                .copied()
+            {
+                radii.insert(object.id.value(), radius);
+            }
+        }
+        for (id, radius) in &mut self.specs {
+            *radius = radii[id];
+        }
+        let radius = self
+            .specs
+            .iter()
+            .fold(0f32, |radius, row| radius.max(row.1));
+        self.ground = [
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-08.rs"
-```
-
-</details>
 
 ### 3. `src/ambient_sources.wgsl`
 
 Reuse the actual geometry function, including contact depth and clipping flags. Read existing packed colour and normal words for the shared contact-depth function. Match contact coverage in the existing shared object path too.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```wgsl
 struct Vertex{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(2) @interpolate(flat) flags:u32,@location(3) @interpolate(flat) radius:f32}
@@ -2090,15 +1816,7 @@ fn ambient_vertex(position:vec3<f32>,object:ObjectSettings)->Vertex {
 @vertex fn vs_main(@location(0) position:vec3<f32>)->Vertex {return ambient_vertex(position,object_at(0u));}
 @vertex fn vs_record(@builtin(vertex_index) occurrence:u32,@location(0) row:u32)->Vertex {let object=object_at(row);let input=mesh_vertex(occurrence,object.range.x);return ambient_vertex(input.position,object);}
 fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z));let folded=(1.-abs(p.yx))*select(vec2<f32>(-1.),vec2<f32>(1.),p>=vec2<f32>(0.));return select(folded,p,n.z>=0.);}
-struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
-@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
- let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
- let normal=normalize(select(face,-face,front));
- return Source(in.radius,encode_normal(normal)*0.5+0.5);
-}
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -2110,131 +1828,641 @@ fn ambient_vertex(position:vec3<f32>,colour:vec4<f32>,normal:vec3<f32>,object:Ob
 @vertex fn vs_main(@location(0) position:vec3<f32>,@location(1) normal:u32,@location(2) colour:u32)->Vertex {return ambient_vertex(position,unpack4x8unorm(colour),oct32_decode(normal),object_at(0u));}
 @vertex fn vs_record(@builtin(vertex_index) occurrence:u32,@location(0) row:u32)->Vertex {let object=object_at(row);let input=mesh_vertex(occurrence,object.range.x);return ambient_vertex(input.position,input.colour,input.normal,object);}
 fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z));let folded=(1.-abs(p.yx))*select(vec2<f32>(-1.),vec2<f32>(1.),p>=vec2<f32>(0.));return select(folded,p,n.z>=0.);}
-struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
-@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
- let face=cross(dpdx(in.world),dpdy(in.world));if((in.flags&32768u)!=0u){discard;}if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
- let normal=normalize(select(face,-face,front));
- return Source(in.radius,encode_normal(normal)*0.5+0.5);
-}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-09.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-10.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-11.rs"
-```
-
-</details>
 
 ### 4. `src/ambient_source_pipeline.rs`
 
 Use the existing 20-byte vertex layout; no additional buffer or attribute storage.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw}
+            });
+            let attributes = wgpu::vertex_attr_array![0=>Float32x3];
+            let draw = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-  let attributes=wgpu::vertex_attr_array![0=>Float32x3,1=>Uint32,2=>Uint32];let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some(if shared {"vs_record"}else{"vs_main"}),compilation_options:Default::default(),buffers:&[if shared {crate::draw_slots::layout()}else{wgpu::VertexBufferLayout{array_stride:20,step_mode:wgpu::VertexStepMode::Vertex,attributes:&attributes}}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw}
+            });
+            let attributes = wgpu::vertex_attr_array![0=>Float32x3,1=>Uint32,2=>Uint32];
+            let draw = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-12.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/ambient_contact_tests.rs`
 
 Check real contact coverage/radius, both object paths and device budgets, locks, original picks, source semantics and placed definitions.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-13.rs"
+```rust
+use crate::{
+    camera::{Camera, Projection},
+    cap_gpu_tests::{renderer, wait},
+    editor::{Action, Editor},
+    scene::Scene,
+};
+use prost::Message;
+use session_rust::{Session, Xform, proto};
+use std::rc::Rc;
+
+fn document() -> proto::Session {
+    let (_, source) = super::contact_feature_tests::imported(false);
+    let mut d = Session::from_proto(source).unwrap();
+    let mut cube = crate::cap_gpu_tests::source(false);
+    assert!(cube.transform(
+        &(&Xform::translation(280., 200., 80.) * &Xform::scale_xyz(100., 100., 100.))
+    ));
+    cube.set_objectcolor(session_rust::Color::new(0.3, 0.3, 0.3, 1.));
+    d.add_mesh(cube, None);
+    d.to_proto()
+}
+fn editor(bytes: &[u8]) -> Editor {
+    let mut e = Editor::default();
+    e.apply(Action::ReplaceAt(
+        bytes.to_vec(),
+        Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:contact-ambient".into(),
+        )),
+    ))
+    .unwrap();
+    e
+}
+fn camera(projection: Projection) -> Camera {
+    let mut c = crate::camera_defaults_tests::top_fixture();
+    c.distance = 3000.;
+    c.radius = 1500.;
+    c.aspect = 4. / 3.;
+    c.projection = projection;
+    c
+}
+fn snapshot(
+    s: &Scene,
+) -> (
+    Vec<proto::Session>,
+    Vec<(String, proto::Mesh)>,
+    serde_json::Value,
+) {
+    let b = crate::archive::Bundle::decode(&crate::scene_archive::save(s).unwrap())
+        .unwrap();
+    let mut embedded = Vec::new();
+    let documents = b
+        .documents
+        .iter()
+        .enumerate()
+        .map(|(document, v)| {
+            let mut d = proto::Session::decode(v.as_slice()).unwrap();
+            for (branch, objects) in [
+                ("objects", d.objects.as_mut()),
+                ("definitions", d.definitions.as_mut()),
+            ] {
+                if let Some(objects) = objects {
+                    for (index, element) in objects.elements.iter_mut().enumerate() {
+                        if element.geometry_type == "Mesh" {
+                            embedded.push((
+                                format!(
+                                    "{document}/{branch}/{index}/{}",
+                                    element.guid
+                                ),
+                                proto::Mesh::decode(element.geometry_data.as_slice())
+                                    .unwrap(),
+                            ));
+                            element.geometry_data.clear();
+                        }
+                    }
+                }
+            }
+            d
+        })
+        .collect();
+    (
+        documents,
+        embedded,
+        serde_json::to_value(b.metadata).unwrap(),
+    )
+}
+fn low_renderer(s: &Scene) -> super::Renderer {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::VULKAN,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+    let adapter =
+        pollster::block_on(instance.request_adapter(&Default::default())).unwrap();
+    let mut request = wgpu::DeviceDescriptor::default();
+    request
+        .required_limits
+        .max_storage_buffer_binding_size = 64 * 1024;
+    let (device, queue) = pollster::block_on(adapter.request_device(&request)).unwrap();
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        panic!("Actual contact ambient device: {error}")
+    }));
+    let mut g = super::Renderer::new(
+        device,
+        queue,
+        wgpu::TextureFormat::Rgba8Unorm,
+        s,
+    );
+    g.resize(crate::viewport::Viewport {
+        width: 320,
+        height: 240,
+    });
+    g
+}
+fn pixels(g: &mut super::Renderer, c: &Camera, size: [u32; 2]) -> Vec<u8> {
+    crate::widget_tests::pixels(g, &c.uniform(), size)
+}
+fn read(g: &super::Renderer, t: &wgpu::Texture, bpp: u32) -> Vec<u8> {
+    let size = t.size();
+    let pitch = (size.width * bpp).div_ceil(256) * 256;
+    let b = g
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size: u64::from(pitch) * u64::from(size.height),
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    e.copy_texture_to_buffer(
+        t.as_image_copy(),
+        wgpu::TexelCopyBufferInfo {
+            buffer: &b,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(pitch),
+                rows_per_image: Some(size.height),
+            },
+        },
+        size,
+    );
+    g.queue.submit([e.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    b.slice(..)
+        .map_async(wgpu::MapMode::Read, move |v| {
+            tx.send(v).unwrap()
+        });
+    wait(g);
+    rx.recv().unwrap().unwrap();
+    let mapped = b.slice(..).get_mapped_range();
+    let value = mapped
+        .chunks_exact(pitch as usize)
+        .flat_map(|row| {
+            row[..(size.width * bpp) as usize]
+                .iter()
+                .copied()
+        })
+        .collect();
+    drop(mapped);
+    b.unmap();
+    value
+}
+fn properties(g: &super::Renderer, size: [u32; 2], shared: bool) -> (Vec<u8>, Vec<u8>) {
+    let texture = |format| {
+        g.device
+            .create_texture(&wgpu::TextureDescriptor {
+                label: Some("actual contact ambient property readback"),
+                size: wgpu::Extent3d {
+                    width: size[0],
+                    height: size[1],
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::COPY_SRC,
+                view_formats: &[],
+            })
+    };
+    let radii = texture(wgpu::TextureFormat::R32Float);
+    let normals = texture(wgpu::TextureFormat::Rg8Unorm);
+    let mut sources = crate::ambient_source_gpu::Sources::new(&g.device);
+    let mut e = g
+        .device
+        .create_command_encoder(&Default::default());
+    sources.encode(
+        &mut e,
+        &radii.create_view(&Default::default()),
+        &normals.create_view(&Default::default()),
+        &g.depth,
+        &g.view_group,
+        &g.clipping.borrow().group,
+        &g.meshes,
+        shared.then_some(&g.instances),
+    );
+    g.queue.submit([e.finish()]);
+    (read(g, &radii, 4), read(g, &normals, 2))
+}
+fn sample(c: &Camera, size: [u32; 2], p: [f64; 3]) -> usize {
+    let ndc = super::contact_feature_tests::project(c.uniform(), p);
+    let x = ((ndc[0] + 1.) * size[0] as f32 / 2.).floor() as usize;
+    let y = ((1. - ndc[1]) * size[1] as f32 / 2.).floor() as usize;
+    assert!(x < size[0] as usize && y < size[1] as usize);
+    y * size[0] as usize + x
+}
+fn radius(data: &[u8], index: usize) -> f32 {
+    f32::from_ne_bytes(
+        data[index * 4..index * 4 + 4]
+            .try_into()
+            .unwrap(),
+    )
+}
+fn pick(
+    g: &mut super::Renderer,
+    s: &Scene,
+    c: &Camera,
+    p: [f64; 3],
+) -> Option<crate::pick_sources::Target> {
+    g.set_pick_mode(crate::pick_sources::Mode::Face);
+    g.request_pick(
+        super::contact_feature_tests::project(c.uniform(), p),
+        c.uniform(),
+    )
+    .unwrap();
+    wait(g);
+    g.take_pick(c.uniform())
+        .unwrap()
+        .unwrap()
+        .and_then(|v| g.resolve_pick(s, v))
+}
+fn export(name: &str, s: &Scene, bytes: &[u8], image: &[u8], size: [u32; 2]) {
+    if let Some(root) = std::env::var_os("VIEWER_AMBIENT_CONTACT_PROOF_DIR") {
+        use std::io::Write;
+        let root = std::path::Path::new(&root);
+        std::fs::create_dir_all(root).unwrap();
+        std::fs::write(root.join(format!("{name}.pb")), bytes).unwrap();
+        std::fs::write(
+            root.join(format!("{name}.session")),
+            crate::scene_archive::save(s).unwrap(),
+        )
+        .unwrap();
+        let mut f = std::fs::File::create(root.join(format!("{name}.ppm"))).unwrap();
+        write!(f, "P6\n{} {}\n255\n", size[0], size[1]).unwrap();
+        for p in image.chunks_exact(4) {
+            f.write_all(&p[..3]).unwrap();
+        }
+    }
+}
+
+#[test]
+fn contact_properties_match_original_radius_and_shared_geometry_in_both_paths() {
+    let bytes = document().encode_to_vec();
+    let mut e = editor(&bytes);
+    let parent = e
+        .scene
+        .objects()
+        .iter()
+        .find(|r| {
+            matches!(
+                r.original.as_ref(),
+                Some(session_rust::Geometry::Element(_))
+            )
+        })
+        .unwrap()
+        .id;
+    let child = e
+        .scene
+        .objects()
+        .iter()
+        .find(|r| e.scene.forest.derived(r.id))
+        .unwrap()
+        .id;
+    let original = snapshot(&e.scene);
+    let point = [450., 200., 0.];
+    for reduced in [false, true] {
+        let mut g = if reduced {
+            low_renderer(&e.scene)
+        } else {
+            renderer(&e.scene)
+        };
+        g.set_opacity(1.);
+        g.set_ambient(true);
+        let uploads = g.stats()[0];
+        for projection in [
+            Projection::Orthographic,
+            Projection::Perspective,
+        ] {
+            let c = camera(projection);
+            for density in [1u32, 2] {
+                let size = [320 * density, 240 * density];
+                g.resize(crate::viewport::Viewport {
+                    width: size[0],
+                    height: size[1],
+                });
+                g.set_density(density as f32);
+                g.set_scene(&e.scene, None);
+                let image = pixels(&mut g, &c, size);
+                let expected = g
+                    .ambient_rows
+                    .specs
+                    .iter()
+                    .find(|r| r.0 == parent.value())
+                    .unwrap()
+                    .1;
+                assert_eq!(
+                    g.ambient_rows
+                        .specs
+                        .iter()
+                        .find(|r| r.0 == child.value())
+                        .unwrap()
+                        .1,
+                    expected
+                );
+                let legacy = properties(&g, size, false);
+                let shared = properties(&g, size, true);
+                assert!(
+                    legacy == shared,
+                    "Every actual legacy/shared source property byte agrees"
+                );
+                let index = sample(&c, size, point);
+                assert_eq!(
+                    radius(&shared.0, index),
+                    expected,
+                    "Actual contact radius follows its original visual owner"
+                );
+                assert!(
+                    shared.1[index * 2..index * 2 + 2]
+                        .iter()
+                        .all(|v| v.abs_diff(128) <= 1),
+                    "Ambient source normals remain geometric"
+                );
+                if !reduced {
+                    assert!(
+                        g.meshes
+                            .iter()
+                            .all(|m| g.instances.current_row(m).is_some()),
+                        "The ordinary device exercises actual storage object records"
+                    );
+                } else {
+                    assert_eq!(
+                        g.tile_usage()[..2],
+                        [96, 16],
+                        "Real64KiB device retains physical fallback"
+                    );
+                }
+                assert_eq!(
+                    pick(&mut g, &e.scene, &c, point),
+                    Some(crate::pick_sources::Target {
+                        owner: parent,
+                        part: crate::pick_sources::Part::Face(0)
+                    })
+                );
+                assert!(snapshot(&e.scene) == original);
+                Rc::make_mut(&mut e.scene.view).lock(&[parent], true);
+                assert_eq!(
+                    crate::feature_owner::visual_owner(&e.scene, child),
+                    Some(parent)
+                );
+                assert_eq!(
+                    crate::feature_owner::display_owner(&e.scene, child),
+                    None
+                );
+                g.set_scene(&e.scene, None);
+                assert!(
+                    pixels(&mut g, &c, size) == image,
+                    "Locking changes picking, not visible contact shading"
+                );
+                assert_eq!(
+                    radius(&properties(&g, size, false).0, index),
+                    expected
+                );
+                assert_eq!(pick(&mut g, &e.scene, &c, point), None);
+                Rc::make_mut(&mut e.scene.view).lock(&[parent], false);
+                g.set_scene(&e.scene, None);
+                assert!(pixels(&mut g, &c, size) == image);
+                assert!(snapshot(&e.scene) == original);
+                let ordinary = std::mem::take(&mut g.instances.ordinary);
+                g.set_ambient(false);
+                g.set_ambient(true);
+                assert!(
+                    pixels(&mut g, &c, size) == image,
+                    "Actual complete renderer uniform fallback preserves every pixel"
+                );
+                g.instances.ordinary = ordinary;
+                assert_eq!(g.stats()[0], uploads);
+                if !reduced {
+                    let name = format!(
+                        "ordinary-{}-dpr{density}",
+                        if projection == Projection::Orthographic {
+                            "orthographic"
+                        } else {
+                            "perspective"
+                        }
+                    );
+                    export(&name, &e.scene, &bytes, &image, size);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn placed_contacts_follow_original_instances_without_changing_pickability_or_geometry()
+{
+    let element = document()
+        .objects
+        .unwrap()
+        .elements
+        .remove(0);
+    let guid = element.guid.clone();
+    let mut source = crate::instance_specimen::message();
+    source.definitions = Some(proto::Objects {
+        elements: vec![element],
+        ..Default::default()
+    });
+    for row in &mut source.objects.as_mut().unwrap().instances {
+        row.definition_guid = guid.clone();
+        row.xform = None;
+        row.flags = 0;
+    }
+    source.xforms = vec![
+        proto::XformEntry {
+            guid: "first".into(),
+            xform: Some(Xform::translation(-1800., 0., 0.).to_proto()),
+        },
+        proto::XformEntry {
+            guid: "second".into(),
+            xform: Some(
+                (&Xform::translation(1800., 0., 0.)
+                    * &Xform::scale_xyz(-0.8, 1.2, 1.4))
+                    .to_proto(),
+            ),
+        },
+    ];
+    let bytes = source.encode_to_vec();
+    let mut e = editor(&bytes);
+    let parents = e
+        .scene
+        .objects()
+        .iter()
+        .filter(|r| e.scene.instances.contains_key(&r.id))
+        .map(|r| r.id)
+        .collect::<Vec<_>>();
+    assert_eq!(parents.len(), 2);
+    let rows = parents
+        .iter()
+        .map(|id| {
+            e.scene
+                .objects()
+                .iter()
+                .find(|r| r.id == *id)
+                .unwrap()
+        })
+        .collect::<Vec<_>>();
+    assert!(Rc::ptr_eq(&rows[0].mesh, &rows[1].mesh));
+    let weak = Rc::downgrade(rows[0].geometry().unwrap());
+    let original = snapshot(&e.scene);
+    let mut g = renderer(&e.scene);
+    g.set_opacity(1.);
+    g.set_ambient(true);
+    let uploads = g.stats()[0];
+    for projection in [
+        Projection::Orthographic,
+        Projection::Perspective,
+    ] {
+        let mut c = camera(projection);
+        c.distance = 6000.;
+        c.radius = 3000.;
+        for density in [1u32, 2] {
+            let size = [320 * density, 240 * density];
+            g.resize(crate::viewport::Viewport {
+                width: size[0],
+                height: size[1],
+            });
+            g.set_density(density as f32);
+            g.set_scene(&e.scene, None);
+            let image = pixels(&mut g, &c, size);
+            let properties = properties(&g, size, true);
+            let mut expected = Vec::new();
+            for &parent in &parents {
+                let r = g
+                    .ambient_rows
+                    .specs
+                    .iter()
+                    .find(|r| r.0 == parent.value())
+                    .unwrap()
+                    .1;
+                expected.push(r);
+                let placed = e
+                    .scene
+                    .placement(parent)
+                    .unwrap()
+                    .transform_point(&session_rust::Point::new(450., 200., 0.));
+                let point = [placed[0], placed[1], placed[2]];
+                assert_eq!(
+                    radius(&properties.0, sample(&c, size, point)),
+                    r
+                );
+                assert_eq!(
+                    pick(&mut g, &e.scene, &c, point)
+                        .unwrap()
+                        .owner,
+                    parent
+                );
+                for child in e.scene.objects().iter().filter(|r| {
+                    e.scene.forest.derived(r.id)
+                        && crate::feature_owner::visual_owner(&e.scene, r.id)
+                            == Some(parent)
+                }) {
+                    assert_eq!(
+                        g.ambient_rows
+                            .specs
+                            .iter()
+                            .find(|r| r.0 == child.id.value())
+                            .unwrap()
+                            .1,
+                        r
+                    );
+                }
+            }
+            assert_ne!(
+                expected[0], expected[1],
+                "World-scaled original instances retain distinct contact radii"
+            );
+            assert!(snapshot(&e.scene) == original);
+            let old = e.scene.placement(parents[0]).unwrap();
+            e.scene
+                .translate(parents[0], [100., 0., 0.])
+                .unwrap();
+            g.set_scene(&e.scene, None);
+            assert!(pixels(&mut g, &c, size) != image);
+            e.scene.place_owner(parents[0], old).unwrap();
+            g.set_scene(&e.scene, None);
+            assert!(pixels(&mut g, &c, size) == image);
+            assert_eq!(g.stats()[0], uploads);
+            assert!(snapshot(&e.scene) == original);
+            let name = format!(
+                "instances-{}-dpr{density}",
+                if projection == Projection::Orthographic {
+                    "orthographic"
+                } else {
+                    "perspective"
+                }
+            );
+            export(&name, &e.scene, &bytes, &image, size);
+        }
+    }
+    let before = snapshot(&e.scene);
+    assert_eq!(
+        e.apply(Action::UnloadSources).err(),
+        Some("No eligible imported sources to unload")
+    );
+    assert!(snapshot(&e.scene) == before);
+    assert!(weak.upgrade().is_some());
+    drop(e);
+    assert!(
+        weak.upgrade().is_none(),
+        "Numeric visual radii do not retain original definition sources"
+    );
+    g.set_scene(&Scene::empty(), None);
+    g.resize(crate::viewport::Viewport {
+        width: 320,
+        height: 240,
+    });
+    let c = camera(Projection::Orthographic);
+    pixels(&mut g, &c, [320, 240]);
+    assert_eq!(g.ambient_usage()[0], 320);
+}
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/renderer.rs`
 
 Register the two actual original contact-input GPU checks.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-mod ambient_order_tests;
+```rust
+#[cfg(test)]
+#[path = "ambient_input_tests.rs"]
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/96zzzzzzt-keep-contact-ambient-inputs-on-originals-14.rs" skip=24
+```rust
+#[cfg(test)]
+#[path = "ambient_contact_tests.rs"]
+mod ambient_contact_tests;
+#[cfg(test)]
+#[path = "ambient_input_tests.rs"]
 ```
 
-</details>
-
-</details>
-
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+## Build & Run
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96zzzzzzt-keep-contact-ambient-inputs-on-originals
-npm --prefix ../session_tests run course -- check 96zzzzzzt-keep-contact-ambient-inputs-on-originals
-npm --prefix ../session_tests run course -- save 96zzzzzzt-keep-contact-ambient-inputs-on-originals
+npm --prefix ../session_tests run course -- dependencies 22.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 22.4
+npm --prefix ../session_tests run course -- save 22.4
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-These are expected checkpoint behaviors, not new GPU/browser acceptance from this editorial batch. Current production parity and the remaining runtime fixes require the declared matched checks after integration.
-
-Actual contact pixels retain their original radius and receive ambient shading. Uniform and storage paths share the existing contact geometry function, including device fallback and original ownership.
-
-Inspect actual source-radius readbacks and matching whole frames, both projections and densities, real 64 KiB device fallback, locked original owners, mirrored nonuniform definition placements and complete source values.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
-
-Continue with [Coherent multisampling and frame-resource ownership](96zzzzzzu-keep-depth-and-address-samples-separate.md).
+Continue with [22.5 · Coherent multisampling and frame-resource ownership](96zzzzzzu-keep-depth-and-address-samples-separate.md).

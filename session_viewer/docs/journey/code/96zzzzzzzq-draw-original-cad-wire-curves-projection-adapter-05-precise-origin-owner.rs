@@ -1,0 +1,1 @@
+let mut camera=crate::camera_defaults_tests::top_fixture();camera.target=anchor;assert!(gpu.prepare_origin(&camera,&far,None,&[],0.).unwrap().moved);assert_eq!(gpu.meshes[0].rebase(&gpu.queue,anchor),[0,0]);

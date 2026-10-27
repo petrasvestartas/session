@@ -1,0 +1,157 @@
+{
+  "status": "APPLIED all five explicitly user-approved production-aligned harness corrections; full callbacks pending",
+  "appliedUtc": "2026-10-24T12:59:21.389Z",
+  "authorization": "User yes to five-correction approval question; preserve Gemini corrections and Vue style/structure; modify existing content sections only.",
+  "reviewSha256": "b931e598e3a4a54b8ee6ea31e635e5240e4b65871cd70477592ec52f3d97ef70",
+  "diff": {
+    "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/five-corrections.diff",
+    "sha256": "e484ef1d96df84fce482e271187e30b449f038614b534edd05a234565a19f240"
+  },
+  "writes": [
+    {
+      "target": "docs/journey/checks/browser/vertex-pulling.cjs",
+      "candidate": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/vertex-pulling.cjs",
+      "beforeSha256": "533889312b28540caece59e8eb328ef7c3cb2e112fc5bcd07c592e437f89f685",
+      "afterSha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+    },
+    {
+      "target": "docs/journey/checks/browser/gpu-pick-view.cjs",
+      "candidate": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/gpu-pick-view.cjs",
+      "beforeSha256": "0954dc25bdf5693e97243d291763f9ace9458a44d305f0a10a9289af615a0941",
+      "afterSha256": "a3c8c1e150c77784904c314b6c40f8c201e2eb1ffc6b8cf6445404211428e05f"
+    },
+    {
+      "target": "docs/journey/checks/browser/mesh-markers.cjs",
+      "candidate": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/mesh-markers.cjs",
+      "beforeSha256": "d0f56d4da00f85659d130a73fc42f297b9947e14f8b49480b2d4b3fc43996905",
+      "afterSha256": "625f76432d6e9fafcded8c04eacd04d8f631bcb104ee64904c009664a89c120c"
+    },
+    {
+      "target": "docs/journey/checks/browser/split.cjs",
+      "candidate": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/split.cjs",
+      "beforeSha256": "6d536c67a44691195600b86d06d415eadbcb1055bd6feee2ec91459f6f442872",
+      "afterSha256": "08bbbb4f23018296470d1070bcdb952975acfe1d6debc32ae63234b8afcbbfb6"
+    },
+    {
+      "target": "docs/journey/checks/browser/document-phases.cjs",
+      "candidate": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/document-phases.cjs",
+      "beforeSha256": "9908758eb9702ef841ad67ed9179a14863b87137b633baad5cde438d7647bf4a",
+      "afterSha256": "53977374a7a2c63fed8cb90d5b53992a2c82437a94090507e5214a06a4446dc3"
+    },
+    {
+      "target": "docs/journey/checks/browser/stage-error-contract.cjs",
+      "candidate": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/stage-error-contract.cjs",
+      "beforeSha256": null,
+      "afterSha256": "f6bafbf729db2570a614f3830951639d8b1d4619372fb256fdfdb5c2dee0f24d"
+    }
+  ],
+  "scope": "Only five existing browser checks and one fail-closed source-error guard. All behavioral assertions retained. No Vue/frontend, authored runtime, courseJSON, tutorial prose, phase reuse or typing-delay change.",
+  "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "application": {
+    "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/approved-application-v1/application.json",
+    "sha256": "fed07cfec0bad47a5e2bd404aaba76e06b732938596cd0986b2778f2cf2ec829"
+  },
+  "preparedCorrections": [
+    {
+      "id": "vertex-selection",
+      "file": "vertex-pulling.cjs",
+      "scope": "Original selection-loss reproduced DPR1/2; candidate original vertex body assertions PASS DPR1/2. Focused only, no fullSlot acceptance.",
+      "canonical": {
+        "path": "docs/journey/checks/browser/vertex-pulling.cjs",
+        "sha256": "533889312b28540caece59e8eb328ef7c3cb2e112fc5bcd07c592e437f89f685"
+      },
+      "preparedCandidate": {
+        "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/vertex-pulling.cjs",
+        "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+      },
+      "actualTestedEvidence": {
+        "path": "target/course-windows-20261018/vertex-pulling-selection-correction-preparation/run-20261024T043047051Z/diagnostic/receipt.json",
+        "sha256": "a233c55b6024c3b42f2f7ce787363f86193b5d63d4aa415450bf5489775c3165"
+      }
+    },
+    {
+      "id": "origin-pick-setup",
+      "file": "gpu-pick-view.cjs",
+      "scope": "Original2-click gizmo cause witnessed; entirecandidate20-case gpu-pick-view body DPR1/2 PASS with actualparentpickUniformBytes160/sourceOutlinestrue. No full80d acceptance.",
+      "canonical": {
+        "path": "docs/journey/checks/browser/gpu-pick-view.cjs",
+        "sha256": "0954dc25bdf5693e97243d291763f9ace9458a44d305f0a10a9289af615a0941"
+      },
+      "preparedCandidate": {
+        "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/gpu-pick-view.cjs",
+        "sha256": "a3c8c1e150c77784904c314b6c40f8c201e2eb1ffc6b8cf6445404211428e05f"
+      },
+      "actualTestedEvidence": {
+        "path": "target/course-windows-20261018/80d-gpu-pick-view-diagnostic-preparation/run-20261024T045715692Z/diagnostic/receipt.json",
+        "sha256": "ee737d9d7ea56f57f31d8a3dcdd3fd9745ba4a41e5754caea3b210e03209a8b9"
+      }
+    },
+    {
+      "id": "control-mode",
+      "file": "mesh-markers.cjs",
+      "scope": "Completecandidate635default body DPR1/2,28specimen/projection rows, originalroundcaps/contact prerequisites and6PNGs PASS. No enclosing canonical capture acceptance.",
+      "canonical": {
+        "path": "docs/journey/checks/browser/mesh-markers.cjs",
+        "sha256": "d0f56d4da00f85659d130a73fc42f297b9947e14f8b49480b2d4b3fc43996905"
+      },
+      "preparedCandidate": {
+        "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/mesh-markers.cjs",
+        "sha256": "625f76432d6e9fafcded8c04eacd04d8f631bcb104ee64904c009664a89c120c"
+      },
+      "actualTestedEvidence": {
+        "path": "target/course-windows-20261018/mesh-marker-control-input-preparation/run-20261024T052521363Z/diagnostic/receipt.json",
+        "sha256": "545a3b7d06387f3299920f5ac2bc506733cdc9861e7d0cbbf4e2c808936523cf"
+      }
+    },
+    {
+      "id": "split-object-mode",
+      "file": "split.cjs",
+      "scope": "Focused Split body only, every original assertion retained, editing.cjs and all upstream prerequisites omitted. NOT full canonical acceptance.",
+      "canonical": {
+        "path": "docs/journey/checks/browser/split.cjs",
+        "sha256": "6d536c67a44691195600b86d06d415eadbcb1055bd6feee2ec91459f6f442872"
+      },
+      "preparedCandidate": {
+        "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/split.cjs",
+        "sha256": "08bbbb4f23018296470d1070bcdb952975acfe1d6debc32ae63234b8afcbbfb6"
+      },
+      "actualTestedEvidence": {
+        "path": "target/course-windows-20261018/split-control-candidate-v1/report.json",
+        "sha256": "69fcd6da1e560a733bede8431f8e8e8850e9069a260363df5fc72243f040d121"
+      }
+    },
+    {
+      "id": "source-decode-contract",
+      "file": "document-phases.cjs",
+      "scope": "Focused full document body65c legacy and94c owned browserdecode eachDPR1/2 PASS;96zzq legacy relevance sourceguard only, not new96zzq focusedexecution. Allphase/source/archive/image/UndoRedo assertions retained.",
+      "canonical": {
+        "path": "docs/journey/checks/browser/document-phases.cjs",
+        "sha256": "9908758eb9702ef841ad67ed9179a14863b87137b633baad5cde438d7647bf4a"
+      },
+      "preparedCandidate": {
+        "path": "target/course-windows-20261018/five-canonical-harness-corrections-review/candidate/document-phases.cjs",
+        "sha256": "53977374a7a2c63fed8cb90d5b53992a2c82437a94090507e5214a06a4446dc3"
+      },
+      "actualTestedEvidence": {
+        "path": "target/course-windows-20261018/65c-document-phases-diagnosis-v1/compatibility-candidate-v2/document-phases-source-contract-focus-v2.focus.json",
+        "sha256": "43daf7dc50839850713f9eb242c79ede21ee4e2ff42ec01a9f3ed556bebe7ff9"
+      }
+    }
+  ],
+  "affectedPendingEntries": [
+    "65c",
+    "80d",
+    "85ay",
+    "88ad",
+    "95f",
+    "96h",
+    "96zzo",
+    "96zzq",
+    "94c",
+    "96zzzzzzp"
+  ],
+  "fullCallbackAcceptance": false,
+  "verification": "All six candidate files passed node --check; existing scoped semantic/GPU candidate evidence remains bound by original hashes. No new full callback or native execution inferred."
+}

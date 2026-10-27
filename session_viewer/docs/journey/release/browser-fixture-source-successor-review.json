@@ -1,0 +1,78 @@
+{
+  "status": "PASS exact379 runtime bindings and256 retained actual identities plus actual fixture-qualified96v adopted",
+  "date": "2026-10-26T04:32:51.877Z",
+  "oldCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\35445b2c24386c2f915b\\cohort.json",
+    "sha256": "d1e483ec1d847f4527dbf46e87656940298c45cde3c9ad24c9439943020c78f3"
+  },
+  "newCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\b89b3e3ac4e8a0c91eaf\\cohort.json",
+    "sha256": "3346b35133711f9e4f94f5d99ec558670396013e5efbbea89cf169760a910606"
+  },
+  "all379RuntimeBindingsEqual": true,
+  "completed": 257,
+  "remaining": 122,
+  "retainedActualRecords": 256,
+  "adoptedActualRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\fixture-qualified-fallback\\96v-project-definition-and-per-instance-features-bfb9368c065bbe82fc4e\\capture.json",
+    "sha256": "103c7224eb4e2ebff8516ddb82c1069e7148fa7b316bc7edfe9e3f6f179dcaed"
+  },
+  "operationalDriver": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v5.ts",
+    "sha256": "bc490895869fe7723dd7c822827b71a8633df1fbb56ef2cc2999588ae9c6c069"
+  },
+  "helpers": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-batch-v6.ts",
+      "sha256": "d4b974284c5eaf60f69a1d6245d296f082fb19b648320908a45dee820d61f5c8"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v5.ts",
+      "sha256": "bc490895869fe7723dd7c822827b71a8633df1fbb56ef2cc2999588ae9c6c069"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\fixture-qualified-browser-fallback-v2.ts",
+      "sha256": "04574642130ee41a5d6a372acc5e2ec6c42db7d5cc045a5837d5bdb63f3aafc9"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-browser-fallback.ts",
+      "sha256": "9b1e01ace3661ffef2ffba53ff17d3ca2f0439d9466bceba8a3c38be74ef592e"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.cjs",
+      "sha256": "778cb0766041aadf97508f1ff4f77e961be3d2e2a97cb0edb4a78890abc3d0de"
+    }
+  ],
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "bb1a76e52d57f873721c27e37f17fbe892a8cae2d086916e6eea328b78e3b06d"
+  },
+  "methodReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-declared-fixture-runtime-review.json",
+    "sha256": "40ff1d47a3a6066ee307e090277454644f7da18f4cf9626bb0377ec95ee1ad29"
+  },
+  "methodReviews": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-declared-fixture-runtime-review.json",
+      "sha256": "40ff1d47a3a6066ee307e090277454644f7da18f4cf9626bb0377ec95ee1ad29"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+      "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-owned-action-file-transport-review.json",
+      "sha256": "c9403cc6561e330cf823d0ee0d68a42f4e608a9ddd47689dc1e5de91aa8cd523"
+    }
+  ],
+  "imageReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-streaming-publication-215.json",
+    "sha256": "8361f88d13534d47727c05c107fa6f7bbd260a63962d7ef48b3ae8166d9247ca"
+  },
+  "oldFailures": "Original96v workspace ENOENT and first recovery namespace guard failure remain untouched/unaccepted. Actual fresh runtime clone passed the entire unchanged original callback and reload assertions without source/WASM/compiler rebuild. Every prior record keeps its original source/profile identity.",
+  "scope": "No runtime source/assets/lock/kernel/fixture changes. Exact declared assets materialized at original filesystem paths in fresh owned runtime clones; every copied byte bound to retained canonical source and original source asset hash. All379 runtime bindings exactly equal preceding cohort. Actual source9 family and historical transport approvals retain their distinct scopes; no excluded callback acceptance is invented. Per-case cooperative pause preserved.",
+  "privateQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\b89b3e3ac4e8a0c91eaf\\fixture-successor-qualification.json",
+    "sha256": "66a8a07212b583aa930d822e33f5de33d2df0aae27b2b7ee01c27c673d0db932"
+  }
+}

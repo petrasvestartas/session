@@ -29,7 +29,7 @@ pub(crate) struct Features {
     pub(crate) draft: Option<drawing::Draft>, // register:drawing
     pub(crate) snap: Snapping,        // register:snap
     pub(crate) construction_plane: Option<crate::app::cplane::CPlane>, // fixed construction plane, None follows the view; register:construction_plane
-    pub(crate) view_grid: Option<crate::app::cplane::CPlane>, // the plane the grid lies on in View mode; register:construction_plane
+    pub(crate) view_grid: Option<crate::app::cplane::CPlane>, // displayed world plane; None is the initial XY grid; register:construction_plane
     pub(crate) mark: Option<Mark>,    // register:measure
     pub(super) hierarchy: Hierarchy,  // register:hierarchy
     pub(super) pending_split: Option<splitting::Pending>, // register:split
@@ -40,7 +40,6 @@ pub(super) const BEFORE_PICKS: &[fn(&mut State)] = &[
     State::catch_unsynced,   // register:editing
     State::fetch_if_wanting, // register:editing
     State::update_clipping,  // register:clipping
-    State::follow_view_grid, // register:construction_plane
 ];
 
 /// Feature work on every frame, once the pick answers are applied.

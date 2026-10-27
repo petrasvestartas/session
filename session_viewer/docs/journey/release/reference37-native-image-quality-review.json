@@ -1,0 +1,71 @@
+{
+  "status": "PUBLISHED_ROOT_APPROVED_DELEGATED_REVIEWED_SOURCE_ALIGNED_REFERENCE37_IMAGE",
+  "scope": "Source-aligned reference37 actualnative render, logical900x700/physical1800x1400; originalscene/assertions, no oldkernel/sourcehash relabeling.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "sourceRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-d4dea55c2d7da7ea6efa/reference-result-frozen.json",
+    "sha256": "172c4735f4a7a1896958aaf3c91ca8fab5071e6e14fe497697a9e4fb216ab0fa"
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-d4dea55c2d7da7ea6efa\\reference-root-approved-review.json",
+    "sha256": "774aa5704bcf6e1692b92f61b5f0a23bfb8e04dd1f459dd43108114aa66b2ab6"
+  },
+  "sourcePlan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-d4dea55c2d7da7ea6efa\\plan.json",
+    "sha256": "62bf2ddfc963fad9e37ee3ccb19ff2c681902d7a4cadb6f7423793648a9d13f6"
+  },
+  "adapterProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-d4dea55c2d7da7ea6efa\\adapter-proof.json",
+    "sha256": "50e0cfd2db1b884bc203ac5448aafc20b3a3c53d3fda11a4786ec82276133a0f"
+  },
+  "captureProfile": {
+    "processors": 8,
+    "memoryMiB": 8192,
+    "affinityMask": "0xFF00",
+    "cache": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\native-cache",
+    "canonicalBehaviorExecuted": false,
+    "canonicalValidationProfile": false
+  },
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\steps\\37-native.png",
+      "destination": "docs/screenshots/steps/37-native.png",
+      "sha256": "a3e34833c4a1c10b0076a42496a5e20f230d605cea57a4ef9a81c17974f084ca",
+      "width": 1800,
+      "height": 1400,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-d4dea55c2d7da7ea6efa\\reference-37-scene\\native.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\private-support-d4dea55c2d7da7ea6efa\\reference-publication-backups\\docs\\screenshots\\steps\\37-native.png",
+        "sha256": "612c7f1a958f3647da22fe0d6a7519d27d6b3e7462f8883476d9ba5237524cd0"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\steps\\37-native.png",
+        "sha256": "a3e34833c4a1c10b0076a42496a5e20f230d605cea57a4ef9a81c17974f084ca",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/steps/37-native.png?v=a3e34833c4a1",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "a3e34833c4a1c10b0076a42496a5e20f230d605cea57a4ef9a81c17974f084ca"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    }
+  ],
+  "prePublicationSnapshot": true,
+  "referenceSourceQualification": {
+    "parityApplication": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\reference37-kernel-import-correction\\structural-parity\\application.json",
+      "sha256": "725a252256daeefd06ca28be6300f34afde7e84eafd9dedcc40ff576cbcc32b1"
+    },
+    "actual43CheckpointCheck": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\reference37-kernel-import-correction\\structural-parity\\reference-structure.log",
+      "sha256": "f64375150debcb9354aa458c566a28c27a3382aad587ac1be88e1edc767e5f2a"
+    },
+    "exactCapturedSourceRelevance": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\reference37-kernel-import-correction\\structural-parity\\capture-relevance.json",
+      "sha256": "e6ef8cb7ef0ca4ea4dd9a7599cdc12cc75bf38df9e6b23389d355f244eee9414"
+    }
+  }
+}

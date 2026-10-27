@@ -6,6 +6,10 @@
 
 Copy source and GPU regressions. Query original points omitted by a real coarse view, then restore display detail without reuploading source columns.
 
+With `Controls Off` and `Select None`, the same `Example Cloud` shows its stored RGB colors without the yellow selection overlay. These 1,681 points form a synthetic wave sampled on a 41 by 41 grid; this small color fixture does not represent a dense photographic scan.
+
+![Unselected RGB colors on the original 1,681-point synthetic cloud](release/cloud65c-unselected-rgb.png)
+
 ## Type
 
 Continue from [Enter source controls with the current command or F10](65b-controls.md). [Save or recover your work](recovery.md).

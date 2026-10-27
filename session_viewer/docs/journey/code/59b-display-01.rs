@@ -10,9 +10,9 @@ pub fn prepare(source:Rc<session_rust::BRep>)->Result<(Prepared,crate::prepared:
     let mut display=crate::mesh::Mesh::new(data.vertices,data.indices)?.with_normals(data.normals)?;display.parts.faces=(0..boundary.faces.len()).collect();display.parts.triangles=data.face_ids;
     let (mut edges,mut edge_ids)=(Vec::new(),Vec::new());
     for chain in boundary.chains.iter().flatten() {
-        let points=boundary.points(chain.edge).ok_or("Missing CAD boundary sample")?;
-        for pair in chain.keys.windows(2) {
-            let mesh=&boundary.faces[chain.face];let ends=[pair[0],pair[1]].map(|key|{let v=&mesh.vertex[&key];[v.x,v.y,v.z]});display.parts.edges.push((data.keys[chain.face][&pair[0]] as usize,data.keys[chain.face][&pair[1]] as usize));display.parts.endpoints.push(ends);edge_ids.push(chain.edge);
+        let (points,spans)=boundary.display(chain.edge).ok_or("Missing CAD boundary sample")?;
+        for (ends,span) in points.windows(2).zip(spans) {
+            let pair=&chain.keys[span..=span+1];display.parts.edges.push((data.keys[chain.face][&pair[0]] as usize,data.keys[chain.face][&pair[1]] as usize));display.parts.endpoints.push([ends[0],ends[1]]);edge_ids.push(chain.edge);
         }
         edges.push(Boundary {edge:chain.edge,points});
     }

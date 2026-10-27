@@ -1,0 +1,150 @@
+{
+  "status": "PUBLISHED_ROOT_APPROVED_SOURCE_BOUND_PRESENTATION_IMAGE",
+  "scope": "Image-only presentation of actual private unpromoted v67 generation output; no production promotion, whole-model physical acceptance or canonical behavior claim.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "privateCandidateUnpromoted": true,
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\current-native-floor-output.png",
+      "sha256": "67217e5e18903c9979b15a32c12db8253e21a357517d2699805036c7b5397d76",
+      "width": 1280,
+      "height": 960,
+      "destination": "docs/screenshots/journey/current-native-floor-output.png",
+      "raw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\current-native-floor-output.ppm",
+        "sha256": "d4a751c2e9fc7befe91fba530f1eb5012335c208511eebf6319e9aadc151b346"
+      },
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\current-native-floor-output.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\publication-backups\\docs\\screenshots\\journey\\current-native-floor-output.png",
+        "sha256": "541a25706d40484a03df1185a7750272dfa8104c0ce5b47187a11cec7cb81a85"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\current-native-floor-output.png",
+        "sha256": "67217e5e18903c9979b15a32c12db8253e21a357517d2699805036c7b5397d76",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-floor-output.png?v=67217e5e1890",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "67217e5e18903c9979b15a32c12db8253e21a357517d2699805036c7b5397d76"
+      },
+      "rootPersonallyViewedOriginalResolution": true,
+      "rootApproved": true,
+      "reviewerAgentId": "/root/intro_regeneration_audit"
+    }
+  ],
+  "input": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-boundary-fan-proof-v67\\floor-output.pb",
+    "sha256": "3cdb12d3ef67750f7d419305bbcb0b3a966d5429443246a7964a29bdc81e45b6"
+  },
+  "maintainedViewerExecutable": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\retained\\supplemental-scene-comparison-551f30129d3b\\selftest.exe",
+    "sha256": "8a6122856693879b5b62a09906e3c56831f8c570d2c71526d82fc66dca8d1ec6"
+  },
+  "settings": {
+    "VIEWER_NO_GRID": "1",
+    "VIEWER_OPACITY": "1",
+    "VIEWER_LIT": "1",
+    "VIEWER_MSAA": "4",
+    "VIEWER_AO": "1",
+    "VIEWER_OUTLINES": "1",
+    "VIEWER_FRAMES": "8",
+    "VIEWER_FRAMES_ORBIT": "2",
+    "VIEWER_GPU_TIMING": "1",
+    "VIEWER_W": "1280",
+    "VIEWER_H": "960",
+    "VIEWER_DPR": "2",
+    "VIEWER_ADAPTER": "Microsoft"
+  },
+  "allocatedRendererRows": 882,
+  "visibleElements": 237,
+  "serializedElements": 725,
+  "hiddenHelperElements": 488,
+  "geometryCounts": {
+    "BRep": 145,
+    "Mesh": 580,
+    "visibleMesh": 92,
+    "hiddenMeshHelper": 488,
+    "planes": 157
+  },
+  "generation": {
+    "sequence": "original reset/load/contacts/features/pb_dump; fresh reset/pb_load",
+    "completed": true,
+    "acceptance": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-boundary-fan-proof-v67\\acceptance.json",
+      "sha256": "761fb14b715345be7f6dfabfbe0d871b0e8a82b9a990ad75b2254f52d8dc1292"
+    },
+    "result": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-boundary-fan-proof-v67\\result.json",
+      "sha256": "d4cc4170e3cdd102cb3c33b6fb6e12b0015179698aff1145d3d960115fcdc344"
+    },
+    "output": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-boundary-fan-proof-v67\\floor-output.pb",
+      "sha256": "3cdb12d3ef67750f7d419305bbcb0b3a966d5429443246a7964a29bdc81e45b6"
+    },
+    "fourOwnerProof": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-boundary-fan-proof-v67\\four-owner-proof.json",
+      "sha256": "dae90c59a9bd6da28a66de87edcecb59da976a4914645d5e94ba002013addbe0"
+    },
+    "strictMemberChecks": {
+      "visited": 153,
+      "passed": 66,
+      "failed": 87
+    },
+    "physicalAccepted": false
+  },
+  "sourceConservation": {
+    "originalFeatureLoopsAndRawOwnerRecords": "unchanged under retained exact guards",
+    "fullCuttersAndAddBeforeCut": "retained under original6/216/blind regressions",
+    "topology": "Original sourcevertexkeys retained; distinctkeys staydistinct; two/oppositeedges+singlecyclelinks required.",
+    "planarPatches": "Exact boundarydart traversal; unsupported touching trims decomposed into simple patches of original faces, each exactlyonce; no newcoordinates.",
+    "coplanarSourceEdgeCounts": {
+      "v56": 9109,
+      "v60": 3510,
+      "v61": 3232,
+      "v62": 1117,
+      "v64": 1108,
+      "v67": 536
+    },
+    "remaining536EdgesNotBlanketApproved": true
+  },
+  "sourceArchive": {
+    "publicFile": "current-native-floor-output-v67-sources.json",
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\current-native-floor-output-v67-sources.json",
+    "sha256": "02d529d81b8a7a51b057b130ceffa0c4c222b4817ad213e09c84f38fd8e46787"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\capture.json",
+    "sha256": "ffb998e9fc25c8544d546d01bbec61b6c7ea0a1e3efea26595f8c64b43a8d207"
+  },
+  "resources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\render.resources.json",
+    "sha256": "198d2186f54212acfa69524e3e59b80bd33536f1b68c7c695d9da449c2120b98"
+  },
+  "agentReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\agent-review.json",
+    "sha256": "167ddcc17e6548fdf0aed507ae16bb4eefc6ba139cee75a0cde016f308640587"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\current-native-floor-output-v67-root-review.json",
+    "sha256": "db8aa1021859954362bbf23f303f2e56edd95a20fad925aced2b27fb497cac45"
+  },
+  "limits": [
+    "The original generator/export/reload sequence completed; strict model-wide geometry checks remain66PASS87FAIL.",
+    "536 coplanar source BRep patch edges remain; no zero-seam or all-geometric-defects-fixed claim.",
+    "Original source/failed predecessor proofs and unmodified live production/kernel sources remain preserved."
+  ],
+  "rootPersonallyViewedOriginalResolution": true,
+  "markdownCorrection": {
+    "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\current-native-scenes.md",
+    "beforeSha256": "51110601590adf49ea1b687c8ed28981240a4560bea85b154f89df4390f78307",
+    "afterSha256": "fe4ff4f28faf7afb35e3e6f17b7727ab09b8c09421f19896b4427c6e7c60ce1f",
+    "beforeBackup": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-sup\\floor-output-presentation-v67\\current-native-scenes.before.md",
+      "sha256": "51110601590adf49ea1b687c8ed28981240a4560bea85b154f89df4390f78307"
+    },
+    "insertedBefore": "![Actual maintained native timber-floor frame.](../screenshots/journey/current-native-floor-output.png)",
+    "onlyInsertedParagraph": "The floor-output image below uses an unpromoted private C++ recovery candidate. The original load, contacts, features, dump and fresh reload completed, but strict member checks passed for 66 of 153 plates; 87 still failed. The maintained viewer rendered this source-bound illustration at 1280 x 960 physical pixels (DPR 2), MSAA 4 and Microsoft WARP. Its 882 allocated renderer rows include hidden helpers; 237 Elements are visible. Coplanar face splitting was substantially reduced, but residual patch seams and geometric failures remain; this image does not establish model-wide validity. The older file identities and Lavapipe timings below remain historical.",
+    "outsideInsertionBytePreserved": true
+  }
+}

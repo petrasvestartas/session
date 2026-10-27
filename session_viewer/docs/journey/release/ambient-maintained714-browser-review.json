@@ -1,0 +1,205 @@
+{
+  "status": "PASS actual current source browser execution and root review of exact retained images",
+  "scope": "Complete unchanged maintained714 final.cjs DPR1/2 and capture_current presentation/UI assertions",
+  "sourceFingerprint": "b5a415856167f657d7eb02e9efa32c66d0561a0e2c482ec36bbe17608b6c8d2d",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "proof": {
+    "path": "target/course-windows-20261018/ambient-final-browser-relevance-preparation/ambient-maintained714-v1/proof.json",
+    "sha256": "edee234814fe24cd44c43d4097176bce42d0c14c7bae377ffd19167a359b813a"
+  },
+  "browser": {
+    "path": "target/course-windows-20261018/ambient-final-browser-relevance-preparation/ambient-maintained714-v1/browser.json",
+    "sha256": "f52495f398f088e0fb09b18a4629602a491244e51d0ce5ea14da1e91cf4557c9"
+  },
+  "log": {
+    "path": "target/course-windows-20261018/ambient-final-browser-relevance-preparation/ambient-maintained714-v1/output.log",
+    "sha256": "a0e16af9aa2fad32a103b54537d9210e13b14771588011cf52d11b1a72597451"
+  },
+  "resources": {
+    "path": "target/course-windows-20261018/ambient-final-browser-relevance-preparation/ambient-maintained714-v1/resources.json",
+    "sha256": "42f910ac9cf6056a212cca6882567287860449f4a14d178b067c962558f0959c",
+    "elapsedSeconds": 12.88,
+    "peakJobCommitBytes": 854761472,
+    "jobCommitLimitBytes": 6442450944,
+    "processors": 2,
+    "exitCode": 0,
+    "timedOut": false,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced."
+  },
+  "validation": {
+    "inputPins": 2257,
+    "sourceBoundBundle": {
+      "path": "target/course-windows-20261018/ambient-final-refreeze-preparation/714-web/bundle.json",
+      "sha256": "0ee320947889c43d1c0f39c29cea942388bf31908daef026b020533216a22699"
+    },
+    "freshHttpPreAndPostPayloads": 21,
+    "retainedPayloadHashesExact": true
+  },
+  "adapter": {
+    "dxgiSelection": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0
+    },
+    "driver": {
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "driverVersion": "32.0.15.9579",
+      "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+      "status": "OK"
+    },
+    "actualDrawingObservations": [
+      {
+        "density": 1,
+        "phase": "complete-callback",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 1,
+        "phase": "presentation",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 2,
+        "phase": "complete-callback",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 2,
+        "phase": "presentation",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "qualification": "DXGI selection separately enumerated; each actual WebGPU drawing device observed NVIDIA, non-fallback. Exact WebGPU device name was unavailable."
+  },
+  "assertions": {
+    "completeUnchangedFinalCallbackDpr": [
+      1,
+      2
+    ],
+    "presentationDpr": [
+      1,
+      2
+    ],
+    "originalFinalCallbackSha256": "76e324a82cc27b1f925d7e6a639562238db77b7ecf56bb9cdc814f76720fe817",
+    "originalCaptureSha256": "fe1c0deb8e6b410023c3813ee58365e721e0276db13e8ed652b9f61d55d918cc",
+    "originalAssertionsRetained": true,
+    "globalResultsUntouched": true,
+    "privatePlumbingQualification": "Original legacy global results precheck replaced by source-bound actual build/resource/HTTP preflight; URL/output/error artifacts redirected privately; passive adapter/error observation added. Canonical callback and presentation assertions retained.",
+    "pixels": [
+      {
+        "density": 1,
+        "physical": [
+          900,
+          760
+        ],
+        "blue": 128904,
+        "black": 8422
+      },
+      {
+        "density": 2,
+        "physical": [
+          1800,
+          1520
+        ],
+        "blue": 512031,
+        "black": 39653
+      }
+    ]
+  },
+  "images": [
+    {
+      "name": "ambient-maintained714-browser.png",
+      "sha256": "e77bb47546633c0a3f55b5d4c354bc4fefc560320138b41e2d02784eb7ef8079",
+      "rootPersonallyReviewed": true,
+      "review": "Intact blue original pedestal, black outlines, label, ground/contact AO/grid; no blank or clipped artifact."
+    },
+    {
+      "name": "ambient-maintained714-browser-dpr2.png",
+      "sha256": "a7f9c87ac916a4e85e507d83b8b5038fdd4df5ed71cdc26c0188c75c3f2f6365",
+      "rootPersonallyReviewed": true,
+      "review": "Intact blue original pedestal, black outlines, label, ground/contact AO/grid; no blank or clipped artifact."
+    }
+  ],
+  "exclusions": [
+    "No full native-suite or historical callback acceptance."
+  ]
+}

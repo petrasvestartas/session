@@ -1,0 +1,178 @@
+{
+  "date": "2026-10-25T22:18:12.754Z",
+  "status": "PASS: eight reviewed image assets published and exact HTTP bytes verified",
+  "scope": "Three actual additional source-specific captures and five retired-filename aliases of actual current scenes. No retired checkpoint reconstruction claim.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "newCaptures": 3,
+  "aliases": 5,
+  "published": 8,
+  "images": [
+    {
+      "id": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "destination": "docs/screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\96zz-separate-hidden-ink-color-from-pick-ownership-dpr2.png",
+        "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "target/course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2/presentation.json",
+        "sha256": "5904734d4d6296466a735265860d8cb6e4047eaf41843058791fc0e5cf3d25c0"
+      },
+      "meaning": "Actual source-specific native capture; original-resolution PNG personally reviewed.",
+      "originalSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "queue": "direct-public",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\96zz-separate-hidden-ink-color-from-pick-ownership.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "35d-input",
+      "destination": "docs/screenshots/journey/35d-input-browser.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\scene-35d-input-0b63ee59fe82778607e4\\presentation.png",
+        "sha256": "722f2fb3cb2fb34655b6fae315bb480fef865ca42d29b5f502cb4a92082dd7bc",
+        "width": 1800,
+        "height": 1520
+      },
+      "sourceRecord": {
+        "path": "target/course-presentation/scene-35d-input-0b63ee59fe82778607e4/result.json",
+        "sha256": "222cdcdb88ccd86073b0cc34376fe49711be88d18b4822a6f28f1b01e520514e"
+      },
+      "meaning": "Actual documented-line image-only recipe; independently passed original full callback produces byte-identical PNG. Original-resolution PNG personally reviewed.",
+      "originalSha256": "a19d926ba0fe14ad3839c04cb036deaab7ddf3d32b91684a6a686cf2a5b86258",
+      "queue": "reader-published",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\35d-input-browser.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "destination": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\94c-prove-the-original-comparison-and-inspect-differences-c4ea3eee582a4ba4bb34\\presentation.png",
+        "sha256": "065e00c74c076fd7cc6b64f39f8f5f9b8b0dbba099b9f28c41138a9a0ca6da6d",
+        "width": 1800,
+        "height": 1520
+      },
+      "sourceRecord": {
+        "path": "target/course-presentation/image-lane-scenes/94c-prove-the-original-comparison-and-inspect-differences-c4ea3eee582a4ba4bb34/result.json",
+        "sha256": "d5617c591724654ec2599e8d715b982a5f1da0d6ae5d00c1ac4154ea1120ee5b"
+      },
+      "meaning": "Actual source-bound four-BRep comparison scene in separate8CPU8GiB image lane; original-resolution PNG personally reviewed. No inherited full-callback claim.",
+      "originalSha256": "8354b6839948576872b2230356cba0f51c34ce8a8a76fcc5781061ff7188de61",
+      "queue": "reader-published",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "83zc-match-original-face-edge-directions",
+      "destination": "docs/screenshots/journey/83zc-match-original-face-edge-directions.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-83ze-integrate-original-surface-area-7d5797857bd23995-dpr2\\83ze-integrate-original-surface-area-dpr2.png",
+        "sha256": "1efeb34f22f39a0db673a5f3fbca88990f635f08ae63104bf7527065e06784fe",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-83ze-integrate-original-surface-area-7d5797857bd23995-dpr2\\presentation.json",
+        "sha256": "b9e8ff462b8eaedbdfa91eeae8f773f0d289a6238ecd1d9a9253794cb88746a5"
+      },
+      "representative": "83ze-integrate-original-surface-area",
+      "retiredCheckpointRebuilt": false,
+      "meaning": "Fresh current83ze source-bound renderer; historical alias and83ze original files were byte-identical. Does not claim retired83zc/83zd source rebuilt.",
+      "originalAliasSha256": "50b9fa59a3c83811d7b8ce957b52dd5dd70b24733d1887b990f00a27ab0897f1",
+      "originalSha256": "50b9fa59a3c83811d7b8ce957b52dd5dd70b24733d1887b990f00a27ab0897f1",
+      "queue": "direct-public",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\83zc-match-original-face-edge-directions.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "83zd-orient-original-solid-face-groups",
+      "destination": "docs/screenshots/journey/83zd-orient-original-solid-face-groups.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-83ze-integrate-original-surface-area-7d5797857bd23995-dpr2\\83ze-integrate-original-surface-area-dpr2.png",
+        "sha256": "1efeb34f22f39a0db673a5f3fbca88990f635f08ae63104bf7527065e06784fe",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-83ze-integrate-original-surface-area-7d5797857bd23995-dpr2\\presentation.json",
+        "sha256": "b9e8ff462b8eaedbdfa91eeae8f773f0d289a6238ecd1d9a9253794cb88746a5"
+      },
+      "representative": "83ze-integrate-original-surface-area",
+      "retiredCheckpointRebuilt": false,
+      "meaning": "Fresh current83ze source-bound renderer; historical alias and83ze original files were byte-identical. Does not claim retired83zc/83zd source rebuilt.",
+      "originalAliasSha256": "50b9fa59a3c83811d7b8ce957b52dd5dd70b24733d1887b990f00a27ab0897f1",
+      "originalSha256": "50b9fa59a3c83811d7b8ce957b52dd5dd70b24733d1887b990f00a27ab0897f1",
+      "queue": "direct-public",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\83zd-orient-original-solid-face-groups.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "96zza-read-section-plane-slopes-from-reserved-addresses",
+      "destination": "docs/screenshots/journey/96zza-read-section-plane-slopes-from-reserved-addresses.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\96zz-separate-hidden-ink-color-from-pick-ownership-dpr2.png",
+        "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\presentation.json",
+        "sha256": "5904734d4d6296466a735265860d8cb6e4047eaf41843058791fc0e5cf3d25c0"
+      },
+      "representative": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "retiredCheckpointRebuilt": false,
+      "meaning": "Fresh current96zz source-bound renderer; retired filename alias originally byte-identical to96zz native image. No retired-source rebuild claim.",
+      "originalAliasSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "originalSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "queue": "direct-public",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\96zza-read-section-plane-slopes-from-reserved-addresses.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "96zzb-write-section-addresses-beside-color",
+      "destination": "docs/screenshots/journey/96zzb-write-section-addresses-beside-color.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\96zz-separate-hidden-ink-color-from-pick-ownership-dpr2.png",
+        "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\presentation.json",
+        "sha256": "5904734d4d6296466a735265860d8cb6e4047eaf41843058791fc0e5cf3d25c0"
+      },
+      "representative": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "retiredCheckpointRebuilt": false,
+      "meaning": "Fresh current96zz source-bound renderer; retired filename alias originally byte-identical to96zz native image. No retired-source rebuild claim.",
+      "originalAliasSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "originalSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "queue": "direct-public",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\96zzb-write-section-addresses-beside-color.png",
+      "httpStatus": 200
+    },
+    {
+      "id": "96zzc-write-section-addresses-before-the-first-pick",
+      "destination": "docs/screenshots/journey/96zzc-write-section-addresses-before-the-first-pick.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\96zz-separate-hidden-ink-color-from-pick-ownership-dpr2.png",
+        "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation-96zz-separate-hidden-ink-color-from-pick-ownership-ef1fb601fd39d859-dpr2\\presentation.json",
+        "sha256": "5904734d4d6296466a735265860d8cb6e4047eaf41843058791fc0e5cf3d25c0"
+      },
+      "representative": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "retiredCheckpointRebuilt": false,
+      "meaning": "Fresh current96zz source-bound renderer; retired filename alias originally byte-identical to96zz native image. No retired-source rebuild claim.",
+      "originalAliasSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "originalSha256": "98e6f41103fc035b99be6edfa48dab231278ce224153053c81a8a148e25d1133",
+      "queue": "direct-public",
+      "originalBackup": "target\\course-presentation\\quality-checkpoint-67\\original-images\\96zzc-write-section-addresses-before-the-first-pick.png",
+      "httpStatus": 200
+    }
+  ]
+}

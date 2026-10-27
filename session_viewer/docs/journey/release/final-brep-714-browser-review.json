@@ -1,0 +1,740 @@
+{
+  "status": "PASS actual final714 original final.cjs DPR1/2 and presentation browser assertions",
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "sourceFreeze": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/prepared-v3.json",
+    "sha256": "8a22a381fca60dc7d1618b6ec607eb945cf2d2b0c917c71db616f27226d8275e"
+  },
+  "rootReview": {
+    "path": "target/course-windows-20261018/final-brep-browser-relevance-v2-preparation/actual-root-browser-review.json",
+    "sha256": "82b407637cd4953bb0deb23df06bbe0b06c1525a14e6f59775239af23772322f"
+  },
+  "limits": [
+    "Source-qualified final delta only; no rerun/relabel of the18 accepted historical callbacks.",
+    "No independent whole-feature or release-gate closure from this publication alone.",
+    "All old failed/setup/earlier-source records stay unchanged."
+  ],
+  "sourceFingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+  "sourceFiles": 714,
+  "callback": "journey/checks/browser/final.cjs plus original capture_current presentation assertions",
+  "densities": [
+    1,
+    2
+  ],
+  "execution": {
+    "proof": {
+      "path": "target/course-windows-20261018/final-brep-browser-relevance-v2-preparation/final-brep-maintained714-v1/proof.json",
+      "sha256": "7c1912e2d688e8a9774515f3d49319ea18aab3232fa322bfdd7c890a69e8f517"
+    },
+    "preparation": {
+      "path": "target/course-windows-20261018/final-brep-browser-relevance-v2-preparation/maintained714-browser-preparation.json",
+      "sha256": "908eaf69c8ccb0813ed143584e7cb455dbe1600d315475bb759fc5bd5766470c"
+    },
+    "browser": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-browser-relevance-v2-preparation\\final-brep-maintained714-v1\\browser.json",
+      "sha256": "0e94864ad37d79afa820b469c381a654836e0e9aaf62c76adb31d51e18ee8e0c"
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-browser-relevance-v2-preparation\\final-brep-maintained714-v1\\output.log",
+      "sha256": "26f1469048f051b8f8f8c66a5d9e2e4de733737d690cea2218561ac7f9b34698"
+    },
+    "resources": {
+      "record": {
+        "path": "target/course-windows-20261018/final-brep-browser-relevance-v2-preparation/final-brep-maintained714-v1/resources.json",
+        "sha256": "3d56426e9b79b8c982e33ec012033a05c915ac06c5a2fdec290cd19a0a6a99d3"
+      },
+      "elapsedSeconds": 12.193,
+      "peakJobCommitBytes": 891080704,
+      "processors": 2,
+      "memoryMiB": 6144,
+      "timedOut": false,
+      "actual": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-10-24T20:48:36.3824035Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-browser-relevance-v2-preparation\\capture-maintained714.cjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-browser-relevance-v2-preparation\\final-brep-maintained714-v1\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+        "timeoutSeconds": 1200,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 12.193,
+        "peakJobCommitBytes": 891080704,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 29652,
+        "descendantsAtCleanup": 1
+      }
+    },
+    "adapter": {
+      "status": "PASS read-only NVIDIA DXGI enumeration; GPU device not created",
+      "readOnly": true,
+      "selected": {
+        "index": 0,
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "vendor": 4318,
+        "device": 10208,
+        "luid": "0,86780",
+        "luidHigh": 0,
+        "luidLow": 86780,
+        "dedicatedVideoMemoryBytes": 12577669120,
+        "flags": 0
+      },
+      "adapters": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+          "vendor": 4318,
+          "device": 10208,
+          "luid": "0,86780",
+          "luidHigh": 0,
+          "luidLow": 86780,
+          "dedicatedVideoMemoryBytes": 12577669120,
+          "flags": 0
+        },
+        {
+          "index": 1,
+          "name": "Intel(R) UHD Graphics",
+          "vendor": 32902,
+          "device": 42888,
+          "luid": "0,85866",
+          "luidHigh": 0,
+          "luidLow": 85866,
+          "dedicatedVideoMemoryBytes": 134217728,
+          "flags": 0
+        },
+        {
+          "index": 2,
+          "name": "Microsoft Basic Render Driver",
+          "vendor": 5140,
+          "device": 140,
+          "luid": "0,86727",
+          "luidHigh": 0,
+          "luidLow": 86727,
+          "dedicatedVideoMemoryBytes": 0,
+          "flags": 2
+        }
+      ],
+      "driver": {
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "driverVersion": "32.0.15.9579",
+        "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+        "status": "OK"
+      },
+      "scope": "DXGI enumeration and CIM only; no WebGPU, D3D device, renderer or performance acceptance."
+    },
+    "httpBefore": [
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-comparison.pb",
+        "status": 200,
+        "bytes": 18736,
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-feature-pick.pb",
+        "status": 200,
+        "bytes": 2608,
+        "sha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-instance-features.pb",
+        "status": 200,
+        "bytes": 1358,
+        "sha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-metadata.pb",
+        "status": 200,
+        "bytes": 18946,
+        "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/diagnostics.js",
+        "status": 200,
+        "bytes": 6608,
+        "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/index.html",
+        "status": 200,
+        "bytes": 6195,
+        "sha256": "4dcfaefd5ad20e80374ae0431faf616baab4de2b3aba5c6b06a86923b30439be",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+        "status": 200,
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/session_viewer_freeze_528e2d28a704902f58a63a17-78ebee5a0e0c3098/inline0.js",
+        "status": 200,
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/session_viewer_freeze_d5dd5b80bb27fbf8bee367f3-429fbfd79e1a64b5/inline0.js",
+        "status": 200,
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey-7519825317df163d/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_713_555490d4cb3dd18014984afc-f2a8dc965501de35/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_713_6947664b26863adf65ef7bfc-6ba2909db89e4682/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_713_f339c9ac8c75353caca48e1d-652925f48abafd90/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_714_40e317cc56bd558db438827d-75adae6a9892d6b3/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_714_b0313bae6b71646b94247765-84d12fc9a0275994/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_714_b5a415856167f657d7eb02e9-cb60b5505964b2a0/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_85ay_a996eb6ee6c34ec807819036_approved5-1f15d30325c5d5ed/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_88ad_8caaafa12e5a8295e8eef18c_approved5-e17de1028f81a8d4/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-671277802784d3a6/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_96h_dfe346a7d230533e917c6809_approved5-012e2a34b76d6941/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-d3f9927b677daf62/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSans-Regular.subset.ttf",
+        "status": 200,
+        "bytes": 51456,
+        "sha256": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSans-Regular.ttf",
+        "status": 200,
+        "bytes": 569208,
+        "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols-Regular.subset.ttf",
+        "status": 200,
+        "bytes": 6320,
+        "sha256": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols-Regular.ttf",
+        "status": 200,
+        "bytes": 258156,
+        "sha256": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols2-Regular.subset.ttf",
+        "status": 200,
+        "bytes": 2528,
+        "sha256": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols2-Regular.ttf",
+        "status": 200,
+        "bytes": 656852,
+        "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/OFL.txt",
+        "status": 200,
+        "bytes": 4377,
+        "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/viewer_journey_714_40e317cc56bd558db438827d-2c998591b44dd6d7.js",
+        "status": 200,
+        "bytes": 131928,
+        "sha256": "d32e87fe68e37ab9a8405ded6e7d95e8780f7bb5ee25997d9e658a9433532d56",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/viewer_journey_714_40e317cc56bd558db438827d-2c998591b44dd6d7_bg.wasm",
+        "status": 200,
+        "bytes": 11697051,
+        "sha256": "f45dafff4ed5baecba964a40792803fc99fdcfccc74aabcc97ff57012e88a593",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/view_local.yaml",
+        "status": 200,
+        "bytes": 133,
+        "sha256": "bee1bcbda45843dde23a5eb42445d113884f040cbef47c67324608c12f9d7d7c",
+        "freshConnection": true
+      }
+    ],
+    "httpAfter": [
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-comparison.pb",
+        "status": 200,
+        "bytes": 18736,
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-feature-pick.pb",
+        "status": 200,
+        "bytes": 2608,
+        "sha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-instance-features.pb",
+        "status": 200,
+        "bytes": 1358,
+        "sha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/assets/pb/course-metadata.pb",
+        "status": 200,
+        "bytes": 18946,
+        "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/diagnostics.js",
+        "status": 200,
+        "bytes": 6608,
+        "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/index.html",
+        "status": 200,
+        "bytes": 6195,
+        "sha256": "4dcfaefd5ad20e80374ae0431faf616baab4de2b3aba5c6b06a86923b30439be",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+        "status": 200,
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/session_viewer_freeze_528e2d28a704902f58a63a17-78ebee5a0e0c3098/inline0.js",
+        "status": 200,
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/session_viewer_freeze_d5dd5b80bb27fbf8bee367f3-429fbfd79e1a64b5/inline0.js",
+        "status": 200,
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey-7519825317df163d/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_713_555490d4cb3dd18014984afc-f2a8dc965501de35/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_713_6947664b26863adf65ef7bfc-6ba2909db89e4682/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_713_f339c9ac8c75353caca48e1d-652925f48abafd90/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_714_40e317cc56bd558db438827d-75adae6a9892d6b3/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_714_b0313bae6b71646b94247765-84d12fc9a0275994/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_714_b5a415856167f657d7eb02e9-cb60b5505964b2a0/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_85ay_a996eb6ee6c34ec807819036_approved5-1f15d30325c5d5ed/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_88ad_8caaafa12e5a8295e8eef18c_approved5-e17de1028f81a8d4/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-671277802784d3a6/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_96h_dfe346a7d230533e917c6809_approved5-012e2a34b76d6941/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/snippets/viewer_journey_96zzq_ec7838da503aa286222b3249_approved5-d3f9927b677daf62/src/adapter_info.js",
+        "status": 200,
+        "bytes": 1281,
+        "sha256": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSans-Regular.subset.ttf",
+        "status": 200,
+        "bytes": 51456,
+        "sha256": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSans-Regular.ttf",
+        "status": 200,
+        "bytes": 569208,
+        "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols-Regular.subset.ttf",
+        "status": 200,
+        "bytes": 6320,
+        "sha256": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols-Regular.ttf",
+        "status": 200,
+        "bytes": 258156,
+        "sha256": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols2-Regular.subset.ttf",
+        "status": 200,
+        "bytes": 2528,
+        "sha256": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/NotoSansSymbols2-Regular.ttf",
+        "status": 200,
+        "bytes": 656852,
+        "sha256": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/text/OFL.txt",
+        "status": 200,
+        "bytes": 4377,
+        "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/viewer_journey_714_40e317cc56bd558db438827d-2c998591b44dd6d7.js",
+        "status": 200,
+        "bytes": 131928,
+        "sha256": "d32e87fe68e37ab9a8405ded6e7d95e8780f7bb5ee25997d9e658a9433532d56",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/viewer_journey_714_40e317cc56bd558db438827d-2c998591b44dd6d7_bg.wasm",
+        "status": 200,
+        "bytes": 11697051,
+        "sha256": "f45dafff4ed5baecba964a40792803fc99fdcfccc74aabcc97ff57012e88a593",
+        "freshConnection": true
+      },
+      {
+        "url": "http://127.0.0.1:61575/view_local.yaml",
+        "status": 200,
+        "bytes": 133,
+        "sha256": "bee1bcbda45843dde23a5eb42445d113884f040cbef47c67324608c12f9d7d7c",
+        "freshConnection": true
+      }
+    ]
+  },
+  "actualAdapterObservations": [
+    {
+      "density": 1,
+      "phase": "complete-callback",
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "device": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "density": 1,
+      "phase": "presentation",
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "device": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "density": 2,
+      "phase": "complete-callback",
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "device": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "density": 2,
+      "phase": "presentation",
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          },
+          "device": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "device": "",
+            "description": "",
+            "isFallbackAdapter": false
+          }
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "plumbing": {
+    "originalCaptureSha256": "fe1c0deb8e6b410023c3813ee58365e721e0276db13e8ed652b9f61d55d918cc",
+    "originalFinalCallbackSha256": "76e324a82cc27b1f925d7e6a639562238db77b7ecf56bb9cdc814f76720fe817",
+    "changes": [
+      {
+        "from": "    const builds = JSON.parse(fs.readFileSync('target/course-checks/results.json'));\n    assert(builds[id]?.commands.every(command => command.returncode === 0), 'Verify the endpoint before capturing');",
+        "to": "    // Private launcher validates actual current source/build/resource/payload evidence before execution."
+      },
+      {
+        "from": "    const output = 'docs/screenshots/journey';",
+        "to": "    const output = config.folder;"
+      },
+      {
+        "from": "    const saved = path.join(output, 'browser.json');",
+        "to": "    const saved = path.join(output, 'canonical-browser.json');"
+      },
+      {
+        "from": "            const page = await context.newPage();",
+        "to": "            await context.addInitScript(()=>{window.__actualDrawingDevices=[];window.__actualDrawingErrors=[];const identity=i=>Object.fromEntries(['vendor','architecture','device','description','isFallbackAdapter'].map(k=>[k,i?.[k]??null])),request=GPUAdapter.prototype.requestDevice;GPUAdapter.prototype.requestDevice=async function(...args){const adapter=identity(this.info),device=await request.apply(this,args);window.__actualDrawingDevices.push({adapter,device:identity(device.adapterInfo)});device.addEventListener('uncapturederror',e=>window.__actualDrawingErrors.push(e.error.message));return device;};});\n            const page = await context.newPage();"
+      },
+      {
+        "from": "                const url = new URL(`${id}/dist/`, process.env.JOURNEY_URL || 'http://127.0.0.1:8781/');",
+        "to": "                const url = new URL(config.url);"
+      },
+      {
+        "from": "                await require(path.resolve('docs', step.browser_check))(page);",
+        "to": "                await require(path.resolve('docs', step.browser_check))(page);\n                await global.__current714Observe(page,density,'complete-callback');"
+      },
+      {
+        "from": "                const bytes = await page.screenshot({path: path.join(output, file), fullPage: true});",
+        "to": "                await global.__current714Observe(page,density,'presentation');\n                const bytes = await page.screenshot({path: path.join(output, file), fullPage: true});"
+      },
+      {
+        "from": "const diagnostic = path.join('target/course-checks', `${id}-browser-dpr${density}-failure.json`);",
+        "to": "const diagnostic = path.join(config.folder, `${id}-browser-dpr${density}-failure.json`);\n                await page.screenshot({path:path.join(config.folder,`failure-dpr${density}.png`)}).catch(()=>{});"
+      },
+      {
+        "from": "source: builds[id].source",
+        "to": "source: config.sourceSignature"
+      },
+      {
+        "from": "hash(fs.readFileSync(`target/course-checks/${id}/dist/index.html`))",
+        "to": "hash(fs.readFileSync(path.join(config.dist,'index.html')))"
+      },
+      {
+        "from": "capture().catch(error => {console.error(error); process.exitCode = 1;});",
+        "to": "module.exports=capture;"
+      }
+    ],
+    "originalAssertionsRetained": true,
+    "globalResultsUntouched": true
+  },
+  "images": [
+    {
+      "name": "maintained-dpr1",
+      "file": "final-brep-714-browser.png",
+      "figure": "journey/release/final-brep-714-browser.png",
+      "sha256": "0809048c11977d4ee4ab5badaf61422bd9754dabc749767aee907f87e5bbab3e",
+      "width": 900,
+      "height": 760,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "maintained-dpr2",
+      "file": "final-brep-714-browser-dpr2.png",
+      "figure": "journey/release/final-brep-714-browser-dpr2.png",
+      "sha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21",
+      "width": 1800,
+      "height": 1520,
+      "rootPersonallyReviewedOriginalResolution": true
+    }
+  ],
+  "scope": "Unchanged maintained final callback and complete capture_current UI/presentation at both densities on the freshly source-bound714 optimized bundle; private artifact plumbing only, global results untouched."
+}

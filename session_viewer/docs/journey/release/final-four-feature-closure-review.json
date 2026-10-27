@@ -1,0 +1,338 @@
+{
+  "status": "PASS bounded four final feature criteria and release gates2/3; exact prior scopes preserved",
+  "recordedUtc": "2026-10-24T20:51:05.965Z",
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+    }
+  ],
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "preparation": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/prepared-v3.json",
+    "sha256": "8a22a381fca60dc7d1618b6ec607eb945cf2d2b0c917c71db616f27226d8275e"
+  },
+  "evidence": {
+    "native": {
+      "path": "docs/journey/release/final-brep-final-native-integration-review.json",
+      "sha256": "befcbe25a9ef21b6c03a081be14ed498c3bd6aaacf6219a64b0c93277d901d27",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS:1068/1068 unfiltered handwritten713 native integration;0failed/ignored/filtered"
+        }
+      ]
+    },
+    "compiler": {
+      "path": "docs/journey/release/final-brep-final-compiler-integration-review.json",
+      "sha256": "934e7cd257c17b106709650c77b1f9ff442ad422e0a537e2963baecee32c6eb8",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS seven actual source-matching compiler/package/native-frame phases; actual final native full suite and current browser remain separate"
+        }
+      ]
+    },
+    "buildGate": {
+      "path": "docs/journey/release/final-brep-final-runtime-build-gate-review.json",
+      "sha256": "6cff1d1e6e59b31a1c7dd13831dff871dcd7e3a525c95b0910cf1f5fbaa4aeff",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS independent current-source final Native/WASM/optimized-build gate only"
+        }
+      ]
+    },
+    "mixed": {
+      "path": "target/course-windows-20261018/final-brep-comparison-v3-preparation/pair-mixed-env-v2/pair-execution.json",
+      "sha256": "9cf4cdeb8cb7bc58ab63f82d89374db46a1c1dc37de84f7a5da79e86ac6acabb",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS actual unchanged strict matched-pair body; root image review pending"
+        }
+      ]
+    },
+    "surface-curved-border": {
+      "path": "target/course-windows-20261018/final-brep-comparison-v3-preparation/pair-curved-border-env-v2/pair-execution.json",
+      "sha256": "f0273c844b3e11acafa9adefc6a2e4136a8d89e87efcf3e73725c69c4693a540",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS actual unchanged strict matched-pair body; root image review pending"
+        }
+      ]
+    },
+    "cap-bore": {
+      "path": "target/course-windows-20261018/final-brep-cap-centered-fixture-preparation/cap-centered-v1/pair-execution.json",
+      "sha256": "34879b89834f151288ad94f7e4031d37a2ec2863e1dc636f4dc354e272dbbde1",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS actual centered cap fixture strict0RGBA/alloriginal assertions; root image review pending"
+        }
+      ]
+    },
+    "browser713": {
+      "path": "docs/journey/release/final-brep-713-browser-review.json",
+      "sha256": "e7ccf1c9f8af45e2ce644e63f3b2555eb50aa1721148e5426169b55d565eb80c",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS actual final713 strict Sphere original-owner/rawABI/opacity restoration browser witness"
+        },
+        {
+          "pointer": "/sourceFingerprint",
+          "equals": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e"
+        }
+      ]
+    },
+    "browser714": {
+      "path": "docs/journey/release/final-brep-714-browser-review.json",
+      "sha256": "94d7822ac6bdf4a22e5836ee22d57ef406176a1ecd60b98719a6944d32303606",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS actual final714 original final.cjs DPR1/2 and presentation browser assertions"
+        },
+        {
+          "pointer": "/sourceFingerprint",
+          "equals": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0"
+        }
+      ]
+    },
+    "qualityRecovery": {
+      "path": "docs/journey/release/final-brep-quality-recovery-review.json",
+      "sha256": "f94bafe99664e95f357daea3e479e1ef70f274e5a17a083741426597cce3ad6c",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS actual final713 unchanged quality/recovery callback and direct resource prerequisites"
+        },
+        {
+          "pointer": "/sourceFingerprint",
+          "equals": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e"
+        }
+      ]
+    },
+    "readerAPI": {
+      "path": "target/course-windows-20261018/final-reader-dependency-qualification-preparation/actual-final-qualification-v1.json",
+      "sha256": "02274be1c0b1040100b5956c8c97bbc5217a3e39cbaa0c125f7f1890d0f191d8",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS scoped final-kernel reader dependency/API qualification; no compiler execution"
+        },
+        {
+          "pointer": "/counts/endpoints",
+          "equals": 101
+        },
+        {
+          "pointer": "/counts/originalCompilerPhases",
+          "equals": 202
+        },
+        {
+          "pointer": "/counts/exactIndependentEndpoints",
+          "equals": 8
+        },
+        {
+          "pointer": "/counts/dependencyQualifiedEndpoints",
+          "equals": 93
+        },
+        {
+          "pointer": "/counts/newCompilerExecutions",
+          "equals": 0
+        }
+      ]
+    },
+    "lifecycleRelevance": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\finalization-config-preparation\\lifecycle-current-input-relevance.json",
+      "sha256": "c66f7831df0290309fa9668c30920cf22edf1e9ea702036995dd2c4718a65ba1",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS relevant-input retention only; no fresh old lifecycle or shortcut execution"
+        }
+      ]
+    },
+    "historicalCallbacks": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\finalization-config-preparation\\historical-eighteen-records.json",
+      "sha256": "1ce793c8d2f82a948ad6f2d9e6d3bd9b91a80318d3abf65637de6569491a3a65",
+      "assertions": [
+        {
+          "pointer": "/status",
+          "equals": "PASS retention of18 actual original source-specific accepted record identities only"
+        }
+      ]
+    }
+  },
+  "rootReview": {
+    "path": "target/course-windows-20261018/finalization-config-preparation/actual-finite-root-review.json",
+    "sha256": "7c82600368db150770c25c94492b09ef8a8a687e5c436d47aa034097fbea1af6"
+  },
+  "decisions": [
+    {
+      "index": 0,
+      "feature": "Startup, dock and frame ownership",
+      "originalRemainingAcceptance": [
+        "Validate actual final lifecycle,recovery and focused/unfocused Escape handoff using declared callback checks or relevant-input proof; the unchanged97d optimized bundle already passes and is reusable.",
+        "Complete source-matching historical callbacks and inspect viewer frames; docs layout screenshots do not establish runtime acceptance."
+      ],
+      "decision": "complete bounded declared criterion",
+      "acceptedScope": "Actual new final quality/device-loss recovery and direct target-resize prerequisites pass at the current source. Thirty-four unchanged fef4 startup/dock/frame/shortcut modules retain only their original accepted lifecycle and focused/unfocused Escape scopes. The two failed complete legacy shortcut attempts remain failed; no unsaved-document preservation claim.",
+      "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+      "evidenceRoles": [
+        "qualityRecovery",
+        "lifecycleRelevance",
+        "historicalCallbacks",
+        "browser713",
+        "browser714"
+      ]
+    },
+    {
+      "index": 5,
+      "feature": "BRep tessellation, trims, holes, borders and NURBS isolines",
+      "originalRemainingAcceptance": [
+        "Retain the accepted finite CAD/ink width, AA, clipping, visibility and recorded original-owner/archive controls. Complete source-specific CAD/NURBS ownership/display cases outside those recorded contracts. Native image equality alone does not assert production owner-picking, opaque depth occlusion or curved-isoline continuity.",
+        "Inspect generated curved NURBS isoline continuity/legibility within the declared CAD contract. The source402 chapter15 network callback and meaningful original input-curve/surface review are accepted; do not repeat that callback or expand this into an arbitrary matrix."
+      ],
+      "decision": "complete bounded declared criterion",
+      "acceptedScope": "Exact merged production BRep reconstruction and new four focused regressions pass within the actual unfiltered final native suite. Actual strict mixed and curved-border frames, original source/archive/course-owner assertions and separately scoped final browser images complete the finite contract. Production NurbsSurface emits four border isocurves, skipping closed directions; it does not expose generated interior isolines. No production-ID pick claim follows from the CAD pair.",
+      "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+      "evidenceRoles": [
+        "native",
+        "mixed",
+        "surface-curved-border",
+        "browser713",
+        "browser714"
+      ]
+    },
+    {
+      "index": 6,
+      "feature": "Clipping, cap winding and source sections",
+      "originalRemainingAcceptance": [
+        "Complete actual production cap/winding/section-pass and selected/placed section cases outside the accepted native ink/sheet clipping and fixed glass/Xray guide fixtures, with current final feature frames."
+      ],
+      "decision": "complete bounded declared criterion",
+      "acceptedScope": "The actual strict centered cap fixture compares selected mirrored/nonuniform and unselected verified-closed original owners, fullRGBA, production original owner picks, cached course original picks and empty bore with unchanged source/archive. Recorded caps/Slot/Arena/reader callbacks and new full native pass retain original source scopes. This is one representative fixture, not an arbitrary cap matrix.",
+      "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+      "evidenceRoles": [
+        "native",
+        "cap-bore",
+        "historicalCallbacks",
+        "browser713",
+        "browser714"
+      ]
+    },
+    {
+      "index": 11,
+      "feature": "Finite visibility and triangle tiles",
+      "originalRemainingAcceptance": [
+        "Source496 caps, source590 Slot and source603 Arena browser criteria and bounded native sag/tile/depth proofs are accepted at their recorded scopes. Whole-feature status remains partial pending root reconciliation with the separately open production cap/section comparison; no repeat historical caps callback is required."
+      ],
+      "decision": "complete bounded declared criterion",
+      "acceptedScope": "Previously accepted nine named finite sag/tile/depth assertions, exact14 representative ink pairs and source496caps/source590Slot/source603Arena browser scopes are retained. Actual new full native and the strict selected/placed section-cap representative discharge the remaining overlap with clipping; no arbitrary numeric sag/tolerance or tiled visibility matrix is claimed.",
+      "limitations": "Bounded recorded fixtures and assertions only; all original failure/source/checker/dependency scopes retained. No new arbitrary matrix or historical replay.",
+      "evidenceRoles": [
+        "native",
+        "cap-bore",
+        "compiler",
+        "historicalCallbacks"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "gate": 2,
+      "literal": "Pass all declared runnable-checkpoint checks against their actual final inputs.",
+      "decision": "complete"
+    },
+    {
+      "gate": 3,
+      "literal": "Close every feature row in the production/lesson coverage map with truthful source and visual evidence.",
+      "decision": "complete"
+    }
+  ],
+  "productionNurbsContract": "four border isocurves; closed directions skipped; no generated interior isoline contract",
+  "capOwnerContract": "actual selected mirrored/nonuniform and unselected closed owners; original owner picks and empty bore; source/archive unchanged",
+  "images": [
+    {
+      "path": "docs/journey/release/final-brep-final-native-frame.png",
+      "sha256": "d7def00ea146454b0b18313ffd33e9aa1f9cff639406e25bf2d1146c2b84755b",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/exact-brep-mixed.png",
+      "sha256": "34ae19eafd332f14115ccb97f7633de1c7b5595112e2869feedd94caefefb353",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/exact-brep-surface-curved-border.png",
+      "sha256": "45c965ff0c34488e3d6ad71d4e9939a7d74777024060974771f9556f5c81f073",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/exact-brep-cap-bore.png",
+      "sha256": "a253c020b2ecca1c602a2b51d652ec35eb763e1d2d1a015cc6ce0d2e3e45c477",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-713-opaque.png",
+      "sha256": "035c279cf71d6d5018bc26c934823299a1e93461f286bf92e1c7911430344aa7",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-713-xray.png",
+      "sha256": "d585c7eeb64a832f9a5e4bbb1b6f981e7cbde318c44d448a82a47e4203621f36",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-714-browser.png",
+      "sha256": "0809048c11977d4ee4ab5badaf61422bd9754dabc749767aee907f87e5bbab3e",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-714-browser-dpr2.png",
+      "sha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-quality-automatic-dpr1.png",
+      "sha256": "d29fc705da91c711100d2090759e48751f665e6e022f5c6fd7a5fea22f5f05d3",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-quality-automatic-dpr2.png",
+      "sha256": "9e90a6a243e7bf5e2ba422449d782bf350be02d20ae9d1f4a79df11478ace29d",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-quality-forced-four-dpr1.png",
+      "sha256": "d29fc705da91c711100d2090759e48751f665e6e022f5c6fd7a5fea22f5f05d3",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-quality-forced-four-dpr2.png",
+      "sha256": "742fcdb617189be63a8b07114494c3c04a4d9f9688fce119d792d970d73d4802",
+      "rootPersonallyReviewed": true
+    },
+    {
+      "path": "docs/journey/release/final-brep-quality-recovered-forced-four.png",
+      "sha256": "90a428adc12d4287bbdc268477e8cf381d4aed738975236b49686c1c7ad39537",
+      "rootPersonallyReviewed": true
+    }
+  ],
+  "limits": [
+    "No invented interior NURBS isolines, arbitrary Cartesian display matrix, new101/202 compiler executions or whole714 native suite.",
+    "Old failures, original sources/checkers and historical proof records retain their identities.",
+    "No final docs rendered acceptance or fullPlanComplete inferred by metadata."
+  ]
+}

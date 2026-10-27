@@ -1,0 +1,7 @@
+    pub edges: Vec<u32>,
+    pub heads: Vec<u8>,
+    pub planes: Vec<u8>,
+    pub dots:Vec<u8>,pub spheres:Vec<u8>,pub inside:Vec<(u32,crate::bounds::Bounds)>,
+    pub object_ids: Vec<ObjectId>,
+    pub pick_owners: Vec<u32>,
+    pub line_count: usize,

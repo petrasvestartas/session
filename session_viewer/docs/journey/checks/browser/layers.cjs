@@ -30,7 +30,7 @@ module.exports=async(original,helpers)=>{
             assert.deepEqual(await value(page,'data-camera-matrix'),initialCamera,'Layer creation and rename preserve the camera');
             await control(page,`tree/select/${posts.key}`);await page.waitForFunction(id=>{const selected=JSON.parse(document.querySelector('canvas').getAttribute('data-selected-ids'));return selected.length===1&&selected[0]===id;},posts.ids[0]);
             const camera=await value(page,'data-camera-matrix');
-            await page.keyboard.press('Escape');await page.keyboard.press('h');let flags=await value(page,'data-view-flags');assert(flags.rows.filter(r=>posts.ids.includes(r.id)).every(r=>!r.visible));assert.deepEqual(await value(page,'data-row-metadata'),metadata);
+            await page.keyboard.press('h');let flags=await value(page,'data-view-flags');assert(flags.rows.filter(r=>posts.ids.includes(r.id)).every(r=>!r.visible));assert.deepEqual(await value(page,'data-row-metadata'),metadata);
             await page.keyboard.press('s');assert((await value(page,'data-view-flags')).rows.every(r=>r.visible));
             await control(page,`layer/colour/${posts.key}`);await control(page,`layer/colour/${posts.key}/false/Blue`);assert((await value(page,'data-view-flags')).rows.filter(r=>posts.ids.includes(r.id)).every(r=>JSON.stringify(r.faces)==='[65,130,225]'));
             await control(page,`layer/colour/${posts.key}`);await control(page,`layer/channel/${posts.key}/Edges`);await control(page,`layer/colour/${posts.key}/true/Green`);
@@ -40,7 +40,7 @@ module.exports=async(original,helpers)=>{
             await menu(page,posts.key,'Duplicate layer');await helpers.command(page,'Layers All');const copy=(await value(page,'data-tree')).find(r=>r.label==='Posts copy 01');assert(copy);assert.equal(copy.ids.length,2);
             await menu(page,copy.key,'Delete');assert.equal((await value(page,'data-row-placements')).length,count+2);await control(page,'layer/delete/Cancel');assert.equal((await value(page,'data-row-placements')).length,count+2);
             await menu(page,copy.key,'Delete');await control(page,'layer/delete/Delete');assert.equal((await value(page,'data-row-placements')).length,count);await helpers.command(page,'Undo');assert.equal((await value(page,'data-tree')).find(r=>r.label==='Posts copy 01').key,copy.key);
-            await helpers.command(page,'Undo');await control(page,`tree/select/${posts.key}`);await page.keyboard.press('Escape');await page.keyboard.press('Delete');assert.equal((await value(page,'data-row-placements')).length,1);await helpers.command(page,'Undo');assert.deepEqual(await value(page,'data-row-placements'),initial);
+            await helpers.command(page,'Undo');await control(page,`tree/select/${posts.key}`);await page.keyboard.press('Delete');assert.equal((await value(page,'data-row-placements')).length,1);await helpers.command(page,'Undo');assert.deepEqual(await value(page,'data-row-placements'),initial);
             assert.deepEqual(errors,[]);
         }finally{await context.close();}
     }

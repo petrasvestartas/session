@@ -1,0 +1,184 @@
+{
+  "status": "FAIL original76d outer final-status assertion after complete canonical callback returned",
+  "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+  "sourceFingerprint": "c659daa7ae3ec0cb945ee47131fbed2be30c73876d53d19bfc5f2bc6cb89f1e1",
+  "sourceSignature": "d9ba7fe134f92b92b34fe591778a89eb277212d72406f3f86a623baccbd983d8",
+  "sourceFiles": 377,
+  "originalMetadataCourseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+  "build": {
+    "proof": {
+      "path": "target/course-windows-20261018/76d-nvidia-sheet-observation-preparation/76d-two-fixture-v5-nvidia-sheet-v1/proof.json",
+      "sha256": "ad997c0ebdfdc65c5ec09e1355877fd6c43fe099b6f451e949adf900c0936cf9"
+    },
+    "phases": {
+      "native-check": {
+        "resources": {
+          "path": "target/course-checks/76d-two-fixture-v5-nvidia-sheet-v1-native-check-20261024T005429774Z.resources.json",
+          "sha256": "d22e6545fdab781c914babf2a77f45386fed70a9cbfd88fbe1f56c1499312eae"
+        },
+        "command": {
+          "name": "76d-two-fixture-v5-nvidia-sheet-v1-native-check-20261024T005429774Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "check",
+            "--tests",
+            "--examples",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        }
+      },
+      "wasm": {
+        "resources": {
+          "path": "target/course-checks/76d-two-fixture-v5-nvidia-sheet-v1-wasm-20261024T005446994Z.resources.json",
+          "sha256": "d51ce67c5a0b8feb4763b4d18522849aec5f76eca2f806332b6e693fdaa3ed17"
+        },
+        "command": {
+          "name": "76d-two-fixture-v5-nvidia-sheet-v1-wasm-20261024T005446994Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "build",
+            "--lib",
+            "--locked",
+            "--offline",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        }
+      },
+      "web": {
+        "resources": {
+          "path": "target/course-checks/76d-two-fixture-v5-nvidia-sheet-v1-web-20261024T005503717Z.resources.json",
+          "sha256": "f913617f6beb931404c1221197aa0b72678a46acc22679f9776be9497243503b"
+        },
+        "command": {
+          "name": "76d-two-fixture-v5-nvidia-sheet-v1-web-20261024T005503717Z",
+          "args": [
+            "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        }
+      },
+      "frame": {
+        "resources": {
+          "path": "target/course-checks/76d-two-fixture-v5-nvidia-sheet-v1-frame-20261024T005704488Z.resources.json",
+          "sha256": "2bdf28d2acf2619dc01225132b03401d61e00770290ec97153ea64879e7ec1b7"
+        },
+        "command": {
+          "name": "76d-two-fixture-v5-nvidia-sheet-v1-frame-20261024T005704488Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        }
+      },
+      "sample": {
+        "resources": {
+          "path": "target/course-checks/76d-two-fixture-v5-nvidia-sheet-v1-sample-20261024T005733954Z.resources.json",
+          "sha256": "706028ed7a7e6d2310f045a19f0ea10e0bd416695836585fe7af517c026a1b95"
+        },
+        "command": {
+          "name": "76d-two-fixture-v5-nvidia-sheet-v1-sample-20261024T005733954Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "sample",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        }
+      }
+    },
+    "canonicalVerifyComplete": false,
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    },
+    "nativeFramePngSha256": "30d65b4a30872dc0dbaf3a7f53927a9d9c770c0f85a4818ed5d2a14e7c1dc1cb",
+    "scope": "Native tests/examples typechecked and WASM/optimizedweb/frame/sample phases passed; no fullhistoricalnative suite claim"
+  },
+  "browser": {
+    "proof": {
+      "path": "target/course-windows-20261018/76d-nvidia-sheet-observation-preparation/76d-two-fixture-v5-nvidia-sheet-v1/browser-20261024T005809527Z.json",
+      "sha256": "65e5cbfc4eff24d753e70c6ba604f5de21fed66e9f9d3e2beae666a54284655e"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/76d-two-fixture-v5-nvidia-sheet-v1-proportional-browser-20261024T005810048Z.resources.json",
+      "sha256": "c7d1baab98ebd9711bc0a7212a02478424f0853f4333c094dd849e752adbf614"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/76d-two-fixture-v5-nvidia-sheet-v1-proportional-browser-20261024T005810048Z.log",
+      "sha256": "a98458e32ff0bb481b7fb194b78d8d37e9a4d3972985a0071f1acf3d599c0fa9"
+    },
+    "failure": {
+      "path": "target/course-checks/76d-exercise-exact-curves-and-rational-control-edits-browser-failure.json",
+      "sha256": "5854c88c0763e0ef7a60ee33cd927422a74bccc2baefdd918b391ebcea95f5d1"
+    },
+    "elapsedSeconds": 1877.948,
+    "peakJobCommitBytes": 1912373248,
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    },
+    "actualStatus": "Document closed.",
+    "expectedStatus": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+    "outerCaptureAccepted": false
+  },
+  "observedImages": [
+    {
+      "figure": "journey/release/76d-observed-sheet-before-drawing.png",
+      "sha256": "69698b390864f5ca72cfb3d5edbc50601fc56b3a8636b68171886118377696e8",
+      "observation": {
+        "path": "target/course-windows-20261018/76d-nvidia-sheet-observation-preparation/76d-two-fixture-v5-nvidia-sheet-v1/sheet-observation-20261024T005809978Z/observation.json",
+        "sha256": "61589c77c429950ac53790814e8a04847f1ab4a90871ef7d441bdc732339806d"
+      },
+      "rootIndividuallyReviewed": true,
+      "interpretation": "Actual Sheet state looks proper in root inspection; passive capture after original Sheet body, before drawing resumes. No additional commands/settings changes or GPU-queue completion assertion."
+    },
+    {
+      "figure": "journey/release/76d-original-final-curve-failure.png",
+      "sha256": "4aa1f469da97467da184efd103cacc03f010318d5109951a6a89022f2e0bd013",
+      "rootIndividuallyReviewed": true,
+      "interpretation": "Actual final curve state looks proper in root inspection. Image is saved failure evidence; visually proper appearance does not turn failed outer capture into acceptance."
+    }
+  ],
+  "scope": [
+    "No76d callback acceptance or whole Sheet feature closure. Counts unchanged:features3/18,callbacks1/18,17remaining.",
+    "Subsequent owned terminal-status metadata correction preserves original failed records and does not manufacture a successful replay.",
+    "Original70d striped counterexample remains unresolved and separately retained."
+  ]
+}

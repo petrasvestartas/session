@@ -1,0 +1,1 @@
+self.sources.mesh_ids.iter().zip(&self.sources.mesh_legacy).filter(|(_,kind)|**kind!=0).map(|(id,_)|[id[0],if id[1]==0{crate::sub_id::OBJECT_INK}else{id[1]}])

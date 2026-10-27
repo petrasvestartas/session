@@ -22,6 +22,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 ```rust
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let output = self.context.run_ui(input, |root| {
             egui::Panel::bottom("command-line-collapsed").exact_size(30.0)
                 .frame(egui::Frame::new().fill(egui::Color32::WHITE)
@@ -40,6 +41,7 @@ Replace it with:
 ```rust
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let output = self.context.run_ui(input, |root| {
             view::panel(root, false, 0.0).show_inside(root, |ui| {
                 view::prepare(ui);
@@ -151,6 +153,7 @@ impl Panel {
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let output = self.context.run_ui(input, |root| {
             view::panel(root, false, 0.0).show_inside(root, |ui| {
                 view::prepare(ui);

@@ -1,0 +1,250 @@
+{
+  "status": "MEASURED_CANDIDATE_REJECTED_AT_PERFORMANCE_GATE",
+  "decision": "Keep the approved eight-CPU WARP native-image profile. NVIDIA was slower in both finite paired measurements; do not adopt a bulk hardware profile or run a third96zz benchmark.",
+  "helper": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-nvidia-speed-audit\\frozen\\dbc03fe1a24aead66edf9999a06da36713a81dd3372269d7985e0bbb9bb74bb0\\hardware-native-benchmark.ts",
+    "sha256": "dbc03fe1a24aead66edf9999a06da36713a81dd3372269d7985e0bbb9bb74bb0"
+  },
+  "cases": [
+    {
+      "checkpoint": "43b-view",
+      "source": {
+        "checkpoint": "43b-view",
+        "files": "6a5df11fdc9518b92383a10b701e4dcd3591e9858a3b14ce3d680f7b90709d28",
+        "lock": "6d600dfe1ba9f55ce4bf0c623576ebfac06e6c180f07568368916387d868adde",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "f3e3724efebc73a16f24b2dfcdb8334c30fba374244a23be526659518bcbf61f",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "frozenComparison": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-nvidia-speed-audit\\frozen\\dbc03fe1a24aead66edf9999a06da36713a81dd3372269d7985e0bbb9bb74bb0\\43b-view-comparison.json",
+        "sha256": "477b3716b38af97cccde534b96780082809e087f8a0b7f5d1be6d33f1edf2e8b"
+      },
+      "seconds": {
+        "warp": 6.217,
+        "nvidia": 7.804
+      },
+      "rgba": {
+        "differingPixels": 12615,
+        "maxChannelDelta": 113,
+        "meanAbsoluteDelta": 0.006475423177083333,
+        "bbox": [
+          0,
+          0,
+          1279,
+          871
+        ],
+        "byteIdentical": false
+      },
+      "warpImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\warp-runtime\\43b-view-warp.png",
+        "sha256": "4d71ed6c07bb50dcbf89e23c7baef3c9a5a5f72d1485fe6310315760119a4d63",
+        "width": 1280,
+        "height": 960
+      },
+      "nvidiaImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\nvidia-runtime\\43b-view-nvidia.png",
+        "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+        "width": 1280,
+        "height": 960
+      },
+      "warpReproducesAcceptedOriginalRGB": true,
+      "actualNvidiaAdapter": "AdapterInfo { name: \"NVIDIA GeForce RTX 4080 Laptop GPU\", vendor: 4318, device: 10208, device_type: DiscreteGpu, device_pci_bus_id: \"0000:01:00.0\", driver: \"32.0.15.9579\", driver_info: \"\", backend: Dx12, subgroup_min_size: 32, subgroup_max_size: 32, transient_saves_memory: false }",
+      "executable": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\bin\\presentation.exe",
+        "sha256": "dfbca353035be2e2d04b8f7915521a430ca33e9e128a4930e15b0792cd74be6c"
+      },
+      "driver": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\workspace\\examples\\presentation.rs",
+        "sha256": "ac9cc4bdbf20d4eb1721ea79e00df81291b4a9c44609c0274e281f6fe21a0057"
+      },
+      "guard": {
+        "warp": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "nvidia": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974"
+      },
+      "resources": {
+        "warp": {
+          "platform": "windows-job-object",
+          "scope": "Image-only capture profile; canonical test guard unchanged",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-25T22:20:22.2219632Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\bin\\presentation.exe",
+          "arguments": [],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\warp-runtime",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 6.217,
+          "peakJobCommitBytes": 569413632,
+          "affinityMask": "0xFF",
+          "processors": 8,
+          "processId": 59272,
+          "descendantsAtCleanup": 0
+        },
+        "nvidia": {
+          "platform": "windows-job-object",
+          "scope": "Image-only capture profile; canonical test guard unchanged",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-25T22:19:59.6214647Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\bin\\presentation.exe",
+          "arguments": [],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\43b-view-e53a1077be6d4289a6f6\\nvidia-runtime",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 7.804,
+          "peakJobCommitBytes": 587018240,
+          "affinityMask": "0xFF",
+          "processors": 8,
+          "processId": 60968,
+          "descendantsAtCleanup": 0
+        }
+      }
+    },
+    {
+      "checkpoint": "59f-cad",
+      "source": {
+        "checkpoint": "59f-cad",
+        "files": "f7e84cc92be934edb8fa85712e5936a8344f6403aa79a3d82aa4ef1946d5b33f",
+        "lock": "6d600dfe1ba9f55ce4bf0c623576ebfac06e6c180f07568368916387d868adde",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "ea20eeef7dccfb31d49606497fb5554fbcf9fa2e775a55be99942844ff1aae29",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "frozenComparison": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\native-nvidia-speed-audit\\frozen\\dbc03fe1a24aead66edf9999a06da36713a81dd3372269d7985e0bbb9bb74bb0\\59f-cad-comparison.json",
+        "sha256": "c2aba5ec38e1647b5ccffb5dfa87e6dc9eb60f1443d1160877a57b5c7b8a764c"
+      },
+      "seconds": {
+        "warp": 2.731,
+        "nvidia": 4.585
+      },
+      "rgba": {
+        "differingPixels": 9420,
+        "maxChannelDelta": 223,
+        "meanAbsoluteDelta": 0.0121856689453125,
+        "bbox": [
+          273,
+          320,
+          1042,
+          796
+        ],
+        "byteIdentical": false
+      },
+      "warpImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\warp-runtime\\59f-cad-warp.png",
+        "sha256": "41b22675772fa59c2e6dc3fba609e798f89fdfddca22b2bf8565807c26f6a40b",
+        "width": 1280,
+        "height": 960
+      },
+      "nvidiaImage": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\nvidia-runtime\\59f-cad-nvidia.png",
+        "sha256": "4f9b4ab80eab901ab82dae921b261dda5555cd8cb04db2eb80a8c8739542fa38",
+        "width": 1280,
+        "height": 960
+      },
+      "warpReproducesAcceptedOriginalRGB": true,
+      "actualNvidiaAdapter": "AdapterInfo { name: \"NVIDIA GeForce RTX 4080 Laptop GPU\", vendor: 4318, device: 10208, device_type: DiscreteGpu, device_pci_bus_id: \"0000:01:00.0\", driver: \"32.0.15.9579\", driver_info: \"\", backend: Dx12, subgroup_min_size: 32, subgroup_max_size: 32, transient_saves_memory: false }",
+      "executable": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\bin\\presentation.exe",
+        "sha256": "96a51484ec4ae5c6355e32055fe315940bafe3c07f3ff4e59c54e44256166997"
+      },
+      "driver": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\workspace\\examples\\presentation.rs",
+        "sha256": "afa76dd2756d8c652de5525115e70f5f617ac340a96d867b5348f729d8e457c6"
+      },
+      "guard": {
+        "warp": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "nvidia": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974"
+      },
+      "resources": {
+        "warp": {
+          "platform": "windows-job-object",
+          "scope": "Image-only capture profile; canonical test guard unchanged",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-25T22:23:44.3157528Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\bin\\presentation.exe",
+          "arguments": [],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\warp-runtime",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 2.731,
+          "peakJobCommitBytes": 554930176,
+          "affinityMask": "0xFF",
+          "processors": 8,
+          "processId": 54956,
+          "descendantsAtCleanup": 0
+        },
+        "nvidia": {
+          "platform": "windows-job-object",
+          "scope": "Image-only capture profile; canonical test guard unchanged",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-25T22:23:02.1942814Z",
+          "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\bin\\presentation.exe",
+          "arguments": [],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\hardware-native-benchmark\\59f-cad-c32b5c9d3d16c0b6cc06\\nvidia-runtime",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 4.585,
+          "peakJobCommitBytes": 567619584,
+          "affinityMask": "0xFF",
+          "processors": 8,
+          "processId": 50200,
+          "descendantsAtCleanup": 0
+        }
+      }
+    }
+  ],
+  "reviewScope": "No candidate visual acceptance required: candidate failed performance adoption gate. WARP images reproduce previously accepted original PNG hashes exactly. NVIDIA images and actual RGBA differences retained, without parity claim.",
+  "limits": [
+    "Two checkpoints only; actual8CPU/8GiB/affinity0xFF for both roles, same source/DXC/executable and reversible adapter-only driver plus passiveRGBAreadback.",
+    "Concurrent separately guarded image work may affect timing; no isolated-driver causal or bulk-speed estimate.",
+    "Renderer, shader, canonical test, original guard/profile and accepted WARP receipts remain unchanged."
+  ]
+}

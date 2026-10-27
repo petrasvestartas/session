@@ -1,0 +1,1 @@
+  let px = row.point_px * density;

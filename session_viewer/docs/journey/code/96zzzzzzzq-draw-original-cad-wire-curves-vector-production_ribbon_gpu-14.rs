@@ -1,0 +1,7 @@
+                        (0, self.segments.as_entire_binding()),
+                        (1, self.edges.as_entire_binding()),
+                        (2, self.selection.as_entire_binding()),
+                        (3, self.picks.as_entire_binding()),
+                    ],
+                ),
+            ],

@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-26T01:29:54.959Z",
+  "status": "IN_PROGRESS: reviewed original-inventory publication checkpoint",
+  "published": 781,
+  "remaining": 981,
+  "counts": {
+    "native": 668,
+    "browser": 93,
+    "variants": 0,
+    "supporting": 20
+  },
+  "publicationIndex": {
+    "path": "docs/journey/release/image-quality-publication-index.json",
+    "sha256": "04b7e99c5b9e5530aa7322441dd6f834ab5210da5448c7e0bbf3db5aa71bfd3f"
+  },
+  "operationalDriver": {
+    "path": "session_tests/scripts/course/incremental-browser-image-queue-v2.ts",
+    "sha256": "4bdc26a7b27bb8a785d13ac2cae7e08739604737514402af5cf6e4e8c4fdbefa"
+  },
+  "scope": "Every counted image has its own reviewed publication record and exact source/served hashes. Native and browser captures continue; final site acceptance is pending. The launcher changes neither capture source nor canonical assertions.",
+  "websiteDesign": "Vue, styling, structure and Gemini prose preserved."
+}

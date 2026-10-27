@@ -1,0 +1,1 @@
+Some(&self.strokes),Some(&self.matrices),self.opacity.get()); }

@@ -1,0 +1,473 @@
+{
+  "status": "PASS finite native criterion reconciliation; feature remains partial",
+  "recordedUtc": "2026-10-24T03:09:37.241Z",
+  "feature": "Transparency and Xray",
+  "satisfiedNativeCriterion": "Compare transparent materials, Xray, locked/source selection, copied objects and clipping using actual production fixtures.",
+  "evidenceAudit": {
+    "path": "target/course-windows-20261018/material-transparency-remaining-audit.json",
+    "sha256": "1671b2cb775f36852e655c16d5af87d54b7b734114d7620713c4d99d714dd63a"
+  },
+  "existingPublicRecords": [
+    {
+      "path": "docs/journey/release/material-production-pairs-native-review.json",
+      "sha256": "00bda278a9710e1064d81a4296885f8b0bd65cca869a29acc86690d53674105e"
+    },
+    {
+      "path": "docs/journey/release/material-lighting-transparency-native-review.json",
+      "sha256": "2e438c8d05e3243d75513a4effaa51b458f91dfe0bb301d2c863872e3a938cf3"
+    },
+    {
+      "path": "docs/journey/release/clipping-guide-ribbon-native-review.json",
+      "sha256": "d20f90c1550e9ea81bf5e297394956fa6d85e7c9523296e370297125e7f9a19f"
+    },
+    {
+      "path": "docs/journey/release/native-ribbon-v4-qualified-recovery-review.json",
+      "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d"
+    }
+  ],
+  "originalExecution": {
+    "sourceFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+    "manifest": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/frames-20261023T232139728Z/manifest.json",
+      "sha256": "33b43b0d3e5e94876c8bf6417bc6a1719972efe4ea3515bd66e050b37453c3bc"
+    },
+    "retainedSourceSha256": "a956c5940118532a1932326161d85d0972d7d167eb7e5801ef22b823556ad117",
+    "cases": [
+      {
+        "name": "copied-selected-glass",
+        "rgbaBytes": 1228800,
+        "fullRgbaByteEquality": true,
+        "productionRgbaSha256": "94e5b76ba372f4a83c71d97620b1d1cffe91334138c3c41740a1e3fae0c8cf78",
+        "courseRgbaSha256": "94e5b76ba372f4a83c71d97620b1d1cffe91334138c3c41740a1e3fae0c8cf78",
+        "changedPixels": 0,
+        "maxChannelDelta": 0,
+        "actualCopy": {
+          "copied_guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+          "delta_f64": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1
+          ],
+          "operation": "actual Scene::copy_rows",
+          "original_guid": "ownerclip-original"
+        },
+        "actualLoadedLockEligibility": [
+          {
+            "guid": "ownerclip-original",
+            "locked": false,
+            "row": 2,
+            "selectable": true
+          },
+          {
+            "guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+            "locked": false,
+            "row": 4,
+            "selectable": true
+          },
+          {
+            "guid": "ownerclip-locked",
+            "locked": true,
+            "row": 3,
+            "selectable": false
+          }
+        ],
+        "courseOwners": {
+          "copy": 4,
+          "locked": 3,
+          "original": 2
+        },
+        "course": {
+          "clip_enabled": false,
+          "density": 1,
+          "matrix_f32": [
+            0.5,
+            0,
+            0,
+            0,
+            0,
+            0.6666666865348816,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          "opacity": 0.5,
+          "samples": 1,
+          "selected_original_owner": 4,
+          "viewport": [
+            640,
+            480
+          ]
+        },
+        "productionSelectedGuids": [
+          "e852e3fe-bc13-40d3-9ee2-0c16d59d7384"
+        ],
+        "productionUploadedClipCount": 0,
+        "archiveContract": "Entire decoded protobuf documents+exact full metadata equal before/noop/init/render; raw archives all preserved; no GUID/field dropping"
+      },
+      {
+        "name": "locked-source-glass",
+        "rgbaBytes": 1228800,
+        "fullRgbaByteEquality": true,
+        "productionRgbaSha256": "d440f4ea749a374f3efc3cd6888ea578ed0221efebc3ac28ed0c776ad004679e",
+        "courseRgbaSha256": "d440f4ea749a374f3efc3cd6888ea578ed0221efebc3ac28ed0c776ad004679e",
+        "changedPixels": 0,
+        "maxChannelDelta": 0,
+        "actualCopy": {
+          "copied_guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+          "delta_f64": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1
+          ],
+          "operation": "actual Scene::copy_rows",
+          "original_guid": "ownerclip-original"
+        },
+        "actualLoadedLockEligibility": [
+          {
+            "guid": "ownerclip-original",
+            "locked": false,
+            "row": 2,
+            "selectable": true
+          },
+          {
+            "guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+            "locked": false,
+            "row": 4,
+            "selectable": true
+          },
+          {
+            "guid": "ownerclip-locked",
+            "locked": true,
+            "row": 3,
+            "selectable": false
+          }
+        ],
+        "courseOwners": {
+          "copy": 4,
+          "locked": 3,
+          "original": 2
+        },
+        "course": {
+          "clip_enabled": false,
+          "density": 1,
+          "matrix_f32": [
+            0.5,
+            0,
+            0,
+            0,
+            0,
+            0.6666666865348816,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          "opacity": 0.5,
+          "samples": 1,
+          "selected_original_owner": null,
+          "viewport": [
+            640,
+            480
+          ]
+        },
+        "productionSelectedGuids": [],
+        "productionUploadedClipCount": 0,
+        "archiveContract": "Entire decoded protobuf documents+exact full metadata equal before/noop/init/render; raw archives all preserved; no GUID/field dropping"
+      },
+      {
+        "name": "copied-selected-clipped-glass",
+        "rgbaBytes": 1228800,
+        "fullRgbaByteEquality": true,
+        "productionRgbaSha256": "a35718d33923664a86c7e9ec1ae2551935c0df0cbd515a998e7dfe8e4feadb60",
+        "courseRgbaSha256": "a35718d33923664a86c7e9ec1ae2551935c0df0cbd515a998e7dfe8e4feadb60",
+        "changedPixels": 0,
+        "maxChannelDelta": 0,
+        "actualCopy": {
+          "copied_guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+          "delta_f64": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1
+          ],
+          "operation": "actual Scene::copy_rows",
+          "original_guid": "ownerclip-original"
+        },
+        "actualLoadedLockEligibility": [
+          {
+            "guid": "ownerclip-original",
+            "locked": false,
+            "row": 2,
+            "selectable": true
+          },
+          {
+            "guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+            "locked": false,
+            "row": 4,
+            "selectable": true
+          },
+          {
+            "guid": "ownerclip-locked",
+            "locked": true,
+            "row": 3,
+            "selectable": false
+          }
+        ],
+        "courseOwners": {
+          "copy": 4,
+          "locked": 3,
+          "original": 2
+        },
+        "course": {
+          "clip_enabled": true,
+          "density": 1,
+          "matrix_f32": [
+            0.5,
+            0,
+            0,
+            0,
+            0,
+            0.6666666865348816,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          "opacity": 0.5,
+          "samples": 1,
+          "selected_original_owner": 4,
+          "viewport": [
+            640,
+            480
+          ]
+        },
+        "productionSelectedGuids": [
+          "e852e3fe-bc13-40d3-9ee2-0c16d59d7384"
+        ],
+        "productionUploadedClipCount": 1,
+        "archiveContract": "Entire decoded protobuf documents+exact full metadata equal before/noop/init/render; raw archives all preserved; no GUID/field dropping"
+      },
+      {
+        "name": "copied-selected-clipped-xray",
+        "rgbaBytes": 1228800,
+        "fullRgbaByteEquality": true,
+        "productionRgbaSha256": "d3774daf7dbe38e3119fb8132689201edf19a589b524adfc9279c0cafe77bc23",
+        "courseRgbaSha256": "d3774daf7dbe38e3119fb8132689201edf19a589b524adfc9279c0cafe77bc23",
+        "changedPixels": 0,
+        "maxChannelDelta": 0,
+        "actualCopy": {
+          "copied_guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+          "delta_f64": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            2,
+            0,
+            0,
+            1
+          ],
+          "operation": "actual Scene::copy_rows",
+          "original_guid": "ownerclip-original"
+        },
+        "actualLoadedLockEligibility": [
+          {
+            "guid": "ownerclip-original",
+            "locked": false,
+            "row": 2,
+            "selectable": true
+          },
+          {
+            "guid": "e852e3fe-bc13-40d3-9ee2-0c16d59d7384",
+            "locked": false,
+            "row": 4,
+            "selectable": true
+          },
+          {
+            "guid": "ownerclip-locked",
+            "locked": true,
+            "row": 3,
+            "selectable": false
+          }
+        ],
+        "courseOwners": {
+          "copy": 4,
+          "locked": 3,
+          "original": 2
+        },
+        "course": {
+          "clip_enabled": true,
+          "density": 1,
+          "matrix_f32": [
+            0.5,
+            0,
+            0,
+            0,
+            0,
+            0.6666666865348816,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          "opacity": 0,
+          "samples": 1,
+          "selected_original_owner": 4,
+          "viewport": [
+            640,
+            480
+          ]
+        },
+        "productionSelectedGuids": [
+          "e852e3fe-bc13-40d3-9ee2-0c16d59d7384"
+        ],
+        "productionUploadedClipCount": 1,
+        "archiveContract": "Entire decoded protobuf documents+exact full metadata equal before/noop/init/render; raw archives all preserved; no GUID/field dropping"
+      }
+    ],
+    "scope": "Four named new copied/locked/clipped visual states only; source eligibility checks are native Scene API observations,not production GPU/browser pick proof; accepted material8 untouched"
+  },
+  "runtimeQualification": {
+    "record": "docs/journey/release/native-ribbon-v4-qualified-recovery-review.json",
+    "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d",
+    "runtimeEquivalence": {
+      "sourceBeforeFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "changedFiles": [
+        "src/global_outline_tests.rs",
+        "src/production_plane_tests.rs"
+      ],
+      "nativeTestOnlyGates": [
+        "renderer.rs cfg(all(test,not(target_arch=\"wasm32\")))",
+        "scene.rs cfg(test)"
+      ],
+      "allOther711SourceFilesIdentical": true,
+      "actual433ExternalInputsIdentical": true,
+      "cap13AssertionsRetained": true,
+      "ordinaryPlaneOriginalFrameIdentityAssertionsRetained": true,
+      "mixedGuideContractStrengthened": true,
+      "old4ImageProof": {
+        "sourceFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+        "ready": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\ready-for-one-integration-native.json",
+        "sha256": "e257ace0c70b9b6469144007e3b5a6846f91b98e99268ba495b05f29aa9d79b3",
+        "scope": "Originale432PASS retained; production inputs unchanged, no rerender/relabel"
+      },
+      "qualifiedReuse": "1060 original named PASS bodies and runtime inputs unchanged; original fullrun remains FAIL, not a single1062PASS"
+    },
+    "priorFourImageProof": {
+      "sourceFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+      "ready": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\ready-for-one-integration-native.json",
+      "sha256": "e257ace0c70b9b6469144007e3b5a6846f91b98e99268ba495b05f29aa9d79b3",
+      "scope": "Original e432 four-pair frames remain at their original hashes. Production inputs are identical under explicit cfg-test-only equivalence; no rerender or relabelled image execution."
+    },
+    "checks": "Pinned public/ready/acceptance/source/prepared hashes checked; all eight full RGBA byte arrays compared. Existing source-equivalence assertions inspected and preserved; no new compiler, GPU or browser execution."
+  },
+  "acceptedScope": "The existing eight exact material pairs establish baseline glass/Xray. Four separately accepted fixed-source pairs establish copied-owner selection, locked-source eligibility and clipped glass/Xray. The source copy uses actual maintained Scene::copy_rows. Entire native RGBA arrays match exactly; decoded original documents and complete archive metadata are retained by the original witness. These are bounded named controls, not an arbitrary material or display matrix.",
+  "scopeLimits": [
+    "Source lock/selectability checks observe native Scene APIs; explicit selected-owner GPU highlights do not establish production GPU/browser picking.",
+    "Original e432 frame execution and hashes remain original. Qualified cfg-test-only equivalence permits reuse at fef4 without rerendering or relabelling.",
+    "Chapter18/20 browser contracts and blend/depth inspection remain pending; feature status and completed-feature counts do not change."
+  ],
+  "remainingBrowserCriterion": [
+    "Run current chapter18/20 feature callbacks and inspect blend/depth behavior; the printed-lid case does not prove opaque occlusion."
+  ],
+  "chapterBrowserEntries": [
+    {
+      "chapter": 18,
+      "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "callback": "journey/checks/browser/performance.cjs"
+    },
+    {
+      "chapter": 20,
+      "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+      "callback": "journey/checks/browser/slot-pipeline.cjs"
+    },
+    {
+      "chapter": 20,
+      "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+      "callback": "journey/checks/browser/measured-file-reader.cjs"
+    },
+    {
+      "chapter": 20,
+      "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "callback": "journey/checks/browser/arena-empty.cjs"
+    }
+  ],
+  "validation": {
+    "newHeavyExecutions": 0,
+    "existingFullRgbaArraysCompared": 8,
+    "fullRgbaBytesCompared": 9830400,
+    "publicRecordAndQualificationPinsChecked": true
+  }
+}

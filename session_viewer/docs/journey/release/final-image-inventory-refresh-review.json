@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-26T20:03:18.957Z",
+  "status": "PASS exact reviewed reference37 PNG inventory update; runtime source records unchanged",
+  "file": "docs/journey/current-viewer-2026-10-23.json",
+  "beforeSha256": "e5c865174454b32c01faf2ba1da25739194c02b9f1dfa8bfaa3d0cb12764bb26",
+  "afterSha256": "8af6509ebb9fdf356926039116283f72bf30ebe97b2b017443c5fd6d31cac542",
+  "change": {
+    "input": "docs/screenshots/steps/37-native.png",
+    "before": "612c7f1a958f3647da22fe0d6a7519d27d6b3e7462f8883476d9ba5237524cd0",
+    "after": "a3e34833c4a1c10b0076a42496a5e20f230d605cea57a4ef9a81c17974f084ca"
+  },
+  "reviewedPublication": {
+    "path": "docs/journey/release/reference37-native-image-quality-review.json",
+    "sha256": "446db8e2814bbd04d5961052f74b70e1f87b375dfe32dbd3879f6e58489bdfae"
+  },
+  "scope": "Only the hash of the already source-bound reviewed regenerated image changes. All source hashes, other inputs, course mappings, archived histories, code and prose are identical."
+}

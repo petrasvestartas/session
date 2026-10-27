@@ -1,0 +1,673 @@
+{
+  "status": "Actual original CAD wire browser assertions passed; every actual image still requires individual critical review.",
+  "results": [
+    {
+      "density": 1,
+      "kind": "wire",
+      "counts": [
+        {
+          "count": 1,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "ee521bed9cebc8e6544fcce95081a783cef87dd50a311facc76891f635ae740c",
+              "black": 44,
+              "yellow": 0,
+              "nonwhite": 62,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "730310c7bb96776f111789f073cee0baf61d176854a813737c49e08151436cc0",
+              "black": 0,
+              "yellow": 44,
+              "nonwhite": 62,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        },
+        {
+          "count": 4,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "c00b70c2506cca93b3500e850ce9db46ec48ab63f003ddf665cd3b0d5fc17c6f",
+              "black": 44,
+              "yellow": 0,
+              "nonwhite": 62,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "aae4722a1275b42b7ccad6d64ba96dee6dd21e6539fa3749853620bed0bb5d1a",
+              "black": 0,
+              "yellow": 44,
+              "nonwhite": 62,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                46,
+                207,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        }
+      ],
+      "originalBRepRecordsExact": true,
+      "sharedSource": true,
+      "errors": []
+    },
+    {
+      "density": 1,
+      "kind": "mixed",
+      "counts": [
+        {
+          "count": 1,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "9a7c162ae6e3508fd0b94d27b8e1ff2b0bc4db4438e1810adb1b3655506a798b",
+              "black": 44,
+              "yellow": 0,
+              "nonwhite": 65,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "8423b58a79de0dafc5b531cae1c8356484d94afb47764bc1c2a2b776dbb98327",
+              "black": 0,
+              "yellow": 45,
+              "nonwhite": 65,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        },
+        {
+          "count": 4,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "c534c5db6d3c9a2cad10f5043b4b4befc602e32ac85fbb5ae4b23c5437dbf265",
+              "black": 44,
+              "yellow": 0,
+              "nonwhite": 65,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "0fb820f47d9277a60b814566454d99bbc26741e95d3b7b4f5d1d516ebab5a332",
+              "black": 0,
+              "yellow": 45,
+              "nonwhite": 65,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "45bff5e90fe19c7e56d24ef046fb1ab5c1087d897462bff3b6984d70caab74bf",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                67,
+                146,
+                13,
+                13
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        }
+      ],
+      "originalBRepRecordsExact": true,
+      "sharedSource": true,
+      "errors": []
+    },
+    {
+      "density": 2,
+      "kind": "wire",
+      "counts": [
+        {
+          "count": 1,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "01ecc431a154eac2b308c33a4c27c37495ef8e56bc0dbd33dd62c579cf7cb917",
+              "black": 188,
+              "yellow": 0,
+              "nonwhite": 227,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "ac141a1acf7071aaac93ad68889fa68c0012e1c61735b73cf064bce2dd9aaf3e",
+              "black": 0,
+              "yellow": 188,
+              "nonwhite": 227,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        },
+        {
+          "count": 4,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "dbded6653bfc7a60c4846693613fdbb180e3ef4a8dae445c91ca947eedade430",
+              "black": 188,
+              "yellow": 0,
+              "nonwhite": 225,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "ffc17d3881d42ff7c5d687e11470fce174643579f845095441e58c773865613b",
+              "black": 0,
+              "yellow": 188,
+              "nonwhite": 225,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                92,
+                415,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        }
+      ],
+      "originalBRepRecordsExact": true,
+      "sharedSource": true,
+      "errors": []
+    },
+    {
+      "density": 2,
+      "kind": "mixed",
+      "counts": [
+        {
+          "count": 1,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "a4e277b88eb8588c161ed44a5b54fb2ab1fc9d94e1296b8e9f649d5504d3794c",
+              "black": 189,
+              "yellow": 0,
+              "nonwhite": 227,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "a7f0f0fb669d32c59507ecca9aad731f5c5b08fa50f12646178c8949878dceff",
+              "black": 0,
+              "yellow": 190,
+              "nonwhite": 227,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        },
+        {
+          "count": 4,
+          "originalObjectOnlyWireQueries": true,
+          "independentFamilies": true,
+          "selectedWire": true,
+          "selectedInk": {
+            "ordinary": {
+              "hash": "ef7516447592f7a68c60d5160a9a3303b8a15c43f01d53e2c92ce845e0e24b31",
+              "black": 189,
+              "yellow": 0,
+              "nonwhite": 227,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "selected": {
+              "hash": "7a8e7efc7d337b6290cd6c257126ca4aa0454b6b7fd73cd1e99bc3f4c1b1298a",
+              "black": 0,
+              "yellow": 190,
+              "nonwhite": 227,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "hidden": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "cleared": {
+              "hash": "7bf918ed22ac03fcccb88561850fa0d8196d89a5b42334364d972d9606f404f4",
+              "black": 0,
+              "yellow": 0,
+              "nonwhite": 0,
+              "bounds": [
+                135,
+                292,
+                25,
+                25
+              ],
+              "world": [
+                -0.6,
+                0.765625,
+                -0.3
+              ]
+            },
+            "independentGizmoRetained": true
+          },
+          "exactReturn": true,
+          "sourceArchiveCameraUploadsUnchanged": true
+        }
+      ],
+      "originalBRepRecordsExact": true,
+      "sharedSource": true,
+      "errors": []
+    }
+  ]
+}

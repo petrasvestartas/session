@@ -1,0 +1,7 @@
+    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
+    guides:crate::guide_gpu::Guide,
+    measurement:crate::measure_gpu::Measurement,
+    sheets:crate::production_sheet_gpu::Lane,
+    clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
+    cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
+    cloud_error:std::cell::RefCell<Option<String>>,

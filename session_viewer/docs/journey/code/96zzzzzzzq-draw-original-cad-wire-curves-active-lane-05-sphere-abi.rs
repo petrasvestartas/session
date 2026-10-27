@@ -1,0 +1,1 @@
+assert_eq!(g.markers.clipping_bytes(),[0,0],"No editing-control rows are uploaded");assert_eq!(g.strokes.glyph_usage(),[4,4*48],"Each production mesh sphere retains its complete 48-byte ABI row");

@@ -1,0 +1,163 @@
+{
+  "status": "PUBLISHED_ROOT_APPROVED_SOURCE_BOUND_PRESENTATION_IMAGES",
+  "scope": "Exact originalcapture_viewer actions/assertions at original1100x760logical viewport/DPR2; earlierlessons labelled finished-viewer references. Image-profile only.",
+  "limits": null,
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "sourceRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2/capture.json",
+    "sha256": "a99c8cc586a991de6249bf5c97c8bac06b1f8ff3718207991c4bfb6162ecc6f7"
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\root-approved-review.json",
+    "sha256": "419a2092c56ebe5ae99e38d274a59c51b431d088740e9087138bdea237b69ebd"
+  },
+  "sourceFingerprint": "71d8ad95acd822b6b0b5078eee37d172dd57659b3589fbe90dcd496df8e60a64",
+  "images": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\viewer-loaded.png",
+      "destination": "docs/screenshots/practice/viewer-loaded.png",
+      "sha256": "513e0ed7dbd698ae99c1f3eb0f817dabb69a2e755bae04cf5420dfbfc6b61d06",
+      "width": 2200,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\images\\viewer-loaded.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\publication-backups\\docs\\screenshots\\practice\\viewer-loaded.png",
+        "sha256": "cb2a987cb08458235cc0ac1c625a09e4c4cc324636457e8981e6c22be77caa06"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\viewer-loaded.png",
+        "sha256": "513e0ed7dbd698ae99c1f3eb0f817dabb69a2e755bae04cf5420dfbfc6b61d06",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/viewer-loaded.png?v=513e0ed7dbd6",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "513e0ed7dbd698ae99c1f3eb0f817dabb69a2e755bae04cf5420dfbfc6b61d06"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\viewer-point.png",
+      "destination": "docs/screenshots/practice/viewer-point.png",
+      "sha256": "fdac1b2a2c1075ac1fda05ef66687a44fb6d8820b6acb3fe5628f4573b1fc260",
+      "width": 2200,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\images\\viewer-point.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\publication-backups\\docs\\screenshots\\practice\\viewer-point.png",
+        "sha256": "a5f880428c5f6c7954781d80261379a749ff44a29d4695fdbdf0a578f8a42be4"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\viewer-point.png",
+        "sha256": "fdac1b2a2c1075ac1fda05ef66687a44fb6d8820b6acb3fe5628f4573b1fc260",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/viewer-point.png?v=fdac1b2a2c10",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "fdac1b2a2c1075ac1fda05ef66687a44fb6d8820b6acb3fe5628f4573b1fc260"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\viewer-layers.png",
+      "destination": "docs/screenshots/practice/viewer-layers.png",
+      "sha256": "7be7ac1266b15edd60568424787b8e6b1d80b300077dd665a12f34d7d2150938",
+      "width": 2200,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\images\\viewer-layers.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\publication-backups\\docs\\screenshots\\practice\\viewer-layers.png",
+        "sha256": "8af73e139e9576c917940d773b7ecdc83ef53993ced313f02fd6eed5d18e814c"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\viewer-layers.png",
+        "sha256": "7be7ac1266b15edd60568424787b8e6b1d80b300077dd665a12f34d7d2150938",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/viewer-layers.png?v=7be7ac1266b1",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "7be7ac1266b15edd60568424787b8e6b1d80b300077dd665a12f34d7d2150938"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\viewer-selected.png",
+      "destination": "docs/screenshots/practice/viewer-selected.png",
+      "sha256": "68b3a1907fa33d18f242f9e96f4e5080804f841fdf6ff38615afcdb2d9190f19",
+      "width": 2200,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\images\\viewer-selected.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\publication-backups\\docs\\screenshots\\practice\\viewer-selected.png",
+        "sha256": "dcff863cd4514bcbb3d369f500e1bc04ca5aa2e113692e1d4ffe49da3b55878a"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\viewer-selected.png",
+        "sha256": "68b3a1907fa33d18f242f9e96f4e5080804f841fdf6ff38615afcdb2d9190f19",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/viewer-selected.png?v=68b3a1907fa3",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "68b3a1907fa33d18f242f9e96f4e5080804f841fdf6ff38615afcdb2d9190f19"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\viewer-arctic.png",
+      "destination": "docs/screenshots/practice/viewer-arctic.png",
+      "sha256": "efc20d09e7c45a4ef15d8d670c960d4798dbf3d2ff9345baea97da98ac0fafe9",
+      "width": 2200,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\images\\viewer-arctic.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\publication-backups\\docs\\screenshots\\practice\\viewer-arctic.png",
+        "sha256": "78a3529657515c3bf36f230578c24ae9f5c756b9a5cc7a8b74e040dbccf23755"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\viewer-arctic.png",
+        "sha256": "efc20d09e7c45a4ef15d8d670c960d4798dbf3d2ff9345baea97da98ac0fafe9",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/viewer-arctic.png?v=efc20d09e7c4",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "efc20d09e7c45a4ef15d8d670c960d4798dbf3d2ff9345baea97da98ac0fafe9"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\practice\\viewer-opacity.png",
+      "destination": "docs/screenshots/practice/viewer-opacity.png",
+      "sha256": "49e2f6503ee1a0c2be26285f1eded044dfe15c4ffb3199215f62866113fc2ea9",
+      "width": 2200,
+      "height": 1520,
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\images\\viewer-opacity.png",
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\practice-viewer-193326adf95b99be54a2\\publication-backups\\docs\\screenshots\\practice\\viewer-opacity.png",
+        "sha256": "a0692125a38e46780636fd82a465e9e599d8b47de4c6b53d34ecc89459842498"
+      },
+      "served": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\practice\\viewer-opacity.png",
+        "sha256": "49e2f6503ee1a0c2be26285f1eded044dfe15c4ffb3199215f62866113fc2ea9",
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/practice/viewer-opacity.png?v=49e2f6503ee1",
+        "status": 200,
+        "mime": "image/png",
+        "sha256FromHttp": "49e2f6503ee1a0c2be26285f1eded044dfe15c4ffb3199215f62866113fc2ea9"
+      },
+      "reviewerAgentId": "/root/intro_regeneration_audit",
+      "personallyViewedOriginalResolution": true,
+      "rootPersonallyViewedOriginalResolution": false,
+      "rootApproved": true
+    }
+  ],
+  "originalSourcePostflightAndGenerationAcceptance": null
+}

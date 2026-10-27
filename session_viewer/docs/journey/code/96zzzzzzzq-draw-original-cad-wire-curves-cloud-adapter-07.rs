@@ -1,0 +1,1 @@
+    self.resolve.select(samples,||pipeline(&ctx.device,&self.resolver,&[&self.point.get_bind_group_layout(0),&self.image_layout],"vs_main","fs_main",&[self.format,crate::primitive_image::FORMAT],samples));

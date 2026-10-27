@@ -1,0 +1,59 @@
+{
+  "status": "APPLIED two explicitly approved browser harness corrections; full affected callbacks pending",
+  "appliedUtc": "2026-10-24T18:01:54.555Z",
+  "userAnswer": "Apply both tested corrections",
+  "additionalUserAuthorization": "All the questions you have always accepts what you think is best and continue to do the work",
+  "application": {
+    "path": "target/course-windows-20261018/two-tested-corrections-application-preparation/application.json",
+    "sha256": "05e5a25ceaccfd536c5537aa736cd3ca893bd85254a32dc56569ba9b0353f0ca"
+  },
+  "writes": [
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+      "beforeSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+      "afterSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726"
+    },
+    {
+      "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\elements.cjs",
+      "beforeSha256": "e5cd43f4997a1557add4f27f23229702b0983273467d2c4dde6309fd4c903cc5",
+      "afterSha256": "8a10921d7403037d3e588827a785154fa0885b141ea9d5da9bf7c0eeddc99d6c"
+    }
+  ],
+  "measurement": {
+    "retainedAssertion": "/X 1000/",
+    "retainedCommands": [
+      "Undo",
+      "Redo",
+      "Delete",
+      "Undo"
+    ],
+    "diagnostic": "Original failure and corrected body normal return at DPR1/2; four root-reviewed images, two unique hashes",
+    "diagnosticProof": {
+      "path": "target/course-windows-20261018/elements-measurement-schema-preparation/focused-original-candidate-v2/guarded-proof.json",
+      "sha256": "5527f0126a9dcec312b4088e8486d71ff93a774366fa969f34bc06b157b600cc"
+    },
+    "images": [
+      {
+        "file": "elements-bbox-label-dpr1.png",
+        "sha256": "740e400e6f3c7019c4af1dbdd5eeffa8a96c509d9f1cb5937cf6bed56fae0253",
+        "rootPersonallyReviewed": true
+      },
+      {
+        "file": "elements-bbox-label-dpr2.png",
+        "sha256": "8f85feef54314f81de9ae67fbc0c3a22e096e4509a39d60d6f3042cbf24a5f67",
+        "rootPersonallyReviewed": true
+      }
+    ]
+  },
+  "cloud": {
+    "checkpoint": "65c-cloud-point",
+    "field": "browser_result_status",
+    "before": "Command submitted.",
+    "after": "Document closed.",
+    "strictFinalAssertionRetained": true,
+    "all1361OtherStepObjectsUnchanged": true,
+    "originalFailurePreserved": true,
+    "rootReviewedImage": "Visible selected yellow curved point cloud; scene remains present"
+  },
+  "limits": "No runtime/kernel/Vue/Gemini/source/compiler changes; failed whole callbacks remain failed until actual corrected reruns. Existing compiler phases retain their original source identities."
+}

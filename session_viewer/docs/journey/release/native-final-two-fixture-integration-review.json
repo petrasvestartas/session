@@ -1,0 +1,118 @@
+{
+  "status": "PASS:1062/1062 unfiltered handwritten713 native integration;0failed/ignored/filtered",
+  "recordedUtc": "2026-10-24T04:00:35.008Z",
+  "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+  "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "sourceFiles": 713,
+  "externalInventoryEntries": 433,
+  "tests": {
+    "passed": 1062,
+    "failed": 0,
+    "ignored": 0,
+    "measured": 0,
+    "filtered": 0,
+    "uniqueNames": 1062,
+    "threads": 1,
+    "exactOriginal1060PlusTwo": true
+  },
+  "manifest": {
+    "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/manifest.json",
+    "sha256": "af48d9f583b43f7035b468080c3f934aec5c7ed3305eec521a044e3b41ce03b3"
+  },
+  "sourceFreeze": {
+    "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/source-freeze.json",
+    "sha256": "aa50954e1f19244b28c1680a861794d00b222fece32f7d6715c794efccb558d4"
+  },
+  "preparation": {
+    "path": "target/course-windows-20261018/native-final-two-fixture-preparation/prepared-20261024T030436665Z.json",
+    "sha256": "7e7840bd2bfba7f48a69773d9a44dfedcae90a2027ad641d2269055ccf243259"
+  },
+  "testList": {
+    "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/test-list.json",
+    "sha256": "458085431da4bba4173f081bd77345cfd6d5a1fad1ee3b3dbd2fb3e363177559"
+  },
+  "namedResults": {
+    "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/named-results.json",
+    "sha256": "a3092cb9bf849337b7445581be0c51d1d5984cfe92766e11fcb51519409552be"
+  },
+  "suiteResult": {
+    "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/suite-result.json",
+    "sha256": "662091abcbce06f6e9f3ec4e372fb7f3d05c7fbbe2b83ed6f1e417676eea9074"
+  },
+  "binary": {
+    "path": "target/course-windows-20261018/native-checkpoint/native-full-two-fixture-20261024T033650211Z.exe",
+    "sha256": "fafd3ad989770a5e96be30a3ad0780dd423e3b17d747c735de4d92b3e1304aa2"
+  },
+  "build": {
+    "resources": {
+      "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/build.resources.json",
+      "sha256": "fc228da9123668652d91ad1d51c9cfc840f8a0febef7a4d9e330d30f74f19ccb"
+    },
+    "cargoJsonLog": {
+      "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/build.log",
+      "sha256": "03b7f238b00d3ea4bbdeb1343a1201f719eb19f877604bb329a924e6c55e4520"
+    },
+    "elapsedSeconds": 0.714,
+    "peakJobCommitBytes": 67411968,
+    "cacheRoot": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build"
+  },
+  "run": {
+    "resources": {
+      "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/run.resources.json",
+      "sha256": "fd6ae8dfe5f8c177cb05de636ed8e235cef09e89ec7d862f77ed1424946af850"
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/suite.stdout.log",
+      "sha256": "282114ab550bf29941febc4f5695cf07c6223f943dff7cab14a16776dfb07d23"
+    },
+    "stderr": {
+      "path": "target/course-windows-20261018/native-full-two-fixture-20261024T033650211Z/suite.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "elapsedSeconds": 1401.26,
+    "peakJobCommitBytes": 1499983872
+  },
+  "worker": {
+    "path": "target/course-windows-20261018/run-final-ribbon-v4-native.cjs",
+    "sha256": "887b521b570467f160335c9b4870ffc7a585a6ee5afaa10e04194f1351772586"
+  },
+  "nativeAdapter": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-clipping-guide-two-fixture-isolation-native",
+    "libName": "viewer_journey_native_two_fixture_isolation",
+    "manifestSha256": "fc8d2087d875aaa7bc194d190ddd9564657ebd6f8a86b00a08a60609f0b3f006",
+    "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94"
+  },
+  "evidenceHashes": {
+    "build.command.json": "bbc332123105c4510db6962b08528b79cc5f3733fab0971647ab50d0626c89e0",
+    "build.log": "03b7f238b00d3ea4bbdeb1343a1201f719eb19f877604bb329a924e6c55e4520",
+    "build.resources.json": "fc228da9123668652d91ad1d51c9cfc840f8a0febef7a4d9e330d30f74f19ccb",
+    "named-results.json": "a3092cb9bf849337b7445581be0c51d1d5984cfe92766e11fcb51519409552be",
+    "run-config.json": "3ae10a8695155632b2d51da51ea79a0c964b309f50b816c9c15c5742e2b5328d",
+    "run.command.json": "0956430c66aea21daa838e18c44c847cae1b6e8c5a31aba051bf17b3fef290c4",
+    "run.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "run.resources.json": "fd6ae8dfe5f8c177cb05de636ed8e235cef09e89ec7d862f77ed1424946af850",
+    "source-freeze.json": "aa50954e1f19244b28c1680a861794d00b222fece32f7d6715c794efccb558d4",
+    "suite-result.json": "662091abcbce06f6e9f3ec4e372fb7f3d05c7fbbe2b83ed6f1e417676eea9074",
+    "suite.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "suite.stdout.log": "282114ab550bf29941febc4f5695cf07c6223f943dff7cab14a16776dfb07d23",
+    "test-list.json": "458085431da4bba4173f081bd77345cfd6d5a1fad1ee3b3dbd2fb3e363177559",
+    "test-list.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "test-list.stdout.log": "b9472ea09bfa4941bceecef6c39c1f0bc72833dc1499924392b1cdd2b605d922"
+  },
+  "preservedEarlierEvidence": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\native-ribbon-v4-qualified-recovery-review.json",
+      "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-full-ribbon-v4-20261023T232311703Z\\manifest.json",
+      "sha256": "0c7ab2b2a5ed22d455db5b67c693a1c26c768a9045a55508ea05475af92783d6"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-two-fixture-isolation-v5\\qualified-native-recovery.json",
+      "sha256": "ed033a53e798b98ff7615f8e916bae480051aaca9f415be77cea0f2b1760a119"
+    }
+  ],
+  "scope": "Actual full unfiltered native integration of handwritten final713 fef4 source only, with433 external dependency inputs and recorded WARP environment/source selection. The original failed1060PASS/2FAIL run and separate qualified1060+2 recovery remain unchanged at their original inputs. This is not maintained714 full native acceptance, a new GPU/frame/browser proof, feature completion, or closure of global release gate1. No map/state/counter/gate changes are made by this publisher."
+}

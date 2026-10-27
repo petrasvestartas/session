@@ -24,17 +24,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn render() -> Result<(), Box<dyn std::error::Error>> {
+    let backends = if cfg!(windows) { wgpu::Backends::DX12 }
+        else if cfg!(target_os = "macos") { wgpu::Backends::METAL }
+        else { wgpu::Backends::VULKAN };
+    let mut backend_options = wgpu::BackendOptions::default();
+    if cfg!(windows) {
+        let compiler = std::path::PathBuf::from(std::env::var("VIEWER_DXC_PATH")
+            .map_err(|_| "Set VIEWER_DXC_PATH to the task-local DXC 1.9 dxcompiler.dll")?);
+        if !compiler.is_absolute() || !compiler.is_file()
+            || !compiler.with_file_name("dxil.dll").is_file() {
+            return Err("Task-local DXC and dxil DLLs are required".into());
+        }
+        backend_options.dx12.shader_compiler = wgpu::Dx12Compiler::DynamicDxc {
+            dxc_path: compiler.to_string_lossy().into_owned(),
+        };
+    }
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::VULKAN,
+        backends,
         flags: Default::default(),
         memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
+        backend_options,
         display: None,
     });
-    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
+    let adapter = if cfg!(windows) {
+        instance.enumerate_adapters(backends).await.into_iter().find(|adapter| {
+            let info = adapter.get_info();
+            info.backend == wgpu::Backend::Dx12 && info.device_type == wgpu::DeviceType::Cpu
+                && info.vendor == 0x1414 && info.device == 0x8c
+        }).ok_or("Windows frame evidence requires the Microsoft WARP DX12 adapter")?
+    } else { instance.request_adapter(&wgpu::RequestAdapterOptions {
         power_preference: wgpu::PowerPreference::HighPerformance,
         ..Default::default()
-    }).await?;
+    }).await? };
+    eprintln!("Native frame adapter: {:?}", adapter.get_info());
     let (device, queue) = adapter.request_device(&Default::default()).await?;
     device.on_uncaptured_error(std::sync::Arc::new(|error| panic!("GPU validation: {error}")));
     let format = wgpu::TextureFormat::Rgba8UnormSrgb;

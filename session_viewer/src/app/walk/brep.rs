@@ -250,6 +250,24 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
     push_polyline(ink.seg, &points, out.0, out.1);
 }
 
+fn surface_border_parameters(source:&session_rust::NurbsSurface,edge:usize,steps:usize)->Option<Vec<f64>> {
+    if edge>=4||steps==0 {return None;}
+    let fixed=edge/2;let varying=1-fixed;let domain=source.domain(fixed)?;
+    let curve=source.iso_curve(varying,if edge%2==0 {domain.0}else{domain.1})?;
+    let mut turning=0.;let mut previous:Option<[f64;3]>=None;
+    let control=|i:usize|{let at=i*curve.m_cv_stride;let weight=if curve.m_is_rat {curve.m_cv[at+curve.m_dim]}else{1.};std::array::from_fn::<_,3,_>(|axis|if axis<curve.m_dim {curve.m_cv[at+axis]/weight}else{0.})};
+    for i in 1..curve.m_cv_count {
+        let (a,b)=(control(i-1),control(i));let delta=std::array::from_fn::<_,3,_>(|axis|b[axis]-a[axis]);
+        let length=delta.iter().map(|v|v*v).sum::<f64>().sqrt();if length<1e-12 {continue;}
+        let unit=delta.map(|v|v/length);
+        if let Some(before)=previous {turning+=(0..3).map(|axis|before[axis]*unit[axis]).sum::<f64>().clamp(-1.,1.).acos().to_degrees();}
+        previous=Some(unit);
+    }
+    let count=((turning/4.-1e-6).ceil() as usize).max(curve.span_count()).clamp(1,256);
+    let mut parameters:Vec<f64>=(0..=steps).map(|i|i as f64/steps as f64).chain((0..=count).map(|i|i as f64/count as f64)).collect();
+    parameters.sort_by(f64::total_cmp);parameters.dedup_by(|a,b|(*a-*b).abs()<1e-12);Some(parameters)
+}
+
 /// A NURBS surface as a fixed UV grid with its four border edges.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
     let (Some((u0, u1)), Some((v0, v1))) = (s.domain(0), s.domain(1)) else {
@@ -315,8 +333,22 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
                 2 => (0..=nu).map(|i| i * (nv + 1)).collect(),
                 _ => (0..=nu).map(|i| i * (nv + 1) + nv).collect(),
             };
+            let varying=1-direction;let domains=[(u0,u1),(v0,v1)];
+            let Some(parameters)=surface_border_parameters(s,edge,indices.len()-1) else {continue;};
+            let mut refined=Vec::with_capacity(parameters.len());
+            for t in parameters {
+                let at=t*(indices.len()-1) as f64;let nearest=at.round();
+                if (at-nearest).abs()<1e-9 {refined.push(indices[nearest as usize]);continue;}
+                let mut uv=[0.;2];uv[direction]=if edge%2==0 {domains[direction].0}else{domains[direction].1};uv[varying]=domains[varying].0+(domains[varying].1-domains[varying].0)*t;
+                let point=s.point_at(uv[0],uv[1]).unwrap_or_default();let normal=s.normal_at(uv[0],uv[1]);
+                bounds.union_with_point(point[0],point[1],point[2]);
+                refined.push(arena.verts.len()-first);
+                arena.surface_samples.push(crate::engine::gpu::arena::Sample{index:arena.verts.len() as u32,surface:0,uv,sign:1.});
+                arena.verts.push(session_rust::RenderVertex{position:point.to_f32(),normal:[normal[0] as f32,normal[1] as f32,normal[2] as f32],color});
+                arena.vids.push(cx.row);
+            }
             let start = ink.seg.pipes.len() as u32;
-            for ends in indices.windows(2) {
+            for ends in refined.windows(2) {
                 ink.seg.pipes.push(crate::engine::gpu::CylinderSegment {
                     p0: arena.verts[first + ends[0]].position,
                     p1: arena.verts[first + ends[1]].position,
@@ -683,5 +715,95 @@ fn cache_samples(
                 uv: [u, v],
                 sign: if dot < 0.0 { -1.0 } else { 1.0 },
             });
+    }
+}
+
+#[cfg(test)]
+mod refined_surface_border_regression {
+    use super::*;
+    use crate::app::surface_preview::SurfacePreview;
+    use crate::app::walk::{Walk, WalkCx, walk_geometry};
+    use crate::engine::gpu::{
+        Upload,
+        patch::{Counts, Span},
+    };
+    use session_rust::{Geometry, Point};
+    use std::rc::Rc;
+    #[test]
+    fn exact_rational_border_samples_preserve_faces_source_ids_and_edit_preview() {
+        let mut surface = BRep::create_cylinder(1., 2.).m_surfaces.remove(0);
+        let before = surface.to_proto();
+        let source = Geometry::NurbsSurface(Rc::new(surface.clone()));
+        let mut upload = Upload::default();
+        walk_geometry(
+            &mut Walk::of(&mut upload),
+            &WalkCx {
+                vert_base: 0,
+                cloud_px: 0.,
+                row: 7,
+                interactions: false,
+                attributes: false,
+            },
+            &source,
+        );
+        let nu = (surface.m_cv_count[0] * 4).clamp(16, 96);
+        let nv = (surface.m_cv_count[1] * 4).clamp(16, 96);
+        let face_vertices = (nu + 1) * (nv + 1);
+        assert_eq!(upload.arena.idx.len(), nu * nv * 6);
+        assert!(
+            upload
+                .arena
+                .idx
+                .iter()
+                .all(|i| (*i as usize) < face_vertices)
+        );
+        assert!(upload.arena.verts.len() > face_vertices);
+        assert_eq!(upload.arena.surface_samples.len(), upload.arena.verts.len());
+        assert_eq!(
+            upload.arena.surface_boundaries.len(),
+            upload.seg.pipes.len()
+        );
+        assert!(upload.seg.pipe_ids.iter().all(|id| *id == 2 || *id == 3));
+        for &(pipe, ends) in &upload.arena.surface_boundaries {
+            let p = &upload.seg.pipes[pipe as usize];
+            assert_eq!(p.p0, upload.arena.verts[ends[0] as usize].position);
+            assert_eq!(p.p1, upload.arena.verts[ends[1] as usize].position);
+            assert_eq!(p.instance_id, 7);
+            for point in [p.p0, p.p1] {
+                assert!((point[0] * point[0] + point[1] * point[1] - 1.).abs() < 1e-6);
+            }
+        }
+        assert_eq!(surface.to_proto(), before);
+        let preview = SurfacePreview::capture(
+            &upload,
+            Span {
+                start: Counts::default(),
+                count: Counts::of(&upload),
+            },
+            Counts::default(),
+            &source,
+        )
+        .expect("Every refined endpoint retains its own UV sample");
+        let (_, original, _) = preview.evaluate(&source).unwrap();
+        for (a, b) in original.pipes.iter().zip(&upload.seg.pipes) {
+            assert_eq!(a.p0, b.p0);
+            assert_eq!(a.p1, b.p1);
+        }
+        for i in 0..surface.m_cv_count[0] {
+            for j in 0..surface.m_cv_count[1] {
+                let p = surface.get_cv(i, j).unwrap();
+                assert!(surface.set_cv(i, j, &Point::new(p[0], p[1], p[2] + 0.5)));
+            }
+        }
+        let (_, moved, _) = preview
+            .evaluate(&Geometry::NurbsSurface(Rc::new(surface)))
+            .unwrap();
+        assert_eq!(moved.pipes.len(), original.pipes.len());
+        for (a, b) in original.pipes.iter().zip(&moved.pipes) {
+            for (a, b) in [(a.p0, b.p0), (a.p1, b.p1)] {
+                assert!((a[2] + 0.5 - b[2]).abs() < 1e-5);
+                assert_eq!([a[0], a[1]], [b[0], b[1]]);
+            }
+        }
     }
 }

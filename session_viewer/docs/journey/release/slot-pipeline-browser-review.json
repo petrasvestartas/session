@@ -1,0 +1,120 @@
+{
+  "status": "PASS complete current590 source-specific original Slot callback and root-reviewed meaningful feature image; phase-qualified acceptance",
+  "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+  "sourceFiles": 590,
+  "sourceFingerprint": "6bc62ccb1e7a33919047d8e22bdf4bd0262942e5ea81ba5f6b712afc8cccf462",
+  "sourceSignature": "d183c361947644c47738e7c217ada6c0851c2cd5841e5ace335a175b711773c2",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "callback": {
+    "path": "journey/checks/browser/slot-pipeline.cjs",
+    "recursiveFingerprint": "8d148d249d6c32991158ead43f89be43ec59e7d577e714d9cea8d1beae9055db",
+    "capture": "docs/capture_journey.cjs",
+    "captureSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "original60msTypingUnchanged": true,
+    "approvedCorrections": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\five-canonical-harness-corrections-review\\approved-application-v1\\application.json",
+      "sha256": "fed07cfec0bad47a5e2bd404aaba76e06b732938596cd0986b2778f2cf2ec829"
+    }
+  },
+  "build": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzo-nvidia-current367-v1\\proof.json",
+      "sha256": "b4db9bf3c750de5af5f1d08a10c047c6a1275ae70a1368646fb2f685bffb9442"
+    },
+    "phases": [
+      "native-check",
+      "wasm",
+      "web",
+      "frame",
+      "sample"
+    ],
+    "qualification": {
+      "path": "target/course-windows-20261018/slot-approved-five-browser-preparation/prepared.json",
+      "sha256": "1414efb35077516d0d7c04da42f0e8d40cb5b47702b12c572550d6a3b690cfa0"
+    },
+    "scope": "Allfive original native-check/WASM/optimizedweb/frame/sample phases retained only under exact unchanged source/signature/tool/runtime/dependency/lock/assets/frame/sample qualification. No rebuild or failedcallback reuse."
+  },
+  "browser": {
+    "raw": {
+      "path": "target/course-windows-20261018/slot-approved-five-browser-preparation/slot-approved-five-v1/browser-20261024T130558432Z.json",
+      "sha256": "a86693de23adc78b6be8bd774c8ba1c6d9e44b456bc721b243ad83c2cbdd2813"
+    },
+    "frozenCapture": {
+      "path": "target/course-windows-20261018/slot-acceptance-publication-preparation/raw/browser-snapshot.json",
+      "sha256": "2d5ec995c860ecda4bf16b9d72d32987c964458cad0b23afd4b6b510099e5103"
+    },
+    "entry": {
+      "source": "d183c361947644c47738e7c217ada6c0851c2cd5841e5ace335a175b711773c2",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "8d148d249d6c32991158ead43f89be43ec59e7d577e714d9cea8d1beae9055db",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T13:10:40.685Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "441f5e5858f4f6d60c3ccda411a5aa354e60843a5c6c165ea60445d784884c46",
+      "file": "96zzo-read-instance-properties-through-draw-slots-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "da87a162aaadca2e11d6b5501887e8f68e141870414cea05b618c055bad7090f",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "log": {
+      "path": "target/course-windows-20261018/slot-approved-five-v1-proportional-browser-20261024T130559119Z.log",
+      "sha256": "6e2e2afeecc838e7391f06e03195b59769e0fe933b5918728219711cb633c381"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/slot-approved-five-v1-proportional-browser-20261024T130559119Z.resources.json",
+      "sha256": "5383ef21597cf8d964dc9b60948ce4bc3a24778bf6812aba827caede8980ad0e",
+      "elapsedSeconds": 281.244,
+      "peakJobCommitBytes": 932163584,
+      "processors": 2,
+      "jobCommitLimitBytes": 6442450944
+    },
+    "actualServedPayloads": 16,
+    "originalDefaultBodyComplete": true
+  },
+  "image": {
+    "file": "slot-pipeline-current-browser.png",
+    "sha256": "83ab6af166231fce65b3a2d5a9cbf51bb80ed46f5df1672af241291711b3f09a",
+    "rootPersonallyReviewed": true,
+    "review": "Meaningful selected yellow CAD section with circular hole and gizmo; clean nonempty feature output."
+  },
+  "nativeFrame": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzo-nvidia-current367-v1\\native-frame.png",
+    "sha256": "ed800db2b9cf80fa70a5df1ee086e4fa294f896a1a8d9fb6107da4dce036a366",
+    "ppmSha256": "a3e232e315d43fb3a4098145608f2e3d1af29edb4951c8173a715338792477ad",
+    "pixelsSha256": "002dc3bbbf4d12c8653a54a11d86c642edcba6f90b561cad700efdf5b7524f8b",
+    "width": 640,
+    "height": 480,
+    "inspection": "Root explicitly supplied exact frame PNG SHA",
+    "rootPersonallyReviewed": true,
+    "review": "Clean blue original pedestal; exact reviewed nativeframe ed800 retained, not a new nativeexecution."
+  },
+  "preservedFailure": {
+    "browsers": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzo-nvidia-current367-v1\\browser-20261024T042231643Z.json",
+        "sha256": "c0d4b6c2932f0208ecba1c9b6dea428dd1d36e9b288249797cdd04345c197c3c"
+      }
+    ],
+    "proof": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzo-nvidia-current367-v1\\proof.json",
+      "sha256": "b4db9bf3c750de5af5f1d08a10c047c6a1275ae70a1368646fb2f685bffb9442"
+    },
+    "reason": "Original vertex SelectNext/Escape selection-loss failure retained separately; actual newlyapproved canonical fullreplay nowpasses."
+  },
+  "scope": "Only actual590 Slot fullsource-specific callback, originalrecursive prerequisites/assertions/currentapprovedchecker and meaningful image. No fullhistorical native suite, universalcurrent694 identity or blanket productionGPUparity."
+}

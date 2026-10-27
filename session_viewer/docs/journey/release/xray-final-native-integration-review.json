@@ -1,0 +1,117 @@
+{
+  "status": "PASS:1063/1063 unfiltered handwritten713 native integration;0failed/ignored/filtered",
+  "recordedUtc": "2026-10-24T08:02:39.562Z",
+  "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+  "sourceSignature": "48f23e94ec7b26bce70495ce6d8c1a56c4430a5026c812b8045d48c45fd3f966",
+  "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+  "sourceFiles": 713,
+  "externalInventoryEntries": 433,
+  "tests": {
+    "passed": 1063,
+    "failed": 0,
+    "ignored": 0,
+    "measured": 0,
+    "filtered": 0,
+    "uniqueNames": 1063,
+    "threads": 1,
+    "exactOriginal1062PlusOne": true
+  },
+  "manifest": {
+    "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-frozen-native.json",
+    "sha256": "4e085580ef8b0dd8bd09815845f56b0e6a30e3693717a84e7f65c60cb726af1b"
+  },
+  "sourceFreeze": {
+    "path": "target/course-windows-20261018/xray-final-refreeze-preparation/frozen-v3.json",
+    "sha256": "cfaf665a18979661133b87e6abd3fc8053404e79eb7556913ba208a1d25e6d47"
+  },
+  "preparation": {
+    "path": "target/course-windows-20261018/xray-final-refreeze-preparation/prepared-v3.json",
+    "sha256": "71f2842e41467c95f841578910e63510f99232c0f0dc5d01d04b44a7274df6ca"
+  },
+  "testList": {
+    "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-test-list.json",
+    "sha256": "02911176efaf3a55c98aead2faac0af02f20152fcb1d86a334fb48c8a73a8ffa"
+  },
+  "namedResults": {
+    "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-named-results.json",
+    "sha256": "6237fb79731b7de848a18ecf1dfc45c6af204f9b24de8b2120beff6ac303fd23"
+  },
+  "binary": {
+    "path": "target/course-windows-20261018/xray-native-publication-preparation/actual-running-native1063.exe",
+    "sha256": "dbe184530bdb58b0af6426b2ee06c4d4c7d18e9cc1c26461054ea75225a9ecd3"
+  },
+  "activeBinaryRetention": {
+    "path": "target/course-windows-20261018/xray-native-publication-preparation/active-binary-retention.json",
+    "sha256": "47406f1b2e95e07c3c8b4841a50ccd38c49ff8d2dd2ff8a1b060141eb218b970"
+  },
+  "run": {
+    "resources": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-suite-resources.json",
+      "sha256": "becdb16cfee693c0ef97c0b46533f9083d66128f5b19b8d1269a2fefc4883446"
+    },
+    "combinedOutput": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-suite-output.log",
+      "sha256": "ddcacb9971841b525c8892d53d6623cc997265bd985992223193606010506f94"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-suite-command.json",
+      "sha256": "9c89355367fa1b17e3c96e0ff7278b76a00abfcec747ed76849f290ca83993d1"
+    },
+    "elapsedSeconds": 1442.762,
+    "peakJobCommitBytes": 1485799424
+  },
+  "testListOnly": {
+    "command": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-test-list-command.json",
+      "sha256": "20df5c731d06d93061e30c655b1ad7ef31e84d507a948fbc56468bb1c9d2d830"
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-test-list.stdout.log",
+      "sha256": "38f6371df719226164063658db018f562786018d914203066359795b00bf5074"
+    },
+    "stderr": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-test-list.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/corrected-cwd-v1-test-list.resources.json",
+      "sha256": "edcf033c7d59b63e97d43a701c26e4dca65283784cc2b2eb69f17948cdaeef9f"
+    }
+  },
+  "preservedEarlierEvidence": [
+    {
+      "path": "docs/journey/release/native-final-two-fixture-integration-review.json",
+      "sha256": "766ac193897db4bd633201967358fe4f4a7dd19a712bb6e73f72226ee3ee965f"
+    },
+    {
+      "log": {
+        "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-output.log",
+        "sha256": "d7e1c168af3bdf0b0b5446c2966461fd568f1530a7584ec6b55f1dddb839e6ec"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-resources.json",
+        "sha256": "808aed15ecacfcb9c713fad29bf55c6561fbe8b0c7d97967e1395eb2c80a5275"
+      },
+      "command": {
+        "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/original-failed-command.json",
+        "sha256": "153ba1a8b6c48f159bc76c0c3b7a57589f1208ccc8f5f22a561d5855595a3e10"
+      }
+    }
+  ],
+  "cwdRecovery": {
+    "preparation": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/prepared.json",
+      "sha256": "bb73971dca25ca9a7e97d113256579f9bac2e7b5edc74a570cec21a33321a0b8"
+    },
+    "wrongCwdDiagnostic": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/old-stage-grid-v1/acceptance.json",
+      "sha256": "c405e7e08fe24a358e17507574be91d08733204a4795ad72b1c9cd11266dc5fd"
+    },
+    "correctCwdFocused": {
+      "path": "target/course-windows-20261018/xray-native-publication-preparation/cwd-recovery-v1/focused-v1/acceptance.json",
+      "sha256": "f2cba7fc693fa56d34064a41ed4c67b4a10c54840b191745d5f1d0eb38fd0936"
+    },
+    "controlledDifference": "Original same EXE,source,assertions,fixtures,tool/env/resource bindings; process cwd restored to viewer. Original aborted run remains non-PASS."
+  },
+  "scope": "One actual final713 native suite. Original1062 names preserved and one new Xray owner regression added; exact live test EXE was retained before terminal outcome. No714 suite or browser claim."
+}

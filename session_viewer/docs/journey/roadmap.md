@@ -1,10 +1,108 @@
-# The complete draft lesson checklist
+**Visual-quality correction complete (26 October):** All **1,762** original-inventory tutorial image assets are reviewed and published, including all 99 current reader/reference figures. Early exact BRep boundaries, adaptive NURBS borders and high-density captures are corrected; the complete site build, image hashes and desktop/phone visual checks pass. [Completion review](release/final1762-image-quality-completion-review.json). The private floor-output recovery remains unpromoted: 66 of 153 strict member checks pass and 87 fail, so image completion does not establish model-wide geometry validity. Earlier notes below retain their recorded scope.
 
-**Course status: 1361 current checkpoints; 79 have fresh build and Chrome evidence; 1282 await fresh Chrome acceptance.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
+
+**Documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](release/docs-final-brep-visible-review.json).
+
+## Progress: eight stages
+
+- [x] **1. Source integration complete.** Exact production BRep/kernel corrections applied; tutorial and Vue/Gemini work preserved.
+- [x] **2. Draft lessons complete.** 22/22 chapters,111 reader lessons,1361 checkpoints retained;1359 earlier source bodies unchanged.
+- [x] **3. Final docs publication.** Current-source rendered snapshot and all3 root-reviewed images accepted.
+- [x] **4. Reader compilation complete.** 101 endpoints/202 original phase records retained with exact API/dependency qualification; no fresh202-execution claim. Actual final713/714 builds are separate.
+- [x] **5. Finite features complete.** 18/18; recorded fixture, pick and production limits preserved.
+- [x] **6. Full callbacks: 18/18 accepted; 0 left.** Historical fixtures: 4/4 accepted.
+- [x] **7. Browser corrections verified.** All original assertions retained; exact approved source-aware contracts documented.
+- [x] **8. Final release: 5/5 gates closed.** Gate decisions source-bound to actual results. Final docs publication and root image review are complete.
+
+## Earlier checkpoint notes (historical counts)
+
+The following records are preserved checkpoint history. Their counts, running jobs and remaining-work statements describe their original dates and sources; they are superseded by the current summary above.
+
+[Current browser proof 1](release/ambient-selector-final713-marker-browser-review.json), [Current browser proof 2](release/ambient-selector-maintained714-browser-review.json).
+
+Slot checkpoint 590 passes its complete callback, and Shared Arena satisfies its original finite criteria: [Slot acceptance](release/slot-pipeline-browser-review.json), [SharedArena finite review](release/shared-arena-finite-review.json).
+
+Source402 Network passes its full original callback (2046.106s; peak1778094080B), with meaningful reviewed NURBS surfaces. CAD remains partial for its separate generated-isoline criterion. [Network acceptance](release/network-browser-review.json).
+
+Source635 Mesh markers passes its complete original callback (640.406s; peak827396096B), with all six actual feature images and the final canonical image reviewed. Marker controls remain partial within their separate recorded criteria. [Mesh-marker acceptance](release/mesh-markers-browser-review.json).
+
+Approved typing speedup: all8 focused cases pass with identical geometry, archives, history, camera and drawing pixels. The explicitly approved one-line change removes the60ms typing delay; command sequences fall from about18.6s to3.9s. Every assertion and rendering wait remains. [Measured review](release/typing-delay-speedup-review.json).
+
+## Earlier checkpoint notes (historical counts)
+
+- [x] Applied the three approved browser input corrections: visible command-field click and two physical Escape cancellations. All assertions retained; focused candidates pass at DPR 1/2. The full replay passed those sites, then failed Split setup because Control mode was retained. The tested Object-mode correction awaits the separate saved-plan exception; full acceptance remains pending.
+
+- [x] Authored route: 22/22 chapters, 111 reader lessons and 1,361 preserved checkpoints; all 22 authoring tests and structure checks pass.
+- [x] Historical native proof: 1,059/1,059 tests pass at a45. [Source and reuse boundary](release/native-final-source-review.json).
+- [x] Current hierarchy ownership fix: original editing targets and complete display membership are separate; focused native feature tests pass 2/2.
+- [x] Final native integration passes at current97d: **1,060/1,060**, zero failures or ignored tests; 1385.144 s, peak 1512873984 B. [Source-bound review](release/native-97d-integration-review.json). Browser and release acceptance remain separate.
+- [x] Current97d optimized WASM/browser bundle passes:182.487s,1,374,347,264B. Reuse this source-matching build; final canonical browser acceptance remains separate.
+- [x] Five performance categories measured on the same small demo; ordered input, idle and disposal checks pass at 63acaf79. [Measurements and limits](release/runtime-performance-review.json).
+- [x] All 80 Plane native RGBA pairs pass across plain, placed, generated covered, generated print and retained-original covered matrices. These results make no owner-pick or browser claim.
+- [x] Native ink controls pass 14/14 exact production/course pairs in 201.558 s / 963,235,840 B: two mixed-CAD family states and three representative joined-stroke cases. All 14 unique frames inspected, 28 PNGs decoded. [Record and limits](release/ink-family-controls-native-review.json). The18 reviewed native bodies also accept named width/analytic-AA/clipping/family semantics; unproved production parity/material and browser obligations remain separate.
+- [x] Built-source docs review: v7 retains 15 decoded lesson images and 12 inspected views. The v9 docs-only build passes 118.91 s / 1,944,616,960 B; changed contents/roadmap v2 passes 111 links and three original-resolution views. Measured CSS widths are 853/260 at 1280/390 captured pixels. Current Gemini edits and combined-book handoff remain deferred.
+- [x] Portable Windows maintained build and optimized bundle pass; Linux/macOS Bash dispatch is retained.
+- [x] Both production-aligned harness corrections are approved and applied: additive selection retains existing owners, and selected CAD with outlines off matches production yellow without a black core.
+- [x] Focused approved multi-selection WARP check passes at DPR1/2 and both projections; 94.869 s, peak 758,722,560 B.
+- [x] Four selection-preserving shortcut corrections are approved/applied. Actual layers/labels bodies and shared delete helper pass focused DPR1/2 checks:143.238s,780,898,304B.
+- [ ] Complete 94c and the other remaining source-specific callbacks. FinalCAD is accepted separately at97d; focused94c diagnostics do not substitute for its full callback. The external120s context default and7200s outer guard retain every explicit operation timeout and canonical assertion.
+- [x] Current 96y native phase passes 831/831 with zero failures or ignored tests (74.61 s test execution). The prior 830-test pass remains historical.
+- [x] Current96y WASM, optimized web and inspected native WARP frame pass alongside831/831 native tests.
+- [x] The live-count correction has explicit approval and is applied: expected2/1/2/2 and all original-owner behavior assertions remain; Undo/Redo memory accounting is unchanged. [Source review](release/feature-owner-count-contract-review.json).
+- [x] All21 reader and5 queued inventory gates verify433 external entries; current97d retains witness hash493e57a9. The c54-to97d runtime delta is only text_plane.rs; all713 stage files match.
+- [x] Current96y complete browser callback passes after the approved live-count correction: original-owner picks,locking,highlighting,Delete/Undo and archive regeneration; actual screenshot inspected.
+- [ ] Historical fixture callbacks: 1/4 accepted in this pass (96y). Preserve earlier failures and verify the current source and approved checkers.
+- [x] Optimized c54 web build passes184.718s/1,368,760,320B; root verified WASM byte-identical to34d. This predates97d TextPlane correction.
+- [x] Reload/grid browser combinations:4/4 maintained/course x route/live PASS75.783s,626,356,224B. Approved conditional Ctrl+A and valid view:top/near-cap fixtures retain every assertion. [Reload/grid record](release/reload-grid-browser-review.json).
+- [x] CAD native baseline5/5 exact full-RGBA pairs:wire,mixed,bore,hole-face,surface;31.945s,750,256,128B. Five figures inspected;DPR1/sample1/unselected scope. CAD named controls/browser remain partial. [CAD baseline record](release/cad-baseline-native-review.json).
+- [x] Corrected97d Matrix browser6/6 PASS:599.714s,993,091,584B; all24 unique PNGs individually reviewed. Cells,digits,selection,original-owner/title picks,controls and archive returns verified. [Browser record](release/matrix-browser-review.json).
+- [x] Matrix native8/8 actual production/course pairs match allRGBA pixels including independent titles at97d,DPR1/2,samples1/4,selected/unselected;112.052s,810,409,984B. Figures inspected. [Native record](release/matrix-native-review.json).
+- [x] Matrix finite feature complete: native8/8 exact pairs plus current browser6/6 and image review close its two declared requirements. Recorded fixture/settings and production-picking limits remain explicit; global release stays open.
+- [x] Camera/Plane finite feature complete:three original criteria accepted by reload4/4,80 exact native pairs and actual native control assertions. Required76d freeform remains pending global/chapter proof. [Finite review](release/camera-plane-finite-review.json).
+- [x] FinalCAD complete canonical browser contract at97d passes708.475s/856,780,800B; independent postflight recovery and all25 root-reviewed images qualify the preserved failed wrapper. Four fixture/DPR rows each check samples1/4;16 dedicated CAD frames are saved at4x. Original18 callback entries:1accepted/17pending. [Browser review](release/final-cad-browser-review.json).
+- [x] Both original Joined-line finite criteria are complete through14 matched native ink pairs,18 native semantic bodies and the finalCAD browser/image proof. Caps88ad, network80d and default source-faces96zzzzzzm remain required globally; the CAD/isoline feature stays partial. [Finite review](release/joined-line-finite-review.json).
+- [x] Reviewed18 actual passed native test bodies with source hashes and individual1060-suite entries. Named Plane/camera,width/analytic AA,clipping,visibility and source/archive semantics accepted only within those assertions. [Native semantic review](release/native-control-semantics-review.json).
+- [x] The original Sheet/text native criterion is complete at97d: separate shaping, glyph scale, placements, clipping, original-query and retained-resource-lifetime assertions pass in the recorded1060 suite. Point/marker, Mesh and Cloud native subclaims are accepted only within their named assertions. All four feature rows remain partial; chapter13/14 callbacks, feature images and unproved control/material/browser gaps remain. [Scoped native record](release/sheet-text-native-controls-review.json).
+- [ ] Chapter19 still requires96h inventory callback despite96y complete browser PASS.
+- [ ] Chapter visual queue: eleven pending canonical entry callbacks across chapters11 and13-20;96y has passed. With distinct94c/96v fixture entries, thirteen historical callbacks remain; recursive prerequisites run through their owning callback once.
+- [ ] Complete the15 remaining finite feature checklists. Matrix, Camera and Joined are3/18 complete;15partial. CAD/NURBS isolines, owner-pick and other declared controls remain separate.
+- [x] Rebuilt and reviewed restored chapters 11–22: all 59 introductions, 111 contents links and 20 original-resolution views, including the Matrix figure on desktop and phone. [Visible review](release/late-chapter-visible-review.json).
+- [ ] Complete Gemini's chapters 1–10 handoff and review the final combined book after its active edits finish.
+- [ ] Final release gates: 0/5 closed.
+
+- [ ] Complete canonical 94c after resolving the retained Control-mode setup failure. The latest full replay lasted 2603.825 s; the focused Object-mode correction passes every original Split assertion at DPR 1/2. Its separate approval and full replay/qualified phase-reuse choice remain pending. Native800/frame/WASM/web proof remains source-matching.
+
+Native ink figures: [CAD without lines](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-lines.png), [CAD without edges](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-edges.png), [open joined stroke](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-open-dpr2-msaa4.png), [closed joined stroke](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-closed-dpr2-msaa4.png), [placed selected stroke](../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-placed-selected-dpr2-msaa4.png).
+
+The [WARP wait record](release/warp-browser-wait-review.json) preserves the measured 58.331-second pick, unchanged assertions and the opt-in launcher setting. The helper itself is tracked in `session_tests/scripts/course/warp-browser-timeout.cjs`.
+
+- [x] Restored authored introductions in 59 lessons (chapters 11–22), preserving formatted code and diagrams. Lesson 22.6 includes 15 restored figures and five accepted native-control figures. [Restoration proof](release/late-chapter-teaching-restoration.json). Docs build and scoped browser review pass. [Visible review](release/late-chapter-visible-review.json).
+
+- [x] Compiler-only lane: 101/101 endpoints and 202/202 phases pass; 0 endpoints remain. The Layers prerequisite is repaired and its unchanged CPU focus regression passes; the earlier failed phase is preserved. Other compiler phases typecheck tests/examples without executing them. [Shared compiler proof](release/reader-compilation-review.json).
+- [x] Moved the existing focus helper before its first test use; all source files converge at 54a and final713 stays identical. [Repair and Gemini code handoff](release/53u-prerequisite-review.json). The generated checkpoint references are updated; Gemini's two consolidated reader code updates remain prepared for handoff.
+
+### Active validation queue
+
+Reader compilation is a separate part of the existing integration proof group:101 endpoints need up to202 compiler-only Native/WASM phases after10 proven or separately scheduled exclusions. These checks compile tests/examples but execute none. They do not establish optimized packaging, rendered frames or browser acceptance, and they are not101 full GPU suites.
+
+The saved plan calls for focused semantic and affected visual checks after runtime changes, and a full suite at integration boundaries and final freeze. Prose changes require docs/link/build and changed-page review. Reuse matching source,fixture,checker and environment proof; keep all frozen assertions and required canonical captures.
+
+The original set remains **18 distinct source-specific callback entries**: finalCAD accepted1, remaining17 (13historical, three already-authored late display entries and maintained97). The late entries are `96zzzzzzp` (mesh markers), `96zzzzzzm` (default source-face/surface-control/isometric-continuity chain) and `96zzzzzzzl` (quality/MSAA/lifecycle); finalCAD does not execute their distinct assertions. Three noncallback native/proof/publication groups retain the original21named groups,20pending, overlapping15partial features. Reuse matching proofs; no extra GPU matrix or111freshGPU mandate is introduced. Historical fixture acceptance remains1/4, reload/grid4/4, global release0/5.
+
+All1,361checkpoint reconstructions remain preserved and checked. The old ignored plan's purported exact user quote, "Compile every runnable checkpoint from its canonical snippets" is absent from the saved plan. Its unconditional1,361fresh four-phase/1,173full-native-suite queue was agent-generated and is inactive; historical records remain preserved. Required source-specific lesson/feature checks still need truthful matching proof. The previous 24 to 48 hour estimate is withdrawn pending the finite scope audit.
+
+The original Joined finite criteria are complete; cross-family production controls and legible NURBS isolines remain separate. Required caps88ad, network80d and default source-faces96zzzzzzm callbacks remain pending. Existing CAD 5, native ink controls 14, Plane 80, Matrix 8, Sheet 32 and other accepted witnesses are retained. The two CAD family-toggle states and three representative joined cases are finished; do not repeat them as part of an optional Cartesian profile. Input imports alone do not prove parent assertions executed: mesh-markers calls selected exported helpers, so source-faces default entry remains required. First run the named existing callback assertions and audit actual supported controls; do not turn optionalCAD60/joined44 runner capacities into mandatory Cartesian matrices. Camera/Plane's original three finite requirements are complete. The required76d freeform callback remains pending in the global/chapter queue; no pickable-Camera or occluded-overlay-pick requirement is added.
+
+94c's two changed native diagnostic lines are excluded from its WASM dependency graph. Reuse the original57.334sWASM and152.536soptimized-web phases with their original bindings; current94c native800/800 passes (188.26s guarded,87.26s tests), and its fresh WARP frame is inspected (SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8). Complete canonical94c browser acceptance remains pending. Do not replace a stale global signature or rerun an unchanged bundle merely for bookkeeping.
+
+Reload/grid is accepted4/4 with trusted gestures,deferred camera preservation,held-plane commands,collinear rejection and exact valid near-cap coordinates. The conditional Ctrl+A correction is approved/applied; no harness choice remains pending. Four screenshots were individually inspected after delivery, before far-grid commands; they do not show a visible far grid or establish cross-runtime pixel parity. [Acceptance record](release/reload-grid-browser-review.json).
+
+The checkpoint boxes below retain earlier inventory state. Current acceptance additionally requires matching source, fixtures and checker; aggregate test totals do not mark those boxes done. [Current manifest](consolidation/current-state.json) records exact evidence and remaining batches.
 
 The authored learner route is organized into [chapters and sections](contents.md). The endpoint is the features and quality in [the destination contract](destination.md), including browser recovery and interaction ownership. Lesson count measures authored checkpoints; it is not a percentage of remaining verification work.
 
-A checked lesson box means the implementation exists and its stored build and scripted Chrome evidence match the current source and checker. It does not mean every production acceptance case has been covered. All unchecked lesson boxes now identify authored checkpoints awaiting fresh acceptance. Task checkboxes elsewhere record the individual task stated. [Read the exact verification scope](release.md).
+A checked checkpoint box records its earlier stored build and scripted Chrome evidence. Recheck its source and checker signature before treating it as current acceptance. It does not mean every production acceptance case has been covered. Unchecked lesson boxes retain historical proof accounting; they are not an instruction to launch a fresh full GPU suite for every retained checkpoint. Task checkboxes elsewhere record the individual task stated. [Read the exact verification scope](release.md).
 
 Every authored lesson has a typing estimate, architecture diagram, experiment and cumulative buildable endpoint. Native images and browser screenshots retain separate evidence labels. The remaining build/render queue is recorded in the release evidence.
 
@@ -36,7 +134,7 @@ Every lesson opens with one outcome paragraph, at most 45 words. The main page g
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records how many checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
+**Study estimates:** the consolidated lessons teach substantial capabilities and retain their smaller implementation checkpoints. Historical typing estimates exclude reading and experiments. The final production integration spans several rendering families; its retained checkpoint is not a one-hour task. Use the grouped sections and source references rather than treating the older character-budget splits as the reading structure. Build and browser acceptance remain source-specific.
 
 - [x] Audit the added/changed code in all 503 authored checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.

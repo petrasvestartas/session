@@ -1,0 +1,2 @@
+        let print_pipeline=meshes.iter().any(GpuMesh::printed).then(||self.print_pipeline.get_or_init(||crate::print_fill::pipeline(device,wgpu::TextureFormat::Rg32Uint,1,true)));
+        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,print_pipeline,

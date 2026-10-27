@@ -81,7 +81,7 @@ Replace it with:
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
         let size = [target.texture().width(), target.texture().height()];
         let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
-        let input = egui::RawInput {
+        let mut input = egui::RawInput {
             screen_rect: Some(egui::Rect::from_min_size(
                 egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),
             )),
@@ -126,7 +126,7 @@ Replace it with:
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
         let size = [target.texture().width(), target.texture().height()];
         let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
-        let input = egui::RawInput {
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
@@ -218,7 +218,7 @@ impl Panel {
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
         let size = [target.texture().width(), target.texture().height()];
         let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
-        let input = egui::RawInput {
+        let mut input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(

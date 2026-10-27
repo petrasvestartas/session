@@ -1,0 +1,1 @@
+let plane=u32::from_ne_bytes(self.previous[72..76].try_into().unwrap())&(4096|8);

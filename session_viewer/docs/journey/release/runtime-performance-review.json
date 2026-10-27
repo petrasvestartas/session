@@ -1,0 +1,1224 @@
+{
+  "scope": "Fresh-browser Windows WARP software GPU measurements; OS driver caches are not cleared; no hardware FPS claim",
+  "browser": "145.0.7632.6",
+  "scene": "Unmodified built-in two-triangle demo with default grid/UI; no imported CAD or sample document",
+  "args": [
+    "--enable-unsafe-webgpu",
+    "--ignore-gpu-blocklist",
+    "--use-gl=angle",
+    "--use-angle=d3d11",
+    "--use-adapter-luid=0,86727",
+    "--enable-dawn-features=d3d_skip_shader_optimizations"
+  ],
+  "viewport": {
+    "width": 900,
+    "height": 760
+  },
+  "deviceScaleFactor": 1,
+  "samples": [
+    {
+      "label": "before",
+      "url": "http://127.0.0.1:8781/windows-before-a45/",
+      "adapter": {
+        "vendor": "microsoft",
+        "architecture": "warp",
+        "isFallbackAdapter": true
+      },
+      "coldLoadReadyWallMs": 11775,
+      "initial": {
+        "version": 1,
+        "tab": "55f9b8c6-5552-479a-8b62-4a7c519326ec",
+        "started": "2026-10-23T10:12:55.340Z",
+        "lastSeen": "2026-10-23T10:13:07.036Z",
+        "outcome": "ready",
+        "page": "http://127.0.0.1:8781/windows-before-a45/",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+        "secureContext": true,
+        "webgpu": true,
+        "viewport": [
+          900,
+          760
+        ],
+        "canvas": [
+          900,
+          760
+        ],
+        "devicePixelRatio": 1,
+        "events": [
+          {
+            "time": "2026-10-23T10:12:55.353Z",
+            "elapsedMs": 89.19999998807907,
+            "kind": "phase",
+            "message": "{\"name\":\"adapter request\",\"durationMs\":11.399999976158142,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":89.19999998807907}"
+          },
+          {
+            "time": "2026-10-23T10:12:55.356Z",
+            "elapsedMs": 92.19999998807907,
+            "kind": "phase",
+            "message": "{\"name\":\"device request\",\"durationMs\":2.300000011920929,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":92.19999998807907}"
+          },
+          {
+            "time": "2026-10-23T10:12:55.372Z",
+            "elapsedMs": 108.30000001192093,
+            "kind": "phase",
+            "message": "{\"name\":\"renderer setup\",\"durationMs\":15.300000011920929,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":108.30000001192093}"
+          },
+          {
+            "time": "2026-10-23T10:13:07.036Z",
+            "elapsedMs": 11771.5,
+            "kind": "phase",
+            "message": "{\"name\":\"first frame complete\",\"durationMs\":11587.699999988079,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":11771.5}"
+          },
+          {
+            "time": "2026-10-23T10:13:07.036Z",
+            "elapsedMs": 11772,
+            "kind": "milestone",
+            "message": "geometry on screen"
+          }
+        ],
+        "failure": null,
+        "adapter": {
+          "vendor": "microsoft",
+          "architecture": "warp",
+          "device": "",
+          "description": ""
+        },
+        "phases": [
+          {
+            "name": "adapter request",
+            "durationMs": 11.399999976158142,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 89.19999998807907
+          },
+          {
+            "name": "device request",
+            "durationMs": 2.300000011920929,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 92.19999998807907
+          },
+          {
+            "name": "renderer setup",
+            "durationMs": 15.300000011920929,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 108.30000001192093
+          },
+          {
+            "name": "first frame complete",
+            "durationMs": 11587.699999988079,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 11771.5
+          }
+        ]
+      },
+      "initialGeometry": {
+        "data-object-count": "2",
+        "data-row-placements": "[[\"ObjectId(1)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(2)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+        "data-gpu-stats": "[2, 2, 0, 0]",
+        "data-point-gpu": "[6,288,0,0]",
+        "data-path-gpu": "[0,312,1,312]",
+        "data-stroke-usage": "[0,312,1,312]"
+      },
+      "initialMatrix": [
+        1.2666666666666664,
+        0.45238432276634505,
+        -4.330170320625401e-06,
+        0.4330127018922194,
+        -0.731310340973526,
+        0.7835526315789474,
+        -7.500075000750008e-06,
+        0.7499999999999999,
+        0,
+        1.477631578947368,
+        5.000050000500007e-06,
+        -0.5000000000000001,
+        3.2476703147811297e-13,
+        134.21052631578996,
+        0.2700027000270003,
+        3000.0000000000005
+      ],
+      "finalGeometry": {
+        "data-object-count": "2",
+        "data-row-placements": "[[\"ObjectId(1)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(2)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+        "data-gpu-stats": "[2, 2, 0, 0]",
+        "data-point-gpu": "[6,288,0,0]",
+        "data-path-gpu": "[0,312,1,312]",
+        "data-stroke-usage": "[0,312,1,312]"
+      },
+      "finalMatrix": [
+        1.2666666666666664,
+        0.45238432276634505,
+        -4.330170320625401e-06,
+        0.4330127018922194,
+        -0.731310340973526,
+        0.7835526315789474,
+        -7.500075000750008e-06,
+        0.7499999999999999,
+        0,
+        1.477631578947368,
+        5.000050000500007e-06,
+        -0.5000000000000001,
+        3.2476703147811297e-13,
+        134.21052631578996,
+        0.2700027000270003,
+        3000.0000000000005
+      ],
+      "interaction": [
+        {
+          "inputToPresentationStartMs": 24.399999976158142,
+          "inputToGpuCompletionMs": 32.39999997615814,
+          "settledMs": 100.19999998807907
+        },
+        {
+          "inputToPresentationStartMs": 14.899999976158142,
+          "inputToGpuCompletionMs": 23.599999964237213,
+          "settledMs": 99.80000001192093
+        },
+        {
+          "inputToPresentationStartMs": 14.399999976158142,
+          "inputToGpuCompletionMs": 22.899999976158142,
+          "settledMs": 100
+        },
+        {
+          "inputToPresentationStartMs": 14.799999952316284,
+          "inputToGpuCompletionMs": 24,
+          "settledMs": 99.59999996423721
+        },
+        {
+          "inputToPresentationStartMs": 13.800000011920929,
+          "inputToGpuCompletionMs": 22.400000035762787,
+          "settledMs": 100.40000003576279
+        },
+        {
+          "inputToPresentationStartMs": 14.099999964237213,
+          "inputToGpuCompletionMs": 22.899999976158142,
+          "settledMs": 99.89999997615814
+        }
+      ],
+      "warmInteractionFrameFences": {
+        "submissionLimit": 256,
+        "submissions": [
+          {
+            "interaction": 1,
+            "submission": 10,
+            "frame": 4,
+            "textureAcquiredAt": 11862.399999976158,
+            "submittedAt": 11862.600000023842,
+            "submitReturnedAt": 11862.600000023842,
+            "completedAt": 11874.600000023842,
+            "error": null
+          },
+          {
+            "interaction": 1,
+            "submission": 11,
+            "frame": 4,
+            "textureAcquiredAt": 11862.399999976158,
+            "submittedAt": 11862.800000011921,
+            "submitReturnedAt": 11862.899999976158,
+            "completedAt": 11875.899999976158,
+            "error": null
+          },
+          {
+            "interaction": 1,
+            "submission": 12,
+            "frame": 5,
+            "textureAcquiredAt": 11875.5,
+            "submittedAt": 11875.800000011921,
+            "submitReturnedAt": 11875.800000011921,
+            "completedAt": 11883.5,
+            "error": null
+          },
+          {
+            "interaction": 1,
+            "submission": 13,
+            "frame": 5,
+            "textureAcquiredAt": 11875.5,
+            "submittedAt": 11875.800000011921,
+            "submitReturnedAt": 11875.800000011921,
+            "completedAt": 11883.5,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 14,
+            "frame": 6,
+            "textureAcquiredAt": 11952.100000023842,
+            "submittedAt": 11952.300000011921,
+            "submitReturnedAt": 11952.300000011921,
+            "completedAt": 11965.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 15,
+            "frame": 6,
+            "textureAcquiredAt": 11952.100000023842,
+            "submittedAt": 11952.399999976158,
+            "submitReturnedAt": 11952.399999976158,
+            "completedAt": 11966.600000023842,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 16,
+            "frame": 7,
+            "textureAcquiredAt": 11966.199999988079,
+            "submittedAt": 11966.399999976158,
+            "submitReturnedAt": 11966.399999976158,
+            "completedAt": 11974.899999976158,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 17,
+            "frame": 7,
+            "textureAcquiredAt": 11966.199999988079,
+            "submittedAt": 11966.600000023842,
+            "submitReturnedAt": 11966.600000023842,
+            "completedAt": 11974.899999976158,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 18,
+            "frame": 8,
+            "textureAcquiredAt": 12051.699999988079,
+            "submittedAt": 12051.899999976158,
+            "submitReturnedAt": 12052,
+            "completedAt": 12064.699999988079,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 19,
+            "frame": 8,
+            "textureAcquiredAt": 12051.699999988079,
+            "submittedAt": 12052.100000023842,
+            "submitReturnedAt": 12052.300000011921,
+            "completedAt": 12065.899999976158,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 20,
+            "frame": 9,
+            "textureAcquiredAt": 12065.5,
+            "submittedAt": 12065.600000023842,
+            "submitReturnedAt": 12065.699999988079,
+            "completedAt": 12074,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 21,
+            "frame": 9,
+            "textureAcquiredAt": 12065.5,
+            "submittedAt": 12065.899999976158,
+            "submitReturnedAt": 12065.899999976158,
+            "completedAt": 12074,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 22,
+            "frame": 10,
+            "textureAcquiredAt": 12151.800000011921,
+            "submittedAt": 12152.100000023842,
+            "submitReturnedAt": 12152.100000023842,
+            "completedAt": 12164.699999988079,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 23,
+            "frame": 10,
+            "textureAcquiredAt": 12151.800000011921,
+            "submittedAt": 12152.199999988079,
+            "submitReturnedAt": 12152.300000011921,
+            "completedAt": 12166.300000011921,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 24,
+            "frame": 11,
+            "textureAcquiredAt": 12165.899999976158,
+            "submittedAt": 12166.199999988079,
+            "submitReturnedAt": 12166.199999988079,
+            "completedAt": 12175.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 25,
+            "frame": 11,
+            "textureAcquiredAt": 12165.899999976158,
+            "submittedAt": 12166.199999988079,
+            "submitReturnedAt": 12166.300000011921,
+            "completedAt": 12175.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 26,
+            "frame": 12,
+            "textureAcquiredAt": 12251.199999988079,
+            "submittedAt": 12251.399999976158,
+            "submitReturnedAt": 12251.399999976158,
+            "completedAt": 12263.699999988079,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 27,
+            "frame": 12,
+            "textureAcquiredAt": 12251.199999988079,
+            "submittedAt": 12251.600000023842,
+            "submitReturnedAt": 12251.600000023842,
+            "completedAt": 12264.899999976158,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 28,
+            "frame": 13,
+            "textureAcquiredAt": 12264.5,
+            "submittedAt": 12264.600000023842,
+            "submitReturnedAt": 12264.800000011921,
+            "completedAt": 12273.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 29,
+            "frame": 13,
+            "textureAcquiredAt": 12264.5,
+            "submittedAt": 12264.800000011921,
+            "submitReturnedAt": 12264.800000011921,
+            "completedAt": 12273.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 30,
+            "frame": 14,
+            "textureAcquiredAt": 12351.699999988079,
+            "submittedAt": 12351.899999976158,
+            "submitReturnedAt": 12351.899999976158,
+            "completedAt": 12364.300000011921,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 31,
+            "frame": 14,
+            "textureAcquiredAt": 12351.699999988079,
+            "submittedAt": 12352,
+            "submitReturnedAt": 12352,
+            "completedAt": 12365.600000023842,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 32,
+            "frame": 15,
+            "textureAcquiredAt": 12365.199999988079,
+            "submittedAt": 12365.300000011921,
+            "submitReturnedAt": 12365.300000011921,
+            "completedAt": 12374,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 33,
+            "frame": 15,
+            "textureAcquiredAt": 12365.199999988079,
+            "submittedAt": 12365.399999976158,
+            "submitReturnedAt": 12365.5,
+            "completedAt": 12374,
+            "error": null
+          }
+        ],
+        "droppedSubmissions": 0,
+        "frames": [
+          {
+            "interaction": 1,
+            "frame": 4,
+            "submissions": 2,
+            "submittedAt": 11862.600000023842,
+            "completedAt": 11875.899999976158,
+            "submissionToFenceCallbackMs": 13.299999952316284
+          },
+          {
+            "interaction": 1,
+            "frame": 5,
+            "submissions": 2,
+            "submittedAt": 11875.800000011921,
+            "completedAt": 11883.5,
+            "submissionToFenceCallbackMs": 7.699999988079071
+          },
+          {
+            "interaction": 2,
+            "frame": 6,
+            "submissions": 2,
+            "submittedAt": 11952.300000011921,
+            "completedAt": 11966.600000023842,
+            "submissionToFenceCallbackMs": 14.300000011920929
+          },
+          {
+            "interaction": 2,
+            "frame": 7,
+            "submissions": 2,
+            "submittedAt": 11966.399999976158,
+            "completedAt": 11974.899999976158,
+            "submissionToFenceCallbackMs": 8.5
+          },
+          {
+            "interaction": 3,
+            "frame": 8,
+            "submissions": 2,
+            "submittedAt": 12051.899999976158,
+            "completedAt": 12065.899999976158,
+            "submissionToFenceCallbackMs": 14
+          },
+          {
+            "interaction": 3,
+            "frame": 9,
+            "submissions": 2,
+            "submittedAt": 12065.600000023842,
+            "completedAt": 12074,
+            "submissionToFenceCallbackMs": 8.399999976158142
+          },
+          {
+            "interaction": 4,
+            "frame": 10,
+            "submissions": 2,
+            "submittedAt": 12152.100000023842,
+            "completedAt": 12166.300000011921,
+            "submissionToFenceCallbackMs": 14.199999988079071
+          },
+          {
+            "interaction": 4,
+            "frame": 11,
+            "submissions": 2,
+            "submittedAt": 12166.199999988079,
+            "completedAt": 12175.100000023842,
+            "submissionToFenceCallbackMs": 8.900000035762787
+          },
+          {
+            "interaction": 5,
+            "frame": 12,
+            "submissions": 2,
+            "submittedAt": 12251.399999976158,
+            "completedAt": 12264.899999976158,
+            "submissionToFenceCallbackMs": 13.5
+          },
+          {
+            "interaction": 5,
+            "frame": 13,
+            "submissions": 2,
+            "submittedAt": 12264.600000023842,
+            "completedAt": 12273.100000023842,
+            "submissionToFenceCallbackMs": 8.5
+          },
+          {
+            "interaction": 6,
+            "frame": 14,
+            "submissions": 2,
+            "submittedAt": 12351.899999976158,
+            "completedAt": 12365.600000023842,
+            "submissionToFenceCallbackMs": 13.700000047683716
+          },
+          {
+            "interaction": 6,
+            "frame": 15,
+            "submissions": 2,
+            "submittedAt": 12365.300000011921,
+            "completedAt": 12374,
+            "submissionToFenceCallbackMs": 8.699999988079071
+          }
+        ],
+        "completeFrames": 12,
+        "incompleteFrames": 0,
+        "summaryMs": {
+          "min": 7.699999988079071,
+          "max": 14.300000011920929,
+          "median": 11.099999994039536,
+          "mean": 11.141666665673256
+        },
+        "scope": "Six settled warm wheel interactions only. Frames group submissions by the current getCurrentTexture counter. Duration is first submit invocation to latest observed onSubmittedWorkDone callback for that group; includes CPU submission, prior queue work and callback scheduling, not isolated GPU execution or compositor presentation. Summary excludes incomplete frames and is omitted if capture overflows."
+      },
+      "burst": {
+        "durationMs": 533.3999999761581,
+        "frames": 56,
+        "submits": 112,
+        "completed": 112,
+        "buffers": 0,
+        "textures": 0,
+        "writeBytes": 283136
+      },
+      "idle": {
+        "durationMs": 234,
+        "frames": 0,
+        "submits": 0,
+        "completed": 0,
+        "buffers": 0,
+        "textures": 0,
+        "writeBytes": 0
+      },
+      "timingScope": "Presentation start is getCurrentTexture; completion is the GPU queue fence, not a compositor timestamp",
+      "errors": [],
+      "coldLoadFirstFrameMs": 11771.5,
+      "interactionSummaryMs": {
+        "inputToPresentationStartMs": 14.599999964237213,
+        "inputToGpuCompletionMs": 23.249999970197678,
+        "settledMs": 99.94999998807907
+      }
+    },
+    {
+      "label": "after",
+      "url": "http://127.0.0.1:8781/windows-disposal/",
+      "adapter": {
+        "vendor": "microsoft",
+        "architecture": "warp",
+        "isFallbackAdapter": true
+      },
+      "coldLoadReadyWallMs": 11112,
+      "initial": {
+        "version": 1,
+        "tab": "527c06d0-69e8-4c95-834b-3acfcf7018c8",
+        "started": "2026-10-23T10:13:08.868Z",
+        "lastSeen": "2026-10-23T10:13:19.888Z",
+        "outcome": "ready",
+        "page": "http://127.0.0.1:8781/windows-disposal/",
+        "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/145.0.7632.6 Safari/537.36",
+        "secureContext": true,
+        "webgpu": true,
+        "viewport": [
+          900,
+          760
+        ],
+        "canvas": [
+          900,
+          760
+        ],
+        "devicePixelRatio": 1,
+        "events": [
+          {
+            "time": "2026-10-23T10:13:08.885Z",
+            "elapsedMs": 91.10000002384186,
+            "kind": "phase",
+            "message": "{\"name\":\"adapter request\",\"durationMs\":14.900000035762787,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":91.10000002384186}"
+          },
+          {
+            "time": "2026-10-23T10:13:08.888Z",
+            "elapsedMs": 94.10000002384186,
+            "kind": "phase",
+            "message": "{\"name\":\"device request\",\"durationMs\":2.199999988079071,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":94.10000002384186}"
+          },
+          {
+            "time": "2026-10-23T10:13:08.903Z",
+            "elapsedMs": 109.69999998807907,
+            "kind": "phase",
+            "message": "{\"name\":\"renderer setup\",\"durationMs\":14.899999976158142,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":109.69999998807907}"
+          },
+          {
+            "time": "2026-10-23T10:13:19.887Z",
+            "elapsedMs": 11093.900000035763,
+            "kind": "phase",
+            "message": "{\"name\":\"first frame complete\",\"durationMs\":10939.400000035763,\"bytes\":0,\"source\":\"GPU\",\"elapsedMs\":11093.900000035763}"
+          },
+          {
+            "time": "2026-10-23T10:13:19.888Z",
+            "elapsedMs": 11094.100000023842,
+            "kind": "milestone",
+            "message": "geometry on screen"
+          }
+        ],
+        "failure": null,
+        "adapter": {
+          "vendor": "microsoft",
+          "architecture": "warp",
+          "device": "",
+          "description": ""
+        },
+        "phases": [
+          {
+            "name": "adapter request",
+            "durationMs": 14.900000035762787,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 91.10000002384186
+          },
+          {
+            "name": "device request",
+            "durationMs": 2.199999988079071,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 94.10000002384186
+          },
+          {
+            "name": "renderer setup",
+            "durationMs": 14.899999976158142,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 109.69999998807907
+          },
+          {
+            "name": "first frame complete",
+            "durationMs": 10939.400000035763,
+            "bytes": 0,
+            "source": "GPU",
+            "elapsedMs": 11093.900000035763
+          }
+        ]
+      },
+      "initialGeometry": {
+        "data-object-count": "2",
+        "data-row-placements": "[[\"ObjectId(1)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(2)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+        "data-gpu-stats": "[2, 2, 0, 0]",
+        "data-point-gpu": "[6,288,0,0]",
+        "data-path-gpu": "[0,312,1,312]",
+        "data-stroke-usage": "[0,312,1,312]"
+      },
+      "initialMatrix": [
+        1.2666666666666664,
+        0.45238432276634505,
+        -4.330170320625401e-06,
+        0.4330127018922194,
+        -0.731310340973526,
+        0.7835526315789474,
+        -7.500075000750008e-06,
+        0.7499999999999999,
+        0,
+        1.477631578947368,
+        5.000050000500007e-06,
+        -0.5000000000000001,
+        3.2476703147811297e-13,
+        134.21052631578996,
+        0.2700027000270003,
+        3000.0000000000005
+      ],
+      "finalGeometry": {
+        "data-object-count": "2",
+        "data-row-placements": "[[\"ObjectId(1)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]],[\"ObjectId(2)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+        "data-gpu-stats": "[2, 2, 0, 0]",
+        "data-point-gpu": "[6,288,0,0]",
+        "data-path-gpu": "[0,312,1,312]",
+        "data-stroke-usage": "[0,312,1,312]"
+      },
+      "finalMatrix": [
+        1.2666666666666664,
+        0.45238432276634505,
+        -4.330170320625401e-06,
+        0.4330127018922194,
+        -0.731310340973526,
+        0.7835526315789474,
+        -7.500075000750008e-06,
+        0.7499999999999999,
+        0,
+        1.477631578947368,
+        5.000050000500007e-06,
+        -0.5000000000000001,
+        3.2476703147811297e-13,
+        134.21052631578996,
+        0.2700027000270003,
+        3000.0000000000005
+      ],
+      "interaction": [
+        {
+          "inputToPresentationStartMs": 33.5,
+          "inputToGpuCompletionMs": 41.80000001192093,
+          "settledMs": 116.89999997615814
+        },
+        {
+          "inputToPresentationStartMs": 33.10000002384186,
+          "inputToGpuCompletionMs": 42.19999998807907,
+          "settledMs": 116.5
+        },
+        {
+          "inputToPresentationStartMs": 33,
+          "inputToGpuCompletionMs": 41.69999998807907,
+          "settledMs": 116.10000002384186
+        },
+        {
+          "inputToPresentationStartMs": 35.10000002384186,
+          "inputToGpuCompletionMs": 44.200000047683716,
+          "settledMs": 116.80000001192093
+        },
+        {
+          "inputToPresentationStartMs": 34.80000001192093,
+          "inputToGpuCompletionMs": 54.60000002384186,
+          "settledMs": 116.40000003576279
+        },
+        {
+          "inputToPresentationStartMs": 51.19999998807907,
+          "inputToGpuCompletionMs": 60.39999997615814,
+          "settledMs": 117.79999995231628
+        }
+      ],
+      "warmInteractionFrameFences": {
+        "submissionLimit": 256,
+        "submissions": [
+          {
+            "interaction": 1,
+            "submission": 10,
+            "frame": 4,
+            "textureAcquiredAt": 11204.5,
+            "submittedAt": 11204.800000011921,
+            "submitReturnedAt": 11204.900000035763,
+            "completedAt": 11217.300000011921,
+            "error": null
+          },
+          {
+            "interaction": 1,
+            "submission": 11,
+            "frame": 4,
+            "textureAcquiredAt": 11204.5,
+            "submittedAt": 11205,
+            "submitReturnedAt": 11205,
+            "completedAt": 11219.699999988079,
+            "error": null
+          },
+          {
+            "interaction": 1,
+            "submission": 12,
+            "frame": 5,
+            "textureAcquiredAt": 11221.600000023842,
+            "submittedAt": 11221.800000011921,
+            "submitReturnedAt": 11221.800000011921,
+            "completedAt": 11229.900000035763,
+            "error": null
+          },
+          {
+            "interaction": 1,
+            "submission": 13,
+            "frame": 5,
+            "textureAcquiredAt": 11221.600000023842,
+            "submittedAt": 11221.900000035763,
+            "submitReturnedAt": 11221.900000035763,
+            "completedAt": 11229.900000035763,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 14,
+            "frame": 6,
+            "textureAcquiredAt": 11321.699999988079,
+            "submittedAt": 11322,
+            "submitReturnedAt": 11322,
+            "completedAt": 11335,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 15,
+            "frame": 6,
+            "textureAcquiredAt": 11321.699999988079,
+            "submittedAt": 11322.100000023842,
+            "submitReturnedAt": 11322.100000023842,
+            "completedAt": 11336.199999988079,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 16,
+            "frame": 7,
+            "textureAcquiredAt": 11338.100000023842,
+            "submittedAt": 11338.400000035763,
+            "submitReturnedAt": 11338.5,
+            "completedAt": 11347.199999988079,
+            "error": null
+          },
+          {
+            "interaction": 2,
+            "submission": 17,
+            "frame": 7,
+            "textureAcquiredAt": 11338.100000023842,
+            "submittedAt": 11338.5,
+            "submitReturnedAt": 11338.600000023842,
+            "completedAt": 11347.199999988079,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 18,
+            "frame": 8,
+            "textureAcquiredAt": 11438,
+            "submittedAt": 11438.199999988079,
+            "submitReturnedAt": 11438.300000011921,
+            "completedAt": 11450.800000011921,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 19,
+            "frame": 8,
+            "textureAcquiredAt": 11438,
+            "submittedAt": 11438.400000035763,
+            "submitReturnedAt": 11438.400000035763,
+            "completedAt": 11452.400000035763,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 20,
+            "frame": 9,
+            "textureAcquiredAt": 11454.5,
+            "submittedAt": 11454.800000011921,
+            "submitReturnedAt": 11454.900000035763,
+            "completedAt": 11463.199999988079,
+            "error": null
+          },
+          {
+            "interaction": 3,
+            "submission": 21,
+            "frame": 9,
+            "textureAcquiredAt": 11454.5,
+            "submittedAt": 11454.900000035763,
+            "submitReturnedAt": 11454.900000035763,
+            "completedAt": 11463.199999988079,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 22,
+            "frame": 10,
+            "textureAcquiredAt": 11555.699999988079,
+            "submittedAt": 11556,
+            "submitReturnedAt": 11556,
+            "completedAt": 11569.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 23,
+            "frame": 10,
+            "textureAcquiredAt": 11555.699999988079,
+            "submittedAt": 11556.199999988079,
+            "submitReturnedAt": 11556.199999988079,
+            "completedAt": 11570.400000035763,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 24,
+            "frame": 11,
+            "textureAcquiredAt": 11572.800000011921,
+            "submittedAt": 11572.900000035763,
+            "submitReturnedAt": 11573,
+            "completedAt": 11581.800000011921,
+            "error": null
+          },
+          {
+            "interaction": 4,
+            "submission": 25,
+            "frame": 11,
+            "textureAcquiredAt": 11572.800000011921,
+            "submittedAt": 11573,
+            "submitReturnedAt": 11573.100000023842,
+            "completedAt": 11581.900000035763,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 26,
+            "frame": 12,
+            "textureAcquiredAt": 11672.300000011921,
+            "submittedAt": 11672.600000023842,
+            "submitReturnedAt": 11672.600000023842,
+            "completedAt": 11685.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 27,
+            "frame": 12,
+            "textureAcquiredAt": 11672.300000011921,
+            "submittedAt": 11672.800000011921,
+            "submitReturnedAt": 11672.800000011921,
+            "completedAt": 11686.5,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 28,
+            "frame": 13,
+            "textureAcquiredAt": 11689.300000011921,
+            "submittedAt": 11689.5,
+            "submitReturnedAt": 11689.5,
+            "completedAt": 11709.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 5,
+            "submission": 29,
+            "frame": 13,
+            "textureAcquiredAt": 11689.300000011921,
+            "submittedAt": 11690.199999988079,
+            "submitReturnedAt": 11690.199999988079,
+            "completedAt": 11709.100000023842,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 30,
+            "frame": 14,
+            "textureAcquiredAt": 11789.400000035763,
+            "submittedAt": 11789.800000011921,
+            "submitReturnedAt": 11789.800000011921,
+            "completedAt": 11805.400000035763,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 31,
+            "frame": 14,
+            "textureAcquiredAt": 11789.400000035763,
+            "submittedAt": 11789.900000035763,
+            "submitReturnedAt": 11789.900000035763,
+            "completedAt": 11806.199999988079,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 32,
+            "frame": 15,
+            "textureAcquiredAt": 11822.100000023842,
+            "submittedAt": 11822.199999988079,
+            "submitReturnedAt": 11822.300000011921,
+            "completedAt": 11831.300000011921,
+            "error": null
+          },
+          {
+            "interaction": 6,
+            "submission": 33,
+            "frame": 15,
+            "textureAcquiredAt": 11822.100000023842,
+            "submittedAt": 11822.5,
+            "submitReturnedAt": 11822.5,
+            "completedAt": 11831.300000011921,
+            "error": null
+          }
+        ],
+        "droppedSubmissions": 0,
+        "frames": [
+          {
+            "interaction": 1,
+            "frame": 4,
+            "submissions": 2,
+            "submittedAt": 11204.800000011921,
+            "completedAt": 11219.699999988079,
+            "submissionToFenceCallbackMs": 14.899999976158142
+          },
+          {
+            "interaction": 1,
+            "frame": 5,
+            "submissions": 2,
+            "submittedAt": 11221.800000011921,
+            "completedAt": 11229.900000035763,
+            "submissionToFenceCallbackMs": 8.100000023841858
+          },
+          {
+            "interaction": 2,
+            "frame": 6,
+            "submissions": 2,
+            "submittedAt": 11322,
+            "completedAt": 11336.199999988079,
+            "submissionToFenceCallbackMs": 14.199999988079071
+          },
+          {
+            "interaction": 2,
+            "frame": 7,
+            "submissions": 2,
+            "submittedAt": 11338.400000035763,
+            "completedAt": 11347.199999988079,
+            "submissionToFenceCallbackMs": 8.799999952316284
+          },
+          {
+            "interaction": 3,
+            "frame": 8,
+            "submissions": 2,
+            "submittedAt": 11438.199999988079,
+            "completedAt": 11452.400000035763,
+            "submissionToFenceCallbackMs": 14.200000047683716
+          },
+          {
+            "interaction": 3,
+            "frame": 9,
+            "submissions": 2,
+            "submittedAt": 11454.800000011921,
+            "completedAt": 11463.199999988079,
+            "submissionToFenceCallbackMs": 8.399999976158142
+          },
+          {
+            "interaction": 4,
+            "frame": 10,
+            "submissions": 2,
+            "submittedAt": 11556,
+            "completedAt": 11570.400000035763,
+            "submissionToFenceCallbackMs": 14.400000035762787
+          },
+          {
+            "interaction": 4,
+            "frame": 11,
+            "submissions": 2,
+            "submittedAt": 11572.900000035763,
+            "completedAt": 11581.900000035763,
+            "submissionToFenceCallbackMs": 9
+          },
+          {
+            "interaction": 5,
+            "frame": 12,
+            "submissions": 2,
+            "submittedAt": 11672.600000023842,
+            "completedAt": 11686.5,
+            "submissionToFenceCallbackMs": 13.899999976158142
+          },
+          {
+            "interaction": 5,
+            "frame": 13,
+            "submissions": 2,
+            "submittedAt": 11689.5,
+            "completedAt": 11709.100000023842,
+            "submissionToFenceCallbackMs": 19.600000023841858
+          },
+          {
+            "interaction": 6,
+            "frame": 14,
+            "submissions": 2,
+            "submittedAt": 11789.800000011921,
+            "completedAt": 11806.199999988079,
+            "submissionToFenceCallbackMs": 16.399999976158142
+          },
+          {
+            "interaction": 6,
+            "frame": 15,
+            "submissions": 2,
+            "submittedAt": 11822.199999988079,
+            "completedAt": 11831.300000011921,
+            "submissionToFenceCallbackMs": 9.100000023841858
+          }
+        ],
+        "completeFrames": 12,
+        "incompleteFrames": 0,
+        "summaryMs": {
+          "min": 8.100000023841858,
+          "max": 19.600000023841858,
+          "median": 14.049999982118607,
+          "mean": 12.583333333333334
+        },
+        "scope": "Six settled warm wheel interactions only. Frames group submissions by the current getCurrentTexture counter. Duration is first submit invocation to latest observed onSubmittedWorkDone callback for that group; includes CPU submission, prior queue work and callback scheduling, not isolated GPU execution or compositor presentation. Summary excludes incomplete frames and is omitted if capture overflows."
+      },
+      "burst": {
+        "durationMs": 115.80000001192093,
+        "frames": 1,
+        "submits": 2,
+        "completed": 2,
+        "buffers": 0,
+        "textures": 0,
+        "writeBytes": 5056
+      },
+      "idle": {
+        "durationMs": 233,
+        "frames": 0,
+        "submits": 0,
+        "completed": 0,
+        "buffers": 0,
+        "textures": 0,
+        "writeBytes": 0
+      },
+      "timingScope": "Presentation start is getCurrentTexture; completion is the GPU queue fence, not a compositor timestamp",
+      "errors": [],
+      "coldLoadFirstFrameMs": 11093.900000035763,
+      "interactionSummaryMs": {
+        "inputToPresentationStartMs": 34.150000005960464,
+        "inputToGpuCompletionMs": 43.20000001788139,
+        "settledMs": 116.65000000596046
+      }
+    }
+  ],
+  "status": "passed",
+  "coalescingSemanticCheck": "passed",
+  "sourcePair": {
+    "at": "2026-10-23T09:21:42.904Z",
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "before": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-endpoint-performance-before-a45",
+      "fingerprint": "06e41502d0de483b1d37c87bdca10c80db8be56ebfa744da9262c3a039f440ee",
+      "files": 710
+    },
+    "after": {
+      "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+      "files": 713
+    },
+    "omittedCoalescingEdits": [
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-frame-schedule.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-frame-schedule-tests.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-frame.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-modules.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-runtime.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-change.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-stop.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-install.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-owner.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-pagehide.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-request.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-install.rs",
+      "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-present.rs"
+    ],
+    "invariant": "All source outside the declared presentation-scheduling files is byte-identical; baseline replays all later feature and diagnostic fixes.",
+    "afterAtMeasurement": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+    "deltaFromPriorAfter": "Only WASM src/browser.rs final pagehide branch changed; declared scheduling path. Retained native source unchanged."
+  },
+  "afterSource": {
+    "at": "2026-10-23T10:09:33.393Z",
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "source": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+    "files": 713,
+    "endpoint": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-endpoint-browser-disposal",
+    "fixtures": {
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+      "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+      "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+    },
+    "scope": "Clean final model snapshot; current features and native repairs, no diagnostic Cargo example registrations. Runtime/browser acceptance pending."
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-10-23T10:12:54.2918591Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer/../session_tests/scripts/course/measure-runtime.cjs",
+      "http://127.0.0.1:8781/windows-before-a45/",
+      "http://127.0.0.1:8781/windows-disposal/",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer/target/course-windows-20261018/performance-disposal"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer",
+    "timeoutSeconds": 900,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 28.106,
+    "peakJobCommitBytes": 844251136,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 18900,
+    "descendantsAtCleanup": 0
+  },
+  "categoryCount": 5,
+  "samplingLimit": "One fresh process per version, six warm wheel interactions, one48-resize/six-wheel burst and one200ms idle interval. Descriptive measurements only; no significance or hardware-FPS claim.",
+  "visualReview": "Both actual screenshots individually inspected; same grid/camera/UI and two original resident rows; small demo geometry not asserted visibly resolved.",
+  "historicalFailure": {
+    "manifest": "target/course-windows-20261018/performance-a45/manifest.json",
+    "diagnostic": "target/course-windows-20261018/disposal-probe.json",
+    "observation": "Final pagehide added one empty upload submission with no additional getCurrentTexture call. Final teardown corrected; canonical assertion unchanged."
+  }
+}

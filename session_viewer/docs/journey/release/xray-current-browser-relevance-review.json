@@ -1,0 +1,466 @@
+{
+  "status": "PASS scoped current713 Sphere original-owner browser check and current714 complete canonical browser contract; four actual images reviewed",
+  "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+  "handwritten713": {
+    "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+    "sourceFiles": 713,
+    "scope": "One exact complete1928B original source archive, DPR1, opaque/Xray/opaque; fixed rear/near real GPU original-owner queries, not full CAD callback replay.",
+    "resources": {
+      "elapsedSeconds": 37.695,
+      "peakJobCommitBytes": 579866624,
+      "processors": 2,
+      "memoryLimitBytes": 6442450944,
+      "exitCode": 0
+    },
+    "actualMarkerWitness": {
+      "originalOwner": 4,
+      "sourceGuid": "material-closed-original-mesh",
+      "sphereInstances": 8,
+      "thickness": 4,
+      "feather": 1,
+      "opacity": 0,
+      "fixedRear": [
+        0.6,
+        0.6,
+        -0.8
+      ],
+      "fixedNear": [
+        -0.6,
+        -0.6,
+        -0.8
+      ],
+      "actualMappedCursorPairs": [
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          1
+        ]
+      ],
+      "abi": "Course Sphere.fs_id explicitly returns [course_owners[inst],1]. This is not maintained DISC0x40000000 or tagged edge0x80000000. Actual existing13x13 mapped readback and Sphere vs_front/fs_id draws were observed passively; no extra GPU request/pass/readback was added.",
+      "graySourceColorPixelsAtFixedNear": 8,
+      "visibility": "URL contains thickness4/aa1 and omits nomarkers; supported ShowEdges enables vertex family. Actual Sphere color draw6vertices x8instances and actual LineUniform settings were verified, not inferred only from URL."
+    },
+    "restoration": {
+      "opaqueDrawingExact": true,
+      "completeDecodedArchiveExact": true,
+      "sourceCameraPlacementsUploadsExact": true
+    },
+    "archive": "Complete decoded source records and saved archive metadata return exactly; originalGUID, placements, camera and uploads retained.",
+    "actualNvidia": [
+      {
+        "fallback": false,
+        "vendor": "nvidia",
+        "architecture": "lovelace",
+        "deviceName": "",
+        "description": "",
+        "adapter": {
+          "vendor": "nvidia",
+          "architecture": "lovelace",
+          "device": "",
+          "description": "",
+          "isFallbackAdapter": false
+        },
+        "device": {
+          "vendor": "nvidia",
+          "architecture": "lovelace",
+          "device": "",
+          "description": "",
+          "isFallbackAdapter": false
+        }
+      }
+    ],
+    "httpPayloadsBefore": 16,
+    "httpPayloadsAfter": 16,
+    "evidence": [
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/config.json",
+        "sha256": "1636ce02ccc0b4ff0fa215d54efa20a7a2097da76f252bc03e814f1c2c9b452a"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/browser.json",
+        "sha256": "6a08352a59ab4159fb9a1c61cf7b873a7bf1995789bc4e95ee4b805b5f3d5c60"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/proof.json",
+        "sha256": "1007b707ad4ec7cc6a3620cd7ea419c54f0a92d786b5fa4c65040c96b32a10b0"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/resources.json",
+        "sha256": "6652879f1e449f6410eff1338b1bc783756d03b7815c15510fe7b7490aef26c4"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/output.log",
+        "sha256": "9fccaabbf4601b1fd9045b07fec24130e46d59f9350cd943742f576f7da8b306"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/input-decoded.json",
+        "sha256": "3871a62ba533ce721ee84d339f975911bc9601d2e5eba7f6bb1cd218128bda3d"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/opaque-baseline.session",
+        "sha256": "ed95975abe0af1f62dd947f6dee77ca6f94bf3ffdcbf436720cdb3ae5834e67a"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/opaque-baseline-decoded.json",
+        "sha256": "3871a62ba533ce721ee84d339f975911bc9601d2e5eba7f6bb1cd218128bda3d"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/restored-opaque.session",
+        "sha256": "05eaa27839deb6344c3a652da86de2d45405272923cea9081c37c1610f83cb6f"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/restored-opaque-decoded.json",
+        "sha256": "3871a62ba533ce721ee84d339f975911bc9601d2e5eba7f6bb1cd218128bda3d"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/marker-enabled-observation.json",
+        "sha256": "bfd884400bea3cda0640693610eda1643e78595621eeab44f35f99bc0f929423"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/marker-pixel-witness.json",
+        "sha256": "a470b685e42d5a935efb6ac315b30184af5b6391bae524396db08746cbcd0112"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/query-rear.json",
+        "sha256": "149899db2baebb3bb860763fb064d889a284eb092a19350c6f0309f93d31e692"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/query-near.json",
+        "sha256": "c272b9a1eb711db0976d5aadc7be3daf9692ab60f661069503bc0cd22caf4c5c"
+      }
+    ]
+  },
+  "maintained714": {
+    "sourceFingerprint": "b9f70ac28efa5ff434a2e479f5d5374160c7c5e05eb5833ae7edd32f8b882321",
+    "sourceFiles": 714,
+    "scope": "Complete unchanged original final.cjs atDPR1/2 plus all capture_current postcallback canvas/UI/bluegeometry/blackboundary/pixel assertions.",
+    "resources": {
+      "elapsedSeconds": 12.031,
+      "peakJobCommitBytes": 871219200,
+      "processors": 2,
+      "memoryLimitBytes": 6442450944,
+      "exitCode": 0
+    },
+    "densities": [
+      1,
+      2
+    ],
+    "httpPayloadsBefore": 18,
+    "httpPayloadsAfter": 18,
+    "actualNvidiaObservations": [
+      {
+        "density": 1,
+        "phase": "complete-callback",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 1,
+        "phase": "presentation",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 2,
+        "phase": "complete-callback",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 2,
+        "phase": "presentation",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "privatePlumbing": "Existing actual current native/WASM/optimized phase qualification replaces old global-results guard. Private server/output paths and passive adapter observations only; all canonical behavioral/presentation assertions retained. No global result or canonical screenshot record overwritten.",
+    "proofs": [
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/proof.json",
+        "sha256": "6ca712ac96a74a2e62839db6990286412172586beccbef91ae4c3cc93e64a902"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/browser.json",
+        "sha256": "93a7270f51324e24fe0f2ad916c31847891383d50d39e2bc5b8c175bfb5e92a7"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/canonical-browser.json",
+        "sha256": "f24745fbab0aad9d193cb6fcf86b40ba9f089ac9ec958412fb88e8156436b897"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/resources.json",
+        "sha256": "7c5d44eab147c6094479c66478209b95e4c4a6bd42ea87c428e16dfdc278473c"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/output.log",
+        "sha256": "bc814e3eb99999916592db3db47aec3ae6c032920823b68553cb0a7a230cad19"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/config.json",
+        "sha256": "94330ae59a4ba53364499e7f8c9fc2dcb3dbfa22bf437f8052d377ed86c5f4e9"
+      }
+    ],
+    "sourceSpecificPreparation": {
+      "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-browser-preparation.json",
+      "sha256": "0f30166759d9fc7a655c293b21dd48fbbadcee1fdbe468d37709c4b94d80f7a5"
+    }
+  },
+  "actualEnvironment": {
+    "browser": "Pinned Chromium headless1208; no personal Chrome/docs tab changed",
+    "adapter": {
+      "status": "PASS read-only NVIDIA DXGI enumeration; GPU device not created",
+      "readOnly": true,
+      "selected": {
+        "index": 0,
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "vendor": 4318,
+        "device": 10208,
+        "luid": "0,86780",
+        "luidHigh": 0,
+        "luidLow": 86780,
+        "dedicatedVideoMemoryBytes": 12577669120,
+        "flags": 0
+      },
+      "adapters": [
+        {
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+          "vendor": 4318,
+          "device": 10208,
+          "luid": "0,86780",
+          "luidHigh": 0,
+          "luidLow": 86780,
+          "dedicatedVideoMemoryBytes": 12577669120,
+          "flags": 0
+        },
+        {
+          "index": 1,
+          "name": "Intel(R) UHD Graphics",
+          "vendor": 32902,
+          "device": 42888,
+          "luid": "0,85866",
+          "luidHigh": 0,
+          "luidLow": 85866,
+          "dedicatedVideoMemoryBytes": 134217728,
+          "flags": 0
+        },
+        {
+          "index": 2,
+          "name": "Microsoft Basic Render Driver",
+          "vendor": 5140,
+          "device": 140,
+          "luid": "0,86727",
+          "luidHigh": 0,
+          "luidLow": 86727,
+          "dedicatedVideoMemoryBytes": 0,
+          "flags": 2
+        }
+      ],
+      "driver": {
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "driverVersion": "32.0.15.9579",
+        "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+        "status": "OK"
+      },
+      "scope": "DXGI enumeration and CIM only; no WebGPU, D3D device, renderer or performance acceptance."
+    },
+    "sourceAndToolPinsVerified": 1550,
+    "actualApplicationDevice": "Both application requestDevice adapter and returned device are NVIDIA; fallbackfalse at713 and both714 stages/densities. Model/LUID/driver bound by actual DXGI metadata, not inferred from privacy-reduced WebGPU model strings."
+  },
+  "images": [
+    {
+      "path": "docs/journey/release/xray-current-browser-opaque.png",
+      "sha256": "035c279cf71d6d5018bc26c934823299a1e93461f286bf92e1c7911430344aa7",
+      "width": 900,
+      "height": 760,
+      "original": {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/opaque-original-cube.png",
+        "sha256": "035c279cf71d6d5018bc26c934823299a1e93461f286bf92e1c7911430344aa7"
+      },
+      "caption": "Current handwritten713: opaque original cube, visible gray corner dots and source wires.",
+      "rootOriginalResolutionReviewed": true
+    },
+    {
+      "path": "docs/journey/release/xray-current-browser-xray.png",
+      "sha256": "d585c7eeb64a832f9a5e4bbb1b6f981e7cbde318c44d448a82a47e4203621f36",
+      "width": 900,
+      "height": 760,
+      "original": {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-marker-browser-v2/xray-original-cube.png",
+        "sha256": "d585c7eeb64a832f9a5e4bbb1b6f981e7cbde318c44d448a82a47e4203621f36"
+      },
+      "caption": "Current handwritten713: Xray cube wires and gray corner dots; fixed rear/near queries retain original owner.",
+      "rootOriginalResolutionReviewed": true
+    },
+    {
+      "path": "docs/journey/release/xray-current-browser-maintained-dpr1.png",
+      "sha256": "e77bb47546633c0a3f55b5d4c354bc4fefc560320138b41e2d02784eb7ef8079",
+      "width": 900,
+      "height": 760,
+      "original": {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/97-finish-with-the-maintained-browser-runtime-browser.png",
+        "sha256": "e77bb47546633c0a3f55b5d4c354bc4fefc560320138b41e2d02784eb7ef8079"
+      },
+      "caption": "Maintained714 DPR1: original blue pedestal, title, grid, outlines and Command input.",
+      "rootOriginalResolutionReviewed": true
+    },
+    {
+      "path": "docs/journey/release/xray-current-browser-maintained-dpr2.png",
+      "sha256": "a7f9c87ac916a4e85e507d83b8b5038fdd4df5ed71cdc26c0188c75c3f2f6365",
+      "width": 1800,
+      "height": 1520,
+      "original": {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/maintained714-new-source-v1/97-finish-with-the-maintained-browser-runtime-browser-dpr2.png",
+        "sha256": "a7f9c87ac916a4e85e507d83b8b5038fdd4df5ed71cdc26c0188c75c3f2f6365"
+      },
+      "caption": "Maintained714 DPR2: original blue pedestal, title, grid, outlines and Command input.",
+      "rootOriginalResolutionReviewed": true
+    }
+  ],
+  "oldSourceDiagnostic": {
+    "status": "FAILED semantic rear marker query; preserved as failure, not accepted",
+    "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+    "rawRear": [
+      0,
+      0
+    ],
+    "expectedOriginalOwner": 4,
+    "actualPickSphereOpacity": 1,
+    "browserError": "AssertionError [ERR_ASSERTION]: Raw Sphere row is original cube owner\n\n0 !== 4\n\n    at C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\xray-final-browser-relevance-preparation\\capture-xray-v2.cjs:21:1649",
+    "meaning": "Same complete source/probes/settings on retainedfef4 shows actual Sphere8-instance pick draw still gets opaque1 despite current Xray0; rear raw miss contrasts with new713 original-owner[4,1] atopacity0.",
+    "evidence": [
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-fef4-marker-baseline-v2/proof.json",
+        "sha256": "56be00701474d0abdeb179e31c41188487493e40a9e0f7f20ddfc9fc5224ae59"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-fef4-marker-baseline-v2/browser.json",
+        "sha256": "9f4bcc441fd077de38fa6694d66228e1e25ed915cf805e9cf7ddb7e2605f876f"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-fef4-marker-baseline-v2/query-rear.json",
+        "sha256": "f98b9c9a4b4c0c2d1eb8d6627b1698d742960ac688a96bbd30f307bd24289011"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-fef4-marker-baseline-v2/resources.json",
+        "sha256": "251aa7535aee19ee9805a3606ee9b875d15b0cea8e94b52152ec4b402bd260b2"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-fef4-marker-baseline-v2/output.log",
+        "sha256": "63c30cc1af4f84745beb8daa49292190e42fb0a92c46c8802465bc9b1b91c69f"
+      },
+      {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-fef4-marker-baseline-v2/config.json",
+        "sha256": "6ba75ddc20a64fceb244a1671faad4ba73ef02565fd0487f70aa7673d6a0cf21"
+      }
+    ]
+  },
+  "retainedScopes": {
+    "v1EdgeOnly": {
+      "proof": {
+        "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/xray-new713-browser-v1/proof.json",
+        "sha256": "13382351d5aa56ee127f7b98b0ed596bdd900e94ad06142bc8d360a304782ba2"
+      },
+      "scope": "V1 actualPASS36.202s/root2images remains narrow Xrayedge/source restoration; no marker acceptance."
+    },
+    "originalCad": {
+      "proof": {
+        "path": "docs/journey/release/final-cad-browser-review.json",
+        "sha256": "b9937ebf23daaa8cfe0b7e71720e4ec6f4c449bee34f9022564174e4925627ac"
+      },
+      "scope": "Original97d fullCAD callback remains at its original source. Recursive7954dbe4...c674 is unchanged and all original queries forceopacity1, so this Xray-only delta preserves their relevant uniform input. No fresh fullCAD replay or wholesale97d->new65 equivalence claim."
+    },
+    "originalMaintained": {
+      "proof": {
+        "path": "docs/journey/release/maintained97-export-recovery-review.json",
+        "sha256": "576ab6182909bf0c558dea42e64424518c19f4069bf0a421f0a9544ea6dab019"
+      },
+      "scope": "Original06359 source acceptance preserved; this record adds separate actual new714 contract evidence."
+    }
+  },
+  "sourceRelevanceAudit": {
+    "path": "target/course-windows-20261018/xray-final-browser-relevance-preparation/relevance-audit.json",
+    "sha256": "52dc72a284ac80dc241429926ff423b2fb566a5e33ac68fc0aa91b237d35bc07"
+  },
+  "limits": [
+    "Browser queries ran through real UI and GPU; no unobserved pre-color timing claim. Separate focused native regression establishes that timing.",
+    "This record does not establish a new full1063 native suite, all feature closure, every historical callback, global release, or current wholebook/Gemini handoff.",
+    "Marker color and ownership acceptance is scoped to this one original closed cube/pose/DPR1; retained broader feature records keep their own scopes."
+  ],
+  "rootReview": {
+    "allFourOriginalDetailImagesIndividuallyViewed": true,
+    "handwritten713": "Visible gray corner dots and wires, correct opaque/Xray source display and restoration.",
+    "maintained714": "Clean original blue pedestal, full title, grid, outlines and Command at both densities."
+  }
+}

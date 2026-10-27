@@ -21,7 +21,15 @@ Own the endpoints and the two comparison predicates. Reuse the shared strict or 
 pub const FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
 pub fn surface() -> wgpu::DepthStencilState { state(true, wgpu::CompareFunction::Less) }
-pub fn ink() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::LessEqual) }
+pub fn ink() -> wgpu::DepthStencilState {
+    let mut depth = state(false, wgpu::CompareFunction::LessEqual);
+    depth.bias = wgpu::DepthBiasState {
+        constant: -2,
+        slope_scale: -1.0,
+        clamp: 0.0,
+    };
+    depth
+}
 pub fn grid() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::Less) }
 
 fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState {

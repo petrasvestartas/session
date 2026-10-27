@@ -1,0 +1,201 @@
+{
+  "status": "PASS finite current-source nativeframe, WASM, optimized webartifact and browserboot/render; broader tutorial/release acceptance remains separate",
+  "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+  "courseSha256": "d4ab046ec86c32ca3524afdf9f665dac30821367ce0bf5899f61ab7baf2f026e",
+  "sourceFiles": 713,
+  "actualExternalInputs": 433,
+  "source": "target/course-final-clipping-guide-two-fixture-isolation",
+  "nativeFrame": {
+    "elapsedSeconds": 47.122,
+    "peakJobCommitBytes": 1850138624,
+    "resources": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/native-frame-20261024T000145140Z/resources.json",
+      "sha256": "472c565bc18805c7d79223fb69cc68bed593d7b83366b5329d0b7656848eb32b"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/native-frame-20261024T000145140Z/output.log",
+      "sha256": "d98d1788d0c78e3fd0c8cf72a3bee1089de85e03dd8fdb2fe43973f2d78c0e79"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/native-frame-20261024T000145140Z/command.json",
+      "sha256": "3dae3199eab4b515f4f735df5c0b223a2bfdda45787134ada601ed559ed1b8eb"
+    },
+    "acceptance": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/native-frame-20261024T000145140Z/acceptance.json",
+      "sha256": "b343b2d4e725e91657c764b415ac4673710d06a2396be48bc5c70f4d433ecb8e"
+    },
+    "canonicalCheck": "journey/checks/94-comparison.rs",
+    "pngSha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+    "figure": "journey/release/final-fef4-native-frame.png",
+    "visualReview": "Root individually inspected original-resolution PNG; exact SHA supplied to publication command"
+  },
+  "wasm": {
+    "elapsedSeconds": 25.791,
+    "peakJobCommitBytes": 1661849600,
+    "resources": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/resources.json",
+      "sha256": "71c2f3f40619d473cf92c7cc6586e0e983c60ded18c90c670cca8690b8f63989"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/output.log",
+      "sha256": "9303988c3217d3f2010a59be7eab03c11b3c5a2eced99586fc16e3afd4b2b1d2"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/command.json",
+      "sha256": "c1d5e24ab2963970f0cb0e5443a98dda18c1ffd7ea0d63dace3bf7ef81f056bc"
+    },
+    "acceptance": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/wasm-20261024T000324659Z/acceptance.json",
+      "sha256": "5735da32d0bf7116c3adcbbd4d1a10e3945da162446e48bc0279aafda215eddc"
+    },
+    "sha256": "d1d0596625dee42ea6019ef16fde02f0c2e9e89261c40264567d7d7befeea477",
+    "retention": {
+      "status": "Original final debug output hash recorded at execution; shared cache subsequently overwritten by completed70dWASM phase",
+      "recordedFinalOutputSha256": "d1d0596625dee42ea6019ef16fde02f0c2e9e89261c40264567d7d7befeea477",
+      "originalOutputCurrentlyRetained": false,
+      "sharedOutput": "target/course-build/wasm32-unknown-unknown/debug/viewer_journey.wasm",
+      "observedCurrentSha256": "d1b31853fd14d5551db120c88401dfd84f2ad6138b7e4ff8f23693a014240b3b",
+      "observedMtimeUtc": "2026-10-24T00:15:01.495Z",
+      "overwritingPhase": {
+        "id": "70d-exercise-rotated-and-mirrored-original-references",
+        "sourceFingerprint": "46e5b75c3dbcbfbb1e3aa6bb75a9aa4bbde22daa6c25faf44ab14826c199a881",
+        "sourceFiles": 331,
+        "command": [
+          "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+          "build",
+          "--lib",
+          "--locked",
+          "--offline",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j1"
+        ],
+        "resource": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.resources.json",
+          "sha256": "9909fe7cc6522e12bbdbb6e4ea5a6f7eb97b032a2d1e22e4ce94cfbf955f0798"
+        },
+        "log": {
+          "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.log",
+          "sha256": "8932404811189b516860c1bc886c1f547c546f70fd72d08403108c4ecf6e425f"
+        },
+        "proof": {
+          "path": "target/course-windows-20261018/final-two-fixture-artifact-publication-preparation/70d-proof-at-publication-preparation.json",
+          "sha256": "3eb16799c0c741ae2452d432759eae2826b2fbbe23f1db58216c8590bce2f87f"
+        },
+        "evidence": [
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.log",
+            "sha256": "8932404811189b516860c1bc886c1f547c546f70fd72d08403108c4ecf6e425f"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.resources.json",
+            "sha256": "9909fe7cc6522e12bbdbb6e4ea5a6f7eb97b032a2d1e22e4ce94cfbf955f0798"
+          },
+          {
+            "path": "target/course-checks/70d-two-fixture-v5-tool-path-v1-wasm-20261024T001449747Z.command.json",
+            "sha256": "d99d4207879eeb38f58afd5d89285ea7082daf4f79018fc83b3dc4ece463d9bd"
+          }
+        ],
+        "startedUtc": "2026-10-24T00:14:50.1814784Z",
+        "elapsedSeconds": 11.843,
+        "exitCode": 0
+      },
+      "qualification": "Original70d phase has no recorded output hash; current hash/mtime is a publication-time observation. Exact command, shared target path, source331 hashes and timestamp inside successful guarded phase support overwrite attribution. Original final compile receipt remains immutable; independently retained optimized release payload+boot proofs are still strictly verified."
+    },
+    "scope": "Locked offline wasm32 library compilation succeeded; debug output hash recorded at execution; shared cache retention qualified separately"
+  },
+  "optimizedWeb": {
+    "elapsedSeconds": 96.578,
+    "peakJobCommitBytes": 794808320,
+    "resources": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-tool-path-v2-20261024T001152573Z/resources.json",
+      "sha256": "4a1798debd590541aadb45cd1e1a6a3fff222c944b442d843d0943226e992423"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-tool-path-v2-20261024T001152573Z/output.log",
+      "sha256": "ebfa10ac9c7fe21c7fdddad7dbcb9e64378eeb33b0a99e16405586a39f44664e"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-tool-path-v2-20261024T001152573Z/command.json",
+      "sha256": "79d1428ed6c2149b3ee9b9675b0707a94501f0690b29cffc0540d2780596b204"
+    },
+    "provenance": {
+      "path": "target/course-checks/windows-final-two-fixture-isolation-v2/final-two-fixture-build-provenance.json",
+      "sha256": "1f65fdeb19dccba1441e281c46dfd51feb9cf09d46241fe94a4e0596bf852416"
+    },
+    "dist": "target/course-checks/windows-final-two-fixture-isolation-v2",
+    "payloads": 16,
+    "tools": {
+      "wasm-bindgen": {
+        "path": "C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128\\wasm-bindgen.exe",
+        "sha256": "207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4",
+        "actualVersion": "wasm-bindgen 0.2.128",
+        "pathFirst": "C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128\\wasm-bindgen.exe"
+      },
+      "wasm-opt": {
+        "path": "C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin\\wasm-opt.exe",
+        "sha256": "9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598",
+        "actualVersion": "wasm-opt version 123 (version_123)",
+        "pathFirst": "C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin\\wasm-opt.exe"
+      }
+    },
+    "scope": "Actual Trunk release/locked/offline build; cache128/opt123 PATH resolution pinned. Browser evidence is separate."
+  },
+  "packagingFailurePreserved": {
+    "reason": "Rust release compilation passed; offline packaging resolved global wasm-bindgen0.2.122 instead of required0.2.128",
+    "files": {
+      "output.log": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-release-20261024T000448834Z/output.log",
+        "sha256": "7d6035494e5ff94488167078ded37125f95303c54483fbd0f3a482cdb7586ee7"
+      },
+      "resources.json": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-release-20261024T000448834Z/resources.json",
+        "sha256": "b43fd06369ac3f3a27cb9990c818ff631b088cedf1a3a147abfaedf30cb3c15b"
+      },
+      "command.json": {
+        "path": "target/course-windows-20261018/final-two-fixture-web-preparation/web-release-20261024T000448834Z/command.json",
+        "sha256": "4264dc2591c96f4fc2916e232d28e63c943d350a39f312f088c7e173cba35c45"
+      }
+    }
+  },
+  "browserBoot": {
+    "proof": {
+      "path": "target/course-windows-20261018/final-two-fixture-browser-preparation/final-two-fixture-boot-v1/proof.json",
+      "sha256": "6e428a2373bb6dc37d1b65a505324a75a54801afa66819745e1dac4078bfc1d0"
+    },
+    "browser": {
+      "path": "target/course-windows-20261018/final-two-fixture-browser-preparation/final-two-fixture-boot-v1/browser.json",
+      "sha256": "9adabf2215d43b726fbca2d4b3c83e6ccf80195a3f83a35a03bbe8ba8d7452c6"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/final-two-fixture-browser-preparation/final-two-fixture-boot-v1/resources.json",
+      "sha256": "a19b2c6caa300a27f8e0fe9cd6e5d0a3fa4e8c5c43976377fd78a8405496d9eb"
+    },
+    "elapsedSeconds": 31.16,
+    "peakJobCommitBytes": 638455808,
+    "fixtureSha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+    "figure": "journey/release/final-fef4-browser-boot.png",
+    "pngSha256": "b34f1ec8e712448260d1d33d31fb0b8f1f669d2bb4590944f6a5df31fcfcf4b7",
+    "visiblePixels": {
+      "blue": 132271,
+      "black": 495
+    },
+    "gpuCompletion": "Actual queue.onSubmittedWorkDone followed by two animation frames before screenshot",
+    "http": "Each emitted payload and provenance matched200/SHA before and after browser run using fresh connections; failed retries, if any, remain in raw proof",
+    "visualReview": "Root individually inspected original-resolution PNG; exact SHA supplied to publication command",
+    "scope": "One current-bundle boot and original comparison scene render. No canonical feature callbacks, CAD25 or reload4 replay."
+  },
+  "nativeIntegrationQualification": {
+    "record": "journey/release/native-ribbon-v4-qualified-recovery-review.json",
+    "raw": {
+      "path": "target/course-windows-20261018/clipping-guide-two-fixture-isolation-v5/qualified-native-recovery.json",
+      "sha256": "ed033a53e798b98ff7615f8e916bae480051aaca9f415be77cea0f2b1760a119"
+    },
+    "status": "Original unfiltered fullrun1060PASS2FAIL plus2exactcorrectedfixturefocusedPASS; NOT an unfiltered1062PASS"
+  },
+  "limits": [
+    "Native and browser frames are separate finite examples; no cross-runtime pixel parity claim.",
+    "Existing e432 four-guide exactRGBA evidence retains its original source binding with documented nativecfgtest-only equivalence; not rerendered or relabelled.",
+    "No global release, all-chapter, arbitrary feature/control or browser interaction acceptance inferred."
+  ]
+}

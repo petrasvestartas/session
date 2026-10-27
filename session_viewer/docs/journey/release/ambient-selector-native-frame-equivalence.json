@@ -1,0 +1,36 @@
+{
+  "status": "PASS actual new713/714 native source/cfg plus actual x86 metadata feature/edge equivalence; frame reuse awaits actual713 frame/rootreview",
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+      "packageName": "viewer_journey_713_6947664b26863adf65ef7bfc"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+      "packageName": "viewer_journey_714_b0313bae6b71646b94247765"
+    }
+  ],
+  "nativeLibEqualAfterExactReviewedCfgExclusion": true,
+  "allOtherNativeSourceTextEqual": true,
+  "browserRuntimeExcludedOnNative": true,
+  "nativeFeaturesEqual": true,
+  "nativeEdgesEqualExceptReviewedCurrentViewerDevPromotion": true,
+  "metadata": [
+    {
+      "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native-metadata-713.json",
+      "sha256": "2c2413881ae2fe039e62ea626fbc7d8d300877dd2b5b7f90329872cd9346e5f5"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native-metadata-714.json",
+      "sha256": "4060451456965d42a11e350f85a41de14c2c8b4e0611095111507e9a1ea42ad9"
+    }
+  ],
+  "productionSourceIdentity": "d5dd5b80bb27fbf8bee367f303a8629f024ed79db7cb48340b67eb7ed77e3314",
+  "productionPackage": "session_viewer_freeze_d5dd5b80bb27fbf8bee367f3",
+  "frameRootAlreadyHasNormalCurrentViewerEdge": true,
+  "scope": "Qualifies relevance of one actual reviewed new713 native frame to714 native projection only; not714 frame execution/browser/fullsuite"
+}

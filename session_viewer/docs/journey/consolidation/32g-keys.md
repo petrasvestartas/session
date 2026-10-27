@@ -1,198 +1,243 @@
 # 3.7 · Restore exact sources and replay the captured edit
 
-Restore only the original sources a pending edit needs, then atomically replay its original intent.
+**Steps:** 26 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
-## Ownership and data flow
+## <a id="checkpoint-32g-keys"></a>1. Identify the source release a reload belongs to
 
-A reload key identifies an origin and release epoch, preventing a result for a closed, replaced or newly released document from adopting stale sources. Prepare every source privately, validate all current keys and versions, and only then adopt a complete batch. The request owner pairs AbortController, ticket and optional value-only Intent; completion consumes them once. Captured Move or Delete targets its original ObjectId even if selection changes while waiting. Save requests all active cold origins and serializes restored source doubles. Failed or incomplete batches must produce neither a partial edit nor a download.
-
-## The maintained implementation
-
-app/scene_release.rs owns maintained released-document tokens and fetch state; app/fetch.rs bounds network reads; state/hydrate.rs restores sources before command continuation. The learner generic ReloadJob and Origin abstractions are staged instructional owners, not names of maintained modules. The maintained `Resume` enum currently carries Controls(row), Save and Rewalk; it does not implement the learner’s captured Move/Delete Intent replay. Per-document hydration also differs from this checkpoint’s all-source atomic adoption. These are explicit implementation divergences requiring reconciliation, not production parity established by the course tests. Source hydration is separate from reloading the whole scene or restoring a camera pose.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-32g-keys"></a>
-
-<details>
-<summary>Implementation 32g-keys: Identify the source release a reload belongs to</summary>
-
-Borrow the current imported release identity and epoch before asking for source data.
-
-Data flow: Active cold rows → ReloadKey::of → unique imported Origin + release epoch.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-d1b49447" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-d1b49447" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">31..32G · RESIDENCY &amp; RELOAD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Shared Arc&lt;GpuGeometry&gt; Cache, Source Unloading &amp; On-Demand Async Restoration</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Loaded(Arc&lt;Source&gt;) &lt;-&gt; Released(Origin, Key)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-d1b49447)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Immutable Arc&lt;GpuGeometry&gt; + Settings Slot</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Arc&lt;GpuGeometry&gt; (Shared Across Undo)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">Zero vertex re-upload on selection change</text>
+  <rect x="44" y="134" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="154" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Unload Sources: Drop f64 Kernel RAM</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="172" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#16a34a">f32 GPU display mesh stays interactive</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d1b49447)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-d1b49447)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Captured Edit Intent -&gt; Async HTTP Reload</text>
+  <rect x="414" y="76" width="292" height="106" rx="4" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Move / Delete / Save on Unloaded Row:</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="120" text-anchor="middle" font-family="monospace" font-size="9" fill="#2563eb">1. Capture PendingIntent + ReleaseKey</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="142" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">2. Bounded Fetch + AbortController</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">3. Atomic Adopt + Replay Exact f64 Edit</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-d1b49447)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-d1b49447)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Lossless f64 Precision Restored</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="830" y="84" width="208" height="42" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="109" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Sources Restored ✓</text>
+  <rect x="830" y="136" width="208" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="160" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Move / Save Committed</text>
+</svg>
+</div>
 
 ### 1. `src/lib.rs`
 
-Give reload identity and preparation their own Rust boundary.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+pub mod prepared;
 pub mod reload_url;
 ```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32g-keys-01.rs" skip=20
-```
-
-### 2. `src/rehydrate.rs`
-
-Match an imported allocation and checked release epoch instead of only a file GUID.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/32g-keys-02.rs"
-```
-
-### 3. `src/editor.rs`
-
-Request each active imported release once without duplicating its geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32g-keys-03.rs"
+pub mod prepared;
+pub mod rehydrate;
+pub mod reload_url;
 ```
 
-</details>
+### 2. `src/rehydrate.rs`
 
-<a id="checkpoint-32ga-prepare"></a>
+Create the file and type:
 
-<details>
-<summary>Implementation 32ga-prepare: Prepare original kernel data without rebuilding its display</summary>
+```rust
+use std::rc::Rc;
 
-Validate an immutable source version and restore its Session into a private reload candidate.
+#[derive(Clone)]
+pub struct ReloadKey {
+    pub origin: Rc<crate::origin::Origin>,
+    pub epoch: u64,
+}
 
-Data flow: Original bytes → bounded decode/version check → candidate Session → original source-GUID lookup.
+impl ReloadKey {
+    pub fn of(row: &crate::scene::Object) -> Option<Self> {
+        Some(Self {
+            origin: Rc::clone(row.origin()?),
+            epoch: row.release_epoch()?,
+        })
+    }
+
+    pub fn matches(&self, row: &crate::scene::Object) -> bool {
+        row.release_epoch() == Some(self.epoch)
+            && row
+                .origin()
+                .is_some_and(|origin| Rc::ptr_eq(origin, &self.origin))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::editor::{Action, Editor};
+
+    #[test]
+    fn a_reload_key_matches_only_its_current_import_release() {
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        let url = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:key".into(),
+        ));
+        editor
+            .apply(Action::ReplaceAt(
+                bytes.clone(),
+                Rc::clone(&url),
+            ))
+            .unwrap();
+        assert!(ReloadKey::of(&editor.scene.objects()[0]).is_none());
+        editor.apply(Action::UnloadSources).unwrap();
+        let key = ReloadKey::of(&editor.scene.objects()[0]).unwrap();
+        assert!(
+            editor
+                .scene
+                .objects()
+                .iter()
+                .all(|row| key.matches(row))
+        );
+        let later = ReloadKey {
+            origin: Rc::clone(&key.origin),
+            epoch: key.epoch + 1,
+        };
+        assert!(!later.matches(&editor.scene.objects()[0]));
+        editor.apply(Action::Close).unwrap();
+        editor
+            .apply(Action::ImportAt(bytes, url))
+            .unwrap();
+        editor.apply(Action::UnloadSources).unwrap();
+        assert!(!key.matches(&editor.scene.objects()[0]));
+    }
+}
+```
+
+### 3. `src/editor.rs`
+
+**Locate this existing block:**
+
+```rust
+    }
+
+    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    }
+
+    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
+        let mut seen = std::collections::HashSet::new();
+        self.scene
+            .objects()
+            .iter()
+            .filter_map(crate::rehydrate::ReloadKey::of)
+            .filter(|key| seen.insert(key.origin.id))
+            .collect()
+    }
+
+    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
+```
+
+## <a id="checkpoint-32ga-prepare"></a>2. Prepare kernel data without rebuilding its display
 
 ### 1. `src/document.rs`
 
-Share bounded decoding without sharing display preparation. Restore only original kernel data after validating the immutable source version.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
+**Locate this existing block:**
 
 ```rust
-    Ok(Loaded { document, meshes })
-}
-
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    let mut objects = proto::Objects::default();
-    let mut children = Vec::new();
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    Ok(Loaded { document, meshes })
-}
-
-fn decode(bytes: &[u8]) -> Result<proto::Session, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+) -> Result<Loaded, &'static str> {
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
     validate(&message)?;
-    Ok(message)
-}
-
-pub(crate) fn restore(bytes: &[u8], origin: &crate::origin::Origin) -> Result<Rc<Session>, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    if crate::origin::FileVersion::of(bytes) != origin.version { return Err("Reloaded file version changed"); }
-    Session::from_proto(decode(bytes)?).map(Rc::new).map_err(|_| "Cannot restore source session")
-}
-
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    let mut objects = proto::Objects::default();
-    let mut children = Vec::new();
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> { load_at(bytes, None) }
-
-pub fn load_at(bytes: &[u8], location: Option<Rc<crate::reload_url::ReloadUrl>>) -> Result<Loaded, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
-    validate(&message)?;
-    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;
+    let mut origin = crate::origin::Origin::new(&message, bytes);
+    origin.location = location;
     let origin = Rc::new(origin);
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-```
-
-</details>
-
-Replace it with:
-
-```rust
-pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> { load_at(bytes, None) }
-
-pub fn load_at(bytes: &[u8], location: Option<Rc<crate::reload_url::ReloadUrl>>) -> Result<Loaded, &'static str> {
-    let message = decode(bytes)?;
-    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;
-    let origin = Rc::new(origin);
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::prepared::PreparedMesh;
-use prost::Message;
-use session_rust::{proto, Session};
-use std::{collections::HashSet, rc::Rc};
-
-pub const MAX_BYTES: usize = 4 * 1024 * 1024;
-
-#[derive(Clone)]
-pub struct Source {
-    pub document: Rc<Session>,
-    pub guid: String,
-    pub origin: Rc<crate::origin::Origin>,
-}
-
-pub struct Loaded {
-    pub document: Rc<Session>,
-    pub meshes: Vec<PreparedMesh>,
-}
-
-pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> { load_at(bytes, None) }
-
-pub fn load_at(bytes: &[u8], location: Option<Rc<crate::reload_url::ReloadUrl>>) -> Result<Loaded, &'static str> {
-    let message = decode(bytes)?;
-    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;
-    let origin = Rc::new(origin);
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
     let mut meshes = Vec::new();
     for mesh in document.objects.meshes.iter() {
         let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-        prepared.model = document.xforms.get(mesh.guid()).cloned().unwrap_or_else(session_rust::Xform::identity);
+        prepared.model = document
+            .xforms
+            .get(mesh.guid())
+            .cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
         prepared.source = Some(Source {
-            document: Rc::clone(&document), guid: mesh.guid().to_owned(), origin: Rc::clone(&origin),
+            document: Rc::clone(&document),
+            guid: mesh.guid().to_owned(),
+            origin: Rc::clone(&origin),
+        });
+        meshes.push(prepared);
+    }
+    Ok(Loaded { document, meshes })
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+) -> Result<Loaded, &'static str> {
+    let message = decode(bytes)?;
+    let mut origin = crate::origin::Origin::new(&message, bytes);
+    origin.location = location;
+    let origin = Rc::new(origin);
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let mut meshes = Vec::new();
+    for mesh in document.objects.meshes.iter() {
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.model = document
+            .xforms
+            .get(mesh.guid())
+            .cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
+        prepared.source = Some(Source {
+            document: Rc::clone(&document),
+            guid: mesh.guid().to_owned(),
+            origin: Rc::clone(&origin),
         });
         meshes.push(prepared);
     }
@@ -200,3241 +245,518 @@ pub fn load_at(bytes: &[u8], location: Option<Rc<crate::reload_url::ReloadUrl>>)
 }
 
 fn decode(bytes: &[u8]) -> Result<proto::Session, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
     validate(&message)?;
     Ok(message)
 }
 
-pub(crate) fn restore(bytes: &[u8], origin: &crate::origin::Origin) -> Result<Rc<Session>, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    if crate::origin::FileVersion::of(bytes) != origin.version { return Err("Reloaded file version changed"); }
-    Session::from_proto(decode(bytes)?).map(Rc::new).map_err(|_| "Cannot restore source session")
-}
-
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    let mut objects = proto::Objects::default();
-    let mut children = Vec::new();
-    let mut xforms = Vec::new();
-    for object in scene.objects() {
-        let geometry = object.geometry().ok_or("Reload editable sources before saving")?;
-        let mut mesh = geometry.to_proto();
-        mesh.guid = object.guid.clone();
-        objects.meshes.push(mesh);
-        children.push(proto::TreeNode { name: object.guid.clone(), ..Default::default() });
-        if object.model.m != session_rust::Xform::identity().m {
-            xforms.push(proto::XformEntry {
-                guid: object.guid.clone(), xform: Some(object.model.to_proto()),
-            });
-        }
+pub(crate) fn restore(
+    bytes: &[u8],
+    origin: &crate::origin::Origin,
+) -> Result<Rc<Session>, &'static str> {
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
     }
-    let message = proto::Session {
-        name: "Viewer document".into(), objects: Some(objects),
-        tree: Some(proto::Tree { root: Some(proto::TreeNode {
-            name: "Objects".into(), children, ..Default::default()
-        }), ..Default::default() }), xforms, ..Default::default()
-    };
-    validate(&message)?;
-    let bytes = message.encode_to_vec();
-    if bytes.len() > MAX_BYTES { return Err("The saved document exceeds 4 MiB"); }
-    Ok(bytes)
-}
-
-fn validate(message: &proto::Session) -> Result<(), &'static str> {
-    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
-    if message.definitions.is_some() || !message.interactions.is_empty() {
-        return Err("Definitions and interactions arrive in later checkpoints");
+    if crate::origin::FileVersion::of(bytes) != origin.version {
+        return Err("Reloaded file version changed");
     }
-    let other = objects.points.len() + objects.lines.len() + objects.planes.len()
-        + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
-        + objects.nurbscurves.len() + objects.nurbssurfaces.len() + objects.breps.len()
-        + objects.elements.len() + objects.components.len() + objects.sheets.len() + objects.instances.len();
-    if other != 0 || objects.meshes.is_empty() || objects.meshes.len() > 64 {
-        return Err("This checkpoint accepts 1–64 meshes and no other geometry types");
-    }
-    let mut guids = HashSet::new();
-    for mesh in &objects.meshes {
-        if mesh.guid.is_empty() || !guids.insert(mesh.guid.as_str()) {
-            return Err("Every mesh needs a distinct source GUID");
-        }
-        validate_mesh(mesh)?;
-    }
-    let mut placed = HashSet::new();
-    for entry in &message.xforms {
-        let matrix = &entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix;
-        if !guids.contains(entry.guid.as_str()) || !placed.insert(entry.guid.as_str())
-            || !crate::placement::valid(matrix)
-        {
-            return Err("Invalid mesh placement");
-        }
-    }
-    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
-        let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
-        if names != guids || root.children.len() != guids.len()
-            || root.children.iter().any(|node| !node.children.is_empty()) {
-            return Err("This checkpoint needs one flat tree row per mesh");
-        }
-    }
-    Ok(())
-}
-
-fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
-    if mesh.vertices.len() > 10_000 || mesh.faces.is_empty() || mesh.faces.len() > 10_000 {
-        return Err("A mesh needs faces and at most 10,000 vertices and faces");
-    }
-    if mesh.color_mode != 0 { return Err("Per-face and per-vertex colours arrive later"); }
-    for (&key, vertex) in &mesh.vertices {
-        if key > u32::MAX as u64 || [vertex.x, vertex.y, vertex.z].iter().any(|v| !v.is_finite()) {
-            return Err("Invalid vertex key or coordinate");
-        }
-    }
-    for (&key, face) in &mesh.faces {
-        if key > u32::MAX as u64 || !(3..=4).contains(&face.vertices.len()) || !face.holes.is_empty()
-            || face.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
-            return Err("This checkpoint needs triangles or quads with existing vertices and no holes");
-        }
-    }
-    for (key, triangles) in &mesh.triangulation {
-        if !mesh.faces.contains_key(key) || triangles.vertices.len() % 3 != 0
-            || triangles.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
-            return Err("Invalid stored triangulation");
-        }
-    }
-    Ok(())
+    Session::from_proto(decode(bytes)?)
+        .map(Rc::new)
+        .map_err(|_| "Cannot restore source session")
 }
 ```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32ga-prepare-01.rs"
-```
-
-```text
---8<-- "journey/code/32ga-prepare-02.rs"
-```
-
-</details>
 
 ### 2. `src/rehydrate.rs`
 
-Keep candidate kernel ownership private until every matched row has a valid original source.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod tests {
-```
+}
 
-</details>
+#[cfg(test)]
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32ga-prepare-03.rs"
+}
+
+pub struct PreparedReload {
+    pub key: ReloadKey,
+    pub document: Rc<session_rust::Session>,
+}
+
+impl PreparedReload {
+    pub fn new(key: ReloadKey, bytes: &[u8]) -> Result<Self, &'static str> {
+        let document = crate::document::restore(bytes, &key.origin)?;
+        Ok(Self { key, document })
+    }
+
+    pub fn geometry(&self, guid: &str) -> Option<&Rc<session_rust::Mesh>> {
+        self.document
+            .objects
+            .meshes
+            .iter()
+            .find(|mesh| mesh.guid() == guid)
+    }
+
+    pub fn validates(&self, row: &crate::scene::Object) -> bool {
+        let Some(mesh) = self.geometry(&row.metadata.source_guid) else {
+            return false;
+        };
+        let metadata = &row.metadata;
+        metadata.name == mesh.name
+            && metadata.is_visible == mesh.is_visible
+            && metadata.is_locked == mesh.is_locked
+    }
+}
+
+#[cfg(test)]
 ```
 
-</details>
-
-<a id="checkpoint-32gb-adopt"></a>
-
-<details>
-<summary>Implementation 32gb-adopt: Adopt restored source owners as one residency change</summary>
-
-Validate current releases and all matching history rows before adopting any kernel candidate.
-
-Data flow: Current keys → prepare all candidates → validate all matching roots → adopt editable owners.
+## <a id="checkpoint-32gb-adopt"></a>3. Adopt restored source owners as one residency change
 
 ### 1. `src/scene.rs`
 
-Restore editable owners without replacing display, metadata, identity or placement.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+    }
+
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gb-adopt-01.rs"
+    }
+
+    pub(crate) fn hydrate(&mut self, prepared: &crate::rehydrate::PreparedReload) {
+        for row in &mut self.objects {
+            if !prepared.key.matches(row) {
+                continue;
+            }
+            let Some(geometry) = prepared
+                .geometry(&row.metadata.source_guid)
+                .cloned()
+            else {
+                continue;
+            };
+            let source = crate::document::Source {
+                document: Rc::clone(&prepared.document),
+                guid: row.metadata.source_guid.clone(),
+                origin: Rc::clone(&prepared.key.origin),
+            };
+            row.editable = crate::edit_source::EditSource::Loaded {
+                geometry,
+                source: Some(source),
+            };
+        }
+    }
+
+    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
 ```
 
 ### 2. `src/editor.rs`
 
-Check current release ownership and all source rows before any candidate is adopted.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+    }
+
     fn unload_sources(&mut self) -> Result<(), &'static str> {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gb-adopt-02.rs"
+    }
+
+    pub fn hydrate(
+        &mut self,
+        values: Vec<(crate::rehydrate::ReloadKey, Vec<u8>)>,
+    ) -> Result<bool, &'static str> {
+        if values.is_empty() {
+            return Ok(false);
+        }
+        let mut seen = std::collections::HashSet::new();
+        for (key, _) in &values {
+            if !seen.insert(key.origin.id)
+                || !self
+                    .scene
+                    .objects()
+                    .iter()
+                    .any(|row| key.matches(row))
+            {
+                return Ok(false);
+            }
+        }
+        let prepared: Vec<_> = values
+            .into_iter()
+            .map(|(key, bytes)| crate::rehydrate::PreparedReload::new(key, &bytes))
+            .collect::<Result<_, _>>()?;
+        for plan in &prepared {
+            if self
+                .scenes()
+                .flat_map(|scene| scene.objects())
+                .filter(|row| plan.key.matches(row))
+                .any(|row| !plan.validates(row))
+            {
+                return Err("Reloaded source GUID or metadata does not match");
+            }
+        }
+        for scene in self.scenes_mut() {
+            for plan in &prepared {
+                scene.hydrate(plan);
+            }
+        }
+        Ok(true)
+    }
+
+    fn unload_sources(&mut self) -> Result<(), &'static str> {
 ```
 
-</details>
-
-<a id="checkpoint-32gc-roundtrip"></a>
-
-<details>
-<summary>Implementation 32gc-roundtrip: Prove source restoration preserves display and history</summary>
-
-Restore exact source coordinates and editing without reallocating retained display owners.
-
-Data flow: Move → Unload Sources → checked hydrate → exact Save → retained Undo/Redo and GPU owners.
+## <a id="checkpoint-32gc-roundtrip"></a>4. Prove source restoration preserves display and history
 
 ### 1. `src/lib.rs`
 
-Keep source restoration proofs in typed native state checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod unload_tests;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gc-roundtrip-01.rs" skip=18
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/rehydrate_tests.rs`
-
-Optional authoring fixture. Check exact restored coordinates and retained display/metadata/placement history.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32gc-roundtrip-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gd-rejections"></a>
-
-<details>
-<summary>Implementation 32gd-rejections: Reject stale or inconsistent source batches atomically</summary>
-
-Keep rows cold on changed versions, missing source identity and obsolete release keys.
-
-Data flow: Prepare two origins → reject changed second source → no adoption → successful retry.
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 1. `src/rehydrate_tests.rs`
-
-Optional authoring fixture. Reject the entire candidate batch before adopting any source and preserve displayed owners.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::editor::{Action, Editor};
-```
-
-</details>
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/32gd-rejections-01.rs" skip=37
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32ge-stale"></a>
-
-<details>
-<summary>Implementation 32ge-stale: Ignore old reload results before decoding them</summary>
-
-Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
-
-Data flow: Old import/release key → active-key check → false before payload decoding.
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 1. `src/rehydrate_tests.rs`
-
-Optional authoring fixture. Show that obsolete identities are rejected before version checks, decoding or mutation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use crate::editor::{Action, Editor};
-```
-
-</details>
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/32ge-stale-01.rs" skip=37
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gf-request"></a>
-
-<details>
-<summary>Implementation 32gf-request: Give each source request its own owner</summary>
-
-Give each source request its own owner.
-
-Data flow: Active release keys → ReloadJob → ticket and URL strings → one accepted completion.
-
-### 1. `src/lib.rs`
-
-Expose the native request owner without adding browser APIs to it.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 pub mod rehydrate;
+pub mod reload_url;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gf-request-01.rs" skip=19
+pub mod rehydrate;
+#[cfg(test)]
+mod rehydrate_tests;
+pub mod reload_url;
+```
+
+### 2. `src/rehydrate_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::editor::{Action, Editor};
+use std::rc::Rc;
+
+#[test]
+fn hydration_restores_original_doubles_without_rebuilding_rows_or_history() {
+    use prost::Message;
+    let mut message =
+        session_rust::proto::Session::decode(crate::specimen::bytes().as_slice())
+            .unwrap();
+    let value = 0.123456789012345;
+    let source = &mut message.objects.as_mut().unwrap().meshes[0];
+    source.vertices.get_mut(&0).unwrap().x = value;
+    source.is_locked = Some(true);
+    let bytes = message.encode_to_vec();
+    let mut editor = Editor::default();
+    let url = Rc::new(crate::reload_url::ReloadUrl::new(
+        "test:restore".into(),
+    ));
+    editor
+        .apply(Action::ReplaceAt(bytes.clone(), url))
+        .unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    editor
+        .apply(Action::Translate([0.25, 0.0, 0.0]))
+        .unwrap();
+    let row = &editor.scene.objects()[0];
+    let id = row.id;
+    let guid = row.guid.clone();
+    let model = row.model.m;
+    let display = Rc::clone(&row.mesh);
+    let metadata = Rc::clone(&row.metadata);
+    let old = Rc::downgrade(row.geometry().unwrap());
+    let roots = editor.scenes().count();
+    let view = editor.camera.uniform();
+    editor.apply(Action::UnloadSources).unwrap();
+    let key = editor.reload_keys().pop().unwrap();
+    assert!(editor.hydrate(vec![(key, bytes)]).unwrap());
+    let row = &editor.scene.objects()[0];
+    assert_eq!(row.id, id);
+    assert_eq!(row.guid, guid);
+    assert_eq!(row.model.m, model);
+    assert!(Rc::ptr_eq(&row.mesh, &display) && Rc::ptr_eq(&row.metadata, &metadata));
+    assert_eq!(
+        row.geometry()
+            .unwrap()
+            .vertex_point(0)
+            .unwrap()[0],
+        value
+    );
+    assert!(old.upgrade().is_none());
+    assert_eq!(editor.scenes().count(), roots);
+    assert_eq!(editor.camera.uniform(), view);
+    let saved =
+        crate::document::load(&crate::document::snapshot(&editor.scene).unwrap())
+            .unwrap();
+    assert_eq!(
+        saved.meshes[0]
+            .geometry
+            .vertex_point(0)
+            .unwrap()[0],
+        value
+    );
+    editor.apply(Action::Undo).unwrap();
+    assert_ne!(editor.scene.objects()[0].model.m, model);
+    assert!(
+        editor.scene.objects()[0]
+            .geometry()
+            .is_some()
+    );
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, model);
+}
+```
+
+## <a id="checkpoint-32gd-rejections"></a>5. Reject stale or inconsistent source batches atomically
+
+### 1. `src/rehydrate_tests.rs`
+
+**Locate this existing block:**
+
+```rust
+use crate::editor::{Action, Editor};
+use std::rc::Rc;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+use crate::editor::{Action, Editor};
+
+#[test]
+fn a_bad_second_version_rejects_the_entire_source_batch() {
+    let mut editor = Editor::default();
+    let bytes = crate::specimen::bytes();
+    for mode in 0..2 {
+        let url = Rc::new(crate::reload_url::ReloadUrl::new(format!(
+            "test:batch-{mode}"
+        )));
+        let action = if mode == 0 {
+            Action::ReplaceAt(bytes.clone(), url)
+        } else {
+            Action::ImportAt(bytes.clone(), url)
+        };
+        editor.apply(action).unwrap();
+    }
+    editor.apply(Action::UnloadSources).unwrap();
+    let keys = editor.reload_keys();
+    assert_eq!(keys.len(), 2);
+    let displays: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|row| Rc::clone(&row.mesh))
+        .collect();
+    let ids: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|row| row.id)
+        .collect();
+    let roots = editor.scenes().count();
+    let mut changed = bytes.clone();
+    changed.push(0);
+    let result = editor.hydrate(vec![
+        (keys[0].clone(), bytes.clone()),
+        (keys[1].clone(), changed),
+    ]);
+    assert_eq!(result, Err("Reloaded file version changed"));
+    assert_eq!(editor.scenes().count(), roots);
+    for (index, row) in editor.scene.objects().iter().enumerate() {
+        assert!(row.geometry().is_none());
+        assert_eq!(row.id, ids[index]);
+        assert!(Rc::ptr_eq(&row.mesh, &displays[index]));
+    }
+    assert!(
+        editor
+            .hydrate(
+                keys.into_iter()
+                    .map(|key| (key, bytes.clone()))
+                    .collect()
+            )
+            .unwrap()
+    );
+    assert!(
+        editor
+            .scenes()
+            .flat_map(|scene| scene.objects())
+            .all(|row| row.origin().is_none() || row.geometry().is_some())
+    );
+}
+
+#[test]
+fn missing_source_identity_or_changed_metadata_keeps_rows_cold() {
+    for change_name in [false, true] {
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        let url = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:metadata".into(),
+        ));
+        editor
+            .apply(Action::ReplaceAt(bytes.clone(), url))
+            .unwrap();
+        editor.apply(Action::UnloadSources).unwrap();
+        let key = editor.reload_keys().pop().unwrap();
+        let display = Rc::clone(&editor.scene.objects()[0].mesh);
+        let metadata = Rc::make_mut(&mut editor.scene.objects_mut()[0].metadata);
+        if change_name {
+            metadata.name.push_str(" changed");
+        } else {
+            metadata.source_guid = "missing".into();
+        }
+        assert_eq!(
+            editor.hydrate(vec![(key, bytes)]),
+            Err("Reloaded source GUID or metadata does not match")
+        );
+        assert!(
+            editor
+                .scene
+                .objects()
+                .iter()
+                .all(|row| row.geometry().is_none())
+        );
+        assert!(Rc::ptr_eq(
+            &editor.scene.objects()[0].mesh,
+            &display
+        ));
+    }
+}
+use std::rc::Rc;
+```
+
+## <a id="checkpoint-32ge-stale"></a>6. Ignore old reload results before decoding them
+
+### 1. `src/rehydrate_tests.rs`
+
+**Locate this existing block:**
+
+```rust
+#[test]
+fn a_bad_second_version_rejects_the_entire_source_batch() {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+#[test]
+fn obsolete_and_duplicate_keys_are_ignored_before_payload_decoding() {
+    let mut editor = Editor::default();
+    let bytes = crate::specimen::bytes();
+    let url = Rc::new(crate::reload_url::ReloadUrl::new(
+        "test:stale".into(),
+    ));
+    editor
+        .apply(Action::ReplaceAt(
+            bytes.clone(),
+            Rc::clone(&url),
+        ))
+        .unwrap();
+    editor.apply(Action::UnloadSources).unwrap();
+    let old = editor.reload_keys().pop().unwrap();
+    editor.apply(Action::Close).unwrap();
+    assert!(
+        !editor
+            .hydrate(vec![(old.clone(), vec![255])])
+            .unwrap()
+    );
+    editor
+        .apply(Action::ImportAt(bytes.clone(), url))
+        .unwrap();
+    editor.apply(Action::UnloadSources).unwrap();
+    let current = editor.reload_keys().pop().unwrap();
+    assert!(
+        !editor
+            .hydrate(vec![(old, vec![255])])
+            .unwrap()
+    );
+    assert!(
+        !editor
+            .hydrate(vec![
+                (current.clone(), bytes.clone()),
+                (current.clone(), vec![255])
+            ])
+            .unwrap()
+    );
+    assert!(
+        editor
+            .scene
+            .objects()
+            .iter()
+            .all(|row| row.geometry().is_none())
+    );
+    assert!(!editor.hydrate(Vec::new()).unwrap());
+    assert!(
+        editor
+            .hydrate(vec![(current.clone(), bytes.clone())])
+            .unwrap()
+    );
+    assert!(
+        !editor
+            .hydrate(vec![(current.clone(), vec![255])])
+            .unwrap()
+    );
+    editor.apply(Action::UnloadSources).unwrap();
+    let next = editor.reload_keys().pop().unwrap();
+    assert!(next.epoch > current.epoch);
+    assert!(
+        !editor
+            .hydrate(vec![(current, vec![255])])
+            .unwrap()
+    );
+    assert!(
+        editor
+            .scene
+            .objects()
+            .iter()
+            .all(|row| row.release_epoch() == Some(next.epoch))
+    );
+    assert!(editor.hydrate(vec![(next, bytes)]).unwrap());
+}
+
+#[test]
+fn a_bad_second_version_rejects_the_entire_source_batch() {
+```
+
+## <a id="checkpoint-32gf-request"></a>7. Give each source request its own owner
+
+### 1. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+mod rehydrate_tests;
+pub mod reload_url;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod rehydrate_tests;
+pub mod reload_job;
+pub mod reload_url;
 ```
 
 ### 2. `src/reload_job.rs`
 
-Issue checked tickets and retain source keys only in current pending work.
-
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32gf-request-02.rs"
-```
+use crate::rehydrate::ReloadKey;
 
-</details>
-
-<a id="checkpoint-32gfa-ownership"></a>
-
-<details>
-<summary>Implementation 32gfa-ownership: Prove cancelled work releases its source owners</summary>
-
-Prove cancelled work releases its source owners.
-
-Data flow: Pending job holds keys → Close drops rows → cancel drops keys → abandoned request is inert.
-
-### 1. `src/reload_job.rs`
-
-Check ordering, exhaustion and actual owner expiration while abandoned work remains alive.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }
-}
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gfa-ownership-01.rs" skip=73
-```
-
-</details>
-
-<a id="checkpoint-32gg-fetch"></a>
-
-<details>
-<summary>Implementation 32gg-fetch: Read a source response within its byte limit</summary>
-
-Read a source response within its byte limit.
-
-Data flow: Recorded URL → fetch with AbortSignal → HTTP/length checks → bounded stream chunks.
-
-### 1. `Cargo.toml`
-
-Enable only the browser types used by streaming and cancellation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement"] }
-```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
-
-```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
-```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gg-fetch-01.toml"
-```
-
-</details>
-
-### 2. `src/lib.rs`
-
-Keep browser promises and streams out of the native editor.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch = "wasm32")]
-mod browser;
-```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
-
-```rust
---8<-- "journey/code/32gg-fetch-02.rs"
-```
-
-### 3. `src/source_fetch.rs`
-
-Read original byte chunks without exceeding the per-source limit.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/32gg-fetch-03.rs"
-```
-
-</details>
-
-<a id="checkpoint-32gga-flight"></a>
-
-<details>
-<summary>Implementation 32gga-flight: Pair reload ownership with a browser abort controller</summary>
-
-Pair reload ownership with a browser abort controller.
-
-Data flow: ReloadJob + AbortController → captured signal → cancel or current finish.
-
-### 1. `src/lib.rs`
-
-Keep the browser flight beside the fetch adapter.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-#[cfg(target_arch = "wasm32")]
-mod source_fetch;
-```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
-
-```rust
---8<-- "journey/code/32gga-flight-01.rs"
-```
-
-### 2. `src/browser_reload.rs`
-
-Cancel keys and I/O together without letting old results touch a new flight.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/32gga-flight-02.rs"
-```
-
-</details>
-
-<a id="checkpoint-32ggb-delivery"></a>
-
-<details>
-<summary>Implementation 32ggb-delivery: Deliver only the current completed reload batch</summary>
-
-Deliver only the current completed reload batch.
-
-Data flow: Flight begin → await URL reads → finish ticket once → scoped Rust reply → viewer event.
-
-### 1. `src/browser_reload.rs`
-
-Spawn bounded source reads and deliver only one current owned completion.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub type Shared = Rc<RefCell<Flight>>;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32ggb-delivery-01.rs" skip=39
-```
-
-</details>
-
-<a id="checkpoint-32gh-command"></a>
-
-<details>
-<summary>Implementation 32gh-command: Restore editable sources through the command line</summary>
-
-Restore editable sources through the command line.
-
-Data flow: Reload Sources → active keys → owned fetch → atomic hydrate → same GPU display.
-
-### 1. `src/browser.rs`
-
-Make source residency requests typed commands without feature buttons. Own one current reload flight and one scoped accepted reply. Adopt only an accepted current result and give asynchronous replies their own history entry. Start or cancel an owned request from the actual command field. Wake the viewer for a scoped accepted result.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-reload", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "reload sources" {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            } else if line == "cancel reload" {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            } else if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(result) = reload_delivery.borrow_mut().take() {
-                match result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
-                    Ok(true) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = "Editable sources restored; display retained.";
-                        report(message); panel.answer("Reload Sources", message);
-                    }
-                    Ok(false) => {}
-                    Err(error) => { report(&error); panel.answer("Reload Sources", &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            "Cancel Open",
-            "Close",
-            "Unload Sources",
-            "Save",
-            "Example Box",
-            "Example Triangle",
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            "Cancel Open",
-            "Close",
-            "Unload Sources",
-            "Reload Sources",
-            "Cancel Reload",
-            "Save",
-            "Example Box",
-            "Example Triangle",
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = Editor::default();
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Open",
-            "Open Replace",
-            "Cancel Open",
-            "Close",
-            "Unload Sources",
-            "Reload Sources",
-            "Cancel Reload",
-            "Save",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Perspective",
-            "View Orthographic",
-            "Fit",
-            "Fit Selected",
-            "Move",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            &mut panel,
-        )?;
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(result) = reload_delivery.borrow_mut().take() {
-                match result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
-                    Ok(true) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = "Editable sources restored; display retained.";
-                        report(message); panel.answer("Reload Sources", message);
-                    }
-                    Ok(false) => {}
-                    Err(error) => { report(&error); panel.answer("Reload Sources", &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "reload sources" {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            } else if line == "cancel reload" {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            } else if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            } else if line == "open" || line == "open replace" {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            } else if line == "save" {
-                match crate::document::snapshot(&editor.scene) {
-                    Ok(bytes) => match crate::file_output::download(&bytes) {
-                        Ok(()) => panel.result(&format!("Saved editable document ({} bytes)", bytes.len())),
-                        Err(error) => panel.result(&format!("Save failed: {error:?}")),
-                    },
-                    Err(error) => panel.result(error),
-                }
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-                    Ok(offset) => Some(Action::Translate(offset)),
-                    Err(error) => { panel.result(error); None }
-                }
-            } else {
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
-                    "example triangle" => Action::ToggleExtra,
-                    "select next" => Action::SelectNext,
-                    "delete" => Action::Delete,
-                    "undo" => Action::Undo,
-                    "redo" => Action::Redo,
-                    "background" => Action::Background,
-                    "zoom in" => Action::Zoom(2.0),
-                    "zoom out" => Action::Zoom(0.5),
-                    "pan left" => Action::Pan(-0.25, 0.0),
-                    "pan right" => Action::Pan(0.25, 0.0),
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "view perspective" => {
-                        Action::Projection(crate::camera::Projection::Perspective)
-                    }
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" if shortcut.is_some() && editor.selected.is_some() => Action::FitSelected,
-                    "fit" => Action::Fit,
-
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
-                Some(action)
-            }
-        } else if !panel.consumed {
-            navigation_action(&event, &pointer_canvas, &mut gesture)
-        } else {
-            None
-        };
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", error); }
-                    else { panel.result(error); }
-                }
-            }
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        update.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-reload", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            crate::navigation::wheel(
-                wheel.delta_y(),
-                mode,
-                canvas.get_bounding_client_rect().height(),
-            )
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _ => return pointer_action(event, canvas, gesture),
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    motion.action([rect.left(), rect.top(), rect.width(), rect.height()])
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        window.device_pixel_ratio(),
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gh-command-01.rs"
-```
-
-```text
---8<-- "journey/code/32gh-command-02.rs"
-```
-
-```text
---8<-- "journey/code/32gh-command-03.rs"
-```
-
-```text
---8<-- "journey/code/32gh-command-04.rs"
-```
-
-```text
---8<-- "journey/code/32gh-command-05.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gha-cancel"></a>
-
-<details>
-<summary>Implementation 32gha-cancel: Cancel reloads when their document context changes</summary>
-
-Cancel reloads when their document context changes.
-
-Data flow: Close / replacement / Undo / release → cancel flight → late result is inert.
-
-### 1. `src/browser.rs`
-
-Invalidate the old reload as soon as replacement intent begins. Remove reload keys and abort I/O before changing the current document context.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            None
-        };
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            None
-        };
-        if let Some(action) = action {
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            } else if line == "open" || line == "open replace" {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            } else if line == "open" || line == "open replace" {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if line == "open replace" { reload.borrow_mut().cancel(); }
-                read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = Editor::default();
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Open",
-            "Open Replace",
-            "Cancel Open",
-            "Close",
-            "Unload Sources",
-            "Reload Sources",
-            "Cancel Reload",
-            "Save",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Perspective",
-            "View Orthographic",
-            "Fit",
-            "Fit Selected",
-            "Move",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            &mut panel,
-        )?;
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(result) = reload_delivery.borrow_mut().take() {
-                match result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
-                    Ok(true) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = "Editable sources restored; display retained.";
-                        report(message); panel.answer("Reload Sources", message);
-                    }
-                    Ok(false) => {}
-                    Err(error) => { report(&error); panel.answer("Reload Sources", &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "reload sources" {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            } else if line == "cancel reload" {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            } else if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            } else if line == "open" || line == "open replace" {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if line == "open replace" { reload.borrow_mut().cancel(); }
-                read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            } else if line == "save" {
-                match crate::document::snapshot(&editor.scene) {
-                    Ok(bytes) => match crate::file_output::download(&bytes) {
-                        Ok(()) => panel.result(&format!("Saved editable document ({} bytes)", bytes.len())),
-                        Err(error) => panel.result(&format!("Save failed: {error:?}")),
-                    },
-                    Err(error) => panel.result(error),
-                }
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-                    Ok(offset) => Some(Action::Translate(offset)),
-                    Err(error) => { panel.result(error); None }
-                }
-            } else {
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
-                    "example triangle" => Action::ToggleExtra,
-                    "select next" => Action::SelectNext,
-                    "delete" => Action::Delete,
-                    "undo" => Action::Undo,
-                    "redo" => Action::Redo,
-                    "background" => Action::Background,
-                    "zoom in" => Action::Zoom(2.0),
-                    "zoom out" => Action::Zoom(0.5),
-                    "pan left" => Action::Pan(-0.25, 0.0),
-                    "pan right" => Action::Pan(0.25, 0.0),
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "view perspective" => {
-                        Action::Projection(crate::camera::Projection::Perspective)
-                    }
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" if shortcut.is_some() && editor.selected.is_some() => Action::FitSelected,
-                    "fit" => Action::Fit,
-
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
-                Some(action)
-            }
-        } else if !panel.consumed {
-            navigation_action(&event, &pointer_canvas, &mut gesture)
-        } else {
-            None
-        };
-        if let Some(action) = action {
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", error); }
-                    else { panel.result(error); }
-                }
-            }
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        update.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-reload", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            crate::navigation::wheel(
-                wheel.delta_y(),
-                mode,
-                canvas.get_bounding_client_rect().height(),
-            )
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _ => return pointer_action(event, canvas, gesture),
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    motion.action([rect.left(), rect.top(), rect.width(), rect.height()])
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        window.device_pixel_ratio(),
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gha-cancel-01.rs"
-```
-
-```text
---8<-- "journey/code/32gha-cancel-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Optional authoring helper</summary>
-
-Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
-
-### 2. `examples/reload_check.rs`
-
-Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32gha-cancel-03.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gi-capture"></a>
-
-<details>
-<summary>Implementation 32gi-capture: Capture the requested edit before waiting</summary>
-
-Retain the original object and arguments before any source request starts.
-
-Data flow: Command + original selection → value-only Intent → unchanged target while waiting.
-
-### 1. `src/lib.rs`
-
-Register the value-only requested-edit module.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod reload_job;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gi-capture-01.rs" skip=20
-```
-
-### 2. `src/edit_intent.rs`
-
-Capture the requested target and arguments without retaining any source owners.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/32gi-capture-02.rs"
-```
-
-</details>
-
-<a id="checkpoint-32gia-scope"></a>
-
-<details>
-<summary>Implementation 32gia-scope: Load only the sources the requested edit needs</summary>
-
-Select source requests from the original edit target, with Save covering the active document.
-
-Data flow: Intent → original current row → cold origin + epoch; Save → unique active cold origins.
-
-### 1. `src/edit_intent.rs`
-
-Bring the editor and existing release-key type into this module. Resolve dependencies from the captured target or active Save scene.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-}
-
-impl Intent {
-    pub fn capture(action: &Action, selected: Option<ObjectId>) -> Result<Option<Self>, &'static str> {
-        Ok(match action {
-            Action::Translate(offset) => {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-}
-
-impl Intent {
-    pub fn keys(&self, editor: &Editor) -> Result<Vec<ReloadKey>, &'static str> {
-        match self {
-            Self::Save => Ok(editor.reload_keys()),
-            Self::Move { id, .. } | Self::Delete { id } => {
-                let row = editor.scene.objects().iter().find(|row| row.id == *id).ok_or("Object not found")?;
-                Ok(ReloadKey::of(row).into_iter().collect())
-            }
-        }
-    }
-
-    pub fn capture(action: &Action, selected: Option<ObjectId>) -> Result<Option<Self>, &'static str> {
-        Ok(match action {
-            Action::Translate(offset) => {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-use crate::{editor::Action, scene::ObjectId};
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Intent {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-use crate::{editor::{Action, Editor}, rehydrate::ReloadKey, scene::ObjectId};
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Intent {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{editor::{Action, Editor}, rehydrate::ReloadKey, scene::ObjectId};
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Intent {
-    Move { id: ObjectId, offset: [f64; 3] },
-    Delete { id: ObjectId },
-    Save,
-}
-
-impl Intent {
-    pub fn keys(&self, editor: &Editor) -> Result<Vec<ReloadKey>, &'static str> {
-        match self {
-            Self::Save => Ok(editor.reload_keys()),
-            Self::Move { id, .. } | Self::Delete { id } => {
-                let row = editor.scene.objects().iter().find(|row| row.id == *id).ok_or("Object not found")?;
-                Ok(ReloadKey::of(row).into_iter().collect())
-            }
-        }
-    }
-
-    pub fn capture(action: &Action, selected: Option<ObjectId>) -> Result<Option<Self>, &'static str> {
-        Ok(match action {
-            Action::Translate(offset) => {
-                let id = selected.ok_or("Select an object before Move")?;
-                if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-                if offset.iter().all(|&value| value == 0.0) { None }
-                else { Some(Self::Move { id, offset: *offset }) }
-            }
-            Action::Delete => selected.map(|id| Self::Delete { id }),
-            _ => None,
-        })
-    }
-
-
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{editor::Editor, reload_url::ReloadUrl};
-    use std::rc::Rc;
-
-    fn cold() -> Editor {
-        let mut editor = Editor::default();
-        editor.apply(Action::ReplaceAt(crate::specimen::bytes(), Rc::new(ReloadUrl::new("test:intent".into())))).unwrap();
-        editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::UnloadSources).unwrap();
-        editor
-    }
-
-    #[test]
-    fn move_keeps_original_target_and_arguments_after_selection_changes() {
-        let mut editor = cold(); let id = editor.selected.unwrap();
-        let origin = Rc::downgrade(editor.scene.objects()[0].origin().unwrap());
-        let intent = Intent::capture(&Action::Translate([0.125, -0.25, 0.5]), editor.selected).unwrap().unwrap();
-        editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Orbit(0.1, 0.2)).unwrap();
-        assert_ne!(editor.selected, Some(id));
-        assert_eq!(intent, Intent::Move { id, offset: [0.125, -0.25, 0.5] });
-        editor.apply(Action::Close).unwrap();
-        assert!(origin.upgrade().is_none(), "intent owns no source or URL");
-    }
-
-    #[test]
-    fn delete_keeps_its_original_target() {
-        let mut editor = cold(); let id = editor.selected.unwrap();
-        let intent = Intent::capture(&Action::Delete, editor.selected).unwrap().unwrap();
-        editor.apply(Action::SelectNext).unwrap();
-        assert_eq!(intent, Intent::Delete { id });
-        assert_ne!(editor.selected, Some(id));
-    }
-
-    #[test]
-    fn empty_edits_do_not_request_io_and_invalid_moves_are_rejected() {
-        assert_eq!(Intent::capture(&Action::Delete, None).unwrap(), None);
-        assert!(Intent::capture(&Action::Translate([0.0; 3]), None).is_err());
-        let editor = Editor::default(); let id = editor.scene.objects()[0].id;
-        assert_eq!(Intent::capture(&Action::Translate([0.0; 3]), Some(id)).unwrap(), None);
-        assert!(Intent::capture(&Action::Translate([f64::NAN, 0.0, 0.0]), Some(id)).is_err());
-        assert_eq!(Intent::capture(&Action::Fit, Some(id)).unwrap(), None);
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gia-scope-01.rs"
-```
-
-```text
---8<-- "journey/code/32gia-scope-02.rs"
-```
-
-</details>
-
-### 2. `src/lib.rs`
-
-Register the independent source-scope tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod edit_intent;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gia-scope-03.rs" skip=21
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/edit_scope_tests.rs`
-
-Optional authoring fixture. Distinguish target imports from later selection, active Save sources from history, and missing targets from loaded ones.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32gia-scope-04.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gib-move"></a>
-
-<details>
-<summary>Implementation 32gib-move: Move the original target from its current placement</summary>
-
-Apply a captured Move to its original target, composing with the placement that exists at replay time.
-
-Data flow: Captured ObjectId + offset → current row.model → world shift × model → one history edit.
-
-### 1. `src/editor.rs`
-
-Resolve an explicit target from current state and commit its world-space delta once. Keep ordinary Move on the same implementation used by captured edits.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            }
-            Action::Translate(offset) => {
-                let id = self.selected.ok_or("Select an object before Move")?;
-                if offset.iter().all(|&v| v == 0.0) { return Ok(Change::View); }
-                let object = self.scene.objects().iter().find(|o| o.id == id).ok_or("Object not found")?;
-                let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-                let model = &shift * &object.model;
-                self.history.try_edit(&mut self.scene, |scene| scene.place(id, model))?;
-            }
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            }
-            Action::Translate(offset) => {
-                let id = self.selected.ok_or("Select an object before Move")?;
-                return self.move_object(id, offset);
-            }
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        Ok(())
-    }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Pick(screen) => {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        Ok(())
-    }
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        let object = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        let model = &shift * &object.model;
-        self.history.try_edit(&mut self.scene, |scene| scene.place(id, model))?;
-        Ok(Change::Scene)
-    }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Pick(screen) => {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
-pub enum Action {
-    Pick([f32; 2]),
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    UnloadSources,
-    AddBox,
-    Translate([f64; 3]),
-    ToggleExtra,
-    SelectNext,
-    Delete,
-    Undo,
-    Redo,
-    Background,
-    Zoom(f32),
-    Pan(f32, f32),
-    Orbit(f64, f64),
-    Isometric,
-    ResetView,
-    Fit,
-    FitSelected,
-    Projection(crate::camera::Projection),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Change {
-    View,
-    Scene,
-}
-
-pub struct Editor {
-    pub scene: Scene,
-    pub selected: Option<ObjectId>,
-    pub camera: Camera,
-    pub background: Background,
-    history: History,
-    last_release: u64,
-}
-
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            scene: Scene::demo(),
-            selected: None,
-            camera: Camera::default(),
-            background: Background::default(),
-            history: History::default(),
-            last_release: 0,
-        }
-    }
-}
-
-impl Editor {
-    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
-        std::iter::once(&self.scene).chain(self.history.scenes())
-    }
-
-    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
-        let mut seen = std::collections::HashSet::new();
-        self.scene.objects().iter().filter_map(crate::rehydrate::ReloadKey::of)
-            .filter(|key| seen.insert(key.origin.id)).collect()
-    }
-
-    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
-        std::iter::once(&mut self.scene).chain(self.history.scenes_mut())
-    }
-
-    pub fn hydrate(&mut self, values: Vec<(crate::rehydrate::ReloadKey, Vec<u8>)>) -> Result<bool, &'static str> {
-        if values.is_empty() { return Ok(false); }
-        let mut seen = std::collections::HashSet::new();
-        for (key, _) in &values {
-            if !seen.insert(key.origin.id) || !self.scene.objects().iter().any(|row| key.matches(row)) {
-                return Ok(false);
-            }
-        }
-        let prepared: Vec<_> = values.into_iter().map(|(key, bytes)|
-            crate::rehydrate::PreparedReload::new(key, &bytes)).collect::<Result<_, _>>()?;
-        for plan in &prepared {
-            if self.scenes().flat_map(|scene| scene.objects()).filter(|row| plan.key.matches(row))
-                .any(|row| !plan.validates(row)) { return Err("Reloaded source GUID or metadata does not match"); }
-        }
-        for scene in self.scenes_mut() {
-            for plan in &prepared { scene.hydrate(plan); }
-        }
-        Ok(true)
-    }
-
-    fn unload_sources(&mut self) -> Result<(), &'static str> {
-        let mut origins: std::collections::HashSet<_> = self.scenes().flat_map(|scene| scene.objects())
-            .filter(|row| row.can_unload()).filter_map(|row| row.origin().map(|origin| origin.id)).collect();
-        for row in self.scenes().flat_map(|scene| scene.objects()) {
-            if let Some(origin) = row.origin() {
-                if !row.can_unload() { origins.remove(&origin.id); }
-            }
-        }
-        if origins.is_empty() { return Err("No eligible imported sources to unload"); }
-        let epoch = self.last_release.checked_add(1).ok_or("Release epochs exhausted")?;
-        for scene in self.scenes_mut() { scene.unload(&origins, epoch); }
-        self.last_release = epoch;
-        Ok(())
-    }
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        let object = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        let model = &shift * &object.model;
-        self.history.try_edit(&mut self.scene, |scene| scene.place(id, model))?;
-        Ok(Change::Scene)
-    }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Pick(screen) => {
-                self.selected = self.camera.ray(screen)
-                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
-            }
-            Action::UnloadSources => self.unload_sources()?,
-            Action::Close => {
-                self.scene.clear();
-                self.history.clear();
-                self.selected = None;
-            }
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::Import(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ImportAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ReplaceAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-            Action::Translate(offset) => {
-                let id = self.selected.ok_or("Select an object before Move")?;
-                return self.move_object(id, offset);
-            }
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-            Action::Delete => {
-                if let Some(id) = self.selected {
-                    let row = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-                    if row.geometry().is_none() { return Err("Reload editable sources before Delete"); }
-                }
-                if let Some(id) = self.selected.take() {
-                    self.history.edit(&mut self.scene, |scene| { scene.remove(id); });
-                }
-            }
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-            view => {
-                match view {
-                    Action::Background => self.background.toggle(),
-                    Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
-                    Action::Isometric => self.camera.isometric(),
-                    Action::Projection(mode) => self.camera.projection = mode,
-                    Action::Fit => {
-                        if let Some(bounds) = self.scene.bounds() {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::FitSelected => {
-                        if let Some(bounds) = self.selected
-                            .and_then(|id| self.scene.selected_bounds(id))
-                        {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
-                return Ok(Change::View);
-            }
-        }
-        // Deletion and history travel can invalidate selection; repair it in one place.
-        self.selected = self.selected.filter(|id| self.scene.contains(*id));
-        Ok(Change::Scene)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_modified_history_row_protects_only_its_own_import_origin() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let first = Rc::new(crate::reload_url::ReloadUrl::new("test:first".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), first)).unwrap();
-        let origin = editor.scene.objects()[0].origin().unwrap().id;
-        let original = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        let second = Rc::new(crate::reload_url::ReloadUrl::new("test:second".into()));
-        editor.apply(Action::ImportAt(bytes, second)).unwrap();
-        let copy = Rc::downgrade(editor.scene.objects()[3].geometry().unwrap());
-        editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        let saved = editor.history.scenes_mut().last().unwrap();
-        assert_eq!(saved.objects()[0].origin().unwrap().id, origin);
-        Rc::make_mut(&mut saved.objects_mut()[0].metadata).is_locked = true;
-        assert!(editor.scene.objects()[0].can_unload());
-        editor.apply(Action::UnloadSources).unwrap();
-        assert!(original.upgrade().is_some()); assert!(copy.upgrade().is_none());
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        assert!(editor.scene.objects()[3].geometry().is_none());
-        assert_eq!(editor.last_release, 1);
-        assert!(editor.apply(Action::UnloadSources).is_err()); assert_eq!(editor.last_release, 1);
-    }
-
-    #[test]
-    fn release_epochs_do_not_wrap_or_reset_on_close() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:epoch".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), Rc::clone(&url))).unwrap();
-        editor.last_release = u64::MAX;
-        assert_eq!(editor.apply(Action::UnloadSources), Err("Release epochs exhausted"));
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        editor.last_release = 0; editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(1));
-        editor.apply(Action::Close).unwrap();
-        editor.apply(Action::ImportAt(bytes, url)).unwrap();
-        editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(2));
-    }
-
-    #[test]
-    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Import(crate::specimen::bytes())).unwrap();
-        editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap(); editor.apply(Action::Background).unwrap();
-        let view = editor.camera.uniform(); let background = editor.background.rgb();
-        editor.apply(Action::Close).unwrap();
-        assert!(editor.scene.objects().is_empty() && editor.selected.is_none());
-        assert_eq!(editor.scenes().count(), 1);
-        editor.apply(Action::Undo).unwrap(); editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.objects().is_empty());
-        assert_eq!(editor.camera.uniform(), view); assert_eq!(editor.background.rgb(), background);
-        editor.apply(Action::AddBox).unwrap();
-        assert!(!old.contains(&editor.scene.objects()[0].id));
-    }
-
-    #[test]
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
-        let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
-        let source = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
-        assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
-    }
-
-    #[test]
-    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
-        use std::rc::Rc;
-        let mut editor = Editor::default();
-        let bytes = crate::specimen::bytes();
-        editor.apply(Action::Import(bytes.clone())).unwrap();
-        editor.apply(Action::Replace(bytes.clone())).unwrap();
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(row.geometry().unwrap()))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-        assert!(displays.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(sources.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(documents.iter().all(|owner| owner.upgrade().is_none()));
-        editor.apply(Action::Import(bytes)).unwrap();
-        assert!(editor.scene.objects().iter().all(|row| !old.contains(&row.id)));
-    }
-
-    #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::ResetView).unwrap();
-        assert_eq!(editor.camera.aspect, 2.0);
-        assert_eq!(editor.camera.distance, 3.0);
-    }
-
-    #[test]
-    fn undo_changes_the_document_without_rewinding_the_view() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::Background).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert_eq!(editor.scene.objects().len(), 2);
-        assert_eq!(editor.camera.distance, 1.5);
-        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
-    }
-
-    #[test]
-    fn undo_repairs_selection_and_empty_delete_preserves_redo() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        for _ in 0..3 {
-            editor.apply(Action::SelectNext).unwrap();
-        }
-        let box_id = editor.selected.unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert!(editor.selected.is_none());
-        editor.apply(Action::Delete).unwrap();
-        editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.contains(box_id));
-    }
-
-    #[test]
-    fn picking_a_moved_view_uses_the_editors_current_camera() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
-        let point = session_rust::Point::new(0.2, 0.3, 0.75);
-        let screen = editor.camera.view_projection().transform_point(&point);
-        assert_eq!(editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap(), Change::Scene);
-        assert_eq!(editor.selected, Some(editor.scene.objects()[1].id));
-        assert_eq!(editor.apply(Action::Zoom(2.0)).unwrap(), Change::View);
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gib-move-01.rs"
-```
-
-```text
---8<-- "journey/code/32gib-move-02.rs"
-```
-
-</details>
-
-### 2. `src/lib.rs`
-
-Register the original-target Move checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod edit_scope_tests;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gib-move-03.rs" skip=22
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/edit_move_tests.rs`
-
-Optional authoring fixture. Prove current placement, later selection, camera and one history transaction survive replay.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32gib-move-04.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32giba-delete"></a>
-
-<details>
-<summary>Implementation 32giba-delete: Delete the original target while keeping later selection</summary>
-
-Delete a captured target by identity without redirecting the command to a later selection.
-
-Data flow: Captured ObjectId → current editable row → one history removal → preserve other selection.
-
-### 1. `src/editor.rs`
-
-Remove the original target once and clear only its own selection. Use the same helper for ordinary Delete and preserve history when nothing is selected.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-            Action::Delete => {
-                if let Some(id) = self.selected {
-                    let row = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-                    if row.geometry().is_none() { return Err("Reload editable sources before Delete"); }
-                }
-                if let Some(id) = self.selected.take() {
-                    self.history.edit(&mut self.scene, |scene| { scene.remove(id); });
-                }
-            }
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-            Action::Delete => {
-                return match self.selected {
-                    Some(id) => self.delete_object(id),
-                    None => Ok(Change::View),
-                };
-            }
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        Ok(Change::Scene)
-    }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Pick(screen) => {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        Ok(Change::Scene)
-    }
-
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        let row = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if row.geometry().is_none() { return Err("Reload editable sources before Delete"); }
-        self.history.edit(&mut self.scene, |scene| { scene.remove(id); });
-        if self.selected == Some(id) { self.selected = None; }
-        Ok(Change::Scene)
-    }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Pick(screen) => {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
-pub enum Action {
-    Pick([f32; 2]),
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    UnloadSources,
-    AddBox,
-    Translate([f64; 3]),
-    ToggleExtra,
-    SelectNext,
-    Delete,
-    Undo,
-    Redo,
-    Background,
-    Zoom(f32),
-    Pan(f32, f32),
-    Orbit(f64, f64),
-    Isometric,
-    ResetView,
-    Fit,
-    FitSelected,
-    Projection(crate::camera::Projection),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Change {
-    View,
-    Scene,
-}
-
-pub struct Editor {
-    pub scene: Scene,
-    pub selected: Option<ObjectId>,
-    pub camera: Camera,
-    pub background: Background,
-    history: History,
-    last_release: u64,
-}
-
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            scene: Scene::demo(),
-            selected: None,
-            camera: Camera::default(),
-            background: Background::default(),
-            history: History::default(),
-            last_release: 0,
-        }
-    }
-}
-
-impl Editor {
-    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
-        std::iter::once(&self.scene).chain(self.history.scenes())
-    }
-
-    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
-        let mut seen = std::collections::HashSet::new();
-        self.scene.objects().iter().filter_map(crate::rehydrate::ReloadKey::of)
-            .filter(|key| seen.insert(key.origin.id)).collect()
-    }
-
-    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
-        std::iter::once(&mut self.scene).chain(self.history.scenes_mut())
-    }
-
-    pub fn hydrate(&mut self, values: Vec<(crate::rehydrate::ReloadKey, Vec<u8>)>) -> Result<bool, &'static str> {
-        if values.is_empty() { return Ok(false); }
-        let mut seen = std::collections::HashSet::new();
-        for (key, _) in &values {
-            if !seen.insert(key.origin.id) || !self.scene.objects().iter().any(|row| key.matches(row)) {
-                return Ok(false);
-            }
-        }
-        let prepared: Vec<_> = values.into_iter().map(|(key, bytes)|
-            crate::rehydrate::PreparedReload::new(key, &bytes)).collect::<Result<_, _>>()?;
-        for plan in &prepared {
-            if self.scenes().flat_map(|scene| scene.objects()).filter(|row| plan.key.matches(row))
-                .any(|row| !plan.validates(row)) { return Err("Reloaded source GUID or metadata does not match"); }
-        }
-        for scene in self.scenes_mut() {
-            for plan in &prepared { scene.hydrate(plan); }
-        }
-        Ok(true)
-    }
-
-    fn unload_sources(&mut self) -> Result<(), &'static str> {
-        let mut origins: std::collections::HashSet<_> = self.scenes().flat_map(|scene| scene.objects())
-            .filter(|row| row.can_unload()).filter_map(|row| row.origin().map(|origin| origin.id)).collect();
-        for row in self.scenes().flat_map(|scene| scene.objects()) {
-            if let Some(origin) = row.origin() {
-                if !row.can_unload() { origins.remove(&origin.id); }
-            }
-        }
-        if origins.is_empty() { return Err("No eligible imported sources to unload"); }
-        let epoch = self.last_release.checked_add(1).ok_or("Release epochs exhausted")?;
-        for scene in self.scenes_mut() { scene.unload(&origins, epoch); }
-        self.last_release = epoch;
-        Ok(())
-    }
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        let object = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        let model = &shift * &object.model;
-        self.history.try_edit(&mut self.scene, |scene| scene.place(id, model))?;
-        Ok(Change::Scene)
-    }
-
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        let row = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if row.geometry().is_none() { return Err("Reload editable sources before Delete"); }
-        self.history.edit(&mut self.scene, |scene| { scene.remove(id); });
-        if self.selected == Some(id) { self.selected = None; }
-        Ok(Change::Scene)
-    }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Pick(screen) => {
-                self.selected = self.camera.ray(screen)
-                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
-            }
-            Action::UnloadSources => self.unload_sources()?,
-            Action::Close => {
-                self.scene.clear();
-                self.history.clear();
-                self.selected = None;
-            }
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::Import(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ImportAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ReplaceAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-            Action::Translate(offset) => {
-                let id = self.selected.ok_or("Select an object before Move")?;
-                return self.move_object(id, offset);
-            }
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-            Action::Delete => {
-                return match self.selected {
-                    Some(id) => self.delete_object(id),
-                    None => Ok(Change::View),
-                };
-            }
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-            view => {
-                match view {
-                    Action::Background => self.background.toggle(),
-                    Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
-                    Action::Isometric => self.camera.isometric(),
-                    Action::Projection(mode) => self.camera.projection = mode,
-                    Action::Fit => {
-                        if let Some(bounds) = self.scene.bounds() {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::FitSelected => {
-                        if let Some(bounds) = self.selected
-                            .and_then(|id| self.scene.selected_bounds(id))
-                        {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
-                return Ok(Change::View);
-            }
-        }
-        // Deletion and history travel can invalidate selection; repair it in one place.
-        self.selected = self.selected.filter(|id| self.scene.contains(*id));
-        Ok(Change::Scene)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_modified_history_row_protects_only_its_own_import_origin() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let first = Rc::new(crate::reload_url::ReloadUrl::new("test:first".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), first)).unwrap();
-        let origin = editor.scene.objects()[0].origin().unwrap().id;
-        let original = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        let second = Rc::new(crate::reload_url::ReloadUrl::new("test:second".into()));
-        editor.apply(Action::ImportAt(bytes, second)).unwrap();
-        let copy = Rc::downgrade(editor.scene.objects()[3].geometry().unwrap());
-        editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        let saved = editor.history.scenes_mut().last().unwrap();
-        assert_eq!(saved.objects()[0].origin().unwrap().id, origin);
-        Rc::make_mut(&mut saved.objects_mut()[0].metadata).is_locked = true;
-        assert!(editor.scene.objects()[0].can_unload());
-        editor.apply(Action::UnloadSources).unwrap();
-        assert!(original.upgrade().is_some()); assert!(copy.upgrade().is_none());
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        assert!(editor.scene.objects()[3].geometry().is_none());
-        assert_eq!(editor.last_release, 1);
-        assert!(editor.apply(Action::UnloadSources).is_err()); assert_eq!(editor.last_release, 1);
-    }
-
-    #[test]
-    fn release_epochs_do_not_wrap_or_reset_on_close() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:epoch".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), Rc::clone(&url))).unwrap();
-        editor.last_release = u64::MAX;
-        assert_eq!(editor.apply(Action::UnloadSources), Err("Release epochs exhausted"));
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        editor.last_release = 0; editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(1));
-        editor.apply(Action::Close).unwrap();
-        editor.apply(Action::ImportAt(bytes, url)).unwrap();
-        editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(2));
-    }
-
-    #[test]
-    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Import(crate::specimen::bytes())).unwrap();
-        editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap(); editor.apply(Action::Background).unwrap();
-        let view = editor.camera.uniform(); let background = editor.background.rgb();
-        editor.apply(Action::Close).unwrap();
-        assert!(editor.scene.objects().is_empty() && editor.selected.is_none());
-        assert_eq!(editor.scenes().count(), 1);
-        editor.apply(Action::Undo).unwrap(); editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.objects().is_empty());
-        assert_eq!(editor.camera.uniform(), view); assert_eq!(editor.background.rgb(), background);
-        editor.apply(Action::AddBox).unwrap();
-        assert!(!old.contains(&editor.scene.objects()[0].id));
-    }
-
-    #[test]
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
-        let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
-        let source = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
-        assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
-    }
-
-    #[test]
-    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
-        use std::rc::Rc;
-        let mut editor = Editor::default();
-        let bytes = crate::specimen::bytes();
-        editor.apply(Action::Import(bytes.clone())).unwrap();
-        editor.apply(Action::Replace(bytes.clone())).unwrap();
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(row.geometry().unwrap()))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-        assert!(displays.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(sources.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(documents.iter().all(|owner| owner.upgrade().is_none()));
-        editor.apply(Action::Import(bytes)).unwrap();
-        assert!(editor.scene.objects().iter().all(|row| !old.contains(&row.id)));
-    }
-
-    #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::ResetView).unwrap();
-        assert_eq!(editor.camera.aspect, 2.0);
-        assert_eq!(editor.camera.distance, 3.0);
-    }
-
-    #[test]
-    fn undo_changes_the_document_without_rewinding_the_view() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::Background).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert_eq!(editor.scene.objects().len(), 2);
-        assert_eq!(editor.camera.distance, 1.5);
-        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
-    }
-
-    #[test]
-    fn undo_repairs_selection_and_empty_delete_preserves_redo() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        for _ in 0..3 {
-            editor.apply(Action::SelectNext).unwrap();
-        }
-        let box_id = editor.selected.unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert!(editor.selected.is_none());
-        editor.apply(Action::Delete).unwrap();
-        editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.contains(box_id));
-    }
-
-    #[test]
-    fn picking_a_moved_view_uses_the_editors_current_camera() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
-        let point = session_rust::Point::new(0.2, 0.3, 0.75);
-        let screen = editor.camera.view_projection().transform_point(&point);
-        assert_eq!(editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap(), Change::Scene);
-        assert_eq!(editor.selected, Some(editor.scene.objects()[1].id));
-        assert_eq!(editor.apply(Action::Zoom(2.0)).unwrap(), Change::View);
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32giba-delete-01.rs"
-```
-
-```text
---8<-- "journey/code/32giba-delete-02.rs"
-```
-
-</details>
-
-### 2. `src/lib.rs`
-
-Register the captured-target Delete checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-mod edit_move_tests;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32giba-delete-03.rs" skip=21
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/edit_delete_tests.rs`
-
-Optional authoring fixture. Check delayed selection, one Undo and refusal without losing Redo.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32giba-delete-04.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gibb-reply"></a>
-
-<details>
-<summary>Implementation 32gibb-reply: Route captured Move, Delete and Save results</summary>
-
-Return a scene change or original-precision save bytes from a captured intent.
-
-Data flow: Intent → explicit-target edit or original source snapshot → Reply::Changed or Reply::Saved.
-
-### 1. `src/edit_replay.rs`
-
-Return changed-state feedback or save bytes without confusing a download with a history edit.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/32gibb-reply-01.rs"
-```
-
-### 2. `src/lib.rs`
-
-Register the captured-intent result module.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod edit_intent;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gibb-reply-02.rs" skip=21
-```
-
-</details>
-
-<a id="checkpoint-32gic-owner"></a>
-
-<details>
-<summary>Implementation 32gic-owner: Own the intent with its pending source ticket</summary>
-
-Store source keys and captured intent in one pending owner that current completion can consume once.
-
-Data flow: ReloadJob<Intent> → Pending { ticket, keys, payload } → current finish_with takes both once.
-
-### 1. `src/reload_job.rs`
-
-Keep the intent and source keys inside the same ticket-owned value. Allow any payload without requiring that payload to have a default value. Capture the requested operation when beginning its scoped source request. Install keys and payload together after request validation succeeds. Take the current payload once; stale replies leave newer work untouched. Keep explicit Reload Sources using a unit payload and its existing interface.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        }
-        let ticket = self.issued.checked_add(1).ok_or("Reload tickets exhausted; reload the viewer")?;
-        self.issued = ticket;
-        self.pending = Some(Pending { ticket, keys });
-        Ok(Request { ticket, urls })
-    }
-
-    pub fn pending(&self) -> Option<u64> { self.pending.as_ref().map(|pending| pending.ticket) }
-
-    pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {
-        if self.pending() != Some(ticket) { return None; }
-        self.pending.take().map(|pending| pending.keys)
-    }
-
-    pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        }
-        let ticket = self.issued.checked_add(1).ok_or("Reload tickets exhausted; reload the viewer")?;
-        self.issued = ticket;
-        self.pending = Some(Pending { ticket, keys, payload });
-        Ok(Request { ticket, urls })
-    }
-
-    pub fn pending(&self) -> Option<u64> { self.pending.as_ref().map(|pending| pending.ticket) }
-
-    pub fn finish_with(&mut self, ticket: u64) -> Option<(Vec<ReloadKey>, P)> {
-        if self.pending() != Some(ticket) { return None; }
-        self.pending.take().map(|pending| (pending.keys, pending.payload))
-    }
-
-    pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }
-}
-
-impl ReloadJob<()> {
-    pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {
-        self.begin_with(keys, ())
-    }
-    pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {
-        self.finish_with(ticket).map(|(keys, ())| keys)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
+pub struct Request {
+    pub ticket: u64,
     pub urls: Vec<String>,
 }
 
@@ -3452,130 +774,118 @@ pub struct ReloadJob {
 impl ReloadJob {
     pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {
         self.cancel();
-        if keys.is_empty() { return Err("No released sources to reload"); }
-        let mut origins = std::collections::HashSet::new();
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub urls: Vec<String>,
-}
-
-struct Pending<P> {
-    ticket: u64,
-    keys: Vec<ReloadKey>,
-    payload: P,
-}
-
-pub struct ReloadJob<P = ()> {
-    issued: u64,
-    pending: Option<Pending<P>>,
-}
-
-impl<P> Default for ReloadJob<P> {
-    fn default() -> Self { Self { issued: 0, pending: None } }
-}
-
-impl<P> ReloadJob<P> {
-    pub fn begin_with(&mut self, keys: Vec<ReloadKey>, payload: P) -> Result<Request, &'static str> {
-        self.cancel();
-        if keys.is_empty() { return Err("No released sources to reload"); }
-        let mut origins = std::collections::HashSet::new();
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::rehydrate::ReloadKey;
-
-pub struct Request {
-    pub ticket: u64,
-    pub urls: Vec<String>,
-}
-
-struct Pending<P> {
-    ticket: u64,
-    keys: Vec<ReloadKey>,
-    payload: P,
-}
-
-pub struct ReloadJob<P = ()> {
-    issued: u64,
-    pending: Option<Pending<P>>,
-}
-
-impl<P> Default for ReloadJob<P> {
-    fn default() -> Self { Self { issued: 0, pending: None } }
-}
-
-impl<P> ReloadJob<P> {
-    pub fn begin_with(&mut self, keys: Vec<ReloadKey>, payload: P) -> Result<Request, &'static str> {
-        self.cancel();
-        if keys.is_empty() { return Err("No released sources to reload"); }
+        if keys.is_empty() {
+            return Err("No released sources to reload");
+        }
         let mut origins = std::collections::HashSet::new();
         let mut urls = Vec::new();
         for key in &keys {
-            if !origins.insert(key.origin.id) { return Err("Duplicate reload origin"); }
-            let location = key.origin.location.as_ref().ok_or("Source has no reload location")?;
+            if !origins.insert(key.origin.id) {
+                return Err("Duplicate reload origin");
+            }
+            let location = key
+                .origin
+                .location
+                .as_ref()
+                .ok_or("Source has no reload location")?;
             urls.push(location.value().to_owned());
         }
-        let ticket = self.issued.checked_add(1).ok_or("Reload tickets exhausted; reload the viewer")?;
+        let ticket = self
+            .issued
+            .checked_add(1)
+            .ok_or("Reload tickets exhausted; reload the viewer")?;
         self.issued = ticket;
-        self.pending = Some(Pending { ticket, keys, payload });
+        self.pending = Some(Pending { ticket, keys });
         Ok(Request { ticket, urls })
     }
 
-    pub fn pending(&self) -> Option<u64> { self.pending.as_ref().map(|pending| pending.ticket) }
-
-    pub fn finish_with(&mut self, ticket: u64) -> Option<(Vec<ReloadKey>, P)> {
-        if self.pending() != Some(ticket) { return None; }
-        self.pending.take().map(|pending| (pending.keys, pending.payload))
+    pub fn pending(&self) -> Option<u64> {
+        self.pending
+            .as_ref()
+            .map(|pending| pending.ticket)
     }
 
-    pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }
-}
-
-impl ReloadJob<()> {
-    pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {
-        self.begin_with(keys, ())
-    }
     pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {
-        self.finish_with(ticket).map(|(keys, ())| keys)
+        if self.pending() != Some(ticket) {
+            return None;
+        }
+        self.pending
+            .take()
+            .map(|pending| pending.keys)
+    }
+
+    pub fn cancel(&mut self) -> bool {
+        self.pending.take().is_some()
+    }
+}
+```
+
+## <a id="checkpoint-32gfa-ownership"></a>8. Prove cancelled work releases its source owners
+
+### 1. `src/reload_job.rs`
+
+**Locate this existing block:**
+
+```rust
+    }
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{editor::{Action, Editor}, reload_url::ReloadUrl};
+    use crate::{
+        editor::{Action, Editor},
+        reload_url::ReloadUrl,
+    };
     use std::{cell::RefCell, rc::Rc};
 
     fn cold() -> (Editor, Vec<ReloadKey>) {
         let mut editor = Editor::default();
         let location = Rc::new(ReloadUrl::new("test:request".into()));
-        editor.apply(Action::ReplaceAt(crate::specimen::bytes(), location)).unwrap();
+        editor
+            .apply(Action::ReplaceAt(
+                crate::specimen::bytes(),
+                location,
+            ))
+            .unwrap();
         editor.apply(Action::UnloadSources).unwrap();
-        let keys = editor.reload_keys(); (editor, keys)
+        let keys = editor.reload_keys();
+        (editor, keys)
     }
 
     #[test]
     fn only_current_work_can_finish_and_it_finishes_once() {
-        let (_, keys) = cold(); let mut job = ReloadJob::default();
+        let (_, keys) = cold();
+        let mut job = ReloadJob::default();
         let first = job.begin(keys.clone()).unwrap();
         let second = job.begin(keys.clone()).unwrap();
         assert!(second.ticket > first.ticket);
-        assert!(job.finish(first.ticket).is_none()); assert_eq!(job.pending(), Some(second.ticket));
-        let accepted = job.finish(second.ticket).unwrap(); assert_eq!(accepted.len(), 1);
-        assert!(Rc::ptr_eq(&accepted[0].origin, &keys[0].origin));
+        assert!(job.finish(first.ticket).is_none());
+        assert_eq!(job.pending(), Some(second.ticket));
+        let accepted = job.finish(second.ticket).unwrap();
+        assert_eq!(accepted.len(), 1);
+        assert!(Rc::ptr_eq(
+            &accepted[0].origin,
+            &keys[0].origin
+        ));
         assert!(job.finish(second.ticket).is_none());
-        let third = job.begin(keys.clone()).unwrap(); assert!(job.cancel());
-        assert!(!job.cancel()); assert!(job.finish(third.ticket).is_none());
-        assert!(job.begin(vec![keys[0].clone(), keys[0].clone()]).is_err());
-        assert!(job.begin(Vec::new()).is_err()); assert_eq!(job.pending(), None);
+        let third = job.begin(keys.clone()).unwrap();
+        assert!(job.cancel());
+        assert!(!job.cancel());
+        assert!(job.finish(third.ticket).is_none());
+        assert!(
+            job.begin(vec![keys[0].clone(), keys[0].clone()])
+                .is_err()
+        );
+        assert!(job.begin(Vec::new()).is_err());
+        assert_eq!(job.pending(), None);
     }
 
     #[test]
@@ -3586,186 +896,263 @@ mod tests {
         let job = Rc::new(RefCell::new(ReloadJob::default()));
         let request = job.borrow_mut().begin(keys).unwrap();
         let abandoned = Rc::clone(&job);
-        editor.apply(Action::Close).unwrap(); assert!(origin.upgrade().is_some());
+        editor.apply(Action::Close).unwrap();
+        assert!(origin.upgrade().is_some());
         assert!(job.borrow_mut().cancel());
         assert!(origin.upgrade().is_none() && location.upgrade().is_none());
         assert_eq!(request.urls, vec!["test:request".to_owned()]);
-        assert!(abandoned.borrow_mut().finish(request.ticket).is_none());
+        assert!(
+            abandoned
+                .borrow_mut()
+                .finish(request.ticket)
+                .is_none()
+        );
     }
 
     #[test]
     fn exhaustion_cancels_old_keys_and_never_wraps() {
-        let (_, keys) = cold(); let mut job = ReloadJob::default();
-        job.begin(keys.clone()).unwrap(); job.issued = u64::MAX;
-        assert!(job.begin(keys).is_err()); assert_eq!(job.pending(), None);
+        let (_, keys) = cold();
+        let mut job = ReloadJob::default();
+        job.begin(keys.clone()).unwrap();
+        job.issued = u64::MAX;
+        assert!(job.begin(keys).is_err());
+        assert_eq!(job.pending(), None);
         assert_eq!(job.issued, u64::MAX);
     }
 }
 ```
 
-</details>
+## <a id="checkpoint-32gg-fetch"></a>9. Read a source response within its byte limit
 
-<details>
-<summary>Optional patch references</summary>
+### 1. `Cargo.toml`
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+**Locate this existing block:**
 
-```text
---8<-- "journey/code/32gic-owner-01.rs"
+```toml
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
-```text
---8<-- "journey/code/32gic-owner-02.rs"
-```
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/32gic-owner-03.rs"
+```toml
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
-
-```text
---8<-- "journey/code/32gic-owner-04.rs"
-```
-
-```text
---8<-- "journey/code/32gic-owner-05.rs"
-```
-
-```text
---8<-- "journey/code/32gic-owner-06.rs"
-```
-
-</details>
 
 ### 2. `src/lib.rs`
 
-Register native ownership checks without exposing test code to the browser.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub mod edit_replay;
+mod snapshot_tests;
+#[cfg(test)]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gic-owner-07.rs" skip=21
+mod snapshot_tests;
+#[cfg(target_arch = "wasm32")]
+mod source_fetch;
+#[cfg(test)]
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/edit_owner_tests.rs`
-
-Optional authoring fixture. Prove stale/duplicate/cancelled replies cannot consume an intent or retain its source metadata.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32gic-owner-08.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gica-reply"></a>
-
-<details>
-<summary>Implementation 32gica-reply: Pair captured intent with complete source bodies</summary>
-
-Build a completion value that retains captured intent and rejects incomplete source-body pairings.
-
-Data flow: current ticket → keys + Intent → equal body count → complete pairs or error.
-
-### 1. `src/reload_reply.rs`
-
-Keep the captured operation beside either its complete source bodies or its failure.
+### 3. `src/source_fetch.rs`
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32gica-reply-01.rs"
+use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen_futures::JsFuture;
+
+pub async fn fetch(
+    url: &str,
+    signal: &web_sys::AbortSignal,
+) -> Result<Vec<u8>, String> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let init = web_sys::RequestInit::new();
+    init.set_signal(Some(signal));
+    let value = JsFuture::from(window.fetch_with_str_and_init(url, &init))
+        .await
+        .map_err(|error| format!("Cannot fetch source: {error:?}"))?;
+    let response: web_sys::Response = value
+        .dyn_into()
+        .map_err(|_| "Invalid fetch response")?;
+    if !response.ok() {
+        return Err(format!("Reload HTTP {}", response.status()));
+    }
+    if let Some(length) = response
+        .headers()
+        .get("Content-Length")
+        .map_err(|_| "Cannot read source length")?
+    {
+        let length: u64 = length
+            .parse()
+            .map_err(|_| "Invalid source length")?;
+        if length > crate::document::MAX_BYTES as u64 {
+            return Err("Reload source exceeds 4 MiB".into());
+        }
+    }
+    let body = response
+        .body()
+        .ok_or("Source response has no body")?;
+    let reader: web_sys::ReadableStreamDefaultReader = body
+        .get_reader()
+        .dyn_into()
+        .map_err(|_| "Cannot read source stream")?;
+    let result = read(&reader).await;
+    if result.is_err() {
+        let _ = JsFuture::from(reader.cancel()).await;
+    }
+    reader.release_lock();
+    result
+}
+
+async fn read(
+    reader: &web_sys::ReadableStreamDefaultReader,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    loop {
+        let part = JsFuture::from(reader.read())
+            .await
+            .map_err(|error| format!("Cannot read source: {error:?}"))?;
+        let done = js_sys::Reflect::get(&part, &JsValue::from_str("done"))
+            .map_err(|_| "Invalid stream reply")?;
+        if done.as_bool() == Some(true) {
+            break;
+        }
+        let value = js_sys::Reflect::get(&part, &JsValue::from_str("value"))
+            .map_err(|_| "Missing source chunk")?;
+        let chunk: js_sys::Uint8Array = value
+            .dyn_into()
+            .map_err(|_| "Invalid source chunk")?;
+        if chunk.length() as usize > crate::document::MAX_BYTES - bytes.len() {
+            return Err("Reload source exceeds 4 MiB".into());
+        }
+        bytes.extend_from_slice(&chunk.to_vec());
+    }
+    Ok(bytes)
+}
 ```
 
-### 2. `src/lib.rs`
+## <a id="checkpoint-32gga-flight"></a>10. Pair reload ownership with a browser abort controller
 
-Register the completion value for native checks and browser delivery.
+### 1. `src/lib.rs`
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub mod edit_replay;
+mod browser;
+pub mod document;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gica-reply-02.rs" skip=21
+mod browser;
+#[cfg(target_arch = "wasm32")]
+mod browser_reload;
+pub mod document;
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+### 2. `src/browser_reload.rs`
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+Create the file and type:
 
-### 3. `src/reload_reply_tests.rs`
+```rust
+use crate::{
+    rehydrate::ReloadKey,
+    reload_job::{ReloadJob, Request},
+};
+use std::{cell::RefCell, rc::Rc};
 
-Optional authoring fixture. Check all captured operations, exact bodies, failures, partial counts and the explicit no-operation path.
+pub type Shared = Rc<RefCell<Flight>>;
 
-Copy this supplied file:
+#[derive(Default)]
+pub struct Flight {
+    job: ReloadJob,
+    controller: Option<web_sys::AbortController>,
+}
 
-```text
---8<-- "journey/code/32gica-reply-03.rs"
+impl Flight {
+    pub fn cancel(&mut self) -> bool {
+        let cancelled = self.job.cancel();
+        if let Some(controller) = self.controller.take() {
+            controller.abort();
+        }
+        cancelled
+    }
+
+    fn begin(
+        &mut self,
+        keys: Vec<ReloadKey>,
+    ) -> Result<(Request, web_sys::AbortSignal), String> {
+        self.cancel();
+        let controller = web_sys::AbortController::new()
+            .map_err(|error| format!("Cannot start reload: {error:?}"))?;
+        let request = self.job.begin(keys)?;
+        let signal = controller.signal();
+        self.controller = Some(controller);
+        Ok((request, signal))
+    }
+
+    fn finish(&mut self, ticket: u64, failed: bool) -> Option<Vec<ReloadKey>> {
+        let keys = self.job.finish(ticket)?;
+        if let Some(controller) = self.controller.take() {
+            if failed {
+                controller.abort();
+            }
+        }
+        Some(keys)
+    }
+}
 ```
 
-</details>
-
-</details>
-
-<a id="checkpoint-32gicb-bridge"></a>
-
-<details>
-<summary>Implementation 32gicb-bridge: Carry captured intent through browser completion</summary>
-
-Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
-
-Data flow: Flight → ReloadJob<Option<Intent>> → current finish_with → Reply → synchronous browser mailbox.
+## <a id="checkpoint-32ggb-delivery"></a>11. Deliver only the current completed reload batch
 
 ### 1. `src/browser_reload.rs`
 
-Use the same completion value in the browser mailbox. Preserve explicit Reload Sources while allowing a captured operation to accompany its keys. Only a current ticket may collect its captured operation and deliver the complete reply. Let the existing abortable flight own an optional operation. Capture the operation when starting the abortable source flight. Install the optional operation and keys into one ticket owner. Return both keys and operation only after checking completion ownership.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-use crate::{rehydrate::ReloadKey, reload_job::{ReloadJob, Request}};
-use std::{cell::RefCell, rc::Rc};
+pub type Shared = Rc<RefCell<Flight>>;
 
+#[derive(Default)]
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
 pub type Shared = Rc<RefCell<Flight>>;
 
 pub type Reply = Result<Vec<(ReloadKey, Vec<u8>)>, String>;
 pub type Delivery = Rc<RefCell<Option<Reply>>>;
 
-pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
+pub fn start(
+    shared: Shared,
+    keys: Vec<ReloadKey>,
+    delivery: Delivery,
+) -> Result<(), String> {
     let (request, signal) = shared.borrow_mut().begin(keys)?;
     crate::browser::report("Reloading editable sources…");
     wasm_bindgen_futures::spawn_local(async move {
         let result: Result<Vec<Vec<u8>>, String> = async {
             let mut values = Vec::new();
-            for url in request.urls { values.push(crate::source_fetch::fetch(&url, &signal).await?); }
+            for url in request.urls {
+                values.push(crate::source_fetch::fetch(&url, &signal).await?);
+            }
             Ok(values)
-        }.await;
-        let Some(keys) = shared.borrow_mut().finish(request.ticket, result.is_err()) else { return; };
+        }
+        .await;
+        let Some(keys) = shared
+            .borrow_mut()
+            .finish(request.ticket, result.is_err())
+        else {
+            return;
+        };
         let result = result.map(|values| keys.into_iter().zip(values).collect());
         if let Err(error) = deliver(result, &delivery) {
             crate::browser::report(&format!("Cannot deliver reload: {error:?}"));
@@ -3777,7 +1164,1612 @@ pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result
 fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsValue> {
     let event = web_sys::Event::new("viewer-reload")?;
     *delivery.borrow_mut() = Some(result);
-    let result = web_sys::window().ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
+    let result = web_sys::window()
+        .ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
+        .and_then(|window| window.dispatch_event(&event));
+    delivery.borrow_mut().take();
+    result.map(|_| ())
+}
+
+#[derive(Default)]
+```
+
+## <a id="checkpoint-32gh-command"></a>12. Restore editable sources through the command line
+
+### 1. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+    window.add_event_listener_with_callback(
+        "viewer-file-error",
+        update.as_ref().unchecked_ref(),
+```
+
+Replace it with:
+
+```rust
+    window.add_event_listener_with_callback(
+        "viewer-file-error",
+        update.as_ref().unchecked_ref(),
+    )?;
+    window.add_event_listener_with_callback(
+        "viewer-reload",
+        update.as_ref().unchecked_ref(),
+```
+
+**Locate this block:**
+
+```rust
+                    }
+                }
+            } else if let Some(line) = line {
+                if line == "unload sources" {
+                    Some(Action::UnloadSources)
+                } else if line == "close" {
+                    request.borrow_mut().cancel();
+```
+
+Replace it with:
+
+```rust
+                    }
+                }
+            } else if let Some(line) = line {
+                if line == "reload sources" {
+                    let result = crate::browser_reload::start(
+                        std::rc::Rc::clone(&reload),
+                        editor.reload_keys(),
+                        std::rc::Rc::clone(&reload_delivery),
+                    );
+                    match result {
+                        Ok(()) => panel.result("Reloading editable sources…"),
+                        Err(error) => {
+                            report(&error);
+                            panel.result(&error);
+                        }
+                    }
+                    None
+                } else if line == "cancel reload" {
+                    reload.borrow_mut().cancel();
+                    report("Reload cancelled.");
+                    panel.result("Reload cancelled.");
+                    None
+                } else if line == "unload sources" {
+                    Some(Action::UnloadSources)
+                } else if line == "close" {
+                    request.borrow_mut().cancel();
+```
+
+**Locate this block:**
+
+```rust
+                    panel.answer("Open", &message);
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                match crate::file_input::action(&event, &delivery) {
+                    Ok(action) => action,
+```
+
+Replace it with:
+
+```rust
+                    panel.answer("Open", &message);
+                }
+                None
+            } else if event.type_() == "viewer-reload" {
+                if let Some(result) = reload_delivery.borrow_mut().take() {
+                    match result.and_then(|values| {
+                        editor.hydrate(values).map_err(str::to_owned)
+                    }) {
+                        Ok(true) => {
+                            renderer.set_scene(&editor.scene, editor.selected);
+                            let message =
+                                "Editable sources restored; display retained.";
+                            report(message);
+                            panel.answer("Reload Sources", message);
+                        }
+                        Ok(false) => {}
+                        Err(error) => {
+                            report(&error);
+                            panel.answer("Reload Sources", &error);
+                        }
+                    }
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                match crate::file_input::action(&event, &delivery) {
+                    Ok(action) => action,
+```
+
+**Locate this block:**
+
+```rust
+    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
+    let delivery: crate::file_input::Delivery =
+        std::rc::Rc::new(std::cell::RefCell::new(None));
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            let shortcut = event
+```
+
+Replace it with:
+
+```rust
+    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
+    let delivery: crate::file_input::Delivery =
+        std::rc::Rc::new(std::cell::RefCell::new(None));
+    let reload: crate::browser_reload::Shared =
+        std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
+    let reload_delivery: crate::browser_reload::Delivery =
+        std::rc::Rc::new(std::cell::RefCell::new(None));
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            let shortcut = event
+```
+
+**Locate this block:**
+
+```rust
+            "Unload Sources",
+            "Save",
+            "Example Box",
+            "Example Triangle",
+```
+
+Replace it with:
+
+```rust
+            "Unload Sources",
+            "Reload Sources",
+            "Cancel Reload",
+            "Save",
+            "Example Box",
+            "Example Triangle",
+```
+
+## <a id="checkpoint-32gha-cancel"></a>13. Cancel reloads when their document context changes
+
+### 1. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                None
+            };
+            if let Some(action) = action {
+                let replacement = matches!(
+```
+
+Replace it with:
+
+```rust
+                None
+            };
+            if let Some(action) = action {
+                if matches!(
+                    &action,
+                    Action::Close
+                        | Action::UnloadSources
+                        | Action::Undo
+                        | Action::Redo
+                        | Action::Replace(_)
+                        | Action::ReplaceAt(_, _)
+                ) {
+                    reload.borrow_mut().cancel();
+                }
+                let replacement = matches!(
+```
+
+**Locate this block:**
+
+```rust
+                    }
+                    read_mode.set(if line == "open replace" {
+                        crate::file_input::Mode::Replace
+                    } else {
+```
+
+Replace it with:
+
+```rust
+                    }
+                    if line == "open replace" {
+                        reload.borrow_mut().cancel();
+                    }
+                    read_mode.set(if line == "open replace" {
+                        crate::file_input::Mode::Replace
+                    } else {
+```
+
+### 2. `examples/reload_check.rs`
+
+Create the file and type:
+
+```rust
+use prost::Message;
+use session_rust::proto::Session;
+
+fn read(path: &str) -> Session {
+    let bytes = std::fs::read(path).expect("Read the browser file");
+    Session::decode(bytes.as_slice()).expect("Valid session protobuf")
+}
+
+fn main() {
+    let paths: Vec<_> = std::env::args().skip(1).collect();
+    assert_eq!(
+        paths.len(),
+        2,
+        "Give original and browser-saved files"
+    );
+    let original = read(&paths[0]);
+    let saved = read(&paths[1]);
+    let original = original.objects.unwrap().meshes;
+    let restored = saved.objects.unwrap().meshes;
+    assert_eq!(original.len(), restored.len());
+    for source in original {
+        let row = restored
+            .iter()
+            .find(|row| row.guid == source.guid)
+            .expect("Saved original GUID");
+        assert_eq!(
+            row.vertices, source.vertices,
+            "Exact original double coordinates"
+        );
+        assert_eq!(row.faces, source.faces, "Original topology");
+        assert_eq!(row.name, source.name);
+        assert_eq!(
+            row.is_visible.unwrap_or(true),
+            source.is_visible.unwrap_or(true)
+        );
+        assert_eq!(
+            row.is_locked.unwrap_or(false),
+            source.is_locked.unwrap_or(false)
+        );
+    }
+    assert!(
+        !saved.xforms.is_empty(),
+        "Current placements are saved separately"
+    );
+    println!(
+        "Browser reload/save preserves original geometry, flags, names and saved GUIDs."
+    );
+}
+```
+
+## <a id="checkpoint-32gi-capture"></a>14. Capture the requested edit before waiting
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-eb361fc9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-eb361fc9" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">32A..32F · SOURCE UNLOAD</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Releasing Heavy f64 Kernel Sources While Keeping f32 GPU Display Geometry Interactive</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">Loaded(Arc&lt;Source&gt;) -&gt; Released { origin, key, version }</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-eb361fc9)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Before Unload: CPU f64 + GPU f32</text>
+  <rect x="44" y="76" width="284" height="48" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Heavy f64 Kernel Source in WASM RAM</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="114" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">Released by "Unload Sources" command</text>
+  <rect x="44" y="132" width="284" height="48" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Compact Provenance Header Retained</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="170" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">{ OriginUrl, ReleaseKey, SourceVersion }</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-eb361fc9)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-eb361fc9)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Allowed vs Guarded Operations While Unloaded</text>
+  <rect x="414" y="76" width="292" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">✓ Orbit / Pan / Zoom / Pick / Color / Hide</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="118" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#111111">(Operates purely on retained GPU buffers &amp; settings)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">⚠ Move / Save / Exact Export</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="164" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#2563eb">(Requires reloading exact f64 source first)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-eb361fc9)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-eb361fc9)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Low-RAM Interactive Viewport</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#dbeafe" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
+
+### 1. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod camera;
+mod edit_source;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod camera;
+pub mod edit_intent;
+mod edit_source;
+```
+
+### 2. `src/edit_intent.rs`
+
+Create the file and type:
+
+```rust
+use crate::{editor::Action, scene::ObjectId};
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Intent {
+    Move {
+        id: ObjectId,
+        offset: [f64; 3],
+    },
+    Delete {
+        id: ObjectId,
+    },
+    Save,
+}
+
+impl Intent {
+    pub fn capture(
+        action: &Action,
+        selected: Option<ObjectId>,
+    ) -> Result<Option<Self>, &'static str> {
+        Ok(match action {
+            Action::Translate(offset) => {
+                let id = selected.ok_or("Select an object before Move")?;
+                if !offset.iter().all(|value| value.is_finite()) {
+                    return Err("Move needs finite coordinates");
+                }
+                if offset.iter().all(|&value| value == 0.0) {
+                    None
+                } else {
+                    Some(Self::Move {
+                        id,
+                        offset: *offset,
+                    })
+                }
+            }
+            Action::Delete => selected.map(|id| Self::Delete { id }),
+            _ => None,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{editor::Editor, reload_url::ReloadUrl};
+    use std::rc::Rc;
+
+    fn cold() -> Editor {
+        let mut editor = Editor::default();
+        editor
+            .apply(Action::ReplaceAt(
+                crate::specimen::bytes(),
+                Rc::new(ReloadUrl::new("test:intent".into())),
+            ))
+            .unwrap();
+        editor.apply(Action::SelectNext).unwrap();
+        editor.apply(Action::UnloadSources).unwrap();
+        editor
+    }
+
+    #[test]
+    fn move_keeps_original_target_and_arguments_after_selection_changes() {
+        let mut editor = cold();
+        let id = editor.selected.unwrap();
+        let origin = Rc::downgrade(editor.scene.objects()[0].origin().unwrap());
+        let intent = Intent::capture(
+            &Action::Translate([0.125, -0.25, 0.5]),
+            editor.selected,
+        )
+        .unwrap()
+        .unwrap();
+        editor.apply(Action::SelectNext).unwrap();
+        editor
+            .apply(Action::Orbit(0.1, 0.2))
+            .unwrap();
+        assert_ne!(editor.selected, Some(id));
+        assert_eq!(
+            intent,
+            Intent::Move {
+                id,
+                offset: [0.125, -0.25, 0.5]
+            }
+        );
+        editor.apply(Action::Close).unwrap();
+        assert!(
+            origin.upgrade().is_none(),
+            "intent owns no source or URL"
+        );
+    }
+
+    #[test]
+    fn delete_keeps_its_original_target() {
+        let mut editor = cold();
+        let id = editor.selected.unwrap();
+        let intent = Intent::capture(&Action::Delete, editor.selected)
+            .unwrap()
+            .unwrap();
+        editor.apply(Action::SelectNext).unwrap();
+        assert_eq!(intent, Intent::Delete { id });
+        assert_ne!(editor.selected, Some(id));
+    }
+
+    #[test]
+    fn empty_edits_do_not_request_io_and_invalid_moves_are_rejected() {
+        assert_eq!(
+            Intent::capture(&Action::Delete, None).unwrap(),
+            None
+        );
+        assert!(Intent::capture(&Action::Translate([0.0; 3]), None).is_err());
+        let editor = Editor::default();
+        let id = editor.scene.objects()[0].id;
+        assert_eq!(
+            Intent::capture(&Action::Translate([0.0; 3]), Some(id)).unwrap(),
+            None
+        );
+        assert!(
+            Intent::capture(
+                &Action::Translate([f64::NAN, 0.0, 0.0]),
+                Some(id)
+            )
+            .is_err()
+        );
+        assert_eq!(
+            Intent::capture(&Action::Fit, Some(id)).unwrap(),
+            None
+        );
+    }
+}
+```
+
+## <a id="checkpoint-32gia-scope"></a>15. Load only the sources the requested edit needs
+
+### 1. `src/edit_intent.rs`
+
+**Locate this existing block:**
+
+```rust
+use crate::{editor::Action, scene::ObjectId};
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Intent {
+    Move {
+        id: ObjectId,
+        offset: [f64; 3],
+    },
+    Delete {
+        id: ObjectId,
+    },
+    Save,
+}
+
+impl Intent {
+    pub fn capture(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+use crate::{
+    editor::{Action, Editor},
+    rehydrate::ReloadKey,
+    scene::ObjectId,
+};
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Intent {
+    Move {
+        id: ObjectId,
+        offset: [f64; 3],
+    },
+    Delete {
+        id: ObjectId,
+    },
+    Save,
+}
+
+impl Intent {
+    pub fn keys(&self, editor: &Editor) -> Result<Vec<ReloadKey>, &'static str> {
+        match self {
+            Self::Save => Ok(editor.reload_keys()),
+            Self::Move { id, .. } | Self::Delete { id } => {
+                let row = editor
+                    .scene
+                    .objects()
+                    .iter()
+                    .find(|row| row.id == *id)
+                    .ok_or("Object not found")?;
+                Ok(ReloadKey::of(row).into_iter().collect())
+            }
+        }
+    }
+
+    pub fn capture(
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod edit_intent;
+mod edit_source;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod edit_intent;
+#[cfg(test)]
+mod edit_scope_tests;
+mod edit_source;
+```
+
+### 3. `src/edit_scope_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Action, Editor},
+    reload_url::ReloadUrl,
+};
+use std::rc::Rc;
+
+fn file(editor: &mut Editor, replace: bool, url: &str) {
+    let bytes = crate::specimen::bytes();
+    let location = Rc::new(ReloadUrl::new(url.into()));
+    editor
+        .apply(if replace {
+            Action::ReplaceAt(bytes, location)
+        } else {
+            Action::ImportAt(bytes, location)
+        })
+        .unwrap();
+}
+
+#[test]
+fn target_and_save_scope_differ() {
+    let mut editor = Editor::default();
+    file(&mut editor, true, "test:first");
+    file(&mut editor, false, "test:second");
+    editor.apply(Action::UnloadSources).unwrap();
+    let row = &editor.scene.objects()[0];
+    let id = row.id;
+    let origin = row.origin().unwrap().id;
+    editor.selected = Some(editor.scene.objects()[3].id);
+    for intent in [
+        Intent::Move {
+            id,
+            offset: [0.25, 0.0, 0.0],
+        },
+        Intent::Delete { id },
+    ] {
+        let keys = intent.keys(&editor).unwrap();
+        assert_eq!(keys.len(), 1);
+        assert_eq!(keys[0].origin.id, origin);
+        assert_eq!(keys[0].epoch, 1);
+    }
+    let keys = Intent::Save.keys(&editor).unwrap();
+    assert_eq!(editor.scene.objects().len(), 6);
+    assert_eq!(keys.len(), 2);
+    assert_ne!(keys[0].origin.id, keys[1].origin.id);
+}
+
+#[test]
+fn save_ignores_history_only_sources() {
+    let mut editor = Editor::default();
+    file(&mut editor, true, "test:old");
+    let old = editor.scene.objects()[0]
+        .origin()
+        .unwrap()
+        .id;
+    file(&mut editor, true, "test:current");
+    let current = editor.scene.objects()[0]
+        .origin()
+        .unwrap()
+        .id;
+    editor.apply(Action::UnloadSources).unwrap();
+    let keys = Intent::Save.keys(&editor).unwrap();
+    assert_eq!(keys.len(), 1);
+    assert_eq!(keys[0].origin.id, current);
+    assert_ne!(keys[0].origin.id, old);
+    assert!(
+        editor
+            .scenes()
+            .skip(1)
+            .flat_map(|scene| scene.objects())
+            .any(|row| row
+                .origin()
+                .is_some_and(|origin| origin.id == old)
+                && row.release_epoch().is_some())
+    );
+}
+
+#[test]
+fn loaded_or_missing_target() {
+    let mut editor = Editor::default();
+    let id = editor.scene.objects()[0].id;
+    assert!(
+        Intent::Delete { id }
+            .keys(&editor)
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        Intent::Save
+            .keys(&editor)
+            .unwrap()
+            .is_empty()
+    );
+    editor.scene.remove(id);
+    assert_eq!(
+        Intent::Delete { id }.keys(&editor).err(),
+        Some("Object not found")
+    );
+    file(&mut editor, true, "test:loaded");
+    let id = editor.scene.objects()[0].id;
+    assert!(
+        Intent::Move {
+            id,
+            offset: [1.0, 0.0, 0.0]
+        }
+        .keys(&editor)
+        .unwrap()
+        .is_empty()
+    );
+}
+```
+
+## <a id="checkpoint-32gib-move"></a>16. Move the target from its current placement
+
+### 1. `src/editor.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                let id = self
+                    .selected
+                    .ok_or("Select an object before Move")?;
+                if offset.iter().all(|&v| v == 0.0) {
+                    return Ok(Change::View);
+                }
+                let object = self
+                    .scene
+                    .objects()
+                    .iter()
+                    .find(|o| o.id == id)
+                    .ok_or("Object not found")?;
+                let shift =
+                    session_rust::Xform::translation(offset[0], offset[1], offset[2]);
+                let model = &shift * &object.model;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.place(id, model)
+                    })?;
+            }
+```
+
+Replace it with:
+
+```rust
+                let id = self
+                    .selected
+                    .ok_or("Select an object before Move")?;
+                return self.move_object(id, offset);
+            }
+```
+
+**Locate this block:**
+
+```rust
+    }
+
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+```
+
+Replace it with:
+
+```rust
+    }
+
+    pub fn move_object(
+        &mut self,
+        id: ObjectId,
+        offset: [f64; 3],
+    ) -> Result<Change, &'static str> {
+        if !offset.iter().all(|value| value.is_finite()) {
+            return Err("Move needs finite coordinates");
+        }
+        let object = self
+            .scene
+            .objects()
+            .iter()
+            .find(|row| row.id == id)
+            .ok_or("Object not found")?;
+        if offset.iter().all(|&value| value == 0.0) {
+            return Ok(Change::View);
+        }
+        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
+        let model = &shift * &object.model;
+        self.history
+            .try_edit(&mut self.scene, |scene| {
+                scene.place(id, model)
+            })?;
+        Ok(Change::Scene)
+    }
+
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+#[cfg(test)]
+mod edit_scope_tests;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+#[cfg(test)]
+mod edit_move_tests;
+#[cfg(test)]
+mod edit_scope_tests;
+```
+
+### 3. `src/edit_move_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Action, Change, Editor},
+};
+use session_rust::Xform;
+
+#[test]
+fn captured_move_uses_current_placement_and_preserves_later_selection() {
+    let mut editor = Editor::default();
+    let id = editor.scene.objects()[0].id;
+    let intent = Intent::capture(
+        &Action::Translate([0.125, -0.25, 0.5]),
+        Some(id),
+    )
+    .unwrap()
+    .unwrap();
+    let before = Xform::translation(2.0, 3.0, 4.0);
+    editor
+        .scene
+        .place(id, before.clone())
+        .unwrap();
+    let later = editor.scene.objects()[1].id;
+    editor.selected = Some(later);
+    editor
+        .apply(Action::Orbit(0.2, 0.1))
+        .unwrap();
+    let camera = editor.camera.uniform();
+    let Intent::Move { id, offset } = intent else {
+        panic!("Move intent")
+    };
+    assert_eq!(
+        editor.move_object(id, offset).unwrap(),
+        Change::Scene
+    );
+    let expected = Xform::translation(2.125, 2.75, 4.5);
+    assert_eq!(editor.scene.objects()[0].model.m, expected.m);
+    assert_eq!(editor.selected, Some(later));
+    assert_eq!(editor.camera.uniform(), camera);
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, before.m);
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, before.m);
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, expected.m);
+    assert_eq!(editor.selected, Some(later));
+}
+
+#[test]
+fn no_op_and_refused_moves_keep_redo() {
+    let mut editor = Editor::default();
+    let id = editor.scene.objects()[0].id;
+    editor.apply(Action::AddBox).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(
+        editor.move_object(id, [0.0; 3]).unwrap(),
+        Change::View
+    );
+    assert!(
+        editor
+            .move_object(id, [f64::NAN, 0.0, 0.0])
+            .is_err()
+    );
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 3);
+    editor.scene.remove(id);
+    assert_eq!(
+        editor.move_object(id, [1.0, 0.0, 0.0]),
+        Err("Object not found")
+    );
+}
+```
+
+## <a id="checkpoint-32giba-delete"></a>17. Delete the target while keeping later selection
+
+### 1. `src/editor.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                .edit(&mut self.scene, Scene::toggle_extra),
+            Action::SelectNext => self.selected = self.scene.next(self.selected),
+            Action::Delete => {
+                if let Some(id) = self.selected {
+                    let row = self
+                        .scene
+                        .objects()
+                        .iter()
+                        .find(|row| row.id == id)
+                        .ok_or("Object not found")?;
+                    if row.geometry().is_none() {
+                        return Err("Reload editable sources before Delete");
+                    }
+                }
+                if let Some(id) = self.selected.take() {
+                    self.history.edit(&mut self.scene, |scene| {
+                        scene.remove(id);
+                    });
+                }
+            }
+```
+
+Replace it with:
+
+```rust
+                .edit(&mut self.scene, Scene::toggle_extra),
+            Action::SelectNext => self.selected = self.scene.next(self.selected),
+            Action::Delete => {
+                return match self.selected {
+                    Some(id) => self.delete_object(id),
+                    None => Ok(Change::View),
+                };
+            }
+```
+
+**Locate this block:**
+
+```rust
+    }
+
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+```
+
+Replace it with:
+
+```rust
+    }
+
+    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
+        let row = self
+            .scene
+            .objects()
+            .iter()
+            .find(|row| row.id == id)
+            .ok_or("Object not found")?;
+        if row.geometry().is_none() {
+            return Err("Reload editable sources before Delete");
+        }
+        self.history.edit(&mut self.scene, |scene| {
+            scene.remove(id);
+        });
+        if self.selected == Some(id) {
+            self.selected = None;
+        }
+        Ok(Change::Scene)
+    }
+
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod camera;
+pub mod edit_intent;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod camera;
+#[cfg(test)]
+mod edit_delete_tests;
+pub mod edit_intent;
+```
+
+### 3. `src/edit_delete_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Action, Change, Editor},
+    reload_url::ReloadUrl,
+};
+use std::rc::Rc;
+
+#[test]
+fn captured_delete_keeps_later_selection_and_one_undo() {
+    let mut e = Editor::default();
+    let id = e.scene.objects()[0].id;
+    let intent = Intent::capture(&Action::Delete, Some(id))
+        .unwrap()
+        .unwrap();
+    let later = e.scene.objects()[1].id;
+    e.selected = Some(later);
+    e.apply(Action::Orbit(0.2, 0.1)).unwrap();
+    let camera = e.camera.uniform();
+    let Intent::Delete { id } = intent else {
+        panic!("Delete intent")
+    };
+    assert_eq!(e.delete_object(id).unwrap(), Change::Scene);
+    assert!(!e.scene.contains(id));
+    assert_eq!(e.selected, Some(later));
+    assert_eq!(e.camera.uniform(), camera);
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(e.scene.objects().len(), 2);
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(e.scene.objects().len(), 2);
+    e.apply(Action::Redo).unwrap();
+    assert!(!e.scene.contains(id));
+    assert_eq!(e.selected, Some(later));
+}
+
+#[test]
+fn refused_delete_keeps_redo_and_selection() {
+    let mut e = Editor::default();
+    e.apply(Action::ReplaceAt(
+        crate::specimen::bytes(),
+        Rc::new(ReloadUrl::new("test:delete".into())),
+    ))
+    .unwrap();
+    let cold = e.scene.objects()[0].id;
+    e.selected = Some(cold);
+    e.apply(Action::UnloadSources).unwrap();
+    e.apply(Action::AddBox).unwrap();
+    let added = e.scene.objects().last().unwrap().id;
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(
+        e.delete_object(cold),
+        Err("Reload editable sources before Delete")
+    );
+    assert_eq!(e.selected, Some(cold));
+    assert_eq!(
+        e.delete_object(added),
+        Err("Object not found")
+    );
+    e.selected = None;
+    assert_eq!(
+        e.apply(Action::Delete).unwrap(),
+        Change::View
+    );
+    e.apply(Action::Redo).unwrap();
+    assert!(e.scene.contains(added));
+    e.selected = Some(added);
+    e.delete_object(added).unwrap();
+    assert_eq!(e.selected, None);
+    e.apply(Action::Undo).unwrap();
+    assert!(e.scene.contains(added));
+}
+```
+
+## <a id="checkpoint-32gibb-reply"></a>18. Route captured Move, Delete and Save results
+
+### 1. `src/edit_replay.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Change, Editor},
+};
+
+#[derive(Debug, PartialEq)]
+pub enum Reply {
+    Changed(Change),
+    Saved(Vec<u8>),
+}
+
+impl Intent {
+    pub fn replay(self, editor: &mut Editor) -> Result<Reply, &'static str> {
+        match self {
+            Self::Move { id, offset } => editor
+                .move_object(id, offset)
+                .map(Reply::Changed),
+            Self::Delete { id } => editor.delete_object(id).map(Reply::Changed),
+            Self::Save => crate::document::snapshot(&editor.scene).map(Reply::Saved),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{editor::Action, reload_url::ReloadUrl};
+    use prost::Message;
+    use std::rc::Rc;
+
+    #[test]
+    fn save_reply_keeps_precision_and_does_not_consume_move_undo() {
+        let mut e = Editor::default();
+        e.apply(Action::Replace(crate::specimen::bytes()))
+            .unwrap();
+        let id = e.scene.objects()[0].id;
+        let original = e.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto();
+        let later = e.scene.objects()[1].id;
+        e.selected = Some(later);
+        let camera = e.camera.uniform();
+        let model = e.scene.objects()[0].model.m;
+        assert_eq!(
+            Intent::Move {
+                id,
+                offset: [0.25, 0.0, 0.0]
+            }
+            .replay(&mut e)
+            .unwrap(),
+            Reply::Changed(Change::Scene)
+        );
+        let Reply::Saved(bytes) = Intent::Save.replay(&mut e).unwrap() else {
+            panic!("Save reply")
+        };
+        let saved = session_rust::proto::Session::decode(bytes.as_slice()).unwrap();
+        assert_eq!(
+            saved.objects.unwrap().meshes[0].vertices,
+            original.vertices
+        );
+        e.apply(Action::Undo).unwrap();
+        assert_eq!(e.scene.objects()[0].model.m, model);
+        assert_eq!(e.selected, Some(later));
+        assert_eq!(e.camera.uniform(), camera);
+        assert_eq!(
+            Intent::Delete { id }.replay(&mut e).unwrap(),
+            Reply::Changed(Change::Scene)
+        );
+        assert!(!e.scene.contains(id));
+        assert_eq!(e.selected, Some(later));
+        e.apply(Action::Undo).unwrap();
+        assert!(e.scene.contains(id));
+    }
+
+    #[test]
+    fn cold_save_reply_fails_without_losing_redo() {
+        let mut e = Editor::default();
+        e.apply(Action::ReplaceAt(
+            crate::specimen::bytes(),
+            Rc::new(ReloadUrl::new("test:reply".into())),
+        ))
+        .unwrap();
+        e.apply(Action::UnloadSources).unwrap();
+        e.apply(Action::AddBox).unwrap();
+        let id = e.scene.objects().last().unwrap().id;
+        e.apply(Action::Undo).unwrap();
+        assert!(Intent::Save.replay(&mut e).is_err());
+        e.apply(Action::Redo).unwrap();
+        assert!(e.scene.contains(id));
+    }
+}
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+mod edit_move_tests;
+#[cfg(test)]
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod edit_move_tests;
+pub mod edit_replay;
+#[cfg(test)]
+```
+
+## <a id="checkpoint-32gic-owner"></a>19. Own the intent with its pending source ticket
+
+### 1. `src/reload_job.rs`
+
+**Locate this existing block:**
+
+```rust
+}
+
+struct Pending {
+    ticket: u64,
+    keys: Vec<ReloadKey>,
+}
+
+#[derive(Default)]
+pub struct ReloadJob {
+    issued: u64,
+    pending: Option<Pending>,
+}
+
+impl ReloadJob {
+    pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {
+        self.cancel();
+        if keys.is_empty() {
+            return Err("No released sources to reload");
+        }
+        let mut origins = std::collections::HashSet::new();
+        let mut urls = Vec::new();
+        for key in &keys {
+            if !origins.insert(key.origin.id) {
+                return Err("Duplicate reload origin");
+            }
+            let location = key
+                .origin
+                .location
+                .as_ref()
+                .ok_or("Source has no reload location")?;
+            urls.push(location.value().to_owned());
+        }
+        let ticket = self
+            .issued
+            .checked_add(1)
+            .ok_or("Reload tickets exhausted; reload the viewer")?;
+        self.issued = ticket;
+        self.pending = Some(Pending { ticket, keys });
+        Ok(Request { ticket, urls })
+    }
+
+    pub fn pending(&self) -> Option<u64> {
+        self.pending
+            .as_ref()
+            .map(|pending| pending.ticket)
+    }
+
+    pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {
+        if self.pending() != Some(ticket) {
+            return None;
+        }
+        self.pending
+            .take()
+            .map(|pending| pending.keys)
+    }
+
+    pub fn cancel(&mut self) -> bool {
+        self.pending.take().is_some()
+    }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+}
+
+struct Pending<P> {
+    ticket: u64,
+    keys: Vec<ReloadKey>,
+    payload: P,
+}
+
+pub struct ReloadJob<P = ()> {
+    issued: u64,
+    pending: Option<Pending<P>>,
+}
+
+impl<P> Default for ReloadJob<P> {
+    fn default() -> Self {
+        Self {
+            issued: 0,
+            pending: None,
+        }
+    }
+}
+
+impl<P> ReloadJob<P> {
+    pub fn begin_with(
+        &mut self,
+        keys: Vec<ReloadKey>,
+        payload: P,
+    ) -> Result<Request, &'static str> {
+        self.cancel();
+        if keys.is_empty() {
+            return Err("No released sources to reload");
+        }
+        let mut origins = std::collections::HashSet::new();
+        let mut urls = Vec::new();
+        for key in &keys {
+            if !origins.insert(key.origin.id) {
+                return Err("Duplicate reload origin");
+            }
+            let location = key
+                .origin
+                .location
+                .as_ref()
+                .ok_or("Source has no reload location")?;
+            urls.push(location.value().to_owned());
+        }
+        let ticket = self
+            .issued
+            .checked_add(1)
+            .ok_or("Reload tickets exhausted; reload the viewer")?;
+        self.issued = ticket;
+        self.pending = Some(Pending {
+            ticket,
+            keys,
+            payload,
+        });
+        Ok(Request { ticket, urls })
+    }
+
+    pub fn pending(&self) -> Option<u64> {
+        self.pending
+            .as_ref()
+            .map(|pending| pending.ticket)
+    }
+
+    pub fn finish_with(&mut self, ticket: u64) -> Option<(Vec<ReloadKey>, P)> {
+        if self.pending() != Some(ticket) {
+            return None;
+        }
+        self.pending
+            .take()
+            .map(|pending| (pending.keys, pending.payload))
+    }
+
+    pub fn cancel(&mut self) -> bool {
+        self.pending.take().is_some()
+    }
+}
+
+impl ReloadJob<()> {
+    pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {
+        self.begin_with(keys, ())
+    }
+    pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {
+        self.finish_with(ticket)
+            .map(|(keys, ())| keys)
+    }
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+mod edit_move_tests;
+pub mod edit_replay;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod edit_move_tests;
+#[cfg(test)]
+mod edit_owner_tests;
+pub mod edit_replay;
+```
+
+### 3. `src/edit_owner_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Action, Editor},
+    reload_job::ReloadJob,
+    reload_url::ReloadUrl,
+};
+use std::rc::Rc;
+
+#[test]
+fn only_current_ticket_consumes_its_captured_intent_once() {
+    let mut e = Editor::default();
+    e.apply(Action::ReplaceAt(
+        crate::specimen::bytes(),
+        Rc::new(ReloadUrl::new("test:owner".into())),
+    ))
+    .unwrap();
+    let id = e.scene.objects()[0].id;
+    e.apply(Action::UnloadSources).unwrap();
+    let mut job = ReloadJob::<Intent>::default();
+    let first = job
+        .begin_with(
+            e.reload_keys(),
+            Intent::Move {
+                id,
+                offset: [1.0, 0.0, 0.0],
+            },
+        )
+        .unwrap();
+    let second = job
+        .begin_with(e.reload_keys(), Intent::Save)
+        .unwrap();
+    assert!(job.finish_with(first.ticket).is_none());
+    assert_eq!(job.pending(), Some(second.ticket));
+    let (keys, intent) = job.finish_with(second.ticket).unwrap();
+    assert_eq!(intent, Intent::Save);
+    assert_eq!(keys.len(), 1);
+    assert!(job.finish_with(second.ticket).is_none());
+    let third = job
+        .begin_with(e.reload_keys(), Intent::Delete { id })
+        .unwrap();
+    assert!(job.cancel());
+    assert!(job.finish_with(third.ticket).is_none());
+}
+
+#[test]
+fn cancelled_payload_keeps_no_document_owner_alive() {
+    let mut e = Editor::default();
+    e.apply(Action::ReplaceAt(
+        crate::specimen::bytes(),
+        Rc::new(ReloadUrl::new("test:drop".into())),
+    ))
+    .unwrap();
+    let source = Rc::downgrade(e.scene.objects()[0].geometry().unwrap());
+    e.apply(Action::UnloadSources).unwrap();
+    assert!(source.upgrade().is_none());
+    let keys = e.reload_keys();
+    let origin = Rc::downgrade(&keys[0].origin);
+    let mut job = ReloadJob::<Intent>::default();
+    job.begin_with(keys, Intent::Save).unwrap();
+    e.apply(Action::Close).unwrap();
+    assert!(origin.upgrade().is_some());
+    assert!(job.cancel());
+    assert!(origin.upgrade().is_none());
+}
+```
+
+## <a id="checkpoint-32gica-reply"></a>20. Pair captured intent with complete source bodies
+
+### 1. `src/reload_reply.rs`
+
+Create the file and type:
+
+```rust
+use crate::{edit_intent::Intent, rehydrate::ReloadKey};
+
+pub struct Reply {
+    pub intent: Option<Intent>,
+    pub result: Result<Vec<(ReloadKey, Vec<u8>)>, String>,
+}
+
+impl Reply {
+    pub fn new(
+        keys: Vec<ReloadKey>,
+        intent: Option<Intent>,
+        values: Result<Vec<Vec<u8>>, String>,
+    ) -> Self {
+        let result = values.and_then(|values| {
+            if values.len() != keys.len() {
+                return Err("Reload body count does not match its keys".into());
+            }
+            Ok(keys.into_iter().zip(values).collect())
+        });
+        Self { intent, result }
+    }
+}
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod reload_job;
+pub mod reload_url;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod reload_job;
+pub mod reload_reply;
+#[cfg(test)]
+mod reload_reply_tests;
+pub mod reload_url;
+```
+
+### 3. `src/reload_reply_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Action, Editor},
+    reload_job::ReloadJob,
+    reload_reply::Reply,
+    reload_url::ReloadUrl,
+};
+use std::rc::Rc;
+
+fn cold() -> (Editor, Vec<u8>) {
+    let mut e = Editor::default();
+    let bytes = crate::specimen::bytes();
+    e.apply(Action::ReplaceAt(
+        bytes.clone(),
+        Rc::new(ReloadUrl::new("test:delivery".into())),
+    ))
+    .unwrap();
+    e.apply(Action::UnloadSources).unwrap();
+    (e, bytes)
+}
+
+#[test]
+fn matched_reply_keeps_captured_operation_and_original_bytes() {
+    for operation in 0..3 {
+        let (mut e, bytes) = cold();
+        let id = e.scene.objects()[0].id;
+        let intent = match operation {
+            0 => Intent::Move {
+                id,
+                offset: [0.25, 0.0, 0.0],
+            },
+            1 => Intent::Delete { id },
+            _ => Intent::Save,
+        };
+        let mut job = ReloadJob::default();
+        let request = job
+            .begin_with(e.reload_keys(), Some(intent.clone()))
+            .unwrap();
+        let (keys, captured) = job.finish_with(request.ticket).unwrap();
+        let reply = Reply::new(keys, captured, Ok(vec![bytes.clone()]));
+        assert_eq!(reply.intent, Some(intent));
+        let rows = reply.result.unwrap();
+        assert_eq!(rows[0].1, bytes);
+        let selected = e.selected;
+        let camera = e.camera.uniform();
+        let model = e.scene.objects()[0].model.m;
+        assert!(e.hydrate(rows).unwrap());
+        assert_eq!(e.selected, selected);
+        assert_eq!(e.camera.uniform(), camera);
+        assert_eq!(
+            e.scene.objects()[0].model.m,
+            model,
+            "delivering bodies must not replay the operation yet"
+        );
+        assert!(job.finish_with(request.ticket).is_none());
+    }
+}
+
+#[test]
+fn failures_preserve_operation_and_refuse_partial_body_pairs() {
+    let (e, bytes) = cold();
+    let id = e.scene.objects()[0].id;
+    let intent = Some(Intent::Delete { id });
+    let failed = Reply::new(
+        e.reload_keys(),
+        intent.clone(),
+        Err("Network failed".into()),
+    );
+    assert_eq!(failed.intent, intent);
+    assert_eq!(
+        failed.result.err().unwrap(),
+        "Network failed"
+    );
+    for bodies in [vec![], vec![vec![1], vec![2]]] {
+        let reply = Reply::new(
+            e.reload_keys(),
+            Some(Intent::Save),
+            Ok(bodies),
+        );
+        assert_eq!(reply.intent, Some(Intent::Save));
+        assert_eq!(
+            reply.result.err().unwrap(),
+            "Reload body count does not match its keys"
+        );
+    }
+    let reply = Reply::new(e.reload_keys(), None, Ok(vec![bytes]));
+    assert!(reply.intent.is_none());
+    assert_eq!(reply.result.unwrap().len(), 1);
+}
+```
+
+## <a id="checkpoint-32gicb-bridge"></a>21. Carry captured intent through browser completion
+
+### 1. `src/browser_reload.rs`
+
+**Locate this existing block:**
+
+```rust
+pub type Shared = Rc<RefCell<Flight>>;
+
+pub type Reply = Result<Vec<(ReloadKey, Vec<u8>)>, String>;
+pub type Delivery = Rc<RefCell<Option<Reply>>>;
+
+pub fn start(
+    shared: Shared,
+    keys: Vec<ReloadKey>,
+    delivery: Delivery,
+) -> Result<(), String> {
+    let (request, signal) = shared.borrow_mut().begin(keys)?;
+    crate::browser::report("Reloading editable sources…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result: Result<Vec<Vec<u8>>, String> = async {
+            let mut values = Vec::new();
+            for url in request.urls {
+                values.push(crate::source_fetch::fetch(&url, &signal).await?);
+            }
+            Ok(values)
+        }
+        .await;
+        let Some(keys) = shared
+            .borrow_mut()
+            .finish(request.ticket, result.is_err())
+        else {
+            return;
+        };
+        let result = result.map(|values| keys.into_iter().zip(values).collect());
+        if let Err(error) = deliver(result, &delivery) {
+            crate::browser::report(&format!("Cannot deliver reload: {error:?}"));
+        }
+    });
+    Ok(())
+}
+
+fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsValue> {
+    let event = web_sys::Event::new("viewer-reload")?;
+    *delivery.borrow_mut() = Some(result);
+    let result = web_sys::window()
+        .ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
         .and_then(|window| window.dispatch_event(&event));
     delivery.borrow_mut().take();
     result.map(|_| ())
@@ -3792,13 +2784,19 @@ pub struct Flight {
 impl Flight {
     pub fn cancel(&mut self) -> bool {
         let cancelled = self.job.cancel();
-        if let Some(controller) = self.controller.take() { controller.abort(); }
+        if let Some(controller) = self.controller.take() {
+            controller.abort();
+        }
         cancelled
     }
 
-    fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<(Request, web_sys::AbortSignal), String> {
+    fn begin(
+        &mut self,
+        keys: Vec<ReloadKey>,
+    ) -> Result<(Request, web_sys::AbortSignal), String> {
         self.cancel();
-        let controller = web_sys::AbortController::new().map_err(|error| format!("Cannot start reload: {error:?}"))?;
+        let controller = web_sys::AbortController::new()
+            .map_err(|error| format!("Cannot start reload: {error:?}"))?;
         let request = self.job.begin(keys)?;
         let signal = controller.signal();
         self.controller = Some(controller);
@@ -3807,39 +2805,48 @@ impl Flight {
 
     fn finish(&mut self, ticket: u64, failed: bool) -> Option<Vec<ReloadKey>> {
         let keys = self.job.finish(ticket)?;
-        if let Some(controller) = self.controller.take() { if failed { controller.abort(); } }
-        Some(keys)
-    }
-}
+        if let Some(controller) = self.controller.take() {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{rehydrate::ReloadKey, reload_job::{ReloadJob, Request}};
-use std::{cell::RefCell, rc::Rc};
-
 pub type Shared = Rc<RefCell<Flight>>;
 
 pub type Reply = crate::reload_reply::Reply;
 pub type Delivery = Rc<RefCell<Option<Reply>>>;
 
-pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
+pub fn start(
+    shared: Shared,
+    keys: Vec<ReloadKey>,
+    delivery: Delivery,
+) -> Result<(), String> {
     start_with(shared, keys, None, delivery)
 }
 
-pub fn start_with(shared: Shared, keys: Vec<ReloadKey>, intent: Option<crate::edit_intent::Intent>, delivery: Delivery) -> Result<(), String> {
+pub fn start_with(
+    shared: Shared,
+    keys: Vec<ReloadKey>,
+    intent: Option<crate::edit_intent::Intent>,
+    delivery: Delivery,
+) -> Result<(), String> {
     let (request, signal) = shared.borrow_mut().begin(keys, intent)?;
     crate::browser::report("Reloading editable sources…");
     wasm_bindgen_futures::spawn_local(async move {
         let result: Result<Vec<Vec<u8>>, String> = async {
             let mut values = Vec::new();
-            for url in request.urls { values.push(crate::source_fetch::fetch(&url, &signal).await?); }
+            for url in request.urls {
+                values.push(crate::source_fetch::fetch(&url, &signal).await?);
+            }
             Ok(values)
-        }.await;
-        let Some((keys, intent)) = shared.borrow_mut().finish(request.ticket, result.is_err()) else { return; };
+        }
+        .await;
+        let Some((keys, intent)) = shared
+            .borrow_mut()
+            .finish(request.ticket, result.is_err())
+        else {
+            return;
+        };
         let reply = Reply::new(keys, intent, result);
         if let Err(error) = deliver(reply, &delivery) {
             crate::browser::report(&format!("Cannot deliver reload: {error:?}"));
@@ -3851,7 +2858,8 @@ pub fn start_with(shared: Shared, keys: Vec<ReloadKey>, intent: Option<crate::ed
 fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsValue> {
     let event = web_sys::Event::new("viewer-reload")?;
     *delivery.borrow_mut() = Some(result);
-    let result = web_sys::window().ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
+    let result = web_sys::window()
+        .ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
         .and_then(|window| window.dispatch_event(&event));
     delivery.borrow_mut().take();
     result.map(|_| ())
@@ -3866,1781 +2874,790 @@ pub struct Flight {
 impl Flight {
     pub fn cancel(&mut self) -> bool {
         let cancelled = self.job.cancel();
-        if let Some(controller) = self.controller.take() { controller.abort(); }
+        if let Some(controller) = self.controller.take() {
+            controller.abort();
+        }
         cancelled
     }
 
-    fn begin(&mut self, keys: Vec<ReloadKey>, intent: Option<crate::edit_intent::Intent>) -> Result<(Request, web_sys::AbortSignal), String> {
+    fn begin(
+        &mut self,
+        keys: Vec<ReloadKey>,
+        intent: Option<crate::edit_intent::Intent>,
+    ) -> Result<(Request, web_sys::AbortSignal), String> {
         self.cancel();
-        let controller = web_sys::AbortController::new().map_err(|error| format!("Cannot start reload: {error:?}"))?;
+        let controller = web_sys::AbortController::new()
+            .map_err(|error| format!("Cannot start reload: {error:?}"))?;
         let request = self.job.begin_with(keys, intent)?;
         let signal = controller.signal();
         self.controller = Some(controller);
         Ok((request, signal))
     }
 
-    fn finish(&mut self, ticket: u64, failed: bool) -> Option<(Vec<ReloadKey>, Option<crate::edit_intent::Intent>)> {
+    fn finish(
+        &mut self,
+        ticket: u64,
+        failed: bool,
+    ) -> Option<(
+        Vec<ReloadKey>,
+        Option<crate::edit_intent::Intent>,
+    )> {
         let keys = self.job.finish_with(ticket)?;
-        if let Some(controller) = self.controller.take() { if failed { controller.abort(); } }
-        Some(keys)
-    }
-}
+        if let Some(controller) = self.controller.take() {
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gicb-bridge-01.rs"
-```
-
-```text
---8<-- "journey/code/32gicb-bridge-02.rs"
-```
-
-```text
---8<-- "journey/code/32gicb-bridge-03.rs"
-```
-
-```text
---8<-- "journey/code/32gicb-bridge-04.rs"
-```
-
-```text
---8<-- "journey/code/32gicb-bridge-05.rs"
-```
-
-```text
---8<-- "journey/code/32gicb-bridge-06.rs"
-```
-
-```text
---8<-- "journey/code/32gicb-bridge-07.rs"
-```
-
-</details>
 
 ### 2. `src/browser.rs`
 
-Keep the existing explicit source-restoration receiver reading the reply body.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-            if let Some(result) = reload_delivery.borrow_mut().take() {
-                match result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
+            } else if event.type_() == "viewer-reload" {
+                if let Some(result) = reload_delivery.borrow_mut().take() {
+                    match result.and_then(|values| {
+                        editor.hydrate(values).map_err(str::to_owned)
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                match reply.result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
+            } else if event.type_() == "viewer-reload" {
+                if let Some(reply) = reload_delivery.borrow_mut().take() {
+                    match reply.result.and_then(|values| {
+                        editor.hydrate(values).map_err(str::to_owned)
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gicb-bridge-08.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gid-complete"></a>
-
-<details>
-<summary>Implementation 32gid-complete: Validate restoration before replaying the command</summary>
-
-Complete source restoration and replay the captured operation only after current document validation.
-
-Data flow: Reply → complete bodies → current keys and versions → hydrate → captured Intent → edit result.
+## <a id="checkpoint-32gid-complete"></a>22. Validate restoration before replaying the command
 
 ### 1. `src/reload_reply.rs`
 
-Validate every current source key and body before replay; a stale context produces no reply.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 impl Reply {
+    pub fn new(
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gid-complete-01.rs" skip=13
+impl Reply {
+    pub fn complete(
+        self,
+        editor: &mut crate::editor::Editor,
+    ) -> Result<Option<crate::edit_replay::Reply>, String> {
+        if !editor
+            .hydrate(self.result?)
+            .map_err(str::to_owned)?
+        {
+            return Ok(None);
+        }
+        let reply = match self.intent {
+            Some(intent) => intent
+                .replay(editor)
+                .map_err(str::to_owned)?,
+            None => crate::edit_replay::Reply::Changed(crate::editor::Change::Scene),
+        };
+        Ok(Some(reply))
+    }
+
+    pub fn new(
 ```
 
 ### 2. `src/lib.rs`
 
-Register native completion checks separately from the body-pairing checks.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-mod reload_reply_tests;
+mod rehydrate_tests;
+pub mod reload_job;
 ```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gid-complete-02.rs" skip=24
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/reload_complete_tests.rs`
-
-Optional authoring fixture. Prove automatic native Move/Delete/Save completion, original target, later selection/camera, Undo, and stale or failed completion.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/32gid-complete-03.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gie-response"></a>
-
-<details>
-<summary>Implementation 32gie-response: Deliver restored edit and Save results to the dock</summary>
-
-Route validated scene edits and original-precision downloads back to the captured command history.
-
-Data flow: Current completion → captured command name → complete → Changed or Saved → dock answer.
-
-### 1. `src/edit_intent.rs`
-
-Name the captured operation independently of the current input field or selection.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-impl Intent {
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/32gie-response-01.rs" skip=14
-```
-
-### 2. `src/browser.rs`
-
-Consume validated edit or Save results and associate success or failure with the original command. Keep download handling shared by immediate and restored Save results.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                match reply.result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
-                    Ok(true) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = "Editable sources restored; display retained.";
-                        report(message); panel.answer("Reload Sources", message);
-                    }
-                    Ok(false) => {}
-                    Err(error) => { report(&error); panel.answer("Reload Sources", &error); }
-                }
-            }
-            None
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
-                match reply.complete(&mut editor) {
-                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = if command == "Reload Sources" {
-                            "Editable sources restored; display retained.".to_owned()
-                        } else { format!("{command} completed after source reload.") };
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
-                        let message = save_result(&bytes).unwrap_or_else(|error| error);
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(None) => {}
-                    Err(error) => { report(&error); panel.answer(command, &error); }
-                }
-            }
-            None
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    }
-}
-
-fn save_result(bytes: &[u8]) -> Result<String, String> {
-    crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
-        .map_err(|error| format!("Save failed: {error:?}"))
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-fn save_result(bytes: &[u8]) -> Result<String, String> {
-    crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
-        .map_err(|error| format!("Save failed: {error:?}"))
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = Editor::default();
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Open",
-            "Open Replace",
-            "Cancel Open",
-            "Close",
-            "Unload Sources",
-            "Reload Sources",
-            "Cancel Reload",
-            "Save",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Perspective",
-            "View Orthographic",
-            "Fit",
-            "Fit Selected",
-            "Move",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            &mut panel,
-        )?;
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
-                match reply.complete(&mut editor) {
-                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = if command == "Reload Sources" {
-                            "Editable sources restored; display retained.".to_owned()
-                        } else { format!("{command} completed after source reload.") };
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
-                        let message = save_result(&bytes).unwrap_or_else(|error| error);
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(None) => {}
-                    Err(error) => { report(&error); panel.answer(command, &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "reload sources" {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            } else if line == "cancel reload" {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            } else if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            } else if line == "open" || line == "open replace" {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if line == "open replace" { reload.borrow_mut().cancel(); }
-                read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            } else if line == "save" {
-                match crate::document::snapshot(&editor.scene) {
-                    Ok(bytes) => match crate::file_output::download(&bytes) {
-                        Ok(()) => panel.result(&format!("Saved editable document ({} bytes)", bytes.len())),
-                        Err(error) => panel.result(&format!("Save failed: {error:?}")),
-                    },
-                    Err(error) => panel.result(error),
-                }
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-                    Ok(offset) => Some(Action::Translate(offset)),
-                    Err(error) => { panel.result(error); None }
-                }
-            } else {
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
-                    "example triangle" => Action::ToggleExtra,
-                    "select next" => Action::SelectNext,
-                    "delete" => Action::Delete,
-                    "undo" => Action::Undo,
-                    "redo" => Action::Redo,
-                    "background" => Action::Background,
-                    "zoom in" => Action::Zoom(2.0),
-                    "zoom out" => Action::Zoom(0.5),
-                    "pan left" => Action::Pan(-0.25, 0.0),
-                    "pan right" => Action::Pan(0.25, 0.0),
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "view perspective" => {
-                        Action::Projection(crate::camera::Projection::Perspective)
-                    }
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" if shortcut.is_some() && editor.selected.is_some() => Action::FitSelected,
-                    "fit" => Action::Fit,
-
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
-                Some(action)
-            }
-        } else if !panel.consumed {
-            navigation_action(&event, &pointer_canvas, &mut gesture)
-        } else {
-            None
-        };
-        if let Some(action) = action {
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", error); }
-                    else { panel.result(error); }
-                }
-            }
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        update.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-reload", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            crate::navigation::wheel(
-                wheel.delta_y(),
-                mode,
-                canvas.get_bounding_client_rect().height(),
-            )
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _ => return pointer_action(event, canvas, gesture),
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    motion.action([rect.left(), rect.top(), rect.width(), rect.height()])
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        window.device_pixel_ratio(),
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gie-response-02.rs"
-```
-
-```text
---8<-- "journey/code/32gie-response-03.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-32gif-auto"></a>
-
-<details>
-<summary>Implementation 32gif-auto: Automatically restore sources for Move, Delete and Save</summary>
-
-Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
-
-Data flow: Typed command → capture original intent → required cold keys → fetch → validated completion → one edit or download.
-
-### 1. `src/browser_reload.rs`
-
-A new edit supersedes older pending work. Warm edits need no fetch; cold edits capture their required keys and operation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub fn restore_for(intent: crate::edit_intent::Intent, editor: &crate::editor::Editor, shared: Shared, delivery: Delivery) -> Result<bool, String> {
-    let keys = intent.keys(editor).map_err(str::to_owned)?;
-    shared.borrow_mut().cancel();
-    if keys.is_empty() { return Ok(false); }
-    start_with(shared, keys, Some(intent), delivery)?;
-    Ok(true)
+mod rehydrate_tests;
+#[cfg(test)]
+mod reload_complete_tests;
+pub mod reload_job;
+```
+
+### 3. `src/reload_complete_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    edit_intent::Intent,
+    edit_replay::Reply as Edit,
+    editor::{Action, Editor},
+    reload_reply::Reply,
+    reload_url::ReloadUrl,
+};
+use std::rc::Rc;
+
+fn cold() -> (Editor, Vec<u8>) {
+    let mut e = Editor::default();
+    let bytes = crate::specimen::bytes();
+    e.apply(Action::ReplaceAt(
+        bytes.clone(),
+        Rc::new(ReloadUrl::new("test:complete".into())),
+    ))
+    .unwrap();
+    e.apply(Action::UnloadSources).unwrap();
+    (e, bytes)
 }
 
-pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
-```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gif-auto-01.rs"
-```
-
-</details>
-
-### 2. `src/browser.rs`
-
-Save reloads every active cold source before producing its original-precision download; warm Save remains immediate. Capture Move/Delete before fetching; camera and selection commands remain immediate while pending work keeps its original target. A deferred command has no scene change yet; failures retain normal dock reporting. Expose read-only placement, selection and camera values so Chrome checks the original target and later view exactly. These values add no controls.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
+#[test]
+fn complete_replays_original_target_and_keeps_later_view() {
+    for kind in 0..3 {
+        let (mut e, bytes) = cold();
+        let id = e.scene.objects()[0].id;
+        let intent = match kind {
+            0 => Intent::Move {
+                id,
+                offset: [0.25, 0.0, 0.0],
+            },
+            1 => Intent::Delete { id },
+            _ => Intent::Save,
+        };
+        let keys = intent.keys(&e).unwrap();
+        e.selected = Some(e.scene.objects()[1].id);
+        e.apply(Action::Orbit(0.2, 0.1)).unwrap();
+        let selected = e.selected;
+        let camera = e.camera.uniform();
+        let model = e.scene.objects()[0].model.m;
+        let reply = Reply::new(keys, Some(intent), Ok(vec![bytes]));
+        let result = reply.complete(&mut e).unwrap().unwrap();
+        assert_eq!(e.selected, selected);
+        assert_eq!(e.camera.uniform(), camera);
+        match result {
+            Edit::Changed(_) => {
+                if kind == 0 {
+                    assert_ne!(e.scene.objects()[0].model.m, model);
+                } else {
+                    assert!(!e.scene.contains(id));
                 }
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", error); }
-                    else { panel.result(error); }
-                }
+                e.apply(Action::Undo).unwrap();
+                assert_eq!(e.scene.objects()[0].model.m, model);
+                assert!(e.scene.contains(id));
             }
-        }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Some(Change::View)) | Ok(None) => {}
-                Err(error) => {
-                    report(&error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", &error); }
-                    else { panel.result(&error); }
-                }
+            Edit::Saved(bytes) => {
+                let loaded = crate::document::load(&bytes).unwrap();
+                assert_eq!(loaded.meshes.len(), e.scene.objects().len());
             }
-        }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = crate::edit_intent::Intent::capture(&action, editor.selected)
-                .map_err(str::to_owned).and_then(|intent| match intent {
-                    Some(intent) => crate::browser_reload::restore_for(intent, &editor,
-                        std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
-                    None => Ok(false),
-                });
-            let change = waiting.and_then(|waiting| {
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                }
-                None
-            } else if line == "save" {
-                match crate::document::snapshot(&editor.scene) {
-                    Ok(bytes) => match crate::file_output::download(&bytes) {
-                        Ok(()) => panel.result(&format!("Saved editable document ({} bytes)", bytes.len())),
-                        Err(error) => panel.result(&format!("Save failed: {error:?}")),
-                    },
-                    Err(error) => panel.result(error),
-                }
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                }
-                None
-            } else if line == "save" {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::document::snapshot(&editor.scene).map_err(str::to_owned)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
         }
     }
 }
 
+#[test]
+fn stale_context_and_failure_cannot_replay() {
+    let (mut e, bytes) = cold();
+    let keys = e.reload_keys();
+    let reply = Reply::new(keys, Some(Intent::Save), Ok(vec![bytes]));
+    e.apply(Action::Close).unwrap();
+    assert!(reply.complete(&mut e).unwrap().is_none());
+    let (mut e, _) = cold();
+    let model = e.scene.objects()[0].model.m;
+    let reply = Reply::new(
+        e.reload_keys(),
+        Some(Intent::Move {
+            id: e.scene.objects()[0].id,
+            offset: [1.0, 0.0, 0.0],
+        }),
+        Err("Network failed".into()),
+    );
+    assert_eq!(
+        reply.complete(&mut e).unwrap_err(),
+        "Network failed"
+    );
+    assert_eq!(e.scene.objects()[0].model.m, model);
+    assert!(e.scene.objects()[0].geometry().is_none());
+}
+```
+
+## <a id="checkpoint-32gie-response"></a>23. Deliver restored edit and Save results to the dock
+
+### 1. `src/edit_intent.rs`
+
+**Locate this existing block:**
+
+```rust
+impl Intent {
+    pub fn keys(&self, editor: &Editor) -> Result<Vec<ReloadKey>, &'static str> {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+impl Intent {
+    pub fn command(self) -> &'static str {
+        match self {
+            Self::Move { .. } => "Move",
+            Self::Delete { .. } => "Delete",
+            Self::Save => "Save",
+        }
+    }
+
+    pub fn keys(&self, editor: &Editor) -> Result<Vec<ReloadKey>, &'static str> {
+```
+
+### 2. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                None
+            } else if event.type_() == "viewer-reload" {
+                if let Some(reply) = reload_delivery.borrow_mut().take() {
+                    match reply.result.and_then(|values| {
+                        editor.hydrate(values).map_err(str::to_owned)
+                    }) {
+                        Ok(true) => {
+                            renderer.set_scene(&editor.scene, editor.selected);
+                            let message =
+                                "Editable sources restored; display retained.";
+                            report(message);
+                            panel.answer("Reload Sources", message);
+                        }
+                        Ok(false) => {}
+                        Err(error) => {
+                            report(&error);
+                            panel.answer("Reload Sources", &error);
+                        }
+```
+
+Replace it with:
+
+```rust
+                None
+            } else if event.type_() == "viewer-reload" {
+                if let Some(reply) = reload_delivery.borrow_mut().take() {
+                    let command = reply
+                        .intent
+                        .map_or("Reload Sources", |intent| intent.command());
+                    match reply.complete(&mut editor) {
+                        Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
+                            renderer.set_scene(&editor.scene, editor.selected);
+                            let message = if command == "Reload Sources" {
+                                "Editable sources restored; display retained."
+                                    .to_owned()
+                            } else {
+                                format!("{command} completed after source reload.")
+                            };
+                            report(&message);
+                            panel.answer(command, &message);
+                        }
+                        Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
+                            let message =
+                                save_result(&bytes).unwrap_or_else(|error| error);
+                            report(&message);
+                            panel.answer(command, &message);
+                        }
+                        Ok(None) => {}
+                        Err(error) => {
+                            report(&error);
+                            panel.answer(command, &error);
+                        }
+```
+
+**Locate this block:**
+
+```rust
+}
+
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+```
+
+Replace it with:
+
+```rust
+}
+
 fn save_result(bytes: &[u8]) -> Result<String, String> {
     crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
+        .map(|()| {
+            format!(
+                "Saved editable document ({} bytes)",
+                bytes.len()
+            )
+        })
         .map_err(|error| format!("Save failed: {error:?}"))
 }
 
 pub async fn run() -> Result<(), JsValue> {
     let window = web_sys::window().ok_or("No browser window")?;
     let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = Editor::default();
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Open",
-            "Open Replace",
-            "Cancel Open",
-            "Close",
-            "Unload Sources",
-            "Reload Sources",
-            "Cancel Reload",
-            "Save",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Perspective",
-            "View Orthographic",
-            "Fit",
-            "Fit Selected",
-            "Move",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            &mut panel,
-        )?;
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
+```
 
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
-                match reply.complete(&mut editor) {
-                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
-                        renderer.set_scene(&editor.scene, editor.selected);
-                        let message = if command == "Reload Sources" {
-                            "Editable sources restored; display retained.".to_owned()
-                        } else { format!("{command} completed after source reload.") };
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
-                        let message = save_result(&bytes).unwrap_or_else(|error| error);
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(None) => {}
-                    Err(error) => { report(&error); panel.answer(command, &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "reload sources" {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            } else if line == "cancel reload" {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            } else if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            } else if line == "open" || line == "open replace" {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if line == "open replace" { reload.borrow_mut().cancel(); }
-                read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            } else if line == "save" {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::document::snapshot(&editor.scene).map_err(str::to_owned)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-                    Ok(offset) => Some(Action::Translate(offset)),
-                    Err(error) => { panel.result(error); None }
-                }
-            } else {
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
-                    "example triangle" => Action::ToggleExtra,
-                    "select next" => Action::SelectNext,
-                    "delete" => Action::Delete,
-                    "undo" => Action::Undo,
-                    "redo" => Action::Redo,
-                    "background" => Action::Background,
-                    "zoom in" => Action::Zoom(2.0),
-                    "zoom out" => Action::Zoom(0.5),
-                    "pan left" => Action::Pan(-0.25, 0.0),
-                    "pan right" => Action::Pan(0.25, 0.0),
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "view perspective" => {
-                        Action::Projection(crate::camera::Projection::Perspective)
-                    }
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" if shortcut.is_some() && editor.selected.is_some() => Action::FitSelected,
-                    "fit" => Action::Fit,
+## <a id="checkpoint-32gif-auto"></a>24. Automatically restore sources for Move, Delete and Save
 
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
-                Some(action)
-            }
-        } else if !panel.consumed {
-            navigation_action(&event, &pointer_canvas, &mut gesture)
-        } else {
-            None
-        };
-        if let Some(action) = action {
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = crate::edit_intent::Intent::capture(&action, editor.selected)
-                .map_err(str::to_owned).and_then(|intent| match intent {
-                    Some(intent) => crate::browser_reload::restore_for(intent, &editor,
-                        std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
-                    None => Ok(false),
-                });
-            let change = waiting.and_then(|waiting| {
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Some(Change::View)) | Ok(None) => {}
-                Err(error) => {
-                    report(&error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", &error); }
-                    else { panel.result(&error); }
-                }
-            }
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
+### 1. `src/browser_reload.rs`
+
+**Locate this existing block:**
+
+```rust
+pub type Delivery = Rc<RefCell<Option<Reply>>>;
+
+pub fn start(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub type Delivery = Rc<RefCell<Option<Reply>>>;
+
+pub fn restore_for(
+    intent: crate::edit_intent::Intent,
+    editor: &crate::editor::Editor,
+    shared: Shared,
+    delivery: Delivery,
+) -> Result<bool, String> {
+    let keys = intent.keys(editor).map_err(str::to_owned)?;
+    shared.borrow_mut().cancel();
+    if keys.is_empty() {
+        return Ok(false);
     }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        update.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-reload", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
+    start_with(shared, keys, Some(intent), delivery)?;
+    Ok(true)
 }
 
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
+pub fn start(
+```
+
+### 2. `src/browser.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
     let canvas = document
         .get_element_by_id("canvas")
         .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
+    canvas.set_attribute(
+```
 
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            crate::navigation::wheel(
-                wheel.delta_y(),
-                mode,
-                canvas.get_bounding_client_rect().height(),
-            )
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _ => return pointer_action(event, canvas, gesture),
-    }?;
-    event.prevent_default();
-    Some(action)
-}
+Replace it with:
 
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
+```rust
+    let canvas = document
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    let placements: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|row| (format!("{:?}", row.id), row.model.m))
+        .collect();
+    canvas.set_attribute(
+        "data-row-placements",
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
+        "data-selected-id",
+        &editor
+            .selected
+            .map(|id| format!("{id:?}"))
+            .unwrap_or_default(),
+    )?;
+    canvas.set_attribute(
+        "data-camera-matrix",
+        &serde_json::to_string(&editor.camera.view_projection().m)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
+```
+
+**Locate this block:**
+
+```rust
+                            );
+                        }
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        if event.type_() == "viewer-file" {
+                            panel.answer("Open", error);
+                        } else {
+                            panel.result(error);
+                        }
+                    }
                 }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    motion.action([rect.left(), rect.top(), rect.width(), rect.height()])
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        window.device_pixel_ratio(),
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
 ```
 
-</details>
+Replace it with:
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/32gif-auto-02.rs"
+```rust
+                            );
+                        }
+                    }
+                    Ok(Some(Change::View)) | Ok(None) => {}
+                    Err(error) => {
+                        report(&error);
+                        if event.type_() == "viewer-file" {
+                            panel.answer("Open", &error);
+                        } else {
+                            panel.result(&error);
+                        }
+                    }
+                }
 ```
 
-```text
---8<-- "journey/code/32gif-auto-03.rs"
+**Locate this block:**
+
+```rust
+                );
+                let closing = matches!(&action, Action::Close);
+                let unloading = matches!(&action, Action::UnloadSources);
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if unloading {
+                            report("Editable sources unloaded; display retained.");
 ```
 
-```text
---8<-- "journey/code/32gif-auto-04.rs"
+Replace it with:
+
+```rust
+                );
+                let closing = matches!(&action, Action::Close);
+                let unloading = matches!(&action, Action::UnloadSources);
+                let waiting =
+                    crate::edit_intent::Intent::capture(&action, editor.selected)
+                        .map_err(str::to_owned)
+                        .and_then(|intent| match intent {
+                            Some(intent) => crate::browser_reload::restore_for(
+                                intent,
+                                &editor,
+                                std::rc::Rc::clone(&reload),
+                                std::rc::Rc::clone(&reload_delivery),
+                            ),
+                            None => Ok(false),
+                        });
+                let change = waiting.and_then(|waiting| {
+                    if waiting {
+                        panel.result("Reloading editable sources…");
+                        Ok(None)
+                    } else {
+                        editor
+                            .apply(action)
+                            .map(Some)
+                            .map_err(str::to_owned)
+                    }
+                });
+                match change {
+                    Ok(Some(Change::Scene)) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if unloading {
+                            report("Editable sources unloaded; display retained.");
 ```
 
-```text
---8<-- "journey/code/32gif-auto-05.rs"
+**Locate this block:**
+
+```rust
+                } else if line == "save" {
+                    match crate::document::snapshot(&editor.scene) {
+                        Ok(bytes) => match crate::file_output::download(&bytes) {
+                            Ok(()) => panel.result(&format!(
+                                "Saved editable document ({} bytes)",
+                                bytes.len()
+                            )),
+                            Err(error) => {
+                                panel.result(&format!("Save failed: {error:?}"))
+                            }
+                        },
+                        Err(error) => panel.result(error),
+                    }
+                    None
+                } else if line == "move" || line.starts_with("move ") {
+                    match crate::offset::parse(&line) {
 ```
 
-</details>
+Replace it with:
 
-</details>
+```rust
+                } else if line == "save" {
+                    let result = crate::browser_reload::restore_for(
+                        crate::edit_intent::Intent::Save,
+                        &editor,
+                        std::rc::Rc::clone(&reload),
+                        std::rc::Rc::clone(&reload_delivery),
+                    )
+                    .and_then(|waiting| {
+                        if waiting {
+                            Ok("Reloading editable sources…".to_owned())
+                        } else {
+                            crate::document::snapshot(&editor.scene)
+                                .map_err(str::to_owned)
+                                .and_then(|bytes| save_result(&bytes))
+                        }
+                    });
+                    panel.result(&result.unwrap_or_else(|error| error));
+                    None
+                } else if line == "move" || line.starts_with("move ") {
+                    match crate::offset::parse(&line) {
+```
 
-<a id="checkpoint-32gj-precision"></a>
-
-<details>
-<summary>Implementation 32gj-precision: Prove restored Save keeps the source doubles</summary>
-
-Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
-
-Data flow: Original f64 sentinel → derived f32 display → unload kernel → reload original bytes → Save → exact source doubles.
+## <a id="checkpoint-32gj-precision"></a>25. Prove restored Save keeps the source doubles
 
 ### 1. `src/specimen.rs`
 
-Add a source coordinate that cannot survive an f64-to-f32 round trip; keep the original specimen available.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub fn bytes() -> Vec<u8> {
-    use session_rust::{Color, Mesh, Session, Xform};
-    let mut session = Session::new("Three-piece frame");
-    for (name, size, centre) in [
-        ("Left post", [0.25, 0.35, 1.0], [-0.65, 0.0, 0.5]),
-        ("Right post", [0.25, 0.35, 1.0], [0.65, 0.0, 0.5]),
-        ("Top beam", [1.8, 0.35, 0.25], [0.0, 0.0, 1.125]),
-    ] {
-        let mut mesh = Mesh::create_box(size[0], size[1], size[2]);
-        mesh.name = name.to_owned();
-        mesh.transform(&Xform::translation(centre[0], centre[1], centre[2]));
-        mesh.set_objectcolor(Color::new(0.75, 0.35, 0.1, 1.0));
-        assert!(session.add_mesh(mesh, None).is_some());
-    }
     session.pb_dumps()
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gj-precision-01.rs" skip=697
+    session.pb_dumps()
+}
+
+pub fn precise_bytes() -> Vec<u8> {
+    use prost::Message;
+    let mut message = session_rust::proto::Session::decode(bytes().as_slice()).unwrap();
+    let mesh = &mut message.objects.as_mut().unwrap().meshes[0];
+    mesh.vertices.get_mut(&0).unwrap().x = -0.775000000123456;
+    message.encode_to_vec()
+}
 ```
-
-<details>
-<summary>Optional authoring helper</summary>
-
-Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
 
 ### 2. `examples/sample.rs`
 
-Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
+**Locate this existing block:**
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-viewer_journey::specimen::bytes()
+```rust
+        "sample.pb",
+        viewer_journey::specimen::bytes(),
+    )
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32gj-precision-02.rs"
+```rust
+        "sample.pb",
+        viewer_journey::specimen::precise_bytes(),
+    )
 ```
-
-</details>
 
 ### 3. `src/lib.rs`
 
-Register the exact-coordinate restoration acceptance check.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-mod reload_complete_tests;
+pub mod reload_job;
+pub mod reload_reply;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gj-precision-03.rs" skip=27
+pub mod reload_job;
+#[cfg(test)]
+mod reload_precision_tests;
+pub mod reload_reply;
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/reload_precision_tests.rs`
 
-Optional authoring fixture. Verify exact source-coordinate restoration with a real precision sentinel and unchanged edit history.
+Create the file and type:
 
-Copy this supplied file:
+```rust
+use crate::{
+    edit_intent::Intent,
+    edit_replay::Reply as Edit,
+    editor::{Action, Editor},
+    reload_reply::Reply,
+    reload_url::ReloadUrl,
+};
+use prost::Message;
+use std::rc::Rc;
 
-```text
---8<-- "journey/code/32gj-precision-04.rs"
+#[test]
+fn cold_save_preserves_source_double_and_move_history() {
+    let mut e = Editor::default();
+    let bytes = crate::specimen::precise_bytes();
+    let source = session_rust::proto::Session::decode(bytes.as_slice()).unwrap();
+    let original = source.objects.unwrap().meshes[0]
+        .vertices
+        .clone();
+    let x = original.get(&0).unwrap().x;
+    assert_ne!(x, x as f32 as f64);
+    e.apply(Action::ReplaceAt(
+        bytes.clone(),
+        Rc::new(ReloadUrl::new("test:precision".into())),
+    ))
+    .unwrap();
+    e.apply(Action::SelectNext).unwrap();
+    let id = e.selected.unwrap();
+    let model = e.scene.objects()[0].model.m;
+    Intent::Move {
+        id,
+        offset: [0.25, 0.0, 0.15],
+    }
+    .replay(&mut e)
+    .unwrap();
+    let moved = e.scene.objects()[0].model.m;
+    e.apply(Action::UnloadSources).unwrap();
+    let reply = Reply::new(
+        e.reload_keys(),
+        Some(Intent::Save),
+        Ok(vec![bytes]),
+    );
+    let Some(Edit::Saved(saved)) = reply.complete(&mut e).unwrap() else {
+        panic!("Saved reply")
+    };
+    let message = session_rust::proto::Session::decode(saved.as_slice()).unwrap();
+    assert_eq!(
+        message.objects.unwrap().meshes[0].vertices,
+        original
+    );
+    assert_eq!(e.scene.objects()[0].model.m, moved);
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(e.scene.objects()[0].model.m, model);
+    e.apply(Action::Redo).unwrap();
+    assert_eq!(e.scene.objects()[0].model.m, moved);
+}
 ```
 
-</details>
-
-</details>
-
-<a id="checkpoint-32gja-failures"></a>
-
-<details>
-<summary>Implementation 32gja-failures: Prove failed restoration cannot partly commit</summary>
-
-Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.
-
-Data flow: Captured operation → complete body set → validate every source → all restored or none → no edit/download on failure.
+## <a id="checkpoint-32gja-failures"></a>26. Prove failed restoration cannot partly commit
 
 ### 1. `src/lib.rs`
 
-Register multiple-source completion acceptance checks.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-mod reload_precision_tests;
+mod reload_complete_tests;
+pub mod reload_job;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32gja-failures-01.rs" skip=28
+mod reload_complete_tests;
+#[cfg(test)]
+mod reload_failure_tests;
+pub mod reload_job;
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/reload_failure_tests.rs`
 
-Optional authoring fixture. A failure, missing body, changed file, duplicate key or stale epoch must not partially restore a multi-source Save.
+Create the file and type:
 
-Copy this supplied file:
+```rust
+use crate::{
+    edit_intent::Intent,
+    editor::{Action, Editor},
+    reload_reply::Reply,
+    reload_url::ReloadUrl,
+};
+use std::rc::Rc;
 
-```text
---8<-- "journey/code/32gja-failures-02.rs"
+fn cold_pair() -> (Editor, Vec<u8>) {
+    let mut e = Editor::default();
+    let bytes = crate::specimen::precise_bytes();
+    e.apply(Action::ReplaceAt(
+        bytes.clone(),
+        Rc::new(ReloadUrl::new("test:first".into())),
+    ))
+    .unwrap();
+    e.apply(Action::ImportAt(
+        bytes.clone(),
+        Rc::new(ReloadUrl::new("test:second".into())),
+    ))
+    .unwrap();
+    e.apply(Action::UnloadSources).unwrap();
+    (e, bytes)
+}
+
+#[test]
+fn failed_multi_source_save_restores_nothing() {
+    for kind in 0..3 {
+        let (mut e, bytes) = cold_pair();
+        let keys = e.reload_keys();
+        assert_eq!(keys.len(), 2);
+        let rows: Vec<_> = e
+            .scene
+            .objects()
+            .iter()
+            .map(|row| (row.id, row.model.m))
+            .collect();
+        let roots = e.scenes().count();
+        let camera = e.camera.uniform();
+        let bodies = match kind {
+            0 => Err("Second source fetch failed".into()),
+            1 => Ok(vec![bytes]),
+            _ => Ok(vec![bytes, crate::specimen::bytes()]),
+        };
+        assert!(
+            Reply::new(keys, Some(Intent::Save), bodies)
+                .complete(&mut e)
+                .is_err()
+        );
+        assert!(
+            e.scene
+                .objects()
+                .iter()
+                .all(|row| row.geometry().is_none())
+        );
+        assert_eq!(
+            e.scene
+                .objects()
+                .iter()
+                .map(|row| (row.id, row.model.m))
+                .collect::<Vec<_>>(),
+            rows
+        );
+        assert_eq!(e.scenes().count(), roots);
+        assert_eq!(e.camera.uniform(), camera);
+    }
+}
+
+#[test]
+fn any_stale_or_duplicate_key_revokes_the_whole_reply() {
+    for duplicate in [false, true] {
+        let (mut e, bytes) = cold_pair();
+        let mut keys = e.reload_keys();
+        if duplicate {
+            keys[1] = keys[0].clone();
+        } else {
+            keys[1].epoch += 1;
+        }
+        let reply = Reply::new(
+            keys,
+            Some(Intent::Save),
+            Ok(vec![bytes.clone(), bytes]),
+        );
+        assert!(reply.complete(&mut e).unwrap().is_none());
+        assert!(
+            e.scene
+                .objects()
+                .iter()
+                .all(|row| row.geometry().is_none())
+        );
+    }
+}
 ```
 
-</details>
+## Build & Run
 
-</details>
-
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+![Recorded visual output for Lesson 3.7 (32gja-failures)](../../screenshots/journey/32gja-failures-browser.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 32gja-failures
-npm --prefix ../session_tests run course -- check 32gja-failures
-npm --prefix ../session_tests run course -- save 32gja-failures
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 3.7
+npm --prefix ../session_tests run course -- save 3.7
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-At endpoint `32gja-failures`, invalid or incomplete replies must leave the scene, source residency and history unchanged, with no edit or Save download. For the scripted reference scenario, use the [course bundle server and capture instructions](../release.md#reproduce), then run `npm --prefix ../session_tests run course -- capture 32gja-failures` from `session_viewer`. That checks a generated reference bundle, while the source comparison above checks your typed workspace. Current browser acceptance remains pending.
-
-Trace a successful first fetch followed by a failed second fetch. Explain how the browser residency checks distinguish atomic adoption from a partial commit.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+Continue with [4.1 · Browser callbacks with a real lifetime](33-owner.md).

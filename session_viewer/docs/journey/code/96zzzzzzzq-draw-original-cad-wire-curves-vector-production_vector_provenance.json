@@ -1,0 +1,63 @@
+{
+  "source_commit": "a391b104",
+  "source_root": "session_viewer/src",
+  "scope": "Production algorithms verbatim; only integer ownership-output ABI is adapted. Working tree includes the verified opaque-cloud ink visibility fix.",
+  "files": {
+    "app/walk/curves.rs": "4da38304e6eb4dbed57d0406fe36a9dc4da823eb4f044d4434160983792756d7",
+    "app/walk/sheet.rs": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+    "engine/gpu/segments.rs": "a152ead3eb15a3e44ceab8f11cb3d804c549d879a4871d1897c9bdeaf760aeb6",
+    "engine/gpu/vectors.rs": "539d407e8e529d9cd9d4c507f675221805506221a49177773571e51e02d7fa3d",
+    "engine/pipelines/mod.rs": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5",
+    "shaders/ribbon.wgsl": "950172d6d383b37009bd9c8d6e1edb63adf835e7b2926e91aba043f6a22f9f3f",
+    "shaders/vector.wgsl": "b67a636f91ab079c58e80361c5ed8782764acd47e133045a94c50f412b72030a",
+    "shaders/arrow.wgsl": "41166470f26b141dda7c03a753e14542dfdf3ed572f7f6920850c09afb03b80d",
+    "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+    "shaders/projected_triangle.wgsl": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+    "shaders/scene.wgsl": "e17b1d992b7c986e48abececae70cb1be1edc356125a0ae1f2805cd6a6a73281",
+    "shaders/clip.wgsl": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+    "shaders/normals.wgsl": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+    "shaders/physical.wgsl": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35"
+  },
+  "composition": "shared(ink_source(shader!(entry))): expanded/minified entry, ink visibility, scene, clipping, normals, physical output.",
+  "joined": {
+    "pristine_sha256": "a48adab74a1102c086d360b1a3d6e53498f690789ff4cfb3b32ae59265d06d34",
+    "compiled_sha256": "177fcadef6325b5edf384bff97a1cdcc9f209782313ed7d0a251a1e7a9076355",
+    "ownership_edits": [
+      [
+        "return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);",
+        "return course_picks[in.segment_index];"
+      ],
+      [
+        "return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);",
+        "return course_picks[in.segment_index];"
+      ]
+    ],
+    "ownership_declaration": "@group(3) @binding(3) var<storage, read> course_picks: array<vec2<u32>>;"
+  },
+  "vector": {
+    "pristine_sha256": "ff6ddfb13c55f7919b313a2dd78806fc0015d4ed1773281f0ac56b7d49816bf8",
+    "compiled_sha256": "80304211523b9b36096527a32ce964428673fad8c8711ada26352728c0ab490f",
+    "ownership_edits": [
+      [
+        "return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);",
+        "return vec2<u32>(course_owners[in.inst_id], 1u);"
+      ]
+    ],
+    "ownership_declaration": "@group(3) @binding(1) var<storage, read> course_owners: array<u32>;"
+  },
+  "sheet": {
+    "pristine_sha256": "a48adab74a1102c086d360b1a3d6e53498f690789ff4cfb3b32ae59265d06d34",
+    "compiled_sha256": "360c5c265fd3a8def2c2029639112f990b74eb2292c1e116da6ef695254891a7",
+    "ownership_edits": [
+      [
+        "return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);",
+        "return vec2<u32>(course_owner.x, course_owner.y + in.segment_index);"
+      ],
+      [
+        "return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);",
+        "return vec2<u32>(course_owner.x, course_owner.y + in.segment_index);"
+      ]
+    ],
+    "ownership_declaration": "@group(3) @binding(3) var<uniform> course_owner: vec4<u32>;"
+  }
+}

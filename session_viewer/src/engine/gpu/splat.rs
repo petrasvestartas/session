@@ -11,6 +11,9 @@ use crate::engine::pipelines::{
 use session_rust::Xform;
 use wgpu::PrimitiveTopology::TriangleList;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod cloud_witness;
+
 /// Most point runs drawn in one frame.
 pub const MAX_RECORDS: usize = 4096;
 

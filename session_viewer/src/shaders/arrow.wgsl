@@ -288,7 +288,7 @@ fn axis_cut(in: VsOut) -> bool {
     }
 
     let axis = ink_axis(in);
-    return clip_cut_ndc(instances[in.inst_id].flags, clip_ndc(axis.at + line.origin, line.frame, axis.depth));
+    return clip_cut_ink_ndc(instances[in.inst_id].flags, clip_ndc(axis.at + line.origin, line.frame, axis.depth));
 }
 
 @fragment

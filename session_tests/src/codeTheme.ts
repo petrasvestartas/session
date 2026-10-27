@@ -219,7 +219,7 @@ const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;'
 
 /** Inner HTML of a code block (no <pre>/<code>), one span per coloured run. */
 export function renderCode(hl: HighlighterCore, code: string, lang: string): string {
-  const { tokens } = hl.codeToTokens(code, { lang, theme: THEME_NAME, includeExplanation: 'scopeName' });
+  const { tokens } = hl.codeToTokens(code, { lang, theme: THEME_NAME, includeExplanation: 'scopeName', tokenizeTimeLimit: 0 });
   const block = scanBlock(code, lang);
   const lines: string[] = [];
   let lineAt = 0;

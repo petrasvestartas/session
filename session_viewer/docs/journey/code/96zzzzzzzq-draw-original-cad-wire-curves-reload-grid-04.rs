@@ -1,0 +1,1 @@
+    canvas.set_attribute("data-grid-plane",&serde_json::json!({"origin":(0..3).map(|i|editor.grid_plane().origin()[i]).collect::<Vec<_>>(),"matrix":editor.grid_plane().matrix64().m}).to_string())?;

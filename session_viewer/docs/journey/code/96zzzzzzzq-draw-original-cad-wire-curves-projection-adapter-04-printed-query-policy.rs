@@ -1,0 +1,1 @@
+assert_eq!(pick(&mut gpu,&scene,matrix,[0.,0.,0.],Mode::Face),None,"Production printed fills do not own physical source-face queries");assert_eq!(pick(&mut gpu,&scene,matrix,[0.,0.,0.],Mode::Object),Some(Target{owner,part:Part::Object}));assert_eq!(scene.objects()[0].geometry().unwrap().number_of_faces(),1);

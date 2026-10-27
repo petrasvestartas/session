@@ -1,0 +1,206 @@
+{
+  "status": "FAIL strict four-sample ambient production/course RGBA parity; full frozen runtime gate PENDING",
+  "scope": "One retained four-BRep pedestal at one fixed pose, 640x480, density1, samples4; ambient Off/On only. No browser, matrix sweep or full native-suite acceptance.",
+  "sourceFingerprint": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "fixture": {
+    "source_pb_sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+    "source_bytes": 18736,
+    "source_kind": "Actual retained current bluepedestal four contact BReps, rawPB through normalScene import; no generated nameplate",
+    "declared_pose": "ONE currentnativeCamera default/isometric/aspect4/3/fit actual sourcebounds→uniform at640x480. Derived actualtypedJSON/f32bits recorded before firstGPU; no retainednumericMVP claim.",
+    "opacity": 1,
+    "lit": false,
+    "density": 1,
+    "samples": 4,
+    "source_contract_replaces": "V1/V2 windingSESSION +oldnumericpose contracts are preserved historically and replaced explicitly, not reinterpreted as valid ambientcontact fixtures."
+  },
+  "pose": {
+    "derivation": "currentnativeCamera::default;isometric;aspect4/3;fit actual rawPBsourcebounds;uniform()",
+    "matrix_f32": [
+      1.125,
+      0.4330126941204071,
+      -0.00000433017021350679,
+      0.4330126941204071,
+      -0.6495190262794495,
+      0.75,
+      -0.00000750007484384696,
+      0.75,
+      -3.6055548895377846e-17,
+      1.5,
+      0.000005000049895897973,
+      -0.5,
+      1.95646342009137e-13,
+      -202.5,
+      0.23175187408924103,
+      2649.9951171875
+    ],
+    "matrix_f32_bits": [
+      1066401792,
+      1054716887,
+      3062975457,
+      1054716887,
+      3206956769,
+      1061158912,
+      3069946151,
+      1061158912,
+      2753971937,
+      1069547520,
+      916964890,
+      3204448256,
+      710690616,
+      3276439552,
+      1047351389,
+      1160093676
+    ],
+    "native_scene_units": "millimeters through canonical currentnative Camera::uniform; identical unmodified f32 MVP supplied bothruntimes",
+    "scope": "New declared pose derived once fromactualsource, not a retained numerical pose or camera search",
+    "source_bounds_max": [
+      750,
+      750,
+      820
+    ],
+    "source_bounds_min": [
+      -750,
+      -750,
+      -550
+    ],
+    "source_pb_sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+    "viewport": [
+      640,
+      480
+    ]
+  },
+  "evidence": {
+    "preparation": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/preparation.json",
+      "sha256": "561bd3ee402eecf640214e0e10c06d5e461d55acc0354ea63e9510d424e1adb3"
+    },
+    "compilerSourceBinding": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/compiler-source-binding.json",
+      "sha256": "17f4a1438e97548f9856f72b64075be5be0fc1d3860619d3fe4197b66d7f2513"
+    },
+    "retainedExecutable": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/ambient-pedestal-four-sample-v1.exe",
+      "sha256": "0acd160c71ead2c6e20ccb9b1b10d3071a31854fa814560c26683a5dcf6e5efe",
+      "embeddedNewNormalShaders": [
+        "source_normal_y",
+        "source_normal_z"
+      ]
+    },
+    "manifest": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/frames-four-sample-v1/manifest.json",
+      "sha256": "45a2e182ff6299d79218879b41c3621e6ff0a939b2ae3a83fffe193cf9bc8658"
+    },
+    "rawPixelDiff": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/frames-four-sample-v1/pixel-diff.json",
+      "sha256": "8dd83e70b3798e6867d958737bb98129109a6f19066c4731d3d1fa093e9f76d2"
+    },
+    "source": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/frames-four-sample-v1/source.pb",
+      "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+    },
+    "buildLog": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/build-four-sample-v1/output.log",
+      "sha256": "f260759cca8346f6bc5e5429f9b8e6c0b98fd5dda97b60b1920ca1498fc8aabc"
+    },
+    "runLog": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/run-four-sample-v1/output.log",
+      "sha256": "b8e1f06cd76142f1b25fb34f8b91fbd1a57d7c378f14799ebe98c8bffff935a5"
+    }
+  },
+  "uniqueCompilerIdentity": {
+    "course": "viewer_journey_ambient_pedestal_four_scope1",
+    "production": "session_viewer_ambient_pedestal_four_scope1",
+    "bothActualCompilerArtifactsFreshFalse": true,
+    "retainedArtifactHashesVerified": true
+  },
+  "resources": {
+    "build": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/build-four-sample-v1/resources.json",
+      "sha256": "98fc7393757fac94d2a984d4dffd31a49a3a128b8a9bc4fe2a21c52f4f7735ab",
+      "exitCode": 0,
+      "elapsedSeconds": 57.225,
+      "peakJobCommitBytes": 2259820544
+    },
+    "run": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/run-four-sample-v1/resources.json",
+      "sha256": "29f554f8a21c0e7db0b07ce1ae5ba33c27adbba57e0794910d819dc844bc6001",
+      "exitCode": 1,
+      "timedOut": false,
+      "elapsedSeconds": 7.994,
+      "peakJobCommitBytes": 695427072
+    }
+  },
+  "cases": [
+    {
+      "case": "ambient-off",
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "productionRgbaSha256": "04fbbd6c63fafab193c5992c2a8ec64d6fedc7de2b5000db23f13886b6ea1bb4",
+      "courseRgbaSha256": "04fbbd6c63fafab193c5992c2a8ec64d6fedc7de2b5000db23f13886b6ea1bb4",
+      "productionAdapter": {
+        "backend": "Dx12",
+        "device": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.9711",
+        "driver_info": "",
+        "name": "Microsoft Basic Render Driver",
+        "vendor": 5140
+      },
+      "sameDeviceAndQueue": true,
+      "sourceFullDecodedAndMetadataUnchanged": true,
+      "ambientDiscrimination": null
+    },
+    {
+      "case": "ambient-on",
+      "changedPixels": 111,
+      "maxChannelDelta": 10,
+      "productionRgbaSha256": "dba1e069a8af46c8c0af97b7136297df97db2dce7a546c48845cf939481b1533",
+      "courseRgbaSha256": "56a58889b743af81dfde3eab2e5a85fb451da312683dcf5671b2f4007e719410",
+      "productionAdapter": {
+        "backend": "Dx12",
+        "device": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.9711",
+        "driver_info": "",
+        "name": "Microsoft Basic Render Driver",
+        "vendor": 5140
+      },
+      "sameDeviceAndQueue": true,
+      "sourceFullDecodedAndMetadataUnchanged": true,
+      "ambientDiscrimination": {
+        "course_darkened_ground_contact_pixels": 10023,
+        "course_on_vs_off_changed_pixels": 276338,
+        "production_darkened_ground_contact_pixels": 10023,
+        "production_on_vs_off_changed_pixels": 276338
+      }
+    }
+  ],
+  "residual": {
+    "changedPixels": 111,
+    "maxChannelDelta": 10,
+    "boundingBox": {
+      "minX": 284,
+      "maxX": 354,
+      "minY": 219,
+      "maxY": 355
+    },
+    "location": "Blue object geometry, as personally inspected by root; no threshold relaxation."
+  },
+  "images": [
+    {
+      "name": "ambient-four-sample-on-production-failure.png",
+      "sha256": "e1a8386f8622064bca96481054783fb31fac3c315a98130795358041d1ff7666",
+      "rootPersonallyReviewed": true,
+      "review": "Blue pedestal geometry; differences confined to x284..354/y219..355. Strict RGBA mismatch remains; visual similarity does not satisfy parity."
+    },
+    {
+      "name": "ambient-four-sample-on-course-failure.png",
+      "sha256": "90470534e87f25e85c846fa63d1fabbfe58c13cbcd6a9920dd068b2737a9ae6c",
+      "rootPersonallyReviewed": true,
+      "review": "Blue pedestal geometry; differences confined to x284..354/y219..355. Strict RGBA mismatch remains; visual similarity does not satisfy parity."
+    }
+  ],
+  "remaining": "Strict four-sample ambient parity and final frozen runtime gate remain PENDING. A separately prepared candidate has no acceptance or tracked application claim here.",
+  "originalOutputsPreserved": true
+}

@@ -1,0 +1,646 @@
+{
+  "status": "PASS original complete70d canonical browser callback and root individually reviewed fresh final image",
+  "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "sourceFiles": 331,
+  "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+  "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+  "callback": {
+    "path": "journey/checks/browser/nested-placements.cjs",
+    "recursiveFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+    "capture": "docs/capture_journey.cjs",
+    "captureSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "original60msTypingUnchanged": true
+  },
+  "execution": {
+    "receipt": {
+      "path": "target/course-windows-20261018/70d-acceptance-publication-preparation/receipt-at-70-pass.json",
+      "sha256": "5eb2d05593c8c4c55855dd8ffc09016c5cab04718b17a2cbbfced5519b769913"
+    },
+    "originalReceipt": {
+      "path": "target/course-windows-20261018/70d-nested-combined-status-v2-preparation/70d-mask-reused-full-browser-v1/proof.json",
+      "sha256": "5eb2d05593c8c4c55855dd8ffc09016c5cab04718b17a2cbbfced5519b769913"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-mask-reused-full-browser-v1-20261024T025908056Z.resources.json",
+      "sha256": "0303eab7b3e3b69723d72fe007c4c78e5f3f6751ef30eb0fbe85886e8ece646b"
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-mask-reused-full-browser-v1-20261024T025908056Z.log",
+      "sha256": "420e712d59d988a46ee0c77c6c3cbb2f196401065a0a3f53ca00ffdcae5afa1c"
+    },
+    "exitCode": 0,
+    "elapsedSeconds": 1726.259,
+    "peakJobCommitBytes": 1743896576,
+    "processors": 2,
+    "memoryCapBytes": 6442450944,
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0
+    },
+    "hardwareBoot": {
+      "proof": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "sha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\root-image-review.json",
+        "sha256": "be3b69c5c518ee566740320d585d4c64c1b27fa02720318a314b02a61d95181b"
+      },
+      "scope": "Earlier actual retainedfinalfef4 hardware environment proof; metadata-only terminalstatus correction does not mutate its receipt. No live boot globalresults/debugcache revalidation."
+    }
+  },
+  "canonical": {
+    "record": {
+      "source": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T03:27:54.612Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "570494e0fbca159ed3f4e76dc47dfff1eba3548c6c9f593b5b3f54ec52065d79",
+      "file": "70d-exercise-rotated-and-mirrored-original-references-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "002f86d4cba3ed4dfa550d5c1efd51f40ddfa98701364033bdde497c5b063e41",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "frozenBrowser": {
+      "path": "target/course-windows-20261018/70d-acceptance-publication-preparation/browser-at-70-pass.json",
+      "sha256": "5146456f5d68646e46359c155cd53335ca718a476fa3d5fe278d74c377dc4a27"
+    },
+    "frozenResults": {
+      "path": "target/course-windows-20261018/70d-acceptance-publication-preparation/results-at-70-pass.json",
+      "sha256": "aa60d496d03457633a0b48b0f07a7250a5626986925288c4d1613dc4e6ea38d3"
+    },
+    "explanation": "Canonical status records the startup hint; complete capture independently asserts browser_result_status Document closed. Receipt/log exit0 proves that terminal comparison. The stored field is preserved."
+  },
+  "build": {
+    "record": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-nested-combined-status-v2-preparation\\70d-mask-reuse-current-v1\\proof.json",
+      "sha256": "477b3adfb0a9d1aaab812026b43f89e630e4ceaff746bb0d2bede57cee55b46d"
+    },
+    "source": {
+      "id": "70d-exercise-rotated-and-mirrored-original-references",
+      "files": 331,
+      "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+      "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+      "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+      "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+      "assets": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+        "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+        "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+        "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+      },
+      "callback": "journey/checks/browser/nested-placements.cjs",
+      "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+      "frame": "journey/checks/70-nested-placements.rs",
+      "frameConstructor": "make_renderer(device, queue, format)",
+      "frameSize": [
+        640,
+        480
+      ],
+      "sampleRequired": true,
+      "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+    },
+    "reusedBuild": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-focused-v1\\proof.json",
+      "sha256": "c10d23a32fba1d2b45f53e2ee89a0bccf8a6e0f0f1bfe627f6b6563e33f58837"
+    },
+    "reusedPhases": {
+      "native-check": {
+        "originalInput": {
+          "id": "70d-exercise-rotated-and-mirrored-original-references",
+          "files": 331,
+          "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+          "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/nested-placements.cjs",
+          "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+          "frame": "journey/checks/70-nested-placements.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": false,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+          "inheritedSampleExamplePresent": true,
+          "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+        },
+        "phase": {
+          "input": {
+            "id": "70d-exercise-rotated-and-mirrored-original-references",
+            "files": 331,
+            "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+            "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+            "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+            "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+            "assets": {
+              "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+              "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+              "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+              "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+              "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+              "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+              "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+            },
+            "callback": "journey/checks/browser/nested-placements.cjs",
+            "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+            "frame": "journey/checks/70-nested-placements.rs",
+            "frameConstructor": "make_renderer(device, queue, format)",
+            "frameSize": [
+              640,
+              480
+            ],
+            "sampleRequired": false,
+            "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+            "inheritedSampleExamplePresent": true,
+            "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+          },
+          "environment": {
+            "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+            "COURSE_MEMORY_MIB": "4096",
+            "COURSE_TIMEOUT_SECONDS": "1800",
+            "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+            "CARGO_BUILD_JOBS": "1",
+            "CARGO_INCREMENTAL": "0",
+            "CARGO_NET_OFFLINE": "true",
+            "REGEN_PROTO": "0",
+            "RUSTC_WRAPPER": "",
+            "RUSTC_WORKSPACE_WRAPPER": "",
+            "RUST_TEST_THREADS": "1",
+            "NO_COLOR": "true",
+            "VIEWER_GPU_WAIT_SECONDS": "60",
+            "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+            "WGPU_BACKEND": "dx12",
+            "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+            "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+            "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+            "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "RUSTFLAGS": null,
+            "CARGO_ENCODED_RUSTFLAGS": null,
+            "RUSTUP_TOOLCHAIN": null
+          },
+          "command": {
+            "name": "70d-mask-world-order-focused-v1-native-check-20261024T014512138Z",
+            "args": [
+              "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+              "check",
+              "--tests",
+              "--examples",
+              "--locked",
+              "--offline",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-native-check-20261024T014512138Z.resources.json",
+          "evidence": {
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-native-check-20261024T014512138Z.log": "e520d272fef14f91f5a31930bcfc9d8c8260b8f4b9f816efb2378c8b5253e348",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-native-check-20261024T014512138Z.resources.json": "b9e40c916ac161f13ae9ce5c9c26c1c87eefec4320fd7780b7563d7035d4834d",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-native-check-20261024T014512138Z.command.json": "89e04f9a66f6cdb8ccb0733ba7ece06d2b448405513537f5de852c2a5bfb03ff"
+          },
+          "outputs": {}
+        }
+      },
+      "wasm": {
+        "originalInput": {
+          "id": "70d-exercise-rotated-and-mirrored-original-references",
+          "files": 331,
+          "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+          "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/nested-placements.cjs",
+          "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+          "frame": "journey/checks/70-nested-placements.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": false,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+          "inheritedSampleExamplePresent": true,
+          "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+        },
+        "phase": {
+          "input": {
+            "id": "70d-exercise-rotated-and-mirrored-original-references",
+            "files": 331,
+            "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+            "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+            "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+            "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+            "assets": {
+              "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+              "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+              "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+              "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+              "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+              "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+              "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+            },
+            "callback": "journey/checks/browser/nested-placements.cjs",
+            "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+            "frame": "journey/checks/70-nested-placements.rs",
+            "frameConstructor": "make_renderer(device, queue, format)",
+            "frameSize": [
+              640,
+              480
+            ],
+            "sampleRequired": false,
+            "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+            "inheritedSampleExamplePresent": true,
+            "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+          },
+          "environment": {
+            "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+            "COURSE_MEMORY_MIB": "4096",
+            "COURSE_TIMEOUT_SECONDS": "1800",
+            "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+            "CARGO_BUILD_JOBS": "1",
+            "CARGO_INCREMENTAL": "0",
+            "CARGO_NET_OFFLINE": "true",
+            "REGEN_PROTO": "0",
+            "RUSTC_WRAPPER": "",
+            "RUSTC_WORKSPACE_WRAPPER": "",
+            "RUST_TEST_THREADS": "1",
+            "NO_COLOR": "true",
+            "VIEWER_GPU_WAIT_SECONDS": "60",
+            "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+            "WGPU_BACKEND": "dx12",
+            "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+            "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+            "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+            "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "RUSTFLAGS": null,
+            "CARGO_ENCODED_RUSTFLAGS": null,
+            "RUSTUP_TOOLCHAIN": null
+          },
+          "command": {
+            "name": "70d-mask-world-order-focused-v1-wasm-20261024T014550100Z",
+            "args": [
+              "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+              "build",
+              "--lib",
+              "--locked",
+              "--offline",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-wasm-20261024T014550100Z.resources.json",
+          "evidence": {
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-wasm-20261024T014550100Z.log": "a7eaf402a3ba060cc6cd096865106d9b668658c9ab6eeeaa63dbf6c99be6f461",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-wasm-20261024T014550100Z.resources.json": "973e32104fa1f81c1089d2f5b4bf281f5d256d1cb58a8fa044d03ffc0231036a",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-wasm-20261024T014550100Z.command.json": "d99d4207879eeb38f58afd5d89285ea7082daf4f79018fc83b3dc4ece463d9bd"
+          },
+          "outputs": {}
+        }
+      },
+      "web": {
+        "originalInput": {
+          "id": "70d-exercise-rotated-and-mirrored-original-references",
+          "files": 331,
+          "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+          "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/nested-placements.cjs",
+          "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+          "frame": "journey/checks/70-nested-placements.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": false,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+          "inheritedSampleExamplePresent": true,
+          "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+        },
+        "phase": {
+          "input": {
+            "id": "70d-exercise-rotated-and-mirrored-original-references",
+            "files": 331,
+            "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+            "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+            "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+            "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+            "assets": {
+              "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+              "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+              "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+              "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+              "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+              "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+              "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+            },
+            "callback": "journey/checks/browser/nested-placements.cjs",
+            "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+            "frame": "journey/checks/70-nested-placements.rs",
+            "frameConstructor": "make_renderer(device, queue, format)",
+            "frameSize": [
+              640,
+              480
+            ],
+            "sampleRequired": false,
+            "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+            "inheritedSampleExamplePresent": true,
+            "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+          },
+          "environment": {
+            "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+            "COURSE_MEMORY_MIB": "4096",
+            "COURSE_TIMEOUT_SECONDS": "1800",
+            "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+            "CARGO_BUILD_JOBS": "1",
+            "CARGO_INCREMENTAL": "0",
+            "CARGO_NET_OFFLINE": "true",
+            "REGEN_PROTO": "0",
+            "RUSTC_WRAPPER": "",
+            "RUSTC_WORKSPACE_WRAPPER": "",
+            "RUST_TEST_THREADS": "1",
+            "NO_COLOR": "true",
+            "VIEWER_GPU_WAIT_SECONDS": "60",
+            "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+            "WGPU_BACKEND": "dx12",
+            "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+            "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+            "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+            "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "RUSTFLAGS": null,
+            "CARGO_ENCODED_RUSTFLAGS": null,
+            "RUSTUP_TOOLCHAIN": null
+          },
+          "command": {
+            "name": "70d-mask-world-order-focused-v1-web-20261024T014609089Z",
+            "args": [
+              "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-web-20261024T014609089Z.resources.json",
+          "evidence": {
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-web-20261024T014609089Z.log": "5d843d0a5fba137f951e53696cdcd6f1f7c27386fdeb7cc00c76c591763c3236",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-web-20261024T014609089Z.resources.json": "07c4ec887f4cf77ed48248565e242e3e2f653d3359ce292e0703fcf1e6377a55",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-web-20261024T014609089Z.command.json": "85405df02f3268ed7d475528c1d8be1fbb6752252bf72ec0ec2d85bb8a6f12a4"
+          },
+          "outputs": {
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\index.html": "002f86d4cba3ed4dfa550d5c1efd51f40ddfa98701364033bdde497c5b063e41",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\snippets\\session_viewer-568dd7ccbb8842dd\\inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\snippets\\viewer_journey-7519825317df163d\\src\\adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\text\\OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\viewer_journey-260dddd0ecc4790b.js": "eb6a47a796b599e015cdf656e1e8e86deec66b65064dc27ddd17e6da4af5f0ed",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\dist\\viewer_journey-260dddd0ecc4790b_bg.wasm": "250d2e7a47e7cb49ed25daf2a46189beaec26ed4dda4e3c069c401c310b567c1"
+          }
+        }
+      },
+      "frame": {
+        "originalInput": {
+          "id": "70d-exercise-rotated-and-mirrored-original-references",
+          "files": 331,
+          "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+          "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+          "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+          },
+          "callback": "journey/checks/browser/nested-placements.cjs",
+          "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+          "frame": "journey/checks/70-nested-placements.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": false,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+          "inheritedSampleExamplePresent": true,
+          "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+        },
+        "phase": {
+          "input": {
+            "id": "70d-exercise-rotated-and-mirrored-original-references",
+            "files": 331,
+            "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+            "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+            "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\Cargo-publish.lock",
+            "lockSha256": "f5295652adef20e61beafb5776445d44044a670b94774bf9b7273986cdd6c1ef",
+            "assets": {
+              "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+              "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+              "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+              "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+              "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+              "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+              "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+            },
+            "callback": "journey/checks/browser/nested-placements.cjs",
+            "callbackFingerprint": "d0a52a22e0ef59c7e036702273ba7812afb8ae11a3b214907b86c69db16629b8",
+            "frame": "journey/checks/70-nested-placements.rs",
+            "frameConstructor": "make_renderer(device, queue, format)",
+            "frameSize": [
+              640,
+              480
+            ],
+            "sampleRequired": false,
+            "nativeSuite": "not run by this proportional lane; source preserved and typechecked",
+            "inheritedSampleExamplePresent": true,
+            "samplePolicy": "Focused candidate uses only built-in ExampleNested geometry; no file-driven sample callback or canonical callback acceptance."
+          },
+          "environment": {
+            "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+            "COURSE_MEMORY_MIB": "4096",
+            "COURSE_TIMEOUT_SECONDS": "1800",
+            "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+            "CARGO_BUILD_JOBS": "1",
+            "CARGO_INCREMENTAL": "0",
+            "CARGO_NET_OFFLINE": "true",
+            "REGEN_PROTO": "0",
+            "RUSTC_WRAPPER": "",
+            "RUSTC_WORKSPACE_WRAPPER": "",
+            "RUST_TEST_THREADS": "1",
+            "NO_COLOR": "true",
+            "VIEWER_GPU_WAIT_SECONDS": "60",
+            "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+            "WGPU_BACKEND": "dx12",
+            "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+            "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+            "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+            "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+            "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "RUSTFLAGS": null,
+            "CARGO_ENCODED_RUSTFLAGS": null,
+            "RUSTUP_TOOLCHAIN": null
+          },
+          "command": {
+            "name": "70d-mask-world-order-focused-v1-frame-20261024T014809735Z",
+            "args": [
+              "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+              "run",
+              "--example",
+              "frame",
+              "--locked",
+              "--offline",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-frame-20261024T014809735Z.resources.json",
+          "evidence": {
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-frame-20261024T014809735Z.log": "368c8494973b6da7593b9b004d044043a1acb59b64180a196b1fecf726b12398",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-frame-20261024T014809735Z.resources.json": "0405929b9e1b2dec1fd2e6b3270fa7f355cb4841bdc6d6a1fc0942f38c758d83",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-world-order-focused-v1-frame-20261024T014809735Z.command.json": "39bb3944103249ea0be5a7c1635887f9fa5c9805edc0d8cc15ba699566ec303a"
+          },
+          "outputs": {
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-focused-v1\\70d-mask-world-order-focused-v1-frame-20261024T014809735Z-frame.exe": "290c2ef8c25885c1ff2a854c24439424d3edf510a78e53275c9cca42c63eb6ac",
+            "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\frame.ppm": "aba0a33a99ef70242a6dcfbbfa3a4ab65d8db991d1a935b2caa613d4a370af4f"
+          }
+        }
+      }
+    },
+    "sample": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-70d-selected-mask-world-order-v1\\sample.pb",
+      "sha256": "68fddbaa5aa57180b743c660615cd368ed07596c5c08fca7e66435e5f2a6547a",
+      "command": {
+        "name": "70d-mask-reuse-current-v1-sample",
+        "args": [
+          "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+          "run",
+          "--example",
+          "sample",
+          "--locked",
+          "--offline",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1"
+        ],
+        "returncode": 0
+      },
+      "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-reuse-current-v1-sample.resources.json",
+      "evidence": {
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-reuse-current-v1-sample.log": "0e795579b3b6243de5156414484c5231b8b23aaec7781f17be505a963fb8cf8b",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-reuse-current-v1-sample.resources.json": "3535dc24ee699eb64a778fb79b2ea9fe1e9d1c701f174bdc87f212260882f5cb",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\70d-mask-reuse-current-v1-sample.command.json": "793d53fd0e56043f045aed3f5310299e12de6895e225ab682e7dd3585df6f9d0"
+      }
+    },
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    },
+    "scope": "Four actual matching native-check/WASM/optimizedweb/frame phases retained with exact source/lock/assets/callback equivalence; one actualfresh canonical sample. No full native suite or repeated build claim."
+  },
+  "image": {
+    "figure": "journey/release/70d-current-mirrored-final.png",
+    "sha256": "58fbd5f36b3379c593b5a968d7f7c588a8c852a7b260788ec95abf75e0b5df0d",
+    "source": "docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png",
+    "captured": "2026-10-24T03:27:54.612Z",
+    "review": "Root independently viewed original fresh final PNG: clean blue/yellow rotated/mirrored triangles and gizmo; no striping."
+  },
+  "priorEvidencePreserved": [
+    "release/70d-browser-failure-review.json",
+    "release/70d-mask-projection-repair-review.json",
+    "release/terminal-status-metadata-review.json"
+  ],
+  "scope": [
+    "Accept only original70d source-specific fullcallback at331-source325b, after applied mask projection fix.",
+    "Original failed outer-status/striped frame and four focused NVIDIA/WARP diagnostic states remain preserved at original scopes.",
+    "No final713 source identity, SharedArena feature closure, all-feature/native-suite/global release acceptance inferred."
+  ],
+  "counters": {
+    "callbacksAccepted": 4,
+    "callbacksTotal": 18,
+    "callbacksPending": 14,
+    "pendingHistorical": 11,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "historicalFixturesAccepted": 1,
+    "historicalFixturesTotal": 4,
+    "releaseGatesDone": 0,
+    "releaseGatesTotal": 5
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "cases": [
+    {
+      "camera_matrix": [
+        0.00014433756587095559,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.00014433756587095559,
+        3.0839528804673396e-21,
+        0.0,
+        0.0,
+        -3.2049377789657016e-20,
+        1.3888889043300878e-05,
+        0.0,
+        0.0,
+        0.0,
+        0.3333333432674408,
+        1.0
+      ],
+      "changed_pixels": 0,
+      "density": 1,
+      "encoding": "Rgba8UnormSrgb",
+      "physical_size": 256,
+      "production": {
+        "adapter": "AdapterInfo { name: \"Microsoft Basic Render Driver\", vendor: 5140, device: 140, device_type: Cpu, device_pci_bus_id: \"\", driver: \"10.0.26100.9711\", driver_info: \"\", backend: Dx12, subgroup_min_size: 4, subgroup_max_size: 4, transient_saves_memory: false }",
+        "camera_distance_metres": 12,
+        "encoding": "Rgba8UnormSrgb",
+        "plane": "XY",
+        "samples": 1,
+        "viewport": [
+          256,
+          256
+        ]
+      },
+      "production_ppm_sha256": "981c4c5cdb81eced08664f8fc63d0cf9e8f5095dab972cf42639b1c88698f426",
+      "same_device_and_queue": true,
+      "samples": 1
+    },
+    {
+      "camera_matrix": [
+        0.00014433756587095559,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.00014433756587095559,
+        3.0839528804673396e-21,
+        0.0,
+        0.0,
+        -3.2049377789657016e-20,
+        1.3888889043300878e-05,
+        0.0,
+        0.0,
+        0.0,
+        0.3333333432674408,
+        1.0
+      ],
+      "changed_pixels": 0,
+      "density": 2,
+      "encoding": "Rgba8UnormSrgb",
+      "physical_size": 512,
+      "production": {
+        "adapter": "AdapterInfo { name: \"Microsoft Basic Render Driver\", vendor: 5140, device: 140, device_type: Cpu, device_pci_bus_id: \"\", driver: \"10.0.26100.9711\", driver_info: \"\", backend: Dx12, subgroup_min_size: 4, subgroup_max_size: 4, transient_saves_memory: false }",
+        "camera_distance_metres": 12,
+        "encoding": "Rgba8UnormSrgb",
+        "plane": "XY",
+        "samples": 1,
+        "viewport": [
+          512,
+          512
+        ]
+      },
+      "production_ppm_sha256": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19",
+      "same_device_and_queue": true,
+      "samples": 1
+    }
+  ],
+  "scope": "Independent actual maintained renderer and course, identical camera/device/queue, complete RGBA comparison",
+  "recordedAt": "2026-10-23",
+  "sourceHashes": {
+    "src/camera.rs": "925fec1638cefa891ce2ce080d5d2834ff9dc4521a5cc23d5b70c338a30ac4b3",
+    "src/shaders/grid.wgsl": "3fc85ea76c93e5e76835da0424c6ddd630be2df4add45d0bc5913db64054f9b7",
+    "src/engine/gpu/backdrop.rs": "7a9c8fa50e7a3c95d028172e92af2aacff8cf18babc78113d8bdef98276bcd93",
+    "src/engine/gpu/frame.rs": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228",
+    "src/engine/gpu/render.rs": "48150fc2c3afa9a453af5fa0d0aa35768ed42ee57454a3c46ef0016a518dfabc",
+    "src/selftest/stroke_witness.rs": "73752d4cf46266b2c8c3e4fb8cf6f7ea4b274df8831d976d506d29ff7ccaa9fb",
+    "Cargo.toml": "f3c4a4e33279d03a069b041b21d5b25be8c5f2c1846adbf406c693fc40234002",
+    "Cargo.lock": "fbda39a6fa46033f502dfc122beee366e2def699ed99395200fc54b30673f975"
+  },
+  "harnessSha256": "9ed45590d913abf8e01852c352f1352cb87344b7437bf439a4f10eb1e61a6e70",
+  "limits": "Native Windows DX12 WARP comparison only; not browser acceptance. Existing Linux fixture is preserved."
+}

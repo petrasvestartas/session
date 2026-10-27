@@ -1,0 +1,1 @@
+                if let Some(row) = scene.paths().iter().find(|r| r.id == target.owner) {

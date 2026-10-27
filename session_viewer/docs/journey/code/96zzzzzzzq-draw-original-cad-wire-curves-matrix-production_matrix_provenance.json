@@ -1,0 +1,35 @@
+{
+  "commit": "a391b104",
+  "feature_commit": "98e64f4d",
+  "composition": [
+    "matrix.wgsl",
+    "ink_visibility.wgsl",
+    "scene.wgsl",
+    "clip.wgsl"
+  ],
+  "include_dependencies": [
+    "projected_triangle.wgsl"
+  ],
+  "compiled_sha256": "7e52df4e188e6ef7e1ff6ad7468c6c74f05fc3f7aeaded4fc113dae5dbdf0e65",
+  "sources": {
+    "src/app/walk/matrix.rs": "5bc9c6feea9922f5d7920bc0acc3c4d6314751c05d1daebca57f57f86e378c61",
+    "src/engine/gpu/matrices.rs": "2569511c8fb95e77b30b19b9914e43ec1c0a2a148700520ebcc241871bdb6c9e",
+    "src/shaders/matrix.wgsl": "9b8ecd766503795c979043c16a4150c428ce6cc5f5a36da81aa4db3fe9af3d30",
+    "src/shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+    "src/shaders/scene.wgsl": "e17b1d992b7c986e48abececae70cb1be1edc356125a0ae1f2805cd6a6a73281",
+    "src/shaders/clip.wgsl": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
+    "src/shaders/projected_triangle.wgsl": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73"
+  },
+  "adapters": [
+    "Original matrix WGSL and numeric packing bodies retained. Only packing imports and bounds return owner change.",
+    "Production 96-byte object, 16-byte translation, 80-byte line uniform and four bind groups use the existing course resource owners.",
+    "Scene IDs are one-based; header INSTANCE is id-1. Original component data remains in source/archive ownership.",
+    "TextLabel.bare carries the production WorldPlane plate switch without changing earlier enum constructors. The world-text shader retains its existing crop convention and uses the production bare/plated expression."
+  ],
+  "limits": [
+    "Values round to thousandths; scaled magnitude caps at 4e12. Zero cells omit numeric glyphs.",
+    "Matrix RGB output is opaque. Only whole-object picking and selected borders are supported.",
+    "Clipping tests quad vertices. Titles have independent text IDs and lifetime."
+  ],
+  "shared_visibility_fix": "Current working-tree production ink_visibility.wgsl rejects an opaque nearer depth with primitive ID zero before coplanar triangle fallback. Matrix code and numeric packing are unchanged."
+}

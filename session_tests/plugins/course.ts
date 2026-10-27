@@ -11,6 +11,7 @@ import { codeTheme, renderCode } from '../src/codeTheme';
 import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
 import { readingBook } from '../src/courseBook';
+import { svgHtml } from './svg';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SESSION = path.resolve(HERE, '../..');
@@ -137,14 +138,13 @@ function navGroups(bySlug: Map<string, string>): Group[] {
     const lessonGroups: Group[] = book.chapters.map(chapter => ({
       title: `${chapter.number} · ${chapter.title}`,
       slugs: chapter.sections.flatMap(section => section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))),
-      sections: chapter.sections.map(section => ({title: `${section.number} · ${section.title}`,
-        slugs: section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))})),
-    }));
+          }));
     if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
     groups.splice(1, 0, ...lessonGroups);
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Complete viewer reference';
   }
+  for (const group of groups) group.slugs = group.slugs.filter(slug => !['journey/contents', 'journey/roadmap'].includes(slug));
   const listed = new Set(groups.flatMap((g) => g.slugs));
   const rest = [...bySlug.keys()].filter((s) => !listed.has(s) && !s.includes('/')).sort();
   if (rest.length) groups.push({ title: 'More', slugs: rest });
@@ -295,6 +295,7 @@ export default function coursePlugin(): Plugin {
 
     const md = new Marked({ gfm: true });
     md.use({
+      tokenizer: { html: svgHtml },
       renderer: {
         heading(this: any, { tokens, depth }: Tokens.Heading) {
           const inner = this.parser.parseInline(tokens);
@@ -403,7 +404,10 @@ export default function coursePlugin(): Plugin {
     const errors: string[] = [];
     assets = new Map();
     const next = new Map<string, Page>();
-    for (const [slug, file] of bySlug) next.set(slug, renderPage(file, slug, bySlug, links, errors));
+    for (const [slug, file] of bySlug) {
+      try { next.set(slug, renderPage(file, slug, bySlug, links, errors)); }
+      catch (cause) { throw new Error(`Cannot render ${posix(path.relative(SESSION, file))}`, { cause }); }
+    }
     // journey/ is the course still being written: its unwritten snippets warn, every other page fails the build
     const drafts = errors.filter((e) => e.includes('/docs/journey/'));
     const hard = errors.filter((e) => !e.includes('/docs/journey/'));

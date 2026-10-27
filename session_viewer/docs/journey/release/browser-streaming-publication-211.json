@@ -1,0 +1,1611 @@
+{
+  "status": "PASS nine independently built source-main-page browser figures, delegated original-resolution reviewed and root-approved",
+  "date": "2026-10-26T04:13:28.065Z",
+  "rootApprovedDelegatedReview": true,
+  "rootPersonallyViewedAllNewOriginals": false,
+  "delegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-representatives\\delegated-visual-review-nine-families.json",
+    "sha256": "f0c8b8ffa446620d2f55ccbbec0f717c5734e9774767c4b332066e2eb8c7a3b7"
+  },
+  "methodGate": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+    "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+  },
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "scope": "Exact original final/main-page setup and corresponding original assertions from nine distinct audited families. Inherited child/prefix contexts explicitly excluded. The Close-terminal blank is intentional source state. Every image retains independent current source/build/GPU/DPR2 receipts; no inherited full-callback acceptance.",
+  "images": [
+    {
+      "id": "96zm-write-triangle-addresses-beside-color",
+      "destination": "docs/screenshots/journey/96zm-write-triangle-addresses-beside-color-browser.png",
+      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zm-write-triangle-addresses-beside-color-e634625e7e7ba0a1aae3\\candidate-scoped-capture.json",
+        "sha256": "f996695b527da903c6ea8667a9a03c87d971a3b6b4d2b0c3ae0395edd2b4ea38"
+      },
+      "source": {
+        "checkpoint": "96zm-write-triangle-addresses-beside-color",
+        "files": "52127ad8b7ac04d5c7abf6882fdc91052431f92728e71003f3bb01287f920280",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "vertex-pulling",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+        "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);\n})(page,h);",
+          "authority": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\normal-view.cjs",
+              "sha256": "317fdd55f4e4525b296f1a16c4abf99d35fffe83891828bfb8e3872d51835b68"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+              "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+            }
+          ],
+          "parts": [
+            {
+              "name": "vertex-pulling",
+              "offset": 2498,
+              "length": 217,
+              "sha256": "5de7c565645a50891c0360e82dae2b77efde7a79dc33d15d509e3d2e68f506f9",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zm-write-triangle-addresses-beside-color-d47a083f9b294c298564\\prepared.json",
+        "sha256": "acd94ed649973ddf65f61d27d3d4a952e209eeae8f6f23ee2a186bca77ad5761"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+        "ids": [
+          "96zm-write-triangle-addresses-beside-color",
+          "96zz-separate-hidden-ink-color-from-pick-ownership"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zm-write-triangle-addresses-beside-color-e634625e7e7ba0a1aae3\\96zm-write-triangle-addresses-beside-color-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Intentionally empty white canvas after exact original final Close. Document closed readable at the complete bottom command field. This is a termination scene, not a meaningful feature illustration."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:00:05.1082151Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zm-write-triangle-addresses-beside-color-e634625e7e7ba0a1aae3\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zm-write-triangle-addresses-beside-color-d47a083f9b294c298564\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 3.363,
+        "peakJobCommitBytes": 736395264,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 60760,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zm-write-triangle-addresses-beside-color-browser.png",
+      "originalSha256": "5262845edebc6e1b7d4b1e7d6961cd411ce37dc5ce938ce9f585678d2578f8b8",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zm-write-triangle-addresses-beside-color-browser.png?v=ddba4d2288f7",
+        "status": 200,
+        "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b"
+      }
+    },
+    {
+      "id": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "destination": "docs/screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership-browser.png",
+      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zz-separate-hidden-ink-color-from-pick-ownership-6eb3978ac1a83ad4acfa\\candidate-scoped-capture.json",
+        "sha256": "e4d0612cdbe122cfddd9a0dcf842b89063f84cce898b02e1a51d9227fb96420e"
+      },
+      "source": {
+        "checkpoint": "96zz-separate-hidden-ink-color-from-pick-ownership",
+        "files": "526aeca5f03386674b31a3d5afe3a9aad299268b6ebed44b3ebc2c8ddd835b2f",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "finite-surfaces",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\finite-surfaces.cjs",
+        "sha256": "2cdd05cf0493ccf5b6535e65722070f7dc2fa43d0a03b61f1ad46ccaf97cb331",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);\n})(page,h);",
+          "authority": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\normal-view.cjs",
+              "sha256": "317fdd55f4e4525b296f1a16c4abf99d35fffe83891828bfb8e3872d51835b68"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+              "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\finite-surfaces.cjs",
+              "sha256": "2cdd05cf0493ccf5b6535e65722070f7dc2fa43d0a03b61f1ad46ccaf97cb331"
+            }
+          ],
+          "parts": [
+            {
+              "name": "vertex-pulling",
+              "offset": 2498,
+              "length": 217,
+              "sha256": "5de7c565645a50891c0360e82dae2b77efde7a79dc33d15d509e3d2e68f506f9",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "finite-surfaces",
+              "offset": 3696,
+              "length": 184,
+              "sha256": "c93bff0f72d233aae5ac7b9bb703ca2352b5cb2b023f7ce223317cc3020d6a96",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zz-separate-hidden-ink-color-from-pick-ownership-9807458f578f39e97d13\\prepared.json",
+        "sha256": "9b557e028c4b37a2cb618cf365a0d8d1c1370a8a9d85a7640580344e576d9c3c"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+        "ids": [
+          "96zm-write-triangle-addresses-beside-color",
+          "96zz-separate-hidden-ink-color-from-pick-ownership"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zm-write-triangle-addresses-beside-color-e634625e7e7ba0a1aae3\\96zm-write-triangle-addresses-beside-color-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Intentionally empty white canvas after exact original final Close. Document closed readable at the complete bottom command field. This is a termination scene, not a meaningful feature illustration."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:01:04.9964186Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zz-separate-hidden-ink-color-from-pick-ownership-6eb3978ac1a83ad4acfa\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zz-separate-hidden-ink-color-from-pick-ownership-9807458f578f39e97d13\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 4.401,
+        "peakJobCommitBytes": 741928960,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 59076,
+        "descendantsAtCleanup": 1
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zz-separate-hidden-ink-color-from-pick-ownership-browser.png",
+      "originalSha256": "5262845edebc6e1b7d4b1e7d6961cd411ce37dc5ce938ce9f585678d2578f8b8",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership-browser.png?v=ddba4d2288f7",
+        "status": 200,
+        "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b"
+      }
+    },
+    {
+      "id": "96zza-connect-section-primitive-images",
+      "destination": "docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
+      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-71ff7d67e1790a4f9014\\candidate-scoped-capture.json",
+        "sha256": "4c3e737def9ce60ee663b39dd7411ea0419e454ee91208dccf74cfdd0b5efcb6"
+      },
+      "source": {
+        "checkpoint": "96zza-connect-section-primitive-images",
+        "files": "1b04b79a68e57da30eda44a2c3acb351f660a5cb8b2bfb74407f12f3e3f1aa0f",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "cap-primitives",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);\n})(page,h);",
+          "authority": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cap-primitives.cjs",
+              "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\normal-view.cjs",
+              "sha256": "317fdd55f4e4525b296f1a16c4abf99d35fffe83891828bfb8e3872d51835b68"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+              "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\finite-surfaces.cjs",
+              "sha256": "2cdd05cf0493ccf5b6535e65722070f7dc2fa43d0a03b61f1ad46ccaf97cb331"
+            }
+          ],
+          "parts": [
+            {
+              "name": "vertex-pulling",
+              "offset": 2498,
+              "length": 217,
+              "sha256": "5de7c565645a50891c0360e82dae2b77efde7a79dc33d15d509e3d2e68f506f9",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "finite-surfaces",
+              "offset": 3696,
+              "length": 184,
+              "sha256": "c93bff0f72d233aae5ac7b9bb703ca2352b5cb2b023f7ce223317cc3020d6a96",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "cap-primitives",
+              "offset": 906,
+              "length": 1270,
+              "sha256": "aca5d524ed5af530e73fb34ae102b84f40f8f03fc4c233e144c7c681496d9eaf",
+              "body": "    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zza-connect-section-primitive-images-ecb22073b527364c119d\\prepared.json",
+        "sha256": "7af78928141c17743262a45a12314799eefdec0788e2345be319bda74ab4233b"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+        "ids": [
+          "96zza-connect-section-primitive-images",
+          "96zzc-share-section-addresses-with-outlines-and-ambient"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-71ff7d67e1790a4f9014\\96zza-connect-section-primitive-images-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Complete selected yellow rectangular plate, black outer perimeter, complete circular white bore and colored gizmo. Foreground plate/bore contained; long outer contextual lines reach viewport edges as original framing. No displayed mesh diagonals."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:02:00.4652921Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-71ff7d67e1790a4f9014\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zza-connect-section-primitive-images-ecb22073b527364c119d\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.609,
+        "peakJobCommitBytes": 788873216,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 58416,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zza-connect-section-primitive-images-browser.png",
+      "originalSha256": "21cb3a7d032baa6a9158e7fdec47c0c481a2597279246d2ad669b0df0a45323a",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png?v=0816e418db8c",
+        "status": 200,
+        "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb"
+      }
+    },
+    {
+      "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "destination": "docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-browser.png",
+      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzc-share-section-addresses-with-outlines-and-ambient-ca51425844afc70d451f\\candidate-scoped-capture.json",
+        "sha256": "b1745bb902d5d2a91092224718601f4c23b30e8b0f37744ddb957636d29667b0"
+      },
+      "source": {
+        "checkpoint": "96zzc-share-section-addresses-with-outlines-and-ambient",
+        "files": "8d491c8d68519687c044ca85c64970b252fd7688d63851a5e80033a0d9c1bba9",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "section-resources",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\section-resources.cjs",
+        "sha256": "f99f1f17e15a0269efdec2b0aebcec218e68500451594b9afc717a3a31820d7e",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);\n})(page,h);",
+          "authority": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\section-resources.cjs",
+              "sha256": "f99f1f17e15a0269efdec2b0aebcec218e68500451594b9afc717a3a31820d7e"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\normal-view.cjs",
+              "sha256": "317fdd55f4e4525b296f1a16c4abf99d35fffe83891828bfb8e3872d51835b68"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+              "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\finite-surfaces.cjs",
+              "sha256": "2cdd05cf0493ccf5b6535e65722070f7dc2fa43d0a03b61f1ad46ccaf97cb331"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cap-primitives.cjs",
+              "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+            }
+          ],
+          "parts": [
+            {
+              "name": "vertex-pulling",
+              "offset": 2498,
+              "length": 217,
+              "sha256": "5de7c565645a50891c0360e82dae2b77efde7a79dc33d15d509e3d2e68f506f9",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "finite-surfaces",
+              "offset": 3696,
+              "length": 184,
+              "sha256": "c93bff0f72d233aae5ac7b9bb703ca2352b5cb2b023f7ce223317cc3020d6a96",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "cap-primitives",
+              "offset": 906,
+              "length": 1270,
+              "sha256": "aca5d524ed5af530e73fb34ae102b84f40f8f03fc4c233e144c7c681496d9eaf",
+              "body": "    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzc-share-section-addresses-with-outlines-and-ambient-9dc2630ab2df89499a85\\prepared.json",
+        "sha256": "5e38c0d10bbaa250a0972e030400ef3e82e6e0792ff5c98439e70e7196ab20a3"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+        "ids": [
+          "96zza-connect-section-primitive-images",
+          "96zzc-share-section-addresses-with-outlines-and-ambient"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-71ff7d67e1790a4f9014\\96zza-connect-section-primitive-images-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Complete selected yellow rectangular plate, black outer perimeter, complete circular white bore and colored gizmo. Foreground plate/bore contained; long outer contextual lines reach viewport edges as original framing. No displayed mesh diagonals."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:04:25.2451136Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzc-share-section-addresses-with-outlines-and-ambient-ca51425844afc70d451f\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzc-share-section-addresses-with-outlines-and-ambient-9dc2630ab2df89499a85\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.382,
+        "peakJobCommitBytes": 791113728,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 25524,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zzc-share-section-addresses-with-outlines-and-ambient-browser.png",
+      "originalSha256": "21cb3a7d032baa6a9158e7fdec47c0c481a2597279246d2ad669b0df0a45323a",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-browser.png?v=0816e418db8c",
+        "status": 200,
+        "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb"
+      }
+    },
+    {
+      "id": "96zzf-start-with-current-browser-display-defaults",
+      "destination": "docs/screenshots/journey/96zzf-start-with-current-browser-display-defaults-browser.png",
+      "sha256": "90dd1626727fb82df066f0af3585ce5f27b7fcace7f4d30291a45c0c2d4e3be7",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzf-start-with-current-browser-display-defaults-0f71dbe179675abfecd3\\candidate-scoped-capture.json",
+        "sha256": "1bb8718ffa00c271ce5af45f138c008598c8eb3bd93e5dd52c1ac1764aaa5a02"
+      },
+      "source": {
+        "checkpoint": "96zzf-start-with-current-browser-display-defaults",
+        "files": "cea975fa21a4099a667e6a03be7cb1790e21b5c2efb7fce93e96c6fb5c599d4c",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "display-scale",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-scale.cjs",
+        "sha256": "6cc50ef367460d11066b4a01daa703e463284750eaaf67f28bbe451163706735",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(page,helpers)=>{const assert=require('node:assert/strict');\n    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);\n})(page,h);",
+          "authority": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-scale.cjs",
+              "sha256": "6cc50ef367460d11066b4a01daa703e463284750eaaf67f28bbe451163706735"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-defaults.cjs",
+              "sha256": "38bbde8254b345b87e4c5c2caa5c7fcca87d2a71600abc306d48502f92cd04f6"
+            }
+          ],
+          "parts": [
+            {
+              "name": "display-defaults",
+              "offset": 82,
+              "length": 581,
+              "body": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+              "sha256": "a9fdb51c4125e874e4f20158e570d0f983087222408740eeece24c7b1d34317e"
+            },
+            {
+              "name": "display-defaults",
+              "offset": 1994,
+              "length": 922,
+              "sha256": "b679ce5b3661117c290c979518f4c8206e6fdb58f666ef3870fbfe82f5d82ade",
+              "body": "    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzf-start-with-current-browser-display-defaults-8366e6285d97f360f0ca\\prepared.json",
+        "sha256": "dc64c8da74ad2d9a0adb50d70ed5261b6e6b808334bc5861711d2f67702be279"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "90dd1626727fb82df066f0af3585ce5f27b7fcace7f4d30291a45c0c2d4e3be7",
+        "ids": [
+          "96zzf-start-with-current-browser-display-defaults"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzf-start-with-current-browser-display-defaults-0f71dbe179675abfecd3\\96zzf-start-with-current-browser-display-defaults-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Fully contained translucent blue-gray plate and circular through-bore over physical grid/axes; black visible boundaries and faint transmitted surfaces match glass source state. No displayed triangulation diagonals."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:05:57.4254333Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzf-start-with-current-browser-display-defaults-0f71dbe179675abfecd3\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzf-start-with-current-browser-display-defaults-8366e6285d97f360f0ca\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.168,
+        "peakJobCommitBytes": 794562560,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 59716,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zzf-start-with-current-browser-display-defaults-browser.png",
+      "originalSha256": "7c3f5ae637e606539e58f75825722e91d30eea311fdae8abb5fe251bc91acd4e",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzf-start-with-current-browser-display-defaults-browser.png?v=90dd1626727f",
+        "status": 200,
+        "sha256": "90dd1626727fb82df066f0af3585ce5f27b7fcace7f4d30291a45c0c2d4e3be7"
+      }
+    },
+    {
+      "id": "96zzg-grow-buffers-without-losing-rows",
+      "destination": "docs/screenshots/journey/96zzg-grow-buffers-without-losing-rows-browser.png",
+      "sha256": "3f6557cb582e3e9c8bb433f883b167502069738e41ff2132113766c6f43ce2f8",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzg-grow-buffers-without-losing-rows-dfd480861a6e66317e64\\candidate-scoped-capture.json",
+        "sha256": "69480472fcca0973130f0645d83ab78c5dcd92b85aed76ffd7f9f7442466e14f"
+      },
+      "source": {
+        "checkpoint": "96zzg-grow-buffers-without-losing-rows",
+        "files": "ede520723a6f16df67da1402da2616d664337ac574a6bcb582008ca19ecb4582",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "buffer-growth",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\buffer-growth.cjs",
+        "sha256": "eef06092ac561a610bb2d2f919424903e1842e346f2f950e59e4d25d22fea828",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(page,helpers)=>{const assert=require('node:assert/strict');\n    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    const value=async(page,name)=>JSON.parse(await page.locator('canvas').getAttribute(name));\n    for(const line of ['Close','Layers Off','View Grid Off','Example CAD','Example Scene Text','Fit','View Isometric','Select Next','Select Next'])await helpers.command(original,line);\n    assert.equal((await value(original,'data-command-ui')).status,'Command submitted.','The command dock reports the final selection command; the page status retains the last document event.');\n})(page,h);",
+          "authority": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\buffer-growth.cjs",
+              "sha256": "eef06092ac561a610bb2d2f919424903e1842e346f2f950e59e4d25d22fea828"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-scale.cjs",
+              "sha256": "6cc50ef367460d11066b4a01daa703e463284750eaaf67f28bbe451163706735"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-defaults.cjs",
+              "sha256": "38bbde8254b345b87e4c5c2caa5c7fcca87d2a71600abc306d48502f92cd04f6"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\labels.cjs",
+              "sha256": "f793b3f49f294772ecf78bf1f30c1f6585ec232f2ba3ee1e5981c489fdea501b"
+            }
+          ],
+          "parts": [
+            {
+              "name": "display-defaults",
+              "offset": 82,
+              "length": 581,
+              "body": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+              "sha256": "a9fdb51c4125e874e4f20158e570d0f983087222408740eeece24c7b1d34317e"
+            },
+            {
+              "name": "display-defaults",
+              "offset": 1994,
+              "length": 922,
+              "sha256": "b679ce5b3661117c290c979518f4c8206e6fdb58f666ef3870fbfe82f5d82ade",
+              "body": "    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);"
+            },
+            {
+              "name": "labels",
+              "offset": 115,
+              "length": 94,
+              "body": "    const value=async(page,name)=>JSON.parse(await page.locator('canvas').getAttribute(name));",
+              "sha256": "f8abfcea78577055c8016312a1ee9f554b04ac6ced238ba0d984e28dd0a6d896"
+            },
+            {
+              "name": "labels",
+              "offset": 4656,
+              "length": 378,
+              "sha256": "7826ad8a61f3c5e59227ec2d6f9778afee8195306ff68b502b22214e9b109982",
+              "body": "    for(const line of ['Close','Layers Off','View Grid Off','Example CAD','Example Scene Text','Fit','View Isometric','Select Next','Select Next'])await helpers.command(original,line);\n    assert.equal((await value(original,'data-command-ui')).status,'Command submitted.','The command dock reports the final selection command; the page status retains the last document event.');"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzg-grow-buffers-without-losing-rows-ff29ac5a3c085b3a9acc\\prepared.json",
+        "sha256": "2617155a70a92d91572c253e7f40fb3d3b748b15ca87ee374ae3ae256e25a49c"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "3f6557cb582e3e9c8bb433f883b167502069738e41ff2132113766c6f43ce2f8",
+        "ids": [
+          "96zzg-grow-buffers-without-losing-rows"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzg-grow-buffers-without-losing-rows-dfd480861a6e66317e64\\96zzg-grow-buffers-without-losing-rows-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Complete blue-gray through-bore plate with readable selected yellow Original CAD / diameter25 / Omega label and colored gizmo. Foreground and label contained with margins; bottom command field readable."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:07:34.6681781Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzg-grow-buffers-without-losing-rows-dfd480861a6e66317e64\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzg-grow-buffers-without-losing-rows-ff29ac5a3c085b3a9acc\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 8.635,
+        "peakJobCommitBytes": 846553088,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 61032,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zzg-grow-buffers-without-losing-rows-browser.png",
+      "originalSha256": "ffe5fe30c3e201aa2bbd5c2c44ed71530f3476dce98732b1c31b7e6bb5397687",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzg-grow-buffers-without-losing-rows-browser.png?v=3f6557cb582e",
+        "status": 200,
+        "sha256": "3f6557cb582e3e9c8bb433f883b167502069738e41ff2132113766c6f43ce2f8"
+      }
+    },
+    {
+      "id": "96zzm-connect-the-renderer-to-one-mesh-arena",
+      "destination": "docs/screenshots/journey/96zzm-connect-the-renderer-to-one-mesh-arena-browser.png",
+      "sha256": "4221462addb788fe16d9f2abad843056c9916fd16e1fda504c4531f06e91c26a",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzm-connect-the-renderer-to-one-mesh-arena-f357c1088695647c7f7c\\candidate-scoped-capture.json",
+        "sha256": "3a863e8fdb9596c6a8a8a9c4dd75c884ca18d7b6d57ced4a29eb55cf5319728f"
+      },
+      "source": {
+        "checkpoint": "96zzm-connect-the-renderer-to-one-mesh-arena",
+        "files": "63002963a8a2ff1f0fc9b052c6a5d9cddc8b50d573d064da9b7f7b965c3a3ad5",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "arena-cache",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\arena-cache.cjs",
+        "sha256": "cc8c718d75c5418892418e3ed3bb9ea03e0f6110f9ce0d4a042cc383d6e5f3fe",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(page,helpers)=>{const assert=require('node:assert/strict');\n    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    const value=async(page,name)=>JSON.parse(await page.locator('canvas').getAttribute(name));\n    for(const line of ['Close','Layers Off','View Grid Off','Example CAD','Example Scene Text','Fit','View Isometric','Select Next','Select Next'])await helpers.command(original,line);\n    assert.equal((await value(original,'data-command-ui')).status,'Command submitted.','The command dock reports the final selection command; the page status retains the last document event.');\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);\n})(page,h);",
+          "authority": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\arena-cache.cjs",
+              "sha256": "cc8c718d75c5418892418e3ed3bb9ea03e0f6110f9ce0d4a042cc383d6e5f3fe"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\buffer-growth.cjs",
+              "sha256": "eef06092ac561a610bb2d2f919424903e1842e346f2f950e59e4d25d22fea828"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\section-resources.cjs",
+              "sha256": "f99f1f17e15a0269efdec2b0aebcec218e68500451594b9afc717a3a31820d7e"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-scale.cjs",
+              "sha256": "6cc50ef367460d11066b4a01daa703e463284750eaaf67f28bbe451163706735"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-defaults.cjs",
+              "sha256": "38bbde8254b345b87e4c5c2caa5c7fcca87d2a71600abc306d48502f92cd04f6"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\labels.cjs",
+              "sha256": "f793b3f49f294772ecf78bf1f30c1f6585ec232f2ba3ee1e5981c489fdea501b"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\normal-view.cjs",
+              "sha256": "317fdd55f4e4525b296f1a16c4abf99d35fffe83891828bfb8e3872d51835b68"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+              "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\finite-surfaces.cjs",
+              "sha256": "2cdd05cf0493ccf5b6535e65722070f7dc2fa43d0a03b61f1ad46ccaf97cb331"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cap-primitives.cjs",
+              "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+            }
+          ],
+          "parts": [
+            {
+              "name": "display-defaults",
+              "offset": 82,
+              "length": 581,
+              "body": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+              "sha256": "a9fdb51c4125e874e4f20158e570d0f983087222408740eeece24c7b1d34317e"
+            },
+            {
+              "name": "display-defaults",
+              "offset": 1994,
+              "length": 922,
+              "sha256": "b679ce5b3661117c290c979518f4c8206e6fdb58f666ef3870fbfe82f5d82ade",
+              "body": "    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);"
+            },
+            {
+              "name": "labels",
+              "offset": 115,
+              "length": 94,
+              "body": "    const value=async(page,name)=>JSON.parse(await page.locator('canvas').getAttribute(name));",
+              "sha256": "f8abfcea78577055c8016312a1ee9f554b04ac6ced238ba0d984e28dd0a6d896"
+            },
+            {
+              "name": "labels",
+              "offset": 4656,
+              "length": 378,
+              "sha256": "7826ad8a61f3c5e59227ec2d6f9778afee8195306ff68b502b22214e9b109982",
+              "body": "    for(const line of ['Close','Layers Off','View Grid Off','Example CAD','Example Scene Text','Fit','View Isometric','Select Next','Select Next'])await helpers.command(original,line);\n    assert.equal((await value(original,'data-command-ui')).status,'Command submitted.','The command dock reports the final selection command; the page status retains the last document event.');"
+            },
+            {
+              "name": "vertex-pulling",
+              "offset": 2498,
+              "length": 217,
+              "sha256": "5de7c565645a50891c0360e82dae2b77efde7a79dc33d15d509e3d2e68f506f9",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "finite-surfaces",
+              "offset": 3696,
+              "length": 184,
+              "sha256": "c93bff0f72d233aae5ac7b9bb703ca2352b5cb2b023f7ce223317cc3020d6a96",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "cap-primitives",
+              "offset": 906,
+              "length": 1270,
+              "sha256": "aca5d524ed5af530e73fb34ae102b84f40f8f03fc4c233e144c7c681496d9eaf",
+              "body": "    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzm-connect-the-renderer-to-one-mesh-arena-bda25e573aef44cfe2e1\\prepared.json",
+        "sha256": "6de3fdeee781b3639aa709d278f8fb79bcceca33d7711332045fcb3060c97168"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "4221462addb788fe16d9f2abad843056c9916fd16e1fda504c4531f06e91c26a",
+        "ids": [
+          "96zzm-connect-the-renderer-to-one-mesh-arena",
+          "96zzo-read-instance-properties-through-draw-slots"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzm-connect-the-renderer-to-one-mesh-arena-f357c1088695647c7f7c\\96zzm-connect-the-renderer-to-one-mesh-arena-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Independently viewed selected yellow rectangular plate and white circular bore with gizmo. Complete foreground perimeter and bore; original contextual long lines extend to edges. Visually similar to the prior cap group but different bytes, so independently reviewed."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:08:42.9618273Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzm-connect-the-renderer-to-one-mesh-arena-f357c1088695647c7f7c\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzm-connect-the-renderer-to-one-mesh-arena-bda25e573aef44cfe2e1\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 10.655,
+        "peakJobCommitBytes": 815910912,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 38688,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zzm-connect-the-renderer-to-one-mesh-arena-browser.png",
+      "originalSha256": "04a3300d511d0c362a006f1bc74f210dad62655a6951de925ef6b540e096a53e",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzm-connect-the-renderer-to-one-mesh-arena-browser.png?v=4221462addb7",
+        "status": 200,
+        "sha256": "4221462addb788fe16d9f2abad843056c9916fd16e1fda504c4531f06e91c26a"
+      }
+    },
+    {
+      "id": "96zzo-read-instance-properties-through-draw-slots",
+      "destination": "docs/screenshots/journey/96zzo-read-instance-properties-through-draw-slots-browser.png",
+      "sha256": "4221462addb788fe16d9f2abad843056c9916fd16e1fda504c4531f06e91c26a",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzo-read-instance-properties-through-draw-slots-d518c60f8ff6cf78a228\\candidate-scoped-capture.json",
+        "sha256": "df354f82bcf3fb2436de345d1bf6fcd4acc4b7fbb722e7f66f4e3b13933bdfe5"
+      },
+      "source": {
+        "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+        "files": "41a72e3da99c37e8bf5d9a65d7070ec62338360e54ce5bdb923591a9c3c07fa4",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "slot-pipeline",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\slot-pipeline.cjs",
+        "sha256": "958a5612a0f8b35ef32df3c0ce0f2b052625aefde5c69f975a1e827541d516f7",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await(async(page,helpers)=>{const assert=require('node:assert/strict');\n    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    const value=async(page,name)=>JSON.parse(await page.locator('canvas').getAttribute(name));\n    for(const line of ['Close','Layers Off','View Grid Off','Example CAD','Example Scene Text','Fit','View Isometric','Select Next','Select Next'])await helpers.command(original,line);\n    assert.equal((await value(original,'data-command-ui')).status,'Command submitted.','The command dock reports the final selection command; the page status retains the last document event.');\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);\n})(page,h);await(async(original,helpers)=>{const assert=require('node:assert/strict');\n    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);\n})(page,h);",
+          "authority": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\slot-pipeline.cjs",
+              "sha256": "958a5612a0f8b35ef32df3c0ce0f2b052625aefde5c69f975a1e827541d516f7"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\arena-cache.cjs",
+              "sha256": "cc8c718d75c5418892418e3ed3bb9ea03e0f6110f9ce0d4a042cc383d6e5f3fe"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\buffer-growth.cjs",
+              "sha256": "eef06092ac561a610bb2d2f919424903e1842e346f2f950e59e4d25d22fea828"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\section-resources.cjs",
+              "sha256": "f99f1f17e15a0269efdec2b0aebcec218e68500451594b9afc717a3a31820d7e"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-scale.cjs",
+              "sha256": "6cc50ef367460d11066b4a01daa703e463284750eaaf67f28bbe451163706735"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\display-defaults.cjs",
+              "sha256": "38bbde8254b345b87e4c5c2caa5c7fcca87d2a71600abc306d48502f92cd04f6"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\labels.cjs",
+              "sha256": "f793b3f49f294772ecf78bf1f30c1f6585ec232f2ba3ee1e5981c489fdea501b"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\normal-view.cjs",
+              "sha256": "317fdd55f4e4525b296f1a16c4abf99d35fffe83891828bfb8e3872d51835b68"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\vertex-pulling.cjs",
+              "sha256": "50653be3cbae7fc35067e98c6c8f7857c5298d7ec58ff77b8614ffa89ab41883"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\finite-surfaces.cjs",
+              "sha256": "2cdd05cf0493ccf5b6535e65722070f7dc2fa43d0a03b61f1ad46ccaf97cb331"
+            },
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cap-primitives.cjs",
+              "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+            }
+          ],
+          "parts": [
+            {
+              "name": "display-defaults",
+              "offset": 82,
+              "length": 581,
+              "body": "    const base=new URL(page.url());base.search='';base.hash='';\n    const ready=p=>p.waitForFunction(()=>window.wasmBindings?.runtime_running?.()\n        &&document.querySelector('canvas')?.hasAttribute('data-grid-enabled'));\n    const settings=async p=>({opacity:JSON.parse(await p.locator('canvas').getAttribute('data-clipping')).opacity,\n        grid:await p.locator('canvas').getAttribute('data-grid-enabled')==='true'});\n    const expect=async(p,opacity,grid)=>{const actual=await settings(p);assert.ok(Math.abs(actual.opacity-opacity)<1e-6);assert.equal(actual.grid,grid);};\n",
+              "sha256": "a9fdb51c4125e874e4f20158e570d0f983087222408740eeece24c7b1d34317e"
+            },
+            {
+              "name": "display-defaults",
+              "offset": 1994,
+              "length": 922,
+              "sha256": "b679ce5b3661117c290c979518f4c8206e6fdb58f666ef3870fbfe82f5d82ade",
+              "body": "    await page.setViewportSize({width:900,height:760});await page.goto(base.href);await ready(page);await expect(page,0.95,true);\n    await helpers.command(page,'Close');await helpers.command(page,'View Isometric');await helpers.command(page,'Example CAD');await helpers.command(page,'Fit');\n    await page.keyboard.press('Escape');await page.waitForTimeout(150);const withGrid=await helpers.drawing(page);\n    await helpers.command(page,'View Grid Off');await page.keyboard.press('Escape');await page.waitForTimeout(150);\n    assert.notEqual(await helpers.drawing(page),withGrid,'The startup grid is actual drawing output');\n    await helpers.command(page,'View Grid On');await helpers.command(page,'Select Next');await page.keyboard.press('Escape');await expect(page,0.95,true);\n    console.log(`${helpers.step.id}: actual desktop/coarse-pointer startup, URL overrides, persistent view commands and grid pixels passed`);"
+            },
+            {
+              "name": "labels",
+              "offset": 115,
+              "length": 94,
+              "body": "    const value=async(page,name)=>JSON.parse(await page.locator('canvas').getAttribute(name));",
+              "sha256": "f8abfcea78577055c8016312a1ee9f554b04ac6ced238ba0d984e28dd0a6d896"
+            },
+            {
+              "name": "labels",
+              "offset": 4656,
+              "length": 378,
+              "sha256": "7826ad8a61f3c5e59227ec2d6f9778afee8195306ff68b502b22214e9b109982",
+              "body": "    for(const line of ['Close','Layers Off','View Grid Off','Example CAD','Example Scene Text','Fit','View Isometric','Select Next','Select Next'])await helpers.command(original,line);\n    assert.equal((await value(original,'data-command-ui')).status,'Command submitted.','The command dock reports the final selection command; the page status retains the last document event.');"
+            },
+            {
+              "name": "vertex-pulling",
+              "offset": 2498,
+              "length": 217,
+              "sha256": "5de7c565645a50891c0360e82dae2b77efde7a79dc33d15d509e3d2e68f506f9",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: shared color vertex reads, source/normal pixels, placed batches, selection, exact restoration and release passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "finite-surfaces",
+              "offset": 3696,
+              "length": 184,
+              "sha256": "c93bff0f72d233aae5ac7b9bb703ca2352b5cb2b023f7ce223317cc3020d6a96",
+              "body": "    await helpers.command(original,'Close');\n    console.log(`${helpers.step.id}: fitted point/stroke color and original face pick ownership through glass passed in Chrome at DPR1/2`);"
+            },
+            {
+              "name": "cap-primitives",
+              "offset": 906,
+              "length": 1270,
+              "sha256": "aca5d524ed5af530e73fb34ae102b84f40f8f03fc4c233e144c7c681496d9eaf",
+              "body": "    await helpers.command(original,'Close');\n    for(const line of ['Example CAD','View Orthographic','View Top','Fit','Clipping Plane XY 0,0,0','Clipping Plane Solid','Select All'])await helpers.command(original,line);\n    await original.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-clipping')).caps[1]===1);\n    const cads=JSON.parse(await original.locator('canvas').getAttribute('data-cads'));\n    require('node:assert/strict').equal(cads.length,1);\n    require('node:assert/strict').ok(JSON.parse(await original.locator('canvas').getAttribute('data-selected-ids')).includes(cads[0].id));\n    await original.waitForTimeout(150);\n    const image=await require('./canvas-image.cjs')(original.locator('canvas'));\n    const png=require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1],'base64'));\n    let yellow=0;for(let at=0;at<png.data.length;at+=4)if(png.data[at]>220&&png.data[at+1]>220&&png.data[at+2]<40)yellow++;\n    require('node:assert/strict').ok(yellow>200,'The final lesson image contains actual selected section pixels');\n    console.log(`${helpers.step.id}: focused section and clipping checks plus finite ink acceptance passed in Chrome at DPR1/2; integer cap readback is checked by the supplied GPU fixtures`);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzo-read-instance-properties-through-draw-slots-63fa4049aa777cc5b1b5\\prepared.json",
+        "sha256": "38e20b6c509e848d5c12b52d029763b08ddb5c66c22530cbf07f07f11b86bf36"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "4221462addb788fe16d9f2abad843056c9916fd16e1fda504c4531f06e91c26a",
+        "ids": [
+          "96zzm-connect-the-renderer-to-one-mesh-arena",
+          "96zzo-read-instance-properties-through-draw-slots"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzm-connect-the-renderer-to-one-mesh-arena-f357c1088695647c7f7c\\96zzm-connect-the-renderer-to-one-mesh-arena-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Independently viewed selected yellow rectangular plate and white circular bore with gizmo. Complete foreground perimeter and bore; original contextual long lines extend to edges. Visually similar to the prior cap group but different bytes, so independently reviewed."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:09:44.0907849Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzo-read-instance-properties-through-draw-slots-d518c60f8ff6cf78a228\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzo-read-instance-properties-through-draw-slots-63fa4049aa777cc5b1b5\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 10.352,
+        "peakJobCommitBytes": 801824768,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 62972,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zzo-read-instance-properties-through-draw-slots-browser.png",
+      "originalSha256": "83ab6af166231fce65b3a2d5a9cbf51bb80ed46f5df1672af241291711b3f09a",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzo-read-instance-properties-through-draw-slots-browser.png?v=4221462addb7",
+        "status": 200,
+        "sha256": "4221462addb788fe16d9f2abad843056c9916fd16e1fda504c4531f06e91c26a"
+      }
+    },
+    {
+      "id": "96zzzzzzt-keep-contact-ambient-inputs-on-originals",
+      "destination": "docs/screenshots/journey/96zzzzzzt-keep-contact-ambient-inputs-on-originals-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-d1f19d550d9363a0de22\\candidate-scoped-capture.json",
+        "sha256": "5ee8c214251f16ef886f2d560aab818159ce15142c52d4f0624bad1daf182a26"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzt-keep-contact-ambient-inputs-on-originals",
+        "files": "d7f68ddbdbb9a2cf5c1f2bd594e92c0bc2dec9b766be619351046848d31be363",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "ambient-contacts",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\ambient-contacts.cjs",
+        "sha256": "05ff6c3a449794927ed71c5debc4d41ea637a29758884a327eb329db674835b0",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "mainSetup": {
+          "body": "await start(page,address);await open(page,'ordinary',h);",
+          "authority": "await start(page,address);await open(page,'ordinary',h);",
+          "authorities": [
+            {
+              "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\ambient-contacts.cjs",
+              "sha256": "05ff6c3a449794927ed71c5debc4d41ea637a29758884a327eb329db674835b0"
+            }
+          ],
+          "parts": [
+            {
+              "name": "ambient-contacts",
+              "offset": 6873,
+              "length": 56,
+              "sha256": "52ed7510e538772350373bdbf5c40161dae70910fccdf1489ff64ab4b7c5bc91",
+              "body": "await start(page,address);await open(page,'ordinary',h);"
+            }
+          ],
+          "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions."
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "scope": "Exact literal final original-main-page writers and all assertions within those fragments. Original child/prefix matrices excluded; no whole canonical callback acceptance. Display-defaults uses its original final fresh navigation/reset and original settings/grid assertions.",
+      "canonicalBehaviorExecuted": false,
+      "canonicalValidationProfile": false,
+      "mainPageSourceBridge": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\bridge.json",
+        "sha256": "f457c166f70967d3f87f403540e5244967acffbe1dea0cfb9d25d0a07ba3a2f2"
+      },
+      "actualBuild": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-c80ab331c00915a1f7b9\\prepared.json",
+        "sha256": "f9e7240f06f6242a22a76b2cb0f3fd9434bf764a5af6f8c6332c9a3e0cb10334"
+      },
+      "methodGate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+        "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+      },
+      "review": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+        ],
+        "representative": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-d1f19d550d9363a0de22\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-dpr2.png",
+        "reviewedAtOriginalResolution": true,
+        "reviewMethod": "view_image detail original; exact SHA grouping only after independent per-ID source/build/GPU/DPR2 receipt validation",
+        "finding": "Fully contained blue background plane and red U-shaped foreground surface, small gray square object with contact shading and crisp intended black boundaries. No unintended triangle diagonals; complete command field below."
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T04:11:03.0915170Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\ed8a05fe9c5f54db1904\\worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-d1f19d550d9363a0de22\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-c80ab331c00915a1f7b9\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.734,
+        "peakJobCommitBytes": 805875712,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 54956,
+        "descendantsAtCleanup": 0
+      },
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-211-preparation\\originals\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzt-keep-contact-ambient-inputs-on-originals-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    }
+  ]
+}

@@ -1,0 +1,311 @@
+{
+  "status": "PASS: one finite Sheet/text native criterion; feature row remains partial",
+  "recordedUtc": "2026-10-23T20:40:31.757Z",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "sourceFiles": 713,
+  "sourceStage": "target/course-final-original-owners",
+  "originalRequirement": {
+    "mapCommit": "7baf0e2e",
+    "mapSha256": "c0d728cc09bafa5422c36cb69977e334625dbd855d5415f4cf273dfd1206f2ad",
+    "feature": "Text, glyphs and drawing sheets",
+    "criterion": "Verify text shaping, glyph scale, placements, clipping, original queries and retained resource lifetime separately."
+  },
+  "acceptedScope": "Separate native assertions verify text shaping, glyph scale, placements, clipping, original queries and retained resource lifetime at current97d. This closes only that original finite criterion; it is not complete Sheet/text feature or browser acceptance.",
+  "nativeSuite": {
+    "review": "release/native-97d-integration-review.json",
+    "passed": 1060,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 0,
+    "threads": 1,
+    "records": {
+      "manifest": {
+        "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/manifest.json",
+        "sha256": "027c6247176e0eb24124989504dc7eea35287eb95dc495a1fa725e5b8b52ef46",
+        "hashVerified": true
+      },
+      "sourceFreeze": {
+        "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/source-freeze.json",
+        "sha256": "116b91c245fb8c25a20afbb7b3a6c7fbece16d15f61f772adff31845977329eb",
+        "hashVerified": true
+      },
+      "testList": {
+        "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/test-list.json",
+        "sha256": "a7d2d206a44acc8b66c26c66d357a9d719b3208097a8555f3d6dc692a014f1a0",
+        "hashVerified": true
+      },
+      "result": {
+        "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite-result.json",
+        "sha256": "5d593a3d7d33551063c2aeeb9ba2a0be9ac753814db1c7a977f4518adf7b5f1a",
+        "hashVerified": true
+      },
+      "stdout": {
+        "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stdout.log",
+        "sha256": "17df2d8db27d2f76718efdc54fd9025965d659e40bd357ebe14563eafa08d465",
+        "hashVerified": true
+      },
+      "stderr": {
+        "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "hashVerified": true
+      }
+    }
+  },
+  "criterionProof": [
+    {
+      "test": "text::tests::ligatures_accents_spaces_and_symbols_are_shaped",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Actual shaped glyphs cover characters, multi-byte clusters, spaces and line width.",
+      "source": {
+        "path": "src/text.rs",
+        "line": 398,
+        "sha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243"
+      }
+    },
+    {
+      "test": "text::tests::composed_decomposed_accents_and_multiline_baselines_match",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Composed/decomposed accents yield equal glyph/advance; multiline baseline increment is 24.",
+      "source": {
+        "path": "src/text.rs",
+        "line": 453,
+        "sha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243"
+      }
+    },
+    {
+      "test": "text_atlas_tests::actual_glyph_atlas_has_antialiased_coverage_and_preserves_css_size_at_two_densities",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Rasterized antialiased glyph coverage and CSS dimensions at densities 1/2; repeated frame identical; no redundant reshape.",
+      "source": {
+        "path": "src/text_atlas_tests.rs",
+        "line": 15,
+        "sha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0"
+      }
+    },
+    {
+      "test": "text_atlas_tests::actual_glyph_clip_and_font_reload_preserve_source_words_and_reset_only_accepted_fonts",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Pixels outside clip remain white, text placement changes pixels without reshaping, invalid font leaves state intact; accepted reload preserves source words.",
+      "source": {
+        "path": "src/text_atlas_tests.rs",
+        "line": 26,
+        "sha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0"
+      }
+    },
+    {
+      "test": "sheet_scene_tests::sheet_import_copy_move_save_and_reopen_keep_original_columns_namespaces_and_flags",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Shared source, distinct owners, moved placement, original columns and hidden/locked flags survive archive/reopen.",
+      "source": {
+        "path": "src/sheet_scene_tests.rs",
+        "line": 10,
+        "sha256": "810e5865699f40a21cdc1f3cf33360949dd242939573ef8b55b8697f19587181"
+      }
+    },
+    {
+      "test": "clipping_gpu_tests::clipping_sheet_centerline_color_and_crop_ids_preserve_original_source_entities",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Sheet clipping/color/crop picks retain original source entity identity.",
+      "source": {
+        "path": "src/clipping_gpu_tests.rs",
+        "line": 32,
+        "sha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299"
+      }
+    },
+    {
+      "test": "sheet_lookup::tests::late_entity_answers_require_current_ticket_original_owner_and_current_selection_once",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Stale/cancelled/changed-owner or selection answers rejected; current answer admitted once.",
+      "source": {
+        "path": "src/sheet_lookup.rs",
+        "line": 70,
+        "sha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea"
+      }
+    },
+    {
+      "test": "sheet_lookup::tests::entity_queries_hold_no_original_source_and_cancellation_retires_the_read_token",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "Dropping scene releases source even with query; query cancellation retires read token.",
+      "source": {
+        "path": "src/sheet_lookup.rs",
+        "line": 95,
+        "sha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea"
+      }
+    },
+    {
+      "test": "scene::pick_gpu_tests::actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and_locked_occlusion",
+      "result": "PASS in recorded unfiltered 1060 suite",
+      "assertions": "GPU sheet display/pick retains original full-width IDs and world pens; locked occluder blocks picks; clearing releases renderer/source ownership.",
+      "source": {
+        "path": "src/pick_gpu_tests.rs",
+        "line": 533,
+        "sha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121"
+      }
+    }
+  ],
+  "otherAlreadyPassedNativeSubclaims": {
+    "meaning": "Corrects stale pending native subclaims in the Point/marker, Mesh and Cloud rows. These tests do not establish every production control/material combination or close those rows.",
+    "proof": [
+      {
+        "test": "scene::production_glyph_tests::production_point_pixels_keep_physical_diameter_and_selection_coverage_at_both_densities",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Samples1/4 and DPR1/2: authored physical point diameter, original owner pick and selected color preserve disc occupancy and source archive.",
+        "source": {
+          "path": "src/production_glyph_tests.rs",
+          "line": 70,
+          "sha256": "0dfda4cef007d188a0a1e67bd4a985178d3d56f442012f75af8783d837b8e67d"
+        }
+      },
+      {
+        "test": "renderer::mesh_marker_tests::prepared_marker_addresses_survive_source_unload_and_shared_placement",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Original marker/source lifetime, shared placement, perspective and orthographic rebase, original-owner sparse vertex picks; placement does not reupload source.",
+        "source": {
+          "path": "src/mesh_marker_tests.rs",
+          "line": 28,
+          "sha256": "10f916c751786a56d307d0102bc30b330eae855bf3bcf0c77c3ff2939b3f1f06"
+        }
+      },
+      {
+        "test": "scene::production_glyph_tests::display_controls_follow_production_parser_and_leave_source_and_history_intact",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Point-size command range/default/error behavior and display uniform fields; does not enumerate every marker/normal/glyph/sphere control.",
+        "source": {
+          "path": "src/production_glyph_tests.rs",
+          "line": 56,
+          "sha256": "0dfda4cef007d188a0a1e67bd4a985178d3d56f442012f75af8783d837b8e67d"
+        }
+      },
+      {
+        "test": "cloud_placement_gpu_tests::actual_placed_clouds_keep_original_colours_cached_ids_archives_and_far_rebased_pixels",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Placed cloud colors, cached original IDs, archives and far-rebased pixels.",
+        "source": {
+          "path": "src/cloud_placement_gpu_tests.rs",
+          "line": 41,
+          "sha256": "f69dbc598e33d769a2ee62c72a267e669569f50f5a73d8cf9575f5472d253967"
+        }
+      },
+      {
+        "test": "cloud_placement_gpu_tests::real_large_cloud_resident_prefixes_obey_the_exact_two_million_boundary_and_bounds",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Actual large resident source tests exact 2,000,000 threshold and bounds.",
+        "source": {
+          "path": "src/cloud_placement_gpu_tests.rs",
+          "line": 112,
+          "sha256": "f69dbc598e33d769a2ee62c72a267e669569f50f5a73d8cf9575f5472d253967"
+        }
+      },
+      {
+        "test": "renderer::cloud_composite_tests::actual_cloud_composite_matches_current_opaque_and_eye_dome_pixels",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Actual production comparison for opaque and EDL pixels in fixture.",
+        "source": {
+          "path": "src/cloud_composite_tests.rs",
+          "line": 4,
+          "sha256": "d3d7a751116d0fb88efe2c0234a04035b0c2cc17d937a13f77d58dfb621791f7"
+        }
+      },
+      {
+        "test": "scene::pick_gpu_tests::actual_resident_cloud_controls_query_original_points_outside_the_coarse_display_subset",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Original controls remain queryable outside coarse LOD display; original upload reused.",
+        "source": {
+          "path": "src/pick_gpu_tests.rs",
+          "line": 477,
+          "sha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121"
+        }
+      },
+      {
+        "test": "cloud_production_gpu_tests::streamed_cloud_page_addresses_never_highlight_an_unselected_original_point",
+        "result": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Streaming page address/selection isolation.",
+        "source": {
+          "path": "src/cloud_production_gpu_tests.rs",
+          "line": 22,
+          "sha256": "3b362fdbe183e56eb1fc39e8fd73cf555fc855ce07d459948291f2fe5bf31222"
+        }
+      }
+    ]
+  },
+  "inspectedTestSourceHashes": [
+    {
+      "path": "src/production_glyph_tests.rs",
+      "sha256": "0dfda4cef007d188a0a1e67bd4a985178d3d56f442012f75af8783d837b8e67d",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/mesh_marker_tests.rs",
+      "sha256": "10f916c751786a56d307d0102bc30b330eae855bf3bcf0c77c3ff2939b3f1f06",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/mesh_density_tests.rs",
+      "sha256": "d363309051d215dcb5bdc8a6dd1d9ee516afed16f53b8c6849dc6ee0c97d9959",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/pick_gpu_tests.rs",
+      "sha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/cloud_tests.rs",
+      "sha256": "7618f8838584c57f08280b42b1645257a4ebd5d71230d183ab1a45b3c311518b",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/cloud_placement_gpu_tests.rs",
+      "sha256": "f69dbc598e33d769a2ee62c72a267e669569f50f5a73d8cf9575f5472d253967",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/cloud_production_gpu_tests.rs",
+      "sha256": "3b362fdbe183e56eb1fc39e8fd73cf555fc855ce07d459948291f2fe5bf31222",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/cloud_composite_tests.rs",
+      "sha256": "d3d7a751116d0fb88efe2c0234a04035b0c2cc17d937a13f77d58dfb621791f7",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/cloud_address_tests.rs",
+      "sha256": "3361cc51cb7985be07c38dfd40022f22771ab34ed09c2549fb0cd359a68388b5",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/sheet_scene_tests.rs",
+      "sha256": "810e5865699f40a21cdc1f3cf33360949dd242939573ef8b55b8697f19587181",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/sheet_lookup.rs",
+      "sha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/clipping_gpu_tests.rs",
+      "sha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/text.rs",
+      "sha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243",
+      "matchesNativeFreeze": true
+    },
+    {
+      "path": "src/text_atlas_tests.rs",
+      "sha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0",
+      "matchesNativeFreeze": true
+    }
+  ],
+  "retainedBoundaries": {
+    "historicalPairs": "Point/Mesh a45 pairs and Sheet32 ingress pairs retain their original source/environment/fixture bindings. Current native1060 assertions are separate evidence, not a re-signing of old pixels.",
+    "browser": "No94c-to97d browser equivalence or acceptance asserted. Required70d/76d chapter13/14 entry callbacks and actual in-scene Sheet image review remain pending, alongside all other declared source-specific callbacks.",
+    "controls": "Complete material/lighting/normal/opaque-transparent production parity, complete cloud display-group/streaming controls, and full marker/normal/glyph/sphere control coverage remain partial where not proved by the named assertions.",
+    "global": "Four audited rows remain partial. Matrix and Camera remain2/18 complete,16 partial. All13 historical/18 source-specific callback entries and global chapter/release obligations are unchanged; no newGPU or Cartesian job requirement."
+  },
+  "reproduction": "Compare the listed native evidence hashes with native-97d-integration-review.json, match each test source SHA to source-freeze.json, and locate each exact test name followed by ... ok in suite.stdout.log. No new execution was needed for this criterion closure.",
+  "localAudit": "target/course-windows-20261018/point-mesh-cloud-sheet-finite-decisions.json"
+}

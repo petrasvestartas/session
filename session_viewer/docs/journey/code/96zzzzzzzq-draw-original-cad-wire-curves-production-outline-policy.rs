@@ -1,0 +1,1 @@
+            self.global_outline.borrow_mut().take();self.outline_composite.borrow_mut().take();self.outline.borrow_mut().take();

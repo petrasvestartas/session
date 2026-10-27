@@ -1,0 +1,1 @@
+assert_eq!(g.point_usage()[0],16641);assert_eq!(g.markers.clipping_bytes(),[0,0]);assert_eq!(g.strokes.glyph_usage(),[16641,16641*48]);

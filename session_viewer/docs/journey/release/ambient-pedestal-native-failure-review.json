@@ -1,0 +1,90 @@
+{
+  "status": "FAIL actual bounded ambient production/course comparison; isolated correction not yet verified",
+  "sourceFingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+  "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+  "sourcePB": {
+    "path": "assets/pb/course-comparison.pb",
+    "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+  },
+  "scope": "Exact retained four-BRep pedestal, raw normal import with no generated nameplate; shared declared source-fit isometric camera640x480/DPR1/sample1; opacity1/lightingfalse; same actual production device/queue per pair.",
+  "cases": [
+    {
+      "case": "ambient-off",
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "sourceFullDecodedAndMetadataUnchanged": true
+    },
+    {
+      "case": "ambient-on",
+      "changedPixels": 36492,
+      "maxChannelDelta": 47,
+      "sourceFullDecodedAndMetadataUnchanged": true
+    }
+  ],
+  "genuineContact": {
+    "course_darkened_ground_contact_pixels": 3679,
+    "course_on_vs_off_changed_pixels": 267468,
+    "production_darkened_ground_contact_pixels": 10273,
+    "production_on_vs_off_changed_pixels": 276049
+  },
+  "images": [
+    {
+      "file": "journey/release/ambient-pedestal-off.png",
+      "sha256": "58f702c9951b145b2774bf546b0d36018f50c57d77d638db6f20fcff183a42ee",
+      "rootOriginalDetailReview": true
+    },
+    {
+      "file": "journey/release/ambient-pedestal-production-on.png",
+      "sha256": "4519bb44e7e2b980b5a3658afa1aaa64a9574f4367684bf5932705d559f47fef",
+      "rootOriginalDetailReview": true
+    },
+    {
+      "file": "journey/release/ambient-pedestal-course-on.png",
+      "sha256": "7276c5e5f25081ef1301c9534d4da5c7b4671c8cc0d31551ab850ffcd78f1aed",
+      "rootOriginalDetailReview": true
+    }
+  ],
+  "sourceChecks": {
+    "path": "target/course-windows-20261018/ambient-production-pair-preparation/actual-pedestal-v3/root-failed-run-postflight.json",
+    "sha256": "1460667e7fca6964e1067116d35e9609c251e07263cc6be8c2cd6c9e27593bd6"
+  },
+  "pose": {
+    "path": "target/course-windows-20261018/ambient-production-pair-preparation/actual-pedestal-v3/frames-v3/declared-actual-source-pose.json",
+    "sha256": "9e3680b0bc9659e09f528a8d46163000c1f642d50a9421ab732e976319ee8b1a"
+  },
+  "rawManifest": {
+    "path": "target/course-windows-20261018/ambient-production-pair-preparation/actual-pedestal-v3/frames-v3/manifest.json",
+    "sha256": "29034441a8d74e507446483ab3e5c9686113cdde467a9d0aa199c0b602ffa6d6"
+  },
+  "actualRun": {
+    "resources": {
+      "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pedestal-v3-v1/resources.json",
+      "sha256": "45e2c72818fe318fd6aadb290e01b816b02489e8a0417bcc750498ecb080d430"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pedestal-v3-v1/output.log",
+      "sha256": "9cc3c7fd62f7a2ca7fbba116a59710490e3677c0a7ee4e7097ec451b07b06160"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pedestal-v3-v1/command.json",
+      "sha256": "09a42cd36353d4ff42b9fd8359b860d89227539bf47f867c1d88c465df75c27b"
+    }
+  },
+  "audits": [
+    {
+      "path": "target/course-windows-20261018/ambient-v3-input-diagnosis/report.json",
+      "sha256": "647ca4db5f1db0fc526e5adf6f077e5cb6b30b019e561c6365561bb8cc4366bb"
+    },
+    {
+      "path": "target/course-windows-20261018/ambient-v3-pipeline-diagnosis/report.json",
+      "sha256": "5b56c5fd24a2ece34531d8a8c193030ab420a9eb53b086ef73be2068cdd1823a"
+    }
+  ],
+  "provenSourceDifferences": [
+    "Course AO stages bind single-mip views although the shader samples later mips.",
+    "Course occupancy/ground textures and ground-related uniform dimensions differ from production."
+  ],
+  "next": "Verify only the four-module isolated candidate against these same source/camera/settings/assertions before any authoring integration.",
+  "earlierAttempts": "V1 failed pre-GPU JSON0.0/integer0 pose equality. V2 restored literal but used an AO-ineligible Sheet fixture, producing clear-only background changes. Both remain unaccepted and preserved.",
+  "limits": "No renderer fix, ambient parity, whole feature or release closure claimed. The previously accepted1063 native suite/build gate retains its original scope. Vue website/Gemini ownership untouched."
+}

@@ -1,0 +1,1 @@
+Self { print_pipeline:Default::default(),legacy_clipping:None,pipeline,record_pipeline,

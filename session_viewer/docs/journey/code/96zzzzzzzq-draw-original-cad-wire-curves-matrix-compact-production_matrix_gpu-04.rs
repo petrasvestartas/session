@@ -1,0 +1,7 @@
+                objects: Vec::new(),
+                translations: Vec::new(),
+                starts: Vec::new(),
+                owners: Vec::new(),
+            },
+            visible: true,
+            uploads: 0,

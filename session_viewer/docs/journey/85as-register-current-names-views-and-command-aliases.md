@@ -4,7 +4,7 @@
 
 **Typing: 22–43 minutes.** [Estimate](typing-load.md).
 
-Register current names, views and aliases. Normalize aliases before parsing and update the construction-plane branch in the same checkpoint, so CPlane XY keeps working during the rename.
+Register current names, views and aliases before parsing. Keep CPlane XY working during the rename. Forward Escape from the command dock or canvas to the editor: cancel an active operation first, otherwise clear selection.
 
 ## Type
 
@@ -515,6 +515,48 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 ```
 
 </details>
+
+### 2. `src/panel.rs`
+
+Forward the command dock's accepted Escape to the editor without adding a second reply.
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+        if line == "Escape" { return Ok(None); }
+```
+
+</details>
+
+Replace it with:
+
+```rust
+--8<-- "journey/code/85as-register-current-names-views-and-command-aliases-10.rs"
+```
+
+### 3. `src/browser.rs`
+
+Route unconsumed canvas Escape through the same editor cancellation and selection policy.
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+            if key.key() == "Escape" {
+                gesture.cancel();
+                event.prevent_default();
+                return None;
+            }
+```
+
+</details>
+
+Replace it with:
+
+```rust
+--8<-- "journey/code/85as-register-current-names-views-and-command-aliases-11.rs"
+```
 
 ## Run and check
 

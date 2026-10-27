@@ -202,15 +202,2387 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
 
 ```text
 {
-  "session_head": "31a84775e6bf72448f4ce5df34ae23528e1cf376",
+  "session_head": "a391b10473d580ef548d2d1ba3ea118986623b52",
   "wood_head": "07c57552c0d18c403bab0c16ba858d80561ffc47",
-  "kernel_head": "b95a2c43ec7adf54c17c56d63522379e7122369e",
-  "scope": "All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged.",
+  "kernel_head": "d814b238cf42102622c34fdff5bced1814418b97",
+  "scope": "All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged. Checkpoint 1276 separately records regenerated Session protocol documentation comments about LOCAL placement; protocol fields and executable code are unchanged. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance.",
+  "working_tree": {
+    "repositories": [
+      {
+        "name": "session",
+        "head": "a391b10473d580ef548d2d1ba3ea118986623b52",
+        "dirty": true,
+        "entries": [
+          {
+            "status": "M ",
+            "path": "gitattributes"
+          },
+          {
+            "status": " M",
+            "path": ".gitignore"
+          },
+          {
+            "status": " M",
+            "path": "session_data"
+          },
+          {
+            "status": " M",
+            "path": "session_py"
+          },
+          {
+            "status": " M",
+            "path": "session_rust"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/README.md"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/plugins/course.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/build-viewer-docs.sh"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/checkpoints.test.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/reference-checks.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/reference.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/verify.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/src/codeTheme.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/src/views/CourseIndex.vue"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/capture_current.cjs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/capture_journey.cjs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/book.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-19.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-20.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-21.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/chapter-22.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/consolidation/current-state.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/contents.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/course.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/daily-plan.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/frame.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/production-course-map.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/production-course-map.md"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/15-perspective.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/23-import.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/29-identity.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/92-Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/94-Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/Cargo-publish.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/Cargo-text.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/release/source-residency-Cargo.lock"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/command/verbs/text.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/cplane.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/decode.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/edit.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/inspection.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/live.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/loader.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/manifest.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_text.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/matrix.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/mod.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/camera.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/backdrop.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/buffers.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/frame.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/lane.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/matrices.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/mod.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/segments.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/splat.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/text_plane.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/text.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/lib.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/selftest.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/arrow.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/clip.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/grid.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/ink_visibility.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/matrix.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/ribbon.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/shaders/text_plane.wgsl"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state/drawing.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state/features.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state/text.rs"
+          },
+          {
+            "status": "??",
+            "path": "docs/plans/2026-10-18-viewer-course-progress.md"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/build-viewer-docs.ps1"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/check-consolidated-course.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/check-software-webgpu.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cad-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/check-reload-grid.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-ink-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-lod-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-witness-course.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/cloud-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/glyph-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/grid-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/measure-runtime.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/plane-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/section-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/sheet-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/stroke-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/course/vector-witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.cmd"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.ps1"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/run-guarded.test.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_tests/scripts/warp-adapter.ps1"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/.gitattributes"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-256-windows-2026-10-23.ppm"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/checks/data/current-grid-physical-512-windows-2026-10-23.ppm"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-01-bounded-source.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-02-generic-range-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-03-hidden-range-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-04-absolute-range-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-05-sphere-abi.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-06-dense-sphere-abi.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-07-mesh-ribbon-abi.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-08-mesh-family-round-caps.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-09-isolated-outline-composite.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-active-lane-10-remove-duplicate-mesh-ink.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-canonical-source-audit.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cap-test-warp-renderer.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cap-test-warp-wait.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipped-head-source-cap.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-adapter-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-control-owner-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-placement-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-placement-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-point-ids.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-production-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-record.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-resolve-source.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cloud-source.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-inventory-example.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-reference-example.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-reference-module.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-registry-module.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-finite-ink-lazy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-01-frame-ink-class.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-02-frame-colour-order.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-03-frame-query-order.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-04-analytic-filter-support.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-frame-pick-05-contact-diagnostic.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-bounds_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-browser-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-browser_defaults-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-cloud_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-commands-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-commands-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-display_settings.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-editor-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-highlight-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-lod-policy-1.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-lod-policy-2.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-mesh_parts-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-mesh_parts-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-mesh_parts-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-plane_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-point-policy-1.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-point-policy-2.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_glyph_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_joined-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_joined-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_joined-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_matrix_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_ribbon_gpu-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sheet_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-production_sphere.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-renderer-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-glyph-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-headed-terminal-coverage.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-frame.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-lane-state.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-state.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-hidden-ink-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ink-plane-fallback.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-01-current_inventory.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-02-viewer-count.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-3-01-current_inventory.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-4-01-current_inventory.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-4-02-viewer-count.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-legacy-stroke-lazy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-line-placement-gpu-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-line-placement-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-23.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-24.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-25.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-26.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-27.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-28.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-29.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-30.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-31.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-32.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-33.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-34.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-35.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-36.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-37.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-38.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-39.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-40.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-41.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-42.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-43.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-44.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-45.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-46.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-47.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-48.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-49.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-50.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-51.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-adapter-52.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-matrix_compact_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix-01.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix-02.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_provenance-01.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_provenance-02.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-production_matrix_provenance-03.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-compact-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-matrix_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-matrix-production_matrix_walk.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-bounds_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-cad_display-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-cad_shape_cache-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-highlight-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-highlight-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-mesh_parts-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-mesh_parts-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-mesh_parts-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-pick_sources-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-plane_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_brep_ink.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_joined-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_joined-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_joined-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_ribbon_gpu-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-renderer-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-renderer-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-surface-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-grid-reference-selection.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-01-pick-pass-order.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-02-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-03-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-04-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-native-reconciliation-05-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-check.cjs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-frame.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-install.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-owner.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-pagehide.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-present.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-request.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-frame-schedule-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-frame-schedule.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-change.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-install.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-lifecycle-stop.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-modules.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-runtime.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_glyph-01.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_glyph_provenance-01.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_glyph_provenance-02.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-pick-priority-production_sphere-01.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-browser-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-commands-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-commands-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-editor-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-owner-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-plane_original-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_joined-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_joined-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_joined-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_plane_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_vector_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_vector_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-production_vector_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-plane-scene-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-23.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-24.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-25.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-26.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-27.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-28.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-29.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-30.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-31.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-32.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-layout.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-offset.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-record.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-shader.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-alpha-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-empty-sample-guard.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-lane.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-shader.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-print-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-colour-policy-01-unorm-grey.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-colour-policy-02-selected-source-edge.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-contact-boundary.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-production-outline-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-01-homogeneous-lens.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-02-cap-diagnostic.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-03-plane-fixture-size.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-04-printed-query-policy.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-05-precise-origin-owner.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-projection-adapter-06-surface-cache-fixture.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-protobuf-decode.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-protobuf-phase-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-protobuf-publication-test.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-reload-grid-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-19.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-20.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-21.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-22.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-adapter-23.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-rows.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-selection-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ribbon-source.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-ambient-contact-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-cap-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-clipping-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-command-inventory-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-contact-boundary-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-finite-visibility-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-frame-target-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-grid-hardware-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-helper.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-pick-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-sample-composition-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-sample-positions-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-text-atlas-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-tile-gpu-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-adapter-widget-tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-software-wait-budget.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-source-address-inventory-refresh-01-pick-sources.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-source-address-inventory-refresh-02-scene-origin.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-highlight-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-highlight-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-highlight-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-lib-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_encode-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_encode-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-pick_sources-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_curve_walk.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_joined.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_joined.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-10.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-11.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-12.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-14.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-16.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-17.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_ribbon_gpu-18.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_sheet.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_sheet_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector.wgsl"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector_gpu.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector_provenance.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_vector_tests.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-01.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-02.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-03.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-04.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-05.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-06.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-07.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-08.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-renderer-09.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-scene-tests-register.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-whole-owner-fixture-1.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-whole-owner-fixture-2.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-windows-grid-reference.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/consolidation/history/2026-10-17-linux-state.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/current-viewer-2026-10-23.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/Cargo.lock"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/Cargo.toml"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/README.md"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/src/main.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/fixtures/src/ordered_mesh.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/redraft-10-sections/book-10-sections.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/redraft-10-sections/old-to-new-coverage-map.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/grid-native-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/grid-windows-pair-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/matrix-native-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/mesh-native-review.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-native-1x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-selected-native-4x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/engine/gpu/splat/cloud_witness.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/engine/gpu/splat/cloud_witness/lod.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/selftest/stroke_witness.rs"
+          }
+        ]
+      },
+      {
+        "name": "wood",
+        "head": "07c57552c0d18c403bab0c16ba858d80561ffc47",
+        "dirty": false,
+        "entries": []
+      },
+      {
+        "name": "kernel",
+        "head": "d814b238cf42102622c34fdff5bced1814418b97",
+        "dirty": true,
+        "entries": [
+          {
+            "status": "M ",
+            "path": "ession_data"
+          }
+        ]
+      }
+    ]
+  },
   "files": [
     {
       "root": "viewer",
       "path": "Cargo.lock",
-      "sha256": "9b313409fa85751cba3224e7902022ee6a9420f7fdeaf69acf13c0ec62a6d9de",
+      "sha256": "a84bbf92c6a14f11a5261587f6059387aca83e453e11e4d71c5c4d2bde70d437",
       "topic": "Build, startup and application ownership",
       "lessons": "00–02,34–35,94,96"
     },
@@ -224,7 +2596,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "Trunk.toml",
-      "sha256": "e36cf10ae1b9029bdcaa6b55468bef4dab8a3211db52763dcfc1e7521bebb9f8",
+      "sha256": "b597b1d06c7d8bbfcdf80a16d71de27bc3aa2f20c10a57742ac58d3cb027742a",
       "topic": "Build, startup and application ownership",
       "lessons": "00–02,34–35,94,96"
     },
@@ -279,6 +2651,13 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
+      "path": "src/app/command/tool.rs",
+      "sha256": "c08608743e48879cab82f76157d5f028215af1848cd5b9eeefc343f039001b1b",
+      "topic": "Command grammar, defaults and tools",
+      "lessons": "drawing/editing chapters,85,92,93,96"
+    },
+    {
+      "root": "viewer",
       "path": "src/app/command/tool/choices.rs",
       "sha256": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f",
       "topic": "Command grammar, defaults and tools",
@@ -323,13 +2702,6 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
       "root": "viewer",
       "path": "src/app/command/tool/surfacing.rs",
       "sha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
-      "topic": "Command grammar, defaults and tools",
-      "lessons": "drawing/editing chapters,85,92,93,96"
-    },
-    {
-      "root": "viewer",
-      "path": "src/app/command/tool.rs",
-      "sha256": "c08608743e48879cab82f76157d5f028215af1848cd5b9eeefc343f039001b1b",
       "topic": "Command grammar, defaults and tools",
       "lessons": "drawing/editing chapters,85,92,93,96"
     },
@@ -545,15 +2917,15 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/app/command/verbs/extend/reach.rs",
-      "sha256": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34",
+      "path": "src/app/command/verbs/extend.rs",
+      "sha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
       "topic": "Command grammar, defaults and tools",
       "lessons": "drawing/editing chapters,85,92,93,96"
     },
     {
       "root": "viewer",
-      "path": "src/app/command/verbs/extend.rs",
-      "sha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "path": "src/app/command/verbs/extend/reach.rs",
+      "sha256": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34",
       "topic": "Command grammar, defaults and tools",
       "lessons": "drawing/editing chapters,85,92,93,96"
     },
@@ -609,9 +2981,9 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/command/verbs/interactions.rs",
+      "sha256": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e",
       "topic": "Element attributes and interactions",
-      "lessons": "52–54,92,96,97",
-      "sha256": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e"
+      "lessons": "52–54,92,96,97"
     },
     {
       "root": "viewer",
@@ -931,7 +3303,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/command/verbs/text.rs",
-      "sha256": "7e0f56386df9eff853a325856005ba2670af975edbd7203e60a3dbb70bd030a7",
+      "sha256": "e083f13a0cb4da2a4fd6c3bf13e733bf81fa6768a563c7c74959d65c8ea5797f",
       "topic": "Command grammar, defaults and tools",
       "lessons": "drawing/editing chapters,85,92,93,96"
     },
@@ -944,15 +3316,15 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/app/command/verbs/trim/parts.rs",
-      "sha256": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b",
+      "path": "src/app/command/verbs/trim.rs",
+      "sha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
       "topic": "Command grammar, defaults and tools",
       "lessons": "drawing/editing chapters,85,92,93,96"
     },
     {
       "root": "viewer",
-      "path": "src/app/command/verbs/trim.rs",
-      "sha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
+      "path": "src/app/command/verbs/trim/parts.rs",
+      "sha256": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b",
       "topic": "Command grammar, defaults and tools",
       "lessons": "drawing/editing chapters,85,92,93,96"
     },
@@ -987,14 +3359,14 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/cplane.rs",
-      "sha256": "4cc6d3d6ddeed8baef51fd8e49ea8809156b9bdb8105b114ad1b906273e3ea26",
+      "sha256": "f2b685069fd3af7bf40147c7faa87aca9f066a3ecc99b9a0f935e8abcdd27aef",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
     {
       "root": "viewer",
       "path": "src/app/decode.rs",
-      "sha256": "b9156c5c746b33a6f4fd8a86a9897ef7c0f2ddadd252a3d2004eb21c404bf8fd",
+      "sha256": "f517ebac6f210739f04da54a71b504471b78e82313d2160bb141ff9b9aa0caf6",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1008,7 +3380,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/edit.rs",
-      "sha256": "896328d97d69df9750d6f17c738deb0624ca3021e60fb8d468dc4e0fdb94e49e",
+      "sha256": "5fc69027ff1534a13a784eac4643f5150a06f92ac9bafa4f6005eb50cc5fe81c",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1091,6 +3463,13 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
+      "path": "src/app/inspection.rs",
+      "sha256": "b3ddba11292063a66e625d9d31c0576d3df341362fad1841266edc462f0bffd3",
+      "topic": "Loading, source ownership, archives and routing",
+      "lessons": "43–54,66–71,85,96"
+    },
+    {
+      "root": "viewer",
       "path": "src/app/inspection/source_memory.rs",
       "sha256": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d",
       "topic": "Loading, source ownership, archives and routing",
@@ -1098,17 +3477,10 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/app/inspection.rs",
-      "sha256": "157ba8e01eb1b68e7be7182fa92be0188ba17cae357ae3a922e43b8860aa0891",
-      "topic": "Loading, source ownership, archives and routing",
-      "lessons": "43–54,66–71,85,96"
-    },
-    {
-      "root": "viewer",
       "path": "src/app/interactions.rs",
+      "sha256": "d0ff1f7f682dc03297e79054202c860598862d6e83db1e7033c858bfbcae5b9c",
       "topic": "Element attributes and interactions",
-      "lessons": "52–54,92,96,97",
-      "sha256": "d0ff1f7f682dc03297e79054202c860598862d6e83db1e7033c858bfbcae5b9c"
+      "lessons": "52–54,92,96,97"
     },
     {
       "root": "viewer",
@@ -1134,7 +3506,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/live.rs",
-      "sha256": "c219787e600906040aedf875182a61635b03e64839c3797b6c9a4eddded7c9c4",
+      "sha256": "3ca1a9e32ef233b4adffe0d79583cc7cc18b9131f7537d206413b3b700047a5e",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1148,14 +3520,14 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/loader.rs",
-      "sha256": "61e21d567eba5f336a45f8cae5b6e3d7c51438315cfb447ec73c9ff5604f50f7",
+      "sha256": "5ee1687239963ba6ce1403e2a1270ded6f6fbf3632d8b7ba85bea48055b4791b",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
     {
       "root": "viewer",
       "path": "src/app/manifest.rs",
-      "sha256": "ab020e177195951fa7d07d8f132f93de2b41d23c51d6625d19486658baef8228",
+      "sha256": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1197,7 +3569,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/scene.rs",
-      "sha256": "22e53f5e48fdbfdffb296a266b2c29ae4dd25f309bb2d566a5041cd12bdeb52d",
+      "sha256": "136710a388a2fdf301fa5e36e68c4b6e3a79f1dd903ef3f5e25e3ceb26f0e196",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1219,6 +3591,13 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
       "root": "viewer",
       "path": "src/app/scene_rows.rs",
       "sha256": "d21f7804c6a58979381774fff193155e16b9b96c43c5f2cd0022eb3e4f1c7fb6",
+      "topic": "Loading, source ownership, archives and routing",
+      "lessons": "43–54,66–71,85,96"
+    },
+    {
+      "root": "viewer",
+      "path": "src/app/scene_sync.rs",
+      "sha256": "7160ce61ef8ba840ef536bff9532ed315b7c2b613301dc7993b61105411d0126",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1308,15 +3687,8 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/app/scene_sync.rs",
-      "sha256": "7160ce61ef8ba840ef536bff9532ed315b7c2b613301dc7993b61105411d0126",
-      "topic": "Loading, source ownership, archives and routing",
-      "lessons": "43–54,66–71,85,96"
-    },
-    {
-      "root": "viewer",
       "path": "src/app/scene_text.rs",
-      "sha256": "b519d58bf6b0829e157f338300cf704f7986377cb1091294beb7f4c5e8863c8c",
+      "sha256": "7294f84b7b73e0db7adbeb62ebab58020032c3d92e0cb6d4763a48f70e66e8d5",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1378,15 +3750,15 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/app/ui/command_line/tests.rs",
-      "sha256": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4",
+      "path": "src/app/ui/command_line.rs",
+      "sha256": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0",
       "topic": "Panels, command input and keyboard focus",
       "lessons": "03,35,85,96"
     },
     {
       "root": "viewer",
-      "path": "src/app/ui/command_line.rs",
-      "sha256": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0",
+      "path": "src/app/ui/command_line/tests.rs",
+      "sha256": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4",
       "topic": "Panels, command input and keyboard focus",
       "lessons": "03,35,85,96"
     },
@@ -1518,6 +3890,13 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
+      "path": "src/app/walk/matrix.rs",
+      "sha256": "20bbee6ae44db1f8fee23ca919d3d535f224cf291f4c64d2258ede5f8bd7f62d",
+      "topic": "Matrix rendering and exact source ownership",
+      "lessons": "20,21,96"
+    },
+    {
+      "root": "viewer",
       "path": "src/app/walk/mesh.rs",
       "sha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
       "topic": "Original source walking and shared display",
@@ -1540,7 +3919,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/app/walk/mod.rs",
-      "sha256": "048bf6d1a2e1b67948b011d5e3ede466e32722991e8c765097308de070fea88b",
+      "sha256": "ac677c9a11ddbfa3e995443b0bf1548b105ced70320a6208b9956d7eba86bce1",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
@@ -1568,7 +3947,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/camera.rs",
-      "sha256": "2eb0d51723129bdea1cddc3f35760217923959afe2a50dfe1fc6e129c8a3d58f",
+      "sha256": "be1baf4e1136824f315f4b61bd7db24641e582218771b1593c7c8690667c1aee",
       "topic": "Camera, snapping and construction planes",
       "lessons": "26–27,72–76,85,96"
     },
@@ -1610,14 +3989,21 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/gpu/backdrop.rs",
-      "sha256": "afb51eaef8ce003e22ab9b4ce0e0af2c1ee786c98b98ceb22992f2a3edf4d6bc",
+      "sha256": "b7adaa194064221e4f89bf765f57899ed5a8d7ecd2ebb66b2709437206994e4d",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
     {
       "root": "viewer",
       "path": "src/engine/gpu/buffers.rs",
-      "sha256": "f226f75be1899a1540a4f80d4491019aa873aeed811dc73d0573405927a13f2c",
+      "sha256": "2f1344481cb3527327e28c8a26731eafbf925b8a1fa81ff9cc89740be011aa6c",
+      "topic": "GPU pipelines and current rendering",
+      "lessons": "86–94"
+    },
+    {
+      "root": "viewer",
+      "path": "src/engine/gpu/clip.rs",
+      "sha256": "e0b31a38015a8c5bc31c404261ae46757e0655774413de0fd5ab92bb2282d99a",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1639,13 +4025,6 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
       "root": "viewer",
       "path": "src/engine/gpu/clip/tests.rs",
       "sha256": "9f7a926a7e0e57d623a226d9baf781287d0ad6da3c4b0c9108d2612fcdd8d691",
-      "topic": "GPU pipelines and current rendering",
-      "lessons": "86–94"
-    },
-    {
-      "root": "viewer",
-      "path": "src/engine/gpu/clip.rs",
-      "sha256": "e0b31a38015a8c5bc31c404261ae46757e0655774413de0fd5ab92bb2282d99a",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1673,7 +4052,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/gpu/frame.rs",
-      "sha256": "2a492fe36f15db4201a687a1d06e120945d38410a075375fece6ec1d3d4323fb",
+      "sha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1708,7 +4087,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/gpu/lane.rs",
-      "sha256": "2e16f454ed7cbc29a0422d180ec3eb8aa9adbe7503f7425eadf24765dcfea838",
+      "sha256": "e645f86ba853cf40c81dd35f34e7d59790ab818a241b9374951cb19ea1d10f11",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1721,8 +4100,15 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
+      "path": "src/engine/gpu/matrices.rs",
+      "sha256": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de",
+      "topic": "Matrix rendering and exact source ownership",
+      "lessons": "20,21,96"
+    },
+    {
+      "root": "viewer",
       "path": "src/engine/gpu/mod.rs",
-      "sha256": "994339d5f4eb05eaee30be2c0352c7033d4b686afd6cad0c1e2ea84204d06035",
+      "sha256": "3c72e20c22dd889b45cb1f4b84c7f34aa1cf385f1099fbe437875814d652d9b0",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1785,7 +4171,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/gpu/segments.rs",
-      "sha256": "e0d9532d31ce5ffd592eff3c0ca47300e81aca229408fd39a7d248176118ad2a",
+      "sha256": "a152ead3eb15a3e44ceab8f11cb3d804c549d879a4871d1897c9bdeaf760aeb6",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1799,7 +4185,28 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/gpu/splat.rs",
-      "sha256": "13c99ea37920f0dd4c39750deba7e57d274268b366c3cd56d2a938dec113fa3e",
+      "sha256": "d73fee1ea1d342651adc059ffd6c0c5faef1eb1046a055c6e722ba7299c843ea",
+      "topic": "GPU pipelines and current rendering",
+      "lessons": "86–94"
+    },
+    {
+      "root": "viewer",
+      "path": "src/engine/gpu/splat/cloud_witness.rs",
+      "sha256": "10b59c7dccdd2e4cec910cd79c5ed63a9afa8353e86b84657c647d840554d862",
+      "topic": "Cloud rendering and current evidence",
+      "lessons": "11,18,22,96"
+    },
+    {
+      "root": "viewer",
+      "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
+      "sha256": "4356bca21aa40df54efb546d48f6d489177893ca7a0dc810a9158f4905f1e2e8",
+      "topic": "Cloud rendering and current evidence",
+      "lessons": "11,18,22,96"
+    },
+    {
+      "root": "viewer",
+      "path": "src/engine/gpu/ssao.rs",
+      "sha256": "932d34fde6d1d92a37c449e9f3b7c921e3aed63308c7427ac72e080c6c909830",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1819,8 +4226,8 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/engine/gpu/ssao.rs",
-      "sha256": "932d34fde6d1d92a37c449e9f3b7c921e3aed63308c7427ac72e080c6c909830",
+      "path": "src/engine/gpu/surface_outline.rs",
+      "sha256": "08e790732dcd0ff16abe734be9d13b63dc26e6825f9d1d7578645ee529e4db03",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1828,13 +4235,6 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
       "root": "viewer",
       "path": "src/engine/gpu/surface_outline/tests.rs",
       "sha256": "d669e0da39d775ce45b86a1b01b54f8969b288b92a7cdb76b2941575f8f8940d",
-      "topic": "GPU pipelines and current rendering",
-      "lessons": "86–94"
-    },
-    {
-      "root": "viewer",
-      "path": "src/engine/gpu/surface_outline.rs",
-      "sha256": "08e790732dcd0ff16abe734be9d13b63dc26e6825f9d1d7578645ee529e4db03",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1862,7 +4262,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/gpu/text_plane.rs",
-      "sha256": "641063fe094b466de058a601013f47e3227955eb63ccc0d42564f1b0b8a6063c",
+      "sha256": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1974,16 +4374,23 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/engine/text.rs",
-      "sha256": "918ec5b3bcc2a775c81e348d25b943299bc19d2d6ffd9b7ca647c10c9299591c",
+      "sha256": "7ad70d8aa3b0eabdbeed302b50af41174a767d85f46faabf8d592012b111edab",
       "topic": "Derived display, text and rendering infrastructure",
       "lessons": "core GPU chapters,60–65,94"
     },
     {
       "root": "viewer",
       "path": "src/lib.rs",
-      "sha256": "12a3ae5e9c08583ed1088714889ba96bebd7fde315d0e4c0370692a2b12457ab",
+      "sha256": "ae8178590bd125a75f973fb746afcca1d6c05b1a8cc49738c1ceec27ccfc5596",
       "topic": "Build, startup and application ownership",
       "lessons": "00–02,34–35,94,96"
+    },
+    {
+      "root": "viewer",
+      "path": "src/selftest.rs",
+      "sha256": "5fde63ff1c457acaf1bf1f7d1a83b7bbd762cdbbef6b77b340fd411945f59ea1",
+      "topic": "Maintained native rendering and correctness reference",
+      "lessons": "94–96"
     },
     {
       "root": "viewer",
@@ -2008,10 +4415,10 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/selftest.rs",
-      "sha256": "dec37fbc978002c1184181627769ac0c6daeec91da64b13373ef1d33bdaa08fc",
-      "topic": "Maintained native rendering and correctness reference",
-      "lessons": "94–96"
+      "path": "src/selftest/stroke_witness.rs",
+      "sha256": "493e57a9a0a049e906738bfca8072947d022607c3458c4c0b53b2ed5d8b6ad4b",
+      "topic": "Line rendering and current evidence",
+      "lessons": "5,18,22,96"
     },
     {
       "root": "viewer",
@@ -2037,7 +4444,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/shaders/arrow.wgsl",
-      "sha256": "73cd0ec57df2490b9b3099c56fbb9930c4667f8eb55080a400ca98b4e8c0b2a1",
+      "sha256": "41166470f26b141dda7c03a753e14542dfdf3ed572f7f6920850c09afb03b80d",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -2058,7 +4465,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/shaders/clip.wgsl",
-      "sha256": "56aae3cacb18a7c036e05833264577d8ee181f29c25af56d2f96ac2582df01d1",
+      "sha256": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -2079,16 +4486,23 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/shaders/grid.wgsl",
-      "sha256": "67daedfc89ed5b5553d2061429a4d725d1bc12b7f8e503d04bf1d709befc21fb",
+      "sha256": "094166f31a5f73bcf7a3957f077a2e299362b1e66520d3325b93a81e8bc922ea",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
     {
       "root": "viewer",
       "path": "src/shaders/ink_visibility.wgsl",
-      "sha256": "3423dfccfef9d924b4329d0b973554dc47bb77b7f7725c9a045c5181398a055e",
+      "sha256": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
+    },
+    {
+      "root": "viewer",
+      "path": "src/shaders/matrix.wgsl",
+      "sha256": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620",
+      "topic": "Matrix rendering and exact source ownership",
+      "lessons": "20,21,96"
     },
     {
       "root": "viewer",
@@ -2128,7 +4542,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/shaders/ribbon.wgsl",
-      "sha256": "f19427f01f8eeda0bd8200457f326717d972eaa4c8bc349c339c45243300f617",
+      "sha256": "950172d6d383b37009bd9c8d6e1edb63adf835e7b2926e91aba043f6a22f9f3f",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -2198,7 +4612,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/shaders/text_plane.wgsl",
-      "sha256": "56c0dcf2431ff25d546d3b46dd6038823035744ac939c3895d7fcbe372073248",
+      "sha256": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -2239,6 +4653,13 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
+      "path": "src/state.rs",
+      "sha256": "8bd89dd783fc205afd1cd8abb4e0323a7f61a9569514227a315557cc0038558a",
+      "topic": "Build, startup and application ownership",
+      "lessons": "00–02,34–35,94,96"
+    },
+    {
+      "root": "viewer",
       "path": "src/state/box_select.rs",
       "sha256": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d",
       "topic": "Interaction, selection and editing state",
@@ -2268,7 +4689,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/state/drawing.rs",
-      "sha256": "002139c15068a0b99bf58f4e98c06ab76d639a9632e387e221b26ce6b403cebf",
+      "sha256": "bdd056fc264725d2283b9a55ba8ae5442d4f0e537808d537dfa00dadf539f1c5",
       "topic": "Interaction, selection and editing state",
       "lessons": "26–33,72–85,92,96"
     },
@@ -2282,7 +4703,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/state/features.rs",
-      "sha256": "346212c4f10751e092ab484d2e91988454c832fb39d1751d1cc365aa6ff86a53",
+      "sha256": "3bf04533e9a97fa373f7d3c4a3cdeaf49bcb3535235e725f6012f461d5f14c98",
       "topic": "Interaction, selection and editing state",
       "lessons": "26–33,72–85,92,96"
     },
@@ -2324,7 +4745,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "viewer",
       "path": "src/state/text.rs",
-      "sha256": "48ea023bdaee730f0d55bff43ef28937d6370a973bbd0819b5e484c66f7ced68",
+      "sha256": "fab03acef3a6796e15211bba69b00b60c9e512448d3ea34c7817d00c5763feb2",
       "topic": "Interaction, selection and editing state",
       "lessons": "26–33,72–85,92,96"
     },
@@ -2337,13 +4758,6 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "viewer",
-      "path": "src/state.rs",
-      "sha256": "48b6e5f4c403d3b89a3f6ad691b28e815b8fce8c905f0e363aa1e3e346555cbb",
-      "topic": "Build, startup and application ownership",
-      "lessons": "00–02,34–35,94,96"
-    },
-    {
-      "root": "viewer",
       "path": "src/text_quality.rs",
       "sha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
       "topic": "Build, startup and application ownership",
@@ -2352,14 +4766,14 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "kernel",
       "path": "Cargo.lock",
-      "sha256": "19a5db84f182cf5eb18e4ebc991abee9cda016caa7cecee98e1d30b680d961c5",
+      "sha256": "4778cc98a58deef1e035ad348ab4ec0b02fd732f08c9603f4d8057dd94a2a3d9",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
     {
       "root": "kernel",
       "path": "Cargo.toml",
-      "sha256": "86d0fd7c6296c4c98341014446c9298112a6f77a93a5033d46336ab711579db3",
+      "sha256": "36bbbbb92d911ed1609118149d1a42bd5b8c74e7f246a09114a7eb8871a083c3",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2660,14 +5074,14 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "kernel",
       "path": "src/matrix.rs",
-      "sha256": "7f4c6bf3570a3c88da6f0ac3a59325a0902e4d6d07dbd0742faf9739f396cf73",
+      "sha256": "016bd1d44a6e900746789dde6ea158cc215255360472ab106b1efc005643dec5",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
     {
       "root": "kernel",
       "path": "src/matrix_test.rs",
-      "sha256": "c74b06f07ac71dc0e9e5080eb6994dc2e6fc4bb91e4e93952cba304dd494bc5e",
+      "sha256": "19869219588ff378223934cbd6c6551e1d34c5b3c7da35bf8ce581b10034d402",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2688,7 +5102,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "kernel",
       "path": "src/mini_test.rs",
-      "sha256": "eea605bbd1ca0c869944aa86e9eaf1b8e8c9bb5a9bf58d8a8a58283242119e93",
+      "sha256": "4464b762352c7040c47f33eab71627a930fd043921b6eebcced0320fc1d857d6",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2877,7 +5291,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "kernel",
       "path": "src/proto/session_proto.rs",
-      "sha256": "8d56e772d9d742137014857cfc8da51c47f63c86c1423b31f9022fd0e1a557ff",
+      "sha256": "7e54beecf7e3c5264f4165220cd05be8ef76c13627a4ddea6849124adf6fb4c2",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2947,7 +5361,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "kernel",
       "path": "src/session.rs",
-      "sha256": "30848b72bf983420353ec16e75d03ded78ae2876cf1433a915454898e3a2f65d",
+      "sha256": "3024289a03b2304f4c5547f0bb6f114f15de56633bc7cfe187ad2f42677ffb67",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2968,7 +5382,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     {
       "root": "kernel",
       "path": "src/session_test.rs",
-      "sha256": "b9dd833467772fcdfdd352d4e60a880cd47727eee232cdd4b4d14d749ca05928",
+      "sha256": "61c844737a6ec3074a0b02c0e4a6d9bae65ce2afafc7e2a71cd95263b01938b1",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -3114,13 +5528,6 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
     },
     {
       "root": "wood",
-      "path": "Cargo.lock",
-      "sha256": "61e22d4c3026e1d3a7a65fb5a5ddacdaeaca36b76a6cdba5455c6018b5b75689",
-      "topic": "Element builders and features",
-      "lessons": "92,96"
-    },
-    {
-      "root": "wood",
       "path": "Cargo.toml",
       "sha256": "6319241ba295b453fa0812f3a4b123b62523a46f1dfcb9adcb0a3c408626320d",
       "topic": "Element builders and features",
@@ -3203,8 +5610,7 @@ Copy the supplied checkpoint inventory after regeneration of Session protocol do
       "topic": "Element builders and features",
       "lessons": "92,96"
     }
-  ],
-  "captured": "2026-10-14"
+  ]
 }
 ```
 

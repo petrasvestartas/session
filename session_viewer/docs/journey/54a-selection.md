@@ -72,12 +72,6 @@ pub fn key(text: &str, command: bool, shift: bool, alt: bool, composing: bool,
     } else if !focused {match text.to_ascii_lowercase().as_str() {"f"=>Some(Shortcut::Fit),"h"=>Some(Shortcut::Hide),"s"=>Some(Shortcut::Show),"delete"=>Some(Shortcut::Delete),_=>None}}
     else {None}
 }
-
-pub fn context_key(context:&egui::Context,command_text:&str,text:&str,command:bool,shift:bool,alt:bool,composing:bool)->Option<Shortcut> {
-    if egui::Popup::is_any_open(context) {return None;}
-    let empty_command=context.memory(|memory|memory.focused())==Some(egui::Id::new("command-input"))&&command_text.is_empty();
-    key(text,command,shift,alt,composing,context.egui_wants_keyboard_input(),empty_command)
-}
 ```
 
 <details>
@@ -91,10 +85,6 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ```text
 --8<-- "journey/code/54a-selection-02.rs"
-```
-
-```text
---8<-- "journey/code/54a-selection-03.rs"
 ```
 
 </details>

@@ -1,0 +1,210 @@
+{
+  "date": "2026-10-25T23:06:07.047Z",
+  "status": "PASS root-reviewed source-bound high-density image published and HTTP bytes verified",
+  "rootPersonallyViewedOriginalResolution": true,
+  "scope": "Additional synthetic RGB fixture illustration, outside original1762 regenerated images. Original selected yellow figure retained.",
+  "canonicalBehaviorExecuted": false,
+  "sourceRecord": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\capture.json",
+  "sourceRecordSha256": "781d46adfbb89dc32debe0acb8a4f396ea1e62ccd72ef55b2f2ac631cb3665ee",
+  "source": {
+    "checkpoint": "65c-cloud-point",
+    "files": "023f0aa84eca81f8ea7302f0ca163868288e282e2cd0cad67d08d21f81424cb1",
+    "lock": "0866849028f4cdacf98ed285ba7cb81b57e3f5152e873bf29ee178afa18da357",
+    "assets": {
+      "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6"
+    },
+    "dependencies": {},
+    "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+    "fixture": "4a9c16b8a41ec4985f67256afbb78f0d008192357ffeb0c9b0dc29d04145b551",
+    "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+    "constructor": "make_renderer(device, queue, format)",
+    "logicalSize": [
+      640,
+      480
+    ],
+    "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+  },
+  "recipe": {
+    "module": "cloud-points",
+    "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cloud-points.cjs",
+    "sha256": "cd35d69b1f596b56ed37e0b92bd4ed1bc93922ad17a58f94a8ee3ce4c32f18d0",
+    "kind": "supplemental-unselected-rgb",
+    "viewport": {
+      "width": 1100,
+      "height": 800
+    },
+    "commands": [
+      "Close",
+      "Layers Off",
+      "View Grid Off",
+      "Example Cloud",
+      "Fit",
+      "View Isometric",
+      "Select Next",
+      "Controls"
+    ],
+    "scope": "Same original synthetic1681-point colored graph as the selected yellow main figure; only Controls Off and Select None remove selection overlays. No scan, new shader, photographic density or Potree parity claim."
+  },
+  "semantics": {
+    "cloudSources": [
+      {
+        "guid": "d8e9bd39-8d1d-4231-b2cc-f8a92411cc41",
+        "id": 3,
+        "model": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "nodes": 38,
+        "points": 1681,
+        "source_guid": "d8e9bd39-8d1d-4231-b2cc-f8a92411cc41"
+      }
+    ],
+    "cloudGpu": [
+      1681,
+      56347140,
+      1,
+      7,
+      142
+    ],
+    "selectedIds": [],
+    "chromaticPixels": 237596,
+    "distinctChromaticColors": 1403
+  },
+  "helperSha256": "183ba75068a721d050fd3c155692a40a07c851b847a52493cf8c337f2113071e",
+  "host": {
+    "served": {
+      "65c-cloud-point/dist/index.html": "5f4db04e3f29443699e65a61e5821085ed794c9d326e3fdd8a5fac8678829f28",
+      "65c-cloud-point/dist/viewer_journey.js": "224dcd28da4b3c31e61da6c3369d2e5d3841b41bacdbee02f434a07ca31f7240",
+      "65c-cloud-point/dist/snippets/image_incremental_9c9f1b2f4c061bf5de310163-218e49bef58ce027/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "65c-cloud-point/dist/viewer_journey_bg.wasm": "a165dcf8c15d44098616a06ce4f26b455bffeb515f9ca9c0fec2a2221ae02b37"
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0xFF00",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 16,
+      "maximumAggregateOurMemoryMiB": 16384,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 8,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-10-25T23:02:18.4634771Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--require",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+        "--import",
+        "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts",
+        "--worker",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\config.json"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\65c-cloud-point-75432472eeb8bee215cf\\workspace",
+      "timeoutSeconds": 2400,
+      "jobCommitLimitBytes": 8589934592,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 5.134,
+      "peakJobCommitBytes": 880361472,
+      "affinityMask": "0xFF00",
+      "processors": 8,
+      "processId": 59060,
+      "descendantsAtCleanup": 1
+    },
+    "log": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\image-browser.log",
+    "logSha256": "c7e4fa65fb2a911a729bb124fe873b96bcad15b921a680c3a8ba36eec28dbad5",
+    "resourcesFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\image-resources.json",
+    "resourcesSha256": "d688758a4537c68aaf33ccbd82c91206917672439345fc49e27b3929e463bcf3",
+    "inputs": {
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\parallel-image-guard.ps1": "ace35ad7068f780447b01bf5ec7d601058b20576f8b395d68d6c2f939c287932",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts": "183ba75068a721d050fd3c155692a40a07c851b847a52493cf8c337f2113071e",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\chrome-headless-shell.exe": "ac9bc025ed6be1ba6cf403116a68d2467c3e8da03844e642498e77cc2c799ac2",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\adapter-metadata.json": "b4d7b2594719ffed653cf5be91eb3ccb9e08fcfdbef7289d05f0383e2e738921",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\config.json": "680155af67cb5afaf3c506fe4b2aef0a6c36bec0423947e11a7d72880d4de3ef"
+    },
+    "policy": "One image lane8CPU8GiB alongside at most one original controlled lane<=8CPU8GiB. Aggregate OUR guarded jobs<=16CPU16GiB; no whole-machine/external-process claim."
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0xFF00",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 16,
+    "maximumAggregateOurMemoryMiB": 16384,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 8,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-10-25T23:02:18.4634771Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+      "--import",
+      "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\exported-browser-image-recipes.ts",
+      "--worker",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\config.json"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\65c-cloud-point-75432472eeb8bee215cf\\workspace",
+    "timeoutSeconds": 2400,
+    "jobCommitLimitBytes": 8589934592,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 5.134,
+    "peakJobCommitBytes": 880361472,
+    "affinityMask": "0xFF00",
+    "processors": 8,
+    "processId": 59060,
+    "descendantsAtCleanup": 1
+  },
+  "rootReview": "Root personally viewed original2200x1600: coherent41x41 synthetic wave, unselected cyan/pink/purple RGB round points; no yellow overlay.",
+  "images": [
+    {
+      "id": "65c-cloud-point",
+      "destination": "docs/journey/release/cloud65c-unselected-rgb.png",
+      "sha256": "367f0639cfda7be34446b9426382cab02bb4de72d334adf4adae6f4c229f8e7e",
+      "width": 2200,
+      "height": 1600,
+      "sourceRecord": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\65c-cloud-point-4f5b947dccf5828a59d1\\capture.json",
+      "sourceRecordSha256": "781d46adfbb89dc32debe0acb8a4f396ea1e62ccd72ef55b2f2ac631cb3665ee",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/journey/release/cloud65c-unselected-rgb.png?v=367f0639cfda",
+        "status": 200,
+        "sha256": "367f0639cfda7be34446b9426382cab02bb4de72d334adf4adae6f4c229f8e7e"
+      }
+    }
+  ],
+  "supplementalOutsideOriginal1762": true
+}

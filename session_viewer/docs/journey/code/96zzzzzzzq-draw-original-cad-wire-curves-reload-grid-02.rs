@@ -1,0 +1,2 @@
+if self.grid_plane().matrix64().m!=frame.matrix64().m {self.camera.grid_plane=(frame!=crate::cplane::CPlane::Xy).then_some(frame);}
+                self.construction_plane=plane;crate::drawing_coords::set_plane(plane);self.plane_menu=false;

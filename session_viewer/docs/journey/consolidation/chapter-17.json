@@ -1287,7 +1287,7 @@
   ],
   "remaining_defects": [
     "Current endpoint runtime and visual acceptance pending integrator queue.",
-    "No embedded figures: historical screenshots were not individually inspected in this batch.",
-    "Retained early finite predicate/stroke-chain AA implementations are staged; actual ribbon/vector algorithm reconciliation and current matched visual acceptance remain pending."
+    "Retained historical figures are candidates, not current acceptance. Only individually inspected figures tied to recorded source and settings count as accepted evidence; consult the current visual-review and chapter evidence records.",
+    "Early finite predicate/stroke-chain AA checkpoints remain staged prerequisites. The final endpoint integrates production ribbon/vector programs; complete family-level matched and browser acceptance remains pending."
   ]
 }

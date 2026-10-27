@@ -1,0 +1,409 @@
+{
+  "status": "PASS actual final BRep docs publication; measured prepublication snapshot",
+  "recordedUtc": "2026-10-24T20:54:05.168Z",
+  "source": {
+    "source713": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+    "source714": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+    "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+    "native": {
+      "file": "docs/journey/release/final-brep-final-native-integration-review.json",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+      "count": 1068
+    },
+    "roadmapSha256": "4cbd8f879f8a9f8e3917d5a706ca6f23657f836ded35b9f99b4ea887f801167d",
+    "stateSha256": "8e612edb0ec2afb5d8ba36563918a6f686a35864f6f9d17eb6941c7d4ffa2767",
+    "mapSha256": "393e1eda20c57d7128b6e3ff638107a8911146e93df4c0304818e8c87d40e04d",
+    "inputManifest": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/inputs.json",
+      "sha256": "7243154c4c6603d5a3079f47c1fb5346e4e50d748b4df36267d409405544208c"
+    },
+    "frozenFiles": 26781
+  },
+  "build": {
+    "result": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/build-pass.json",
+      "sha256": "435d9850c0201f40eb709ca74d7054b918e00a5263b382a331ef3a59f42713f7"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/command.json",
+      "sha256": "ca76d6c875e595608ac5d5a22456c0e59808e08b6e435c5b88a399ea91339b4b"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/build.log",
+      "sha256": "dc9468ccec2abe5674fac279567a2181260b2c5eba6c39a9f889915a9f756592"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/resources.json",
+      "sha256": "66e4bbd2a47479047c7658208da3c6b3fbdbaa1342581401f6aa8025b0452913"
+    },
+    "elapsedSeconds": 41.844,
+    "peakBytes": 1319538688,
+    "base": "/docs/"
+  },
+  "probe": {
+    "review": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/visible-roadmap-v10-final-brep/review.json",
+      "sha256": "110be8ec462e7ae82a6a97fde469dd510c8e96246769f9d30de9e24a013ce761"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/probe-v10-final-brep.resources.json",
+      "sha256": "d182c29a987cd2447a4f4e92529b932997142d8606b42687342c7259e0eab394"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/probe-v10-final-brep.log",
+      "sha256": "6acb226a6b35dbc7eb5c83f302022e1d4277402a92ce3ebe30d7f95ef0e22f7c"
+    },
+    "elapsedSeconds": 25.831,
+    "peakBytes": 462860288,
+    "counts": {
+      "pendingHistoricalEntryCallbacks": 0,
+      "additionalDeclaredCallbackEntries": 4,
+      "pendingIntegrationActions": 3,
+      "distinctSourceSpecificCallbackEntries": 18,
+      "nonCallbackIntegrationActions": 3,
+      "namedActions": 21,
+      "remainingFeatureChecklists": 4,
+      "meaning": "All18sourcecallbacksactualaccepted atrecordedscopes;all4Windowsfixtures;14finitefeaturescomplete4partial. Original21nameddenominator/noncallback3groupsandreleasestatusremainindependent.",
+      "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate.",
+      "acceptedSourceSpecificCallbackEntries": 18,
+      "pendingSourceSpecificCallbackEntries": 0,
+      "pendingNamedActions": 3,
+      "pendingAdditionalDeclaredCallbackEntries": 0
+    },
+    "gates": {
+      "done": 5,
+      "total": 5
+    },
+    "fixtures": {
+      "accepted": 4,
+      "total": 4
+    },
+    "currentLinkedAssets": [
+      {
+        "file": "docs/journey/release/final-brep-final-native-integration-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-brep-final-native-integration-review.json?v=befcbe25a9ef",
+        "sha256": "befcbe25a9ef21b6c03a081be14ed498c3bd6aaacf6219a64b0c93277d901d27",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/final-brep-final-runtime-build-gate-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-brep-final-runtime-build-gate-review.json?v=6cff1d1e6e59",
+        "sha256": "6cff1d1e6e59b31a1c7dd13831dff871dcd7e3a525c95b0910cf1f5fbaa4aeff",
+        "kind": "JSON"
+      },
+      {
+        "file": "docs/journey/release/final-four-feature-closure-review.json",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/final-four-feature-closure-review.json?v=2b4d3c5b9094",
+        "sha256": "2b4d3c5b9094b04cdc9debc5210b33e8877add3f5b611b2b65cde50a55faaa9d",
+        "kind": "JSON"
+      }
+    ],
+    "checkboxes": 1468,
+    "servedRoadmap": {
+      "url": "http://localhost:8788/docs/assets/course-journey-roadmap-V6J0wV3B.json",
+      "sha256": "80fbcfea1770ab60bbadae20471b8a2840308d77e41082a0956e5023ca27f034",
+      "entry": {
+        "url": "http://localhost:8788/docs/assets/main-JP6rRDih.js",
+        "sha256": "a9439472ae192b4792f6a1ebb1f8ff0f299159c4721f09b3d0c364e7d2bc0c0f"
+      }
+    },
+    "servedChapter": {
+      "url": "http://localhost:8788/docs/assets/course-journey-consolidation-96zzzzzzzm-retain-visible-instance-ranges-CDGHH28o.json",
+      "sha256": "0a6abfe9e41de386a9f7cae914fe07a3daf60ca0a26d2664dcb4c4f1abaa03b5",
+      "allExactBodies": true,
+      "sourceBodyCount": 20
+    },
+    "sharedReference": {
+      "path": "docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md",
+      "sha256": "4211e1cbe4917f665c972b2e93f27d72b6ab7d2c23c80ff010f41850421340ab",
+      "sharedExactSourceBodies": true,
+      "sourceBodyCount": 20,
+      "scope": "Canonical reference and consolidated lesson retain identical ordered dynamic Rust/WGSL/JSON include bodies; reference source equivalence avoids duplicate rendering."
+    },
+    "editorial16_4": {
+      "status": "PASS actual source-bound16.4 prose/full code DOM+HTTP; no extra screenshot",
+      "source": {
+        "file": "docs/journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md",
+        "sha256": "44504c9f15335a1fc71db03f92ee53cb1cc62bb40ced118590336b07762327da",
+        "slug": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids",
+        "prose": "Reject open geometry, choose a world point near the mesh and reuse the shared swept-volume helper.",
+        "measurement": "Measure Distance w-1,0,1 w1,0,1 creates the temporary 2 mm mark above the solid. Zoom out to keep both endpoints and the label visible. Escape removes the mark without changing the original geometry.",
+        "image": {
+          "file": "docs/journey/release/current85ay-visible-two-mm.png",
+          "sha256": "31b5b714a622595fa2b2c6a499c1d51e0d43b5d134af196ba009938888961e2c",
+          "width": 900,
+          "height": 760
+        }
+      },
+      "url": "http://localhost:8788/docs/assets/course-journey-consolidation-84-measure-original-curves-surfaces-and-closed-solids-DhBtHYp6.json",
+      "payloadSha256": "e5f1c01dd1f385920f7714b18d90dfa09ae0b57fdf7cf48d673f89b34b5a2c69",
+      "measurement": {
+        "file": "docs/journey/release/current85ay-visible-two-mm.png",
+        "url": "http://localhost:8788/docs/course/docs/journey/release/current85ay-visible-two-mm.png?v=31b5b714a622",
+        "sha256": "31b5b714a622595fa2b2c6a499c1d51e0d43b5d134af196ba009938888961e2c",
+        "natural": {
+          "width": 900,
+          "height": 760
+        },
+        "renderedExplanation": "Measure Distance w-1,0,1 w1,0,1 creates the temporary 2 mm mark above the solid. Zoom out to keep both endpoints and the label visible. Escape removes the mark without changing the original geometry."
+      },
+      "codeBlocks": 164,
+      "fit": {
+        "viewport": 1400,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      }
+    },
+    "ownedTab": {
+      "targetId": "DB0BDD1C78582AEDB8E7D9F3877A3F6D",
+      "url": "http://127.0.0.1:8788/docs/#/course/journey/roadmap",
+      "viewport": null
+    },
+    "pageErrors": []
+  },
+  "chapter": {
+    "orderedBodies": [
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-01-ambient_camera.rs",
+        "number": 256,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "7a305c24e1c75aeabb5c9cf78f5fc9551a5417e8915fca80dd0bc77ef988308d",
+        "blockIndex": 1241
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-02-ambient.wgsl",
+        "number": 257,
+        "language": "wgsl",
+        "skip": 0,
+        "sourceSha256": "0f33eccdf49fde27d3a0dedc59c9653d0f42683491c883c0aa6e0ef1fcdcc5e3",
+        "blockIndex": 1242
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-03-ambient_sources.wgsl",
+        "number": 258,
+        "language": "wgsl",
+        "skip": 0,
+        "sourceSha256": "3886ab7691bf74b343e5268860c4d68ae3e1745c97459b78d61f4ac66d3fc561",
+        "blockIndex": 1243
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-04-ambient_source_pipeline.rs",
+        "number": 259,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "3b11dbe30bb33344071bc5ac91df8a4503378eaaec33bc4af2f3f2bc3728b403",
+        "blockIndex": 1244
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-05-ambient_source_gpu.rs",
+        "number": 260,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "693e6057da5310d31763609155699a29ffe1f0e0f5e16c53b64cfd539b0bcd99",
+        "blockIndex": 1245
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-06-ambient_images.rs",
+        "number": 261,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "59c4a033f23d174f249566ef941475b17e4e31d17cd731ddcc18537797aa0f4c",
+        "blockIndex": 1246
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-07-ambient_pipeline.rs",
+        "number": 262,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "6704ff0919f3f50d54cc079fdbb9e039ea1534abaf0ba12b8fce7568b4c8cc68",
+        "blockIndex": 1247
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-08-ambient_groups.rs",
+        "number": 263,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "2454e1b30399322567d83565bf75d385fa00a608caebc286203a33c688c72688",
+        "blockIndex": 1248
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-09-ambient_gpu.rs",
+        "number": 264,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "0ab35d3a8ef15e3a8e6733295db657e07a83d41c5607d3f5290718d228bff4c1",
+        "blockIndex": 1249
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-10-ambient_input_tests.rs",
+        "number": 265,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "a793339057cb16fd259474b0310a7832ab08508ce9c40efa123998a144f8da2e",
+        "blockIndex": 1250
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-11-ambient_contact_tests.rs",
+        "number": 266,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "3d4ea53e76c0d57bbb11142b10e6d08d1d1c82fee93f53ab5506a9e23953f7ee",
+        "blockIndex": 1251
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-12-sample_surface_tests.rs",
+        "number": 267,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "38987cae5fb5b17eea55a6f5da2168e604ac83711d95d3fcb98a10f45920d3a4",
+        "blockIndex": 1252
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-13-ambient_sample_inspect.rs",
+        "number": 268,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "8483e081fcb342e68630d17f7a14748d4aaeaf0509bc15e1db4841f0122ae5ec",
+        "blockIndex": 1253
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-retained-ground-regression.rs",
+        "number": 269,
+        "language": "rust",
+        "skip": 3337,
+        "sourceSha256": "e43dc5c34c0a93ce62e047e285a6a90eade1f7442c2224306a85a8d47bf4f68c",
+        "blockIndex": 1254
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-01-cad_edges.rs",
+        "number": 270,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "49f2c70aa78f96c45e935601d6ed6adede93ca6200e27ce02e66a00ff780458d",
+        "blockIndex": 1255
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-02-production_brep_ink.rs",
+        "number": 271,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "82887eeacd9f0528c750118ef1d6a11eb9e58259a94ace9bf5c086c49f9a87bc",
+        "blockIndex": 1256
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-03-cad_boundary.rs",
+        "number": 272,
+        "language": "rust",
+        "skip": 0,
+        "sourceSha256": "eb1ec872d360cd6f3eba2efd88dac5d8fccf93a11cdc02435a19309caac7402d",
+        "blockIndex": 1257
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-04-cad_wire_tests.rs",
+        "number": 273,
+        "language": "rust",
+        "skip": 16902,
+        "sourceSha256": "aee36cd785d10095c9c8bcfd189c22a035b1a18c61e5ae92453fc048c9d8f573",
+        "blockIndex": 1258
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-05-production_mesh_ink_provenance.json",
+        "number": 274,
+        "language": "json",
+        "skip": 0,
+        "sourceSha256": "c5525e0ec4d4083498c1712cfc0dcb90789d8e4c66862031e1eff63b9773cd4f",
+        "blockIndex": 1259
+      },
+      {
+        "spec": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-06-current_inventory.json",
+        "number": 275,
+        "language": "json",
+        "skip": 0,
+        "sourceSha256": "a9213bce557cb5f98665aec507d7bc02fd67873ae28fe06223e3552822af8de7",
+        "blockIndex": 1260
+      }
+    ],
+    "sourceBodies": 20,
+    "languages": [
+      "rust",
+      "wgsl",
+      "json"
+    ],
+    "section": "270. src/cad_edges.rs"
+  },
+  "rootReview": {
+    "path": "target/course-windows-20261018/fef4-progress-publication-preparation/docs-final-brep-v1/visible-roadmap-v10-final-brep/actual-root-review.json",
+    "sha256": "bd3892742a52bf2a4e4ca566822b33556e7c429d9bd246b31dacaf99e94e975e"
+  },
+  "images": [
+    {
+      "name": "desktop",
+      "file": "docs-final-brep-roadmap-desktop.png",
+      "sha256": "97388693df1ac5e191407e7d46d71f36db0a2611d7cacd530b5df4f85f3bca7c",
+      "width": 1400,
+      "height": 900,
+      "fit": {
+        "viewport": 1400,
+        "height": 900,
+        "dpr": 1.0000000149011612,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      },
+      "drawer": null,
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "phone",
+      "file": "docs-final-brep-roadmap-phone.png",
+      "sha256": "92e221fedf11a489ac2b7e83704ad66e35f1947a0d17a2ae1313e36f4aec34c6",
+      "width": 390,
+      "height": 844,
+      "fit": {
+        "viewport": 390,
+        "height": 844,
+        "dpr": 1.0000000149011612,
+        "document": 390,
+        "articleClient": 343,
+        "articleScroll": 343,
+        "mainClient": 375,
+        "mainScroll": 375
+      },
+      "drawer": {
+        "closed": true,
+        "inert": true,
+        "right": 0,
+        "expanded": "false"
+      },
+      "rootPersonallyReviewedOriginalResolution": true
+    },
+    {
+      "name": "chapter22-6-desktop",
+      "file": "docs-final-brep-chapter22-6-desktop.png",
+      "sha256": "8d476538aeb9f9fc3366d5fe602497176c4dc68a7ead2740ed345d62750b7d89",
+      "width": 1400,
+      "height": 900,
+      "fit": {
+        "viewport": 1400,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      },
+      "rootPersonallyReviewedOriginalResolution": true
+    }
+  ],
+  "limits": [
+    "This review and three copies are outputs after the measured build and absent from its own frozen inputs; no self-link rebuild required.",
+    "Docs evidence only; no runtime/native/source-specific callback or finite feature acceptance inferred.",
+    "Existing Vue/Gemini appearance and unrelated authored pages preserved; exactly three fresh views plus16.4DOM, no wholebook rendering sweep."
+  ]
+}

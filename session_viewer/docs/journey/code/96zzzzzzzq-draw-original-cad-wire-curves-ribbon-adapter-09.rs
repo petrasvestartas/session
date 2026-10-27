@@ -1,0 +1,1 @@
+&[&self.mesh_ink, &self.paths, &self.markers]

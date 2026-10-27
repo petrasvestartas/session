@@ -1,0 +1,33 @@
+{
+  "status": "PASS scoped379 runtime-source equivalence and241 actual record identity retention; one separately approved sheets illustration adopted",
+  "oldCohort": "f0e4657eb9fa8a13f59fd809ad1769c5bd4ae2b7363cf8837589760958771939",
+  "newCohort": "5fabf35c08d614a39488a198f2eea13672b60f720f846b676ad611824c78b7ac",
+  "newFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\5fabf35c08d614a39488/cohort.json",
+  "courseSha256": "bb1a76e52d57f873721c27e37f17fbe892a8cae2d086916e6eea328b78e3b06d",
+  "all379RuntimeBindingsEqual": true,
+  "retainedActualRecords": 241,
+  "adoptedSheets": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\71aj-exercise-complete-and-ranged-original-drawings-7bbfa23ddb7a84e175fa\\sheets-capture.json",
+    "sha256": "161393891c9cb1d9b941aac1e5ffe30c5aa990094bd877b7f9db63724eebf70d"
+  },
+  "completed": 242,
+  "remaining": 137,
+  "scope": "Original inherited71aj failure unchanged and unaccepted. No fresh execution/whole callback claim for retained records. Temporary publication index counts not used as global completion evidence.",
+  "privateQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\5fabf35c08d614a39488\\sheets-successor-qualification.json",
+    "sha256": "41ddea6a85243e9dbbc626609f2bfae29dd34600a0c96e2fc0e24d6dfd0fc716"
+  },
+  "oldCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\f0e4657eb9fa8a13f59f\\cohort.json",
+    "sha256": "ef71d351806207a8dc2e5c8b48231e265530313f5ecd4febaa8d95f5f3435674"
+  },
+  "newCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\5fabf35c08d614a39488\\cohort.json",
+    "sha256": "37dadb4d70409397bef47026b1e71a485ef21ca646a3de1dc776ca32e24e34d5"
+  },
+  "imageReview": {
+    "path": "docs/journey/release/browser-streaming-publication-192.json",
+    "sha256": "d581e9e4d22afcad2e5fbd0ff71c5eb0c2b48fce180860e7f59e64b5cf182818"
+  },
+  "originalFailureStatus": "UNACCEPTED original inherited imported-file status timeout; no full callback PASS"
+}

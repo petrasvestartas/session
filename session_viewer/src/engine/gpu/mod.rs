@@ -462,6 +462,8 @@ impl Gpu {
             .objects
             .rebase_anchor(&self.ctx, origin, view_dist, now);
 
+        self.backdrop.rebase(&self.ctx, [rebase.anchor[0], rebase.anchor[1], rebase.anchor[2]]);
+
         if rebase.moved {
             self.splat.invalidate(); // register:clouds
         }

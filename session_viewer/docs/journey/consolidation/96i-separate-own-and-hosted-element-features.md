@@ -1,31 +1,54 @@
 # 19.2 · Original Element ancestry and derived feature trees
 
-Show own attributes and hosted interaction features while preserving one editable original Element owner.
+**Steps:** 10 · **Source:** [app/session_io.rs](../../../src/app/session_io.rs) · [app/command/mod.rs](../../../src/app/command/mod.rs) · [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/scene.rs](../../../src/app/scene.rs)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Retained Plane Triad: O + X_axis (R) + Y_axis (G) + Z_axis (B)</text>
+  <polygon points="68,136 132,76 268,76 204,136" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <circle cx="168" cy="106" r="4.5" fill="#111111"/>
+  <line x1="168" y1="106" x2="236" y2="106" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <line x1="168" y1="106" x2="202" y2="74" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <line x1="168" y1="106" x2="168" y2="48" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrB)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Family Bitmask: Mesh | BRep | Curve | Point | Plane | Cloud</text>
+  <rect x="430" y="56" width="78" height="36" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="469" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Mesh ✓</text>
+  <rect x="520" y="56" width="78" height="36" rx="4" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="559" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">BRep ✓</text>
+  <rect x="610" y="56" width="78" height="36" rx="4" fill="#fef08a" stroke="#d97706" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="649" y="78" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Plane ✓</text>
+  <rect x="475" y="104" width="168" height="34" rx="4" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="559" y="125" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">w_pen = w_base * scale</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Filtered Geometry Families + Explicit Plane Frame</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="838,136 888,68 938,136" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <polygon points="948,132 978,94 1036,94 1006,132" fill="#fef9c3" stroke="#111111" stroke-width="1.5"/>
+  <line x1="992" y1="113" x2="1028" y2="113" stroke="#dc2626" stroke-width="2"/>
+  <line x1="992" y1="113" x2="992" y2="74" stroke="#2563eb" stroke-width="2"/>
+</svg>
+</div>
 
-Distinguish the Element’s own attributes from hosted interaction pieces. A bounded derived feature tree groups original interaction identity without becoming independently saved editable geometry. Imported and created Elements use the same projection path; nested original Elements remain editable at their original parent. Retain original coordinates while projecting display outlines, and verify archives preserve original feature payload rather than serializing derived rows as new sources.
-
-## The maintained implementation
-
-app/walk/mod.rs walks maintained geometry/features, app/hierarchy.rs resolves element-feature panel lines and app/scene.rs retains Session owners. Element geometry stays original session_rust Element; derived lanes and tree rows provide presentation/query addresses. Independent attributes/interactions switches are view policy, not source mutation.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/session_io.rs](../../../src/app/session_io.rs), [app/command/mod.rs](../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/scene.rs](../../../src/app/scene.rs), [app/selection.rs](../../../src/app/selection.rs), [app/deform.rs](../../../src/app/deform.rs), [app/walk/mod.rs](../../../src/app/walk/mod.rs), [build.rs](../../../build.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-96i-separate-own-and-hosted-element-features"></a>
-
-<details>
-<summary>Implementation 96i-separate-own-and-hosted-element-features: Separate own attributes from hosted features</summary>
-
-Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+## <a id="checkpoint-96i-separate-own-and-hosted-element-features"></a>1. Separate own attributes from hosted features
 
 ### 1. `src/feature_plan.rs`
 
@@ -34,84 +57,197 @@ Give this operation its own small owner.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/96i-separate-own-and-hosted-element-features-01.rs"
+use session_rust::element::ElementFeature;
+use session_rust::{Element, Geometry, Session};
+
+#[derive(Debug, PartialEq)]
+pub struct Hosted {
+    pub label: String,
+    pub features: Vec<usize>,
+}
+
+pub fn interaction(feature: &ElementFeature) -> bool {
+    matches!(
+        feature.feature_type.as_str(),
+        "contact" | "joint" | "cut" | "drill"
+    )
+}
+
+pub fn own(element: &Element) -> Vec<usize> {
+    element
+        .features
+        .iter()
+        .enumerate()
+        .filter_map(|(i, feature)| (!interaction(feature)).then_some(i))
+        .collect()
+}
+
+pub fn label(feature: &ElementFeature) -> String {
+    let mut label = feature.feature_type.clone();
+    if !feature.name.is_empty() && feature.name != feature.feature_type {
+        label.push(' ');
+        label.push_str(&feature.name);
+    }
+    if feature.face_index >= 0 {
+        label.push_str(&format!(" · face {}", feature.face_index));
+    }
+    label
+}
+
+fn source_name<'a>(session: &'a Session, guid: &'a str) -> &'a str {
+    match session.lookup.get(guid) {
+        Some(Geometry::Element(element)) if !element.name.is_empty() => &element.name,
+        _ => guid,
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the new owner without changing the browser entry point.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod inventory_tests;
-```
+mod metadata_tests;
 
-</details>
+#[cfg(test)]
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod metadata_tests;
+
 pub mod feature_plan;
 
 #[cfg(test)]
-mod inventory_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-96j-group-features-by-original-interaction"></a>2. Group pieces by their interaction
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96i-separate-own-and-hosted-element-features-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-96j-group-features-by-original-interaction"></a>
-
-<details>
-<summary>Implementation 96j-group-features-by-original-interaction: Group pieces by their original interaction</summary>
-
-Walk graph edges in their original order. Group contact and joint pieces under the full interaction type, using the relation name or source Element name, and retain unmatched features.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Timber Plate Polylines (Top / Bottom) + Joint Cut Loops</text>
+  <polygon points="56,136 96,64 268,64 228,136" fill="#fde68a" stroke="#111111" stroke-width="2"/>
+  <polygon points="142,64 186,64 174,94 130,94" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="142" cy="64" r="3.5" fill="#dc2626"/>
+  <circle cx="186" cy="64" r="3.5" fill="#dc2626"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Joint Pair Graph (e_A ↔ e_B) + Insertion Vector v_ins</text>
+  <rect x="432" y="76" width="98" height="48" fill="#fde68a" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="481" y="104" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Beam A</text>
+  <line x1="530" y1="100" x2="588" y2="100" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <rect x="592" y="56" width="84" height="88" fill="#fcd34d" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="634" y="104" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Post B</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Assembled Timber Frame with Highlighted Joints</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="834,116 964,116 964,82 834,82" fill="#fde68a" stroke="#111111" stroke-width="1.75"/>
+  <polygon points="948,146 998,146 998,56 948,56" fill="#fcd34d" stroke="#111111" stroke-width="1.75"/>
+  <rect x="948" y="82" width="16" height="34" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+</svg>
+</div>
 
 ### 1. `src/feature_plan.rs`
 
 Claim each feature once in graph order; retain unknown and orphaned interaction features.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     }
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96j-group-features-by-original-interaction-01.rs" skip=8
+    }
+}
+
+pub fn hosted(session: &Session, element: &Element) -> Vec<Hosted> {
+    let mut edges: Vec<_> = session
+        .graph
+        .edges
+        .get(element.guid())
+        .into_iter()
+        .flatten()
+        .collect();
+    edges.sort_by_key(|(_, edge)| edge.index);
+    let mut claimed = vec![false; element.features.len()];
+    let mut groups = Vec::new();
+    for (other, edge) in edges {
+        for relation in session
+            .interactions
+            .get(edge.guid())
+            .into_iter()
+            .flatten()
+        {
+            let features: Vec<_> = element
+                .features
+                .iter()
+                .enumerate()
+                .filter(|(i, feature)| {
+                    !claimed[*i]
+                        && interaction(feature)
+                        && feature.has_guid()
+                        && (feature.guid() == relation.guid()
+                            || relation
+                                .interaction_type_name()
+                                .starts_with("InteractionFeature")
+                                && feature.guid().starts_with(other.as_str()))
+                })
+                .map(|(i, _)| i)
+                .collect();
+            if features.is_empty() {
+                continue;
+            }
+            for &i in &features {
+                claimed[i] = true;
+            }
+            let name = if relation.name().is_empty() {
+                source_name(session, other)
+            } else {
+                relation.name()
+            };
+            groups.push(Hosted {
+                label: format!("{} {name}", relation.interaction_type_name()),
+                features,
+            });
+        }
+    }
+    for (i, feature) in element.features.iter().enumerate() {
+        if !claimed[i] && interaction(feature) {
+            groups.push(Hosted {
+                label: label(feature),
+                features: vec![i],
+            });
+        }
+    }
+    groups
+}
 ```
 
-</details>
-
-<a id="checkpoint-96k-separate-derived-rows-from-editable-elements"></a>
-
-<details>
-<summary>Implementation 96k-separate-derived-rows-from-editable-elements: Keep nested Elements editable and projections unsaved</summary>
-
-Mark generated display rows separately from original objects. Nested child Elements remain editable even inside attributes, and saved documents omit derived geometry.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+## <a id="checkpoint-96k-separate-derived-rows-from-editable-elements"></a>3. Keep nested Elements editable and projections unsaved
 
 ### 1. `src/hierarchy.rs`
 
@@ -119,212 +255,43 @@ Record display provenance explicitly on each tree node. Imported tree nodes init
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            if exit {nodes[parent.unwrap()].end=nodes.len();continue;}
-            let object=lookup.get(node.name.as_str()).copied();let readonly=readonly || inside && matches!(node.name.as_str(),"attributes"|"interactions");
-            let index=nodes.len();let source=proto::TreeNode {guid:if node.guid.is_empty() {uuid::Uuid::new_v4().to_string()} else {node.guid.clone()},name:node.name.clone(),parent_guid:node.parent_guid.clone(),color:node.color.clone(),children:Vec::new()};
-            nodes.push(Node {placement:Default::default(),portable_guid:uuid::Uuid::new_v4().to_string(),source,object:object.map(|v|v.0),label:object.map_or_else(||node.name.clone(),|v|v.1.to_owned()),parent,depth,end:index+1,readonly});
-            stack.push((node,Some(index),depth,inside,readonly,true));
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
+                children: Vec::new(),
+            };
+            nodes.push(Node {
+                placement: Default::default(),
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-            if exit {nodes[parent.unwrap()].end=nodes.len();continue;}
-            let object=lookup.get(node.name.as_str()).copied();let readonly=readonly || inside && matches!(node.name.as_str(),"attributes"|"interactions");
-            let index=nodes.len();let source=proto::TreeNode {guid:if node.guid.is_empty() {uuid::Uuid::new_v4().to_string()} else {node.guid.clone()},name:node.name.clone(),parent_guid:node.parent_guid.clone(),color:node.color.clone(),children:Vec::new()};
-            nodes.push(Node {derived:false,placement:Default::default(),portable_guid:uuid::Uuid::new_v4().to_string(),source,object:object.map(|v|v.0),label:object.map_or_else(||node.name.clone(),|v|v.1.to_owned()),parent,depth,end:index+1,readonly});
-            stack.push((node,Some(index),depth,inside,readonly,true));
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
+                children: Vec::new(),
+            };
+            nodes.push(Node {
+                derived: false,
+                placement: Default::default(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-}
-
-#[derive(Clone)]
-pub struct Node {pub placement:crate::nested_placement::Node,pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub header:Option<Rc<crate::origin::Origin>>,pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
+pub struct Node {
+    pub placement: crate::nested_placement::Node,
+    pub portable_guid: String,
+    pub source: proto::TreeNode,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-}
-
-#[derive(Clone)]
-pub struct Node {pub derived:bool,pub placement:crate::nested_placement::Node,pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub header:Option<Rc<crate::origin::Origin>>,pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
+pub struct Node {
+    pub derived: bool,
+    pub placement: crate::nested_placement::Node,
+    pub portable_guid: String,
+    pub source: proto::TreeNode,
 ```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::scene::{Scene,ObjectId};
-use session_rust::{proto,Xform};
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub const MAX_NODES:usize=4096;
-pub const MAX_DEPTH:usize=64;
-
-pub fn validate(root:&proto::TreeNode,guids:&HashSet<&str>)->Result<(), &'static str> {
-    let mut stack=vec![(root,0)];let mut seen=HashSet::new();let mut count=0;
-    while let Some((node,depth))=stack.pop() {
-        count+=1;if count>MAX_NODES || depth>MAX_DEPTH {return Err("Tree exceeds this checkpoint's node or depth limit");}
-        if guids.contains(node.name.as_str()) && !seen.insert(node.name.as_str()) {return Err("A source object occurs twice in the tree");}
-        stack.extend(node.children.iter().rev().map(|child|(child,depth+1)));
-    }
-    if seen!=*guids {return Err("The tree must contain every source mesh once");} Ok(())
-}
-
-pub fn world(root:Option<&proto::TreeNode>,xforms:&HashMap<String,Xform>,guid:&str)->Xform {
-    let mut stack=root.into_iter().map(|node|(node,Xform::identity())).collect::<Vec<_>>();
-    while let Some((node,parent))=stack.pop() {
-        let local=xforms.get(&node.name).cloned().unwrap_or_else(Xform::identity);let matrix=&parent*&local;
-        if node.name==guid {return matrix;}
-        stack.extend(node.children.iter().rev().map(|child|(child,matrix.clone())));
-    }
-    xforms.get(guid).cloned().unwrap_or_else(Xform::identity)
-}
-
-#[derive(Clone)]
-pub struct Node {pub derived:bool,pub placement:crate::nested_placement::Node,pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub header:Option<Rc<crate::origin::Origin>>,pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
-pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
-
-impl Forest {
-    pub fn add(&mut self,key:u32,label:String,root:Option<proto::TreeNode>,objects:&[(String,ObjectId,String)]) {
-        let fallback=proto::TreeNode {name:label.clone(),children:objects.iter().map(|(guid,_,_)|proto::TreeNode {name:guid.clone(),..Default::default()}).collect(),..Default::default()};
-        let root=root.unwrap_or(fallback);let lookup=objects.iter().map(|(guid,id,name)|(guid.as_str(),(*id,name.as_str()))).collect::<HashMap<_,_>>();
-        let mut nodes:Vec<Node>=Vec::new();let mut stack=vec![(&root,None::<usize>,0,false,false,false)];
-        while let Some((node,parent,depth,inside,readonly,exit))=stack.pop() {
-            if exit {nodes[parent.unwrap()].end=nodes.len();continue;}
-            let object=lookup.get(node.name.as_str()).copied();let readonly=readonly || inside && matches!(node.name.as_str(),"attributes"|"interactions");
-            let index=nodes.len();let source=proto::TreeNode {guid:if node.guid.is_empty() {uuid::Uuid::new_v4().to_string()} else {node.guid.clone()},name:node.name.clone(),parent_guid:node.parent_guid.clone(),color:node.color.clone(),children:Vec::new()};
-            nodes.push(Node {derived:false,placement:Default::default(),portable_guid:uuid::Uuid::new_v4().to_string(),source,object:object.map(|v|v.0),label:object.map_or_else(||node.name.clone(),|v|v.1.to_owned()),parent,depth,end:index+1,readonly});
-            stack.push((node,Some(index),depth,inside,readonly,true));
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
-        Rc::make_mut(&mut self.readonly_ids).extend(nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(Document {header:None,key,label,nodes}));
-    }
-
-    pub(crate) fn original_placements(&mut self,key:u32,source:&session_rust::Session,place:&Xform,world:&HashMap<String,Xform>) {
-        let doc=Rc::make_mut(self.documents.iter_mut().find(|doc|doc.key==key).unwrap());
-        for i in 0..doc.nodes.len() {
-            let node=&doc.nodes[i];let parent=node.parent.map_or_else(Xform::identity,|p|doc.nodes[p].placement.world.clone());let local=source.xforms.get(&node.source.name).cloned().unwrap_or_else(Xform::identity);let local=if node.parent.is_none() {place*&local} else {local};let matrix=world.get(&node.source.name).cloned().unwrap_or_else(||&parent*&local);doc.nodes[i].placement=crate::nested_placement::Node {local,world:matrix,parent};
-        }
-    }
-
-    pub(crate) fn push(&mut self,document:Document) {
-        Rc::make_mut(&mut self.readonly_ids).extend(document.nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(document));
-    }
-
-    pub fn colours(&self,key:u32)->HashMap<ObjectId,[u8;3]> {
-        let mut out=HashMap::new();let Some(doc)=self.documents.iter().find(|doc|doc.key==key) else {return out;};
-        let mut inherited=vec![None;doc.nodes.len()];
-        for (index,node) in doc.nodes.iter().enumerate() {
-            let colour=node.source.color.as_ref().map(|colour|[colour.r,colour.g,colour.b].map(|value|(value.clamp(0.,1.)*255.).round() as u8)).or_else(||node.parent.and_then(|parent|inherited[parent]));
-            inherited[index]=colour;if let (Some(id),Some(colour))=(node.object,colour) {out.insert(id,colour);}
-        }
-        out
-    }
-
-    pub(crate) fn replace(&mut self,index:usize,document:Document) {
-        self.documents[index]=Rc::new(document);
-        self.readonly_ids=Rc::new(self.documents.iter().flat_map(|doc|doc.nodes.iter()).filter(|node|node.readonly).filter_map(|node|node.object).collect());
-    }
-
-    pub fn readonly(&self,id:ObjectId)->bool {self.readonly_ids.contains(&id)}
-    pub fn descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {
-        let mut out=ids.to_vec();
-        for doc in &self.documents {for (index,node) in doc.nodes.iter().enumerate() {if node.object.is_some_and(|id|ids.contains(&id)) {out.extend(doc.nodes[index+1..node.end].iter().filter_map(|n|n.object));}}}
-        out.sort_unstable_by_key(|id|id.value());out.dedup();out
-    }
-
-    pub fn snapshot(&self,scene:&Scene,xforms:&mut Vec<proto::XformEntry>)->Result<(Vec<proto::TreeNode>,HashSet<ObjectId>), &'static str> {
-        let mut roots=Vec::new();let mut placed=HashSet::new();
-        for doc in &self.documents {if let Some(root)=save_node(doc,0,scene,&Xform::identity(),"",xforms,&mut placed)? {roots.push(root);}}
-        Ok((roots,placed))
-    }
-}
-
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent*&original.placement.local;let mut local=original.placement.local.clone();
-    if let Some(id)=original.object {
-        let Some(guid)=scene.row_guid(id) else {return Ok(None);};
-        node.name=guid.to_owned();matrix=scene.placement(id).ok_or("Saved source placement is missing")?;local=crate::nested_placement::saved_local(&original.placement,parent,&matrix)?;
-        placed.insert(id);
-    }
-    if local.m!=Xform::identity().m {
-        let guid=node.name.clone();if let Some(previous)=xforms.iter().find(|entry|entry.guid==guid) {if previous.xform.as_ref()!=Some(&local.to_proto()) {return Err("Different saved tree placements share a name");}}
-        else {xforms.push(proto::XformEntry {guid,xform:Some(local.to_proto())});}
-    }
-    for child in index+1..original.end {if doc.nodes[child].parent==Some(index) {if let Some(child)=save_node(doc,child,scene,&matrix,&node.guid,xforms,placed)? {node.children.push(child);}}}
-    Ok(Some(node))
-}
-
-#[derive(Clone)]
-pub struct Row {pub key:String,pub label:String,pub depth:usize,pub end:usize,pub ids:Vec<ObjectId>,pub readonly:bool}
-pub fn rows(scene:&Scene)->Vec<Row> {
-    let mut rows=Vec::new();let mut placed=HashSet::new();
-    for doc in &scene.forest.documents {
-        let mut visible=Vec::new();let mut index=0;
-        while index<doc.nodes.len() {
-            let node=&doc.nodes[index];
-            if node.object.is_some_and(|id|!scene.contains(id)) {index=node.end;continue;}
-            visible.push(index);index+=1;
-        }
-        let start=rows.len();
-        for &index in &visible {
-            let node=&doc.nodes[index];let ids=doc.nodes[index..node.end].iter().filter_map(|n|n.object).filter(|id|scene.contains(*id)).collect::<Vec<_>>();
-            placed.extend(node.object);let end=start+visible.partition_point(|i|*i<node.end);
-            rows.push(Row {key:format!("{}/{}",doc.key,node.source.guid),label:if index==0 {doc.label.clone()} else {node.label.clone()},depth:node.depth,end,ids,readonly:node.readonly});
-        }
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.texts().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.clouds().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.streams().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-01.rs"
-```
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-02.rs"
-```
-
-</details>
 
 ### 2. `src/layer_edit.rs`
 
@@ -332,302 +299,66 @@ Keep user-created groups and source objects in the saved tree.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    let crate::group_plan::Plan{owner,document:doc,name,parent,members}=crate::group_plan::Plan::new(scene,ids,name)?;
-    let parent_node=&doc.nodes[parent];let parent_world=parent_node.placement.world.clone();let back=parent_world.inverse().ok_or("The layer is degenerate")?;
-    let source=session_rust::proto::TreeNode{guid:uuid::Uuid::new_v4().to_string(),name:name.clone(),..Default::default()};let group_guid=source.guid.clone();
-    let mut group=Branch{node:Node{placement:crate::nested_placement::Node{local:Default::default(),world:parent_world.clone(),parent:parent_world.clone()},portable_guid:group_guid.clone(),source,object:None,label:name.clone(),parent:None,depth:0,end:1,readonly:false},children:Vec::new()};let mut tree=branch(&doc,0);
-    for id in members{let mut member=take(&mut tree,id).ok_or("Object tree is gone")?;let world=scene.placement(id).ok_or("Source placement is missing")?;member.node.placement=crate::nested_placement::Node{local:&back*&world,world,parent:parent_world.clone()};group.children.push(member);}
-    find(&mut tree,&parent_node.source.guid).ok_or("Shared layer is gone")?.children.push(group);let mut nodes=Vec::new();flatten(tree.clone(),None,0,&mut nodes);if nodes.iter().any(|node|node.depth>crate::hierarchy::MAX_DEPTH){return Err("Tree exceeds its depth limit")}
-    replace(scene,owner,tree);Rc::make_mut(&mut scene.groups).insert((doc.key,group_guid));Ok(name)
+    let group_guid = source.guid.clone();
+    let mut group = Branch {
+        node: Node {
+            placement: crate::nested_placement::Node {
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    let crate::group_plan::Plan{owner,document:doc,name,parent,members}=crate::group_plan::Plan::new(scene,ids,name)?;
-    let parent_node=&doc.nodes[parent];let parent_world=parent_node.placement.world.clone();let back=parent_world.inverse().ok_or("The layer is degenerate")?;
-    let source=session_rust::proto::TreeNode{guid:uuid::Uuid::new_v4().to_string(),name:name.clone(),..Default::default()};let group_guid=source.guid.clone();
-    let mut group=Branch{node:Node{derived:false,placement:crate::nested_placement::Node{local:Default::default(),world:parent_world.clone(),parent:parent_world.clone()},portable_guid:group_guid.clone(),source,object:None,label:name.clone(),parent:None,depth:0,end:1,readonly:false},children:Vec::new()};let mut tree=branch(&doc,0);
-    for id in members{let mut member=take(&mut tree,id).ok_or("Object tree is gone")?;let world=scene.placement(id).ok_or("Source placement is missing")?;member.node.placement=crate::nested_placement::Node{local:&back*&world,world,parent:parent_world.clone()};group.children.push(member);}
-    find(&mut tree,&parent_node.source.guid).ok_or("Shared layer is gone")?.children.push(group);let mut nodes=Vec::new();flatten(tree.clone(),None,0,&mut nodes);if nodes.iter().any(|node|node.depth>crate::hierarchy::MAX_DEPTH){return Err("Tree exceeds its depth limit")}
-    replace(scene,owner,tree);Rc::make_mut(&mut scene.groups).insert((doc.key,group_guid));Ok(name)
+    let group_guid = source.guid.clone();
+    let mut group = Branch {
+        node: Node {
+            derived: false,
+            placement: crate::nested_placement::Node {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    if doc.nodes[parent].depth>=crate::hierarchy::MAX_DEPTH {return Err("Tree exceeds its depth limit");}
-    let label=(1..).map(|i|format!("Layer {i:02}")).find(|name|!doc.nodes.iter().any(|node|node.label==*name||node.source.name==*name)).unwrap();
-    let source=session_rust::proto::TreeNode {guid:uuid::Uuid::new_v4().to_string(),name:label.clone(),..Default::default()};
-    let child=Branch {node:Node {placement:Default::default(),portable_guid:source.guid.clone(),source,object:None,label,parent:None,depth:0,end:1,readonly:false},children:Vec::new()};
-    let mut tree=branch(doc,0);find(&mut tree,&doc.nodes[parent].source.guid).unwrap().children.push(child);replace(scene,owner,tree);Ok(())
-}
+    };
+    let child = Branch {
+        node: Node {
+            placement: Default::default(),
+            portable_guid: source.guid.clone(),
+            source,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    if doc.nodes[parent].depth>=crate::hierarchy::MAX_DEPTH {return Err("Tree exceeds its depth limit");}
-    let label=(1..).map(|i|format!("Layer {i:02}")).find(|name|!doc.nodes.iter().any(|node|node.label==*name||node.source.name==*name)).unwrap();
-    let source=session_rust::proto::TreeNode {guid:uuid::Uuid::new_v4().to_string(),name:label.clone(),..Default::default()};
-    let child=Branch {node:Node {derived:false,placement:Default::default(),portable_guid:source.guid.clone(),source,object:None,label,parent:None,depth:0,end:1,readonly:false},children:Vec::new()};
-    let mut tree=branch(doc,0);find(&mut tree,&doc.nodes[parent].source.guid).unwrap().children.push(child);replace(scene,owner,tree);Ok(())
-}
+    };
+    let child = Branch {
+        node: Node {
+            derived: false,
+            placement: Default::default(),
+            portable_guid: source.guid.clone(),
+            source,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    if doc.nodes.len()>=crate::hierarchy::MAX_NODES||doc.nodes[index].depth>=crate::hierarchy::MAX_DEPTH {return Err("Current layer exceeds its tree limit");}
-    let parent=doc.nodes[index].source.guid.clone();let mut tree=branch(doc,0);
-    let source=session_rust::proto::TreeNode {guid:uuid::Uuid::new_v4().to_string(),name:guid,..Default::default()};
-    find(&mut tree,&parent).unwrap().children.push(Branch {node:Node {placement:Default::default(),portable_guid:source.guid.clone(),source,object:Some(id),label,parent:None,depth:0,end:1,readonly:false},children:Vec::new()});
-    replace(scene,owner,tree);Ok(())
-}
+            node: Node {
+                placement: Default::default(),
+                portable_guid: source.guid.clone(),
+                source,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    if doc.nodes.len()>=crate::hierarchy::MAX_NODES||doc.nodes[index].depth>=crate::hierarchy::MAX_DEPTH {return Err("Current layer exceeds its tree limit");}
-    let parent=doc.nodes[index].source.guid.clone();let mut tree=branch(doc,0);
-    let source=session_rust::proto::TreeNode {guid:uuid::Uuid::new_v4().to_string(),name:guid,..Default::default()};
-    find(&mut tree,&parent).unwrap().children.push(Branch {node:Node {derived:false,placement:Default::default(),portable_guid:source.guid.clone(),source,object:Some(id),label,parent:None,depth:0,end:1,readonly:false},children:Vec::new()});
-    replace(scene,owner,tree);Ok(())
-}
+            node: Node {
+                derived: false,
+                placement: Default::default(),
+                portable_guid: source.guid.clone(),
+                source,
 ```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{hierarchy::{Document,Node},scene::Scene};
-use std::rc::Rc;
-
-pub enum Edit {Current,New {sublayer:bool},Rename(String),Delete,Duplicate,Move(Vec<crate::scene::ObjectId>),Copy(Vec<crate::scene::ObjectId>)}
-
-// Temporary branches make subtree edits atomic while the saved scene continues sharing its original source and display allocations.
-#[derive(Clone)]
-struct Branch {node:Node,children:Vec<Branch>}
-
-fn branch(doc:&Document,index:usize)->Branch {
-    Branch {node:doc.nodes[index].clone(),children:(index+1..doc.nodes[index].end).filter(|child|doc.nodes[*child].parent==Some(index)).map(|child|branch(doc,child)).collect()}
-}
-
-fn find<'a>(root:&'a mut Branch,guid:&str)->Option<&'a mut Branch> {
-    if root.node.source.guid==guid {return Some(root);}
-    root.children.iter_mut().find_map(|child|find(child,guid))
-}
-
-fn flatten(root:Branch,parent:Option<usize>,depth:usize,nodes:&mut Vec<Node>) {
-    let index=nodes.len();let mut node=root.node;node.parent=parent;node.depth=depth;
-    node.source.parent_guid=parent.map_or_else(String::new,|parent|nodes[parent].source.guid.clone());
-    nodes.push(node);
-    for child in root.children {flatten(child,Some(index),depth+1,nodes);}
-    nodes[index].end=nodes.len();
-}
-
-pub fn locate(scene:&Scene,key:&str)->Result<(usize,usize), &'static str> {locate_group(scene,key,true)}
-
-fn locate_group(scene:&Scene,key:&str,editable:bool)->Result<(usize,usize), &'static str> {
-    for (owner,doc) in scene.forest.documents.iter().enumerate() {
-        for (index,node) in doc.nodes.iter().enumerate() {
-            if format!("{}/{}",doc.key,node.source.guid)!=key {continue;}
-            let mut ancestor=Some(index);
-            while let Some(index)=ancestor {
-                if doc.nodes[index].object.is_some() {return Err("Objects and their attributes are not layers");}
-                ancestor=doc.nodes[index].parent;
-            }
-            if editable && doc.nodes.iter().filter_map(|node|node.object).any(|id|scene.objects().iter().any(|row|row.id==id&&row.geometry().is_none())) {return Err("Reload editable sources before editing layers");}
-            return Ok((owner,index));
-        }
-    }
-    Err("This layer is gone")
-}
-
-pub fn holds_current(scene:&Scene,key:&str)->bool {
-    let Some(current)=current_key(scene) else {return false;};
-    let rows=crate::hierarchy::rows(scene);
-    rows.iter().position(|row|row.key==key).is_some_and(|index|rows[index..rows[index].end].iter().any(|row|row.key==current))
-}
-
-pub fn current_key(scene:&Scene)->Option<String> {
-    if let Some(key)=scene.view.current.as_ref() && locate_group(scene,key,false).is_ok() {return Some(key.clone());}
-    let doc=scene.forest.documents.iter().find(|doc|Some(doc.key)==scene.created)?;
-    Some(format!("{}/{}",doc.key,doc.nodes[0].source.guid))
-}
-
-fn replace(scene:&mut Scene,owner:usize,tree:Branch) {
-    let old=&scene.forest.documents[owner];let mut document=Document {header:old.header.clone(),key:old.key,label:old.label.clone(),nodes:Vec::new()};
-    flatten(tree,None,0,&mut document.nodes);scene.forest.replace(owner,document);Rc::make_mut(&mut scene.view).refresh(&scene.forest);
-}
-
-pub(crate) fn attach_generated(scene:&mut Scene,id:crate::scene::ObjectId,guid:String,label:String)->Result<(), &'static str> {
-    if current_key(scene).is_none() {
-        scene.forest.add(id.value(),"Created".into(),None,&[]);scene.created=Some(id.value());
-    }
-    let key=current_key(scene).unwrap();let (owner,index)=locate(scene,&key)?;let doc=&scene.forest.documents[owner];
-    if doc.nodes.len()>=crate::hierarchy::MAX_NODES||doc.nodes[index].depth>=crate::hierarchy::MAX_DEPTH {return Err("Current layer exceeds its tree limit");}
-    let parent=doc.nodes[index].source.guid.clone();let mut tree=branch(doc,0);
-    let source=session_rust::proto::TreeNode {guid:uuid::Uuid::new_v4().to_string(),name:guid,..Default::default()};
-    find(&mut tree,&parent).unwrap().children.push(Branch {node:Node {derived:false,placement:Default::default(),portable_guid:source.guid.clone(),source,object:Some(id),label,parent:None,depth:0,end:1,readonly:false},children:Vec::new()});
-    replace(scene,owner,tree);Ok(())
-}
-
-fn take(root:&mut Branch,id:crate::scene::ObjectId)->Option<Branch> {
-    if let Some(index)=root.children.iter().position(|child|child.node.object==Some(id)) {return Some(root.children.remove(index));}
-    root.children.iter_mut().find_map(|child|take(child,id))
-}
-
-fn copy_branch(scene:&mut Scene,mut tree:Branch,all:bool)->Result<Branch,&'static str> {
-    let group_doc=scene.forest.documents.iter().find(|d|scene.groups.contains(&(d.key,tree.node.source.guid.clone()))).map(|d|d.key);
-    tree.node.source.guid=uuid::Uuid::new_v4().to_string();tree.node.portable_guid=tree.node.source.guid.clone();
-    if let Some(key)=group_doc {Rc::make_mut(&mut scene.groups).insert((key,tree.node.source.guid.clone()));}
-    if let Some(id)=tree.node.object {let copy=scene.copy_row(id,all)?;tree.node.object=Some(copy);tree.node.source.name=scene.row_guid(copy).unwrap().to_owned();}
-    tree.children=tree.children.into_iter().map(|child|copy_branch(scene,child,all)).collect::<Result<_,_>>()?;Ok(tree)
-}
-
-fn transfer(scene:&mut Scene,key:&str,ids:Vec<crate::scene::ObjectId>,copy:bool)->Result<(), &'static str> {
-    let (owner,index)=locate(scene,key)?;let target=scene.forest.documents[owner].nodes[index].source.guid.clone();
-    if ids.is_empty() {return Err("Select objects first");}
-    if ids.iter().any(|id|scene.pick_id(id.value())!=Some(*id)) {return Err("Choose visible unlocked editable objects");}
-    let chosen=ids.into_iter().collect::<std::collections::HashSet<_>>();let mut trees=scene.forest.documents.iter().map(|doc|branch(doc,0)).collect::<Vec<_>>();let mut moved=Vec::new();
-    for (doc_index,doc) in scene.forest.documents.iter().enumerate() {
-        for (index,node) in doc.nodes.iter().enumerate() {
-            let Some(id)=node.object.filter(|id|chosen.contains(id)) else {continue;};let mut parent=node.parent;let mut follows=false;
-            while let Some(index)=parent {follows|=doc.nodes[index].object.is_some_and(|id|chosen.contains(&id));parent=doc.nodes[index].parent;}
-            if follows&&!copy {continue;}
-            if !copy&&doc_index==owner&&node.parent.is_some_and(|parent|doc.nodes[parent].source.guid==target) {continue;}
-            let mut tree=if copy {branch(doc,index)} else {take(&mut trees[doc_index],id).ok_or("Object tree is gone")?};
-            if copy {tree.children.clear();}
-            moved.push(tree);
-        }
-    }
-    if moved.is_empty() {return Err("The objects are already on this layer");}
-    let mut target_nodes=Vec::new();flatten(trees[owner].clone(),None,0,&mut target_nodes);let count=target_nodes.len()+moved.iter().map(|tree|{let mut nodes=Vec::new();flatten(tree.clone(),None,0,&mut nodes);nodes.len()}).sum::<usize>();
-    if count>crate::hierarchy::MAX_NODES {return Err("Target layer exceeds its node limit");}
-    for tree in moved {let tree=if copy {copy_branch(scene,tree,false)?} else {tree};find(&mut trees[owner],&target).unwrap().children.push(tree);}
-    for (owner,tree) in trees.into_iter().enumerate() {let mut nodes=Vec::new();flatten(tree.clone(),None,0,&mut nodes);if nodes.iter().any(|node|node.depth>crate::hierarchy::MAX_DEPTH) {return Err("Target layer exceeds its depth limit");}replace(scene,owner,tree);}
-    Ok(())
-}
-
-fn new_layer(scene:&mut Scene,key:&str,sublayer:bool)->Result<(), &'static str> {
-    let (owner,index)=locate(scene,key)?;let doc=&scene.forest.documents[owner];let node=&doc.nodes[index];
-    if doc.nodes.len()>=crate::hierarchy::MAX_NODES {return Err("Tree exceeds its node limit");}
-    let parent=if sublayer {index} else {node.parent.unwrap_or(index)};
-    if doc.nodes[parent].depth>=crate::hierarchy::MAX_DEPTH {return Err("Tree exceeds its depth limit");}
-    let label=(1..).map(|i|format!("Layer {i:02}")).find(|name|!doc.nodes.iter().any(|node|node.label==*name||node.source.name==*name)).unwrap();
-    let source=session_rust::proto::TreeNode {guid:uuid::Uuid::new_v4().to_string(),name:label.clone(),..Default::default()};
-    let child=Branch {node:Node {derived:false,placement:Default::default(),portable_guid:source.guid.clone(),source,object:None,label,parent:None,depth:0,end:1,readonly:false},children:Vec::new()};
-    let mut tree=branch(doc,0);find(&mut tree,&doc.nodes[parent].source.guid).unwrap().children.push(child);replace(scene,owner,tree);Ok(())
-}
-
-fn rename(scene:&mut Scene,key:&str,label:&str)->Result<(), &'static str> {
-    let (owner,index)=locate(scene,key)?;let doc=&scene.forest.documents[owner];let node=&doc.nodes[index];
-    if node.parent.is_none() {return Err("The root layer cannot be renamed");}
-    let label=label.trim();
-    if label.is_empty()||label.contains('/') {return Err("A layer name must be non-empty and without /");}
-    if label==node.label {return Err("The layer already has that name");}
-    if doc.nodes.iter().any(|other|other.label==label||other.source.name==label) {return Err("This name is already used in the document");}
-    let mut tree=branch(doc,0);let node=&mut find(&mut tree,&node.source.guid).unwrap().node;node.label=label.to_owned();node.source.name=label.to_owned();replace(scene,owner,tree);Ok(())
-}
-
-fn delete(scene:&mut Scene,key:&str)->Result<(), &'static str> {
-    let (owner,index)=locate(scene,key)?;let doc=&scene.forest.documents[owner];let node=&doc.nodes[index];
-    let parent=node.parent.ok_or("The root layer cannot be deleted")?;
-    if holds_current(scene,key) {return Err("The current layer cannot be deleted");}
-    let ids=doc.nodes[index..node.end].iter().filter_map(|node|node.object).collect::<Vec<_>>();let mut tree=branch(doc,0);
-    find(&mut tree,&doc.nodes[parent].source.guid).unwrap().children.retain(|child|child.node.source.guid!=node.source.guid);
-    for id in ids {scene.remove(id);}replace(scene,owner,tree);Ok(())
-}
-
-fn duplicate(scene:&mut Scene,key:&str)->Result<(), &'static str> {
-    let (owner,index)=locate(scene,key)?;let doc=&scene.forest.documents[owner];let node=&doc.nodes[index];
-    let parent=node.parent.ok_or("The root layer cannot be duplicated")?;
-    if doc.nodes.len()+node.end-index>crate::hierarchy::MAX_NODES {return Err("Tree exceeds its node limit");}
-    let label=(1..).map(|i|format!("{} copy {i:02}",node.label)).find(|name|!doc.nodes.iter().any(|node|node.label==*name||node.source.name==*name)).unwrap();
-    let parent=doc.nodes[parent].source.guid.clone();let source=branch(doc,index);let mut tree=branch(doc,0);let mut copy=copy_branch(scene,source,true)?;copy.node.label=label.clone();copy.node.source.name=label;
-    find(&mut tree,&parent).unwrap().children.push(copy);replace(scene,owner,tree);Ok(())
-}
-
-pub fn apply(scene:&mut Scene,key:&str,edit:Edit)->Result<(), &'static str> {
-    match edit {
-        Edit::Current=>{locate(scene,key)?;Rc::make_mut(&mut scene.view).current=Some(key.to_owned());Ok(())},
-        Edit::New {sublayer}=>new_layer(scene,key,sublayer),
-        Edit::Rename(label)=>rename(scene,key,&label),
-        Edit::Delete=>delete(scene,key),
-        Edit::Duplicate=>duplicate(scene,key),
-        Edit::Move(ids)=>transfer(scene,key,ids,false),
-        Edit::Copy(ids)=>transfer(scene,key,ids,true),
-    }
-}
-
-pub(crate) fn copy_objects(scene:&mut Scene,ids:&[crate::scene::ObjectId],delta:&session_rust::Xform)->Result<Vec<crate::scene::ObjectId>, &'static str> {
-    if ids.is_empty(){return Err("Select objects before Copy");}
-    if !crate::placement::valid(&delta.m){return Err("Copy transform is invalid");}
-    let mut chosen=ids.to_vec();chosen.sort_unstable_by_key(|id|id.value());chosen.dedup();
-    if chosen.iter().any(|id|scene.pick_id(id.value())!=Some(*id)){return Err("Copy needs visible unlocked editable objects");}
-    let mut trees=scene.forest.documents.iter().map(|doc|branch(doc,0)).collect::<Vec<_>>();let mut sources=Vec::new();
-    for (owner,doc) in scene.forest.documents.iter().enumerate(){for(index,node)in doc.nodes.iter().enumerate(){let Some(id)=node.object.filter(|id|chosen.contains(id))else{continue};let parent=node.parent.ok_or("Object has no parent")?;let mut tree=branch(doc,index);tree.children.retain(|child|child.node.object.is_none()&&child.node.source.name=="attributes");sources.push((owner,doc.nodes[parent].source.guid.clone(),tree,scene.placement(id).ok_or("Copy placement is missing")?));}}
-    if sources.len()!=chosen.len(){return Err("Copy source tree is missing");}
-    for(owner,doc)in scene.forest.documents.iter().enumerate(){let extra=sources.iter().filter(|source|source.0==owner).map(|source|{let mut nodes=Vec::new();flatten(source.2.clone(),None,0,&mut nodes);nodes.len()}).sum::<usize>();if doc.nodes.len()+extra>crate::hierarchy::MAX_NODES{return Err("Copy exceeds the tree limit");}}
-    let mut copies=Vec::new();
-    fn place_copy(scene:&mut Scene,tree:&Branch,delta:&session_rust::Xform)->Result<(),&'static str>{if let Some(id)=tree.node.object{let model=scene.placement(id).ok_or("Copy placement is missing")?;scene.place_following(id,delta*&model)?;}for child in &tree.children{place_copy(scene,child,delta)?;}Ok(())}
-    for(owner,parent,tree,_model)in sources{let copy=copy_branch(scene,tree,false)?;let id=copy.node.object.ok_or("Copy owner is missing")?;place_copy(scene,&copy,delta)?;copies.push(id);find(&mut trees[owner],&parent).ok_or("Copy parent is missing")?.children.push(copy);}
-    for(owner,tree)in trees.into_iter().enumerate(){replace(scene,owner,tree);}Ok(copies)
-}
-
-pub fn group(scene:&mut Scene,ids:&[crate::scene::ObjectId],name:&str)->Result<String,&'static str>{
-    let crate::group_plan::Plan{owner,document:doc,name,parent,members}=crate::group_plan::Plan::new(scene,ids,name)?;
-    let parent_node=&doc.nodes[parent];let parent_world=parent_node.placement.world.clone();let back=parent_world.inverse().ok_or("The layer is degenerate")?;
-    let source=session_rust::proto::TreeNode{guid:uuid::Uuid::new_v4().to_string(),name:name.clone(),..Default::default()};let group_guid=source.guid.clone();
-    let mut group=Branch{node:Node{derived:false,placement:crate::nested_placement::Node{local:Default::default(),world:parent_world.clone(),parent:parent_world.clone()},portable_guid:group_guid.clone(),source,object:None,label:name.clone(),parent:None,depth:0,end:1,readonly:false},children:Vec::new()};let mut tree=branch(&doc,0);
-    for id in members{let mut member=take(&mut tree,id).ok_or("Object tree is gone")?;let world=scene.placement(id).ok_or("Source placement is missing")?;member.node.placement=crate::nested_placement::Node{local:&back*&world,world,parent:parent_world.clone()};group.children.push(member);}
-    find(&mut tree,&parent_node.source.guid).ok_or("Shared layer is gone")?.children.push(group);let mut nodes=Vec::new();flatten(tree.clone(),None,0,&mut nodes);if nodes.iter().any(|node|node.depth>crate::hierarchy::MAX_DEPTH){return Err("Tree exceeds its depth limit")}
-    replace(scene,owner,tree);Rc::make_mut(&mut scene.groups).insert((doc.key,group_guid));Ok(name)
-}
-
-pub fn attach_attributes(scene:&mut Scene,parent:crate::scene::ObjectId,ids:Vec<crate::scene::ObjectId>,name:&str)->Result<(),&'static str>{
- let(owner,index)=scene.forest.documents.iter().enumerate().find_map(|(i,d)|d.nodes.iter().position(|n|n.object==Some(parent)).map(|n|(i,n))).ok_or("Element hierarchy owner is missing")?;
- let doc=&scene.forest.documents[owner];let guid=doc.nodes[index].source.guid.clone();let mut root=branch(doc,0);let mut children=Vec::new();
- for id in ids{let mut child=take(&mut root,id).ok_or("Element attribute must share its document")?;child.node.readonly=true;children.push(child);}
- let parent=find(&mut root,&guid).ok_or("Element hierarchy owner is missing")?;let mut node=parent.node.clone();node.object=None;node.readonly=true;node.label=name.into();node.source=session_rust::proto::TreeNode{guid:uuid::Uuid::new_v4().to_string(),name:name.into(),..Default::default()};node.portable_guid=node.source.guid.clone();node.placement=Default::default();parent.children.push(Branch{node,children});
- let mut count=0;let mut max=0;fn size(b:&Branch,depth:usize,count:&mut usize,max:&mut usize){*count+=1;*max=(*max).max(depth);for c in &b.children{size(c,depth+1,count,max)}}size(&root,0,&mut count,&mut max);if count>crate::hierarchy::MAX_NODES||max>crate::hierarchy::MAX_DEPTH{return Err("Element attributes exceed hierarchy limits")}replace(scene,owner,root);Ok(())
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-03.rs"
-```
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-04.rs"
-```
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-05.rs"
-```
-
-</details>
 
 ### 3. `src/hierarchy.rs`
 
@@ -635,66 +366,64 @@ Reset read-only inheritance at each real child Element; retain it for feature pi
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-}
-
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent*&original.placement.local;let mut local=original.placement.local.clone();
-    if let Some(id)=original.object {
-        let Some(guid)=scene.row_guid(id) else {return Ok(None);};
-        node.name=guid.to_owned();matrix=scene.placement(id).ok_or("Saved source placement is missing")?;local=crate::nested_placement::saved_local(&original.placement,parent,&matrix)?;
+    placed: &mut HashSet<ObjectId>,
+) -> Result<Option<proto::TreeNode>, &'static str> {
+    let original = &doc.nodes[index];
+    let mut node = original.source.clone();
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-}
-
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];if original.derived {return Ok(None);}
-    let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent*&original.placement.local;let mut local=original.placement.local.clone();
-    if let Some(id)=original.object {
-        let Some(guid)=scene.row_guid(id) else {return Ok(None);};
-        node.name=guid.to_owned();matrix=scene.placement(id).ok_or("Saved source placement is missing")?;local=crate::nested_placement::saved_local(&original.placement,parent,&matrix)?;
+    placed: &mut HashSet<ObjectId>,
+) -> Result<Option<proto::TreeNode>, &'static str> {
+    let original = &doc.nodes[index];
+    if original.derived {
+        return Ok(None);
+    }
+    let mut node = original.source.clone();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        self.readonly_ids=Rc::new(self.documents.iter().flat_map(|doc|doc.nodes.iter()).filter(|node|node.readonly).filter_map(|node|node.object).collect());
     }
 
-    pub fn readonly(&self,id:ObjectId)->bool {self.readonly_ids.contains(&id)}
-    pub fn descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {
-        let mut out=ids.to_vec();
+    pub fn readonly(&self, id: ObjectId) -> bool {
+        self.readonly_ids.contains(&id)
+    }
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        self.readonly_ids=Rc::new(self.documents.iter().flat_map(|doc|doc.nodes.iter()).filter(|node|node.readonly).filter_map(|node|node.object).collect());
     }
 
     pub fn classify_elements(&mut self, key: u32, elements: &HashSet<ObjectId>) {
-        let owner = self.documents.iter().position(|doc| doc.key == key).unwrap();
+        let owner = self
+            .documents
+            .iter()
+            .position(|doc| doc.key == key)
+            .unwrap();
         let mut doc = (*self.documents[owner]).clone();
         let mut inside = vec![false; doc.nodes.len()];
         for i in 0..doc.nodes.len() {
             let parent = doc.nodes[i].parent;
-            let element = doc.nodes[i].object.is_some_and(|id| elements.contains(&id));
+            let element = doc.nodes[i]
+                .object
+                .is_some_and(|id| elements.contains(&id));
             let inherited = parent.is_some_and(|p| inside[p]);
             let held = parent.is_some_and(|p| doc.nodes[p].readonly);
             if element || inherited {
-                doc.nodes[i].readonly = !element && (held
-                    || matches!(doc.nodes[i].source.name.as_str(), "attributes" | "interactions"));
+                doc.nodes[i].readonly = !element
+                    && (held
+                        || matches!(
+                            doc.nodes[i].source.name.as_str(),
+                            "attributes" | "interactions"
+                        ));
             }
             inside[i] = element || inherited;
         }
@@ -702,353 +431,192 @@ Replace it with:
     }
 
     pub fn derived(&self, id: ObjectId) -> bool {
-        self.documents.iter().any(|doc| doc.nodes.iter()
-            .any(|node| node.object == Some(id) && node.derived))
+        self.documents.iter().any(|doc| {
+            doc.nodes
+                .iter()
+                .any(|node| node.object == Some(id) && node.derived)
+        })
     }
 
-    pub fn readonly(&self,id:ObjectId)->bool {self.readonly_ids.contains(&id)}
-    pub fn descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {
-        let mut out=ids.to_vec();
+    pub fn readonly(&self, id: ObjectId) -> bool {
+        self.readonly_ids.contains(&id)
+    }
 ```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::scene::{Scene,ObjectId};
-use session_rust::{proto,Xform};
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub const MAX_NODES:usize=4096;
-pub const MAX_DEPTH:usize=64;
-
-pub fn validate(root:&proto::TreeNode,guids:&HashSet<&str>)->Result<(), &'static str> {
-    let mut stack=vec![(root,0)];let mut seen=HashSet::new();let mut count=0;
-    while let Some((node,depth))=stack.pop() {
-        count+=1;if count>MAX_NODES || depth>MAX_DEPTH {return Err("Tree exceeds this checkpoint's node or depth limit");}
-        if guids.contains(node.name.as_str()) && !seen.insert(node.name.as_str()) {return Err("A source object occurs twice in the tree");}
-        stack.extend(node.children.iter().rev().map(|child|(child,depth+1)));
-    }
-    if seen!=*guids {return Err("The tree must contain every source mesh once");} Ok(())
-}
-
-pub fn world(root:Option<&proto::TreeNode>,xforms:&HashMap<String,Xform>,guid:&str)->Xform {
-    let mut stack=root.into_iter().map(|node|(node,Xform::identity())).collect::<Vec<_>>();
-    while let Some((node,parent))=stack.pop() {
-        let local=xforms.get(&node.name).cloned().unwrap_or_else(Xform::identity);let matrix=&parent*&local;
-        if node.name==guid {return matrix;}
-        stack.extend(node.children.iter().rev().map(|child|(child,matrix.clone())));
-    }
-    xforms.get(guid).cloned().unwrap_or_else(Xform::identity)
-}
-
-#[derive(Clone)]
-pub struct Node {pub derived:bool,pub placement:crate::nested_placement::Node,pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub header:Option<Rc<crate::origin::Origin>>,pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
-pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
-
-impl Forest {
-    pub fn add(&mut self,key:u32,label:String,root:Option<proto::TreeNode>,objects:&[(String,ObjectId,String)]) {
-        let fallback=proto::TreeNode {name:label.clone(),children:objects.iter().map(|(guid,_,_)|proto::TreeNode {name:guid.clone(),..Default::default()}).collect(),..Default::default()};
-        let root=root.unwrap_or(fallback);let lookup=objects.iter().map(|(guid,id,name)|(guid.as_str(),(*id,name.as_str()))).collect::<HashMap<_,_>>();
-        let mut nodes:Vec<Node>=Vec::new();let mut stack=vec![(&root,None::<usize>,0,false,false,false)];
-        while let Some((node,parent,depth,inside,readonly,exit))=stack.pop() {
-            if exit {nodes[parent.unwrap()].end=nodes.len();continue;}
-            let object=lookup.get(node.name.as_str()).copied();let readonly=readonly || inside && matches!(node.name.as_str(),"attributes"|"interactions");
-            let index=nodes.len();let source=proto::TreeNode {guid:if node.guid.is_empty() {uuid::Uuid::new_v4().to_string()} else {node.guid.clone()},name:node.name.clone(),parent_guid:node.parent_guid.clone(),color:node.color.clone(),children:Vec::new()};
-            nodes.push(Node {derived:false,placement:Default::default(),portable_guid:uuid::Uuid::new_v4().to_string(),source,object:object.map(|v|v.0),label:object.map_or_else(||node.name.clone(),|v|v.1.to_owned()),parent,depth,end:index+1,readonly});
-            stack.push((node,Some(index),depth,inside,readonly,true));
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
-        Rc::make_mut(&mut self.readonly_ids).extend(nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(Document {header:None,key,label,nodes}));
-    }
-
-    pub(crate) fn original_placements(&mut self,key:u32,source:&session_rust::Session,place:&Xform,world:&HashMap<String,Xform>) {
-        let doc=Rc::make_mut(self.documents.iter_mut().find(|doc|doc.key==key).unwrap());
-        for i in 0..doc.nodes.len() {
-            let node=&doc.nodes[i];let parent=node.parent.map_or_else(Xform::identity,|p|doc.nodes[p].placement.world.clone());let local=source.xforms.get(&node.source.name).cloned().unwrap_or_else(Xform::identity);let local=if node.parent.is_none() {place*&local} else {local};let matrix=world.get(&node.source.name).cloned().unwrap_or_else(||&parent*&local);doc.nodes[i].placement=crate::nested_placement::Node {local,world:matrix,parent};
-        }
-    }
-
-    pub(crate) fn push(&mut self,document:Document) {
-        Rc::make_mut(&mut self.readonly_ids).extend(document.nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(document));
-    }
-
-    pub fn colours(&self,key:u32)->HashMap<ObjectId,[u8;3]> {
-        let mut out=HashMap::new();let Some(doc)=self.documents.iter().find(|doc|doc.key==key) else {return out;};
-        let mut inherited=vec![None;doc.nodes.len()];
-        for (index,node) in doc.nodes.iter().enumerate() {
-            let colour=node.source.color.as_ref().map(|colour|[colour.r,colour.g,colour.b].map(|value|(value.clamp(0.,1.)*255.).round() as u8)).or_else(||node.parent.and_then(|parent|inherited[parent]));
-            inherited[index]=colour;if let (Some(id),Some(colour))=(node.object,colour) {out.insert(id,colour);}
-        }
-        out
-    }
-
-    pub(crate) fn replace(&mut self,index:usize,document:Document) {
-        self.documents[index]=Rc::new(document);
-        self.readonly_ids=Rc::new(self.documents.iter().flat_map(|doc|doc.nodes.iter()).filter(|node|node.readonly).filter_map(|node|node.object).collect());
-    }
-
-    pub fn classify_elements(&mut self, key: u32, elements: &HashSet<ObjectId>) {
-        let owner = self.documents.iter().position(|doc| doc.key == key).unwrap();
-        let mut doc = (*self.documents[owner]).clone();
-        let mut inside = vec![false; doc.nodes.len()];
-        for i in 0..doc.nodes.len() {
-            let parent = doc.nodes[i].parent;
-            let element = doc.nodes[i].object.is_some_and(|id| elements.contains(&id));
-            let inherited = parent.is_some_and(|p| inside[p]);
-            let held = parent.is_some_and(|p| doc.nodes[p].readonly);
-            if element || inherited {
-                doc.nodes[i].readonly = !element && (held
-                    || matches!(doc.nodes[i].source.name.as_str(), "attributes" | "interactions"));
-            }
-            inside[i] = element || inherited;
-        }
-        self.replace(owner, doc);
-    }
-
-    pub fn derived(&self, id: ObjectId) -> bool {
-        self.documents.iter().any(|doc| doc.nodes.iter()
-            .any(|node| node.object == Some(id) && node.derived))
-    }
-
-    pub fn readonly(&self,id:ObjectId)->bool {self.readonly_ids.contains(&id)}
-    pub fn descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {
-        let mut out=ids.to_vec();
-        for doc in &self.documents {for (index,node) in doc.nodes.iter().enumerate() {if node.object.is_some_and(|id|ids.contains(&id)) {out.extend(doc.nodes[index+1..node.end].iter().filter_map(|n|n.object));}}}
-        out.sort_unstable_by_key(|id|id.value());out.dedup();out
-    }
-
-    pub fn snapshot(&self,scene:&Scene,xforms:&mut Vec<proto::XformEntry>)->Result<(Vec<proto::TreeNode>,HashSet<ObjectId>), &'static str> {
-        let mut roots=Vec::new();let mut placed=HashSet::new();
-        for doc in &self.documents {if let Some(root)=save_node(doc,0,scene,&Xform::identity(),"",xforms,&mut placed)? {roots.push(root);}}
-        Ok((roots,placed))
-    }
-}
-
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];if original.derived {return Ok(None);}
-    let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent*&original.placement.local;let mut local=original.placement.local.clone();
-    if let Some(id)=original.object {
-        let Some(guid)=scene.row_guid(id) else {return Ok(None);};
-        node.name=guid.to_owned();matrix=scene.placement(id).ok_or("Saved source placement is missing")?;local=crate::nested_placement::saved_local(&original.placement,parent,&matrix)?;
-        placed.insert(id);
-    }
-    if local.m!=Xform::identity().m {
-        let guid=node.name.clone();if let Some(previous)=xforms.iter().find(|entry|entry.guid==guid) {if previous.xform.as_ref()!=Some(&local.to_proto()) {return Err("Different saved tree placements share a name");}}
-        else {xforms.push(proto::XformEntry {guid,xform:Some(local.to_proto())});}
-    }
-    for child in index+1..original.end {if doc.nodes[child].parent==Some(index) {if let Some(child)=save_node(doc,child,scene,&matrix,&node.guid,xforms,placed)? {node.children.push(child);}}}
-    Ok(Some(node))
-}
-
-#[derive(Clone)]
-pub struct Row {pub key:String,pub label:String,pub depth:usize,pub end:usize,pub ids:Vec<ObjectId>,pub readonly:bool}
-pub fn rows(scene:&Scene)->Vec<Row> {
-    let mut rows=Vec::new();let mut placed=HashSet::new();
-    for doc in &scene.forest.documents {
-        let mut visible=Vec::new();let mut index=0;
-        while index<doc.nodes.len() {
-            let node=&doc.nodes[index];
-            if node.object.is_some_and(|id|!scene.contains(id)) {index=node.end;continue;}
-            visible.push(index);index+=1;
-        }
-        let start=rows.len();
-        for &index in &visible {
-            let node=&doc.nodes[index];let ids=doc.nodes[index..node.end].iter().filter_map(|n|n.object).filter(|id|scene.contains(*id)).collect::<Vec<_>>();
-            placed.extend(node.object);let end=start+visible.partition_point(|i|*i<node.end);
-            rows.push(Row {key:format!("{}/{}",doc.key,node.source.guid),label:if index==0 {doc.label.clone()} else {node.label.clone()},depth:node.depth,end,ids,readonly:node.readonly});
-        }
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.texts().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.clouds().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.streams().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-06.rs"
-```
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-07.rs"
-```
-
-</details>
 
 ### 4. `src/scene_archive.rs`
 
 Only original tree objects enter each archive namespace. Do not reclassify derived paths as loose original objects.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-use crate::{archive::{Bundle,Metadata,Document},scene::{ObjectId,Scene}};
-use prost::Message;
-use std::{collections::HashSet,rc::Rc};
-
-// A namespace is one source document; imported files can reuse original GUIDs while their placements and presentation remain independent.
-pub(crate) struct Namespace {pub name:String,pub doc:Option<Rc<crate::hierarchy::Document>>,pub ids:HashSet<ObjectId>}
-impl Namespace {pub fn ordered(&self)->Vec<ObjectId> {let mut ids=self.ids.iter().copied().collect::<Vec<_>>();ids.sort_unstable_by_key(|id|id.value());ids}}
-fn inventory(scene:&Scene)->Vec<Namespace> {
-    let mut out=scene.forest.documents.iter().map(|doc|Namespace {name:doc.label.clone(),doc:Some(doc.clone()),ids:doc.nodes.iter().filter_map(|node|node.object).filter(|id|scene.contains(*id)).collect()}).collect::<Vec<_>>();
-    let all=scene.objects().iter().map(|row|row.id).chain(scene.lines().iter().map(|row|row.id)).chain(scene.paths().iter().map(|row|row.id)).chain(scene.points().iter().map(|row|row.id)).chain(scene.clouds().iter().map(|row|row.id)).chain(scene.texts().iter().map(|row|row.id)).chain(scene.sheets().iter().map(|row|row.id)).collect::<HashSet<_>>();
-    let assigned=out.iter().flat_map(|namespace|namespace.ids.iter().copied()).collect::<HashSet<_>>();let ids=all.difference(&assigned).copied().collect::<HashSet<_>>();if !ids.is_empty() {out.push(Namespace {name:"Created".into(),doc:None,ids});}out
-}
-
-pub fn save(scene:&Scene)->Result<Vec<u8>,String> {
-    if !scene.streams().is_empty() {return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());}
-    let mut namespaces=HashSet::new();let mut documents=Vec::new();let mut bytes_used=0usize;
-    let mut metadata=Metadata {created_doc:None,current_layer:None,documents:vec![],hidden:vec![],locked:vec![],colors:vec![],edge_colors:Some(vec![]),texts:vec![],groups:vec![]};
-    for (index,namespace) in inventory(scene).iter().enumerate() {
-        for id in &namespace.ids {if !namespaces.insert(*id) {return Err("Source owner occurs in two saved documents".into());}}
-        let (source,names,point_px)=crate::archive_document::prepare(scene,namespace)?;crate::source_validate::session(&source)?;let bytes=source.encode_to_vec();bytes_used=bytes_used.checked_add(bytes.len()).ok_or("Session size overflow")?;if bytes_used>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-        crate::archive_presentation::append(&mut metadata,index,namespace,scene,&names)?;
-        documents.push(bytes);metadata.documents.push(Document {name:namespace.name.clone(),place:session_rust::Xform::identity().m,point_px});
-    }
-    for row in scene.texts() {let mut label=row.label(false,false).map_err(str::to_owned)?;label.object=None;label.id=row.prepared.source.label.id;metadata.texts.push((row.guid.clone(),label,scene.visible(row.id)));}
-    metadata.hidden.sort();metadata.locked.sort();metadata.colors.sort();metadata.edge_colors.as_mut().unwrap().sort();metadata.texts.sort_by(|a,b|a.0.cmp(&b.0));Bundle {documents,metadata}.encode()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use {session_rust::proto,std::collections::HashMap,std::rc::Rc};
-    #[test]
-    fn mixed_archive_keeps_original_source_types_copy_ids_and_precise_models() {
-        let mut scene=Scene::demo();scene.clear();let cad=scene.insert_cad(Rc::new(crate::cad_display::example())).unwrap();let cloud=Rc::new(crate::cloud::example());let _=cloud.guid();let before=cloud.to_proto();let cloud_id=scene.insert_cloud(crate::cloud::Prepared::new(cloud.clone()).unwrap()).unwrap();let copy=scene.copy_row(cloud_id,false).unwrap();scene.place_cloud(copy,session_rust::Xform::translation(1_000_000_000.125,0.,0.)).unwrap();
-        Rc::make_mut(&mut scene.view).hide(&[cad],true);let saved=Bundle::decode(&save(&scene).unwrap()).unwrap();let mut found=HashMap::new();
-        for (index,bytes) in saved.documents.iter().enumerate() {let source=proto::Session::decode(bytes.as_slice()).unwrap();let objects=source.objects.unwrap();assert!(objects.meshes.is_empty());for c in objects.pointclouds {found.insert(c.guid.clone(),c);}if !objects.breps.is_empty() {assert_eq!(objects.breps[0].is_visible,Some(false));assert!(saved.metadata.hidden.iter().any(|(doc,guid)|*doc==index&&guid==scene.row_guid(cad).unwrap()));}if let Some(entry)=source.xforms.iter().find(|entry|entry.guid==scene.row_guid(copy).unwrap()) {assert_eq!(entry.xform.as_ref().unwrap().matrix[12],1_000_000_000.125);}}
-        assert_eq!(found.len(),2);assert_eq!(found[scene.row_guid(cloud_id).unwrap()].coords,before.coords);assert_eq!(found[scene.row_guid(copy).unwrap()].point_ids,before.point_ids);assert_eq!(cloud.to_proto(),before);
-    }
-    #[test]
-    fn repeated_imported_documents_keep_independent_guid_namespaces_and_flags() {
-        let mut scene=Scene::demo();scene.clear();let bytes=crate::specimen::bytes();scene.import(crate::document::load(&bytes).unwrap()).unwrap();let per_document=scene.objects().len();scene.import(crate::document::load(&bytes).unwrap()).unwrap();let a=scene.objects()[0].id;let b=scene.objects()[per_document].id;assert_ne!(scene.row_guid(a),scene.row_guid(b));assert_eq!(scene.objects()[0].geometry().unwrap().guid(),scene.objects()[per_document].geometry().unwrap().guid());
-        Rc::make_mut(&mut scene.view).hide(&[a],true);Rc::make_mut(&mut scene.view).lock(&[b],true);let bundle=Bundle::decode(&save(&scene).unwrap()).unwrap();assert_eq!(bundle.documents.len(),2);assert_eq!(bundle.metadata.hidden.len(),1);assert_eq!(bundle.metadata.locked.len(),1);assert_ne!(bundle.metadata.hidden[0].0,bundle.metadata.locked[0].0);assert_eq!(bundle.metadata.hidden[0].1,bundle.metadata.locked[0].1);
-    }
-}
+                .iter()
+                .filter_map(|node| node.object)
+                .filter(|id| scene.contains(*id))
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+    let all = scene
+        .objects()
+        .iter()
+        .map(|row| row.id)
+        .chain(scene.lines().iter().map(|row| row.id))
+        .chain(scene.paths().iter().map(|row| row.id))
+        .chain(scene.points().iter().map(|row| row.id))
+        .chain(scene.clouds().iter().map(|row| row.id))
+        .chain(scene.texts().iter().map(|row| row.id))
+        .chain(scene.sheets().iter().map(|row| row.id))
+        .collect::<HashSet<_>>();
+    let assigned = out
+        .iter()
+        .flat_map(|namespace| namespace.ids.iter().copied())
+        .collect::<HashSet<_>>();
+    let ids = all
+        .difference(&assigned)
+        .copied()
+        .collect::<HashSet<_>>();
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{archive::{Bundle,Metadata,Document},scene::{ObjectId,Scene}};
-use prost::Message;
-use std::{collections::HashSet,rc::Rc};
-
-// A namespace is one source document; imported files can reuse original GUIDs while their placements and presentation remain independent.
-pub(crate) struct Namespace {pub name:String,pub doc:Option<Rc<crate::hierarchy::Document>>,pub ids:HashSet<ObjectId>}
-impl Namespace {pub fn ordered(&self)->Vec<ObjectId> {let mut ids=self.ids.iter().copied().collect::<Vec<_>>();ids.sort_unstable_by_key(|id|id.value());ids}}
-fn inventory(scene:&Scene)->Vec<Namespace> {
-    let mut out=scene.forest.documents.iter().map(|doc|Namespace {name:doc.label.clone(),doc:Some(doc.clone()),ids:doc.nodes.iter().filter(|node|!node.derived).filter_map(|node|node.object).filter(|id|scene.contains(*id)).collect()}).collect::<Vec<_>>();
-    let all=scene.objects().iter().map(|row|row.id).chain(scene.lines().iter().map(|row|row.id)).chain(scene.paths().iter().map(|row|row.id)).chain(scene.points().iter().map(|row|row.id)).chain(scene.clouds().iter().map(|row|row.id)).chain(scene.texts().iter().map(|row|row.id)).chain(scene.sheets().iter().map(|row|row.id)).collect::<HashSet<_>>();
-    let assigned=out.iter().flat_map(|namespace|namespace.ids.iter().copied()).collect::<HashSet<_>>();let ids=all.difference(&assigned).copied().filter(|id|!scene.forest.derived(*id)).collect::<HashSet<_>>();if !ids.is_empty() {out.push(Namespace {name:"Created".into(),doc:None,ids});}out
-}
-
-pub fn save(scene:&Scene)->Result<Vec<u8>,String> {
-    if !scene.streams().is_empty() {return Err("This scene contains streamed sources. Open complete source documents before saving an editable session.".into());}
-    let mut namespaces=HashSet::new();let mut documents=Vec::new();let mut bytes_used=0usize;
-    let mut metadata=Metadata {created_doc:None,current_layer:None,documents:vec![],hidden:vec![],locked:vec![],colors:vec![],edge_colors:Some(vec![]),texts:vec![],groups:vec![]};
-    for (index,namespace) in inventory(scene).iter().enumerate() {
-        for id in &namespace.ids {if !namespaces.insert(*id) {return Err("Source owner occurs in two saved documents".into());}}
-        let (source,names,point_px)=crate::archive_document::prepare(scene,namespace)?;crate::source_validate::session(&source)?;let bytes=source.encode_to_vec();bytes_used=bytes_used.checked_add(bytes.len()).ok_or("Session size overflow")?;if bytes_used>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-        crate::archive_presentation::append(&mut metadata,index,namespace,scene,&names)?;
-        documents.push(bytes);metadata.documents.push(Document {name:namespace.name.clone(),place:session_rust::Xform::identity().m,point_px});
-    }
-    for row in scene.texts() {let mut label=row.label(false,false).map_err(str::to_owned)?;label.object=None;label.id=row.prepared.source.label.id;metadata.texts.push((row.guid.clone(),label,scene.visible(row.id)));}
-    metadata.hidden.sort();metadata.locked.sort();metadata.colors.sort();metadata.edge_colors.as_mut().unwrap().sort();metadata.texts.sort_by(|a,b|a.0.cmp(&b.0));Bundle {documents,metadata}.encode()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use {session_rust::proto,std::collections::HashMap,std::rc::Rc};
-    #[test]
-    fn mixed_archive_keeps_original_source_types_copy_ids_and_precise_models() {
-        let mut scene=Scene::demo();scene.clear();let cad=scene.insert_cad(Rc::new(crate::cad_display::example())).unwrap();let cloud=Rc::new(crate::cloud::example());let _=cloud.guid();let before=cloud.to_proto();let cloud_id=scene.insert_cloud(crate::cloud::Prepared::new(cloud.clone()).unwrap()).unwrap();let copy=scene.copy_row(cloud_id,false).unwrap();scene.place_cloud(copy,session_rust::Xform::translation(1_000_000_000.125,0.,0.)).unwrap();
-        Rc::make_mut(&mut scene.view).hide(&[cad],true);let saved=Bundle::decode(&save(&scene).unwrap()).unwrap();let mut found=HashMap::new();
-        for (index,bytes) in saved.documents.iter().enumerate() {let source=proto::Session::decode(bytes.as_slice()).unwrap();let objects=source.objects.unwrap();assert!(objects.meshes.is_empty());for c in objects.pointclouds {found.insert(c.guid.clone(),c);}if !objects.breps.is_empty() {assert_eq!(objects.breps[0].is_visible,Some(false));assert!(saved.metadata.hidden.iter().any(|(doc,guid)|*doc==index&&guid==scene.row_guid(cad).unwrap()));}if let Some(entry)=source.xforms.iter().find(|entry|entry.guid==scene.row_guid(copy).unwrap()) {assert_eq!(entry.xform.as_ref().unwrap().matrix[12],1_000_000_000.125);}}
-        assert_eq!(found.len(),2);assert_eq!(found[scene.row_guid(cloud_id).unwrap()].coords,before.coords);assert_eq!(found[scene.row_guid(copy).unwrap()].point_ids,before.point_ids);assert_eq!(cloud.to_proto(),before);
-    }
-    #[test]
-    fn repeated_imported_documents_keep_independent_guid_namespaces_and_flags() {
-        let mut scene=Scene::demo();scene.clear();let bytes=crate::specimen::bytes();scene.import(crate::document::load(&bytes).unwrap()).unwrap();let per_document=scene.objects().len();scene.import(crate::document::load(&bytes).unwrap()).unwrap();let a=scene.objects()[0].id;let b=scene.objects()[per_document].id;assert_ne!(scene.row_guid(a),scene.row_guid(b));assert_eq!(scene.objects()[0].geometry().unwrap().guid(),scene.objects()[per_document].geometry().unwrap().guid());
-        Rc::make_mut(&mut scene.view).hide(&[a],true);Rc::make_mut(&mut scene.view).lock(&[b],true);let bundle=Bundle::decode(&save(&scene).unwrap()).unwrap();assert_eq!(bundle.documents.len(),2);assert_eq!(bundle.metadata.hidden.len(),1);assert_eq!(bundle.metadata.locked.len(),1);assert_ne!(bundle.metadata.hidden[0].0,bundle.metadata.locked[0].0);assert_eq!(bundle.metadata.hidden[0].1,bundle.metadata.locked[0].1);
-    }
-}
+                .iter()
+                .filter(|node| !node.derived)
+                .filter_map(|node| node.object)
+                .filter(|id| scene.contains(*id))
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+    let all = scene
+        .objects()
+        .iter()
+        .map(|row| row.id)
+        .chain(scene.lines().iter().map(|row| row.id))
+        .chain(scene.paths().iter().map(|row| row.id))
+        .chain(scene.points().iter().map(|row| row.id))
+        .chain(scene.clouds().iter().map(|row| row.id))
+        .chain(scene.texts().iter().map(|row| row.id))
+        .chain(scene.sheets().iter().map(|row| row.id))
+        .collect::<HashSet<_>>();
+    let assigned = out
+        .iter()
+        .flat_map(|namespace| namespace.ids.iter().copied())
+        .collect::<HashSet<_>>();
+    let ids = all
+        .difference(&assigned)
+        .copied()
+        .filter(|id| !scene.forest.derived(*id))
+        .collect::<HashSet<_>>();
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-08.rs"
-```
-
-```text
---8<-- "journey/code/96k-separate-derived-rows-from-editable-elements-09.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-96l-attach-a-bounded-derived-feature-tree"></a>
-
-<details>
-<summary>Implementation 96l-attach-a-bounded-derived-feature-tree: Attach a bounded feature tree to its host</summary>
-
-Build read-only attributes, interaction and piece rows under the owning Element. Validate the complete tree before replacing its saved structure.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+## <a id="checkpoint-96l-attach-a-bounded-derived-feature-tree"></a>4. Attach a bounded feature tree to its host
 
 ### 1. `src/layer_edit.rs`
 
 Reuse the existing branch transaction and node/depth limits for feature rows.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
- let mut count=0;let mut max=0;fn size(b:&Branch,depth:usize,count:&mut usize,max:&mut usize){*count+=1;*max=(*max).max(depth);for c in &b.children{size(c,depth+1,count,max)}}size(&root,0,&mut count,&mut max);if count>crate::hierarchy::MAX_NODES||max>crate::hierarchy::MAX_DEPTH{return Err("Element attributes exceed hierarchy limits")}replace(scene,owner,root);Ok(())
+    replace(scene, owner, root);
+    Ok(())
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96l-attach-a-bounded-derived-feature-tree-01.rs" skip=371
+    replace(scene, owner, root);
+    Ok(())
+}
+
+pub enum FeatureTree {
+    Group(String, Vec<FeatureTree>),
+    Piece(String, crate::scene::ObjectId),
+}
+
+pub fn attach_features(
+    scene: &mut Scene,
+    id: crate::scene::ObjectId,
+    groups: Vec<FeatureTree>,
+) -> Result<(), &'static str> {
+    fn build(scene: &Scene, tree: FeatureTree) -> Result<Branch, &'static str> {
+        let (label, object, children) = match tree {
+            FeatureTree::Group(label, children) => (label, None, children),
+            FeatureTree::Piece(label, id) => (label, Some(id), Vec::new()),
+        };
+        let name = match object {
+            Some(id) => scene
+                .row_guid(id)
+                .ok_or("Feature piece is missing")?
+                .to_owned(),
+            None => label.clone(),
+        };
+        let source = session_rust::proto::TreeNode {
+            guid: uuid::Uuid::new_v4().to_string(),
+            name,
+            ..Default::default()
+        };
+        let node = Node {
+            source: source.clone(),
+            portable_guid: source.guid,
+            object,
+            label,
+            parent: None,
+            depth: 0,
+            end: 1,
+            readonly: true,
+            derived: true,
+            placement: Default::default(),
+        };
+        let children = children
+            .into_iter()
+            .map(|child| build(scene, child))
+            .collect::<Result<_, _>>()?;
+        Ok(Branch { node, children })
+    }
+    let (owner, index) = scene
+        .forest
+        .documents
+        .iter()
+        .enumerate()
+        .find_map(|(owner, doc)| {
+            doc.nodes
+                .iter()
+                .position(|node| node.object == Some(id))
+                .map(|index| (owner, index))
+        })
+        .ok_or("Element tree is missing")?;
+    let doc = &scene.forest.documents[owner];
+    let guid = doc.nodes[index].source.guid.clone();
+    let mut tree = branch(doc, 0);
+    let parent = find(&mut tree, &guid).unwrap();
+    for group in groups {
+        let group = build(scene, group)?;
+        if let Some(existing) = parent.children.iter_mut().find(|child| {
+            child.node.object.is_none()
+                && child.node.source.name == group.node.source.name
+        }) {
+            existing.children.extend(group.children);
+        } else {
+            parent.children.push(group);
+        }
+    }
+    let mut nodes = Vec::new();
+    flatten(tree.clone(), None, 0, &mut nodes);
+    if nodes.len() > crate::hierarchy::MAX_NODES
+        || nodes
+            .iter()
+            .any(|node| node.depth > crate::hierarchy::MAX_DEPTH)
+    {
+        return Err("Element features exceed the tree limit");
+    }
+    replace(scene, owner, tree);
+    Ok(())
+}
 ```
 
-</details>
-
-<a id="checkpoint-96m-project-original-feature-outlines"></a>
-
-<details>
-<summary>Implementation 96m-project-original-feature-outlines: Project original outlines without changing their coordinates</summary>
-
-Create black display paths from original feature outlines, apply the host placement once, and keep attributes Off and interactions On by default.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+## <a id="checkpoint-96m-project-original-feature-outlines"></a>5. Project outlines without changing their coordinates
 
 ### 1. `src/feature_display.rs`
 
@@ -1057,114 +625,161 @@ Give this operation its own small owner.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/96m-project-original-feature-outlines-01.rs"
+use crate::{
+    layer_edit::FeatureTree,
+    scene::{ObjectId, Scene},
+};
+use session_rust::{Element, Session};
+use std::rc::Rc;
+
+pub fn append(
+    scene: &mut Scene,
+    id: ObjectId,
+    session: &Session,
+    element: &Element,
+) -> Result<(), &'static str> {
+    let model = scene
+        .placement(id)
+        .ok_or("Element placement is missing")?;
+    let forest = std::mem::take(&mut scene.forest);
+    let created = scene.created.take();
+    let current = Rc::make_mut(&mut scene.view).current.take();
+    let prepared = (|| {
+        let mut groups = Vec::new();
+        let mut pieces = |indices: &[usize]| -> Result<Vec<FeatureTree>, &'static str> {
+            let mut rows = Vec::new();
+            for &index in indices {
+                let feature = &element.features[index];
+                let mut outlines = Vec::new();
+                for (part, outline) in feature.outlines.iter().enumerate() {
+                    let mut source = outline.clone();
+                    source.set_guid(uuid::Uuid::new_v4().to_string());
+                    source.name = format!("piece {}", part + 1);
+                    source.linecolor = session_rust::Color::black();
+                    let piece = scene.insert_path(
+                        crate::chain::PreparedChain::polyline(Rc::new(source))?,
+                    )?;
+                    scene.place_following(piece, model.clone())?;
+                    if !crate::feature_plan::interaction(feature) {
+                        Rc::make_mut(&mut scene.view).hide(&[piece], true);
+                    }
+                    outlines.push(FeatureTree::Piece(
+                        format!("piece {}", part + 1),
+                        piece,
+                    ));
+                }
+                if !outlines.is_empty() {
+                    rows.push(FeatureTree::Group(
+                        crate::feature_plan::label(feature),
+                        outlines,
+                    ));
+                }
+            }
+            Ok(rows)
+        };
+        let own = pieces(&crate::feature_plan::own(element))?;
+        if !own.is_empty() {
+            groups.push(FeatureTree::Group("attributes".into(), own));
+        }
+        let mut hosted = Vec::new();
+        for relation in crate::feature_plan::hosted(session, element) {
+            let children = pieces(&relation.features)?;
+            if !children.is_empty() {
+                hosted.push(FeatureTree::Group(relation.label, children));
+            }
+        }
+        if !hosted.is_empty() {
+            groups.push(FeatureTree::Group(
+                "interactions".into(),
+                hosted,
+            ));
+        }
+        Ok(groups)
+    })();
+    scene.forest = forest;
+    scene.created = created;
+    Rc::make_mut(&mut scene.view).current = current;
+    crate::layer_edit::attach_features(scene, id, prepared?)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the new owner without changing the browser entry point.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod inventory_tests;
-```
+pub mod feature_plan;
 
-</details>
+#[cfg(test)]
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod feature_plan;
+
 pub mod feature_display;
 
 #[cfg(test)]
-mod inventory_tests;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96m-project-original-feature-outlines-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-96n-connect-imported-interaction-hierarchies"></a>
-
-<details>
-<summary>Implementation 96n-connect-imported-interaction-hierarchies: Connect imported Elements to their feature hierarchy</summary>
-
-Import a document atomically, classify its editable child Elements, then attach feature projections from its original graph and retained Element payloads.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+## <a id="checkpoint-96n-connect-imported-interaction-hierarchies"></a>6. Connect imported Elements to their feature hierarchy
 
 ### 1. `src/scene_document.rs`
 
 Connect projections only after original tree placement and source retention are ready.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    let colours=candidate.forest.colours(key);Rc::make_mut(&mut candidate.view).faces.extend(colours);
+    .header = Some(source.origin);
+    let colours = candidate.forest.colours(key);
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    let elements = owners.iter().filter_map(|(guid, id, _)|
-        matches!(source.document.lookup.get(guid), Some(session_rust::Geometry::Element(_))).then_some(*id))
+    .header = Some(source.origin);
+    let elements = owners
+        .iter()
+        .filter_map(|(guid, id, _)| {
+            matches!(
+                source.document.lookup.get(guid),
+                Some(session_rust::Geometry::Element(_))
+            )
+            .then_some(*id)
+        })
         .collect::<std::collections::HashSet<_>>();
-    candidate.forest.classify_elements(key, &elements);
+    candidate
+        .forest
+        .classify_elements(key, &elements);
     for (guid, id, _) in &owners {
-        if let Some(session_rust::Geometry::Element(element)) = source.document.lookup.get(guid) {
-            crate::feature_display::append(&mut candidate, *id, &source.document, element)
-                .map_err(str::to_owned)?;
+        if let Some(session_rust::Geometry::Element(element)) =
+            source.document.lookup.get(guid)
+        {
+            crate::feature_display::append(
+                &mut candidate,
+                *id,
+                &source.document,
+                element,
+            )
+            .map_err(str::to_owned)?;
         }
     }
-    let colours=candidate.forest.colours(key);Rc::make_mut(&mut candidate.view).faces.extend(colours);
+    let colours = candidate.forest.colours(key);
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96n-connect-imported-interaction-hierarchies-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-96o-reuse-projections-for-created-elements"></a>
-
-<details>
-<summary>Implementation 96o-reuse-projections-for-created-elements: Use the same projection path for created Elements</summary>
-
-Created Elements and imported Elements now share feature display ownership. Visibility commands stop at independent child Elements and collect each feature piece once.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+## <a id="checkpoint-96o-reuse-projections-for-created-elements"></a>7. Use the same projection path for created Elements
 
 ### 1. `src/element_adopt.rs`
 
 Replace serialized display copies with the shared feature projection and preserve independent child owners.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub fn adopt(scene: &mut Scene, made: Vec<Made>, consumed: &[ObjectId]) -> Result<Vec<ObjectId>, &'static str> {
     let mut ids = Vec::new();
     for item in made {
         let id = crate::element_original::insert(scene, item.source.clone())?;
@@ -1172,17 +787,29 @@ pub fn adopt(scene: &mut Scene, made: Vec<Made>, consumed: &[ObjectId]) -> Resul
         let mut attributes = Vec::new();
         let mut interactions = Vec::new();
         if let Some(plane) = item.plane {
-            attributes.push(crate::plane_original::insert(scene, Rc::new(plane))?);
+            attributes.push(crate::plane_original::insert(
+                scene,
+                Rc::new(plane),
+            )?);
         }
         // Own axes and sections are attributes; contact, joint, cut and drill geometry comes from interactions.
         for feature in &item.source.features {
-            let interaction = matches!(feature.feature_type.as_str(), "contact" | "joint" | "cut" | "drill");
+            let interaction = matches!(
+                feature.feature_type.as_str(),
+                "contact" | "joint" | "cut" | "drill"
+            );
             for outline in &feature.outlines {
                 let mut source = outline.clone();
                 source.set_guid(uuid::Uuid::new_v4().to_string());
                 source.name = format!("{} {}", feature.feature_type, feature.name);
-                let piece = scene.insert_path(crate::chain::PreparedChain::polyline(Rc::new(source))?)?;
-                if interaction { interactions.push(piece); } else { attributes.push(piece); }
+                let piece = scene.insert_path(
+                    crate::chain::PreparedChain::polyline(Rc::new(source))?,
+                )?;
+                if interaction {
+                    interactions.push(piece);
+                } else {
+                    attributes.push(piece);
+                }
             }
         }
         if !attributes.is_empty() {
@@ -1190,39 +817,129 @@ pub fn adopt(scene: &mut Scene, made: Vec<Made>, consumed: &[ObjectId]) -> Resul
             crate::layer_edit::attach_attributes(scene, id, attributes, "attributes")?;
         }
         if !interactions.is_empty() {
-            crate::layer_edit::attach_attributes(scene, id, interactions, "interactions")?;
+            crate::layer_edit::attach_attributes(
+                scene,
+                id,
+                interactions,
+                "interactions",
+            )?;
         }
     }
-    for id in scene.with_descendants(consumed) { scene.remove(id); }
+    for id in scene.with_descendants(consumed) {
+        scene.remove(id);
+    }
     Ok(ids)
 }
 
 fn group_ids(scene: &Scene, name: &str) -> Vec<ObjectId> {
-    scene.forest.documents.iter().flat_map(|doc| {
-        doc.nodes.iter().enumerate().filter(move |(_, node)| node.source.name == name && node.readonly)
-            .flat_map(|(index, node)| doc.nodes[index + 1..node.end].iter().filter_map(|node| node.object))
-    }).collect()
+    scene
+        .forest
+        .documents
+        .iter()
+        .flat_map(|doc| {
+            doc.nodes
+                .iter()
+                .enumerate()
+                .filter(move |(_, node)| node.source.name == name && node.readonly)
+                .flat_map(|(index, node)| {
+                    doc.nodes[index + 1..node.end]
+                        .iter()
+                        .filter_map(|node| node.object)
+                })
+        })
+        .collect()
 }
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96o-reuse-projections-for-created-elements-01.rs"
+    let mut ids = Vec::new();
+    let session = session_rust::Session::new("Created");
+    for item in made {
+        let id = crate::element_original::insert(scene, item.source.clone())?;
+        ids.push(id);
+        if let Some(plane) = item.plane {
+            let plane = crate::plane_original::insert(scene, Rc::new(plane))?;
+            Rc::make_mut(&mut scene.view).hide(&[plane], true);
+            crate::layer_edit::attach_attributes(scene, id, vec![plane], "attributes")?;
+        }
+        crate::feature_display::append(scene, id, &session, &item.source)?;
+    }
+    for id in scene.with_descendants(consumed) {
+        scene.remove(id);
+    }
+    Ok(ids)
+}
+
+fn group_ids(scene: &Scene, name: &str) -> Vec<ObjectId> {
+    let mut ids = Vec::new();
+    for doc in &scene.forest.documents {
+        for (index, group) in doc.nodes.iter().enumerate() {
+            if group.source.name != name || !group.readonly {
+                continue;
+            }
+            let mut child = index + 1;
+            while child < group.end {
+                let node = &doc.nodes[child];
+                if node.object.is_some() && !node.readonly {
+                    child = node.end;
+                    continue;
+                }
+                if let Some(id) = node.object.filter(|id| scene.contains(*id)) {
+                    ids.push(id);
+                }
+                child += 1;
+            }
+        }
+    }
+    ids.sort_unstable_by_key(|id| id.value());
+    ids.dedup();
+    ids
+}
 ```
 
-</details>
+## <a id="checkpoint-96p-build-an-imported-interaction-specimen"></a>8. Build an interaction specimen
 
-<a id="checkpoint-96p-build-an-imported-interaction-specimen"></a>
-
-<details>
-<summary>Implementation 96p-build-an-imported-interaction-specimen: Build an original interaction specimen</summary>
-
-Build a small original document with a host, an editable nested child, and a connector. Its contact, unnamed joint and orphan feature make the hierarchy inspectable without a large floor model.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Corner Tangents t0, t1 &amp; Miter Vector m = (n0+n1)/dot</text>
+  <polyline points="58,136 164,66 270,136" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="4 3"/>
+  <polygon points="48,122 164,44 280,122 260,150 164,88 68,150" fill="#dbeafe" fill-opacity="0.7" stroke="#2563eb" stroke-width="1.75"/>
+  <line x1="164" y1="66" x2="164" y2="44" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="192" y="54" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">m</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Round Cap SDF (||uv|| &lt;= 1) + Arc-Length Dash Modulo</text>
+  <circle cx="468" cy="102" r="28" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="468" y1="102" x2="496" y2="102" stroke="#dc2626" stroke-width="2"/>
+  <rect x="526" y="88" width="46" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <rect x="592" y="88" width="24" height="28" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <rect x="636" y="88" width="46" height="28" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Clean Mitered Corners &amp; Dashed CAD Strokes</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polyline points="834,136 904,68 974,136" fill="none" stroke="#111111" stroke-width="6" stroke-linejoin="miter" stroke-linecap="round"/>
+  <line x1="964" y1="74" x2="1044" y2="136" stroke="#2563eb" stroke-width="4" stroke-dasharray="10 6" stroke-linecap="round"/>
+</svg>
+</div>
 
 ### 1. `src/interaction_example.rs`
 
@@ -1231,112 +948,419 @@ Author the original geometry, graph and feature associations used by the exercis
 Create the file and type:
 
 ```rust
---8<-- "journey/code/96p-build-an-imported-interaction-specimen-01.rs"
+use prost::Message;
+use session_rust::element::ElementFeature;
+use session_rust::{Element, Mesh, Point, Polyline, Session, TreeNode, Xform};
+use session_rust::{Interaction, InteractionUnknown};
+
+pub fn session() -> Session {
+    let line = Polyline::new(vec![
+        Point::new(0., 0., 0.),
+        Point::new(100., 0., 0.),
+    ]);
+    let mut session = Session::new("interaction exercise");
+    let mut host = Element::new("host");
+    host.set_geometry(Mesh::create_box(100., 100., 100.));
+    host.add_feature(ElementFeature::new(
+        "axis",
+        -1,
+        vec![line.clone()],
+        "axis",
+    ));
+    let contact = InteractionUnknown::new(
+        "InteractionContactFace",
+        &[0, 255, 7],
+        "seam",
+    );
+    let mut touch = ElementFeature::new(
+        "contact",
+        2,
+        vec![line.clone(), line.clone()],
+        "side_side",
+    );
+    touch.set_guid(contact.guid().to_owned());
+    host.add_feature(touch);
+    let mut source = Element::new("connector");
+    source.set_geometry(Mesh::create_box(20., 20., 20.));
+    let mut drill = ElementFeature::new("drill", -1, vec![line.clone()], "d10");
+    drill.set_guid(format!("{}-drill-0", source.guid()));
+    host.add_feature(drill);
+    host.add_feature(ElementFeature::new(
+        "cut",
+        5,
+        vec![line.clone()],
+        "unclaimed",
+    ));
+    let host = session.add_element(host, None);
+    session.add(&TreeNode::new("attributes"), Some(&host));
+    let attributes = host
+        .borrow()
+        .children()
+        .last()
+        .unwrap()
+        .clone();
+    let mut child = Element::new("child");
+    child.set_geometry(Mesh::create_box(15., 15., 15.));
+    child.add_feature(ElementFeature::new(
+        "axis",
+        -1,
+        vec![line],
+        "axis",
+    ));
+    let child = session.add_element(child, Some(&attributes));
+    let source = session.add_element(source, None);
+    let host = host.borrow().name.clone();
+    let child = child.borrow().name.clone();
+    let source = source.borrow().name.clone();
+    session.xforms.insert(
+        host.clone(),
+        Xform::translation(10., 20., 30.),
+    );
+    session
+        .xforms
+        .insert(child, Xform::translation(2., 3., 4.));
+    session.xforms.insert(
+        source.clone(),
+        Xform::translation(130., 20., 30.),
+    );
+    session
+        .graph
+        .add_edge(&source, &host, "connection");
+    let edge = session.graph.edges[&source][&host]
+        .guid()
+        .to_owned();
+    session.interactions.insert(
+        edge,
+        vec![
+            Box::new(contact),
+            Box::new(InteractionUnknown::new(
+                "InteractionFeatureSolid",
+                &[8, 9],
+                "",
+            )),
+        ],
+    );
+    session
+}
+
+pub fn bytes() -> Vec<u8> {
+    session().to_proto().encode_to_vec()
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Expose the specimen to native examples and tests.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod inventory_tests;
-```
+pub mod feature_display;
 
-</details>
+#[cfg(test)]
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod feature_display;
+
 pub mod interaction_example;
 
 #[cfg(test)]
-mod inventory_tests;
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96p-build-an-imported-interaction-specimen-02.rs"
-```
-
-</details>
-
-<details>
-<summary>Optional authoring helper</summary>
-
-Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
 
 ### 3. `examples/sample.rs`
 
 Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-fn main() -> std::io::Result<()> {
-    std::fs::write("sample.pb", viewer_journey::specimen::precise_bytes())
-}
+```rust
+        "sample.pb",
+        viewer_journey::specimen::precise_bytes(),
+    )
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/96p-build-an-imported-interaction-specimen-03.rs"
+```rust
+        "sample.pb",
+        viewer_journey::interaction_example::bytes(),
+    )
 ```
 
-</details>
-
-</details>
-
-<a id="checkpoint-96q-prove-imported-feature-ownership-and-roundtrips"></a>
-
-<details>
-<summary>Implementation 96q-prove-imported-feature-ownership-and-roundtrips: Prove imported feature ownership and round trips</summary>
-
-Verify that feature projections follow their owner once, preserve original payloads, survive Delete/Undo, and rebuild after Save/Open without serializing display copies. Reject invalid outlines without changing the current document.
-
-Data flow: original source → bounded feature plan → derived display → source-preserving archive.
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+## <a id="checkpoint-96q-prove-imported-feature-ownership-and-roundtrips"></a>9. Prove imported feature ownership and round trips
 
 ### 1. `src/interaction_bridge_tests.rs`
 
 Run supplied regression fixtures against original source payloads and the connected import path.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96q-prove-imported-feature-ownership-and-roundtrips-01.rs"
+```rust
+use crate::{
+    editor::{Action, Editor},
+    scene::{ObjectId, Scene},
+};
+use prost::Message;
+use session_rust::{Element, Geometry, Xform, proto};
+use std::rc::Rc;
+
+fn owner(scene: &Scene, name: &str) -> ObjectId {
+    scene
+        .objects()
+        .iter()
+        .find(|row| row.metadata.name == name)
+        .unwrap()
+        .id
+}
+fn original(scene: &Scene, id: ObjectId) -> Rc<Element> {
+    match scene
+        .objects()
+        .iter()
+        .find(|row| row.id == id)
+        .unwrap()
+        .original
+        .as_ref()
+        .unwrap()
+    {
+        Geometry::Element(source) => source.clone(),
+        _ => panic!("Element expected"),
+    }
+}
+fn same_element(mut a: proto::Element, mut b: proto::Element) {
+    assert_eq!(
+        proto::Mesh::decode(a.geometry_data.as_slice()).unwrap(),
+        proto::Mesh::decode(b.geometry_data.as_slice()).unwrap()
+    );
+    a.geometry_data.clear();
+    b.geometry_data.clear();
+    assert_eq!(a, b);
+}
+fn imported() -> Scene {
+    let mut scene = Scene::empty();
+    crate::scene_document::import(
+        &mut scene,
+        &crate::interaction_example::bytes(),
+        "fixture",
+        &Xform::translation(1_000_000_000.125, 0., 0.),
+        0.,
+    )
+    .unwrap();
+    scene
+}
+
+#[test]
+fn hosted_features_keep_full_type_source_name_edge_order_and_orphans() {
+    let session = crate::interaction_example::session();
+    let host = session
+        .objects
+        .elements
+        .iter()
+        .find(|e| e.name == "host")
+        .unwrap();
+    assert_eq!(crate::feature_plan::own(host), [0]);
+    let before = host.to_proto();
+    let groups = crate::feature_plan::hosted(&session, host);
+    same_element(host.to_proto(), before);
+    assert_eq!(
+        groups
+            .iter()
+            .map(|g| (g.label.as_str(), g.features.clone()))
+            .collect::<Vec<_>>(),
+        [
+            ("InteractionContactFace seam", vec![1]),
+            ("InteractionFeatureSolid connector", vec![2]),
+            ("cut unclaimed · face 5", vec![3]),
+        ]
+    );
+    assert_eq!(
+        crate::feature_plan::label(&host.features[1]),
+        "contact side_side · face 2"
+    );
+}
+
+#[test]
+fn imported_children_stay_editable_and_features_follow_the_host_once() {
+    let mut e = Editor::default();
+    e.scene = imported();
+    let host = owner(&e.scene, "host");
+    let child = owner(&e.scene, "child");
+    assert!(!e.scene.forest.readonly(child));
+    assert_eq!(e.scene.pick_id(child.value()), Some(child));
+    assert_eq!(e.scene.paths().len(), 6);
+    let attributes = crate::element_adopt::attribute_ids(&e.scene);
+    let interactions = crate::element_adopt::interaction_ids(&e.scene);
+    assert_eq!(attributes.len(), 2);
+    assert_eq!(interactions.len(), 4);
+    assert!(!attributes.contains(&child));
+    assert!(
+        attributes
+            .iter()
+            .all(|id| !e.scene.visible(*id))
+    );
+    assert!(
+        interactions
+            .iter()
+            .all(|id| e.scene.visible(*id))
+    );
+    assert!(
+        e.scene.paths().iter().all(
+            |row| e.scene.forest.readonly(row.id) && e.scene.forest.derived(row.id)
+        )
+    );
+    let labels = crate::hierarchy::rows(&e.scene)
+        .into_iter()
+        .map(|row| row.label)
+        .collect::<Vec<_>>();
+    assert!(labels.contains(&"InteractionContactFace seam".into()));
+    assert!(labels.contains(&"InteractionFeatureSolid connector".into()));
+    assert_eq!(
+        e.scene.placement(host).unwrap().m[12],
+        1_000_000_010.125
+    );
+    assert_eq!(
+        e.scene.placement(child).unwrap().m[12],
+        1_000_000_012.125
+    );
+    e.apply(Action::ElementAttributes(Some(true)))
+        .unwrap();
+    e.apply(Action::ElementInteractions(Some(false)))
+        .unwrap();
+    assert!(
+        attributes
+            .iter()
+            .all(|id| e.scene.visible(*id))
+    );
+    assert!(
+        interactions
+            .iter()
+            .all(|id| !e.scene.visible(*id))
+    );
+    assert!(e.scene.visible(child));
+    let ids = e.scene.with_descendants(&[host]);
+    let before = ids
+        .iter()
+        .map(|id| e.scene.placement(*id).unwrap())
+        .collect::<Vec<_>>();
+    let source = original(&e.scene, host);
+    let original_bytes = source.to_proto();
+    e.select_objects([host, child], false);
+    e.apply(Action::Translate([3., 4., 5.]))
+        .unwrap();
+    for (id, old) in ids.iter().zip(before) {
+        let now = e.scene.placement(*id).unwrap();
+        assert_eq!(now.m[12], old.m[12] + 3.);
+        assert_eq!(now.m[13], old.m[13] + 4.);
+        assert_eq!(now.m[14], old.m[14] + 5.);
+    }
+    same_element(source.to_proto(), original_bytes);
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(
+        e.scene.placement(child).unwrap().m[12],
+        1_000_000_012.125
+    );
+    e.select_objects([host], false);
+    e.apply(Action::Delete).unwrap();
+    assert!(ids.iter().all(|id| !e.scene.contains(*id)));
+    e.apply(Action::Undo).unwrap();
+    assert!(ids.iter().all(|id| e.scene.contains(*id)));
+    assert!(Rc::ptr_eq(
+        &source,
+        &original(&e.scene, host)
+    ));
+}
+
+#[test]
+fn repeated_archives_keep_original_features_and_do_not_accumulate_display_paths() {
+    let session = crate::interaction_example::session();
+    let message = session.to_proto();
+    let mut scene = Scene::empty();
+    crate::scene_document::import(
+        &mut scene,
+        &message.encode_to_vec(),
+        "original",
+        &Xform::identity(),
+        0.,
+    )
+    .unwrap();
+    for _ in 0..3 {
+        let bytes = crate::scene_archive::save(&scene).unwrap();
+        let bundle = crate::archive::Bundle::decode(&bytes).unwrap();
+        assert_eq!(bundle.documents.len(), 1);
+        let saved = proto::Session::decode(bundle.documents[0].as_slice()).unwrap();
+        let objects = saved.objects.as_ref().unwrap();
+        assert_eq!(objects.elements.len(), 3);
+        assert!(objects.polylines.is_empty());
+        assert_eq!(saved.interactions, message.interactions);
+        for element in &objects.elements {
+            let original = message
+                .objects
+                .as_ref()
+                .unwrap()
+                .elements
+                .iter()
+                .find(|e| e.guid == element.guid)
+                .unwrap();
+            same_element(element.clone(), original.clone());
+        }
+        crate::scene_document::open(&mut scene, &bytes).unwrap();
+        assert_eq!(scene.paths().len(), 6);
+        assert_eq!(
+            crate::element_adopt::attribute_ids(&scene).len(),
+            2
+        );
+        assert_eq!(
+            crate::element_adopt::interaction_ids(&scene).len(),
+            4
+        );
+        assert!(!scene.forest.readonly(owner(&scene, "child")));
+    }
+}
+
+#[test]
+fn malformed_feature_projection_does_not_replace_the_open_scene() {
+    let mut message = crate::interaction_example::session().to_proto();
+    message
+        .objects
+        .as_mut()
+        .unwrap()
+        .elements
+        .iter_mut()
+        .find(|e| e.name == "host")
+        .unwrap()
+        .features[1]
+        .outlines[0]
+        .coords[0] = f64::NAN;
+    let mut scene = imported();
+    let before = scene.all_ids();
+    let paths = scene.paths().len();
+    assert!(
+        crate::scene_document::import(
+            &mut scene,
+            &message.encode_to_vec(),
+            "invalid",
+            &Xform::identity(),
+            0.
+        )
+        .is_err()
+    );
+    assert_eq!(scene.all_ids(), before);
+    assert_eq!(scene.paths().len(), paths);
+}
 ```
-
-</details>
 
 ### 2. `src/lib.rs`
 
 Include the ownership and archive proofs in the native suite.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 #[cfg(test)]
-mod inventory_tests;
+mod ambient_shader_contract;
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -1345,106 +1369,31 @@ Edit the existing block to match this code; keep unchanged lines:
 mod interaction_bridge_tests;
 
 #[cfg(test)]
-mod inventory_tests;
+mod ambient_shader_contract;
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96q-prove-imported-feature-ownership-and-roundtrips-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-96r-preserve-exact-command-completions"></a>
-
-<details>
-<summary>Implementation 96r-preserve-exact-command-completions: Prove exact commands across the expanded vocabulary</summary>
-
-Share the existing dictionary wrapper with the real widget regression and browser typing proof.
-
-Data flow: typed characters → command vocabulary → exact match first → egui submission.
+## <a id="checkpoint-96r-preserve-exact-command-completions"></a>10. Prove exact commands across the expanded vocabulary
 
 ### 1. `src/command_vocabulary.rs`
 
-Move the already-typed private Commands wrapper from panel.rs into this shared module; retain its existing methods.
+Move the already-typed private Commands wrapper from panel.rs into this shared module; retain its existing methods. Import the existing dock trait and expose the shared wrapper and its input list to the panel.
 
-Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
+**Locate this existing block:**
 
-<details>
-<summary>Previously typed code reference</summary>
-
-Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-.sort_by_key(|name| {
-        if name.eq_ignore_ascii_case(line) { 0 }
-        else if name.get(line.len()..).is_some_and(|rest| rest.starts_with(' ')) { 1 }
-        else { 2 }
-    });
+```rust
     choices
 }
 ```
 
-</details>
-
-Move the existing code after that block:
-
-```text
---8<-- "journey/code/96r-preserve-exact-command-completions-move-existing-wrapper.rs" skip=200
-```
-
-</details>
-
-### 2. `src/command_vocabulary.rs`
-
-Import the existing dock trait and expose the shared wrapper and its input list to the panel.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-struct Commands(Vec<&'static str>);
-```
-
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    choices
+}
+
 use crate::command_dock;
 
 pub(crate) struct Commands(pub(crate) Vec<&'static str>);
-```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/96r-preserve-exact-command-completions-wire-moved-wrapper.rs"
-```
-
-</details>
-
-### 3. `src/panel.rs`
-
-Use the exact-first vocabulary in the actual browser panel.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-struct Commands(Vec<&'static str>);
 
 impl command_dock::Commands for Commands {
     fn canonical(&self, line: &str) -> String {
@@ -1465,65 +1414,155 @@ impl command_dock::Commands for Commands {
 }
 ```
 
-</details>
+### 2. `src/panel.rs`
+
+Use the exact-first vocabulary in the actual browser panel.
+
+**Locate this existing block:**
+
+```rust
+use crate::renderer::Renderer;
+
+struct Commands(Vec<&'static str>);
+
+impl command_dock::Commands for Commands {
+    fn canonical(&self, line: &str) -> String {
+        crate::commands::canonical(line)
+    }
+    fn choosing_option(&self, _: &str) -> bool {
+        false
+    }
+    fn accept(&self, line: &str) -> (String, bool) {
+        (self.canonical(line), true)
+    }
+    fn completions(&self, line: &str) -> Vec<&'static str> {
+        crate::command_vocabulary::ranked(self.0.as_ref(), line)
+    }
+    fn browse(&self, line: &str) -> Vec<&'static str> {
+        self.completions(line)
+    }
+}
+
+pub struct Panel {
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/96r-preserve-exact-command-completions-02.rs"
+use crate::renderer::Renderer;
+
+use crate::command_vocabulary::Commands;
+
+pub struct Panel {
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/command_vocabulary.rs`
+### 3. `src/command_vocabulary.rs`
 
 Feed character-by-character input and Enter through the actual egui command field.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-        self.completions(line)
+```rust
     }
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    }
+}
 
-```text
---8<-- "journey/code/96r-preserve-exact-command-completions-04.rs" skip=40
+#[cfg(test)]
+mod completion_tests {
+    use super::*;
+    use crate::command_dock::{CommandLine, theme};
+
+    #[test]
+    fn typed_exact_commands_survive_inline_completion_and_enter() {
+        for line in [
+            "View Isometric",
+            "View Isometric Back",
+            "Line",
+            "Polyline",
+            "Select Object",
+        ] {
+            let context = egui::Context::default();
+            context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+            context.set_fonts(theme::fonts([
+                include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
+                include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+                include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+            ]));
+            let mut model = CommandLine {
+                focus_command: true,
+                command_open: true,
+                ..Default::default()
+            };
+            let commands = Commands(crate::commands::names());
+            let frame = |model: &mut CommandLine, events| {
+                let mut submitted = None;
+                let _ = context.run_ui(
+                    egui::RawInput {
+                        screen_rect: Some(egui::Rect::from_min_size(
+                            egui::Pos2::ZERO,
+                            egui::vec2(900., 760.),
+                        )),
+                        focused: true,
+                        events,
+                        ..Default::default()
+                    },
+                    |root| {
+                        command_dock::draw(
+                            root,
+                            model,
+                            &mut None,
+                            &mut submitted,
+                            &commands,
+                            true,
+                        );
+                    },
+                );
+                submitted
+            };
+            frame(&mut model, vec![]);
+            for character in line.chars() {
+                assert!(
+                    frame(
+                        &mut model,
+                        vec![egui::Event::Text(character.to_string())]
+                    )
+                    .is_none()
+                );
+            }
+            assert_eq!(model.command, line);
+            assert!(!model.inline_suffix);
+            let submitted = frame(
+                &mut model,
+                vec![egui::Event::Key {
+                    key: egui::Key::Enter,
+                    physical_key: None,
+                    pressed: true,
+                    repeat: false,
+                    modifiers: Default::default(),
+                }],
+            );
+            assert_eq!(submitted.as_deref(), Some(line));
+            assert!(model.command.is_empty());
+        }
+    }
+}
 ```
 
-</details>
-
-</details>
-
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+## Build & Run
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 96r-preserve-exact-command-completions
-npm --prefix ../session_tests run course -- check 96r-preserve-exact-command-completions
-npm --prefix ../session_tests run course -- save 96r-preserve-exact-command-completions
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 19.2
+npm --prefix ../session_tests run course -- save 19.2
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-These are expected checkpoint behaviors, not new GPU/browser acceptance from this editorial batch. Current production parity and the remaining runtime fixes require the declared matched checks after integration.
-
-Use the imported interaction specimen from checkpoint96p-build-an-imported-interaction-specimen to inspect own attributes, hosted pieces and nested editable Elements. Toggle the two feature categories independently and compare original archive payload. The final command-completion checkpoint keeps fully typed `View Isometric` exact while retaining `View Isometric Back`; check field and history entries rather than treating completion as a new geometry capability.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
-
-Continue with [Original owners across selection, copying and display](96s-resolve-feature-rows-to-original-element-owners.md).
+Continue with [19.3 · Original owners across selection, copying and display](96s-resolve-feature-rows-to-original-element-owners.md).

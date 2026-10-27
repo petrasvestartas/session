@@ -9,8 +9,35 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {save, restore, savedPath} from './checkpoints.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
+import {removeGenerated} from './verify.ts';
 import {expected, edited, typingLoad, fingerprint, withExpectedSequence, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines} from './model.ts';
 const browserFingerprint = createRequire(import.meta.url)(path.join(viewer, 'docs/journey/checks/fingerprint.cjs'));
+
+test('generated cleanup rejects traversal and links outside its owned root', () => {
+    const root = fs.mkdtempSync(path.join(viewer, 'target/course-cleanup-test-'));
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-cleanup-outside-'));
+    const link = path.join(root, 'linked');
+    try {
+        const child = path.join(root, 'checkpoint');
+        fs.mkdirSync(child);
+        fs.writeFileSync(path.join(child, 'owned'), 'temporary');
+        removeGenerated(child, root);
+        assert(!fs.existsSync(child));
+        assert.throws(() => removeGenerated(root, root), /inside its generated root/);
+        assert.throws(() => removeGenerated(path.join(root, '../other'), root), /inside its generated root/);
+        fs.writeFileSync(path.join(outside, 'keep'), 'preserved');
+        fs.symlinkSync(outside, link, process.platform === 'win32' ? 'junction' : 'dir');
+        assert.throws(() => removeGenerated(link, root), /link outside/);
+        assert.throws(() => removeGenerated(path.join(link, 'missing'), root), /link outside/);
+        assert.equal(fs.readFileSync(path.join(outside, 'keep'), 'utf8'), 'preserved');
+    } finally {
+        if (fs.existsSync(link)) fs.unlinkSync(link);
+        assert.equal(path.dirname(fs.realpathSync(root)), fs.realpathSync(path.join(viewer, 'target')));
+        assert.equal(path.dirname(fs.realpathSync(outside)), fs.realpathSync(os.tmpdir()));
+        fs.rmSync(root, {recursive: true, force: true});
+        fs.rmSync(outside, {recursive: true, force: true});
+    }
+});
 
 function fixture(run: (folder: string) => void) {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-'));
@@ -329,13 +356,73 @@ test('field renames replace whole references without changing longer names', () 
     assert.throws(() => edited(source, edit, 'self.targets.depth\n'), /two field references/);
 });
 
-test('the compact target-owner lesson reconstructs its independently accepted application', () => {
+test('the compact target-owner lesson preserves its accepted source apart from scoped Escape, inventory and hierarchy edits', () => {
     const id = '96zzzzzzv-reuse-coherent-frame-targets';
     const record = JSON.parse(read(path.join(viewer, 'docs/journey/visual-review.json'))).steps[id];
     const step = course().steps.find(step => step.id === id)!;
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
-    assert.equal(fingerprint(expected(id)), record.applicationFingerprint);
+    const files = expected(id);
+    const baselineText = read(path.join(viewer, '../session_tests/scripts/course/fixtures/early-quality-compact-owner-799f6af0.json')).replace(/\r\n/g, '\n');
+    assert.equal(hash(baselineText), '6ee946f68bf5d1986059383aa7e861b5515501da11598e2adaf2de6eb8d56fa5');
+    const baseline = JSON.parse(baselineText);
+    assert.equal(baseline.baselineCommit, '799f6af0dd6ca219597f87d52e72037135b3333e');
+    assert.equal(baseline.checkpoint, id);
+    assert.deepEqual(Object.keys(baseline.modules).sort(), [
+        'src/cad_boundary.rs', 'src/cad_display.rs', 'src/finite_ink.rs', 'src/surface.rs',
+    ]);
+    for (const file of Object.keys(baseline.modules)) {
+        const module = baseline.modules[file];
+        assert.equal(hash(files[file]), module.reviewedCurrentSha256, `Reviewed early quality correction: ${file}`);
+        assert.equal(hash(module.baselineText), module.baselineSha256);
+        files[file] = module.baselineText;
+    }
+    assert.equal(fingerprint(files), '09db6bbe0f3e74eef99b165db08613800e1a7c4484c15c4b9ef3644f205becf0');
+    const currentInputs = course().steps.find(step => step.id === '96zzzzg-own-shared-record-cap-pick-resources')!
+        .edits.find(edit => edit.path === 'src/current_inventory.json')!;
+    const archivedInputs = read(path.join(viewer, 'docs/journey/current-runtime-inputs-2026-10-14-cap-pick-resources.json'));
+    assert.equal(hash(archivedInputs), '18a81c3e4ab344ff247c7e182be386da254f27244709d4dd264a306236431476');
+    assert.equal(files[currentInputs.path], read(path.join(viewer, 'docs', currentInputs.snippet)));
+    files[currentInputs.path] = archivedInputs;
+    assert.equal(fingerprint(files), '4508c4f44ff9f8f213a041f7425c0e36e09605ca55dc126f8f1c9b7a2b0a0f74');
+    const ownership = course().steps.find(step => step.id === '96y-address-feature-pixels-to-original-cad-owners')!;
+    const hierarchy = ownership.edits.filter(edit => ['src/hierarchy.rs', 'src/tree_panel.rs', 'src/layer_properties.rs'].includes(edit.path));
+    assert.equal(hierarchy.length, 9);
+    for (const edit of [...hierarchy].reverse()) {
+        const after = read(path.join(viewer, 'docs', edit.snippet));
+        files[edit.path] = edited(files[edit.path], {...edit, before: after}, edit.before!);
+    }
+    const validation = ownership.edits.find(edit => edit.path === 'src/feature_pick_tests.rs')!;
+    const fixture = read(path.join(viewer, 'docs', validation.snippet));
+    const marker = '\n#[test]\nfn tree_original_targets_preserve_complete_feature_presentation_membership()';
+    assert.equal(fixture.split(marker).length, 2);
+    const regression = fixture.slice(fixture.indexOf(marker));
+    assert.equal(hash(regression), '25e956afea88634de990cd8777b41bab2e1b062fc165ff67cda774d1f64eda47');
+    assert(files[validation.path].endsWith(regression));
+    files[validation.path] = files[validation.path].slice(0, -regression.length);
+    const escape = course().steps.find(step => step.id === '85as-register-current-names-views-and-command-aliases')!
+        .edits.filter(edit => ['src/panel.rs', 'src/browser.rs'].includes(edit.path));
+    assert.equal(escape.length, 2);
+    for (const edit of escape) {
+        const after = read(path.join(viewer, 'docs', edit.snippet));
+        files[edit.path] = edited(files[edit.path], {...edit, before: after}, edit.before!);
+    }
+    const inventory = course().steps.find(step => step.id === '96h-prove-current-source-grammar-and-explicit-differences')!;
+    const audit = inventory.edits.filter(edit => edit.path === 'src/source_audit.rs');
+    assert.equal(audit.length, 1);
+    const after = read(path.join(viewer, 'docs', audit[0].snippet));
+    files[audit[0].path] = edited(files[audit[0].path], {...audit[0], before: after}, audit[0].before!);
+    const snapshot = inventory.edits.find(edit => edit.path === 'src/current_inventory.json')!;
+    const count = (text: string) => JSON.parse(text).files.filter((row: {root: string}) => row.root === 'viewer').length;
+    const previousCount = count(snapshot.before!);
+    const currentCount = count(read(path.join(viewer, 'docs', snapshot.snippet)));
+    assert.deepEqual([previousCount, currentCount], [306, 312]);
+    const testPath = 'src/inventory_tests.rs';
+    const assertion = (value: number) => `assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),${value});`;
+    files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
+    assert.equal(fingerprint(files), record.applicationFingerprint);
+    assert.equal(fingerprint(expected('96zzzzzzzq-draw-original-cad-wire-curves')),
+        'e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163');
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);
     assert(typingLoad(step).minutes[1] <= 60);

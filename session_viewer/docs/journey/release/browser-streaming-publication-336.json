@@ -1,0 +1,1319 @@
+{
+  "status": "PASS 8 browser figures regenerated, delegated-reviewed, root-approved and source/served HTTP verified",
+  "date": "2026-10-26T19:56:12.624Z",
+  "rootPersonallyViewedAllNewOriginals": false,
+  "rootPersonallyViewedOriginalIds": [],
+  "rootApprovedDelegatedReview": true,
+  "delegatedReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\delegated-review.json",
+    "sha256": "58515d96113dedf55042a0371359ba4f3a18444fcac3b0d3e0faa86013405181"
+  },
+  "rootReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\root-review.json",
+    "sha256": "736917e5ab5b62a4950e2bda8a30d2ea03e5b3a1823954ae9b68fa31001a5845"
+  },
+  "canonicalBehaviorExecuted": "Per-image original source record; no new canonical validation-profile execution",
+  "canonicalValidationProfile": false,
+  "scope": "Eight independent actual source/build/GPU/image records: six generic image-only scenes and two audited source-terminal final setups. Seven exact prior contact-scene PNGs reuse appearance review only; one new original-resolution contact scene reviewed here. Original per-route assertions retained; no excluded inherited prefixes/child contexts/full canonical validation-profile acceptance claimed.",
+  "images": [
+    {
+      "id": "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+      "destination": "docs/screenshots/journey/96zzzzzzzj-cache-physical-depth-pyramid-inputs-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzj-cache-physical-depth-pyramid-inputs-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzj-cache-physical-depth-pyramid-inputs-3ed4d49413f58bc8b2a0\\result.json",
+        "sha256": "2436f4d7ed08b40d0bf0f3f69a8a3a484bbf613693144c108bab3eadc4d4a677"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+        "files": "3ee17808c9430754db724194cd1246f4e5fac8f0016deb9d50e1608814ff2e61",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "original-contact-panel",
+        "callback": "journey/checks/browser/target-resize.cjs",
+        "meaning": "The retained ordinary contact-panel archive, top orthographic Arctic view. Temporary resize/quality contexts are not the published original page.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "Arctic On",
+          "View Outline Off",
+          "View Grid Off",
+          "View Lighting Off",
+          "View Backfaces Off",
+          "Select None",
+          "Snap Off",
+          "View Top",
+          "View Orthographic",
+          "Fit"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.0010346218784626415,
+          0,
+          0,
+          0,
+          0,
+          0.0012252101192320754,
+          -7.136971884087653e-21,
+          0,
+          0,
+          2.720512968750367e-19,
+          0.00003214206391773086,
+          0,
+          0,
+          0.04473684210526318,
+          0.45359725623208186,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": true
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:50:40.5520209Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzj-cache-physical-depth-pyramid-inputs-3ed4d49413f58bc8b2a0\\prepared.json",
+          "http://127.0.0.1:63711/96zzzzzzzj-cache-physical-depth-pyramid-inputs/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzj-cache-physical-depth-pyramid-inputs-2b28c0c2593b64717c6b\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.973,
+        "peakJobCommitBytes": 1121976320,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 25980,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzj-cache-physical-depth-pyramid-inputs-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzk-retarget-the-complete-colour-frame",
+      "destination": "docs/screenshots/journey/96zzzzzzzk-retarget-the-complete-colour-frame-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzk-retarget-the-complete-colour-frame-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzk-retarget-the-complete-colour-frame-67e8c2d1d43b2f206611\\result.json",
+        "sha256": "8f8130370a98ccae3a3553a7eb11acb0fa3681a5ad13c9312f1ebc445c8fc606"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzk-retarget-the-complete-colour-frame",
+        "files": "f72c5f1856549252f1b0909709dded0352af6205a886213d4b8dc31584eb80dc",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "original-contact-panel",
+        "callback": "journey/checks/browser/target-resize.cjs",
+        "meaning": "The retained ordinary contact-panel archive, top orthographic Arctic view. Temporary resize/quality contexts are not the published original page.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "Arctic On",
+          "View Outline Off",
+          "View Grid Off",
+          "View Lighting Off",
+          "View Backfaces Off",
+          "Select None",
+          "Snap Off",
+          "View Top",
+          "View Orthographic",
+          "Fit"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.0010346218784626415,
+          0,
+          0,
+          0,
+          0,
+          0.0012252101192320754,
+          -7.136971884087653e-21,
+          0,
+          0,
+          2.720512968750367e-19,
+          0.00003214206391773086,
+          0,
+          0,
+          0.04473684210526318,
+          0.45359725623208186,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": true
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:51:37.1640703Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzk-retarget-the-complete-colour-frame-67e8c2d1d43b2f206611\\prepared.json",
+          "http://127.0.0.1:64063/96zzzzzzzk-retarget-the-complete-colour-frame/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzk-retarget-the-complete-colour-frame-df59fb5f123179e8f47d\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 8.313,
+        "peakJobCommitBytes": 1107972096,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 60804,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzk-retarget-the-complete-colour-frame-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzl-choose-bounded-frame-quality",
+      "destination": "docs/screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzl-choose-bounded-frame-quality-browser.png",
+      "originalSha256": "2c3174d5544169db975c549b81eb624b1a40fb3df4b8182dd2bdcbbf3fe4abfd",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzl-choose-bounded-frame-quality-ed0665c0e4ee6790f214\\result.json",
+        "sha256": "e675e5056289e371a4f0d23bb03d25242482cccc30555af7fb2c83686c8913f3"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+        "files": "b8d560f1467952570a31f2db3c7a534b3ec6d85b085c362dab9cc86d9d211de7",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "original-contact-panel",
+        "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+        "meaning": "The retained ordinary contact-panel archive, top orthographic Arctic view. Temporary resize/quality contexts are not the published original page.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "Arctic On",
+          "View Outline Off",
+          "View Grid Off",
+          "View Lighting Off",
+          "View Backfaces Off",
+          "Select None",
+          "Snap Off",
+          "View Top",
+          "View Orthographic",
+          "Fit"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.0010346218784626415,
+          0,
+          0,
+          0,
+          0,
+          0.0012252101192320754,
+          -7.136971884087653e-21,
+          0,
+          0,
+          2.720512968750367e-19,
+          0.00003214206391773086,
+          0,
+          0,
+          0.04473684210526318,
+          0.45359725623208186,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": true
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:52:37.6400290Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzl-choose-bounded-frame-quality-ed0665c0e4ee6790f214\\prepared.json",
+          "http://127.0.0.1:51016/96zzzzzzzl-choose-bounded-frame-quality/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzl-choose-bounded-frame-quality-46cd18458c4754843e2d\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 8.129,
+        "peakJobCommitBytes": 1115070464,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 51688,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzm-retain-visible-instance-ranges",
+      "destination": "docs/screenshots/journey/96zzzzzzzm-retain-visible-instance-ranges-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzm-retain-visible-instance-ranges-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzm-retain-visible-instance-ranges-297608ca488a5e70899f\\result.json",
+        "sha256": "9755696e2b0096ffa68227722e2c72dd709d1736f77603eb750063985c4ec363"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzm-retain-visible-instance-ranges",
+        "files": "a7fdb9fa3dab215a1a3975e01c2814bf620874ebca776cfefd2e1a328f7b3c95",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "original-contact-panel",
+        "callback": "journey/checks/browser/quality-target-reuse.cjs",
+        "meaning": "The retained ordinary contact-panel archive, top orthographic Arctic view. Temporary resize/quality contexts are not the published original page.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "Arctic On",
+          "View Outline Off",
+          "View Grid Off",
+          "View Lighting Off",
+          "View Backfaces Off",
+          "Select None",
+          "Snap Off",
+          "View Top",
+          "View Orthographic",
+          "Fit"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.0010346218784626415,
+          0,
+          0,
+          0,
+          0,
+          0.0012252101192320754,
+          -7.136971884087653e-21,
+          0,
+          0,
+          2.720512968750367e-19,
+          0.00003214206391773086,
+          0,
+          0,
+          0.04473684210526318,
+          0.45359725623208186,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": true
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:53:44.9510089Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzm-retain-visible-instance-ranges-297608ca488a5e70899f\\prepared.json",
+          "http://127.0.0.1:55970/96zzzzzzzm-retain-visible-instance-ranges/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzm-retain-visible-instance-ranges-a73fcc65953d1009b536\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 10.841,
+        "peakJobCommitBytes": 1086590976,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 17832,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzm-retain-visible-instance-ranges-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzn-prepare-original-ink-families",
+      "destination": "docs/screenshots/journey/96zzzzzzzn-prepare-original-ink-families-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzn-prepare-original-ink-families-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzn-prepare-original-ink-families-a5c8135632c3fa121a1c\\result.json",
+        "sha256": "de5205f1c52889d29110bbeaca12cd67fb2ad54dc828fd44bb19d30210346097"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzn-prepare-original-ink-families",
+        "files": "212993ab48d147ba76cf41356b189a556f1ac625c3f72b71ec4dabe3fcf161c9",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "original-contact-panel",
+        "callback": "journey/checks/browser/quality-target-reuse.cjs",
+        "meaning": "The retained ordinary contact-panel archive, top orthographic Arctic view. Temporary resize/quality contexts are not the published original page.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "Arctic On",
+          "View Outline Off",
+          "View Grid Off",
+          "View Lighting Off",
+          "View Backfaces Off",
+          "Select None",
+          "Snap Off",
+          "View Top",
+          "View Orthographic",
+          "Fit"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.0010346218784626415,
+          0,
+          0,
+          0,
+          0,
+          0.0012252101192320754,
+          -7.136971884087653e-21,
+          0,
+          0,
+          2.720512968750367e-19,
+          0.00003214206391773086,
+          0,
+          0,
+          0.04473684210526318,
+          0.45359725623208186,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": true
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:54:54.3921263Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzn-prepare-original-ink-families-a5c8135632c3fa121a1c\\prepared.json",
+          "http://127.0.0.1:50259/96zzzzzzzn-prepare-original-ink-families/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzn-prepare-original-ink-families-483ee52e2d4ddf4816ec\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 9.1,
+        "peakJobCommitBytes": 1123926016,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 64704,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzn-prepare-original-ink-families-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzo-show-original-ink-families",
+      "destination": "docs/screenshots/journey/96zzzzzzzo-show-original-ink-families-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzo-show-original-ink-families-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzo-show-original-ink-families-4fff047f18a3eab5896f\\result.json",
+        "sha256": "175c2857dca2d795d9d61bcd4e5d25fbd8800b43727dee002c6450b2b3bf90f4"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzo-show-original-ink-families",
+        "files": "f93c7b9c5519c4850742f10f27d8b47bcb2b50d7cf76ca9a2acd566735c58e71",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "kind": "original-contact-panel",
+        "callback": "journey/checks/browser/quality-target-reuse.cjs",
+        "meaning": "The retained ordinary contact-panel archive, top orthographic Arctic view. Temporary resize/quality contexts are not the published original page.",
+        "asset": null,
+        "commands": [
+          "Layers Off",
+          "Arctic On",
+          "View Outline Off",
+          "View Grid Off",
+          "View Lighting Off",
+          "View Backfaces Off",
+          "Select None",
+          "Snap Off",
+          "View Top",
+          "View Orthographic",
+          "Fit"
+        ]
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": "Presentation only; no canonical callback, historical behavior revalidation, or full verify execution is claimed.",
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "camera": [
+          0.0010346218784626415,
+          0,
+          0,
+          0,
+          0,
+          0.0012252101192320754,
+          -7.136971884087653e-21,
+          0,
+          0,
+          2.720512968750367e-19,
+          0.00003214206391773086,
+          0,
+          0,
+          0.04473684210526318,
+          0.45359725623208186,
+          1
+        ],
+        "frame": [
+          0,
+          0,
+          1,
+          0.9552631578947368
+        ],
+        "projection": "Orthographic",
+        "grid": "false",
+        "pickMode": "Object",
+        "selectedCount": 0,
+        "cads": [],
+        "surfaces": [],
+        "instances": [],
+        "drawing": {
+          "lines": [],
+          "points": [],
+          "polylines": []
+        },
+        "clouds": [],
+        "settings": {
+          "opacity": 1,
+          "outlines": false,
+          "arctic": true
+        }
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:56:03.9906007Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\browser-scene-presentation.ts",
+          "worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\96zzzzzzzo-show-original-ink-families-4fff047f18a3eab5896f\\prepared.json",
+          "http://127.0.0.1:50159/96zzzzzzzo-show-original-ink-families/dist/"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzo-show-original-ink-families-9e27a7e65ee03cf18825\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 8.307,
+        "peakJobCommitBytes": 1108795392,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 17468,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzo-show-original-ink-families-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzp-apply-semantic-view-controls",
+      "destination": "docs/screenshots/journey/96zzzzzzzp-apply-semantic-view-controls-browser.png",
+      "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzp-apply-semantic-view-controls-browser.png",
+      "originalSha256": "80e48b5b16a84e10a8c29ccee1a618a340fac5928f391a58fd9083f73070f945",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzzp-apply-semantic-view-controls-c87fa57fac40f98440d2\\terminal-capture.json",
+        "sha256": "f3e546142b1665520a314536ac0990b6248abcaa7d168da80914347f247bff5a"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzp-apply-semantic-view-controls",
+        "files": "ac795f80e1cc65128c7b42afb91853ca3646f9b58b74a27cd093f22d3c617430",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "view-presentation",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\view-presentation.cjs",
+        "sha256": "068c38788f3844b63e09df6eddd6a41b94bed48700b8d599630530da78a94e9b",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "setup": {
+          "body": "const url=new URL(address);url.searchParams.set('msaa','1');await contacts.start(page,url.href);await contacts.open(page,'ordinary',h);await page.bringToFront();",
+          "authority": "await contacts.start(page,url.href);await contacts.open(page,'ordinary',h);await page.bringToFront();",
+          "requires": [
+            "url.searchParams.set('msaa','1')"
+          ]
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": null,
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "originalExportReturned": true
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T06:57:11.7941946Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\terminal-image-helper\\793a8592df46bd32789b\\terminal-worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzzp-apply-semantic-view-controls-c87fa57fac40f98440d2\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzp-apply-semantic-view-controls-b5d05537810f2aa42564\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.987,
+        "peakJobCommitBytes": 813395968,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 61912,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186",
+        "ids": [
+          "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+          "96zzzzzzzk-retarget-the-complete-colour-frame",
+          "96zzzzzzzl-choose-bounded-frame-quality",
+          "96zzzzzzzm-retain-visible-instance-ranges",
+          "96zzzzzzzn-prepare-original-ink-families",
+          "96zzzzzzzo-show-original-ink-families",
+          "96zzzzzzzp-apply-semantic-view-controls"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": true,
+        "finding": "Seven CURRENT independent actual source/build/GPU/image records have exact previously original-reviewed contact-scene PNG bytes. Only visual review reused: complete blue base plane, red concave overlay and raised gray occluder with contained boundaries and soft shadow."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzp-apply-semantic-view-controls-browser.png?v=89ae355f5ed5",
+        "status": 200,
+        "sha256": "89ae355f5ed5345db9de089b136ab20efe381805bbbbd990f89531f396347186"
+      }
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "destination": "docs/screenshots/journey/96zzzzzzzq-draw-original-cad-wire-curves-browser.png",
+      "sha256": "1563da605ee66df05e0e7a36eadaac26e66e89dd19e0e841aecff4bd8ec44889",
+      "width": 1800,
+      "height": 1520,
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-336-preparation\\originals\\docs\\screenshots\\journey\\96zzzzzzzq-draw-original-cad-wire-curves-browser.png",
+      "originalSha256": "c6d90324bdae516c7c0205f6390445926ccfcaa89c0022b99b7062b0abcffed5",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzzq-draw-original-cad-wire-curves-08daa2fdab9a6178f6e5\\terminal-capture.json",
+        "sha256": "9157dd9bc8e3344471fa507331bc8d3cb8e1a9bb11bc2df8aa10780e77de6546"
+      },
+      "source": {
+        "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+        "files": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+          "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "recipe": {
+        "module": "cad-wire",
+        "file": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cad-wire.cjs",
+        "sha256": "1ee67d8204313b78c87ea143778daf923ffa8c80ba0bbb235b6c65a4e3e39e6d",
+        "kind": "unchanged-export",
+        "exportName": "__presentation",
+        "setup": {
+          "body": "await contacts.start(page,address);await contacts.open(page,'ordinary',h);await page.bringToFront();",
+          "authority": "await contacts.start(page,address);await contacts.open(page,'ordinary',h);await page.bringToFront();"
+        },
+        "viewport": {
+          "width": 900,
+          "height": 760
+        },
+        "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+      },
+      "canonicalBehaviorExecuted": false,
+      "sourceStartupStatusQualification": null,
+      "scope": null,
+      "canonicalValidationProfile": false,
+      "semantic": {
+        "originalExportReturned": true
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T07:00:40.6979285Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\terminal-image-helper\\793a8592df46bd32789b\\terminal-worker.ts",
+          "--worker",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzzq-draw-original-cad-wire-curves-08daa2fdab9a6178f6e5\\config.json"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zzzzzzzq-draw-original-cad-wire-curves-9d78c964803899e095c2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.494,
+        "peakJobCommitBytes": 868474880,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 64700,
+        "descendantsAtCleanup": 0
+      },
+      "rootReview": {
+        "sha256": "1563da605ee66df05e0e7a36eadaac26e66e89dd19e0e841aecff4bd8ec44889",
+        "ids": [
+          "96zzzzzzzq-draw-original-cad-wire-curves"
+        ],
+        "rootPersonallyViewedOriginalResolution": false,
+        "reviewedDetailOriginal": true,
+        "exactPriorVisualReuse": false,
+        "finding": "New original1800x1520 personally inspected by delegated agent: complete blue base rectangle, red concave contact region and raised gray square, all boundaries contained with white margins and readable full command dock. Continuous intended source boundaries; no extra triangulation diagonals visible. This is the audited final source-terminal setup, not full inherited CAD callback coverage."
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzzq-draw-original-cad-wire-curves-browser.png?v=1563da605ee6",
+        "status": 200,
+        "sha256": "1563da605ee66df05e0e7a36eadaac26e66e89dd19e0e841aecff4bd8ec44889"
+      }
+    }
+  ]
+}

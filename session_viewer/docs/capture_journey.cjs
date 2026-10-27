@@ -38,7 +38,7 @@ async function focusCommand(page) {
     assert(control, 'The actual egui command field must be drawn');
     const box = await page.locator('canvas').boundingBox();
     const [left, top, right, bottom] = control.rect;
-    await page.mouse.click(box.x + (left + right) / 2, box.y + (top + bottom) / 2);
+    await page.mouse.click(box.x + (left + right) / 2, box.y + bottom - 2);
     await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).focused);
 }
 
@@ -56,7 +56,7 @@ async function command(page, line, options = {}) {
     const before = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui'));
     const previous = before.history.length;
     if (before.command) await page.keyboard.press('ControlOrMeta+A');
-    await page.keyboard.type(line, {delay: 60});
+    await page.keyboard.type(line, {delay: 0});
     await page.waitForFunction(line => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command === line, line).catch(async error => {
         const actual = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui')).command;
         throw new Error(`Typed ${JSON.stringify(line)}, but the command field contains ${JSON.stringify(actual)}; key trace: ${JSON.stringify(await page.evaluate(() => window.courseKeyTrace))}`, {cause: error});
@@ -141,6 +141,10 @@ function prepareSample(step) {
     const folder = path.resolve('target', `course-${step.id}`);
     const example = path.join(folder, 'examples/sample.rs');
     if (!fs.existsSync(example)) return;
+    if (process.env.COURSE_SAMPLES_PREPARED === '1') {
+        assert(fs.statSync(path.join(folder, 'sample.pb')).size > 0, `${step.id}: empty sample`);
+        return;
+    }
     const now = new Date();
     const fresh = directory => {
         for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
@@ -155,11 +159,20 @@ function prepareSample(step) {
     const descriptor = fs.openSync(log, 'w');
     let result;
     try {
-        result = spawnSync('buildslot', ['timeout', '10m', 'prlimit', '--data=6442450944', '--',
-            'cargo', 'run', '--example', 'sample', '--locked', '--target', 'x86_64-unknown-linux-gnu', '-j4'], {
+        const host = spawnSync('rustc', ['-vV'], {encoding: 'utf8'});
+        const target = host.stdout?.match(/^host: (.+)$/m)?.[1]?.trim();
+        assert(!host.error && host.status === 0 && target, 'Cannot determine the installed Rust host target');
+        const cargo = ['cargo', 'run', '--example', 'sample', '--locked', '--target', target, '-j1'];
+        const guard = path.resolve('../session_tests/scripts/run-guarded.cjs');
+        const command = process.platform === 'win32'
+            ? [process.execPath, guard, '-MemoryLimitMiB', process.env.COURSE_MEMORY_MIB || '4096',
+                '-TimeoutSeconds', '600', '-WorkingDirectory', folder,
+                '-ManifestPath', log + '.resources.json', ...cargo]
+            : ['buildslot', 'timeout', '10m', 'prlimit', '--data=6442450944', '--', ...cargo];
+        result = spawnSync(command[0], command.slice(1), {
             cwd: folder,
             env: {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: 'true', REGEN_PROTO: '0',
-                CARGO_BUILD_JOBS: '4', CARGO_TARGET_DIR: path.resolve('target/course-build')},
+                NO_COLOR: 'true', CARGO_BUILD_JOBS: '1', CARGO_TARGET_DIR: path.resolve('target/course-build')},
             stdio: ['ignore', descriptor, descriptor]
         });
     } finally { fs.closeSync(descriptor); }
@@ -174,7 +187,8 @@ async function capture() {
     const args = process.env.VIEWER_CHROME_ARGS ? JSON.parse(process.env.VIEWER_CHROME_ARGS)
         : process.platform === 'linux' ? ['--enable-unsafe-webgpu', '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE', '--disable-vulkan-surface', '--ozone-platform=x11'] : [];
     const headless = process.env.VIEWER_HEADLESS === '1';
-    const browser = await chromium.launch({channel: 'chrome', headless, args});
+    const executablePath = process.env.VIEWER_BROWSER_EXECUTABLE;
+    const browser = await chromium.launch({...(executablePath ? {executablePath} : {channel: 'chrome'}), headless, args});
     const saved = path.join(output, 'browser.json');
     const records = selected.length && fs.existsSync(saved) ? JSON.parse(fs.readFileSync(saved))
         : {browser: browser.version(), headless, args, captured: new Date().toISOString(), steps: {}};

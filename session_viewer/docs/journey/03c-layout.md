@@ -65,6 +65,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         let previous = self.model.completion_rect.take();
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
@@ -102,6 +103,7 @@ Replace it with:
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.controls = Some(Vec::new());
         let mut line = None;
         let output = self.context.run_ui(input, |root| {
@@ -299,6 +301,7 @@ impl Panel {
             )),
             ..Default::default()
         };
+        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point=Some(density);
         self.controls = Some(Vec::new());
         let mut line = None;
         let output = self.context.run_ui(input, |root| {

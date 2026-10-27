@@ -1,0 +1,344 @@
+{
+  "status": "PASS independent current-source final Native/WASM/optimized-build gate only",
+  "criterion": {
+    "gate": 1,
+    "literal": "Freeze the integrated runtime and pass the final Native/WASM/optimized build checks."
+  },
+  "sources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+    }
+  ],
+  "courseSha256": "2d589e8e0f45a9bd927ae63769c1186dc30e646466878b51858c491b18a1e190",
+  "native": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/frozen-native-current.json",
+    "sha256": "25bb19729023871cec3099b871fbd97b409f651033815f6bb92a78e75b0290be"
+  },
+  "compilerReview": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/files/final-brep-final-compiler-integration-review.json",
+    "sha256": "934e7cd257c17b106709650c77b1f9ff442ad422e0a537e2963baecee32c6eb8"
+  },
+  "compilerFreeze": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/frozen-review.json",
+    "sha256": "54dbc4e0c796aba26ec69233e1d8b0cf6f70fe3373877ab32208a21818a2e60d"
+  },
+  "actualSevenPhases": [
+    {
+      "name": "713-native",
+      "status": "PASS",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/command.json",
+        "sha256": "0ade205cfa8b910b3fa8f2a674f516af7eddfb4550c650f419a3600d338c231c"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/resources.json",
+        "sha256": "74683f344c4ffa7340fc9e621f3a9610c0df7517b698770d71af984119256cd6"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/output.log",
+        "sha256": "caf5aa90288aecc45ce627882c379493afa85c030fe5b9e1ea76623d7da4d36b"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-native/compiler-source-binding.json",
+          "sha256": "16f9dfa99b775b00cc8ee62912bbcbbcdef7609f87e3a03084573344da3b4cb5"
+        }
+      ],
+      "elapsedSeconds": 34.036,
+      "peakJobCommitBytes": 1434054656,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "713-wasm",
+      "status": "PASS",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/command.json",
+        "sha256": "7140b724d6e5a3416bd606b856f29a38a880ad4a46ea6f6411885236ab39df0e"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/resources.json",
+        "sha256": "58794ea384bd72b253431722dd314b89c338fa85107baa142694190c334cc1c5"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/output.log",
+        "sha256": "fb765713157f601b457d6227b790d5928c908e020ced63950496cd1ba3e3a287"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/compiler-source-binding.json",
+          "sha256": "e96502ea0c4b8d3139d575a8425fd7679521c2e556f46708254c995219a2e614"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-wasm/wasm.json",
+          "sha256": "1e3ae99ae2fbf406a72398b1ebf162650fd91547f0faa472c232a916fc1e4dc6"
+        }
+      ],
+      "elapsedSeconds": 48.154,
+      "peakJobCommitBytes": 1677889536,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "713-web",
+      "status": "PASS",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/command.json",
+        "sha256": "ad99b148a7752ad731e9a91652529beb25e28d432219679861d232223ec1f832"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/resources.json",
+        "sha256": "1f194b22ae5aa187ab8a10b7251e0928f22d719edcdc1a661ce78343ecba4332"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/output.log",
+        "sha256": "b53e24e7d4ab6464a5f1a2f024274615fd8b05e20316096cfbc4d42d4e9c0bff"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/compiler-source-binding.json",
+          "sha256": "98539242e92643601a2ec5317fb47fe05cda6159571ec8aaf4be66a8e6c05cb5"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/bundle.json",
+          "sha256": "15b1b066d96be957e8441a8af239f37d292e43d8c92a61cf310192267d0eac73"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/http-artifacts.json",
+          "sha256": "97d79a8f34bfb40272eede724d38448bdf235b059b800ae9a6cfba5ea4eba961"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-web/release-wasm.json",
+          "sha256": "34e3e0e8f88247f86a10a3cff6b7ed02456eddfaec17c8c1ff2f0ffb6988f9b2"
+        }
+      ],
+      "elapsedSeconds": 295.298,
+      "peakJobCommitBytes": 1580048384,
+      "scope": "Actual optimized package and HTTP byte delivery; not browser"
+    },
+    {
+      "name": "714-native",
+      "status": "PASS",
+      "sourceFingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "sourceCount": 714,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/command.json",
+        "sha256": "a76a5c0b5d43721ed181897407942c1323e2444487484c8e7ccb19cbe4f8340a"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/resources.json",
+        "sha256": "a7957c7ac1ec542720cebfb3435faba079ec4ae0ddff73dece0d5ff9bcfe64a3"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/output.log",
+        "sha256": "13312410bfe55b7846bade88d228edff3043da967114abe770a478334bc4f0a9"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-native/compiler-source-binding.json",
+          "sha256": "829bf2aec4d135c2fa6cc2b8868e20c00a75bbd9829df492e1aba409cdcc8d2f"
+        }
+      ],
+      "elapsedSeconds": 23.823,
+      "peakJobCommitBytes": 1431248896,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "714-wasm",
+      "status": "PASS",
+      "sourceFingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "sourceCount": 714,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/command.json",
+        "sha256": "5d375f0e7f296c91d762d1fc480ed526dd8b0944e6f2d256b7102c0e2fc9e431"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/resources.json",
+        "sha256": "4d0d2f78135921427a2483087b437aa720a04a170b737175d014996df2ca5c8c"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/output.log",
+        "sha256": "c9ab468f47a16666b1aa97cdfc672984a8a6e5a6a6c156ebee8fd2b162ecbbbb"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/compiler-source-binding.json",
+          "sha256": "ee87d2d4498f1c0832940b0e83032bec98cc754d832df6b5e4c0a3a69a9c8a3c"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-wasm/wasm.json",
+          "sha256": "7bbab1e697c6afb5a2a65cce4d8da4b1da72250ac9c025adea4af6a302ec007f"
+        }
+      ],
+      "elapsedSeconds": 57.781,
+      "peakJobCommitBytes": 1729019904,
+      "scope": "Actual source-matching compiler phase only"
+    },
+    {
+      "name": "714-web",
+      "status": "PASS",
+      "sourceFingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "sourceCount": 714,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/command.json",
+        "sha256": "94e3ab7a154bd2dc8d6375c4c92bf3bf9ec4d3d3859c9446f8431ad101e4e15e"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/resources.json",
+        "sha256": "205783209261374a3d719857cad6050a7b487919c46c8a835357774fc37ef5d5"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/output.log",
+        "sha256": "8c2bcd1d4eab90f4e3b1fbfdc1a0138cafeb1117090094f15aaba6d27fca6ae7"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/compiler-source-binding.json",
+          "sha256": "5eef185f1f64e702e64a0732699f607fcfa161c53b834e1133e364b6c244e86a"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/bundle.json",
+          "sha256": "56d4db51f42ee426459822d9f834e8090cca4623158f054008bcee7e8f7657be"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/http-artifacts.json",
+          "sha256": "370d76299e7ed89dc0a982216ca9b4f7bb03960ebcd115d336b1721689ed0455"
+        },
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/714-web/release-wasm.json",
+          "sha256": "013e95b8f58943c87481507c9d3466394e7894925884cc55c712c9e94426ba84"
+        }
+      ],
+      "elapsedSeconds": 251.465,
+      "peakJobCommitBytes": 1588908032,
+      "scope": "Actual optimized package and HTTP byte delivery; not browser"
+    },
+    {
+      "name": "713-frame",
+      "status": "PASS",
+      "sourceFingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "sourceCount": 713,
+      "command": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/command.json",
+        "sha256": "ec5e087df18837043f50a69b035a87e0bc88e523d124a5b6f72600291522b986"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/resources.json",
+        "sha256": "951c1575665fcd02c58583ba3c0580476064946bc0e108e91299bc6bf2eac842"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/output.log",
+        "sha256": "b9b9360f96405c038efbf2759ca08d1bf593ee7be7ec982786415fe548ea9ed4"
+      },
+      "receipts": [
+        {
+          "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/713-frame/frame.json",
+          "sha256": "e5a44366351e594200d64246201fc47e97944997530347c6493e11fea738e19f"
+        }
+      ],
+      "elapsedSeconds": 30.277,
+      "peakJobCommitBytes": 1855033344,
+      "scope": "Actual canonical94 native frame; root original image review required"
+    }
+  ],
+  "actual713Frame": {
+    "sha256": "d7def00ea146454b0b18313ffd33e9aa1f9cff639406e25bf2d1146c2b84755b",
+    "rootPersonallyReviewed": true
+  },
+  "qualified714NativeFrameReuse": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/714-qualified-frame-reuse.json",
+    "sha256": "87bc806eb65bf3724547a05ee8cbf9e6c0ad646d98e5ebf4ac6f14e74e84f60d"
+  },
+  "externalInventory": {
+    "entries": 433,
+    "source": {
+      "path": "target/course-windows-20261018/final-brep-refreeze-v2-preparation/source-713/src/current_inventory.json",
+      "sha256": "a9213bce557cb5f98665aec507d7bc02fd67873ae28fe06223e3552822af8de7"
+    },
+    "allCanonicalHashesAndSetVerified": true
+  },
+  "readerRetention": {
+    "endpoints": 101,
+    "phases": 202,
+    "originalRecordsOnly": true,
+    "currentSourceFingerprintsEqual": true,
+    "dependencyQualification": {
+      "record": {
+        "path": "target/course-windows-20261018/final-kernel-reader-relevance-audit/audit.json",
+        "sha256": "3cb393b213f0b3a69ad67873325e4247c9611d2848985d004454f38d1a330a32"
+      },
+      "actualRustHead": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
+      "readerEndpoints": 101,
+      "kernelDependent": 93,
+      "kernelIndependent": 8,
+      "existingPublicAPIUnchanged": true,
+      "additiveTestEntrypoints": [
+        "pub fn run_brep_ruled_watertight() -> TestResult {",
+        "pub fn run_brep_volume_planar_curved_boundary() -> TestResult {",
+        "pub fn run_nurbssurface_mesh_planar_curved_boundary() -> TestResult {",
+        "pub fn run_primitives_nurbssurface_ruled_nearby_knots() -> TestResult {"
+      ],
+      "scope": "Original170+32actual historical compiler phases retain exactoldkernel/source/execution identities. Newkernel dependency relevance/API compatibility only for93rows;8nonkernelrows separate. No101newkernelcompile claim. Actualnewfinal713/714hostWASM phases compilechangedkernel separately."
+    },
+    "unaffectedCheckpoints": 1359
+  },
+  "actualCompilerNamespaces": {
+    "packageNames": [
+      "viewer_journey_713_f339c9ac8c75353caca48e1d",
+      "viewer_journey_714_40e317cc56bd558db438827d"
+    ],
+    "stableLibraryName": "viewer_journey",
+    "frameAlias": "viewer_journey_frame_f339c9ac8c75353caca48e1d",
+    "productionName": "session_viewer_freeze_528e2d28a704902f58a63a17",
+    "productionFingerprint": "528e2d28a704902f58a63a17fb4ec0a0d50ebaa9134f374c4f38f30298fd0b6c",
+    "scope": "Actual verbose rustc/JSON artifact/dep-info and immediate immutable artifact receipts bind each phase. Library name preserved for WASM filenames/examples; no global cache cleaning or shared-name alias reuse."
+  },
+  "compilerAndNativeResources": "Exact command/resource/log hashes checked0exit/no timeout/2CPU/4GiB; direct unfiltered native testEXE at canonical viewer cwd with1thread. Retained immutable artifacts bind executions, not mutable debug-cache files.",
+  "preservedEarlierNative": {
+    "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+    "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+  },
+  "priorNativeQualification": "Historical694/1064 acceptance retained only; never relabeled final BRep/newkernel execution.",
+  "excludedScope": [
+    "No currentbrowser/pixel/callback/gates2–5 acceptance inferred",
+    "No714 full native suite",
+    "No all1359compiler-run claim or replay of101/202 historical proofs",
+    "No progress/feature/tutorial count changes"
+  ],
+  "postflightSources": [
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "count": 713,
+      "fingerprint": "f339c9ac8c75353caca48e1dba3c537a002f0e62726b19f58dcad7bdb324bf9e",
+      "packageName": "viewer_journey_713_f339c9ac8c75353caca48e1d"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "count": 714,
+      "fingerprint": "40e317cc56bd558db438827de2ebfbc8b8be9be8453d2043fb54929a56d5baa0",
+      "packageName": "viewer_journey_714_40e317cc56bd558db438827d"
+    }
+  ],
+  "recordedUtc": "2026-10-24T20:45:49.475Z",
+  "nativeManifest": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/native-files/final-brep-final-native-integration-review.json",
+    "sha256": "befcbe25a9ef21b6c03a081be14ed498c3bd6aaacf6219a64b0c93277d901d27"
+  },
+  "independentAudit": {
+    "path": "target/course-windows-20261018/final-brep-refreeze-v2-publication-preparation/native-current-build-gate-audit.json",
+    "sha256": "97b5ae685693930211dd21d04b13fe74fadb0297396ff1d333b4a7c65b798f67"
+  }
+}

@@ -1,36 +1,66 @@
 # 2.6 · Perspective picking and orbit navigation
 
-Walk around a model and select the visible surface with a ray that agrees with its camera.
+**Steps:** 2 · **Source:** `src/camera.rs` · `src/engine/gpu/render.rs` · `src/shaders/scene.wgsl`
 
-## Ownership and data flow
+## <a id="checkpoint-15-perspective"></a>1. Pick the nearest surface through the view
 
-The nearest valid ray/triangle hit returns a stable object identity. Navigation changes a quaternion orientation around a fixed target; eye and up are derived from that orientation. The same camera must drive drawing and picking after every turn. Keeping document history independent means Undo changes objects without snapping the current view back.
-
-## The maintained implementation
-
-camera.rs is the maintained orbit owner. Its ray method handles scene units, frame shift and orthographic or perspective projection; state.rs and app/input.rs route view changes. This checkpoint establishes the camera contract before dense-display sizing and captured pointer gestures.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-15-perspective"></a>
-
-<details>
-<summary>Implementation 15-perspective: Pick the nearest surface through the view</summary>
-
-View the scene in perspective and select surfaces with a ray that agrees with the camera.
-
-Data flow: Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-7950a6c3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-7950a6c3" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">15-PERSPECTIVE · RAY HIT</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Möller–Trumbore 3D Ray-Triangle Intersection in World Space</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">O + t*d = (1-u-v)V0 + uV1 + vV2</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-7950a6c3)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Edge Vectors e1 = V1-V0, e2 = V2-V0</text>
+  <polygon points="84,168 186,74 288,158" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="84" y1="168" x2="186" y2="74" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arr-b-7950a6c3)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="118" y="112" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">e1</text>
+  <line x1="84" y1="168" x2="288" y2="158" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arr-g-7950a6c3)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="182" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">e2</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-7950a6c3)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-7950a6c3)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Cramers Rule: det = dot(e1, d × e2)</text>
+  <rect x="416" y="76" width="288" height="104" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">pvec = cross(d, e2); det = dot(e1, pvec)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">u = dot(T, pvec) / det  ∈ [0, 1]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">v = dot(d, qvec) / det  (u + v &lt;= 1)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="166" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">t = dot(e2, qvec) / det  (min t &gt; 0)</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-7950a6c3)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-7950a6c3)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Nearest Visible 3D Surface Selected</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="852,166 934,80 1016,166" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <circle cx="934" cy="132" r="5.5" fill="#dc2626"/>
+</svg>
+</div>
 
 ### 1. `src/picking.rs`
 
-Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 use crate::scene::{ObjectId, Scene};
@@ -99,57 +129,155 @@ mod tests {
         camera.rotate(0.7);
         let world = [0.4, 0.0];
         let m = camera.uniform();
-        let screen = [m[0] * world[0] + m[4] * world[1] + m[12],
-            m[1] * world[0] + m[5] * world[1] + m[13]];
+        let screen = [
+            m[0] * world[0] + m[4] * world[1] + m[12],
+            m[1] * world[0] + m[5] * world[1] + m[13],
+        ];
         let restored = camera.world_from_screen(screen);
         assert!((restored[0] - world[0]).abs() < 1.0e-6);
         assert!((restored[1] - world[1]).abs() < 1.0e-6);
-        assert_eq!(pick(&scene, restored), Some(scene.objects()[1].id));
+        assert_eq!(
+            pick(&scene, restored),
+            Some(scene.objects()[1].id)
+        );
     }
 
     #[test]
     fn an_edge_on_or_invalid_triangle_cannot_be_picked() {
-        assert_eq!(triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]), None);
+        assert_eq!(
+            triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]),
+            None
+        );
         assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);
     }
-}
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/15-perspective-03.rs"
+use crate::{
+    camera::Ray,
+    scene::{ObjectId, Scene},
+};
+use session_rust::{Point, Vector};
+
+pub fn pick(scene: &Scene, ray: &Ray) -> Option<ObjectId> {
+    let mut nearest = ray.max_distance;
+    let mut hit = None;
+    for object in scene.objects() {
+        let vertices = object.mesh.vertices();
+        for triangle in object.mesh.indices().chunks_exact(3) {
+            let a = vertices[triangle[0] as usize];
+            let b = vertices[triangle[1] as usize];
+            let c = vertices[triangle[2] as usize];
+            if let Some(distance) = triangle_distance(ray, a, b, c) {
+                if distance >= 0.0 && distance < nearest {
+                    nearest = distance;
+                    hit = Some(object.id);
+                }
+            }
+        }
+    }
+    hit
+}
+
+fn triangle_distance(ray: &Ray, a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f64> {
+    let edge1 = Vector::new(
+        (b[0] - a[0]) as f64,
+        (b[1] - a[1]) as f64,
+        (b[2] - a[2]) as f64,
+    );
+    let edge2 = Vector::new(
+        (c[0] - a[0]) as f64,
+        (c[1] - a[1]) as f64,
+        (c[2] - a[2]) as f64,
+    );
+    let p = ray.direction.cross(&edge2);
+    let determinant = edge1.dot(&p);
+    if determinant.abs() < 1.0e-10 {
+        return None;
+    }
+    let origin = &ray.origin - &Point::new(a[0] as f64, a[1] as f64, a[2] as f64);
+    let u = origin.dot(&p) / determinant;
+    let q = origin.cross(&edge1);
+    let v = ray.direction.dot(&q) / determinant;
+    if u >= 0.0 && v >= 0.0 && u + v <= 1.0 {
+        Some(edge2.dot(&q) / determinant)
+    } else {
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::camera::Camera;
+
+    #[test]
+    fn perspective_picking_chooses_the_nearest_visible_surface() {
+        let mut scene = Scene::demo();
+        let camera = Camera::default();
+        let ray = camera.ray([0.0, 0.0]).unwrap();
+        let pink = scene.objects()[0].id;
+        let turquoise = scene.objects()[1].id;
+        assert_eq!(pick(&scene, &ray), Some(turquoise));
+        scene.remove(turquoise);
+        assert_eq!(pick(&scene, &ray), Some(pink));
+        let short = Ray {
+            max_distance: 0.1,
+            ..ray
+        };
+        assert_eq!(pick(&scene, &short), None);
+    }
+
+    #[test]
+    fn picking_follows_the_camera_and_ignores_triangles_behind_the_ray() {
+        let scene = Scene::demo();
+        let mut camera = Camera::default();
+        camera.pan(0.1, -0.2);
+        camera.rotate(0.7);
+        camera.zoom(0.5);
+        let screen = camera
+            .view_projection()
+            .transform_point(&Point::new(0.4, 0.0, 0.75));
+        let ray = camera
+            .ray([screen[0] as f32, screen[1] as f32])
+            .unwrap();
+        assert_eq!(
+            pick(&scene, &ray),
+            Some(scene.objects()[1].id)
+        );
+        let away = Ray {
+            origin: Point::new(0.0, 0.0, 2.0),
+            direction: Vector::z_axis(),
+            max_distance: 10.0,
+        };
+        assert_eq!(pick(&scene, &away), None);
+    }
 ```
 
 ### 2. `src/lib.rs`
 
-Register the camera-ray query now that its input is available.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub mod scene;
+pub mod mesh;
+pub mod renderer;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/15-perspective-picking-module.rs" skip=15
+pub mod mesh;
+pub mod picking;
+pub mod renderer;
 ```
 
 ### 3. `src/browser.rs`
 
-Convert a canvas click to a camera ray and highlight its nearest valid object. Report that perspective picking is ready.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     )?;
@@ -157,10 +285,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     click.forget();
     report("Perspective drawing uses the current camera.");
     Ok(())
-}
 ```
-
-</details>
 
 Replace it with:
 
@@ -170,322 +295,111 @@ Replace it with:
     click.forget();
     report("Perspective and picking use the same camera.");
     Ok(())
-}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        });
-        if let Some(line) = line {
-            match line.as_str() {
-                "canvas" => return,
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
+                match line.as_str() {
+                    "canvas" => return,
+                    "example triangle" => {
+                        history.edit(&mut scene, Scene::toggle_extra);
+                        selected = selected.filter(|id| scene.contains(*id));
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        });
-        if let Some(line) = line {
-            match line.as_str() {
-                "canvas" => {
-                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                        return;
-                    };
-                    let rect = input_canvas.get_bounding_client_rect();
-                    if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                        return;
-                    }
-                    let screen = [
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ];
-                    selected = camera
-                        .ray(screen)
-                        .and_then(|ray| crate::picking::pick(&scene, &ray));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::camera::Camera;
-use crate::history::History;
-use crate::renderer::Renderer;
-use crate::scene::Scene;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut scene = Scene::demo();
-    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);
-    renderer.resize(width, height);
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    let mut history = History::default();
-    let mut selected = None;
-    let mut background = Background::default();
-    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };
-    present(
-        &surface,
-        &renderer,
-        &background,
-        &camera.uniform(),
-        &mut panel,
-    )?;
-    let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        };
-
-        let line = line.or_else(|| {
-            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
-            (event.type_() == "click"
-                && !panel.consumed
-                && mouse
-                    .target()
-                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
-                    .is_some_and(|target| target.id() == "canvas"))
-            .then(|| "canvas".into())
-        });
-        if let Some(line) = line {
-            match line.as_str() {
-                "canvas" => {
-                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                        return;
-                    };
-                    let rect = input_canvas.get_bounding_client_rect();
-                    if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                        return;
-                    }
-                    let screen = [
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ];
-                    selected = camera
-                        .ray(screen)
-                        .and_then(|ray| crate::picking::pick(&scene, &ray));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "select next" => {
-                    selected = scene.next(selected);
-                    renderer.set_scene(&scene, selected);
-                }
-                "delete" => {
-                    if let Some(id) = selected.take() {
-                        history.edit(&mut scene, |scene| {
-                            scene.remove(id);
-                        });
+                match line.as_str() {
+                    "canvas" => {
+                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+                        };
+                        let rect = input_canvas.get_bounding_client_rect();
+                        if rect.width() <= 0.0 || rect.height() <= 0.0 {
+                            return;
+                        }
+                        let screen = [
+                            (2.0 * (event.client_x() as f64 - rect.left())
+                                / rect.width()
+                                - 1.0) as f32,
+                            (1.0 - 2.0 * (event.client_y() as f64 - rect.top())
+                                / rect.height()) as f32,
+                        ];
+                        selected = camera
+                            .ray(screen)
+                            .and_then(|ray| crate::picking::pick(&scene, &ray));
                         renderer.set_scene(&scene, selected);
                     }
-                }
-                "undo" | "redo" => {
-                    if line == "undo" {
-                        history.undo(&mut scene);
-                    } else {
-                        history.redo(&mut scene);
-                    }
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
-                _ => return,
-            }
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(
-            &surface,
-            &renderer,
-            &background,
-            &camera.uniform(),
-            &mut panel,
-        ) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-        "click",
-    ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        click.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Perspective and picking use the same camera.");
-    Ok(())
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
+                    "example triangle" => {
+                        history.edit(&mut scene, Scene::toggle_extra);
+                        selected = selected.filter(|id| scene.contains(*id));
 ```
 
-</details>
+## <a id="checkpoint-16-orbit"></a>2. Walk around the model
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/15-perspective-canvas-ray.rs"
-```
-
-```text
---8<-- "journey/code/15-perspective-status.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-16-orbit"></a>
-
-<details>
-<summary>Implementation 16-orbit: Walk around the model</summary>
-
-Orbit and tilt a perspective camera while keeping its target in place.
-
-Data flow: View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arr-r-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-b-205f2df5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <pattern id="grid-205f2df5" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect x="2" y="2" width="1116" height="210" rx="8" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="2" y="2" width="1116" height="28" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="2" y1="30" x2="1118" y2="30" stroke="#111111" stroke-width="1.5"/>
+  <rect x="12" y="7" width="176" height="18" rx="3" fill="#111111"/>
+  <text x="100" y="19.5" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#ffffff" paint-order="normal" stroke="none">16-ORBIT · SPHERICAL EYE</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="518" y="20" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Spherical Orbit (Azimuth θ, Elevation φ, Radius r), View-Plane Pan &amp; Dolly</text>
+  <rect x="838" y="7" width="268" height="18" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="972" y="19.5" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#2563eb">eye = target + r*(cosφ sinθ, sinφ, cosφ cosθ)</text>
+  <rect x="14" y="38" width="344" height="164" rx="6" fill="url(#grid-205f2df5)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="14" y1="60" x2="358" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1 · Azimuth θ &amp; Clamped Elevation φ</text>
+  <ellipse cx="186" cy="134" rx="108" ry="36" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M 110 134 A 76 62 0 0 1 244 82" fill="none" stroke="#16a34a" stroke-width="1.75"/>
+  <circle cx="186" cy="134" r="4.5" fill="#dc2626"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="186" y="152" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Target C</text>
+  <circle cx="244" cy="82" r="6" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+  <line x1="244" y1="82" x2="190" y2="130" stroke="#111111" stroke-width="1.75" marker-end="url(#arr-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="278" y="84" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Eye(θ,φ,r)</text>
+  <line x1="358" y1="120" x2="384" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-205f2df5)"/>
+  <rect x="388" y="38" width="344" height="164" rx="6" fill="url(#grid-205f2df5)" stroke="#111111" stroke-width="1.5"/>
+  <line x1="388" y1="60" x2="732" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="560" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2 · Orthonormal Camera Basis (Right, Up, Fwd)</text>
+  <circle cx="540" cy="138" r="4.5" fill="#111111"/>
+  <line x1="540" y1="138" x2="626" y2="138" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arr-r-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="648" y="142" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">Right</text>
+  <line x1="540" y1="138" x2="540" y2="74" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arr-g-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="540" y="68" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">Up</text>
+  <line x1="540" y1="138" x2="476" y2="174" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arr-b-205f2df5)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="456" y="184" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">Fwd</text>
+  <line x1="732" y1="120" x2="758" y2="120" stroke="#111111" stroke-width="2" marker-end="url(#arr-205f2df5)"/>
+  <rect x="762" y="38" width="344" height="164" rx="6" fill="url(#grid-205f2df5)" stroke="#111111" stroke-width="1.75"/>
+  <line x1="762" y1="60" x2="1106" y2="60" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round" x="934" y="53" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3 · Interactive 3D Inspection</text>
+  <rect x="806" y="68" width="256" height="122" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,96 944,74 1004,96 944,118" fill="#bfdbfe" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="884,96 944,118 944,174 884,152" fill="#60a5fa" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="944,118 1004,96 1004,152 944,174" fill="#2563eb" stroke="#111111" stroke-width="1.5"/>
+</svg>
+</div>
 
 ### 1. `src/camera.rs`
 
-Use the kernel’s rotation representation alongside its points, vectors and matrices. Store a 3D target and orientation instead of a flat centre and one angle. Keep the same initial eye and up directions as the perspective lesson. Move the target in the camera’s current right/up plane, including its world-z component. Add world-up orbit and a named pose. Keep rotate as the existing Turn view action. Calculate eye and up from the orientation, then reuse the existing view and projection construction. Extend the target-centering test to include a 3D orbit. Check the rotation invariant after many small updates, not just one convenient angle.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 use session_rust::{Point, Vector, Xform};
@@ -505,7 +419,12 @@ pub struct Camera {
 
 impl Default for Camera {
     fn default() -> Self {
-        Self { center: [0.0, 0.0], distance: 3.0, angle: 0.0, aspect: 640.0 / 480.0 }
+        Self {
+            center: [0.0, 0.0],
+            distance: 3.0,
+            angle: 0.0,
+            aspect: 640.0 / 480.0,
+        }
     }
 }
 
@@ -532,7 +451,12 @@ impl Camera {
         let (sin, cos) = self.angle.sin_cos();
         let up = Vector::new(-sin, cos, 0.0);
         let view = Xform::look_at_right_handed(&eye, &target, &up);
-        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);
+        let projection = Xform::perspective(
+            60.0_f64.to_radians(),
+            self.aspect,
+            0.01,
+            100.0,
+        );
         projection * view
     }
 
@@ -541,18 +465,33 @@ impl Camera {
     }
 
     pub fn ray(&self, screen: [f32; 2]) -> Option<Ray> {
-        if screen.iter().any(|value| !value.is_finite() || value.abs() > 1.0) {
+        if screen
+            .iter()
+            .any(|value| !value.is_finite() || value.abs() > 1.0)
+        {
             return None;
         }
         let inverse = self.view_projection().inverse()?;
-        let origin = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 0.0));
-        let end = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 1.0));
+        let origin = inverse.transform_point(&Point::new(
+            screen[0] as f64,
+            screen[1] as f64,
+            0.0,
+        ));
+        let end = inverse.transform_point(&Point::new(
+            screen[0] as f64,
+            screen[1] as f64,
+            1.0,
+        ));
         let delta = &end - &origin;
         let max_distance = delta.magnitude();
         if !max_distance.is_finite() || max_distance <= 0.0 {
             return None;
         }
-        Some(Ray { origin, direction: delta.normalized(), max_distance })
+        Some(Ray {
+            origin,
+            direction: delta.normalized(),
+            max_distance,
+        })
     }
 }
 
@@ -567,27 +506,13 @@ mod tests {
         camera.zoom(2.0);
         camera.rotate(0.7);
         let target = Point::new(camera.center[0], camera.center[1], 0.0);
-        let screen = camera.view_projection().transform_point(&target);
+        let screen = camera
+            .view_projection()
+            .transform_point(&target);
         assert!(screen[0].abs() < 1.0e-9 && screen[1].abs() < 1.0e-9);
         assert!((0.0..1.0).contains(&screen[2]));
     }
-
-    #[test]
-    fn a_projected_point_lies_on_its_unprojected_ray() {
-        let camera = Camera::default();
-        let world = Point::new(0.4, 0.2, 0.75);
-        let screen = camera.view_projection().transform_point(&world);
-        let ray = camera.ray([screen[0] as f32, screen[1] as f32]).unwrap();
-        let offset = &world - &ray.origin;
-        assert!(offset.cross(&ray.direction).magnitude() < 1.0e-6);
-        assert!(offset.dot(&ray.direction) > 0.0);
-        assert!(offset.magnitude() < ray.max_distance);
-        assert!(camera.ray([f32::NAN, 0.0]).is_none());
-    }
-}
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
@@ -612,7 +537,10 @@ impl Default for Camera {
         Self {
             target: [0.0; 3],
             distance: 3.0,
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
+            orientation: Quaternion::from_axis_angle(
+                Vector::x_axis(),
+                -std::f64::consts::FRAC_PI_2,
+            ),
             aspect: 640.0 / 480.0,
         }
     }
@@ -620,8 +548,12 @@ impl Default for Camera {
 
 impl Camera {
     pub fn pan(&mut self, dx: f32, dy: f32) {
-        let right = self.orientation.rotate_vector(Vector::x_axis());
-        let up = self.orientation.rotate_vector(Vector::z_axis());
+        let right = self
+            .orientation
+            .rotate_vector(Vector::x_axis());
+        let up = self
+            .orientation
+            .rotate_vector(Vector::z_axis());
         for i in 0..3 {
             self.target[i] += dx as f64 * right[i] + dy as f64 * up[i];
         }
@@ -638,30 +570,48 @@ impl Camera {
     }
 
     pub fn orbit(&mut self, yaw: f64, pitch: f64) {
-        let right = self.orientation.rotate_vector(Vector::x_axis());
+        let right = self
+            .orientation
+            .rotate_vector(Vector::x_axis());
         let turn = Quaternion::from_axis_angle(Vector::z_axis(), yaw);
         let tilt = Quaternion::from_axis_angle(right, pitch);
         self.orientation = (turn * (tilt * self.orientation.duplicate())).normalized();
     }
 
     pub fn isometric(&mut self) {
-        let turn = Quaternion::from_axis_angle(Vector::z_axis(), -std::f64::consts::FRAC_PI_6);
+        let turn = Quaternion::from_axis_angle(
+            Vector::z_axis(),
+            -std::f64::consts::FRAC_PI_6,
+        );
         let right = turn.rotate_vector(Vector::x_axis());
         let tilt = Quaternion::from_axis_angle(right, -std::f64::consts::FRAC_PI_6);
         self.orientation = (tilt * turn).normalized();
     }
 
     pub fn view_projection(&self) -> Xform {
-        let forward = self.orientation.rotate_vector(Vector::y_axis());
-        let up = self.orientation.rotate_vector(Vector::z_axis());
-        let target = Point::new(self.target[0], self.target[1], self.target[2]);
+        let forward = self
+            .orientation
+            .rotate_vector(Vector::y_axis());
+        let up = self
+            .orientation
+            .rotate_vector(Vector::z_axis());
+        let target = Point::new(
+            self.target[0],
+            self.target[1],
+            self.target[2],
+        );
         let eye = Point::new(
             self.target[0] - forward[0] * self.distance,
             self.target[1] - forward[1] * self.distance,
             self.target[2] - forward[2] * self.distance,
         );
         let view = Xform::look_at_right_handed(&eye, &target, &up);
-        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);
+        let projection = Xform::perspective(
+            60.0_f64.to_radians(),
+            self.aspect,
+            0.01,
+            100.0,
+        );
         projection * view
     }
 
@@ -670,18 +620,33 @@ impl Camera {
     }
 
     pub fn ray(&self, screen: [f32; 2]) -> Option<Ray> {
-        if screen.iter().any(|value| !value.is_finite() || value.abs() > 1.0) {
+        if screen
+            .iter()
+            .any(|value| !value.is_finite() || value.abs() > 1.0)
+        {
             return None;
         }
         let inverse = self.view_projection().inverse()?;
-        let origin = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 0.0));
-        let end = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 1.0));
+        let origin = inverse.transform_point(&Point::new(
+            screen[0] as f64,
+            screen[1] as f64,
+            0.0,
+        ));
+        let end = inverse.transform_point(&Point::new(
+            screen[0] as f64,
+            screen[1] as f64,
+            1.0,
+        ));
         let delta = &end - &origin;
         let max_distance = delta.magnitude();
         if !max_distance.is_finite() || max_distance <= 0.0 {
             return None;
         }
-        Some(Ray { origin, direction: delta.normalized(), max_distance })
+        Some(Ray {
+            origin,
+            direction: delta.normalized(),
+            max_distance,
+        })
     }
 }
 
@@ -696,8 +661,14 @@ mod tests {
         camera.zoom(2.0);
         camera.rotate(0.7);
         camera.orbit(0.3, 0.2);
-        let target = Point::new(camera.target[0], camera.target[1], camera.target[2]);
-        let screen = camera.view_projection().transform_point(&target);
+        let target = Point::new(
+            camera.target[0],
+            camera.target[1],
+            camera.target[2],
+        );
+        let screen = camera
+            .view_projection()
+            .transform_point(&target);
         assert!(screen[0].abs() < 1.0e-9 && screen[1].abs() < 1.0e-9);
         assert!((0.0..1.0).contains(&screen[2]));
     }
@@ -708,9 +679,15 @@ mod tests {
         for _ in 0..1_000 {
             camera.orbit(0.01, 0.02);
         }
-        let right = camera.orientation.rotate_vector(Vector::x_axis());
-        let forward = camera.orientation.rotate_vector(Vector::y_axis());
-        let up = camera.orientation.rotate_vector(Vector::z_axis());
+        let right = camera
+            .orientation
+            .rotate_vector(Vector::x_axis());
+        let forward = camera
+            .orientation
+            .rotate_vector(Vector::y_axis());
+        let up = camera
+            .orientation
+            .rotate_vector(Vector::z_axis());
         for axis in [&right, &forward, &up] {
             assert!((axis.magnitude() - 1.0).abs() < 1.0e-10);
         }
@@ -718,69 +695,13 @@ mod tests {
         assert!(right.dot(&up).abs() < 1.0e-10);
         assert!(forward.dot(&up).abs() < 1.0e-10);
     }
-
-    #[test]
-    fn a_projected_point_lies_on_its_unprojected_ray() {
-        let camera = Camera::default();
-        let world = Point::new(0.4, 0.2, 0.75);
-        let screen = camera.view_projection().transform_point(&world);
-        let ray = camera.ray([screen[0] as f32, screen[1] as f32]).unwrap();
-        let offset = &world - &ray.origin;
-        assert!(offset.cross(&ray.direction).magnitude() < 1.0e-6);
-        assert!(offset.dot(&ray.direction) > 0.0);
-        assert!(offset.magnitude() < ray.max_distance);
-        assert!(camera.ray([f32::NAN, 0.0]).is_none());
-    }
-}
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/16-orbit-01.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-02.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-03.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-04.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-05.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-06.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-07.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-08.rs"
-```
-
-</details>
 
 ### 2. `src/browser.rs`
 
-Add vertical orbit and isometric commands. Apply vertical orbit or the isometric orientation. Report that orbit preserves the target.
-
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     )?;
@@ -788,10 +709,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     click.forget();
     report("Perspective and picking use the same camera.");
     Ok(())
-}
 ```
-
-</details>
 
 Replace it with:
 
@@ -801,55 +719,44 @@ Replace it with:
     click.forget();
     report("Orbit moves the eye around a fixed target.");
     Ok(())
-}
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
-                _ => return,
-            }
+                    "pan left" => camera.pan(-0.25, 0.0),
+                    "pan right" => camera.pan(0.25, 0.0),
+                    "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                    "view reset" => {
+                        camera = Camera {
+                            aspect: camera.aspect,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "orbit up" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),
-                "view isometric" => camera.isometric(),
-                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
-                _ => return,
-            }
+                    "pan left" => camera.pan(-0.25, 0.0),
+                    "pan right" => camera.pan(0.25, 0.0),
+                    "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                    "orbit up" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),
+                    "view isometric" => camera.isometric(),
+                    "view reset" => {
+                        camera = Camera {
+                            aspect: camera.aspect,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            "Pan Left",
-            "Pan Right",
             "Orbit Right",
             "View Reset",
         ],
     );
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
-            "Pan Left",
-            "Pan Right",
             "Orbit Right",
             "Orbit Up",
             "View Isometric",
@@ -858,288 +765,17 @@ Replace it with:
     );
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+## Build & Run
 
-```rust
-use crate::background::Background;
-use crate::camera::Camera;
-use crate::history::History;
-use crate::renderer::Renderer;
-use crate::scene::Scene;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut scene = Scene::demo();
-    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);
-    renderer.resize(width, height);
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Undo",
-            "Redo",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "Orbit Up",
-            "View Isometric",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    let mut history = History::default();
-    let mut selected = None;
-    let mut background = Background::default();
-    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };
-    present(
-        &surface,
-        &renderer,
-        &background,
-        &camera.uniform(),
-        &mut panel,
-    )?;
-    let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        };
-
-        let line = line.or_else(|| {
-            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
-            (event.type_() == "click"
-                && !panel.consumed
-                && mouse
-                    .target()
-                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
-                    .is_some_and(|target| target.id() == "canvas"))
-            .then(|| "canvas".into())
-        });
-        if let Some(line) = line {
-            match line.as_str() {
-                "canvas" => {
-                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                        return;
-                    };
-                    let rect = input_canvas.get_bounding_client_rect();
-                    if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                        return;
-                    }
-                    let screen = [
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ];
-                    selected = camera
-                        .ray(screen)
-                        .and_then(|ray| crate::picking::pick(&scene, &ray));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "select next" => {
-                    selected = scene.next(selected);
-                    renderer.set_scene(&scene, selected);
-                }
-                "delete" => {
-                    if let Some(id) = selected.take() {
-                        history.edit(&mut scene, |scene| {
-                            scene.remove(id);
-                        });
-                        renderer.set_scene(&scene, selected);
-                    }
-                }
-                "undo" | "redo" => {
-                    if line == "undo" {
-                        history.undo(&mut scene);
-                    } else {
-                        history.redo(&mut scene);
-                    }
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "orbit up" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),
-                "view isometric" => camera.isometric(),
-                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
-                _ => return,
-            }
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(
-            &surface,
-            &renderer,
-            &background,
-            &camera.uniform(),
-            &mut panel,
-        ) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-        "click",
-    ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        click.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Orbit moves the eye around a fixed target.");
-    Ok(())
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/16-orbit-window-1.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-window-2.rs"
-```
-
-```text
---8<-- "journey/code/16-orbit-window-3.rs"
-```
-
-</details>
-
-</details>
-
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+![Recorded visual output for Lesson 2.6 (16-orbit)](../../screenshots/journey/16-orbit-browser.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 16-orbit
-npm --prefix ../session_tests run course -- check 16-orbit
-npm --prefix ../session_tests run course -- save 16-orbit
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 2.6
+npm --prefix ../session_tests run course -- save 2.6
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-Type `View Isometric`, then `Orbit Right`. The eye moves around the same target. Click a visible face to confirm picking still agrees with the new view.
-
-Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+Continue with [3.1 · Kernel geometry and a single editor owner](17-solid.md).

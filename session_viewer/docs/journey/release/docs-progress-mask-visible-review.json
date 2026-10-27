@@ -1,0 +1,239 @@
+{
+  "status": "PASS source-bound eight-stage roadmap and changed Chapter13 desktop/phone publication",
+  "source": {
+    "courseSha256": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+    "roadmapSha256": "e695c6471cca92a5069d36b713449205022358144ca24d87311bfa2a68b7c7a6",
+    "currentStateSha256": "c9de4b77c5e10c46ef1db7eaffd557f5a1fa9d18cb8b42f6b1d7c6b147e46f8f",
+    "chapterFile": "docs/journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
+    "chapterSha256": "63e86eb13b88fdb78e7193a1b9552962b3b4843b0a34426b1e253ed049b61975",
+    "inputManifest": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/inputs.json",
+      "sha256": "ee5994c2e5db42335fc16ba81f41e4867f30ccb8e7eede1d1814123fe7936067"
+    }
+  },
+  "build": {
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/resources.json",
+      "sha256": "967ba0303949cb283c5c1592463fc609d91bb9c812c848d72b90628ccec2f364"
+    },
+    "command": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/command.json",
+      "sha256": "0706528debb5958106eb0c01fad649095743b29c027e58f19dd27c11771800fc"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/build.log",
+      "sha256": "97972c8e604cab09695b932e2227c8a9b63f3be9b4a13f4dcc773a5b2a1286f6"
+    },
+    "elapsedSeconds": 38.46,
+    "peakJobCommitBytes": 1397379072,
+    "base": "/docs/",
+    "output": "target/docs/vue"
+  },
+  "probe": {
+    "review": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/visible-roadmap-v3b/review.json",
+      "sha256": "25f7acf34b8d8577df7ac8fca9a7ef8a12eaf90885bf66770ac431fca0672fe7"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/probe-v3b-resources.json",
+      "sha256": "c525c610517cf0d105b3fc27baf10233bc942b6c1b671c1bd4b7087bff5aca3d"
+    },
+    "script": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/probe-v3b.cjs",
+      "sha256": "0570301fd636a3a0728f3ac525fb967e5980225c8b8ae0e707167d5db25f20fc"
+    },
+    "elapsedSeconds": 10.958,
+    "peakJobCommitBytes": 247205888,
+    "roadmap": {
+      "checkboxCount": 1468,
+      "summary": "Full callbacks: 1/18 accepted; 17 left.",
+      "proofLinks": [
+        {
+          "label": "Lesson publication",
+          "url": "http://localhost:8788/docs/course/docs/journey/release/clipping-guide-two-fixture-docs-visible-review.json?v=0c93b2bd74f3",
+          "sha256": "0c93b2bd74f3f1f7d327a183d14d69379a84d2e4a26776d34ac8e875b7c18d68",
+          "status": "PASS scoped22.6 six source additions and corrected authored fixtures"
+        },
+        {
+          "label": "Native recovery",
+          "url": "http://localhost:8788/docs/course/docs/journey/release/native-ribbon-v4-qualified-recovery-review.json?v=a2d4516e9743",
+          "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d",
+          "status": "QUALIFIED recovery:original full run FAIL1060/1062;two exact corrected-fixture focused cases PASS"
+        },
+        {
+          "label": "Artifact review",
+          "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-artifact-review.json?v=59be90667e77",
+          "sha256": "59be90667e771cef30162b2751deddbf01fdde539e1620abb3f1f96c85263c34",
+          "status": "PASS finite current-source nativeframe, WASM, optimized webartifact and browserboot/render; broader tutorial/release acceptance remains separate"
+        }
+      ],
+      "figures": [
+        {
+          "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-native-frame.png",
+          "sha256": "4c786c32b7fcbed3d6c3554637444ed580ee84bb09e643805e2bed534eb4f274",
+          "width": 640,
+          "height": 480
+        },
+        {
+          "url": "http://localhost:8788/docs/course/docs/journey/release/final-fef4-browser-boot.png",
+          "sha256": "b34f1ec8e712448260d1d33d31fb0b8f1f669d2bb4590944f6a5df31fcfcf4b7",
+          "width": 900,
+          "height": 760
+        }
+      ],
+      "fit": {
+        "viewport": 1400,
+        "document": 1400,
+        "articleClient": 793,
+        "articleScroll": 793,
+        "mainClient": 1095,
+        "mainScroll": 1095
+      }
+    },
+    "chapter13": {
+      "file": "docs/journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
+      "title": "13.3 · Feature ancestry and canonical local-to-world placement",
+      "previousCodeBlocks": 49,
+      "previousAnchors": [
+        "checkpoint-70-evaluate-source-ancestry-once-per-document",
+        "checkpoint-70a-keep-original-local-parent-and-world-matrices",
+        "checkpoint-70b-connect-canonical-cached-models-to-every-source-owner",
+        "checkpoint-70c-save-nested-local-frames-without-flattening",
+        "checkpoint-70d-exercise-rotated-and-mirrored-original-references",
+        "checkpoint-70za-read-original-sheet-metadata-records"
+      ],
+      "priorBytesPreserved": true,
+      "authoredLanguage": "wgsl",
+      "cases": [
+        {
+          "name": "desktop",
+          "size": {
+            "width": 1400,
+            "height": 900
+          },
+          "fullShaderExact": true,
+          "previousCodeBlocksExact": true,
+          "checkpointAnchorsRetained": true,
+          "figures": [
+            {
+              "environment": "nvidia",
+              "url": "http://localhost:8788/docs/course/docs/journey/release/70d-mask-projection-nvidia-selected.png?v=58fbd5f36b33",
+              "sha256": "58fbd5f36b3379c593b5a968d7f7c588a8c852a7b260788ec95abf75e0b5df0d",
+              "width": 900,
+              "height": 760
+            },
+            {
+              "environment": "warp",
+              "url": "http://localhost:8788/docs/course/docs/journey/release/70d-mask-projection-warp-selected.png?v=af5d6cef6fcd",
+              "sha256": "af5d6cef6fcd6f6cfdd5abcc5e40502c9bbf04cbd0702083d706375e6e192ce0",
+              "width": 900,
+              "height": 760
+            }
+          ],
+          "fit": {
+            "viewport": 1400,
+            "document": 1400,
+            "articleClient": 793,
+            "articleScroll": 793,
+            "mainClient": 1095,
+            "mainScroll": 1095
+          },
+          "phoneDrawer": null,
+          "screenshot": "chapter13-desktop.png"
+        },
+        {
+          "name": "phone",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "fullShaderExact": true,
+          "previousCodeBlocksExact": true,
+          "checkpointAnchorsRetained": true,
+          "figures": [
+            {
+              "environment": "nvidia",
+              "url": "http://localhost:8788/docs/course/docs/journey/release/70d-mask-projection-nvidia-selected.png?v=58fbd5f36b33",
+              "sha256": "58fbd5f36b3379c593b5a968d7f7c588a8c852a7b260788ec95abf75e0b5df0d",
+              "width": 900,
+              "height": 760
+            },
+            {
+              "environment": "warp",
+              "url": "http://localhost:8788/docs/course/docs/journey/release/70d-mask-projection-warp-selected.png?v=af5d6cef6fcd",
+              "sha256": "af5d6cef6fcd6f6cfdd5abcc5e40502c9bbf04cbd0702083d706375e6e192ce0",
+              "width": 900,
+              "height": 760
+            }
+          ],
+          "fit": {
+            "viewport": 390,
+            "document": 390,
+            "articleClient": 343,
+            "articleScroll": 343,
+            "mainClient": 375,
+            "mainScroll": 375
+          },
+          "phoneDrawer": {
+            "closed": true,
+            "classes": "sidebar drawer",
+            "inert": true,
+            "menuExpanded": "false",
+            "backdropAbsent": true,
+            "left": -299.392822265625,
+            "right": 0.607177734375,
+            "visibility": "visible"
+          },
+          "screenshot": "chapter13-phone.png"
+        }
+      ]
+    },
+    "pageErrors": [],
+    "startingPagesPreserved": true
+  },
+  "images": [
+    {
+      "figure": "journey/release/docs-progress-eight-stage-desktop.png",
+      "sha256": "6578b537134170c25d434c96c16b3fe9d27665d6f37247fda7d11ab0df6da0b4",
+      "width": 1400,
+      "height": 900,
+      "rootIndividuallyReviewed": true
+    },
+    {
+      "figure": "journey/release/chapter13-mask-teaching-desktop.png",
+      "sha256": "69dba67bb138cfe5c894daf2fbbf2545d40440034dbd89c361c0069e7aeff66a",
+      "width": 1400,
+      "height": 900,
+      "rootIndividuallyReviewed": true
+    },
+    {
+      "figure": "journey/release/chapter13-mask-teaching-phone.png",
+      "sha256": "ca7830ee79b31cb55c1e31fddec6adfd53eabde71d23e6776486b3ab5c5555b2",
+      "width": 390,
+      "height": 844,
+      "rootIndividuallyReviewed": true
+    }
+  ],
+  "subsequentSourceChange": {
+    "receipt": {
+      "path": "target/course-windows-20261018/maintained97-proportional-phases/export-recovery/root-export-application.json",
+      "sha256": "a5f48a96883add006a40da6f6b65719cb6a587834c817b573475b2bdc61a8f14"
+    },
+    "currentCourseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+    "checkpoint": "97-finish-with-the-maintained-browser-runtime",
+    "scope": "After this docs check, only checkpoint97 removes one duplicate JavaScript export annotation. This record does not validate the subsequent97 teaching or progress edits."
+  },
+  "priorProbeFailure": {
+    "review": {
+      "path": "target/course-windows-20261018/fef4-progress-publication-preparation/progress-publication-v3/visible-roadmap-v3/review.json",
+      "sha256": "7a182fe7c281ce2aaefa4523f0854186fd4b3a77e8f78b13fa113c1c62c8a509"
+    },
+    "scope": "Original newphone visibility assertion raced drawer transition. V3b checks actual inert/aria/nooverlay/offviewportclosed state; all original source/image/layout checks remain."
+  },
+  "scope": [
+    "Exactly the source-bound prior roadmap and actual changed chapter13 lesson; no wholebook or runtime/GPU/feature callback replay.",
+    "All49prior codeblocks and oldcheckpointanchors retained; one complete WGSL shader added. Fixed NVIDIA/WARP image MIME/SHA verified; desktop/390phone layout and closed drawer assertions pass.",
+    "Root individually viewed all three original PNGs. Existing V2 record remains immutable.",
+    "No callback/feature/release count change, no current97 packaging or browser acceptance, and no proof relabeling after later copyedits."
+  ]
+}

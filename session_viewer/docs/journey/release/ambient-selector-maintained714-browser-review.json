@@ -1,0 +1,242 @@
+{
+  "preservedMaintained714Failure": {
+    "status": "FAIL original v1 full maintained714 attempt; DPR2 input-focus timeout, not complete acceptance",
+    "sourceFingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+    "scope": "DPR1 complete original callback and presentation finished; DPR2 canvasFocus after Element Beam middle-click left command_open true and timed out120000ms. Original DPR2 assertions were not completed or waived.",
+    "proof": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/proof.json",
+      "sha256": "cacc58b184cda8c383841d22f3d604f4b87d48db5e37e6e30d8f3c2519e96c9c"
+    },
+    "browser": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/browser.json",
+      "sha256": "44f39bcab3825e608e081bb39baa41b66c53efa0883e2b0315ec6c6976725459"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/output.log",
+      "sha256": "bb5ab0b0a57ff5771369ac3f540eb7ae8d34eff6310fafad969e3c9d7d85806c"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/resources.json",
+      "sha256": "93aa7ec4368653bac623663adf481fe7a3c8dee7dc1753a5b045be7786780056"
+    },
+    "diagnostic": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/97-finish-with-the-maintained-browser-runtime-browser-dpr2-failure.json",
+      "sha256": "6faff3255b9aa5469d85e1837e8e89dcd9178eff9b4dd9ad17a46ef997270d26"
+    },
+    "failureImage": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/failure-dpr2.png",
+      "sha256": "c9dfffaaff61f0c17eb956b70faa2efcb0abc4981f168379b052a749d395b4f7",
+      "rootPersonallyReviewed": true,
+      "review": "Real pedestal and selected beam intact; command field still focused. No blank rendering artifact observed."
+    },
+    "completedDpr1Image": {
+      "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v1/97-finish-with-the-maintained-browser-runtime-browser.png",
+      "sha256": "e77bb47546633c0a3f55b5d4c354bc4fefc560320138b41e2d02784eb7ef8079"
+    },
+    "errorQualification": "Retained failure diagnostic reports errors[] and no GPU error was reported. Complete/presentation device observations exist only for DPR1, so no completed DPR2 drawing-contract acceptance is inferred.",
+    "retry": "Unchanged worker/launcher was invoked under new v2 output label; no runtime/browser assertion/input change. Retry acceptance requires its actual full DPR1/2 successful proof and exact reviewed images."
+  },
+  "status": "PASS actual current source browser execution and root review of exact retained images",
+  "scope": "Complete unchanged maintained714 final.cjs DPR1/2 and capture_current presentation/UI assertions",
+  "sourceFingerprint": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "proof": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v2/proof.json",
+    "sha256": "cf4c69505173216f85037730f5cf81de123f8c45ce2caa841a9c38c95054a300"
+  },
+  "browser": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v2/browser.json",
+    "sha256": "f0149f52bfb324b0d4371ec0cb678bd7946703b301d0c70eaa9d4378273b3a62"
+  },
+  "log": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v2/output.log",
+    "sha256": "7e3c328261415ec1303280aa7cb9fccd6167ddeaceeb039140a06556925d98cd"
+  },
+  "resources": {
+    "path": "target/course-windows-20261018/ambient-selector-browser-relevance-preparation/selector-maintained714-v2/resources.json",
+    "sha256": "545837cf8c263f4f633f0b18bfae4254eac9ba64c916448f256e0852321899c7",
+    "elapsedSeconds": 11.946,
+    "peakJobCommitBytes": 875741184,
+    "jobCommitLimitBytes": 6442450944,
+    "processors": 2,
+    "exitCode": 0,
+    "timedOut": false,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced."
+  },
+  "validation": {
+    "inputPins": 2258,
+    "sourceBoundBundle": {
+      "path": "target/course-windows-20261018/ambient-selector-refreeze-preparation/714-web/bundle.json",
+      "sha256": "fa16fd9d69cc1480eabac2b67d39e2e39946a154be76b73e445455ce51175ff0"
+    },
+    "freshHttpPreAndPostPayloads": 23,
+    "retainedPayloadHashesExact": true
+  },
+  "adapter": {
+    "dxgiSelection": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0
+    },
+    "driver": {
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "driverVersion": "32.0.15.9579",
+      "pnpDeviceId": "PCI\\VEN_10DE&DEV_27E0&SUBSYS_3B6417AA&REV_A1\\4&2E9880A0&0&0008",
+      "status": "OK"
+    },
+    "actualDrawingObservations": [
+      {
+        "density": 1,
+        "phase": "complete-callback",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 1,
+        "phase": "presentation",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 2,
+        "phase": "complete-callback",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      },
+      {
+        "density": 2,
+        "phase": "presentation",
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            },
+            "device": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "device": "",
+              "description": "",
+              "isFallbackAdapter": false
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "qualification": "DXGI selection separately enumerated; each actual WebGPU drawing device observed NVIDIA, non-fallback. Exact WebGPU device name was unavailable."
+  },
+  "assertions": {
+    "completeUnchangedFinalCallbackDpr": [
+      1,
+      2
+    ],
+    "presentationDpr": [
+      1,
+      2
+    ],
+    "originalFinalCallbackSha256": "76e324a82cc27b1f925d7e6a639562238db77b7ecf56bb9cdc814f76720fe817",
+    "originalCaptureSha256": "fe1c0deb8e6b410023c3813ee58365e721e0276db13e8ed652b9f61d55d918cc",
+    "originalAssertionsRetained": true,
+    "globalResultsUntouched": true,
+    "privatePlumbingQualification": "Original legacy global results precheck replaced by source-bound actual build/resource/HTTP preflight; URL/output/error artifacts redirected privately; passive adapter/error observation added. Canonical callback and presentation assertions retained.",
+    "pixels": [
+      {
+        "density": 1,
+        "physical": [
+          900,
+          760
+        ],
+        "blue": 128904,
+        "black": 8422
+      },
+      {
+        "density": 2,
+        "physical": [
+          1800,
+          1520
+        ],
+        "blue": 512031,
+        "black": 39653
+      }
+    ]
+  },
+  "images": [
+    {
+      "name": "ambient-selector-maintained714-browser.png",
+      "sha256": "e77bb47546633c0a3f55b5d4c354bc4fefc560320138b41e2d02784eb7ef8079",
+      "rootPersonallyReviewed": true,
+      "review": "Intact blue original pedestal, black outlines, label, ground/contact AO/grid; no blank or clipped artifact."
+    },
+    {
+      "name": "ambient-selector-maintained714-browser-dpr2.png",
+      "sha256": "01d4c4040d61140881836665c903d48a0ff94f011087ee2cb7aa33871c404b55",
+      "rootPersonallyReviewed": true,
+      "review": "Intact blue original pedestal, black outlines, label, ground/contact AO/grid; no blank or clipped artifact."
+    }
+  ],
+  "exclusions": [
+    "No full native-suite or historical callback acceptance."
+  ]
+}

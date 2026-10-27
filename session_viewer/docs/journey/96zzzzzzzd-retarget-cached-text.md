@@ -1,8 +1,8 @@
 # 22.5.11 · Retarget cached text colour
 
-**Chapter 22 · Surface lighting, contact and display quality · Section 22.5 · Frame resources and multisampling** · [Contents](contents.md)
+**Chapter 22 · Surface lighting, contact and display quality · Section 22.5 · Coherent multisampling and frame-resource ownership** · [Contents](contents.md)
 
-**Typing: 18–36 minutes.** [Estimate](typing-load.md).
+**Typing: 15–29 minutes.** [Estimate](typing-load.md).
 
 Retarget world text, nameplates and screen glyph colour to the frame sample count. Keep original text, shaping, fonts, atlas contents and world-plane raster images retained, and keep original-owner queries independently single-sample.
 
@@ -536,33 +536,6 @@ Replace it with:
 <summary>Locate this block</summary>
 
 ```rust
-    {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("text_plane.wgsl").into()),
-        });
-        let colour_groups = [Some(&layout)];
-        let id_groups = [Some(&layout), Some(&pick)];
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(if target.samples==4 {include_str!("text_plane.wgsl").replace("@location(0) uv:","@location(0) @interpolate(perspective,sample) uv:").replace("@location(1) color:","@location(1) @interpolate(perspective,sample) color:").replace("@location(5) original:","@location(5) @interpolate(perspective,sample) original:").into()}else{include_str!("text_plane.wgsl").into()}),
-        });
-        let colour_groups = [Some(&layout)];
-        let id_groups = [Some(&layout), Some(&pick)];
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
     vertices: GrowBuf,
     layout: wgpu::BindGroupLayout,
     sampler: wgpu::Sampler,
@@ -968,7 +941,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout, ids: b
     {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(if target.samples==4 {include_str!("text_plane.wgsl").replace("@location(0) uv:","@location(0) @interpolate(perspective,sample) uv:").replace("@location(1) color:","@location(1) @interpolate(perspective,sample) color:").replace("@location(5) original:","@location(5) @interpolate(perspective,sample) original:").into()}else{include_str!("text_plane.wgsl").into()}),
+            source: wgpu::ShaderSource::Wgsl(include_str!("text_plane.wgsl").into()),
         });
         let colour_groups = [Some(&layout)];
         let id_groups = [Some(&layout), Some(&pick)];
@@ -1234,14 +1207,6 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ```text
 --8<-- "journey/code/96zzzzzzzd-retarget-cached-text-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-21.rs"
 ```
 
 ```text
@@ -2196,15 +2161,13 @@ These actual Native GPU pictures show original world text, nameplates and screen
 ![Actual Native component: world/nameplate/screen text; four samples](../screenshots/journey/review/96zzzzzzzd-retarget-cached-text-text-1.png)
 
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-**Critical browser-scene review accepted.**
+**Previous native render — current verification pending.**
 
-Actual single-sample contact browser fixture after cached text colour recipes. Separate labelled Native pictures show actual world text, nameplates and screen glyphs at both counts. Complete browser multisampling and whole-course feature review remain pending.
+![Native renderer output for retarget cached text colour.](../screenshots/journey/96zzzzzzzd-retarget-cached-text.png)
 
-![Actual single-sample contact browser fixture after cached text colour recipes. Separate labelled Native pictures show actual world text, nameplates and screen glyphs at both counts. Complete browser multisampling and whole-course feature review remain pending.](../screenshots/journey/96zzzzzzt-keep-contact-ambient-inputs-on-originals-browser.png)
-
-[Verification scope](release.md).
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 This reference image is shared with [22.4.3 · Keep contact ambient inputs on originals](96zzzzzzt-keep-contact-ambient-inputs-on-originals.md). It does not demonstrate a new feature by itself.
 

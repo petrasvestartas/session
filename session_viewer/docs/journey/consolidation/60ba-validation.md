@@ -1,373 +1,217 @@
 # 10.2 · Validated shaping and revision-based reuse
 
-Shape complete labels into clusters and baselines while reusing runs whose layout has not changed.
+**Steps:** 7 · **Source:** [engine/text.rs](../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">R8Unorm Glyph Atlas Shelf Packing (u0,v0..u1,v1)</text>
+  <rect x="58" y="48" width="224" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="58" y1="84" x2="282" y2="84" stroke="#111111" stroke-width="1.2"/>
+  <line x1="58" y1="120" x2="282" y2="120" stroke="#111111" stroke-width="1.2"/>
+  <rect x="66" y="52" width="28" height="28" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="80" y="72" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">A</text>
+  <rect x="100" y="52" width="28" height="28" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="114" y="72" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">B</text>
+  <rect x="134" y="52" width="28" height="28" fill="#fef08a" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="148" y="72" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">0</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">3D Plane Quad (O + x*u + y*v) vs 2D Billboard</text>
+  <polygon points="424,138 494,88 574,104 504,154" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="424" y1="138" x2="494" y2="88" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <line x1="424" y1="138" x2="504" y2="154" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <rect x="602" y="64" width="96" height="36" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="650" y="86" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Label #4</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">World Labels + Procedural 4×4 Matrix Grid</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="58" width="112" height="88" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="854" y1="58" x2="854" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="882" y1="58" x2="882" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="910" y1="58" x2="910" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="826" y1="80" x2="938" y2="80" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="826" y1="102" x2="938" y2="102" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="826" y1="124" x2="938" y2="124" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="840" y="73" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="868" y="95" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="896" y="117" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="924" y="139" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <rect x="956" y="78" width="88" height="32" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1000" y="98" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">(0, 0, 0)</text>
+</svg>
+</div>
 
-Validate every label in a replacement before mutating the document. FontSystem and TextRun retain shaped buffers, glyph/font IDs and UTF-8 clusters, preserving multiline baselines and advances. Document and font revisions distinguish a source-layout change from presentation-only colour or placement. Prepare a usable font set privately before atomic adoption and reshaping; a failed reload keeps current text. Diagnostics expose actual glyph origins rather than inferring character spacing from bytes.
-
-## The maintained implementation
-
-engine/text.rs TextDocument owns FontSystem and TextRun values and uses glyphon advanced shaping. Its layout/revision policy is the maintained source of truth; scene geometry and text presentation do not own independent competing shaped copies. The endpoint provides shaping proofs before the next lesson adds the visible GPU specimen.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-60ba-validation"></a>
-
-<details>
-<summary>Implementation 60ba-validation: Validate a complete label replacement before changing it</summary>
-
-Validate a complete label replacement before changing it.
-
-Data flow: incoming labels → bounded words and IDs → finite placement and metrics → atomic replacement.
+## <a id="checkpoint-60ba-validation"></a>1. Validate a complete label replacement before changing it
 
 ### 1. `src/text.rs`
 
-Validate metrics, positions, plane axes, padding and clip bounds.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     FontSystem::new_with_locale_and_db("en-US".into(), db)
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/60ba-validation-01.rs" skip=62
+    FontSystem::new_with_locale_and_db("en-US".into(), db)
+}
+
+fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
+    anyhow::ensure!(
+        label.font_size.is_finite() && (1.0..=256.0).contains(&label.font_size),
+        "font size must be 1..256 CSS px"
+    );
+    anyhow::ensure!(
+        label.line_height.is_finite()
+            && label.line_height >= label.font_size
+            && label.line_height <= 1024.0,
+        "invalid text line height"
+    );
+    let valid_placement = match label.placement {
+        TextPlacement::Screen { left, top } => left.is_finite() && top.is_finite(),
+        TextPlacement::Anchor { world, offset } => {
+            world.iter().all(finite_f64) && offset.iter().all(finite_f32)
+        }
+        TextPlacement::Nameplate {
+            world, padding, ..
+        } => world.iter().all(finite_f64) && padding.iter().all(valid_padding),
+        TextPlacement::WorldPlane {
+            world,
+            right,
+            up,
+            world_height,
+        } => {
+            world.iter().all(finite_f64)
+                && valid_plane_axes(right, up)
+                && world_height.is_finite()
+                && world_height > 0.0
+        }
+        TextPlacement::WorldBillboard {
+            world,
+            world_height,
+        } => {
+            world.iter().all(finite_f64)
+                && world_height.is_finite()
+                && world_height > 0.0
+        }
+    };
+    anyhow::ensure!(valid_placement, "invalid text placement");
+
+    if let Some(c) = label.clip {
+        anyhow::ensure!(
+            c.iter().all(finite_f32) && c[2] >= c[0] && c[3] >= c[1],
+            "invalid text clip rectangle"
+        );
+    }
+
+    Ok(())
+}
+
+fn valid_plane_axes(right: [f64; 3], up: [f64; 3]) -> bool {
+    let mut right_length = 0.0;
+    let mut up_length = 0.0;
+    let mut dot = 0.0;
+
+    for axis in 0..3 {
+        right_length += right[axis] * right[axis];
+        up_length += up[axis] * up[axis];
+        dot += right[axis] * up[axis];
+    }
+
+    (right_length.sqrt() - 1.0).abs() <= 1e-6
+        && (up_length.sqrt() - 1.0).abs() <= 1e-6
+        && dot.abs() <= 1e-6
+}
+
+fn finite_f32(value: &f32) -> bool {
+    value.is_finite()
+}
+
+fn finite_f64(value: &f64) -> bool {
+    value.is_finite()
+}
+
+fn valid_padding(value: &f32) -> bool {
+    value.is_finite() && (0.0..=256.0).contains(value)
+}
 ```
 
-</details>
-
-<a id="checkpoint-60bb-shaping"></a>
-
-<details>
-<summary>Implementation 60bb-shaping: Shape words into glyph clusters and baselines</summary>
-
-Shape words into glyph clusters and baselines.
-
-Data flow: UTF-8 words → advanced shaping → glyph clusters → positioned baselines.
+## <a id="checkpoint-60bb-shaping"></a>2. Shape words into glyph clusters and baselines
 
 ### 1. `src/text.rs`
 
-Create advanced shaped buffers and distinguish layout-changing source fields.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     value.is_finite() && (0.0..=256.0).contains(value)
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/60bb-shaping-01.rs" skip=58
-```
+    value.is_finite() && (0.0..=256.0).contains(value)
+}
 
-</details>
+fn same_layout(a: &TextLabel, b: &TextLabel) -> bool {
+    a.text == b.text && a.font_size == b.font_size && a.line_height == b.line_height
+}
 
-<a id="checkpoint-60c-document"></a>
-
-<details>
-<summary>Implementation 60c-document: Own the shaped runs with their font revisions</summary>
-
-Own the shaped runs with their font revisions.
-
-Data flow: explicit font set → shaped-run owner → document revision → font revision.
-
-### 1. `src/text.rs`
-
-Own explicit fonts, shaped runs and independent source/font revisions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            self.color
-        }
-    }
+fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
+    let mut buffer = Buffer::new(
+        fonts,
+        Metrics::new(label.font_size, label.line_height),
+    );
+    buffer.set_size(fonts, None, None);
+    buffer.set_wrap(fonts, Wrap::None);
+    buffer.set_text(
+        fonts,
+        &label.text,
+        &Attrs::new()
+            .family(Family::Name(FONT_FAMILY))
+            .metadata(label.id as usize),
+        Shaping::Advanced,
+        None,
+    );
+    buffer.shape_until_scroll(fonts, false);
+    buffer
 }
 ```
 
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/60c-document-01.rs" skip=41
-```
-
-</details>
-
-<a id="checkpoint-60d-reuse"></a>
-
-<details>
-<summary>Implementation 60d-reuse: Reshape only when the source layout changes</summary>
-
-Reshape only when the source layout changes.
-
-Data flow: valid label replacement → stable identity lookup → same layout reuse → changed words reshape.
+## <a id="checkpoint-60c-document"></a>3. Own the shaped runs with their font revisions
 
 ### 1. `src/text.rs`
 
-Reuse stable shaped buffers and measure only genuine shaping work.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-            shaping_ms: 0.0,
-        }
-    }
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/60d-reuse-01.rs" skip=46
-```
-
-</details>
-
-<a id="checkpoint-60e-font-reload"></a>
-
-<details>
-<summary>Implementation 60e-font-reload: Replace usable fonts without corrupting current text</summary>
-
-Replace usable fonts without corrupting current text.
-
-Data flow: new font bytes → usable database → atomic font adoption → run reshaping.
-
-### 1. `src/text.rs`
-
-Adopt fonts only after every supplied source contains a usable face.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    }
-
 }
-```
 
-</details>
+pub fn covers(text: &str) -> bool {
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/60e-font-reload-01.rs"
-```
-
-</details>
-
-<a id="checkpoint-60f-diagnostics"></a>
-
-<details>
-<summary>Implementation 60f-diagnostics: Inspect glyph origins clusters and multiline metrics</summary>
-
-Inspect glyph origins clusters and multiline metrics.
-
-Data flow: shaped buffer → glyph and font ID → UTF-8 cluster → baseline and advance.
-
-### 1. `src/text.rs`
-
-Expose actual shaped glyph metrics and release current run capacity on Clear.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    }
-}
-
-pub fn covers(text: &str) -> bool {
-    text.is_ascii() || text.chars().all(|c| c.is_control() || bundled_glyph(c))
-}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    }
-}
-
-#[derive(Clone, Debug, Serialize)]
-pub struct GlyphDiagnostic {
-    pub label: u32,
-    pub line: usize,
-    pub cluster: [usize; 2],
-    pub glyph: u16,
-    pub font: String,
-    pub origin: [f32; 2],
-    pub advance: f32,
-    pub offset: [f32; 2],
-    pub baseline: f32,
-    pub line_width: f32,
-}
-
-pub fn covers(text: &str) -> bool {
-    text.is_ascii() || text.chars().all(|c| c.is_control() || bundled_glyph(c))
-}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        Ok(())
-    }
-
-}
-
-impl Default for TextDocument {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        Ok(())
-    }
-
-    pub fn clear(&mut self) {
-        self.runs.clear();
-        self.runs.shrink_to_fit();
-        self.revision = self.revision.wrapping_add(1);
-    }
-
-    pub fn diagnostics(&self) -> Vec<GlyphDiagnostic> {
-        let mut out = Vec::new();
-
-        for run in &self.runs {
-            for line in run.buffer.layout_runs() {
-                for glyph in line.glyphs {
-                    out.push(GlyphDiagnostic {
-                        label: run.label.id,
-                        line: line.line_i,
-                        cluster: [glyph.start, glyph.end],
-                        glyph: glyph.glyph_id,
-                        font: format!("{:?}", glyph.font_id),
-                        origin: [glyph.x, glyph.y],
-                        advance: glyph.w,
-                        offset: [
-                            glyph.x_offset * glyph.font_size,
-                            glyph.y_offset * glyph.font_size,
-                        ],
-                        baseline: line.line_y,
-                        line_width: line.line_w,
-                    });
-                }
-            }
-        }
-
-        out
-    }
-}
-
-impl Default for TextDocument {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
-use serde::Serialize;
-
-pub const FONT_FAMILY: &str = "Noto Sans";
-
-pub static FONT_BYTES: &[u8] = include_bytes!("../assets/text/NotoSans-Regular.subset.ttf");
-
-pub static SYMBOL_BYTES: &[u8] =
-    include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf");
-
-pub static FALLBACK_BYTES: &[u8] =
-    include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf");
-
-#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
-pub const FULL_FONTS: [&str; 3] = [
-    "NotoSans-Regular.ttf",
-    "NotoSansSymbols2-Regular.ttf",
-    "NotoSansSymbols-Regular.ttf",
-];
-
-const MAX_TEXT_BYTES: usize = 256 * 1024;
-
-#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum TextPlacement {
-    Screen {
-        left: f32,
-        top: f32,
-    },
-    Anchor {
-        world: [f64; 3],
-        offset: [f32; 2],
-    },
-    Nameplate {
-        world: [f64; 3],
-        padding: [f32; 2],
-        rounded: bool,
-    },
-    WorldPlane {
-        world: [f64; 3],
-        right: [f64; 3],
-        up: [f64; 3],
-        world_height: f64,
-    },
-    WorldBillboard {
-        world: [f64; 3],
-        world_height: f64,
-    },
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct TextObject {
-    pub row: u32,
-    pub selected: bool,
-}
-
-#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct TextLabel {
-    pub id: u32,
-    pub object: Option<TextObject>,
-    pub text: String,
-    pub font_size: f32,
-    pub line_height: f32,
-    pub color: [u8; 4],
-    pub placement: TextPlacement,
-    pub clip: Option<[f32; 4]>,
-}
-
-impl TextLabel {
-    pub fn ink_color(&self) -> [u8; 4] {
-        if self.object.is_some_and(|object| object.selected) {
-            [0, 0, 0, 255]
-        } else {
-            self.color
-        }
-    }
 }
 
 pub struct TextRun {
@@ -395,6 +239,36 @@ impl TextDocument {
             shaping_ms: 0.0,
         }
     }
+}
+
+impl Default for TextDocument {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub fn covers(text: &str) -> bool {
+```
+
+## <a id="checkpoint-60d-reuse"></a>4. Reshape only when the source layout changes
+
+### 1. `src/text.rs`
+
+**Locate this existing block:**
+
+```rust
+        }
+    }
+}
+
+impl Default for TextDocument {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        }
+    }
 
     pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
         let mut bytes = 0usize;
@@ -402,8 +276,15 @@ impl TextDocument {
 
         for label in &labels {
             bytes = bytes.saturating_add(label.text.len());
-            anyhow::ensure!(bytes <= MAX_TEXT_BYTES, "text document exceeds 256 KiB");
-            anyhow::ensure!(ids.insert(label.id), "duplicate text label ID {}", label.id);
+            anyhow::ensure!(
+                bytes <= MAX_TEXT_BYTES,
+                "text document exceeds 256 KiB"
+            );
+            anyhow::ensure!(
+                ids.insert(label.id),
+                "duplicate text label ID {}",
+                label.id
+            );
             validate_label(label)?;
         }
 
@@ -444,6 +325,30 @@ impl TextDocument {
         self.revision = self.revision.wrapping_add(1);
         Ok(())
     }
+}
+
+impl Default for TextDocument {
+```
+
+## <a id="checkpoint-60e-font-reload"></a>5. Replace usable fonts without corrupting current text
+
+### 1. `src/text.rs`
+
+**Locate this existing block:**
+
+```rust
+        Ok(())
+    }
+}
+
+impl Default for TextDocument {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        Ok(())
+    }
 
     pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
         let sources = sources
@@ -453,7 +358,10 @@ impl TextDocument {
         self.replace_sources(sources)
     }
 
-    pub fn replace_sources(&mut self, sources: Vec<fontdb::Source>) -> anyhow::Result<()> {
+    pub fn replace_sources(
+        &mut self,
+        sources: Vec<fontdb::Source>,
+    ) -> anyhow::Result<()> {
         let mut db = fontdb::Database::new();
 
         for source in sources {
@@ -479,6 +387,32 @@ impl TextDocument {
         self.font_revision = self.font_revision.wrapping_add(1);
         self.revision = self.revision.wrapping_add(1);
         Ok(())
+    }
+}
+
+impl Default for TextDocument {
+```
+
+## <a id="checkpoint-60f-diagnostics"></a>6. Inspect glyph origins clusters and multiline metrics
+
+### 1. `src/text.rs`
+
+**Locate this existing block:**
+
+```rust
+    }
+}
+
+impl Default for TextDocument {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     }
 
     pub fn clear(&mut self) {
@@ -535,215 +469,193 @@ pub struct GlyphDiagnostic {
     pub baseline: f32,
     pub line_width: f32,
 }
-
-pub fn covers(text: &str) -> bool {
-    text.is_ascii() || text.chars().all(|c| c.is_control() || bundled_glyph(c))
-}
-
-fn bundled_glyph(c: char) -> bool {
-    thread_local! {
-        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
-            .into_iter()
-            .filter_map(|bytes| {
-                let face = ttf_parser::RawFace::parse(bytes, 0).ok()?;
-                ttf_parser::cmap::Table::parse(face.table(ttf_parser::Tag::from_bytes(b"cmap"))?)
-            })
-            .collect();
-    }
-
-    MAPS.with(|maps| {
-        maps.iter().any(|map| {
-            map.subtables
-                .into_iter()
-                .any(|table| table.is_unicode() && table.glyph_index(u32::from(c)).is_some())
-        })
-    })
-}
-
-fn bundled_fonts() -> FontSystem {
-    let mut db = fontdb::Database::new();
-
-    for bytes in [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES] {
-        db.load_font_source(fontdb::Source::Binary(std::sync::Arc::new(bytes)));
-    }
-
-    db.set_sans_serif_family(FONT_FAMILY);
-    FontSystem::new_with_locale_and_db("en-US".into(), db)
-}
-
-fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
-    anyhow::ensure!(
-        label.font_size.is_finite() && (1.0..=256.0).contains(&label.font_size),
-        "font size must be 1..256 CSS px"
-    );
-    anyhow::ensure!(
-        label.line_height.is_finite()
-            && label.line_height >= label.font_size
-            && label.line_height <= 1024.0,
-        "invalid text line height"
-    );
-    let valid_placement = match label.placement {
-        TextPlacement::Screen { left, top } => left.is_finite() && top.is_finite(),
-        TextPlacement::Anchor { world, offset } => {
-            world.iter().all(finite_f64) && offset.iter().all(finite_f32)
-        }
-        TextPlacement::Nameplate { world, padding, .. } => {
-            world.iter().all(finite_f64) && padding.iter().all(valid_padding)
-        }
-        TextPlacement::WorldPlane {
-            world,
-            right,
-            up,
-            world_height,
-        } => {
-            world.iter().all(finite_f64)
-                && valid_plane_axes(right, up)
-                && world_height.is_finite()
-                && world_height > 0.0
-        }
-        TextPlacement::WorldBillboard {
-            world,
-            world_height,
-        } => world.iter().all(finite_f64) && world_height.is_finite() && world_height > 0.0,
-    };
-    anyhow::ensure!(valid_placement, "invalid text placement");
-
-    if let Some(c) = label.clip {
-        anyhow::ensure!(
-            c.iter().all(finite_f32) && c[2] >= c[0] && c[3] >= c[1],
-            "invalid text clip rectangle"
-        );
-    }
-
-    Ok(())
-}
-
-fn valid_plane_axes(right: [f64; 3], up: [f64; 3]) -> bool {
-    let mut right_length = 0.0;
-    let mut up_length = 0.0;
-    let mut dot = 0.0;
-
-    for axis in 0..3 {
-        right_length += right[axis] * right[axis];
-        up_length += up[axis] * up[axis];
-        dot += right[axis] * up[axis];
-    }
-
-    (right_length.sqrt() - 1.0).abs() <= 1e-6
-        && (up_length.sqrt() - 1.0).abs() <= 1e-6
-        && dot.abs() <= 1e-6
-}
-
-fn finite_f32(value: &f32) -> bool {
-    value.is_finite()
-}
-
-fn finite_f64(value: &f64) -> bool {
-    value.is_finite()
-}
-
-fn valid_padding(value: &f32) -> bool {
-    value.is_finite() && (0.0..=256.0).contains(value)
-}
-
-fn same_layout(a: &TextLabel, b: &TextLabel) -> bool {
-    a.text == b.text && a.font_size == b.font_size && a.line_height == b.line_height
-}
-
-fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
-    let mut buffer = Buffer::new(fonts, Metrics::new(label.font_size, label.line_height));
-    buffer.set_size(fonts, None, None);
-    buffer.set_wrap(fonts, Wrap::None);
-    buffer.set_text(
-        fonts,
-        &label.text,
-        &Attrs::new()
-            .family(Family::Name(FONT_FAMILY))
-            .metadata(label.id as usize),
-        Shaping::Advanced,
-        None,
-    );
-    buffer.shape_until_scroll(fonts, false);
-    buffer
-}
 ```
 
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/60f-diagnostics-01.rs"
-```
-
-```text
---8<-- "journey/code/60f-diagnostics-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-60g-text-shaping"></a>
-
-<details>
-<summary>Implementation 60g-text-shaping: Prove the current fonts shaping and reuse rules</summary>
-
-Prove the current fonts shaping and reuse rules.
-
-Data flow: real bundled fonts → glyph shaping → presentation reuse → native coverage proofs.
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+## <a id="checkpoint-60g-text-shaping"></a>7. Prove the current fonts shaping and reuse rules
 
 ### 1. `src/text.rs`
 
-Copy current production ligature, accent, kerning, fallback, failed replacement, reuse and full-font coverage regressions.
+**Locate this existing block:**
 
-<details>
-<summary>Locate the existing block</summary>
-
-```text
+```rust
     buffer
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    buffer
+}
 
-```text
---8<-- "journey/code/60g-text-shaping-01.rs" skip=14
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    pub(super) fn label(text: &str) -> TextLabel {
+        TextLabel {
+            object: None,
+            id: 1,
+            text: text.into(),
+            font_size: 16.0,
+            line_height: 24.0,
+            color: [255; 4],
+            placement: TextPlacement::Screen {
+                left: 0.0,
+                top: 0.0,
+            },
+            clip: None,
+        }
+    }
+
+    #[test]
+    fn ligatures_accents_spaces_and_symbols_are_shaped() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label(
+            "office ffi fl ÄÖÜ ĄČĘĖĮŠŲŪŽ Ø ± 90° m² e\u{301}",
+        )])
+        .unwrap();
+        let glyphs = doc.diagnostics();
+        assert!(glyphs.iter().all(has_glyph));
+        assert!(glyphs.iter().any(multi_byte_cluster));
+        doc.set_labels(vec![label("AV")]).unwrap();
+        let pair_width = doc.diagnostics()[0].line_width;
+        doc.set_labels(vec![label("A V")]).unwrap();
+        assert!(doc.diagnostics()[0].line_width > pair_width);
+        doc.set_labels(vec![label("ffi")]).unwrap();
+        assert!(
+            doc.diagnostics().len() < 3,
+            "font's ffi ligature must preserve a multi-character cluster"
+        );
+    }
+
+    fn has_glyph(glyph: &GlyphDiagnostic) -> bool {
+        glyph.glyph != 0
+    }
+
+    fn multi_byte_cluster(glyph: &GlyphDiagnostic) -> bool {
+        glyph.cluster[1] - glyph.cluster[0] > 1
+    }
+
+    #[test]
+    fn placement_and_color_do_not_reshape_but_font_reload_does() {
+        let mut doc = TextDocument::new();
+        let mut item = label("AVATAR");
+        doc.set_labels(vec![item.clone()]).unwrap();
+        let before = doc.diagnostics()[0].line_width;
+        item.color = [255, 255, 0, 255];
+        item.placement = TextPlacement::Screen {
+            left: 0.375,
+            top: 1.25,
+        };
+        doc.set_labels(vec![item]).unwrap();
+        assert_eq!(doc.shape_count, 1);
+        assert_eq!(doc.diagnostics()[0].line_width, before);
+        assert!(doc.replace_fonts(vec![vec![0; 8]]).is_err());
+        assert_eq!(doc.shape_count, 1);
+        doc.replace_fonts(vec![
+            FONT_BYTES.to_vec(),
+            FALLBACK_BYTES.to_vec(),
+            SYMBOL_BYTES.to_vec(),
+        ])
+        .unwrap();
+        assert_eq!(doc.shape_count, 2);
+        assert_eq!(doc.diagnostics()[0].line_width, before);
+    }
+
+    #[test]
+    fn composed_decomposed_accents_and_multiline_baselines_match() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label("é\ne\u{301}")])
+            .unwrap();
+        let glyphs = doc.diagnostics();
+        assert_eq!(glyphs.len(), 2);
+        assert_eq!(glyphs[0].glyph, glyphs[1].glyph);
+        assert_eq!(glyphs[0].advance, glyphs[1].advance);
+        assert!((glyphs[1].baseline - glyphs[0].baseline - 24.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn bundled_fallback_covers_symbols_without_system_fonts() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label("CAD ⚙ ⏳ ⌘")])
+            .unwrap();
+        let glyphs = doc.diagnostics();
+        assert!(glyphs.iter().all(has_glyph));
+        let mut faces = std::collections::HashSet::new();
+
+        for glyph in glyphs {
+            faces.insert(glyph.font);
+        }
+
+        assert!(
+            faces.len() >= 2,
+            "sample must exercise explicit font fallback"
+        );
+    }
+
+    #[test]
+    fn invalid_replacement_preserves_current_document() {
+        let mut doc = TextDocument::new();
+        doc.set_labels(vec![label("Keep")]).unwrap();
+        let mut invalid = label("Reject");
+        invalid.font_size = f32::NAN;
+        assert!(doc.set_labels(vec![invalid]).is_err());
+        assert_eq!(doc.runs[0].label.text, "Keep");
+    }
+}
+
+#[cfg(test)]
+mod commands_tests {
+    use super::tests::label;
+    use super::*;
+
+    #[test]
+    fn bundled_subsets_cover_the_viewer_and_whole_fonts_the_rest() {
+        for name in crate::commands::names() {
+            assert!(covers(name), "{name}");
+        }
+
+        for text in [
+            "Ąą Čč Ęę Ėė Įį Šš Ųų Ūū Žž",
+            "Äußere Wände, Größe, Straße ẞ, „Zitat“ »Guillemets«",
+            "Ø 12 ± 0,5 mm, 45°, m² m³, µm",
+            "→ ■ ⏵ ◻ ⚙ ⏳ ⌘",
+            "+ –",
+        ] {
+            assert!(covers(text), "{text}");
+        }
+
+        assert!(!covers("Fixed Ω cube"));
+        let whole: Vec<Vec<u8>> = FULL_FONTS
+            .iter()
+            .map(|name| std::fs::read(format!("assets/text/{name}")).unwrap())
+            .collect();
+        let mut doc = TextDocument::new();
+        doc.replace_fonts(whole).unwrap();
+        doc.set_labels(vec![label("Fixed Ω cube")])
+            .unwrap();
+        assert!(
+            doc.diagnostics()
+                .iter()
+                .all(|glyph| glyph.glyph != 0)
+        );
+    }
+}
 ```
 
-</details>
+## Build & Run
 
-</details>
-
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+![Recorded visual output for Lesson 10.2 (60g-text-shaping)](../../screenshots/journey/60g-text-shaping.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 60g-text-shaping
-npm --prefix ../session_tests run course -- check 60g-text-shaping
-npm --prefix ../session_tests run course -- save 60g-text-shaping
+npm --prefix ../session_tests run course -- dependencies 10.2
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 10.2
+npm --prefix ../session_tests run course -- save 10.2
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-Shaped runs and their diagnostic glyph clusters are now available before the atlas specimen is connected. Inspect the `office ffi` and accented multiline fixtures: glyph clusters need not correspond one-to-one to characters. Compare baselines, advances and font IDs, then confirm that a rejected font replacement leaves the existing shaped document intact.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
-
-Continue with [A shared glyph atlas and lazy text drawing](61-atlas.md).
+Continue with [10.3 · A shared glyph atlas and lazy text drawing](61-atlas.md).

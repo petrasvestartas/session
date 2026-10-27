@@ -1,0 +1,976 @@
+{
+  "status": "PASS: scoped restored late-chapter source, served content and visible-image review",
+  "recordedUtc": "2026-10-23T20:18:49.978203+00:00",
+  "scope": "59 restored introductions in chapters11?22; 12 chapter representatives plus contents, schematic and Matrix views. First10/Gemini handoff, whole current combined book, global release and GPU/runtime acceptance are excluded.",
+  "build": {
+    "record": {
+      "path": "target/course-windows-20261018/current-restoration-docs.resources.json",
+      "sha256": "cc3f651eb6b854f5a8eae171175ba0adf0acdf981d593a859fa5afe722e2c8cb"
+    },
+    "elapsedSeconds": 53.394,
+    "peakJobCommitBytes": 1595437056,
+    "exitCode": 0
+  },
+  "counts": {
+    "restoredSourceAndServedIntroductions": 59,
+    "contentsLessonLinks": 111,
+    "decodedSourceMatchingLessonImages": 21,
+    "authoredIntroImages": 20,
+    "retainedCheckpointImages": 1,
+    "individuallyInspectedViews": 20
+  },
+  "sourceHashes": {
+    "docs/journey/consolidation/63-radius.md": "949b67d7a7cf464fb2261c137da9f676c4148a7fdf9f9a200643a6b246908a4a",
+    "docs/journey/consolidation/64-nodes.md": "fe776f934338a277752d2f44af5983db6b1ad3ec367247e28d27811cb381652d",
+    "docs/journey/consolidation/64f-projection.md": "7469eafbc1e76343076e08eaaf37c6f69e9188c55fcf3fdd189b9e00f330f566",
+    "docs/journey/consolidation/65-originals.md": "f10cba38970c260349db160b1ef1eea5056e200b30c7baaca0eff3f068db123c",
+    "docs/journey/consolidation/66-read-scene-manifests.md": "12f98a69068fdb7eebfa40ad983b018a0baf4a6d3b4741d93bcc1eea65f78c3d",
+    "docs/journey/consolidation/67-supply-checked-array-layout-readers.md": "f9ba25ffee9b640c3a5edffc24807dad9cb126a7dcce96ba22e133d1cdd267c6",
+    "docs/journey/consolidation/66za-own-original-range-read-permits.md": "80fcbad17943a47b870cd8b1af3f9a60d0e282619307982ea768a163e3cc5492",
+    "docs/journey/consolidation/68-reserve-page-bytes-before-reading.md": "180549841b182f14c8b24769a85c7319a2f187d70ae27527a47fdbab35840e2c",
+    "docs/journey/consolidation/69-validate-original-definition-references.md": "7343efea8a046faa2aedafdc418702f116420cb3d0cc4c97ab96f9a17b2cf71d",
+    "docs/journey/consolidation/69j-preserve-per-instance-original-colours.md": "ab53a56789584625dd1561ba37ff4793f876a69b8e3084c10e1c01169fe470ab",
+    "docs/journey/consolidation/70-evaluate-source-ancestry-once-per-document.md": "3175c44e3d86f56ac40dfd166e3612803259350033e945339e6384355b54b285",
+    "docs/journey/consolidation/70za-read-original-sheet-metadata-records.md": "e17d4f4964fc76cd7bb48fdac76739ff8a00fe5ef6984f68727b7a76c1934664",
+    "docs/journey/consolidation/71-read-original-sheet-entity-metadata.md": "28897ac0b6916503bf48c44cd4e8f78bf1e0f6681facfc9d6fa2a4c3d5392fdb",
+    "docs/journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md": "5327cfb51c0c21da9c69a5f252a032092edfb6b6d17d93a74a1f7b53cdde6d7f",
+    "docs/journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md": "864573b1e24bd7aa35a26f85186bb645e57d7c4c1f0a5d34a5cc3fe430241877",
+    "docs/journey/consolidation/74-copy-current-solid-geometry-and-question-definitions.md": "dcf99d221297eb68837a48b6c83074c4d01dbd81ba2781650a911173b7434b20",
+    "docs/journey/consolidation/75-reuse-current-round-solid-builders.md": "08951d648d219c9e86cf7afe5544026e38c9a65fcac6ee855d7b879ecdd80568",
+    "docs/journey/consolidation/76-copy-exact-planar-curve-definitions.md": "76d3649e3beafe4ce579c4b2cc0f77ec1fa046878fe3de0a300742186f447cb0",
+    "docs/journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms.md": "594a788c10b33eecbf7e8f26c72ac94aad34805f4639c97d5316f8a31f72ad7d",
+    "docs/journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md": "552675b9994685d1a87d99ac3520c2db908046ed3c2e86700fc19ac2086b1431",
+    "docs/journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md": "0c688f0802f608ffb06a9b437922187ce89223de1e8407a619b8977c48c6758b",
+    "docs/journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md": "61de3e3d83f347fe41fb87e64d82b56544dfdb7853c542025fe2c8f009bd93a9",
+    "docs/journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md": "c438eda371c8bdfa83717f1a168140872c20e60602c527a4199731e3d6aaf164",
+    "docs/journey/consolidation/82-divide-current-original-curve-families.md": "aea4fd7911a1ec71ac6767e9c18bb5d4f94b10233f823d9fdf2259f037325199",
+    "docs/journey/consolidation/83-split-original-faces-without-separating-the-solid.md": "d5bd9afcb8156ffe4a1a59fc6cb6da3b18ca15537ca7eadf905c4db8116e76f7",
+    "docs/journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md": "77ba9d9be1db42b79614f3d3348cc492d1214f7558e0bcce32f73a5c266737d5",
+    "docs/journey/consolidation/85-copy-current-original-command-recipes.md": "2614c5165276c52e0bc7b16c90be29cf2565d78e694d9c5366ed4564be432449",
+    "docs/journey/consolidation/86-copy-finite-tile-allocation-rules.md": "1a66a67f565f878cc9504779703792e31aca1b48160b7e7b79999cf825c8eced",
+    "docs/journey/consolidation/86s-test-visibility-at-the-original-center-line.md": "5ebda86f7f397e057a0c651e17731b8d04c8804f4605cac34454f04f7d20c9e8",
+    "docs/journey/consolidation/87-copy-current-original-plane-modes.md": "f3ab27a7e122159dcdba62dc68aaa655102d2bd742edb6b9c888cb650dc58b86",
+    "docs/journey/consolidation/88-copy-original-closedness-and-winding.md": "ceab1bc88cbdf953974c352274518184a607dfa350df0c42e92d8b3ba44b18a9",
+    "docs/journey/consolidation/89-copy-density-scaled-depth-reduction.md": "32255c301d51204ba6f20862a12e06767c364d48ba0a97605e885969112046c8",
+    "docs/journey/consolidation/90-copy-maintained-original-contact-radius.md": "648148a91d40beb8506c82c71dda08717da2936c9769cea3a091a5c0661ac6e3",
+    "docs/journey/consolidation/91-include-visible-section-coverage.md": "e68c16ba78c0c6ba25d785d5ee9632998860debf502344f66b8b7c237bc01070",
+    "docs/journey/consolidation/92-link-current-wood-element-builders.md": "0a9bc7f1c531f922a353fca6033c995aa4f74b399929499952fcb91063fcb682",
+    "docs/journey/consolidation/93-classify-original-solids-independently-of-clipping.md": "3e069c686162dd819250f9ff9ec13cae994da71a55256ca5f4671431c102b0e6",
+    "docs/journey/consolidation/94-declare-the-rendering-comparison-contract.md": "0638464b724dcbcf1976ffc2bbf562c3a20ff4f5faf5712eb12c32e747af880c",
+    "docs/journey/consolidation/95-record-comparable-large-scene-conditions.md": "25edf7c42b794b2a22cbd273d76b0d5435222744f1cb9342f75ecef8e2c10566",
+    "docs/journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md": "ed0a166ff16643ebb89da5ffb7ee1368a398e9f6bc9f098445c7747204b48c36",
+    "docs/journey/consolidation/96i-separate-own-and-hosted-element-features.md": "549c39ec9c888e02de1c692148cb858227469b83c498d8dc7bcc5dd1c804b28c",
+    "docs/journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md": "42057f659a8d1b3f2222fa89f20e648d50f3bce16fcb2f67a792d47df29714d1",
+    "docs/journey/consolidation/96za-address-original-controls-with-family-keys.md": "9db08e4f605abf266d0f44288ca96aa09a552a7a7b5bcb103e1c59df5fd78716",
+    "docs/journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md": "a7e83c249e8fff347c47be9f8c257091fe8ee5ea5cc0a22d160c0294220fa14d",
+    "docs/journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md": "67bf8d2ca2e80f65f067494012d60442ed3b168ffcb2fadbb9eaf2ab5250edd6",
+    "docs/journey/consolidation/96zzg-grow-buffers-without-losing-rows.md": "1472ad11dc0720a5bfd5e92fce31e0266235e65e853a425376fda26c2378511c",
+    "docs/journey/consolidation/96zzu-separate-primitive-addresses-from-selection.md": "81670ad555fbe328017735edb322042b0ed40f53370215dda9546d579293f136",
+    "docs/journey/consolidation/96zzzs-allocate-stable-object-record-rows.md": "f62b10771ac2fcc361701a1a154689e5950951dc32ee5607eae939c414f1cd82",
+    "docs/journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md": "cb391eec3688514551c9bd29c639f46a4acca149e83cc999b76475ce934e9323",
+    "docs/journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md": "e6cb9f8cc6899f56dab253af8442afb79608d81d0a7f44c2dc38af7856b20daf",
+    "docs/journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md": "c7450d170aae01527de8eaf8624d49c475cfcaad05544a2f5c30ea4a8385bb44",
+    "docs/journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md": "f9ce4601d189742474d01a0908dcaf611951a139e6c1fe9a421aa36d5ff6e161",
+    "docs/journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md": "319ddc1b35bb5d3ffd6d208ffc0d284e35abb9ac6031f495942ea09ab57d7fa9",
+    "docs/journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md": "231ad9d0d9771e05defd4aa012af936ad058c3bb3f37aaa9f13e3af7833e1eb9",
+    "docs/journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md": "76cbf518bca8b3cbf0d9ad4a8c17c4794ebbba55223bdfd73cbdd0611b4e8d1f",
+    "docs/journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md": "073e02c368949aa239c93c01d689e06bcb43a9a3cffef66b11df74831c72ae69",
+    "docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md": "15994c52e86a73cfc5ed198b8847ca3596d88857aa53033a0d80541075293ab2",
+    "docs/journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md": "2920dbd030f9e08e81055510e735b94d91a55220e171942fe7682ce19bb066fe",
+    "docs/journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md": "5141f5a74fa0c28e8b37cb3d27ebcf459a08d654f9452d2a3724742c2456412a",
+    "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md": "683e73f169f44a6c54c401221a26bdfe79b15732db2df79ef498e60f1ec7d373"
+  },
+  "servedPagePayloads": [
+    {
+      "path": "docs/journey/consolidation/63-radius.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-63-radius-s3zJ1rbl.json",
+      "builtSha256": "d9f98da126d9e29faf705719e550db4857078d96bc742e1a8815abf7f117b5bf",
+      "sourceSha256": "949b67d7a7cf464fb2261c137da9f676c4148a7fdf9f9a200643a6b246908a4a",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/64-nodes.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-64-nodes-CN1pPWJT.json",
+      "builtSha256": "70bcd76e3e968bc969ac192cf102e77c6362709d434d56f7aba8819d064ebf6e",
+      "sourceSha256": "fe776f934338a277752d2f44af5983db6b1ad3ec367247e28d27811cb381652d",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/64f-projection.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-64f-projection-zIg93awS.json",
+      "builtSha256": "b05b4b7f059ecfab8d5c390686efddeb6d421d13ba978720ff9b048dcb46a6fe",
+      "sourceSha256": "7469eafbc1e76343076e08eaaf37c6f69e9188c55fcf3fdd189b9e00f330f566",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/65-originals.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-65-originals-dlB9z24k.json",
+      "builtSha256": "357065c816c5f095313dea0c93c5d419e05c6be199ba55066a44671a1e580b5b",
+      "sourceSha256": "f10cba38970c260349db160b1ef1eea5056e200b30c7baaca0eff3f068db123c",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/66-read-scene-manifests.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-66-read-scene-manifests-CKgvh1le.json",
+      "builtSha256": "a2d17f8e6cc4533cd8c4e6e4e1bbfae9704ad61d754b76df08cdf71ffa92181f",
+      "sourceSha256": "12f98a69068fdb7eebfa40ad983b018a0baf4a6d3b4741d93bcc1eea65f78c3d",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/67-supply-checked-array-layout-readers.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-67-supply-checked-array-layout-readers-BT2Q6onR.json",
+      "builtSha256": "65bdadd894a4f032919def1f396a3f13a40eb376b928474339134b4397182c50",
+      "sourceSha256": "f9ba25ffee9b640c3a5edffc24807dad9cb126a7dcce96ba22e133d1cdd267c6",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/66za-own-original-range-read-permits.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-66za-own-original-range-read-permits-BRML3VpJ.json",
+      "builtSha256": "5b335a3075a750b9ed8b0409c044cee6d397ff3bb4a1048ab3df7c7928bbb2e2",
+      "sourceSha256": "80fcbad17943a47b870cd8b1af3f9a60d0e282619307982ea768a163e3cc5492",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/68-reserve-page-bytes-before-reading.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-68-reserve-page-bytes-before-reading-BdlinI4q.json",
+      "builtSha256": "a55112bb84cad090a860d9171713d1677f801d0374ed958c722126ba30165a90",
+      "sourceSha256": "180549841b182f14c8b24769a85c7319a2f187d70ae27527a47fdbab35840e2c",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/69-validate-original-definition-references.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-69-validate-original-definition-references-JHYBQh7I.json",
+      "builtSha256": "fd606b369ff1187bb07590eac88b7fcbef4e71bcc982f163c235749a659c5b96",
+      "sourceSha256": "7343efea8a046faa2aedafdc418702f116420cb3d0cc4c97ab96f9a17b2cf71d",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/69j-preserve-per-instance-original-colours.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-69j-preserve-per-instance-original-colours-CEQ_elBm.json",
+      "builtSha256": "15284bacb33cd7d0be3c2d56e2c881cbac8c00a5c3205fbd4d426031368e6618",
+      "sourceSha256": "ab53a56789584625dd1561ba37ff4793f876a69b8e3084c10e1c01169fe470ab",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-70-evaluate-source-ancestry-once-per-document-CgDREwei.json",
+      "builtSha256": "11f00caf57199ab849f5fd322518550d08f966eb603f600be3c5b8cf065948ce",
+      "sourceSha256": "3175c44e3d86f56ac40dfd166e3612803259350033e945339e6384355b54b285",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/70za-read-original-sheet-metadata-records.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-70za-read-original-sheet-metadata-records-HZa4V7k1.json",
+      "builtSha256": "c631b6606618b02326e6f737207c8e541fdcaaf24943f94d8fadce4949a99ea6",
+      "sourceSha256": "e17d4f4964fc76cd7bb48fdac76739ff8a00fe5ef6984f68727b7a76c1934664",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/71-read-original-sheet-entity-metadata.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-71-read-original-sheet-entity-metadata-Cxis3HmK.json",
+      "builtSha256": "99e17bb9d58510c3a04ab186702b81b6cb5173b5fdca52d8930b37c9cd9973e9",
+      "sourceSha256": "28897ac0b6916503bf48c44cd4e8f78bf1e0f6681facfc9d6fa2a4c3d5392fdb",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-72-copy-current-construction-planes-and-coordinate-forms-BrXKMMow.json",
+      "builtSha256": "75cedbc84ecfa99f77e5ad30cfc9d91bc7d02695a0b741ab5afd1093dfd16ba9",
+      "sourceSha256": "5327cfb51c0c21da9c69a5f252a032092edfb6b6d17d93a74a1f7b53cdde6d7f",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-73-construct-rectangles-and-polygons-in-plane-axes-CMq1Q7L2.json",
+      "builtSha256": "c9fa08efde767448a87d7594f5c0daf3849e61f96651cb334702094c1296ef31",
+      "sourceSha256": "864573b1e24bd7aa35a26f85186bb645e57d7c4c1f0a5d34a5cc3fe430241877",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/74-copy-current-solid-geometry-and-question-definitions.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-74-copy-current-solid-geometry-and-question-definitions-DhoRzqqa.json",
+      "builtSha256": "16dcb6c42a160a627ddee2440514a61a45066ba4c7d523c425db6ff3fe8e533e",
+      "sourceSha256": "dcf99d221297eb68837a48b6c83074c4d01dbd81ba2781650a911173b7434b20",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/75-reuse-current-round-solid-builders.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-75-reuse-current-round-solid-builders-B6gDs38_.json",
+      "builtSha256": "755e9a3fedbdd6314250fed7b7c5841817047b90e3f9b5acb0ac93945fcdd9e7",
+      "sourceSha256": "08951d648d219c9e86cf7afe5544026e38c9a65fcac6ee855d7b879ecdd80568",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/76-copy-exact-planar-curve-definitions.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-76-copy-exact-planar-curve-definitions-rXeYflLO.json",
+      "builtSha256": "09ded1fca8ec8dc92d7a58f8e4f7d893f6d1f993052557390eb417fd3aab612d",
+      "sourceSha256": "76d3649e3beafe4ce579c4b2cc0f77ec1fa046878fe3de0a300742186f447cb0",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-77-copy-current-transformation-and-source-edit-algorithms-15Y2bZLZ.json",
+      "builtSha256": "96717e8dbc27b65f3e7100208ae551691f802f99c54ea00b88bb69546b695a45",
+      "sourceSha256": "594a788c10b33eecbf7e8f26c72ac94aad34805f4639c97d5316f8a31f72ad7d",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-78-copy-current-curve-collection-and-surfacing-recipes-CzJ6oFSo.json",
+      "builtSha256": "b79aeee789ee1678baa258824da60dbec32de72f5e445db2752e16c09c37ddc8",
+      "sourceSha256": "552675b9994685d1a87d99ac3520c2db908046ed3c2e86700fc19ac2086b1431",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-79-retain-current-loft-section-order-and-degree-options-BnVr3CZ3.json",
+      "builtSha256": "1e7eec9b91f6edb3355f36ec453eac93a6057a4d236f90b995af195de60c27c2",
+      "sourceSha256": "0c688f0802f608ffb06a9b437922187ce89223de1e8407a619b8977c48c6758b",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-80-build-a-surface-through-two-directions-of-original-curves-D4ZzrRSg.json",
+      "builtSha256": "374303ad87c29ee8f8f841b9b012b65c88cc0a2d12f1f03322d79d94fb0ad8f4",
+      "sourceSha256": "61de3e3d83f347fe41fb87e64d82b56544dfdb7853c542025fe2c8f009bd93a9",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-81-project-originals-through-the-current-plane-algorithms-Cwbh4frG.json",
+      "builtSha256": "790e931cd0f43fb0ac17dbe8c60db1af9e830775e651caf98bfc33a346cac07d",
+      "sourceSha256": "c438eda371c8bdfa83717f1a168140872c20e60602c527a4199731e3d6aaf164",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/82-divide-current-original-curve-families.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-82-divide-current-original-curve-families-sLJZfotu.json",
+      "builtSha256": "9fa27cc4decafbf4a1ff9773b5b9fc9adfe7eaf154af343c32a25da774327ec8",
+      "sourceSha256": "aea4fd7911a1ec71ac6767e9c18bb5d4f94b10233f823d9fdf2259f037325199",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/83-split-original-faces-without-separating-the-solid.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-83-split-original-faces-without-separating-the-solid-3PcwgC_V.json",
+      "builtSha256": "28ddb973a5113802b806664d11ac7bf6f9a04a4d9d9d376e1327fe77806131d5",
+      "sourceSha256": "d5bd9afcb8156ffe4a1a59fc6cb6da3b18ca15537ca7eadf905c4db8116e76f7",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-84-measure-original-curves-surfaces-and-closed-solids-B_f_P3fq.json",
+      "builtSha256": "2727f4d8c33602adf440ee5bfa0eb31a0a5f80ce496c576209f653d27715d7ab",
+      "sourceSha256": "77ba9d9be1db42b79614f3d3348cc492d1214f7558e0bcce32f73a5c266737d5",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/85-copy-current-original-command-recipes.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-85-copy-current-original-command-recipes-BMdwEsQx.json",
+      "builtSha256": "e3bac50a3a449f0b3ed4637162f85bbf22d719404ba3fe6b8e9e6fc8cbeae94a",
+      "sourceSha256": "2614c5165276c52e0bc7b16c90be29cf2565d78e694d9c5366ed4564be432449",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/86-copy-finite-tile-allocation-rules.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-86-copy-finite-tile-allocation-rules-Ca-39loZ.json",
+      "builtSha256": "b552bbb437faea2eaaf9b1c09e72a2602bf55d829a30631a06e0a8069d97db5c",
+      "sourceSha256": "1a66a67f565f878cc9504779703792e31aca1b48160b7e7b79999cf825c8eced",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/86s-test-visibility-at-the-original-center-line.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-86s-test-visibility-at-the-original-center-line-Dy_O8Z0w.json",
+      "builtSha256": "5b29cd2997ca587fa5f747683044bec57068c6d861f50a683ea891608bb5786a",
+      "sourceSha256": "5ebda86f7f397e057a0c651e17731b8d04c8804f4605cac34454f04f7d20c9e8",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/87-copy-current-original-plane-modes.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-87-copy-current-original-plane-modes-eoBvB-wr.json",
+      "builtSha256": "106f115dff835c21e862cf8652663bb03f3446347a38f1e29e4ac508022e511a",
+      "sourceSha256": "f3ab27a7e122159dcdba62dc68aaa655102d2bd742edb6b9c888cb650dc58b86",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/88-copy-original-closedness-and-winding.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-88-copy-original-closedness-and-winding-BlRaAM2h.json",
+      "builtSha256": "d0ca1cbe57d927a59f28f02d088c4c0b0a4152a7c378614e0d1691aeb3b5287d",
+      "sourceSha256": "ceab1bc88cbdf953974c352274518184a607dfa350df0c42e92d8b3ba44b18a9",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/89-copy-density-scaled-depth-reduction.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-89-copy-density-scaled-depth-reduction-BgqbclXC.json",
+      "builtSha256": "7d417b42ad8d9faa97bada0991ad8935a3d1154d000cf4e2f262f9a948c5fda8",
+      "sourceSha256": "32255c301d51204ba6f20862a12e06767c364d48ba0a97605e885969112046c8",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/90-copy-maintained-original-contact-radius.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-90-copy-maintained-original-contact-radius-BnlYJ26g.json",
+      "builtSha256": "6af2f7c337a43fadc7ad2bd7fd3c15ca684789dce6283db290c43b39d1ec35dc",
+      "sourceSha256": "648148a91d40beb8506c82c71dda08717da2936c9769cea3a091a5c0661ac6e3",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/91-include-visible-section-coverage.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-91-include-visible-section-coverage-DPWoqB5I.json",
+      "builtSha256": "e4eb446e4a71e3910489eed224163a78e37eb44ac7600d57a137f4d97da623cf",
+      "sourceSha256": "e68c16ba78c0c6ba25d785d5ee9632998860debf502344f66b8b7c237bc01070",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/92-link-current-wood-element-builders.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-92-link-current-wood-element-builders-DtjGue6m.json",
+      "builtSha256": "7c35c5be2cda5a08fc510fb5229b98fdbf8ec2219cc493212881428bc4dae4bf",
+      "sourceSha256": "0a9bc7f1c531f922a353fca6033c995aa4f74b399929499952fcb91063fcb682",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/93-classify-original-solids-independently-of-clipping.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-93-classify-original-solids-independently-of-clipping-DxnIeybe.json",
+      "builtSha256": "6b032218bca95e7ace89e9c5a02ba87f80ac8a6de837b197072e8d125adfbca4",
+      "sourceSha256": "3e069c686162dd819250f9ff9ec13cae994da71a55256ca5f4671431c102b0e6",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/94-declare-the-rendering-comparison-contract.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-94-declare-the-rendering-comparison-contract-1iKQZTZ9.json",
+      "builtSha256": "97cfeeb30f846e781cf0334a45307dbcfd6ab80c7ee6f05ffceb053adb5b7353",
+      "sourceSha256": "0638464b724dcbcf1976ffc2bbf562c3a20ff4f5faf5712eb12c32e747af880c",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/95-record-comparable-large-scene-conditions.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-95-record-comparable-large-scene-conditions-UGS6iYGx.json",
+      "builtSha256": "c654820b871562fd499a8cf8948f8485b2182701ca26738c4d2225601266b0fb",
+      "sourceSha256": "25edf7c42b794b2a22cbd273d76b0d5435222744f1cb9342f75ecef8e2c10566",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96-retain-non-drawing-originals-and-validate-raw-planes-CF-ZXGzw.json",
+      "builtSha256": "e0498d66ef9e2cf1d9f70fcbe71de6a1748949afcddbd8258e69ce3cb160009b",
+      "sourceSha256": "ed0a166ff16643ebb89da5ffb7ee1368a398e9f6bc9f098445c7747204b48c36",
+      "authoredParagraphs": 6
+    },
+    {
+      "path": "docs/journey/consolidation/96i-separate-own-and-hosted-element-features.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96i-separate-own-and-hosted-element-features-D_Wgmk95.json",
+      "builtSha256": "9a0970996846a0958813f1b924f2a40021e503014922653922534a4c78c08f45",
+      "sourceSha256": "549c39ec9c888e02de1c692148cb858227469b83c498d8dc7bcc5dd1c804b28c",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96s-resolve-feature-rows-to-original-element-owners-Dv9XxR-N.json",
+      "builtSha256": "e24bfbb8dad750206bce30b95db901f2d4aa312abb917926f14d70bb5d58ce38",
+      "sourceSha256": "42057f659a8d1b3f2222fa89f20e648d50f3bce16fcb2f67a792d47df29714d1",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96za-address-original-controls-with-family-keys.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96za-address-original-controls-with-family-keys-D7kL8zSS.json",
+      "builtSha256": "ad093321a942c53b75ee04a75d1ea75dcd5dd0077b929ef384ba2daa3819c538",
+      "sourceSha256": "9db08e4f605abf266d0f44288ca96aa09a552a7a7b5bcb103e1c59df5fd78716",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zh-bind-the-shared-geometry-as-storage-asJId36y.json",
+      "builtSha256": "1ba4ed9c0f38d8e39885ddf21bf84b4385a633950aaf74f1d497b7a4cb6e093b",
+      "sourceSha256": "a7e83c249e8fff347c47be9f8c257091fe8ee5ea5cc0a22d160c0294220fa14d",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzc-share-section-addresses-with-outlines-and-ambient-yQKnhlRQ.json",
+      "builtSha256": "40f91559a89eaff92d44ebc440b468cd8993d4fa100bc1b5bf32fd01c34487ea",
+      "sourceSha256": "67bf8d2ca2e80f65f067494012d60442ed3b168ffcb2fadbb9eaf2ab5250edd6",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzg-grow-buffers-without-losing-rows.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzg-grow-buffers-without-losing-rows-CVRa3vQd.json",
+      "builtSha256": "f4e9aefc5f646c615551d704e3726dd47c6767e7e68ecccca5c073302df532c8",
+      "sourceSha256": "1472ad11dc0720a5bfd5e92fce31e0266235e65e853a425376fda26c2378511c",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzu-separate-primitive-addresses-from-selection.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzu-separate-primitive-addresses-from-selection-ClNSpbE7.json",
+      "builtSha256": "23db89df3903c716d6e782b8198a9e931c332ed8ba81fd9f2411b64f7dfa946d",
+      "sourceSha256": "81670ad555fbe328017735edb322042b0ed40f53370215dda9546d579293f136",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzs-allocate-stable-object-record-rows.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzs-allocate-stable-object-record-rows-CBUSsXH2.json",
+      "builtSha256": "c35889363e3332ec183fac94a29b39d8e2dc7a590cfee1326c096178aba676a0",
+      "sourceSha256": "f62b10771ac2fcc361701a1a154689e5950951dc32ee5607eae939c414f1cd82",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzi-adapt-incremental-slots-to-pulled-draws-BnbgNbE6.json",
+      "builtSha256": "193dba5686994781e7f501e1370b6232c3b3423772fd1f04a52526799d104813",
+      "sourceSha256": "cb391eec3688514551c9bd29c639f46a4acca149e83cc999b76475ce934e9323",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzy-prepare-unit-aware-anchored-camera-space-DUDwo-f0.json",
+      "builtSha256": "77823f44c33cb4b81f02dc808fdead3203173e3b662d6b3c841fc65f41547c3b",
+      "sourceSha256": "e6cb9f8cc6899f56dab253af8442afb79608d81d0a7f44c2dc38af7856b20daf",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzj-project-cpu-queries-around-the-precise-target-8Gibu5pK.json",
+      "builtSha256": "87e387ef904bfb027aebca6e4cc610307d8b7ccf2077608268d1d112c92d6a92",
+      "sourceSha256": "c7450d170aae01527de8eaf8624d49c475cfcaad05544a2f5c30ea4a8385bb44",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzq-prepare-one-shared-render-origin-hCN40zZP.json",
+      "builtSha256": "630dadb820157875df56857723e90632c72dc94fa7085bb7f8def6db448dab25",
+      "sourceSha256": "f9ce4601d189742474d01a0908dcaf611951a139e6c1fe9a421aa36d5ff6e161",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzt-share-depth-endpoints-and-comparisons-RIHqmLNw.json",
+      "builtSha256": "7fc257170cfca7148fbd1882ee11809566fde87b85b1a02975e2d2813a5011d5",
+      "sourceSha256": "319ddc1b35bb5d3ffd6d208ffc0d284e35abb9ac6031f495942ea09ab57d7fa9",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzza-match-physical-camera-defaults-and-limits-BaUl2I8n.json",
+      "builtSha256": "946f142d37ddbb7f4c28ecda427754e7a0b781507b63e5dbbf32c57b60a6918a",
+      "sourceSha256": "231ad9d0d9771e05defd4aa012af936ad058c3bb3f37aaa9f13e3af7833e1eb9",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-WNtjSgbF.json",
+      "builtSha256": "829fa28a4733e979b9f391ef348a6f7475c85bf581efd06b535c6c681eb22f36",
+      "sourceSha256": "76cbf518bca8b3cbf0d9ad4a8c17c4794ebbba55223bdfd73cbdd0611b4e8d1f",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzi-share-one-frame-across-color-and-ink-Dps08cfv.json",
+      "builtSha256": "c978b809e2eb33fedc6b0b3fc81373c72af6477faf998ca4cceea624c91a1d8f",
+      "sourceSha256": "073e02c368949aa239c93c01d689e06bcb43a9a3cffef66b11df74831c72ae69",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzn-respect-original-boundary-pens-C6tyH1jT.json",
+      "builtSha256": "00a48afd2b59ae156063767fa5052c99dd4b87ada93bed3b8820de81a556d568",
+      "sourceSha256": "15994c52e86a73cfc5ed198b8847ca3596d88857aa53033a0d80541075293ab2",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzr-share-geometric-ambient-inputs-CnnOQRk2.json",
+      "builtSha256": "d6a73dfeb0ef55979d80cad985f1a2a9a05829aa674e25c10927f6ebf120a829",
+      "sourceSha256": "2920dbd030f9e08e81055510e735b94d91a55220e171942fe7682ce19bb066fe",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzu-keep-depth-and-address-samples-separate-Sw4F4RSs.json",
+      "builtSha256": "134263c567e6c90a681a44c3c304d64230319ee95ca3e7cb30e28616143c436d",
+      "sourceSha256": "5141f5a74fa0c28e8b37cb3d27ebcf459a08d654f9452d2a3724742c2456412a",
+      "authoredParagraphs": 5
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+      "url": "http://127.0.0.1:8788/docs/assets/course-journey-consolidation-96zzzzzzzm-retain-visible-instance-ranges-QQRoCQnc.json",
+      "builtSha256": "7a7985b1d24427f728b42d84c6175eaf6ecb92ccca43660893ad28c5dda2b346",
+      "sourceSha256": "683e73f169f44a6c54c401221a26bdfe79b15732db2df79ef498e60f1ec7d373",
+      "authoredParagraphs": 34
+    }
+  ],
+  "bundleHashes": {
+    "/docs/index.html": "b21e7e8bd79453ad6a42e0336d00dec673d6f563bd74911e2e7679d4fc955fc9",
+    "/docs/assets/main-B5h96qfU.js": "21685767b3ceab76984de3559e94da601914182cf1fc6a8dba624a1f974910f7",
+    "/docs/assets/main-C6Uhv5Jp.css": "eadd30f0a124dd6701e61a0e457df5d0aff23a4cb160205ab6c30032cf834309"
+  },
+  "images": [
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png?v=77b56124211c",
+      "width": 256,
+      "height": 256,
+      "sha256": "77b56124211c0df0733b1a73858939006867ed77a4d40801e18957cef3679789",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png?v=690def5cef5e",
+      "width": 256,
+      "height": 256,
+      "sha256": "690def5cef5e7aeaf7191fb929b4dc396915f14bac3c05e27d564158ffddd4cd",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-unselected-native-4x.png?v=38bb2d39b672",
+      "width": 320,
+      "height": 240,
+      "sha256": "38bb2d39b672c08e04c207175def4e691edd1184d29d31001dd8931ff524797f",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-selected-native-4x.png?v=493f4b6839fb",
+      "width": 320,
+      "height": 240,
+      "sha256": "493f4b6839fba245bf41526f02f570e7353db17146510aa0c0076dc4623d524a",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png?v=3261a0976e3d",
+      "width": 320,
+      "height": 240,
+      "sha256": "3261a0976e3dace0a83007a6ad8dbcbcc9a2144ec44bf2fd63f7348bca9be0b8",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png?v=8ff6a830dafa",
+      "width": 320,
+      "height": 240,
+      "sha256": "8ff6a830dafa55259f632eea5e96f93dd0e229c08dcbd8f1a293ce0ba0ed54dd",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-native-4x.png?v=e954bf5e0c60",
+      "width": 320,
+      "height": 240,
+      "sha256": "e954bf5e0c609989aef2791a4535dafeb3fca551bc6d251ebab494cb7179c16a",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png?v=a94ed210bbdb",
+      "width": 640,
+      "height": 480,
+      "sha256": "a94ed210bbdb0dd07a7d18e36a990a7f7a9aba03cc73e531815019371534f400",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-course.png?v=86961df98603",
+      "width": 640,
+      "height": 480,
+      "sha256": "86961df9860320927a93946ac29e9dc7ca794dbcdc90da35631d4ce25b36f15e",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-production.png?v=86961df98603",
+      "width": 640,
+      "height": 480,
+      "sha256": "86961df9860320927a93946ac29e9dc7ca794dbcdc90da35631d4ce25b36f15e",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-plane-covered-selected-course.png?v=d7e6dad823c7",
+      "width": 640,
+      "height": 480,
+      "sha256": "d7e6dad823c74dfc91570762234af68e65f4861f122a9b644ac69c8ab90b0d99",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-plane-covered-selected-production.png?v=d7e6dad823c7",
+      "width": 640,
+      "height": 480,
+      "sha256": "d7e6dad823c74dfc91570762234af68e65f4861f122a9b644ac69c8ab90b0d99",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png?v=712ff6021015",
+      "width": 640,
+      "height": 480,
+      "sha256": "712ff6021015d894b43790b996eb611b0692aab91b68d210d522668a423d3ddb",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-selected-course-dpr2-msaa4.png?v=e7b6321a615e",
+      "width": 640,
+      "height": 480,
+      "sha256": "e7b6321a615ea277b940dfdbf1f5c42aa2abc84556790e8a2b65108c4ea974d1",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr1.png?v=b7fea132689d",
+      "width": 900,
+      "height": 760,
+      "sha256": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-lines.png?v=2e632b741081",
+      "width": 320,
+      "height": 240,
+      "sha256": "2e632b74108103a7b4beee223cc4c7e76a3007c58fd8c49c4458390b19510582",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-ink-controls-97d-cad-no-edges.png?v=74593ebc4037",
+      "width": 320,
+      "height": 240,
+      "sha256": "74593ebc4037bf2c79c3523669972ed90eb869423e6ae2c115b72ba79c2f25b4",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-open-dpr2-msaa4.png?v=792279b76911",
+      "width": 640,
+      "height": 480,
+      "sha256": "792279b76911d846c7db194eb504c1274232e8f373264deabe4d525aade3fd48",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-closed-dpr2-msaa4.png?v=2d02dc690643",
+      "width": 640,
+      "height": 480,
+      "sha256": "2d02dc690643648ba3b482f39a6a1ffce635f82a63b47d055101dad47d844efd",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-placed-selected-dpr2-msaa4.png?v=93c20b8ecb68",
+      "width": 640,
+      "height": 480,
+      "sha256": "93c20b8ecb68a524af11d61bac05ae8d37513b644d0ed68a11c9511fc0d31ab3",
+      "kind": "authored-intro"
+    },
+    {
+      "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png?v=ac0b4bf86a3d",
+      "width": 900,
+      "height": 760,
+      "sha256": "ac0b4bf86a3dc47511734365c6116c33f180b61bee490134933a7a611aecfeaf",
+      "kind": "retained-checkpoint"
+    }
+  ],
+  "captures": [
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-contents-desktop.png",
+      "sha256": "41eb2152e74152047c202b14fba66bf76437b81fdd5e569a2109638641a2a538",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-roadmap-desktop.png",
+      "sha256": "269bcedd8496493f123638700b3fc007a109b5781b77e8e7e949abdc3490fc5c",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-11-desktop.png",
+      "sha256": "6ce3a8199b18bb4285e17170ef94b77c83f0472f560c3007db4afb9187682634",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-12-desktop.png",
+      "sha256": "26a1de4ef0a76aadf181f16e877093de16f60332221ffc1ed30436c91a2a39a1",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-13-desktop.png",
+      "sha256": "3780c08ca24a624f5f77c7c7a123adbafdd7c75769b747dfeed53efe7903f5f8",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-14-desktop.png",
+      "sha256": "063fb5e5c0b505e3c63ee2ecab2a7f394dfa8b728260acd0438f84a3e8c3e487",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-15-desktop.png",
+      "sha256": "f3b80fa64c42c13df78233ad14456d87112298c7c2676320d21b8b2f0b2ac4f6",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-16-desktop.png",
+      "sha256": "2a61e176764e6e5c2930658cb6b1a4f8af668b8d19f192aef3ac981b6192ef52",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-17-desktop.png",
+      "sha256": "e47af0b2d0ee0565fc722a01515f911c379dbb1bce2d9d05885f5ff521463311",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-18-desktop.png",
+      "sha256": "5f86c1c4878b1e1c99c7d427182bcafa0b91e04b7179f6e0fb9ea3518fd9983a",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-19-desktop.png",
+      "sha256": "ec56a93ff9d8cc6eaeb6e1d35e7bb4ed44758a7e4a8128c084b6ca15667c2c11",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-20-desktop.png",
+      "sha256": "74280ebd959cad2b6708ce354893ef9e93ebfd3dc09600043b6de2beb7ee9b70",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-21-desktop.png",
+      "sha256": "0f9fff990ff60c75992fb6b63fd2b78f19491e35783ed0c55a869cce74e23174",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v1-chapter-22-desktop.png",
+      "sha256": "d81ce41bfddcc7b4ccdf461c97bf635fa77de23b2e09fd0d0f88e6adb3e9cacf",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v2-schematic-desktop.png",
+      "sha256": "d81ce41bfddcc7b4ccdf461c97bf635fa77de23b2e09fd0d0f88e6adb3e9cacf",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "scrollWidth": 853
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v2-matrix-desktop.png",
+      "sha256": "d2e207994320edcbe1fc5208dca4c7c1e85e8b3241291508f004cbf8caaab4ad",
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      },
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418,
+        "scrollWidth": 853
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v2-chapter-22-6-phone.png",
+      "sha256": "d2de6f466307f598093da0f164bc67f943f01c315b12ad8bac911aebc8518d6e",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "viewport": {
+        "width": 260,
+        "height": 562,
+        "devicePixelRatio": 1.5000000223517418,
+        "scrollWidth": 260
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-late-chapters-visible-v2-contents-phone.png",
+      "sha256": "53aa9a9f3b343e47ae49fe85825f3d7a0c9f6cd1ec2d202bcd3745ee6b66f1e4",
+      "pixels": {
+        "width": 390,
+        "height": 844
+      },
+      "viewport": {
+        "width": 260,
+        "height": 562,
+        "devicePixelRatio": 1.5000000223517418,
+        "scrollWidth": 260
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-matrix-figure-visible-v2-desktop.png",
+      "sha256": "c5aa576d4401e10faec50a5cb901669e6c8b6c33216452b01ea2d3b59dd14198",
+      "viewport": {
+        "width": 853,
+        "height": 600,
+        "devicePixelRatio": 1.5000000223517418
+      },
+      "figure": {
+        "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png?v=712ff6021015",
+        "naturalWidth": 640,
+        "naturalHeight": 480,
+        "width": 521.2000122070312,
+        "height": 390.9000244140625
+      },
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      }
+    },
+    {
+      "file": "target/course-windows-20261018/restored-matrix-figure-visible-v2-phone.png",
+      "sha256": "57a704592f0153f1a60efd892d96e9520035320802a152385ebe0636930b40e1",
+      "viewport": {
+        "width": 260,
+        "height": 562,
+        "devicePixelRatio": 1.5000000223517418
+      },
+      "figure": {
+        "src": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png?v=712ff6021015",
+        "naturalWidth": 640,
+        "naturalHeight": 480,
+        "width": 218.1333465576172,
+        "height": 163.60000610351562
+      },
+      "pixels": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ],
+  "inspection": {
+    "reviewer": "Root agent",
+    "method": "All18 v1/v2 screenshots and both fresh Matrix inline desktop/phone captures individually inspected at original resolution. Matrix cells, title, digits and blank zero visible.",
+    "captureScale": "PNG dimensions and actual CSS viewport/DPR are recorded per capture. Windows display scaling means1280/390 capture widths correspond to853/260 CSS pixels; no1280/390 CSS-width claim.",
+    "limits": "Representative reader views and exact restored content checks, not an exhaustive visual review of every position in all59 pages."
+  },
+  "recovery": {
+    "failedV1": {
+      "path": "target/course-windows-20261018/restored-late-chapters-visible-v1-manifest.json",
+      "sha256": "e3b23b7d3d66a32fceea723e0996f7ae99be5a815aa43a3bdaf98f0261e6dc0d"
+    },
+    "v1Failure": "Expected20 images; actual21 consists of20 authored intro figures plus1 retained checkpoint construction-grid image.59 served/source checks and14 saved captures already succeeded.",
+    "successfulV2": {
+      "path": "target/course-windows-20261018/restored-late-chapters-visible-v2-manifest.json",
+      "sha256": "efaa48b5b1728a3a1c10b1f064965aaf9019004b08c557bcf2c9624ee3d02cdb"
+    },
+    "reuse": "V2 verified unchanged source/build/payload/capture hashes, reused those59 checks and14captures, re-fetched bundle and21 image bytes, then captured4 remaining views.",
+    "initialMatrixFigureFailure": {
+      "path": "target/course-windows-20261018/restored-matrix-figure-visible-manifest.json",
+      "sha256": "66de11d065c8e293d3bdb537f7c29afd2db8a628701676a032737a53930b9457"
+    },
+    "matrixFigureFailure": "Initial inline figure capture waited on lazy image before decoding; failed evidence retained.",
+    "successfulMatrixFigureRecovery": {
+      "path": "target/course-windows-20261018/restored-matrix-figure-visible-v2-manifest.json",
+      "sha256": "71534b6084cae2e29dd8ba27c3fcb7717d45b6027d779023cc56f4a4d84f2a82"
+    },
+    "newMatrixViews": 2,
+    "failureRecordsPreserved": true
+  },
+  "rootWordingBuildScope": {
+    "note": "Original contents/root-wording captures and associated root-file hashes remain bound to this build. Subsequent progress metadata wording changes require their own affected-page review; they do not invalidate unchanged59 lesson hashes or retrospectively make old captures current.",
+    "sourceHashes": {
+      "docs/journey/contents.md": "86648628ecf92f6540cf029c857419f61d59e389986aa0af35ce6d5d54ed096a",
+      "docs/journey/roadmap.md": "932677a70c2dd60ce6ee6b82dc8d0a1b269bf289c3cab37d263d42b798db7f7b",
+      "docs/journey/book.json": "392b9ff86eb234ab70660f04bf8bf53b26b7c7e691954242b89b3e8627d6995f",
+      "docs/journey/production-course-map.json": "47f148e0fff869a009d5b39ce3197bba4309d1f4618a0035fd26242b553f5b68",
+      "docs/journey/consolidation/current-state.json": "8ec63e5ad2cf6e59f06ad24e8460969c119cdc3b8742382c5e5561b4fe6a2676",
+      "../docs/plans/2026-10-18-viewer-course-progress.md": "a3a790c4c4e9ddb0323947ca10fb44d3c38ba6fe734e167416ad644e8f49874c"
+    }
+  },
+  "publicRestorationRecord": {
+    "path": "docs/journey/release/late-chapter-teaching-restoration.json",
+    "sha256": "bec7b3a36707cbc4c2261ce13f0c53c9d5b6e696d951831e66f7f3aed6319a7c"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "status": "PASS scoped changed lesson22.6 publication",
+  "recordedUtc": "2026-10-23T23:14:15.879Z",
+  "courseSha256": "72c30e437901ffce1d83a8fa56abb1b82c0d402a3315000206482b6546d0a6be",
+  "sourceFingerprint": "446614c6db2da06557279eea716834a8d8b66de4978d1c374b410ac8a0107f9e",
+  "pages": {
+    "docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md": "8c16f00f94627f44bc78e245cae0d9c2e9546c4005c9e75b93e68ce2bbcef557",
+    "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md": "636869ffa503f63f762e95138c5103caa768ea27bfd861fb98cc305a01a8fdf1"
+  },
+  "browser": {
+    "served": {
+      "indexURL": "http://localhost:8788/docs/",
+      "scriptURL": "http://localhost:8788/docs/assets/main-CllKQ-gf.js",
+      "lessonURL": "http://localhost:8788/docs/assets/course-journey-consolidation-96zzzzzzzm-retain-visible-instance-ranges-DmrdxPvd.json",
+      "lessonSha256": "852f122ba4699633520ca46420e808b4dcb62c719ce9d80a53167f1270747ebe",
+      "details": 0
+    },
+    "scope": "Changed22.6 rendered source additions + root generated-route alias only; no runtime/WebGPU/fullcourse sweep",
+    "cases": [
+      {
+        "name": "desktop",
+        "size": {
+          "width": 1400,
+          "height": 900
+        },
+        "fit": {
+          "width": 1400,
+          "document": 1400,
+          "mainClient": 1095,
+          "mainScroll": 1095,
+          "articleClient": 793,
+          "articleScroll": 793
+        },
+        "sourcePenRendered": true,
+        "newTestRendered": true,
+        "aliasRetainedCheckpoint": true,
+        "errors": []
+      },
+      {
+        "name": "phone",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "fit": {
+          "width": 390,
+          "document": 390,
+          "mainClient": 375,
+          "mainScroll": 375,
+          "articleClient": 343,
+          "articleScroll": 343
+        },
+        "sourcePenRendered": true,
+        "newTestRendered": true,
+        "aliasRetainedCheckpoint": true,
+        "errors": []
+      }
+    ],
+    "status": "passed"
+  },
+  "browserReviewSha256": "b7d1eaf930a55bdaa2bd6f62150e1c39384a77635e7721cb64e607bb27b65cb6",
+  "docsBuild": {
+    "resources": {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-10-23T23:12:30.1520256Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\node_modules\\vite\\bin\\vite.js",
+        "build",
+        "--base",
+        "/docs/",
+        "--outDir",
+        "../session_viewer/target/docs/vue"
+      ],
+      "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 47.306,
+      "peakJobCommitBytes": 1331740672,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 64396,
+      "descendantsAtCleanup": 0
+    },
+    "resourceSha256": "833deded7d0460d80187c0065de3dfacd863e3ec331995afd41138c90538b55d",
+    "stdoutSha256": "b0794d6d84547e27a4b94ee3dcc798fbb111bb625bb2905456f7c3e85d100599"
+  },
+  "rootImageReview": {
+    "status": "individually inspected both actual original-resolution screenshots",
+    "images": {
+      "desktop.png": "b62f32b9fa5f9e85f29f8f3373d31c4a7a3862225a038ac6f8ce0ff8830924e1",
+      "phone.png": "0834dd85d548ac359772782041bd24a852046a33d557cfac4ca624675fba623c"
+    }
+  },
+  "scope": "Two source additions render completely; phone/desktop overflow, original route/checkpoint alias and starting tabs retained. Existing prose/SVG preserved. Renderer residuals remain FAIL; first10 handoff and global release pending.",
+  "previousFailedProbe": {
+    "path": "target/course-windows-20261018/clipping-guide-doc-update-preparation/clipping-guide-docs-visible-v1/review.json",
+    "sha256": "74bc013d1f6f56539e09d5782b2795bae656f5d2347c1e7abd05a0762f44c5bd",
+    "reason": "Wrong output folder served stale lesson; rebuilt actual served folder."
+  }
+}

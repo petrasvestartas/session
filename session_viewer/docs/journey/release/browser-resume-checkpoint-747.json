@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-26T01:20:36.502Z",
+  "status": "IN_PROGRESS: 747 reviewed publications; bounded browser capture resume",
+  "published": 747,
+  "remaining": 1015,
+  "helpers": [
+    {
+      "path": "session_tests/scripts/course/incremental-browser-image-batch-v3.ts",
+      "sha256": "15c42c1e409ec33c0e1a0d588274cca350131bb96d1be14e4e85bfac58ccfd64"
+    },
+    {
+      "path": "session_tests/scripts/course/source-startup-status-browser-presentation-v2.ts",
+      "sha256": "1257ac50c6b7cc85abdbb0c7aa01b894e211d4c2f3161782761a5e123251a6fa"
+    }
+  ],
+  "retainedCompletedBrowserCaptures": 93,
+  "scope": "Versioned source-exact browser successor and startup-status sidecar; completed captures retain independent source/GPU receipts. No new full canonical callback or final whole-queue acceptance is claimed.",
+  "earlyTriangleDiagnosis": "Published and pending originals contain 451440 exact pink pixels with bounds [360,305,1439,1139]; fresh compositor image exactly matches the stored image. The apparent blank was a misleading preview, not missing geometry.",
+  "siteDesign": "Vue, styles, structure and Gemini prose remain unchanged."
+}

@@ -1,0 +1,399 @@
+{
+  "status": "PASS two named source-bound actual-production/course native ambient pairs; authoring integration and broader feature acceptance pending",
+  "recordedUtc": "2026-10-24T09:56:15.310Z",
+  "sourceBaseline": {
+    "logicalFiles": 713,
+    "fingerprint": "65f0013ae13365244de0baf69d29fd84c0219450573f86e5884eb0413dd6ae30",
+    "courseSha256": "f23fe2c84e633849f9b9fad00a0ecdb87b2d40b0d4165fd7561d702626cc7537",
+    "authoredRuntimeStillBaselineAtPairExecution": true
+  },
+  "candidate": {
+    "actualPrivateSnapshotFingerprint": "5d114c4e187c05f90c293a23a3212cdc0faa26af4c28d2743f93aaadf9c5dbda",
+    "prospectiveCanonicalFingerprintBeforeNewRegression": "08ec582924272b9ba197074fbc90f1e974180ab67db920421ed751f2063603fa",
+    "fingerprintQualification": "Private fingerprint includes unused staged Cargo.toml with absolute dependency-path rewrites. Actual compiler uses course-native-frame manifest. Canonical integration must retain original Cargo.toml;13 source files differ,700 canonical logical files unchanged; future added native regression changes its own final freeze fingerprint.",
+    "changedFiles": [
+      {
+        "file": "src/ambient_camera.rs",
+        "beforeSha256": "3196269f910c22cd0c2e7a94d5b5eaa0b7b45e4bb8cc6df96ee92ea7fff3dfb9",
+        "afterSha256": "7a305c24e1c75aeabb5c9cf78f5fc9551a5417e8915fca80dd0bc77ef988308d",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient.wgsl",
+        "beforeSha256": "9a6af5d10f2f0781c31b411b22cd6f6470addacc8ee83f129a27f66db075f057",
+        "afterSha256": "09b64493c448d2366095aa8b94e8cc9b5d9b6fc2775ab15e00fd2a34002cb4cb",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_sources.wgsl",
+        "beforeSha256": "0a0d533e6c76c95f09c20f0b257c4fcb5c51838eb20cac2b8e7f2ee088f98444",
+        "afterSha256": "3886ab7691bf74b343e5268860c4d68ae3e1745c97459b78d61f4ac66d3fc561",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_source_pipeline.rs",
+        "beforeSha256": "1879c7baa2d9ac3dc801543cce507775b5b864ad650116873a16f40a8fdc8af2",
+        "afterSha256": "3b11dbe30bb33344071bc5ac91df8a4503378eaaec33bc4af2f3f2bc3728b403",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_source_gpu.rs",
+        "beforeSha256": "dda6482444cdfc052194bd9d505f2eb6b59ed25be7448526411d8a9cfc494489",
+        "afterSha256": "693e6057da5310d31763609155699a29ffe1f0e0f5e16c53b64cfd539b0bcd99",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_images.rs",
+        "beforeSha256": "23ab62cb9305202c9914046a0fe3f6002824730db1afe53342532936cd9736f7",
+        "afterSha256": "59c4a033f23d174f249566ef941475b17e4e31d17cd731ddcc18537797aa0f4c",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_pipeline.rs",
+        "beforeSha256": "3b24adf70d9373c2df8a58385acab8b0652df3e76d95f414e1a775ae4d29c456",
+        "afterSha256": "6704ff0919f3f50d54cc079fdbb9e039ea1534abaf0ba12b8fce7568b4c8cc68",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_groups.rs",
+        "beforeSha256": "e908ef6ff84e0a1c9c76b5445c22673e047f18a3bf84f989007ca1997d131603",
+        "afterSha256": "2454e1b30399322567d83565bf75d385fa00a608caebc286203a33c688c72688",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_gpu.rs",
+        "beforeSha256": "23c602e15daf28b773fed5f82d67ccbb37f741cd8d503fdf2e4719ea3e33d06c",
+        "afterSha256": "0ab35d3a8ef15e3a8e6733295db657e07a83d41c5607d3f5290718d228bff4c1",
+        "kind": "runtime"
+      },
+      {
+        "file": "src/ambient_input_tests.rs",
+        "beforeSha256": "d2c155c8cd4c4f0d6559b1a98ee5a354184e55f51ffd55ba991ed97fe8f5e166",
+        "afterSha256": "a793339057cb16fd259474b0310a7832ab08508ce9c40efa123998a144f8da2e",
+        "kind": "native diagnostic readback adaptation"
+      },
+      {
+        "file": "src/ambient_contact_tests.rs",
+        "beforeSha256": "12de0116bc79824e7fd0a16b74e98c19d8cd8c036fa0aaa83ce1f4b2b3ef9376",
+        "afterSha256": "b948e290224202342c7cefd428ea6a0c0a087ecfb3eb45440b599d93b0505638",
+        "kind": "native diagnostic readback adaptation"
+      },
+      {
+        "file": "src/sample_surface_tests.rs",
+        "beforeSha256": "366cd8bcfa7fa559735f5dc8dd1b05c9bf2c46eff5faa06d545bb4a1a3fae8ec",
+        "afterSha256": "38987cae5fb5b17eea55a6f5da2168e604ac83711d95d3fcb98a10f45920d3a4",
+        "kind": "native diagnostic readback adaptation"
+      },
+      {
+        "file": "src/ambient_sample_inspect.rs",
+        "beforeSha256": "34e7d5dc6da956b1d86892c010494109ee7078bc7c06e26f541eea67686dc84e",
+        "afterSha256": "8483e081fcb342e68630d17f7a14748d4aaeaf0509bc15e1db4841f0122ae5ec",
+        "kind": "runtime"
+      }
+    ],
+    "files": 713
+  },
+  "scope": "Exactly Ambient Off and Ambient On on one retained raw four-BRep blue pedestal, one declared source-fit isometric MVP,640x480/DPR1/sample1,opacity1,lightingfalse; same actual production device/queue within each pair. No picking/browser/sample4 production parity, restoration/lifetime matrix, whole-feature closure, or current authored-source execution claim.",
+  "comparison": "Entire actual RGBA, zero tolerance; original21 witness ensure! checks and source/contact predicates unchanged.",
+  "caseCount": 2,
+  "cases": [
+    {
+      "case": "ambient-off",
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "productionRgbaSha256": "7998499ccb79aa4c5c2fb87f5dac4acc0da926a8ce074e56663fcd6b54f38d8f",
+      "courseRgbaSha256": "7998499ccb79aa4c5c2fb87f5dac4acc0da926a8ce074e56663fcd6b54f38d8f",
+      "sourceFullDecodedAndMetadataUnchanged": true,
+      "courseAmbientUsage": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "case": "ambient-on",
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "productionRgbaSha256": "c7d753e4bcb07d6117e039a4954baca0ebf8c34655442c2102eb5129ba21a853",
+      "courseRgbaSha256": "c7d753e4bcb07d6117e039a4954baca0ebf8c34655442c2102eb5129ba21a853",
+      "sourceFullDecodedAndMetadataUnchanged": true,
+      "courseAmbientUsage": [
+        6547704,
+        1,
+        1,
+        1,
+        14
+      ]
+    }
+  ],
+  "genuineSignal": {
+    "course_darkened_ground_contact_pixels": 10273,
+    "course_on_vs_off_changed_pixels": 276049,
+    "production_darkened_ground_contact_pixels": 10273,
+    "production_on_vs_off_changed_pixels": 276049
+  },
+  "sourcePB": {
+    "path": "assets/pb/course-comparison.pb",
+    "bytes": 18736,
+    "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+  },
+  "pose": {
+    "file": "journey/release/ambient-pedestal-qualified-pose.json",
+    "sha256": "9e3680b0bc9659e09f528a8d46163000c1f642d50a9421ab732e976319ee8b1a",
+    "declaredFromActualSourceBounds": true,
+    "productionAndCourseF32MatrixBitsExactlyEqual": true
+  },
+  "productionDiagnosticScope": "Existing isolated production witness exposes ambient boolean/passive identity only; actual engine/GTAO algorithms and shaders unchanged. Course V5 stages production-geometric triangle normals through three unquantized R32Float channels, one final oct encode, with production full-pyramid bindings/occupancy/ground dimensions and actual uniform extents.",
+  "resources": {
+    "build": {
+      "cargoReportedSeconds": 51.24,
+      "guardElapsedSeconds": 51.301,
+      "peakJobCommitBytes": 2260000768,
+      "record": {
+        "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/resources.json",
+        "sha256": "ca590cd05837e40f2aef96ad0cfd535193368865c884024c7aa6dec0a1cdb70c"
+      }
+    },
+    "run": {
+      "guardElapsedSeconds": 7.041,
+      "peakJobCommitBytes": 678268928,
+      "record": {
+        "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-normal-v5-scope3-qualified-v4-v1/resources.json",
+        "sha256": "b142472c9d91664e6248b1330edf315b7f96ac3f422f1c23ef9c0b68af36d493"
+      }
+    },
+    "guard": {
+      "memoryLimitBytes": 4294967296,
+      "processors": 2,
+      "cargoJobs": 1,
+      "timeoutSeconds": 1800,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced."
+    }
+  },
+  "memory": {
+    "normalSourceBeforeBytesPerPixelSample": 2,
+    "normalSourceAfterBytesPerPixelSample": 12,
+    "normalStagingAdditionalBytesPerPixelSample": 10,
+    "additionalAt640x480Sample1": 3072000,
+    "additionalAt640x480Sample4": 12288000,
+    "actualCourseAmbientUsageOn": [
+      6547704,
+      1,
+      1,
+      1,
+      14
+    ],
+    "reason": "Three R32Float source channels preserve raw f32 cross values and guaranteed4x support; Rgba32Float/Rg32Float lack guaranteed multisampling. Four MRT total16bytes/sample. Sample4 pipeline/native semantics require their separately executed regression evidence; no sample4 production pair was run here."
+  },
+  "compilerBinding": {
+    "file": "journey/release/ambient-pedestal-qualified-compiler-binding.json",
+    "sha256": "33eac5668c8faf14654bd9d8feff1dfbf9c9287fc86e9add44a87a02464f2646",
+    "original": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/compiler-source-binding-qualified-v4.json",
+      "sha256": "22fa5918b35924da9d8c67fe6db6eb770fdd7aa9ddf0d5adc17489a4f1e9c75a"
+    },
+    "cacheDefect": "Shared package/lib name viewer_journey_ambient_pair reused a source/src/... dep-info identity across private workspaces. Prior V5 executable omitted new normal shader inputs; original no-effect inference is withdrawn. Unique package+lib names, actual nonfresh compiler-artifacts, verbose actual witness extern paths, immutable rlib/dep-info hashes and embedded shader inputs now prove actual source linkage."
+  },
+  "images": [
+    {
+      "file": "journey/release/ambient-pedestal-qualified-off.png",
+      "sha256": "58f702c9951b145b2774bf546b0d36018f50c57d77d638db6f20fcff183a42ee",
+      "rootOriginalDetailReview": true,
+      "reviewedActual": "ambient-off-production; paired course PNG hash identical"
+    },
+    {
+      "file": "journey/release/ambient-pedestal-qualified-on.png",
+      "sha256": "4519bb44e7e2b980b5a3658afa1aaa64a9574f4367684bf5932705d559f47fef",
+      "rootOriginalDetailReview": true,
+      "reviewedActual": "ambient-on-course; paired production PNG hash identical"
+    }
+  ],
+  "records": {
+    "result": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/result.json",
+      "sha256": "0fd846d5fe3726355d6cded76aa8867357c74c2dec23c7f2313087cf7a3c9200"
+    },
+    "rawManifest": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/frames-v5-scope3/manifest.json",
+      "sha256": "8f46dc182086b6791f17cf886e0855b10abadb9848cc0262abe3bd8d299d54f9"
+    },
+    "witness": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/witness.rs",
+      "sha256": "1f89f7dc6a3915a042322ef31505a1a71af1344e2b2e8c672c90a633cc5395a5"
+    },
+    "runLog": {
+      "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-normal-v5-scope3-qualified-v4-v1/output.log",
+      "sha256": "c3172f26caba0fbaf104f723ef7271a325316fa966c571684b1d82b580c97dde"
+    },
+    "buildCommand": {
+      "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/command.json",
+      "sha256": "33344f6e85bb7a2bf0232f11ac9e64d3dea67db34e234262d0f54198b7a8dbf6"
+    },
+    "runCommand": {
+      "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-normal-v5-scope3-qualified-v4-v1/command.json",
+      "sha256": "f2fc9974c748c7c303e4d0ff0fc510a8b933708eb9f9f58124e4f4dadbf1a70c"
+    },
+    "qualifiedPreparation": {
+      "path": "target/course-windows-20261018/ambient-intermediate-diagnostic-v6/unique-v5-source-binding-v3/preparation-qualified-v4.json",
+      "sha256": "bc58eadee46f0fd91a1cc65ebaee2950b9a2670393930d67a07be86e3467ab78"
+    }
+  },
+  "preservedFailureHistory": [
+    {
+      "stem": "run-v1",
+      "outcome": "FAIL before GPU: retained-pose JSON literal mismatch",
+      "qualification": "Original failure preserved; no actual GPU pair accepted.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-v1/resources.json",
+          "sha256": "d93cc820b3b7de6c42ae3c5978e4c5989b4d2635b71a8560903e216bd31f4527"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-v1/command.json",
+          "sha256": "13e8fcac93852c72abc4e69f1d4426c401d314b8a654358d6e170bdc00a03031"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-v1/output.log",
+          "sha256": "e995b2f314653776bfe21c75fe400d0cc78b14f5be77b17d4c20067f4cec8903"
+        }
+      ]
+    },
+    {
+      "stem": "run-literal-v2-v1",
+      "outcome": "FAIL contact-signal predicate on wrong sheet fixture",
+      "qualification": "Only clear pixels changed; no valid ambient contact evidence. Fixture replacement was explicit, no threshold weakened.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-literal-v2-v1/resources.json",
+          "sha256": "33734b7f2dcbe9441d174b08e55e7faae7dfd18939481957eb9b4e96fb3fab13"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-literal-v2-v1/command.json",
+          "sha256": "2fca07a6957e50b7f4c6250cc73273bc3a3433a4ca2b8c1d3912edf1f94f5c40"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-literal-v2-v1/output.log",
+          "sha256": "191431fe53bcc90c6ef858d8afd07d40906b4ff2cca2feb05aafa8aa0f90a91f"
+        }
+      ]
+    },
+    {
+      "stem": "run-pedestal-v3-v1",
+      "outcome": "FAIL actual contact pedestal On36492/max47; Off0",
+      "qualification": "Original baseline comparison scope retained.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pedestal-v3-v1/resources.json",
+          "sha256": "45e2c72818fe318fd6aadb290e01b816b02489e8a0417bcc750498ecb080d430"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pedestal-v3-v1/command.json",
+          "sha256": "09a42cd36353d4ff42b9fd8359b860d89227539bf47f867c1d88c465df75c27b"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pedestal-v3-v1/output.log",
+          "sha256": "9cc3c7fd62f7a2ca7fbba116a59710490e3677c0a7ee4e7097ec451b07b06160"
+        }
+      ]
+    },
+    {
+      "stem": "run-pipeline-v4-v1",
+      "outcome": "FAIL On2493/max1; Off0",
+      "qualification": "Original shared-crate build/result preserved; no claim this is uniquely source-bound to all prospective changes. Separate V4 focused native evidence is outside this pair record.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pipeline-v4-v1/resources.json",
+          "sha256": "6677fb03cfe9e41f2efe30f3b0c3ca859538bb238adbe25d0a2547c8ef195808"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pipeline-v4-v1/command.json",
+          "sha256": "bb29388c252136e2b5b12fb13676d4dbbab641c4189344b57e785b29a599ef0a"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-pipeline-v4-v1/output.log",
+          "sha256": "700c4c7fa6822b3629d34b728eb0c80cc555d66d70fc865ef6db7a02d4387ae6"
+        }
+      ]
+    },
+    {
+      "stem": "run-normal-v5-v1",
+      "outcome": "FAIL On2493/max1 using stale shared-name library",
+      "qualification": "The old EXE lacked source_normal_y/source_normal_z. This result cannot support any no-effect conclusion about the new normal staging.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-normal-v5-v1/resources.json",
+          "sha256": "5a6ba1d15865e2f2ccbb39c18bdfbe9fd98c888c2fb70198ed4b3998696d7cf5"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-normal-v5-v1/command.json",
+          "sha256": "5a68993672e6a687a4ff3de5e223ccf540f97b7ab802c7c180494f80f5ab097a"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/run-normal-v5-v1/output.log",
+          "sha256": "700c4c7fa6822b3629d34b728eb0c80cc555d66d70fc865ef6db7a02d4387ae6"
+        }
+      ]
+    },
+    {
+      "stem": "build-intermediate-v6-v1",
+      "outcome": "FAIL E0433/E0599: diagnostic wrappers absent from reused library",
+      "qualification": "Compiler-scope defect exposed; passive intermediate experiment is obsolete and was never run.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-intermediate-v6-v1/resources.json",
+          "sha256": "ed71efa8887f999401b117dedc5b1d69dff5ebb9764f14ab980d1899af202c2c"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-intermediate-v6-v1/command.json",
+          "sha256": "2ac9e5b6dcbe557ded93e8f991dabfcf5055a879be35fc01e6a8b801dd275db8"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-intermediate-v6-v1/output.log",
+          "sha256": "d6822d7a4b6f70f090994c5222e75e22423c47cdba231198cfac6eee819f3767"
+        }
+      ]
+    },
+    {
+      "stem": "build-normal-v5-scope2-v1",
+      "outcome": "FAIL E0716 after actual unique course compile",
+      "qualification": "Concrete lifetime defect fixed mechanically by binding shared_buffers. Production compilation completed, but no pair acceptance.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope2-v1/resources.json",
+          "sha256": "4ee8db02bffe693bad353500e10b793edca68da7c55780b709d2830c9bf66cc2"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope2-v1/command.json",
+          "sha256": "b3758cdb9e86514bb8cb3774cb0652f1206cb0d04841eba23ba587ebbcca2a08"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope2-v1/output.log",
+          "sha256": "3bc8e6ee51d14d9e3ee6d11d1efefc868af0e95132fc0712072bc34888eed0a7"
+        }
+      ]
+    },
+    {
+      "stem": "build-normal-v5-scope3-v1",
+      "outcome": "Cargo PASS; original postbuild expected-reuse hash check failed",
+      "qualification": "Both production and course actually freshly compiled. Retained build requalified without rebuild. Windows quoted extern syntax corrected only in qualifier-v5.",
+      "artifacts": [
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/resources.json",
+          "sha256": "ca590cd05837e40f2aef96ad0cfd535193368865c884024c7aa6dec0a1cdb70c"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/command.json",
+          "sha256": "33344f6e85bb7a2bf0232f11ac9e64d3dea67db34e234262d0f54198b7a8dbf6"
+        },
+        {
+          "path": "target/course-windows-20261018/ambient-production-pair-preparation/build-normal-v5-scope3-v1/output.log",
+          "sha256": "9977288ad0b8ac8c026339de95bf57dc197710e85a4810b4106d42788992d812"
+        }
+      ]
+    }
+  ],
+  "acceptanceBoundary": "This record accepts only the two named finite production comparisons. Final source integration/focused native regressions/final compiler-suite/runtime freeze and tutorial browser work remain independently tracked."
+}

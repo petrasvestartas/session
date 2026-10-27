@@ -100,10 +100,19 @@
           <details v-for="g in courseGroups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas') || g.slugs.includes(currentSlug)">
             <summary class="group-title">{{ g.title }}</summary>
             <template v-if="g.sections">
-              <details v-for="section in g.sections" :key="section.title" :open="section.slugs.includes(currentSlug)" class="book-section">
-                <summary class="group-title">{{ section.title }}</summary>
-                <router-link v-for="s in section.slugs" :key="s" :to="'/course/' + s" class="suite-button course-link" :class="{ active: s === currentSlug }">{{ coursePages[s]?.title }}</router-link>
-              </details>
+              <template v-for="section in g.sections" :key="section.title">
+                <router-link
+                  v-if="section.slugs.length === 1"
+                  :to="'/course/' + section.slugs[0]"
+                  class="suite-button course-link"
+                  :class="{ active: section.slugs[0] === currentSlug }">
+                  {{ coursePages[section.slugs[0]]?.title || section.title }}
+                </router-link>
+                <details v-else :open="section.slugs.includes(currentSlug)" class="book-section">
+                  <summary class="group-title">{{ section.title }}</summary>
+                  <router-link v-for="s in section.slugs" :key="s" :to="'/course/' + s" class="suite-button course-link" :class="{ active: s === currentSlug }">{{ coursePages[s]?.title }}</router-link>
+                </details>
+              </template>
             </template>
             <router-link v-else
               v-for="s in g.slugs" :key="s"
@@ -531,14 +540,15 @@ watch(
 .group-title {
   padding: 0.6rem 0.75rem 0.2rem;
   font-size: 12px;
-  color: var(--faint);
+  color: var(--fg);
+  font-weight: 600;
 }
 
 .suite-button {
   padding: 0.2rem 0.75rem;
   background: transparent;
   border: none;
-  color: var(--muted);
+  color: var(--fg);
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;
@@ -552,6 +562,7 @@ watch(
 
 .suite-button:hover {
   color: var(--fg);
+  text-decoration: underline;
 }
 
 .suite-button.active {
@@ -575,7 +586,7 @@ watch(
   padding: 0.1rem 0.5rem;
   background: transparent;
   border: none;
-  color: var(--muted);
+  color: var(--fg);
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;

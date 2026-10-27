@@ -1,0 +1,2 @@
+    let pens=if edges.is_empty(){Vec::new()}else{vec![(crate::mesh_pens::width(plane.width),crate::production_ribbon::pack_rgba(plane.linecolor.to_f32()))]};
+    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{dots:Vec::new(),dot_styles:Vec::new(),glyph_flags:0,ink:Default::default(),dot_colours:Vec::new(),pens,faces:Vec::new(),triangles:Vec::new(),edges,endpoints};

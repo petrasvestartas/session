@@ -1,0 +1,230 @@
+{
+  "status": "PASS complete original source549 performance callback and reviewed meaningful comparison fixture; bounded finite Performance+ink/ambient reconciliation",
+  "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+  "sourceFiles": 549,
+  "sourceFingerprint": "3caa88eb8496ece322ed6f8caa48500aa9487ae2d5fde68c86825ac33b5b6148",
+  "sourceSignature": "9720b0172de028846a42d2f3e07dc7e107a179a91f2c4237204da3f865169430",
+  "callback": {
+    "path": "journey/checks/browser/performance.cjs",
+    "recursiveFingerprint": "e7394b63132216251770f924d4d60a1a929bcbe7e882410ce32cb1a29f87bab4",
+    "captureSha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+    "completeDefaultBody": true,
+    "approvedTwoCorrections": {
+      "approval": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-tested-corrections-application-preparation\\applied-qualification-approval.json",
+        "sha256": "4f2e2953d2feec510492a5e174290e9c8e46b999ef10a46967792965bb17dda1"
+      },
+      "application": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-tested-corrections-application-preparation\\application.json",
+        "sha256": "05e5a25ceaccfd536c5537aa736cd3ca893bd85254a32dc56569ba9b0353f0ca"
+      },
+      "plan": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\plan.json",
+        "sha256": "86047f932502db6e6785dd0db8e9f00dacd01ed3c04722a099c3df28225f5497"
+      },
+      "qualifier": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\qualification.mjs",
+        "sha256": "f37aff4e393adfcc905458bed899ade8d6e00e61458cd51e81c66b66dabb0831"
+      },
+      "course": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+        "beforeSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+        "afterSha256": "fd25625df40bee14e302a069448fa9510a87b90f80eee945f37b752fb1277726",
+        "beforeFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\course-before.bin",
+        "afterFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\course-candidate.bin"
+      },
+      "elements": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\elements.cjs",
+        "beforeSha256": "e5cd43f4997a1557add4f27f23229702b0983273467d2c4dde6309fd4c903cc5",
+        "afterSha256": "8a10921d7403037d3e588827a785154fa0885b141ea9d5da9bf7c0eeddc99d6c",
+        "beforeFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\elements-before.cjs",
+        "afterFile": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\two-exception-pin-qualification-preparation\\elements-candidate.cjs",
+        "before": "assert.match(await page.locator('canvas').getAttribute('data-controls'),/X 1000/);",
+        "after": "assert.match(await page.locator('canvas').evaluate(c=>c.getAttribute('data-controls')??JSON.parse(c.getAttribute('data-measurement')).label),/X 1000/);"
+      },
+      "scope": "Only exact approved presentation metadata/measurement schema changes; no runtime/source/compiler execution or callback acceptance inferred."
+    }
+  },
+  "browser": {
+    "report": {
+      "path": "target/course-windows-20261018/performance95f-two-correction-publication-preparation/raw/full-browser.json",
+      "sha256": "e3e0144e98c08b95928d612d479c1f92977c2404372d2d0891954f21372ae8e7"
+    },
+    "snapshot": {
+      "path": "target/course-windows-20261018/performance95f-two-correction-publication-preparation/raw/browser-snapshot.json",
+      "sha256": "acb377a58d5e9c8da49361f2bc166927d36c61d0f1f7db101ddadbfb44468202"
+    },
+    "entry": {
+      "source": "9720b0172de028846a42d2f3e07dc7e107a179a91f2c4237204da3f865169430",
+      "checker": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a",
+      "extraChecker": "e7394b63132216251770f924d4d60a1a929bcbe7e882410ce32cb1a29f87bab4",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T18:24:11.513Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "7e3c2f8ae11c0bd7acd34a0493f32c47947601486f98babcb7bef0f0163053f0",
+      "file": "95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "99862f6913e70cc698326145346561b90093bf157ab399ef093ae74a46369cf3",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "log": {
+      "path": "target/course-windows-20261018/performance95f-two-correction-publication-preparation/raw/full-browser.log",
+      "sha256": "37967dc1bd669390bfe3071b93e867a2f9dbeb1da26bd76dedb576dbdf8ebc52"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/performance95f-two-correction-publication-preparation/raw/full-browser.resources.json",
+      "sha256": "48d31f555051a194538158fe7a482a42980cd9c2e69b740891aea801be613a8d",
+      "elapsedSeconds": 644.073,
+      "peakJobCommitBytes": 2212790272,
+      "processors": 2,
+      "jobCommitLimitBytes": 6442450944
+    },
+    "served": {
+      "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+      "index.html": "99862f6913e70cc698326145346561b90093bf157ab399ef093ae74a46369cf3",
+      "snippets/session_viewer-568dd7ccbb8842dd/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/session_viewer_freeze_d5dd5b80bb27fbf8bee367f3-429fbfd79e1a64b5/inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+      "snippets/viewer_journey-7519825317df163d/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_713_555490d4cb3dd18014984afc-f2a8dc965501de35/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_713_6947664b26863adf65ef7bfc-6ba2909db89e4682/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_714_b0313bae6b71646b94247765-84d12fc9a0275994/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_714_b5a415856167f657d7eb02e9-cb60b5505964b2a0/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "snippets/viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-671277802784d3a6/src/adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-11b30a19e5f1eeb4.js": "a4ab32c293b5659d94e3054809f611162297f2ed69f4a8d9c31667b83e6eb102",
+      "viewer_journey_95f_3caa88eb8496ece322ed6f8c_approved5-11b30a19e5f1eeb4_bg.wasm": "8a4f3d3241b5ad1cfc26b1e33b3b93332d07ae478dc5b43319b661ae78a79285"
+    },
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    }
+  },
+  "build": {
+    "proof": {
+      "path": "target/course-windows-20261018/performance95f-continuation-v2/performance95f-two-corrections-v1/proof.json",
+      "sha256": "c904545ef256c1f9983353227e0b32af3023ea8df753bf8073d1d35cc06f88d9"
+    },
+    "scope": "Five own549 source-bound phases retained; correctedchecker/presentationmetadata only. NativeD57 remains original reviewed native frame; no new native/compiler execution."
+  },
+  "image": {
+    "file": "performance95f-current-browser.png",
+    "sha256": "8354b6839948576872b2230356cba0f51c34ce8a8a76fcc5781061ff7188de61",
+    "proof": {
+      "path": "target/course-windows-20261018/performance95f-two-correction-publication-preparation/performance95f-visible-approved-v2/proof.json",
+      "sha256": "5fbd6f677b8a7844bc9b359d3567609a0aad6965fefdb713510f80318debd0f0"
+    },
+    "rootPersonallyReviewed": true,
+    "review": "Clean blue original pedestal: square base, column and round top; black outlines and intact nonblank geometry."
+  },
+  "termination": {
+    "image": {
+      "path": "target/course-windows-20261018/performance95f-two-correction-publication-preparation/raw/performance95f-terminal-close.png",
+      "sha256": "c6dcedd89c858154d4883786830aa3fe70536918cf1afdf839b97d36c85c2697"
+    },
+    "rootPersonallyReviewed": true,
+    "scope": "Expected empty Close termination only; not meaningful feature output."
+  },
+  "finitePerformance": {
+    "criterion": "Run distinct95f canonical performance/cache-invalidation callback and inspect actual feature output.",
+    "retainedTimingScope": "Five63ac small-demo timingcategories coldload/inputframe/warmGPUfence/uploadsallocations/idle remain exactoldsource/WARPmeasurements; nohardwareFPS ornew549timingclaim.",
+    "retainedRecords": [
+      {
+        "path": "docs/journey/release/runtime-performance-review.json",
+        "sha256": "06941394b8794640e51aea35e422ca03b14ce1001c3ef364bd324d6a539c854a"
+      },
+      {
+        "path": "docs/journey/release/final-quality-recovery-review.json",
+        "sha256": "54cb090abe1a441e0f026929aeccdc2723a756618137ba24bb7a264ffe77f032"
+      },
+      {
+        "path": "docs/journey/release/quality656-browser-review.json",
+        "sha256": "e84cb8b4ddcab47842ba94979511920d59581d613aec995910d78485acc969dc"
+      }
+    ]
+  },
+  "finiteInkAmbient": {
+    "declaredBrowserEntries": [
+      "65c-cloud-point",
+      "95f-prove-cache-invalidation-and-honest-performance-reports"
+    ],
+    "sourceBoundRecords": [
+      {
+        "path": "docs/journey/release/cloud65c-browser-review.json",
+        "sha256": "89f353dd144b2e9f3145618974afd1e018522d270f391dad484f84fef9fe70a5"
+      },
+      {
+        "path": "docs/journey/release/ambient-pedestal-qualified-native-review.json",
+        "sha256": "17890910bbf6cc1cfdabebdbc1698093809efc1924844ea007c13ea66d8f40ed"
+      },
+      {
+        "path": "docs/journey/release/ambient-four-sample-selector-parity-review.json",
+        "sha256": "3200abccca564d88546c21a14ce2887f98e9ee99da1ddc8e80f4d66a6fc3468d"
+      },
+      {
+        "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+        "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+      }
+    ],
+    "outlineInputs": "Actual65inheritedoutline.cjs DPR1/2 selectedCAD maskbytes/blackcontour/goldpixels/originaluploads/MoveUndo/release.",
+    "nativeOutline": {
+      "record": {
+        "path": "docs/journey/release/ambient-selector-final-native-integration-review.json",
+        "sha256": "536b6c1a5f0df6b99535bed3757921b173d99e63bbbc2c0dd8c33fe5b4e7b79e"
+      },
+      "namedResults": {
+        "path": "target/course-windows-20261018/ambient-selector-refreeze-publication-preparation/native1064-named-results.json",
+        "sha256": "dec2d168cef96bbf5e89d3648800425f90214cd9798cc49e641ba7eb0fbdcac8"
+      },
+      "alreadyPassed": [
+        "renderer::global_outline_tests::actual_global_curved_and_flat_silhouettes_keep_the_same_css_width_at_two_densities",
+        "renderer::global_outline_tests::actual_global_and_selected_outlines_share_alpha_and_one_black_blend",
+        "renderer::global_outline_tests::actual_visible_cap_coverage_keeps_selected_and_global_masks_equal",
+        "renderer::global_outline_tests::actual_global_outline_includes_locked_and_releases_hidden_originals",
+        "renderer::sample_tests::actual_four_sample_outline_and_section_masks_keep_single_blend_and_original_owners"
+      ]
+    },
+    "ambient": "Retained strict originalpedestal production/course Off/On pairs at1sample and4samples remain actual0RGBA, measuredpositivecontactsignal with exactPB/MVP/radius/normal inputs androotreviewedimages.",
+    "limits": "Outline namednative/browsersource assertions are not a new outline-only productionfullRGBA comparison. No new matrix, old ambientpair source relabel or finalnewkernelquality/recovery acceptance."
+  },
+  "preservedFailure": {
+    "scope": "Original95full617.565s legacy data-controls NULL failure and focusedcandidate diagnostic remain unchanged; later actualcorrectedfullPASS is distinct.",
+    "record": "release/terminal-status-metadata-review.json"
+  },
+  "limits": [
+    "No newglobalfinalruntime ornative1070 acceptance from source549historicalcallback.",
+    "FutureBRep+kernel integration still needs its own compile/native/finiteaffectedprobe.",
+    "Noassertiondeletion orterminalClosefeatureclaim."
+  ]
+}

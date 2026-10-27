@@ -1,0 +1,7 @@
+    Opacity(f32),
+    Arctic(Option<bool>),
+    ViewOutline(Option<bool>),
+    PlaneSize(f64),
+    ViewInk(crate::ink_ranges::Family,bool),
+    ViewXray(Option<bool>),
+    Clipping(crate::clipping_input::Request),

@@ -1,0 +1,7 @@
+    "Original Point walk and mesh-marker incidence/facing/width algorithms are retained; local row collectors replace production lane owners.",
+    "Prepared mesh glyph metadata retains only the radius and three facing words, sharing existing endpoint addresses/colors. GPU geometry owns no original Mesh reference.",
+    "The complete shader programs change only object ownership in fs_id; active edit controls retain their separate course source queries.",
+    "Object flags, spacing, edge overrides and per-frame eye-inside flags use compact production object rows. Shader geometry, coverage, normal handling and pick cutoff are unchanged.",
+    "The ownership adapter retains course OBJECT_INK=1 so physical surfaces do not outrank an original glyph within the cursor window; the production DISC_ID_TAG class remains nonphysical."
+  ]
+}

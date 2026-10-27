@@ -1,0 +1,1 @@
+for mesh in meshes.iter().filter(|m| !m.printed()&&(all||m.selected()))

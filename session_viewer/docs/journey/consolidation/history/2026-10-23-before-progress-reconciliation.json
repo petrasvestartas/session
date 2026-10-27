@@ -1,0 +1,240 @@
+{
+  "updated": "2026-10-23",
+  "platform": "windows",
+  "scope": "Complete the 22-chapter viewer course and production reconciliation plan",
+  "chaptersConsolidated": 22,
+  "chaptersTotal": 22,
+  "readerFacingLessons": 111,
+  "preservedCodingCheckpoints": 1360,
+  "preservedCheckpointsIncludingReference": 1361,
+  "sourceMap": "../production-course-map.json",
+  "pilot": "chapter-1.json",
+  "historicalState": "history/2026-10-17-linux-state.json",
+  "evidenceRoot": "../../../target/course-windows-20261018",
+  "runtimeChanged": true,
+  "fullPlanComplete": false,
+  "checks": {
+    "finalChapterAudit": "PASS: 21 lessons, 197 checkpoints, 4840 original code blocks, 2346 snippet includes, 247 relative links",
+    "navigation": "PASS: 111 lessons in contents/daily plan; 1360 aliases and all local links retained",
+    "courseTools": "PASS: checkpoint-course-tools.json, all22 tests after canonical text/source hash portability.",
+    "docs": "PASS: docs-native-reconciliation-build-fixed.json; 1575 pages and 399 assets; fresh index 2026-10-23T07:04:02Z. 150.645 s, peak 1706426368 bytes.",
+    "browser": "PASS: docs-native-reconciliation-browser.json; all 26 route/layout captures individually inspected, zero page/console/HTTP errors. Inspection: docs-native-reconciliation-browser/inspection.json. Native runtime feature acceptance remains separate.",
+    "productionSources": "PASS: all 16 GitHub checkouts updated; root 95a14e08, session a391b104. Full backup retained. All 25,829 tutorial files matched their pre-pull SHA-256 hashes exactly at the pull boundary. Subsequent intentional tutorial integration changes are separate.",
+    "browserEvidence": "../../../target/course-windows-20261018/ui-verified/inspection.json",
+    "fixtureLock": "PASS: standalone generator lockfile created under resource guard; retained for locked builds",
+    "fixtures": "PASS: 4 kernel-generated inputs; native generator built; protobuf round trips and identical bytes/manifests across two processes. Unchanged course semantic/browser acceptance remains pending.",
+    "windowsGuardArguments": "PASS: JSON transport preserves Cargo -- separator, flags, spaces, empty strings, quotes and trailing backslashes",
+    "softwareWebGpu": "PASS: Windows WARP selected by verified currentLUID, strict Microsoft/warp/fallback identity,16exacttexturepixels, canvascompletion+sRGBscreenshot; software-warp-check.resources.json exit0,1.795s,422383616bytes. Earlier SwiftShaderoffscreen result is not presentation proof.",
+    "nativeFixtureSourceChecks": "PASS: copy2, metadata7, feature-picking1; accepted resource manifests fixture-course-native-4.json, metadata_tests.json, feature_pick_tests.json. Four regenerated inputs still await unchanged browser acceptance.",
+    "windowsRootCompletion": "PASS: root completion preserves exit and kills lingering descendants before releasing guard mutex; focused timeout/child regression passed. Earlier interrupted run preserved.",
+    "windowsDocsLock": "PASS: seven lifecycle/escape checks; actual maintained-docs-native-scan-2.json build115.996s peak1987788800bytes and maintained-docs-native-noop.json0.324s; exact output SHA/mtime unchanged.",
+    "endpointWasm": "PASS: frozen-a45-wasm.json; exact 713-file a45 model, locked offline WASM library build, 25.384s, peak1370370048bytes.",
+    "reusableSoftwareProbe": "PASS: tracked check-software-webgpu.cjs with pinned Playwright1.58.2/Chrome155; SwiftShader fallback and16 exact texture pixels; software-webgpu-check.resources.json.",
+    "endpointOptimizedWeb": "PASS: frozen-a45-web.json; exact 713-file a45 model, optimized Trunk release including wasm-opt,190.879s,peak1369169920bytes. Runtime/browser acceptance remains separate.",
+    "nativeSoftwareWitness": "PASS: exact current84016b80shader, all8 ordinary DPR/sample pairs identical (ribbon-final-stroke-run.json);16 PNGs match individually inspected prior frames. Seven focused native CPU/WARP semantic tests pass, including coplanar owner/full width and moved/mirrored/rebased fresh-Line picks. Full ink group remains open.",
+    "browserPresentation": "Current endpoint passed five file-read cases, document phases, atomic failed import and one-reload recovery. Historical recursive callback then failed its former 44-byte stroke-buffer contract against the production shared-buffer layout. integrated-comparison-current/manifest.json preserves failure. Run unchanged callback against its own checkpoint; do not alter assertions or misreport live bytes.",
+    "cloudBaseline": "Actual-camera same-source/sharedCPUWARPdevice8case baseline PASS12.314s609828864bytes. DPR1fourpairs0changed;DPR2radiusratio0.5,3736changedpixelsEDL0/3813EDL.25.4uniquePNGhashesinspected;16filesmapped. Productionextractionnotyetaccepted.",
+    "windowsMemoryOverride": "PASS: guard cleanup/timeout regression covers unchanged2GiBdefault and explicit4GiBmanifest. Course runner supports COURSE_MEMORY_MIB.",
+    "integratedNativeCompilation": "PASS: cloud extraction, common Windows GPU adapter and lazy legacy strokes compile together with incremental compilation disabled (cloud-lazy-tests-build-noincremental.json,56.214s,2107691008bytes). Focused GPU checks pending.",
+    "cloudIntegration": "Eight prior exact-production DPR/sample/EDL pairs and three page/ownership tests passed before latest source sync. Actual latest-production witness reproduced cloud/Line occlusion defect. Six-line shared production guard and exact ribbon/Matrix extracts updated; after-fix verification underway.",
+    "legacyStrokeDeferral": "PASS: unchanged sample-cache and pick-pipeline tests; draw/pick descriptors preserved. Browser trace confirms22 render pipelines instead of45; startup readiness remains unaccepted.",
+    "matrix": "PASS: five new Matrix tests (plus two normal-matrix tests), exact composed shader provenance, original component/archive/title identity, actual cells/digits/zero/selection/object-pick and1/4/1 sample returns. All four native rendered frames inspected. Browser acceptance pending.",
+    "cloudLineAfter": "PASS: unchanged cloud/Line regression139.279s; actual-production/course12/12 focused occlusion controls149.108s,915349504bytes. All expected hidden/front colors correct. Representative DPR2/4x images inspected; mesh-border image differences remain explicitly outside this focused claim.",
+    "finiteFallback": "PASS: all existing finite shader recipes validate; unchanged sloping-point color and first-pick GPU regression passes after equivalent fallback-call consolidation. Browser benefit still unmeasured.",
+    "docsLatest": "PASS: corrected Git Bash DOCS_BASE conversion; actual maintained docs build115.513s,1712001024bytes. All26 docs browser captures pass after mobile drawer settles:22 prior image hashes reused,4changed images inspected. VisibleChrome155 opens Matrix lesson with both decoded native images and exact shader content.",
+    "b1b3Integration": "Productionjoined/vector/sheet ownership adapters and cloudplacement/LOD tests plus reload/heldgrid/f64anchorfix staged in existing endpoint. Native build reachescourse; three new vector fixture compile errors under repair. No integration acceptance yet.",
+    "integratedNativeBuild": "PASS: checkpoint-native-build.json; all tests and diagnostic examples compile from the refreshed713-file canonical source snapshot.",
+    "cloudProductionLod": "PASS: 18 actual production/course LOD pairs on original 2,000,064-point source, resident counts around 2M and mirrored/nonuniform placements; cloud-lod-production-pairs.json.",
+    "headedLineProductionParity": "PASS: four DPR1/2 x samples1/4 actual production/course pairs, zero whole-frame pixel differences; vector-line-production-pairs-warp.json, 68.003 s.",
+    "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
+    "normalDependencies": "PASS: locked normal native dependency tree excludes session_viewer; normal-dependency-tree.json. Diagnostic/dev examples still compile.",
+    "integratedWasmBuild": "PASS: integrated-plane-wasm-build-2.json, 11.755 s, 1346953216 bytes peak. Completion callback captures only Send device identity and resolves the active runtime frame; no Rc crosses the queue callback boundary. This build predates the glyph/mesh/printed-fill batch; final WASM refresh pending.",
+    "compactMatrix": "PASS: 3/3 storage/provenance/GPU regressions, including ObjectId 16777217, identical dense/sparse pixels and original-owner picks at 1x/4x; matrix-compact-native-tests-fixed.json.",
+    "ordinaryPlane": "PASS: all four corrected solid-cover Plane source/control/GPU tests; mesh-alpha-plane-final-tests.json. Paired production solid/print cases remain pending.",
+    "hiddenInk": "PASS: actual deferred colour, fresh hidden/visible owner queries and exact restored pixels without geometry uploads at 1x/4x; hidden-ink-native-tests.json.",
+    "mixedVectorDiagnostic": "Diagnostic PASS: unchanged mixed source/pick/selection/sample-return assertions with isolated same-order staged fences. First 4x joined/head GPU wait 23698.516 ms, sheet wait 13458.028 ms; later per-stage waits about 1 ms. Unsplit canonical first frame exceeds 30 s and remains unaccepted; no timeout/assertion changed. An explicit VIEWER_GPU_WAIT_SECONDS override now permits a recorded 60-second software-GPU budget while preserving the platform defaults; canonical rerun pending.",
+    "productionGlyphs": "PASS: 5/5 source, compact-owner, physical-pixel diameter, selection and display-control tests; glyph-controls-native-tests.json. Matched production frames are running.",
+    "printedFills": "PASS: all printed-fill native tests pass within the complete 1059/1059 learner suite. Browser/display-family acceptance remains separate.",
+    "maintainedGrid": "PASS: three maintained CPU/GPU checks, including exact near/far/return images at 1e12 plus fractional origins and a visibly different zero-fraction control; maintained-grid-world-cpu.json, maintained-grid-world-gpu.json, maintained-grid-construction-gpu.json. Public figures and provenance are published locally.",
+    "mixedVector": "PASS: all unchanged mixed joined/head/sheet/Matrix source, colour, fresh-owner, selection and 1x/4x/1x assertions; mesh-alpha-mixed-native-tests.json. Recorded VIEWER_GPU_WAIT_SECONDS=60; platform defaults remain unchanged.",
+    "productionPoints": "PASS: all eight actual-production/course full-frame pairs, DPR1/2 x samples1/4 x selection, zero changed RGBA pixels; glyph-production-pairs/manifest.json. Confirms physical-pixel diameter policy.",
+    "productionMesh": "PASS: 8/8 actual-production/course full-frame pairs, DPR1/2 x samples1/4 x selection; zero changed RGBA pixels, mesh-production-pairs-outline-fixed.json. Integer ownership changes subsequently require focused native verification.",
+    "chapterEvidence": "Audit PASS for all1360 IDs/all snippet references. Only3/22 chapters currently have accepted chapter-specific visible image records;19 chapters retain historical capture candidates requiring source-bound verification and inspection. chapter-evidence-audit-current.json.",
+    "fullNative": "Completed, not accepted: 1030 passed, 29 failed, 1059 total; integrated-full-native-tests.json. 1358.398 s; peak 1492140032 bytes; no timeout or memory-cap failure.",
+    "nativeRepairBatch1": "5/7 passed; pick-priority-native-tests.json. Grid fixture hash and ambient pick order diagnosed and corrected; second batch pending.",
+    "nativeRepairBatch2": "8/9 passed; native-reconciliation-tests.json. All source-address/inventory/outline fixtures passed; Windows grid reference subsequently independently paired.",
+    "nativeRepairBatch3": "10/14 passed; active-lane-native-tests.json. Remaining failures then diagnosed: actual contact sentinel/joined rows, frame ink ordering, production float-grey quantization and headed terminal semantics.",
+    "nativeRepairBatch4": "3/5 passed; frame-grid-native-tests.json. Frame ownership, marker colour and local selected-source edge pass; contact/terminal corrections followed.",
+    "nativeRepairBatch5": "3/4 passed; contact-source-native-tests.json. Actual hardware grid, source inventory and complete bounded contact checks pass. Headed terminal fixture final verification pending.",
+    "windowsGridPairs": "PASS: grid-production-pairs.json, two actual maintained/course complete RGBA frames, zero tolerance, identical device/queue/camera at 256/512 physical pixels. 3.578 s; peak 593289216 bytes. Source-bound public record: release/grid-windows-pair-review.json.",
+    "nativeRepairRemaining": "PASS: all prior failed learner tests pass in the complete 1059/1059 source-freeze run; no native test failures remain.",
+    "nativeTerminal": "PASS: terminal-native-tests.json, all original line/headed/point colour, first-owner, exact body, flat-cut and production terminal-support assertions, both densities. 51.702 s, peak 781582336 bytes.",
+    "performanceBaseline": "before-v3 timing implementation is prepared. It must receive the latest validation-only inventory/fixture changes before claiming a byte-identical unrelated source pair.",
+    "windowsCaptureHost": "Host port authored: native target detection, single-job sample generation, pinned executable support and guarded browser launch; original command/focus/drawing helper hashes unchanged. node --check passes. Model tests and actual Windows frame/capture execution pending.",
+    "sourceInventory": "Current dated inventory authored: 307 maintained src files, six newly mapped source paths, 39 updated/added file hashes; old dated inventory preserved. Structural validation pending; this is not coverage or runtime acceptance.",
+    "sheetIngressWitness": "PASS: sheet-actual-ingress-camera-fixed.json, all32 actual streamed-sheet comparisons, zero full-RGBA differences.400.473s,peak801243136bytes. Source copies and binary hash retained; no shader changes. Resident ingress only, not network-range streaming acceptance.",
+    "nativeFull": "PASS: integrated-full-native-source-freeze.json;1059/1059 learner native tests,0failed,0ignored,1468.642s,peak1480597504bytes. Exacta45eada713-file model; actual Windows WARP,correct viewer-root fixtures cwd,one test thread. Final Native/WASM/optimized gate remains open until the other targets and complete implementation acceptance.",
+    "browserSnapshotBoundary": {
+      "snapshot": "target/course-endpoint-browser-final",
+      "differencesFromCurrentModel": [
+        "src/pick_gpu_tests.rs:69\nExpected:\n        for (offset, expected) in [(0., Some([owner.value(), crate::sub_id::OBJECT_INK])), (5., Some([owner.value(), crate::sub_id::OBJECT_INK])), (13., None)] {\n            renderer.request_pick([0.5 + 2. * offset * density / 320., 0.4], identity()).unwrap();\n            let pixel=finish(&mut renderer);\n            assert_eq!(pixel, expected, \"DPR {density}, CSS offset {offset}\");\n            if let Some(pixel)=pixel {assert_eq!(renderer.resolve_pick(&scene,pixel),Some(crate::pick_sources::Target{owner,part:crate::pick_sources::Part::Object}));}\n\nYour file:\n        for (offset, expected) in [(0., Some([owner.value(), 0])), (5., Some([owner.value(), 0])), (13., None)] {\n            renderer.request_pick([0.5 + 2. * offset * density / 320., 0.4], identity()).unwrap();\n            assert_eq!(finish(&mut renderer), expected, \"DPR {density}, CSS offset {offset}\");\n        }\n    }\n",
+        "src/current_inventory.json:5\nExpected:\n  \"scope\": \"All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged. Checkpoint 1276 separately records regenerated Session protocol documentation comments about LOCAL placement; protocol fields and executable code are unchanged. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance.\",\n  \"working_tree\": {\n    \"repositories\": [\n      {\n        \"name\": \"session\",\n\nYour file:\n  \"scope\": \"All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged. Checkpoint 1276 separately records regenerated Session protocol documentation comments about LOCAL placement; protocol fields and executable code are unchanged. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance.\",\n  \"working_tree\": {\n    \"repositories\": [\n      {\n        \"name\": \"session\",\n",
+        "src/inventory_tests.rs:11\nExpected:\n\n}\n\n#[cfg(not(target_arch=\"wasm32\"))]\n#[test]\n\nYour file:\n}\n\n#[cfg(not(target_arch=\"wasm32\"))]\n#[test]\nfn all_current_registered_names_options_and_aliases_match_the_observed_grammar(){\n"
+      ],
+      "note": "Previous optimized runtime retained with its recorded source freeze; newer test/inventory inputs require final refresh. Do not relabel it as a newly built source snapshot."
+    },
+    "nativeFocusedFinal": "PASS: checkpoint-native-focused.json,12/12 checks, including four prior failures,433-file source inventory and production shader/source contracts. Full clean final-suite pass remains pending.",
+    "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
+    "pairedWitnessLifecycle": "Audit found missing first rebase in ordinary matched-ingress helper too. Native-only helper corrected. Rerun affected Point/mesh/Plane comparisons before accepting placement/depth proof. Four original Line pairs have zero translations and remain unaffected by this specific issue.",
+    "docsRecovery": "PASS: recovery-docs-build.json,119.884s,2007429120-byte peak. Recovered course rendered in existing visible Chrome;111 lessons and latest Matrix code/images verified (recovery-browser.json). Later metadata corrections await subsequent strict rebuild.",
+    "correctedPointMesh": "PASS: glyph-placement-corrected.json,16/16 Point/mesh full-RGBA comparisons after actual production initial GPU translation correction.193.448s,830099456-byte peak; four new representative images inspected. Orthographic recorded placement only; arbitrary occlusion, browser and full display groups remain pending.",
+    "correctedPlacedPlane": "PASS: plane-placed-corrected.json;16/16 entireRGBA matches at mirrored/nonuniform rotated original placement,DPR1/2,samples1/4,halfsize50/100,selected/unselected.337.04s,982036480-byte peak;four figures individually inspected. Plain/covered/print and browser remain pending.",
+    "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
+    "performanceSourcePair": "Prepared: before710files06e41502d0de483b1d37c87bdca10c80db8be56ebfa744da9262c3a039f440ee;after713filesa45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c. All files outside13declared scheduling edits byte-identical. No timing acceptance yet.",
+    "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
+    "nativeFullCurrent": "PASS: integrated-full-native-source-freeze.json;1059/1059 learner native tests,0failed,0ignored,1468.642s,peak1480597504bytes. Exacta45eada713-file model; actual Windows WARP,correct viewer-root fixtures cwd,one test thread. Final Native/WASM/optimized gate remains open until the other targets and complete implementation acceptance.",
+    "combinedDocs": "PASS: combined-docs-build.json,124.818s,1920954368-byte peak. combined-docs-layouts.json/combined-ui inspection:26/26 captures individually inspected,111links,folds,legacy alias andphone; no errors/overflow. Subsequent shared SVG parser correction awaits rebuild/visible check.",
+    "originalCoveredPlane": "PASS: original2223-byte covered sourceSHA93caa5f9ba83b8215b533cf1144270e0313d3dc709152dc7df13427b0b194bf2 rerendered unchanged;0RGBA differences,6.955s,729751552-byte peak. Historical5204-pixel mismatch retained; generated opaque/print fixtures are distinct and not substitutions.",
+    "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
+    "nativeFullHistorical": "Completed: 1055 passed / 4 failed, integrated-full-native-tests-final.json; 1653.797 s, peak 1491730432 bytes. Two failures were missing relative fixtures from staging cwd; two were obsolete raw whole-owner IDs (actual 1, expected 0). Fixtures now additionally assert resolved original Object; focused rerun running. No full-suite pass claimed.",
+    "performanceInitial": "MEASURED, NOT ACCEPTED: performance-a45 has both WARP samples, burst56->1 frames, idle0. Unchanged lifecycle callback exposed one empty upload on final pagehide; no extra texture/presentation. Original failed evidence retained.",
+    "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
+    "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
+    "nativeSourceAfterDisposal": "Native source unchanged from1059-test a45 pass: sole source delta is WASM-only browser.rs. Native acceptance remains bound to original run; optimized WASM/browser now verified at63acaf79.",
+    "plainPlane": "PASS: plane-plain-corrected16/16 exact RGBA pairs,DPR1/2,samples1/4,sizes50/100,selected/unselected;328.082s,976461824-byte peak. Two representative images inspected. Public plane-plain-native-review.json; covered/print controls separate.",
+    "docsCurrent": "PASS: performance-docs-build.json123.448s,peak1973448704bytes. performance-visible.json verifies complete SVG,current Matrix/Point/Plane figures and five evidence links; desktop/390px performance screenshots individually inspected,zero document overflow/errors.",
+    "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
+    "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate."
+  },
+  "resourceGuard": {
+    "command": "../../../../session_tests/scripts/run-guarded.cmd",
+    "jobCommitLimitBytes": 6442450944,
+    "processors": 2,
+    "singleJob": true,
+    "swapCapSupported": false,
+    "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
+  },
+  "currentDefects": [
+    "Matched Plane/CAD/joined/sheet ingress, controls and selected-family visual acceptance remain open",
+    "Historical fixture callbacks, remaining startup/feature lifecycle and route/live camera-grid acceptance remain open",
+    "Current chapter-specific feature images, coverage closure, checkpoint/tooling gates and final docs review remain open"
+  ],
+  "onlyHeavy": {
+    "category": "Historical94c sequential WASM/native tests/optimized/frame verification",
+    "label": "94c-prove-the-original-comparison-and-inspect-differences",
+    "timeoutSecondsPerPhase": 1800,
+    "jobCommitLimitBytes": 4294967296
+  },
+  "next": "Complete Plane/CAD/joined control comparisons, four historical callbacks and four route/live camera-grid combinations; verify chapter evidence and release gates.",
+  "localDocs": "http://127.0.0.1:8788/docs/#/course",
+  "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
+  "stages": {
+    "sources": {
+      "status": "done",
+      "repositoriesLeft": 0
+    },
+    "windowsInputs": {
+      "status": "in progress",
+      "fixturesGenerated": 4,
+      "fixturesTotal": 4,
+      "softwareWebGpu": "WARP offscreen and actual canvas presentation accepted; endpoint startup memory fix pending",
+      "fixturesSemanticallyAccepted": 0
+    },
+    "consolidation": {
+      "status": "editorial structure done",
+      "chaptersDone": 22,
+      "chaptersTotal": 22,
+      "lessons": 111,
+      "readerFacingLessonsRemaining": 0
+    },
+    "display": {
+      "status": "in progress: ordinary ribbon extracted and native semantic checks pass; full groups open",
+      "groupsAccepted": 0,
+      "groupsTotal": 5,
+      "ordinaryLines": {
+        "matchedScenariosPassed": 8,
+        "matchedScenariosTotal": 8,
+        "focusedSemanticChecksPassed": 7,
+        "focusedSemanticChecksTotal": 7,
+        "nativeCompilation": "pass",
+        "webValidation": "pending new optimized bundle",
+        "remaining": "Optimized browser proof; sheet promotion, joins, arrowheads and other ink families remain open",
+        "matchedShader": "84016b80479316feab4369b2c679b760074622cb2c0bbe1652a17b64f1e4ac2d"
+      },
+      "clouds": {
+        "matchedScenariosPassed": 8,
+        "matchedScenariosTotal": 8,
+        "newFocusedTestsPassed": 3,
+        "existingCloudRegressionsPassed": 8,
+        "existingCloudRegressionsTotal": 8,
+        "remaining": "Final integrated browser proof and final rerun after display-control integration; both original 2M GPU checks and eighteen production LOD pairs pass"
+      },
+      "joinedVectorSheets": {
+        "status": "Exact closures and compact owners integrated; headed-Line four-pair parity passes; mixed staged diagnostic passes; unsplit startup bound and full joined/sheet witness remain open"
+      }
+    },
+    "runtime": {
+      "status": "Five performance categories measured and unchanged coalescing/disposal browser contract passes on small demo. Full startup/feature and reference-runtime lifecycle remain separate.",
+      "measurementCategoriesDone": 5,
+      "measurementCategoriesTotal": 5,
+      "implementationGroupsAccepted": 0,
+      "implementationGroupsTotal": 3
+    },
+    "reloadGrid": {
+      "status": "Both implementations updated; four course native regressions and three maintained grid checks pass; actual route/live browser combinations remain pending",
+      "combinationsAccepted": 0,
+      "combinationsTotal": 4
+    },
+    "finalIntegration": {
+      "status": "pending runtime freeze",
+      "gatesDone": 0,
+      "gatesTotal": 5
+    }
+  },
+  "remainingBatches": 5,
+  "visibleBrowser": "Owned visible Chrome155 at Matrix lesson; CDP http://127.0.0.1:9228; Node PID49760. Current local docs http://127.0.0.1:8788/docs/",
+  "latestSourceSync": {
+    "date": "2026-10-20",
+    "root": "95a14e08",
+    "session": "a391b104",
+    "repositories": 16,
+    "backup": "C:/Users/Petras/Downloads/viewer-course-source-sync-20261020",
+    "tutorialFilesVerified": 25829,
+    "tutorialFilesChangedByPull": 0
+  },
+  "currentSource": {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "fingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+    "files": 713,
+    "recordedAt": "2026-10-23T10:09:33.393Z"
+  },
+  "coordination": {
+    "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
+    "integrator": "Chapters11\u201322, runtime, shared metadata, builds, validation and Git integration."
+  },
+  "publication": {
+    "branch": "codex/viewer-course-checkpoints-20261023",
+    "status": "Full-code checkpoint with measured scheduling, verified current lesson layouts, plain Plane pairs and integrated fetched upstream root/Wood sources pushed. Remaining release gates open.",
+    "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
+    "sessionCommit": "4f2f7863",
+    "parentCommit": "cfaed8a",
+    "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
+    "geminiHead": "d4af0558e2a7017f53e4ad23904950ed1b27f17d"
+  },
+  "recovery": {
+    "completedAt": "2026-10-23T08:50:38.128521+00:00",
+    "restoredFiles": 560,
+    "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+    "structure": "PASS: recovery-structure.json; 1361 current and43 archived reference checkpoints.",
+    "cause": "Older Windows launcher ignored --help and invoked force synchronization. Portable launchers restored; help and invalid options now return before execution, local edits block implicit resets.",
+    "evidence": "target/course-windows-20261018/recovery-after-force-sync"
+  },
+  "latestFetchedSourceIntegration": {
+    "date": "2026-10-23",
+    "rootMerge": "e2ed12f",
+    "wood": "5318ba20048d6f4996fce2d593ee9560a9de0621",
+    "sessionMainAncestor": true,
+    "tutorialPreservation": "All Gemini and Codex commits/worktree edits preserved; no reset or clean. Root merge has no conflicts.",
+    "nativeDependencyIdentity": "Wood entire rust/,src/proto/,data/,generated/ trees unchanged from tested07c57552. Incoming14commits update C++/tests/examples/docs."
+  }
+}

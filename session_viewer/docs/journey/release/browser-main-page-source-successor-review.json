@@ -1,0 +1,104 @@
+{
+  "status": "PASS exact379 runtime bindings,243 prior actual identities retained plus actual96q and nine source-main-page representatives adopted",
+  "date": "2026-10-26T04:14:26.332Z",
+  "oldCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\26d5565dbcebbd2eadfc\\cohort.json",
+    "sha256": "3821eaf2f51e7379c7dff7bdcf2b44345888dc52d0af3aa10589f4b4541acca3"
+  },
+  "newCohortRecord": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\35445b2c24386c2f915b\\cohort.json",
+    "sha256": "d1e483ec1d847f4527dbf46e87656940298c45cde3c9ad24c9439943020c78f3"
+  },
+  "all379RuntimeBindingsEqual": true,
+  "completed": 253,
+  "remaining": 126,
+  "retainedActualRecords": 243,
+  "adoptedActualRecords": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\historical-action-scenes\\96q-prove-imported-feature-ownership-and-roundtrips-403f1b4eb01bbc5cde57\\owned-file-capture.json",
+      "sha256": "123818b91cc9a39785211ca799f8f385dd8553ae0787d3fdcd5404ad5da0c6b6"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zm-write-triangle-addresses-beside-color-e634625e7e7ba0a1aae3\\candidate-scoped-capture.json",
+      "sha256": "f996695b527da903c6ea8667a9a03c87d971a3b6b4d2b0c3ae0395edd2b4ea38"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zz-separate-hidden-ink-color-from-pick-ownership-6eb3978ac1a83ad4acfa\\candidate-scoped-capture.json",
+      "sha256": "e4d0612cdbe122cfddd9a0dcf842b89063f84cce898b02e1a51d9227fb96420e"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-71ff7d67e1790a4f9014\\candidate-scoped-capture.json",
+      "sha256": "4c3e737def9ce60ee663b39dd7411ea0419e454ee91208dccf74cfdd0b5efcb6"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzc-share-section-addresses-with-outlines-and-ambient-ca51425844afc70d451f\\candidate-scoped-capture.json",
+      "sha256": "b1745bb902d5d2a91092224718601f4c23b30e8b0f37744ddb957636d29667b0"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzf-start-with-current-browser-display-defaults-0f71dbe179675abfecd3\\candidate-scoped-capture.json",
+      "sha256": "1bb8718ffa00c271ce5af45f138c008598c8eb3bd93e5dd52c1ac1764aaa5a02"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzg-grow-buffers-without-losing-rows-dfd480861a6e66317e64\\candidate-scoped-capture.json",
+      "sha256": "69480472fcca0973130f0645d83ab78c5dcd92b85aed76ffd7f9f7442466e14f"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzm-connect-the-renderer-to-one-mesh-arena-f357c1088695647c7f7c\\candidate-scoped-capture.json",
+      "sha256": "3a863e8fdb9596c6a8a8a9c4dd75c884ca18d7b6d57ced4a29eb55cf5319728f"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzo-read-instance-properties-through-draw-slots-d518c60f8ff6cf78a228\\candidate-scoped-capture.json",
+      "sha256": "df354f82bcf3fb2436de345d1bf6fcd4acc4b7fbb722e7f66f4e3b13933bdfe5"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zzzzzzt-keep-contact-ambient-inputs-on-originals-d1f19d550d9363a0de22\\candidate-scoped-capture.json",
+      "sha256": "5ee8c214251f16ef886f2d560aab818159ce15142c52d4f0624bad1daf182a26"
+    }
+  ],
+  "operationalDriver": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v4.ts",
+    "sha256": "c7efdfb566122e14865ceda6b4782c763d0f82ab5049b4abbc1c528ebc869c16"
+  },
+  "helpers": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-batch-v5.ts",
+      "sha256": "071b3afa97a2097412147436141cbd530a47e92ca652800a45363d4f4fe66086"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-queue-v4.ts",
+      "sha256": "c7efdfb566122e14865ceda6b4782c763d0f82ab5049b4abbc1c528ebc869c16"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-action-browser-recipes.ts",
+      "sha256": "b471825f8a332a82fb84613c49ed0b2d63bbb2cd55f69cc188b3ff2363d7567a"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\main-page-browser-image-recipes.ts",
+      "sha256": "fb5d79f03d288ec000b151e2ba280332ad403fa4599eae5b69710c9cbb1ae577"
+    }
+  ],
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "bb1a76e52d57f873721c27e37f17fbe892a8cae2d086916e6eea328b78e3b06d"
+  },
+  "methodReviews": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+      "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-owned-action-file-transport-review.json",
+      "sha256": "c9403cc6561e330cf823d0ee0d68a42f4e608a9ddd47689dc1e5de91aa8cd523"
+    }
+  ],
+  "oldFailures": "Original96q historical path-upload timeout, full96h prefix failures and original71aj prefix timeout retain original outcomes. New image-only transport/own-actions/main-page executions do not relabel failed historical attempts.",
+  "scope": "Every retained record keeps original source/build/GPU/image/profile identity. Canonical sources/assertions unchanged. Source-main-page routes exclude only audited inherited/child contexts and retain their exact main-page state/assertions. No full inherited callback or original canonical validation-profile claim. Every future case still requires fresh source-bound build/render/assertions and image review.",
+  "methodReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-main-page-source-method-review.json",
+    "sha256": "b1ce897a4b59d508aea19c6fa72d2ba8aeb0ac0ea802bfc76ba066fd2efc8ec1"
+  },
+  "privateQualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-batches\\35445b2c24386c2f915b\\main-page-successor-qualification.json",
+    "sha256": "5e603a862cde4fd63380abd79e5ef682147e5eb853392a46987348052096f657"
+  }
+}

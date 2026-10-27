@@ -1,0 +1,280 @@
+{
+  "status": "PASS focused historical selection-mask projection repair; no fullcallback acceptance",
+  "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+  "courseBefore": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+  "courseAfter": "5779c3b35e9103a413a1fa5c4b5869ccfe8d4ff51927ae5d9dc67888121e5e17",
+  "sourceFiles": 331,
+  "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+  "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b",
+  "application": {
+    "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/application.json",
+    "sha256": "058c00036f1631138a74bcd5510fdd5d091999742dd31707d0c201f9fa13856b"
+  },
+  "snippet": {
+    "path": "docs/journey/code/70d-exercise-rotated-and-mirrored-original-references-matching-mask-projection.rs",
+    "sha256": "4830bd7750e981b6857eccd63ffd63f6904c292f77ba2c09f94e171f06cd8208"
+  },
+  "build": {
+    "proof": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-focused-v1\\proof.json",
+      "sha256": "c10d23a32fba1d2b45f53e2ee89a0bccf8a6e0f0f1bfe627f6b6563e33f58837"
+    },
+    "phases": {
+      "native-check": {
+        "command": {
+          "name": "70d-mask-world-order-focused-v1-native-check-20261024T014512138Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "check",
+            "--tests",
+            "--examples",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-mask-world-order-focused-v1-native-check-20261024T014512138Z.resources.json",
+          "sha256": "b9e40c916ac161f13ae9ce5c9c26c1c87eefec4320fd7780b7563d7035d4834d"
+        },
+        "elapsedSeconds": 35.139,
+        "peakJobCommitBytes": 829722624
+      },
+      "wasm": {
+        "command": {
+          "name": "70d-mask-world-order-focused-v1-wasm-20261024T014550100Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "build",
+            "--lib",
+            "--locked",
+            "--offline",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-mask-world-order-focused-v1-wasm-20261024T014550100Z.resources.json",
+          "sha256": "973e32104fa1f81c1089d2f5b4bf281f5d256d1cb58a8fa044d03ffc0231036a"
+        },
+        "elapsedSeconds": 16.161,
+        "peakJobCommitBytes": 1224957952
+      },
+      "web": {
+        "command": {
+          "name": "70d-mask-world-order-focused-v1-web-20261024T014609089Z",
+          "args": [
+            "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-mask-world-order-focused-v1-web-20261024T014609089Z.resources.json",
+          "sha256": "07c4ec887f4cf77ed48248565e242e3e2f653d3359ce292e0703fcf1e6377a55"
+        },
+        "elapsedSeconds": 117.686,
+        "peakJobCommitBytes": 931864576
+      },
+      "frame": {
+        "command": {
+          "name": "70d-mask-world-order-focused-v1-frame-20261024T014809735Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": {
+          "path": "target/course-checks/70d-mask-world-order-focused-v1-frame-20261024T014809735Z.resources.json",
+          "sha256": "0405929b9e1b2dec1fd2e6b3270fa7f355cb4841bdc6d6a1fc0942f38c758d83"
+        },
+        "elapsedSeconds": 28.77,
+        "peakJobCommitBytes": 1986318336
+      }
+    },
+    "nativeFrame": {
+      "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-focused-v1/native-frame.png",
+      "sha256": "cde1010ae08270531744eb56566680c4c543f93c772c772f683c91e443a893e3",
+      "width": 640,
+      "height": 480,
+      "rootIndividuallyReviewed": true,
+      "scope": "Clean two-triangle native render inspected by root; no byte/pixel equality claim against earlier native frame155473."
+    },
+    "canonicalVerifyComplete": false,
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    }
+  },
+  "diagnostics": [
+    {
+      "environment": "nvidia",
+      "proof": {
+        "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-nvidia-focused-v1/proof.json",
+        "sha256": "28e27a756822c2e287d40f34d6962ab290c59355d8493139a1573961573fa9c3"
+      },
+      "frames": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-nvidia-focused-v1\\frames.json",
+        "sha256": "dd6ec24e342fd15db97fc6ae2d01ad0fa13ae64100c713ff92df81bfaaa683c9"
+      },
+      "resources": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-nvidia-focused-v1\\resources.json",
+        "sha256": "3e0c78ee89c3cb59d8da186323663f7f0362cf0fda3e224da9e5677f30fdc993"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-nvidia-focused-v1/output.log",
+        "sha256": "7e85585609f109080ada154ff2fe210f9217114225ed317a6a646b7b370ff024"
+      },
+      "elapsedSeconds": 9.78,
+      "peakJobCommitBytes": 493019136,
+      "adapter": {
+        "index": 0,
+        "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+        "vendor": 4318,
+        "device": 10208,
+        "luid": "0,86780",
+        "luidHigh": 0,
+        "luidLow": 86780,
+        "dedicatedVideoMemoryBytes": 12577669120,
+        "flags": 0
+      },
+      "actualDevices": [],
+      "images": [
+        {
+          "name": "selected",
+          "image": {
+            "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-nvidia-focused-v1/nvidia-selected.png",
+            "sha256": "58fbd5f36b3379c593b5a968d7f7c588a8c852a7b260788ec95abf75e0b5df0d",
+            "rootIndividuallyReviewed": true
+          },
+          "readback": "Actual app queue.onSubmittedWorkDone then two RAFs before passive state/page screenshot; no crop/tolerance/equality claim"
+        },
+        {
+          "name": "unselected",
+          "image": {
+            "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-nvidia-focused-v1/nvidia-unselected.png",
+            "sha256": "817720e9c0e17bdc928b982c62d96b74495ab16eb6248135776c7238c246e8d4",
+            "rootIndividuallyReviewed": true
+          },
+          "readback": "Actual app queue.onSubmittedWorkDone then two RAFs before passive state/page screenshot; no crop/tolerance/equality claim"
+        }
+      ],
+      "representativeFigure": "journey/release/70d-mask-projection-nvidia-selected.png",
+      "finding": "Root individually reviewed both selected and unselected original images; both are clean after the matching projection-order repair."
+    },
+    {
+      "environment": "warp",
+      "proof": {
+        "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-warp-focused-v1/proof.json",
+        "sha256": "147500dd0f0fa08a51e15358e23232b8a9e8ebcf78b3f8da048c6b3cdd3770cd"
+      },
+      "frames": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-warp-focused-v1\\frames.json",
+        "sha256": "74431bc33f006f9e2d41b2543f9b3252a29f5dc80eab8047d5dfaf5455166761"
+      },
+      "resources": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\70d-selected-mask-projection-preparation\\70d-mask-world-order-warp-focused-v1\\resources.json",
+        "sha256": "7b4a554275331f8e89a7aecf190948a1c67aca7b866c057ab5069dcbc39d87a1"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-warp-focused-v1/output.log",
+        "sha256": "de28130883ac96a99913d03981535cc1d4d0fe0becae0ecdacbe81eca89fa45a"
+      },
+      "elapsedSeconds": 10.431,
+      "peakJobCommitBytes": 419119104,
+      "adapter": {
+        "name": "Microsoft Basic Render Driver",
+        "vendor": 5140,
+        "device": 140,
+        "luid": "0,86727"
+      },
+      "actualDevices": [],
+      "images": [
+        {
+          "name": "selected",
+          "image": {
+            "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-warp-focused-v1/warp-selected.png",
+            "sha256": "af5d6cef6fcd6f6cfdd5abcc5e40502c9bbf04cbd0702083d706375e6e192ce0",
+            "rootIndividuallyReviewed": true
+          },
+          "readback": "Actual app queue.onSubmittedWorkDone then two RAFs before passive state/page screenshot; no crop/tolerance/equality claim"
+        },
+        {
+          "name": "unselected",
+          "image": {
+            "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/70d-mask-world-order-warp-focused-v1/warp-unselected.png",
+            "sha256": "32c250e7d889b4dbd3505afa649f0325d49b187b30e34e5f20650dadb5600353",
+            "rootIndividuallyReviewed": true
+          },
+          "readback": "Actual app queue.onSubmittedWorkDone then two RAFs before passive state/page screenshot; no crop/tolerance/equality claim"
+        }
+      ],
+      "representativeFigure": "journey/release/70d-mask-projection-warp-selected.png",
+      "finding": "Root individually reviewed both selected and unselected original images; both are clean after the matching projection-order repair."
+    }
+  ],
+  "originalFailure": {
+    "path": "docs/journey/release/70d-browser-failure-review.json",
+    "sha256": "df0550d0cdd2d5f19bfa77d7c63dbfb19d3a8ec95db476eb933a74d9a37e3ab7"
+  },
+  "sourceBindings": [
+    {
+      "id": "70d-exercise-rotated-and-mirrored-original-references",
+      "files": 331,
+      "sourceFingerprint": "325b027ccad541a7c4285ee436c8b3a1c7778b16a836664fe6b1fcaa21f7005a",
+      "sourceSignature": "2b4d816f7b388dfbdc7fb7d8a84770d2be2ed2f1ed263e1e23413ccbd76a279b"
+    },
+    {
+      "id": "87p-invalidate-selected-masks-on-clipping-changes",
+      "files": 479,
+      "sourceFingerprint": "70d76a6f910c7aaf0ff1ddbe3a75f052aa32b7b503c97795040556aa4a4e359a",
+      "sourceSignature": "d4641aef075033237f82a48162507a0d939caa5d3805786092b92c8075ea3180"
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "files": 713,
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "files": 714,
+      "sourceFingerprint": "6e158a0a09964a89583d2fd9c60c8b29c5afc5abc25b7430ea3fb0a8753ecd9c",
+      "sourceSignature": "19b8b5d55b065d8d0cedc0388942406ec0a0ee8f3a9d095a848c89f7bbca6b9a"
+    }
+  ],
+  "compilerImpact": {
+    "endpoints": 16,
+    "phases": 32,
+    "retainedEndpoints": 85,
+    "retainedPhases": 170,
+    "scope": "Old202phase proof remains historical. These32affected phases require fresh qualification after this runtime change; no blanket202rerun."
+  },
+  "compilerImpactAudit": {
+    "path": "target/course-windows-20261018/70d-selected-mask-projection-preparation/compiler-invalidation-audit.json",
+    "sha256": "0cdda4a909b414486ad07950662a579d7edbe3802b0fbc2e404755ec873ed87f"
+  },
+  "scope": [
+    "Model then view multiplication now matches visible geometry in the historical outline mask. Four bounded actual images, selected/unselected on NVIDIA/WARP, were individually reviewed.",
+    "Old striped failure remains preserved under its original source. The original complete70d callback remains failed; focused repair does not accept that callback.",
+    "Two course edits introduce the correction at70d and preserve later87p convergence. Current final713/maintained714 runtime is unchanged; their old proofs keep exact original bindings.",
+    "85/101compiler endpoints and170/202phases remain current;16affected endpoints/32phases need source-matching qualification. No full202rerun or410checkpointbuild mandate.",
+    "Feature3/18complete15partial andcallbacks1/18accepted17pending are unchanged."
+  ]
+}

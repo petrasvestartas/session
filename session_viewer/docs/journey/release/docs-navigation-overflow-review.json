@@ -1,0 +1,184 @@
+{
+  "status": "PASS scoped docs navigation and phone prose layout correction",
+  "recordedUtc": "2026-10-23T21:53:57.085266+00:00",
+  "scope": "Duplicate progress/contents navigation and Matrix plain-prose phone overflow only, at two recorded frontend source hashes. No viewer runtime, SVG correctness, first10 handoff, whole-book or global release acceptance.",
+  "evidence": {
+    "path": "target/course-windows-20261018/docs-nav-overflow-fixed-v4.json",
+    "sha256": "a500c84a1714c0a76a8ea5efce356ff6e2d64d6a0f5c7f1decb841b2ac2314c5"
+  },
+  "sourceHashes": {
+    "../session_tests/plugins/course.ts": "d6a9f5a99a3a72913a0cd7393a01c877136b8c48050db7f5a380d0a3c56c3873",
+    "../session_tests/src/views/CourseView.vue": "ef78f128f64d01bce3b388efef96a2e93e1448e3cb890e12130286b438d9eb96"
+  },
+  "checks": {
+    "progressLinks": 1,
+    "contentsLinks": 1,
+    "phoneArticleOverflow": false,
+    "phoneMainOverflow": false,
+    "codeRemainsLocallyScrollable": true,
+    "codeScrollLeft": 40,
+    "mainScrollLeft": 0,
+    "originalBrowserPagesPreserved": true
+  },
+  "probes": [
+    {
+      "url": "http://127.0.0.1:8788/docs/#/course/journey/contents",
+      "viewport": {
+        "width": 260,
+        "height": 562
+      },
+      "document": {
+        "clientWidth": 260,
+        "scrollWidth": 260
+      },
+      "main": {
+        "clientWidth": 250,
+        "scrollWidth": 250,
+        "overflowX": "auto",
+        "overflowWrap": "normal"
+      },
+      "article": {
+        "clientWidth": 218,
+        "scrollWidth": 218,
+        "overflowX": "visible",
+        "overflowWrap": "anywhere"
+      },
+      "roadmapLinks": [
+        "To-do list and progress"
+      ],
+      "contentsLinks": [
+        "Book contents"
+      ],
+      "locallyScrollingCode": []
+    },
+    {
+      "url": "http://127.0.0.1:8788/docs/#/course/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges",
+      "viewport": {
+        "width": 260,
+        "height": 562
+      },
+      "document": {
+        "clientWidth": 260,
+        "scrollWidth": 260
+      },
+      "main": {
+        "clientWidth": 250,
+        "scrollWidth": 250,
+        "overflowX": "auto",
+        "overflowWrap": "normal"
+      },
+      "article": {
+        "clientWidth": 218,
+        "scrollWidth": 218,
+        "overflowX": "visible",
+        "overflowWrap": "anywhere"
+      },
+      "roadmapLinks": [
+        "To-do list and progress"
+      ],
+      "contentsLinks": [
+        "Book contents"
+      ],
+      "locallyScrollingCode": [
+        {
+          "clientWidth": 218,
+          "scrollWidth": 604,
+          "overflowX": "auto",
+          "overflowWrap": "anywhere",
+          "whiteSpace": "pre",
+          "right": 234.1333465576172,
+          "text": "use std::ops::Range;\npub const EDGES: u8 = 1;\npub const LINE"
+        },
+        {
+          "clientWidth": 218,
+          "scrollWidth": 311,
+          "overflowX": "auto",
+          "overflowWrap": "anywhere",
+          "whiteSpace": "pre",
+          "right": 234.1333465576172,
+          "text": "            })\n        });\n        Self {\n            ranges"
+        },
+        {
+          "clientWidth": 218,
+          "scrollWidth": 339,
+          "overflowX": "auto",
+          "overflowWrap": "anywhere",
+          "whiteSpace": "pre",
+          "right": 234.1333465576172,
+          "text": "                self.vertices_per_instance,\n                "
+        },
+        {
+          "clientWidth": 218,
+          "scrollWidth": 339,
+          "overflowX": "auto",
+          "overflowWrap": "anywhere",
+          "whiteSpace": "pre",
+          "right": 234.1333465576172,
+          "text": "                self.vertices_per_instance,\n                "
+        }
+      ],
+      "actualCodeScroll": {
+        "codeScrollLeft": 40,
+        "mainScrollLeft": 0
+      }
+    }
+  ],
+  "captures": [
+    {
+      "path": "target/course-windows-20261018/docs-nav-overflow-fixed-v4-contents-phone.png",
+      "sha256": "0580f141f24c1e8be20362acc8d650f105686d7e455e74734c9c39b641d217da",
+      "viewport": {
+        "width": 260,
+        "height": 562
+      },
+      "drawer": "closed",
+      "pixels": {
+        "width": 390,
+        "height": 843
+      }
+    },
+    {
+      "path": "target/course-windows-20261018/docs-nav-overflow-fixed-v4-matrix-phone.png",
+      "sha256": "2b18f86438368f71f68fff3767c85582b0bdfa96c27b0f3429a6010a1decb954",
+      "viewport": {
+        "width": 260,
+        "height": 562
+      },
+      "drawer": "closed",
+      "pixels": {
+        "width": 390,
+        "height": 843
+      }
+    },
+    {
+      "path": "target/course-windows-20261018/docs-nav-overflow-fixed-v4-contents-desktop.png",
+      "sha256": "f9cca18be705fd47be102db7ac3524755b30b9f430847fb60de452169e2b5681",
+      "viewport": {
+        "width": 853,
+        "height": 600
+      },
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      }
+    },
+    {
+      "path": "target/course-windows-20261018/docs-nav-overflow-fixed-v4-matrix-desktop.png",
+      "sha256": "8e6dfcd4a25df8416aa8dd02ea2151e601a7623bf353c40723ec3d1f59e94c99",
+      "viewport": {
+        "width": 853,
+        "height": 600
+      },
+      "pixels": {
+        "width": 1280,
+        "height": 900
+      }
+    }
+  ],
+  "visualReview": {
+    "reviewer": "Root agent",
+    "status": "All four original-detail PNGs individually inspected; contents and Matrix desktop/phone readable.",
+    "captureScale": "CSS widths853/260 and captured pixel widths1280/390 are distinct; per-capture dimensions retained."
+  },
+  "relationship": "Resolves the two frontend issues left open by release/concurrent-teaching-visible-review.json without changing its original content/source proof. Other publication and release requirements remain separate."
+}

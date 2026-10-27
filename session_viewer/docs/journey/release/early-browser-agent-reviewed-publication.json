@@ -1,0 +1,610 @@
+{
+  "date": "2026-10-25T22:57:52.211Z",
+  "status": "PASS:seven delegated-reviewed source-specific images published and HTTP verified",
+  "reviewerAgentId": "/root/intro_regeneration_audit",
+  "rootPersonallyViewedOriginalResolution": false,
+  "rootApprovedPublication": true,
+  "rootAuthorization": "ROOT APPROVES publication7 early-agent-visual-review-v1 exact source/image SHA rows reviewed by /root/intro_regeneration_audit.",
+  "scope": "Original1800x1520 PNGs personally inspected by named agent; root separately authorized this reviewed group. Unchanged original callback assertions passed under image-purpose8CPU8GiBFF00 resources; no original2CPU canonical-validation acceptance. Source and current served asset bytes exactly verified; no fullsite rebuild claim.",
+  "review": {
+    "path": "target\\course-presentation\\scene-browser-batches\\c6146db6063a5c3f9ba4\\early-agent-visual-review-v1.json",
+    "sha256": "f1e0acba35b9bc3d94fae28b5d6e4cf0eb8c3803bed223a3cfebd6dd6642983f"
+  },
+  "images": [
+    {
+      "id": "06-indices",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\06-indices-4f207055eebd91f4a040\\capture.json",
+        "sha256": "0338e57ec0b66bcb12c1fc5cbbd4dcc0367b63b92a9e46a9be62df018666d346"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-06-indices-8a6b87e562231a00-dpr2\\workspace\\docs\\screenshots\\journey\\06-indices-browser.png",
+        "sha256": "80c56eb1726945605918ba8e71c7860b4041ff98fecab8672ae42673365a5e96",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Centered pink indexed diamond, fully contained, crisp edge and readable command row.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/06-indices-browser.png",
+      "originalSha256": "2523415d72ff7fc7d40ac8c35f96fddd23c88e8480b560c1b8983c358c6006a4",
+      "source": {
+        "checkpoint": "06-indices",
+        "files": "9c35cefa27174e88bee7da6a461cb04911c918bbc680c4d5156dd6960ec6df8a",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": "eadadb7a3fb381456e395a5797010869f941be0f88775b97f0faab692d8ac3d1",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:49:29.4871438Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-06-indices-8a6b87e562231a00-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-06-indices-8a6b87e562231a00-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.208,
+        "peakJobCommitBytes": 701222912,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 58404,
+        "descendantsAtCleanup": 0
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/06-indices-browser.png?v=2523415d72ff",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "80c56eb1726945605918ba8e71c7860b4041ff98fecab8672ae42673365a5e96"
+      }
+    },
+    {
+      "id": "09-matrices",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\09-matrices-72800818ef82ae1f4eff\\capture.json",
+        "sha256": "1a8cc6014c729c6e55090d6405375b54d42ee82d7931efa4c8e298130eea5b1b"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-09-matrices-5d22e491e9c99a9a-dpr2\\workspace\\docs\\screenshots\\journey\\09-matrices-browser.png",
+        "sha256": "60ed3917a9d33fbeb2345ceaee936576ce3283dd18529db9d42926c58e38c090",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Centered pink rectangular matrix-transformed shape, fully contained, clear command row.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/09-matrices-browser.png",
+      "originalSha256": "bad7e889607d6ce9a30b7aebaadb9ec0ef71e7c5b7a3735a7c5973129743e40a",
+      "source": {
+        "checkpoint": "09-matrices",
+        "files": "2e6b1e96155a5187a6cfd8e8f18dc8dc4788d749e1df8a6b3a9e73fe4b3f439e",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": "811c29c35a49bc9f1f2a3192c475bcbeaa918f1e17f30a1b788bbbdf000f85a0",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": null,
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:49:39.6008308Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-09-matrices-5d22e491e9c99a9a-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-09-matrices-5d22e491e9c99a9a-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.946,
+        "peakJobCommitBytes": 714051584,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 31184,
+        "descendantsAtCleanup": 0
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/09-matrices-browser.png?v=bad7e889607d",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "60ed3917a9d33fbeb2345ceaee936576ce3283dd18529db9d42926c58e38c090"
+      }
+    },
+    {
+      "id": "11a-identity",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\11a-identity-12b4f47c58acde6a2e8a\\capture.json",
+        "sha256": "a14283e9e1c610acba4eb0b06cd207042804441541044a03483f741064d9d8f2"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-11a-identity-97bc85d42a622770-dpr2\\workspace\\docs\\screenshots\\journey\\11a-identity-browser.png",
+        "sha256": "64bd642f179c0b5efaac77846ca2761f06b55a1d07072c1d23bbcf1a8ecb151a",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Three original green/cyan/pink triangles, distinct overlaps and clear spacing.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/11a-identity-browser.png",
+      "originalSha256": "a02d860fdb4d1f4d56eab498dd891a10bae9f05ea33bc81e077d4d530104fed1",
+      "source": {
+        "checkpoint": "11a-identity",
+        "files": "e41e0a9b8522141bf0b353e2155b9db909d02753015d72d8678558a3c64468cf",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": "c3d705fa6e4a50b65f51b9ab4cef8e1fd96fcaee628547586f0b7e28549d9f0e",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:49:50.3555661Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-11a-identity-97bc85d42a622770-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-11a-identity-97bc85d42a622770-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.962,
+        "peakJobCommitBytes": 698961920,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 24496,
+        "descendantsAtCleanup": 0
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/11a-identity-browser.png?v=a02d860fdb4d",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "64bd642f179c0b5efaac77846ca2761f06b55a1d07072c1d23bbcf1a8ecb151a"
+      }
+    },
+    {
+      "id": "13-picking",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\13-picking-a57951ee232036d9b15c\\capture.json",
+        "sha256": "c180dc326122fa7c1b0dda0d3fb4bce469ec32c6f0855824fc8b30f04bb59f1b"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-13-picking-52c7956834f26743-dpr2\\workspace\\docs\\screenshots\\journey\\13-picking-browser.png",
+        "sha256": "18828b78a049093a7e43de91d680a2fb43561c76eb4d2438b809283f8db96e0f",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Pink foreground triangle and yellow selected rear triangle, meaningful overlap and clear selection color.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/13-picking-browser.png",
+      "originalSha256": "75f2cd04cd99f8c6dd294e2d41a956c504c396cdbb36f6e4936efc7202eebacd",
+      "source": {
+        "checkpoint": "13-picking",
+        "files": "9a0c55e639a3fbca580009865cf6b3e89e5c08a6acd1e43698f4f1ec479a7e98",
+        "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fixture": "7f75981e946202c888a533f7d0cae60c0f8ec5f871bb0438b7561be6eb81e4bb",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:50:01.5039604Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-13-picking-52c7956834f26743-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-13-picking-52c7956834f26743-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.634,
+        "peakJobCommitBytes": 706478080,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 37000,
+        "descendantsAtCleanup": 0
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/13-picking-browser.png?v=75f2cd04cd99",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "18828b78a049093a7e43de91d680a2fb43561c76eb4d2438b809283f8db96e0f"
+      }
+    },
+    {
+      "id": "14b-ray",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\14b-ray-7bd93168c8d5a11145f2\\capture.json",
+        "sha256": "2b9a82c97da27116dc42a9cf5d0df71a8f2641b09e4ebf1cf1c09805a05f2a4a"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-14b-ray-85b2c5491d66d833-dpr2\\workspace\\docs\\screenshots\\journey\\14b-ray-browser.png",
+        "sha256": "8bbfead26e94835d58774c52ceec61906d118bc699e88d8ff153028abe87836a",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Two cyan/pink layered triangles, clean visible overlap and retained camera frame.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/14b-ray-browser.png",
+      "originalSha256": "ecf4a4a20fac74c05a6ba23cd08384fff8a4495256d9ce64aa0e4fd6de55291a",
+      "source": {
+        "checkpoint": "14b-ray",
+        "files": "8fc4169808662463930109826810f20debaf07b8f8b82f9a2e45b560e304394c",
+        "lock": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "bfdb0fabf7655c79834c5f320cc0c5598769d8223fcaf5db6b721b5a5fa530ac",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:50:45.3608802Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-14b-ray-85b2c5491d66d833-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-14b-ray-85b2c5491d66d833-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 3.783,
+        "peakJobCommitBytes": 668016640,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 51368,
+        "descendantsAtCleanup": 0
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/14b-ray-browser.png?v=ecf4a4a20fac",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "8bbfead26e94835d58774c52ceec61906d118bc699e88d8ff153028abe87836a"
+      }
+    },
+    {
+      "id": "16-orbit",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\16-orbit-aa0a238106243117df86\\capture.json",
+        "sha256": "afd86c75e268f8240b5ac8fa3f33a2c2386ac793159c0213a9d4cfc61133c752"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-16-orbit-4b8ab53aa917f8d8-dpr2\\workspace\\docs\\screenshots\\journey\\16-orbit-browser.png",
+        "sha256": "948baec5967ba1962aff37a30b9608dd10bb99061e61c9df9de661b5babffe81",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Two thin oriented cyan/pink triangles visibly reflect orbit pose, fully contained.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/16-orbit-browser.png",
+      "originalSha256": "fe6749a2d5118cbec9c2341a9de718092121bfd4dd8c2c1fc75887d67ee53b2c",
+      "source": {
+        "checkpoint": "16-orbit",
+        "files": "51547dafd5ad630b458b36eee5474b4a169865e340d814f7cc318a6148711aaa",
+        "lock": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "39486578cd042fcef3dde4738482b31e6cb120313f085e74281d6ee35d026839",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:50:58.7012210Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-16-orbit-4b8ab53aa917f8d8-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-16-orbit-4b8ab53aa917f8d8-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 3.189,
+        "peakJobCommitBytes": 721514496,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 20612,
+        "descendantsAtCleanup": 1
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/16-orbit-browser.png?v=fe6749a2d511",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "948baec5967ba1962aff37a30b9608dd10bb99061e61c9df9de661b5babffe81"
+      }
+    },
+    {
+      "id": "19-actions",
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\19-actions-a26015694a44728b8cf8\\capture.json",
+        "sha256": "4e3d9816031690f661c5137822776d41a8d420ac8da483eb7575b8a52eee4d76"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-19-actions-3b6348db7d9b1bd8-dpr2\\workspace\\docs\\screenshots\\journey\\19-actions-browser.png",
+        "sha256": "85f5ba8368af6a5faf3f5adb33c2ecaa56efaaaa71e1181a1191ce51236195de",
+        "width": 1800,
+        "height": 1520
+      },
+      "personallyViewedOriginalResolution": true,
+      "tool": "view_image",
+      "detail": "original",
+      "finding": "Yellow shaded box with original cyan/pink oriented triangles, distinct depth and clean frame.",
+      "decision": "PASS for source-specific presentation quality",
+      "destination": "docs/screenshots/journey/19-actions-browser.png",
+      "originalSha256": "876d0351ce73b8b5a7eef2176fda8407253e5146ff15b0b15cde042f1107df56",
+      "source": {
+        "checkpoint": "19-actions",
+        "files": "2fc62594828d60e4bf904ccbeda9dae18bd33ca74d2dc2b5f1ba37e91632d70c",
+        "lock": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+        },
+        "dependencies": {},
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "cc7531bf9ec1e66d25f04ff45743590508cb9f987b89be436a7cb89ebffed3d2",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-25T22:51:11.5051940Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-19-actions-3b6348db7d9b1bd8-dpr2\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-19-actions-3b6348db7d9b1bd8-dpr2\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 9.213,
+        "peakJobCommitBytes": 723836928,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 23596,
+        "descendantsAtCleanup": 0
+      },
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/19-actions-browser.png?v=876d0351ce73",
+        "status": 200,
+        "contentType": "image/png",
+        "sha256": "85f5ba8368af6a5faf3f5adb33c2ecaa56efaaaa71e1181a1191ce51236195de"
+      }
+    }
+  ]
+}

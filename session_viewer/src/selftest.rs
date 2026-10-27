@@ -10,6 +10,9 @@ use crate::engine::text::{TextLabel, TextPlacement};
 use session_rust::{Session, Xform};
 use std::rc::Rc;
 
+pub mod stroke_witness;
+pub use crate::engine::gpu::splat::cloud_witness;
+
 /// Background color.
 const CLEAR: wgpu::Color = wgpu::Color {
     r: 0.9,

@@ -1,0 +1,305 @@
+{
+  "status": "PASS scoped typing experiment; frozen-harness authorization PENDING",
+  "recordedUtc": "2026-10-24T01:48:54.722919+00:00",
+  "acceptedScope": "Eight focused cases/four exact comparisons on two retained learner runtimes at DPR1/2. Isolated command-helper experiment; no full canonical callback, maintained-runtime or release acceptance.",
+  "courseMetadataSha256": "7dc82d0cf71d86f7612e7b08dd2a9335394eebc79ce81a2b2bf136e3074be3d9",
+  "change": {
+    "original": {
+      "path": "docs/capture_journey.cjs",
+      "sha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733"
+    },
+    "candidate": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/capture_journey-delay0.cjs",
+      "sha256": "730a2c8618175efe53a93be8f837fc14f91b5422375d8d0e699804d0c17e593a"
+    },
+    "patch": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/candidate.patch",
+      "sha256": "3e89f912fb6e66f2696cca17f5baf3603e25cf7cdc2890b3f7ce23ebcf637909"
+    },
+    "before": "await page.keyboard.type(line, {delay: 60});",
+    "after": "await page.keyboard.type(line, {delay: 0});",
+    "everyOtherSourceByteIdentical": true,
+    "preserved": "Same keyboard.type input path, focus/pending CtrlA, exact field/history/clear/unknown checks, Enter and120ms pause. No assertion, timeout or tolerance changes."
+  },
+  "evidence": {
+    "proof": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/proof.json",
+      "sha256": "25719d35beb4f6c3057fe632fb569203bceb28a5b67b0870166732244646f436"
+    },
+    "comparison": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/comparison.json",
+      "sha256": "72ac5be4ec9b4eddf1c4f57c29b56a006a59e3c8f86dee915d3a559e148b2e47"
+    },
+    "resources": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/resources.json",
+      "sha256": "3062165fbe1e0fc6d4efcbb553891d992d8582991438d7734e35bb21eaa71baf"
+    },
+    "log": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/output.log",
+      "sha256": "17bfa3a9b765b11f0de5846f05fb36b0f25364560232d5a85195e4617d221c67"
+    },
+    "prepared": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/prepared.json",
+      "sha256": "eff13101540e35d79618fbd31bce0a0e3dfb0b35ce635651c2dfbe04cfb3465d"
+    },
+    "worker": {
+      "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/compare.cjs",
+      "sha256": "6ed646c016c696774aa078d1c1c947a68509a44eb4cfc454dbda97124c01b6f3"
+    },
+    "localEvidenceOnly": true
+  },
+  "guard": {
+    "elapsedSeconds": 96.834,
+    "peakJobCommitBytes": 757866496,
+    "processors": 2,
+    "jobCommitLimitBytes": 6442450944,
+    "timeoutSeconds": 1200,
+    "zeroSwapEnforced": false
+  },
+  "results": {
+    "casesPassed": 8,
+    "casesFailed": 0,
+    "exactComparisonGroups": 4,
+    "comparisons": [
+      {
+        "target": "old70d",
+        "dpr": 1,
+        "originalSeconds": 17.856713799999998,
+        "candidateSeconds": 3.9147788,
+        "allExactComparisonsPassed": true
+      },
+      {
+        "target": "old70d",
+        "dpr": 2,
+        "originalSeconds": 17.79876699999997,
+        "candidateSeconds": 3.8900328999999947,
+        "allExactComparisonsPassed": true
+      },
+      {
+        "target": "current713",
+        "dpr": 1,
+        "originalSeconds": 17.528333200000016,
+        "candidateSeconds": 3.9453310000000346,
+        "allExactComparisonsPassed": true
+      },
+      {
+        "target": "current713",
+        "dpr": 2,
+        "originalSeconds": 17.7192356,
+        "candidateSeconds": 3.8870489000000523,
+        "allExactComparisonsPassed": true
+      }
+    ],
+    "fixtures": [
+      {
+        "target": "old70d",
+        "sourceFiles": 331,
+        "sourceFingerprint": "46e5b75c3dbcbfbb1e3aa6bb75a9aa4bbde22daa6c25faf44ab14826c199a881",
+        "sourceSignature": "f746cbb388d774e3bedbda46f2c8e978b2659c02bf8f91eebbc1cafff69348dd",
+        "fixture": {
+          "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/fixtures/old70d-dpr1-before-60.session",
+          "sha256": "f2c80ec7e58cf0bd3616c664f9e5a591282680313eb9273a94e5ae3626634cf2"
+        },
+        "bytes": 1693,
+        "expectedCounts": {
+          "objectCount": 2,
+          "instanceCount": 2
+        }
+      },
+      {
+        "target": "current713",
+        "sourceFiles": 713,
+        "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+        "sourceSignature": "c39e50938c22157a7883b49fe1c56912c03c703cc2291e0f4152183c3de8153c",
+        "fixture": {
+          "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/fixtures/current713-dpr1-before-60.session",
+          "sha256": "47e4123e6f7c4121bddf9e9db3b803c1a8f8471beb1303fea14a98385ba7bd32"
+        },
+        "bytes": 3168,
+        "expectedCounts": {
+          "objectCount": 4,
+          "instanceCount": 2
+        }
+      }
+    ],
+    "exactInput": "Each target reuses its exact actual V1originalDPR1 archiveBefore through nativefilechooser for both delays/DPRs; bytes/name/path/mtime pinned. V3 counts derived from the actual source fixture record. No scene regeneration or GUID/field removal.",
+    "archiveSemantics": "Full decoded protobuf/archive metadata, all original GUIDs/fields, geometry, history, camera and unchanged canonical drawing hash compare exactly. Existing decoder sorts only unordered Mesh map wire entries; no dropped GUID/field. Own before/after archive preservation also passed all8cases.",
+    "inputChecks": "Long spaces; exact Unicode field/history via deliberately rejected Help arguments; interrupted pending input replaced by original CtrlA; active Line firstpoint/Escape; Move/Undo/Redo; duplicate Fit. Trusted input counts/actual NVIDIA devices recorded."
+  },
+  "timing": {
+    "originalHelperSeconds": 70.90304959999999,
+    "candidateHelperSeconds": 15.637191600000081,
+    "reductionPercent": 77.94567132412865,
+    "everyGroupReduced": true,
+    "measurement": "Actual helper elapsed across four matching groups includes identical focus/assertions/120ms pause and real command/render work; initial page load separate. Order counterbalanced across DPRs. Not pure typing sleep or an end-to-end course ETA."
+  },
+  "rootImageReview": {
+    "status": "Root explicitly attested all8saved original-resolution PNGs individually viewed in task handoff",
+    "images": [
+      {
+        "target": "old70d",
+        "dpr": 1,
+        "variant": "original",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/old70d-dpr1-original.png",
+        "sha256": "d79264bea31f8e43b4d334f690454a4cc319db578a1d5430d4226d774ee840c6",
+        "size": [
+          900,
+          760
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "old70d",
+        "dpr": 1,
+        "variant": "candidate",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/old70d-dpr1-candidate.png",
+        "sha256": "d79264bea31f8e43b4d334f690454a4cc319db578a1d5430d4226d774ee840c6",
+        "size": [
+          900,
+          760
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "old70d",
+        "dpr": 2,
+        "variant": "candidate",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/old70d-dpr2-candidate.png",
+        "sha256": "f93a5fe0ee6abb2849c746b385fa13ace6f0a817fb361aaf022f67374b6d46ee",
+        "size": [
+          1800,
+          1520
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "old70d",
+        "dpr": 2,
+        "variant": "original",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/old70d-dpr2-original.png",
+        "sha256": "f93a5fe0ee6abb2849c746b385fa13ace6f0a817fb361aaf022f67374b6d46ee",
+        "size": [
+          1800,
+          1520
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "current713",
+        "dpr": 1,
+        "variant": "original",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/current713-dpr1-original.png",
+        "sha256": "fc3bde8f1be8ae8f2d5cd011bf79e4b8578f70df37fe3170b633bf0b8f03384a",
+        "size": [
+          900,
+          760
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "current713",
+        "dpr": 1,
+        "variant": "candidate",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/current713-dpr1-candidate.png",
+        "sha256": "fc3bde8f1be8ae8f2d5cd011bf79e4b8578f70df37fe3170b633bf0b8f03384a",
+        "size": [
+          900,
+          760
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "current713",
+        "dpr": 2,
+        "variant": "candidate",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/current713-dpr2-candidate.png",
+        "sha256": "46fed6760b578cdfa07d7f79e959c4fd15c51af727bebf6df802b6fd371d19fd",
+        "size": [
+          1800,
+          1520
+        ],
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "target": "current713",
+        "dpr": 2,
+        "variant": "original",
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v3-preparation/typing-delay60-vs0-focused-v3/current713-dpr2-original.png",
+        "sha256": "46fed6760b578cdfa07d7f79e959c4fd15c51af727bebf6df802b6fd371d19fd",
+        "size": [
+          1800,
+          1520
+        ],
+        "rootIndividuallyReviewed": true
+      }
+    ],
+    "imagesCopiedToPublicAssets": false
+  },
+  "failedHistory": [
+    {
+      "version": "V1",
+      "status": "FAILED, preserved unchanged",
+      "reason": "FAILED first crosscomparison: independent scene generation produced different hierarchy UUIDs;8individual cases passed their own checks.",
+      "proof": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-preparation/typing-delay60-vs0-focused-v1/proof.json",
+        "sha256": "6aac707c779b24ce92fe6b1e5b649ae6182f19607e37ff395b5ff91f2c6bb8bf"
+      },
+      "comparison": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-preparation/typing-delay60-vs0-focused-v1/comparison.json",
+        "sha256": "e769bdee0f83496509b3c3cca96ca555d53f62a537520e2a5ae4e2408b2c60cf"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-preparation/typing-delay60-vs0-focused-v1/resources.json",
+        "sha256": "dd6c6a88e3a9a0fe63cd00cb9e29bc711b313c40f8e4d0711468738c9362f586"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-preparation/typing-delay60-vs0-focused-v1/output.log",
+        "sha256": "7836ba375f65b9640544172a36ecb869c75211218b9165181c30104bf8d60255"
+      }
+    },
+    {
+      "version": "V2",
+      "status": "FAILED, preserved unchanged",
+      "reason": "FAILED current713 initialization: expected totalobjects2 instead of actual4objects/2instances; natural120s timeout. Four old70d individual cases passed.",
+      "proof": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v2-preparation/typing-delay60-vs0-common-archive-v2/proof.json",
+        "sha256": "0c432331c6cbfb34493de0e62789554d019141f75324151e4fcfcb8da7308ef3"
+      },
+      "comparison": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v2-preparation/typing-delay60-vs0-common-archive-v2/comparison.json",
+        "sha256": "575fa3ce40ea0553f98ce17585cdf857d2708b4064dc35bf94a07e683de6b9ca"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v2-preparation/typing-delay60-vs0-common-archive-v2/resources.json",
+        "sha256": "c6057d2db844cf2f8327cec50c61f42feb2789770a2b4255f0341a393b8595c2"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/command-typing-delay-candidate-v2-preparation/typing-delay60-vs0-common-archive-v2/output.log",
+        "sha256": "7daa8857e5a83c051804dc37023334f35beaeeb258d6d3750de0c582bfc50d42"
+      }
+    }
+  ],
+  "authorization": {
+    "status": "PENDING explicit user exception requested by root; no answer recorded here",
+    "canonicalStillOriginal60ms": true,
+    "candidateOperationallyApplied": false,
+    "rule": "Saved consolidation plan section4line69 preserves required assertions and frozen canonical harness. Root requested one exception for this exact event-spacing change.",
+    "limits": "Focused PASS/root image review do not authorize the candidate or accept a full canonical callback. This publication changes no canonical/course/progress/runtime/maintained-helper files."
+  },
+  "maintainedAudit": {
+    "capture_current": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\capture_current.cjs",
+      "sha256": "fe1c0deb8e6b410023c3813ee58365e721e0276db13e8ed652b9f61d55d918cc",
+      "finding": "No keyboard.type call or60ms delay in capture_current itself; delegates maintained final.cjs"
+    },
+    "finalCallback": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\final.cjs",
+      "sha256": "76e324a82cc27b1f925d7e6a639562238db77b7ecf56bb9cdc814f76720fe817",
+      "findings": [
+        "line44 command helper uses await page.keyboard.type(line) with defaultzero delay",
+        "line78 Hide and123 abc likewise keyboard.type without explicitdelay"
+      ],
+      "scope": "AUDIT ONLY; maintained helper/runtime not changed or accepted by candidate test."
+    }
+  }
+}

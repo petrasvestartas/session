@@ -1,0 +1,104 @@
+{
+  "status": "PASS one full original callback browser image with scoped file transport, root-reviewed and source/HTTP verified",
+  "date": "2026-10-26T03:34:33.352Z",
+  "rootPersonallyViewedOriginalResolution": true,
+  "scope": "Original fallback/canonical callback source and every assertion unchanged. Only source-bound actual build handoff and owned Windows-deep-file path to exact named byte payload transport differ. External/short paths unchanged; each conversion recorded with exact file/buffer SHA.",
+  "framingLimit": "Root personally viewed: top circle/column readable, crisp intended boundaries, no mesh diagonals. Front base corner cut by bottom dock accepted as original performance pan+wheel framing. Explicit cropping limitation; no generous margin/artifact-free claim. Full inherited original callback PASS, no prefix exclusion.",
+  "images": [
+    {
+      "id": "96h-prove-current-source-grammar-and-explicit-differences",
+      "destination": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+      "sha256": "ab70b518b05d5c0672273aadaf4979ec7b4b203c8a34bc4647c980208e9a3a1f",
+      "width": 1800,
+      "height": 1520,
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96h-prove-current-source-grammar-and-explicit-differences-034f63586a6b373539dc\\capture.json",
+        "sha256": "e9d82237a90f10c05db049754898d2685129865a31083df6d211867e2f8e2647"
+      },
+      "source": {
+        "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+        "files": "162aef67e8b03c7a8d097eae06562f33f5c2f912221235217f8ac10ae91bd124",
+        "lock": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+        "assets": {
+          "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+        },
+        "dependencies": {
+          "dependencies": "ff3d53262a3d32f3b7f4da5397ec9944d6022d4b9c298e51cdee9a33b5560731",
+          "dependency_checker": "d32c7dbec5fd12dbd68a3adf36bccb60bdf5254cb890f1f8c5bff8a5b7e7d6d5"
+        },
+        "kernel": "c0acbde78685d127e98e1d13dd9c1fdff064277c38ce17fd7329a13459558b88",
+        "fixture": "9f1b3df69021e57f18192c60c60f2577e76a1f466a68b6228b59a363b7e6ac35",
+        "harness": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3",
+        "constructor": "make_renderer(device, queue, format)",
+        "logicalSize": [
+          640,
+          480
+        ],
+        "helper": "e2c028971ab9cc08c2b951bed543b025ccb6f17c8e0b844d5370e82abb3a7410"
+      },
+      "canonicalBehaviorExecuted": true,
+      "canonicalValidationProfile": false,
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0xFF00",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 16,
+        "maximumAggregateOurMemoryMiB": 16384,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-26T03:15:49.6735393Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+          "--import",
+          "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\owned-file-fallback\\96h-prove-current-source-grammar-and-explicit-differences-034f63586a6b373539dc\\worker.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96h-prove-current-source-grammar-and-explicit-differences-53c8897ca014ebb69ddd\\workspace",
+        "timeoutSeconds": 2400,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 780.906,
+        "peakJobCommitBytes": 2185986048,
+        "affinityMask": "0xFF00",
+        "processors": 8,
+        "processId": 57984,
+        "descendantsAtCleanup": 1
+      },
+      "rootReview": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-201-preparation\\root-review.json",
+        "sha256": "044b23e935ee881db3812c7b75e93ccdde69de30b085d5fe607a8b7d7e2337d9"
+      },
+      "ownedFileTransportReview": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\browser-owned-file-transport-review.json",
+        "sha256": "83db027810a4903e5dc4046a66617f1abdb9d88ed05d0dff887cd000d0bb5849"
+      },
+      "framingLimit": "Root personally viewed: top circle/column readable, crisp intended boundaries, no mesh diagonals. Front base corner cut by bottom dock accepted as original performance pan+wheel framing. Explicit cropping limitation; no generous margin/artifact-free claim. Full inherited original callback PASS, no prefix exclusion.",
+      "originalBackup": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\browser-streaming-publication-201-preparation\\originals\\96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+      "originalSha256": "a822302baa36ec46e1f51c8e56790798ecd1ad4c25e881c32d28ad40ffb67932",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png?v=ab70b518b05d",
+        "status": 200,
+        "sha256": "ab70b518b05d5c0672273aadaf4979ec7b4b203c8a34bc4647c980208e9a3a1f"
+      }
+    }
+  ]
+}

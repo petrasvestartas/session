@@ -1,0 +1,50 @@
+{
+  "status": "APPLIED production multisample selector; strict native pair and authoring/source checks PASS; full1064/build refresh pending",
+  "source713": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "source714": "b0313bae6b71646b9424776561375ffc4306125317e1686c5894e0ef618701bf",
+  "courseSha256": "05b031571b9b18b4e2740898af6782e2c746cb6b1fcf35c73adb86c957869374",
+  "application": {
+    "path": "target/course-windows-20261018/ambient-selector-authoring-preparation/selector-applied-v1/application.json",
+    "sha256": "935b071503da28ffa8d6c9865c79ace5044c45d35bd6ea292de0864b1c1c8f1e"
+  },
+  "sourcePostflight": {
+    "path": "target/course-windows-20261018/ambient-selector-authoring-preparation/actual-selector-postflight-v1.json",
+    "sha256": "0496471b4307e886d8941dbda63587fb78bb9e5cde30a05a2b752b793b1eaa06"
+  },
+  "nativeComparison": "ambient-four-sample-selector-parity-review.json",
+  "previousFailure": "ambient-four-sample-parity-failure-review.json",
+  "changedSourceFiles": [
+    "src/ambient.wgsl"
+  ],
+  "preservedEarlierCheckpoints": 1359,
+  "courseJsonUnchanged": true,
+  "authoring": {
+    "passed": 22,
+    "log": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-selector-v3-units/output.log",
+    "logSha256": "ec8805df36b0b48740cf8b14db79d8dda6469ea1631211b3c8f0539c600e22d0"
+  },
+  "structure": {
+    "checkpoints": 1361,
+    "references": 43,
+    "log": "target/course-windows-20261018/ambient-ground-regression-preparation/authored-checks-selector-v3-structure/output.log",
+    "logSha256": "726b513a6403152dbcbc3f377f98676d314610b208ab6569eeb462417791433f"
+  },
+  "changes": [
+    {
+      "path": "docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-ambient-production-02-ambient.wgsl",
+      "beforeSha256": "09b64493c448d2366095aa8b94e8cc9b5d9b6fc2775ab15e00fd2a34002cb4cb",
+      "afterSha256": "0f33eccdf49fde27d3a0dedc59c9653d0f42683491c883c0aa6e0ef1fcdcc5e3"
+    },
+    {
+      "path": "docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md",
+      "beforeSha256": "248d3e2bbf44c577da874baad65969a06f7ab54a6c97c3670d97afed8d7ae57f",
+      "afterSha256": "95788ee9ae0d7d434bd13914f356a4dd766c3c6fab74ce674fe7d57030b303b8"
+    },
+    {
+      "path": "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+      "beforeSha256": "e84bcb7cfb5198b08fde08b9d63f50b1c8473c2e019b07800f1fecba3b54200d",
+      "afterSha256": "ada33dddbc0208319ff9d0ea4329ea7b5c945db30f76e68867431dee44d507d3"
+    }
+  ],
+  "scope": "Two WGSL source edits restore the production coverage/depth selector. One sentence added inside each of two existing ambient paragraphs. Existing website design and Vue files untouched. Full native integration remains pending."
+}

@@ -1,0 +1,7 @@
+                )
+            });
+        }
+        let line = self.settings.line(matrix, window.full, density, 1.0, self.anchor);
+        let (matrix, line) = ribbon::pick_frame(matrix, line, window);
+        queue.write_buffer(
+            &self.pick_matrix,

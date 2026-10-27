@@ -1,0 +1,13 @@
+[package]
+name = "viewer-course-fixtures"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+session_rust = { path = "../../../../session_rust", default-features = false }
+prost = "0.14"
+serde_json = "1"
+sha2 = "0.10"

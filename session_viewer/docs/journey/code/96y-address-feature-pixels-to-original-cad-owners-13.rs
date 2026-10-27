@@ -1,0 +1,1 @@
+view.lock(&row.members,on)

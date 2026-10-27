@@ -1,0 +1,208 @@
+{
+  "status": "PASS strict isolated selector candidate; two actual four-sample Off/On production/course pairs",
+  "scope": "One required finite multisample output component only; no new matrix/pose/DPR or globalfeature/buildgate acceptance",
+  "sourceFingerprint": "6947664b26863adf65ef7bfc879694bfedee853852bc2c7660d59f31d2e36ca9",
+  "baselineCanonicalSourceFingerprint": "555490d4cb3dd18014984afc15692d1ac14509f204061e26192633150d46f5ff",
+  "sourceQualification": "Isolated candidate at this execution. Canonical authoring integration, compiler refreeze and native1064 remain separately gated; no automatic current-source/full-feature acceptance.",
+  "change": {
+    "file": "src/ambient.wgsl",
+    "sites": 2,
+    "behavior": "Use production depth/coverage-only MSAA reconstruction selector; remove primitive local and primitive-address inequality. The original fixed witness, strict assertions, PB and f32 pose are byte-identical to the retained failing run."
+  },
+  "fixture": {
+    "source_pb_sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+    "source_bytes": 18736,
+    "source_kind": "Actual retained current bluepedestal four contact BReps, rawPB through normalScene import; no generated nameplate",
+    "declared_pose": "ONE currentnativeCamera default/isometric/aspect4/3/fit actual sourcebounds→uniform at640x480. Derived actualtypedJSON/f32bits recorded before firstGPU; no retainednumericMVP claim.",
+    "opacity": 1,
+    "lit": false,
+    "density": 1,
+    "samples": 4,
+    "source_contract_replaces": "V1/V2 windingSESSION +oldnumericpose contracts are preserved historically and replaced explicitly, not reinterpreted as valid ambientcontact fixtures."
+  },
+  "pose": {
+    "derivation": "currentnativeCamera::default;isometric;aspect4/3;fit actual rawPBsourcebounds;uniform()",
+    "matrix_f32": [
+      1.125,
+      0.4330126941204071,
+      -0.00000433017021350679,
+      0.4330126941204071,
+      -0.6495190262794495,
+      0.75,
+      -0.00000750007484384696,
+      0.75,
+      -3.6055548895377846e-17,
+      1.5,
+      0.000005000049895897973,
+      -0.5,
+      1.95646342009137e-13,
+      -202.5,
+      0.23175187408924103,
+      2649.9951171875
+    ],
+    "matrix_f32_bits": [
+      1066401792,
+      1054716887,
+      3062975457,
+      1054716887,
+      3206956769,
+      1061158912,
+      3069946151,
+      1061158912,
+      2753971937,
+      1069547520,
+      916964890,
+      3204448256,
+      710690616,
+      3276439552,
+      1047351389,
+      1160093676
+    ],
+    "native_scene_units": "millimeters through canonical currentnative Camera::uniform; identical unmodified f32 MVP supplied bothruntimes",
+    "scope": "New declared pose derived once fromactualsource, not a retained numerical pose or camera search",
+    "source_bounds_max": [
+      750,
+      750,
+      820
+    ],
+    "source_bounds_min": [
+      -750,
+      -750,
+      -550
+    ],
+    "source_pb_sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+    "viewport": [
+      640,
+      480
+    ]
+  },
+  "compiler": {
+    "file": "ambient-four-sample-selector-compiler-binding.json",
+    "sha256": "30ac4effe443be859e56876ac3b3707f8f94efd5762e49354c6ade98914aa909"
+  },
+  "manifest": {
+    "file": "ambient-four-sample-selector-manifest.json",
+    "sha256": "b2a72d00f1575c67f444d6656d89c49d3d8568d7ba3260d4cb1d0416afada3d0"
+  },
+  "cases": [
+    {
+      "case": "ambient-off",
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "productionRgbaSha256": "04fbbd6c63fafab193c5992c2a8ec64d6fedc7de2b5000db23f13886b6ea1bb4",
+      "courseRgbaSha256": "04fbbd6c63fafab193c5992c2a8ec64d6fedc7de2b5000db23f13886b6ea1bb4",
+      "productionAdapter": {
+        "backend": "Dx12",
+        "device": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.9711",
+        "driver_info": "",
+        "name": "Microsoft Basic Render Driver",
+        "vendor": 5140
+      },
+      "sourceFullDecodedAndMetadataUnchanged": true,
+      "sameDeviceAndQueue": true,
+      "ambientDiscrimination": null
+    },
+    {
+      "case": "ambient-on",
+      "changedPixels": 0,
+      "maxChannelDelta": 0,
+      "productionRgbaSha256": "dba1e069a8af46c8c0af97b7136297df97db2dce7a546c48845cf939481b1533",
+      "courseRgbaSha256": "dba1e069a8af46c8c0af97b7136297df97db2dce7a546c48845cf939481b1533",
+      "productionAdapter": {
+        "backend": "Dx12",
+        "device": 140,
+        "device_type": "Cpu",
+        "driver": "10.0.26100.9711",
+        "driver_info": "",
+        "name": "Microsoft Basic Render Driver",
+        "vendor": 5140
+      },
+      "sourceFullDecodedAndMetadataUnchanged": true,
+      "sameDeviceAndQueue": true,
+      "ambientDiscrimination": {
+        "course_darkened_ground_contact_pixels": 10023,
+        "course_on_vs_off_changed_pixels": 276338,
+        "production_darkened_ground_contact_pixels": 10023,
+        "production_on_vs_off_changed_pixels": 276338
+      }
+    }
+  ],
+  "signal": {
+    "course_darkened_ground_contact_pixels": 10023,
+    "course_on_vs_off_changed_pixels": 276338,
+    "production_darkened_ground_contact_pixels": 10023,
+    "production_on_vs_off_changed_pixels": 276338
+  },
+  "images": [
+    {
+      "file": "ambient-four-sample-selector-off.png",
+      "sha256": "15aa0c44a36b0c3c0fa758681d1836fdf8de90e6844e08521d269fc1455a4406",
+      "productionAndCoursePngHashesExact": true,
+      "rootPersonallyReviewed": true,
+      "review": "Blue pedestal silhouette with original geometry."
+    },
+    {
+      "file": "ambient-four-sample-selector-on.png",
+      "sha256": "e1a8386f8622064bca96481054783fb31fac3c315a98130795358041d1ff7666",
+      "productionAndCoursePngHashesExact": true,
+      "rootPersonallyReviewed": true,
+      "review": "Same geometry with correct matching ground/contact ambient shading."
+    }
+  ],
+  "evidence": {
+    "actualResult": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/result.json",
+      "sha256": "fd28a60a94625cf1e28c419746db0d313bbe5d0e8ea294af748560f92c671c4c"
+    },
+    "preparation": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/preparation.json",
+      "sha256": "1b2a84daebc42977ad65c08bcfd53ca60b09eebc771a47615bc64fdbec2d54c8"
+    },
+    "executable": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/ambient-pedestal-four-sample-selector-v2.exe",
+      "sha256": "cc75a8db2e9d7226dbd5b406d5b0d16964167f1f352bfa3688c0087236a53c03"
+    },
+    "buildLog": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/build-four-sample-selector-v2/output.log",
+      "sha256": "304e9f16ec6a502731649f4903a8c4acd47a684da3212903eb6bc6dff35ad5ed"
+    },
+    "runLog": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/run-four-sample-selector-v2/output.log",
+      "sha256": "c3172f26caba0fbaf104f723ef7271a325316fa966c571684b1d82b580c97dde"
+    }
+  },
+  "resources": {
+    "build": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/build-four-sample-selector-v2/resources.json",
+      "sha256": "b50dd7a76b30e39cb0a850a365344b78076b67cb226461f57fc20bbf50af1574",
+      "elapsedSeconds": 54.878,
+      "peakJobCommitBytes": 2262933504,
+      "exitCode": 0
+    },
+    "run": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-selector-candidate-v2/run-four-sample-selector-v2/resources.json",
+      "sha256": "791718c7d388bd202f9ab4c508a3d4bae3709cf829e1862ecd092a6870b3eae5",
+      "elapsedSeconds": 7.746,
+      "peakJobCommitBytes": 697921536,
+      "exitCode": 0
+    }
+  },
+  "uniqueCompilerIdentity": {
+    "course": "viewer_journey_ambient_pedestal_four_scope2",
+    "production": "session_viewer_ambient_pedestal_four_scope2",
+    "bothActualArtifactsFreshFalse": true
+  },
+  "preservedFailure": {
+    "review": "ambient-four-sample-parity-failure-review.json",
+    "rawManifest": {
+      "path": "target/course-windows-20261018/ambient-pedestal-four-sample-preparation/frames-four-sample-v1/manifest.json",
+      "sha256": "45a2e182ff6299d79218879b41c3621e6ff0a939b2ae3a83fffe193cf9bc8658"
+    },
+    "ambientOffChangedPixels": 0,
+    "ambientOnChangedPixels": 111,
+    "maxChannelDelta": 10
+  },
+  "remaining": "Full frozen runtime gate PENDING until actual final-source integration, source-matching compiler/package qualifications and unfiltered native1064. No browser or full feature closure claim."
+}

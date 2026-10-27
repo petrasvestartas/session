@@ -1,0 +1,1953 @@
+{
+  "date": "2026-10-25T22:59:37.644Z",
+  "status": "PASS: 32 independent captures published and exact HTTP hashes verified",
+  "published": 32,
+  "scope": "Delegated original-resolution visual review with separate root publication approval; capture progress untouched",
+  "rootPublicationApproval": {
+    "approved": true,
+    "agentId": "/root",
+    "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+  },
+  "visibleLimitations": {
+    "ids": [
+      "32gic-owner",
+      "32gica-reply"
+    ],
+    "kind": "planar post/beam overlap: striped contact on32gic and narrow yellow intersection strip on32gica",
+    "sourceFixture": "docs/journey/checks/32gic-owner.rs",
+    "sourceContext": "Fixed import/replace/hydrate fixture translates the selected box repeatedly, then deletes/reselects/translates and fits; planar mesh faces intersect. No BRep curve tessellation exists yet.",
+    "historicalComparison": {
+      "path": "docs/screenshots/journey/32gic-owner.png",
+      "originalResolutionViewed": true,
+      "result": "The original640 view has the same intersection geometry and camera but does not show the dense stripes of the1280 raster. Higher resolution exposes depth competition."
+    },
+    "sourceChanged": false,
+    "rootShouldConsiderContactCaveatBeforePublication": true
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication-root-approved-fourth32.json",
+    "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+  },
+  "images": [
+    {
+      "sequence": 261,
+      "previousEventSha256": "83bcc32da46dfbe3457a501916922aa7b259c660092c868eb9ca0077cdf8c73f",
+      "createdUtc": "2026-10-25T22:59:13.072Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gha-cancel",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gha-cancel.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gha-cancel-f7690c955c78e082ab9a\\32gha-cancel-dpr2.png",
+        "sha256": "6c96bb4a1b5a2cee590ce34582b7787b010aca6ed774578c113617fd1047b950",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gha-cancel-f7690c955c78e082ab9a\\result.json",
+        "sha256": "0f0b99d940e13825e38a295771a19328cd997c8f9a281827ac1a458060702e57"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "6c96bb4a1b5a2cee590ce34582b7787b010aca6ed774578c113617fd1047b950",
+        "sourceRecordSha256": "0f0b99d940e13825e38a295771a19328cd997c8f9a281827ac1a458060702e57",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Brown left post and beam with a detached yellow right post; all subjects fit and planar shading remains coherent."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gha-cancel-0d414068d918a2d53bd8c65e30e79bf0885b1209a407a2ce36324554be1b33e2.png",
+        "sha256": "0d414068d918a2d53bd8c65e30e79bf0885b1209a407a2ce36324554be1b33e2"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000261-5697570549fdc3e6.json",
+        "sha256": "5697570549fdc3e668dff0a3ea8724843205366c405602eda9b6e1368704193c"
+      },
+      "publicPath": "docs/screenshots/journey/32gha-cancel.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gha-cancel.png",
+        "status": 200,
+        "sha256": "6c96bb4a1b5a2cee590ce34582b7787b010aca6ed774578c113617fd1047b950"
+      }
+    },
+    {
+      "sequence": 263,
+      "previousEventSha256": "2283264ee5a9a8a8aae7d6c3fe52bace31d5d6331061155501c48328dcdd2b27",
+      "createdUtc": "2026-10-25T22:59:13.538Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gi-capture",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gi-capture.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gi-capture-bdfc4e718d521297938a\\32gi-capture-dpr2.png",
+        "sha256": "9a6f38af2f4ffc84007dd0b1c8437f9b7400b9e2ff6a3cbeef035f55cd42261f",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gi-capture-bdfc4e718d521297938a\\result.json",
+        "sha256": "959b261ba9da46234d7c8f280d9ee80ff4408e08c66cd4136d45b36457920d4f"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "9a6f38af2f4ffc84007dd0b1c8437f9b7400b9e2ff6a3cbeef035f55cd42261f",
+        "sourceRecordSha256": "959b261ba9da46234d7c8f280d9ee80ff4408e08c66cd4136d45b36457920d4f",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Brown left post and beam with a detached yellow right post; all subjects fit and planar shading remains coherent."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gi-capture-95a9e2d878457e09a2de57f7e2716a7c15854f6270dbd12ac0830c6f9152ea60.png",
+        "sha256": "95a9e2d878457e09a2de57f7e2716a7c15854f6270dbd12ac0830c6f9152ea60"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000263-637770638dd31781.json",
+        "sha256": "637770638dd3178197492f63f5108b2bedfaf7c9a2d62e0613198f165737ead7"
+      },
+      "publicPath": "docs/screenshots/journey/32gi-capture.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gi-capture.png",
+        "status": 200,
+        "sha256": "9a6f38af2f4ffc84007dd0b1c8437f9b7400b9e2ff6a3cbeef035f55cd42261f"
+      }
+    },
+    {
+      "sequence": 265,
+      "previousEventSha256": "aa7f5a8bcb65206633a9a253e574e76b6f6be52e73ec57caca2d344d461cbd28",
+      "createdUtc": "2026-10-25T22:59:14.097Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gia-scope",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gia-scope.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gia-scope-f8ffde72ae1682a2045c\\32gia-scope-dpr2.png",
+        "sha256": "1f8628b21f9d19357b943d419a4cdfd4c73e45bbbd90ce95025b3f0d81910711",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gia-scope-f8ffde72ae1682a2045c\\result.json",
+        "sha256": "3b1a49f45b9c281d8746119cf615b23505523eb91aad34a86c80d0810bf12e11"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "1f8628b21f9d19357b943d419a4cdfd4c73e45bbbd90ce95025b3f0d81910711",
+        "sourceRecordSha256": "3b1a49f45b9c281d8746119cf615b23505523eb91aad34a86c80d0810bf12e11",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Brown left post and beam with a detached yellow right post; all subjects fit and planar shading remains coherent."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gia-scope-babc92fac0b570b25033ad1fe4a901d6fb463a6499813a12b7c4bc5181e1eb15.png",
+        "sha256": "babc92fac0b570b25033ad1fe4a901d6fb463a6499813a12b7c4bc5181e1eb15"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000265-858f00b81e3b32aa.json",
+        "sha256": "858f00b81e3b32aaefd2a0f4e64c60933b984c8342120504c3eb169be8dee23a"
+      },
+      "publicPath": "docs/screenshots/journey/32gia-scope.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gia-scope.png",
+        "status": 200,
+        "sha256": "1f8628b21f9d19357b943d419a4cdfd4c73e45bbbd90ce95025b3f0d81910711"
+      }
+    },
+    {
+      "sequence": 267,
+      "previousEventSha256": "dd84525881dfe942cf0d8dd9d4c36b5ac4c964328f19ae0444b99647be753e4d",
+      "createdUtc": "2026-10-25T22:59:14.607Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gib-move",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gib-move.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gib-move-8a1aeb6ce99ae19ce9c7\\32gib-move-dpr2.png",
+        "sha256": "9a8e159f2125544dbade060615f2e5b0e1ca04dacc2ceded35bfa09200d82c48",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gib-move-8a1aeb6ce99ae19ce9c7\\result.json",
+        "sha256": "fab5d1042ed96e1ef1477eed361c37caaa9039b163a50d5fe54799879501a815"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "9a8e159f2125544dbade060615f2e5b0e1ca04dacc2ceded35bfa09200d82c48",
+        "sourceRecordSha256": "fab5d1042ed96e1ef1477eed361c37caaa9039b163a50d5fe54799879501a815",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Brown left post and beam with a detached yellow right post; all subjects fit and planar shading remains coherent."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gib-move-cedf7d53dcd4ed745864d644829d983da03cacf645a98df9b0a2f525f9911e63.png",
+        "sha256": "cedf7d53dcd4ed745864d644829d983da03cacf645a98df9b0a2f525f9911e63"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000267-f4492e3bb1cccd3c.json",
+        "sha256": "f4492e3bb1cccd3c59eeef9bd6f889afcfa980213864885ec993c5091f8a7927"
+      },
+      "publicPath": "docs/screenshots/journey/32gib-move.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gib-move.png",
+        "status": 200,
+        "sha256": "9a8e159f2125544dbade060615f2e5b0e1ca04dacc2ceded35bfa09200d82c48"
+      }
+    },
+    {
+      "sequence": 269,
+      "previousEventSha256": "98f61177cba5591286d09048fdfa620a64c7508d017cefcfa152b10bc2e0f74b",
+      "createdUtc": "2026-10-25T22:59:15.140Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32giba-delete",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32giba-delete.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32giba-delete-33461f3374a630e696d7\\32giba-delete-dpr2.png",
+        "sha256": "1e51450be6f3c78fe0b3145460de8b225f0933446dcfee6df5938b43ef3a9725",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32giba-delete-33461f3374a630e696d7\\result.json",
+        "sha256": "0c3e2b41edc36c25863b5abc98cf67cd941307a1ae7f69d48aa0e5d83e0bcc97"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "1e51450be6f3c78fe0b3145460de8b225f0933446dcfee6df5938b43ef3a9725",
+        "sourceRecordSha256": "0c3e2b41edc36c25863b5abc98cf67cd941307a1ae7f69d48aa0e5d83e0bcc97",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Selected yellow vertical post supports a wide brown horizontal beam; faces, contact and full scene margins are clearly visible."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32giba-delete-0a313f4105e2adf27f48a9e208419509d0c46ce4f3aea2f3c5afef1020a2aef8.png",
+        "sha256": "0a313f4105e2adf27f48a9e208419509d0c46ce4f3aea2f3c5afef1020a2aef8"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000269-6f8ba1c1a2a39531.json",
+        "sha256": "6f8ba1c1a2a395315758fc47b3ba0d951d4f22f78abd67b736e3cd89e6129631"
+      },
+      "publicPath": "docs/screenshots/journey/32giba-delete.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32giba-delete.png",
+        "status": 200,
+        "sha256": "1e51450be6f3c78fe0b3145460de8b225f0933446dcfee6df5938b43ef3a9725"
+      }
+    },
+    {
+      "sequence": 271,
+      "previousEventSha256": "53bd5e825faa0e52ac059918e876b37e61421baab1f05703d7e22f1e408d4ae6",
+      "createdUtc": "2026-10-25T22:59:15.677Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gibb-reply",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gibb-reply.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gibb-reply-3c0946b7fc6ecd2db266\\32gibb-reply-dpr2.png",
+        "sha256": "027da7f0d0cd448807e51175ef724b3f6d302a7db750741afa8b2fb8c4cd3f54",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gibb-reply-3c0946b7fc6ecd2db266\\result.json",
+        "sha256": "596c0ab314e760e544081080ec6711c80cae19336ffa6e015115de24e3850547"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "027da7f0d0cd448807e51175ef724b3f6d302a7db750741afa8b2fb8c4cd3f54",
+        "sourceRecordSha256": "596c0ab314e760e544081080ec6711c80cae19336ffa6e015115de24e3850547",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Selected yellow vertical post supports a wide brown horizontal beam; faces, contact and full scene margins are clearly visible."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gibb-reply-a5a9b9fcab8a74d22df2234d21ce8e9bce4c4f2ad39645bf77296e60f25a3ff9.png",
+        "sha256": "a5a9b9fcab8a74d22df2234d21ce8e9bce4c4f2ad39645bf77296e60f25a3ff9"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000271-fef09cbf88cad841.json",
+        "sha256": "fef09cbf88cad84163cad6e4ff28ac679d9028bd3937f6b55ae2787223918ab6"
+      },
+      "publicPath": "docs/screenshots/journey/32gibb-reply.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gibb-reply.png",
+        "status": 200,
+        "sha256": "027da7f0d0cd448807e51175ef724b3f6d302a7db750741afa8b2fb8c4cd3f54"
+      }
+    },
+    {
+      "sequence": 273,
+      "previousEventSha256": "c10f8fe4b16e853551805703602627d974d6d869fba3029ce374c41f54b1ef2c",
+      "createdUtc": "2026-10-25T22:59:16.109Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gic-owner",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gic-owner.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gic-owner-e7bfb60604fb679a6769\\32gic-owner-dpr2.png",
+        "sha256": "9b076c9021ebabec072e871e2304e3ac01feb80290deeac02541b9ff4f717a01",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gic-owner-e7bfb60604fb679a6769\\result.json",
+        "sha256": "df6c893813e83c8a8c8f185af5119189a3265b6f41fb1c25d87d5c5c1e653fc2"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "9b076c9021ebabec072e871e2304e3ac01feb80290deeac02541b9ff4f717a01",
+        "sourceRecordSha256": "df6c893813e83c8a8c8f185af5119189a3265b6f41fb1c25d87d5c5c1e653fc2",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Selected yellow post intersects the brown beam; alternating yellow/brown vertical stripes are clearly visible in the coplanar contact region. Source-faithful capture with visible planar depth competition; not an artifact-free approval."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gic-owner-63927bf4edd19fff30795589f5415ccddb3db106d1e9cc0fa3a8f21ccc5d057c.png",
+        "sha256": "63927bf4edd19fff30795589f5415ccddb3db106d1e9cc0fa3a8f21ccc5d057c"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000273-2327488bc0228d8d.json",
+        "sha256": "2327488bc0228d8dadb4b3385c67bc160ed7c8b4a06e4934d39e83157b946e9b"
+      },
+      "publicPath": "docs/screenshots/journey/32gic-owner.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gic-owner.png",
+        "status": 200,
+        "sha256": "9b076c9021ebabec072e871e2304e3ac01feb80290deeac02541b9ff4f717a01"
+      }
+    },
+    {
+      "sequence": 275,
+      "previousEventSha256": "a03381450cb12b4a64a9f41828c483e6f9890d0a480e40a35d09d50ba126ab48",
+      "createdUtc": "2026-10-25T22:59:16.586Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gica-reply",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gica-reply.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gica-reply-f25040002c404f6ed14f\\32gica-reply-dpr2.png",
+        "sha256": "c8f84eebde3f649e42b07060ee64287b917374e9069f7137d49d63ce29917279",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gica-reply-f25040002c404f6ed14f\\result.json",
+        "sha256": "c2ee475ab2b96ec1748d946aacd410ae5c63fb2077b565be38ef1045956059bc"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "c8f84eebde3f649e42b07060ee64287b917374e9069f7137d49d63ce29917279",
+        "sourceRecordSha256": "c2ee475ab2b96ec1748d946aacd410ae5c63fb2077b565be38ef1045956059bc",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Oblique underside view of brown beam and yellow supporting post; a narrow yellow strip protrudes into the beam at their intersection. Retains the source scene geometry; contact limitation explicitly visible."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gica-reply-00b3c2d7488ed99a3b41ea3e9d5070e746ef75cbaef93926a9246a3898e91802.png",
+        "sha256": "00b3c2d7488ed99a3b41ea3e9d5070e746ef75cbaef93926a9246a3898e91802"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000275-a96df924a7b24067.json",
+        "sha256": "a96df924a7b24067fe35b1196171a10b07bba252e947cf0fa0a7154f8d6ee2bd"
+      },
+      "publicPath": "docs/screenshots/journey/32gica-reply.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gica-reply.png",
+        "status": 200,
+        "sha256": "c8f84eebde3f649e42b07060ee64287b917374e9069f7137d49d63ce29917279"
+      }
+    },
+    {
+      "sequence": 277,
+      "previousEventSha256": "3fb70b2c2e4fbac265db7f991f3c99fed9cd1098396c49d3eb4dbd0006750b51",
+      "createdUtc": "2026-10-25T22:59:17.104Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gicb-bridge",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gicb-bridge.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gicb-bridge-f53261bec7d2453e9982\\32gicb-bridge-dpr2.png",
+        "sha256": "4b02cb4b450d217a7eaa1dbe446c3c348c3323ead4fc3e4556c3153be9f965df",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gicb-bridge-f53261bec7d2453e9982\\result.json",
+        "sha256": "ccd3cca6b51eaf6aa5ecb56163cd450ce302f85669287c74a718e69849182736"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "4b02cb4b450d217a7eaa1dbe446c3c348c3323ead4fc3e4556c3153be9f965df",
+        "sourceRecordSha256": "ccd3cca6b51eaf6aa5ecb56163cd450ce302f85669287c74a718e69849182736",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Oblique brown beam supported by a yellow post, fully contained; coherent flat face shading and no newly observed stripe at this pose."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gicb-bridge-b643e5b3bda622e3526adb9da06b0c0ac015ae2e66821ce10416b86eecae5a62.png",
+        "sha256": "b643e5b3bda622e3526adb9da06b0c0ac015ae2e66821ce10416b86eecae5a62"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000277-2ed8d54d91d2ab8c.json",
+        "sha256": "2ed8d54d91d2ab8c8d1bd0d140a241c5245e29ab29001b66ec58216244fb0ec6"
+      },
+      "publicPath": "docs/screenshots/journey/32gicb-bridge.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gicb-bridge.png",
+        "status": 200,
+        "sha256": "4b02cb4b450d217a7eaa1dbe446c3c348c3323ead4fc3e4556c3153be9f965df"
+      }
+    },
+    {
+      "sequence": 279,
+      "previousEventSha256": "3dbb4103c9c0d542bfaec5b3d13978d28036c4f34462854ac04dda40ad5cfbbc",
+      "createdUtc": "2026-10-25T22:59:17.593Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gid-complete",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gid-complete.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gid-complete-808fc4ac416ff40f718d\\32gid-complete-dpr2.png",
+        "sha256": "65e085e0edcbd7e80fb25b67a282b0eb1a6fcab0ccd1b0b0c546a2c96392cc27",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gid-complete-808fc4ac416ff40f718d\\result.json",
+        "sha256": "cffc1fb171454da93f5465b4365a2ae6cf822dd222453ecab34bba42b4898c8c"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "65e085e0edcbd7e80fb25b67a282b0eb1a6fcab0ccd1b0b0c546a2c96392cc27",
+        "sourceRecordSha256": "cffc1fb171454da93f5465b4365a2ae6cf822dd222453ecab34bba42b4898c8c",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Oblique brown beam supported by a yellow post, fully contained; coherent flat face shading and no newly observed stripe at this pose."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gid-complete-ddbb0d77fe9ce3026f7c9b897159bad115932f119a379bcc157070c22d79d883.png",
+        "sha256": "ddbb0d77fe9ce3026f7c9b897159bad115932f119a379bcc157070c22d79d883"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000279-944969b196d97374.json",
+        "sha256": "944969b196d9737429c46a1ce28e11a237054166e88f2d133504f770ef47dd09"
+      },
+      "publicPath": "docs/screenshots/journey/32gid-complete.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gid-complete.png",
+        "status": 200,
+        "sha256": "65e085e0edcbd7e80fb25b67a282b0eb1a6fcab0ccd1b0b0c546a2c96392cc27"
+      }
+    },
+    {
+      "sequence": 281,
+      "previousEventSha256": "e84a843eb82545c615de329bb47e50badfbcb8229862fba58971a1a3fa034a43",
+      "createdUtc": "2026-10-25T22:59:18.118Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gie-response",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gie-response.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gie-response-c6397b754289a3bbb007\\32gie-response-dpr2.png",
+        "sha256": "5ba30a2a54b81163df3faabd51641e760a1e9cbf7e8e0e7a5596355123df07b2",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gie-response-c6397b754289a3bbb007\\result.json",
+        "sha256": "c28c091327b7ffa6b4228929f89b54793e84aab40619a3746449dd1ca65e52cc"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "5ba30a2a54b81163df3faabd51641e760a1e9cbf7e8e0e7a5596355123df07b2",
+        "sourceRecordSha256": "c28c091327b7ffa6b4228929f89b54793e84aab40619a3746449dd1ca65e52cc",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Oblique brown beam supported by a yellow post, fully contained; coherent flat face shading and no newly observed stripe at this pose."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gie-response-a3eea5aa9a60bc8fba4a052f11a6f7cc0ca8b3b7c4a679fd153ca4219546c70e.png",
+        "sha256": "a3eea5aa9a60bc8fba4a052f11a6f7cc0ca8b3b7c4a679fd153ca4219546c70e"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000281-9009b011dc87c2f0.json",
+        "sha256": "9009b011dc87c2f09ec9ffad2469193f498654049feaccd789926f58b2a1195f"
+      },
+      "publicPath": "docs/screenshots/journey/32gie-response.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gie-response.png",
+        "status": 200,
+        "sha256": "5ba30a2a54b81163df3faabd51641e760a1e9cbf7e8e0e7a5596355123df07b2"
+      }
+    },
+    {
+      "sequence": 283,
+      "previousEventSha256": "d28fad14d8051db8c0b0e7e03ba36f2b7df31848932791d99fe205a840a60b52",
+      "createdUtc": "2026-10-25T22:59:18.621Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gif-auto",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gif-auto.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gif-auto-1ae315a340e17f449e5a\\32gif-auto-dpr2.png",
+        "sha256": "6eba232969f46cc48594b3b47c6ca84052cf0b35e77010d40aae7aeeb894aa20",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gif-auto-1ae315a340e17f449e5a\\result.json",
+        "sha256": "5b85eea6d0e80bf7093cec44cbba9b56bdf3a06464828a1afd694be102127d06"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "6eba232969f46cc48594b3b47c6ca84052cf0b35e77010d40aae7aeeb894aa20",
+        "sourceRecordSha256": "5b85eea6d0e80bf7093cec44cbba9b56bdf3a06464828a1afd694be102127d06",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Selected yellow front post and brown frame in an oblique elevated view, fully contained with coherent face shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gif-auto-9059891807db862cff6ac7e6b45d41aaecd17a7db8ebe60aca6ba27992c724a2.png",
+        "sha256": "9059891807db862cff6ac7e6b45d41aaecd17a7db8ebe60aca6ba27992c724a2"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000283-4087892289a7f557.json",
+        "sha256": "4087892289a7f55718f962837cb979267c91a4185a19d9329752317cc9401502"
+      },
+      "publicPath": "docs/screenshots/journey/32gif-auto.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gif-auto.png",
+        "status": 200,
+        "sha256": "6eba232969f46cc48594b3b47c6ca84052cf0b35e77010d40aae7aeeb894aa20"
+      }
+    },
+    {
+      "sequence": 285,
+      "previousEventSha256": "74c0f145e2ee5924e1450ebdf07194913a2b3af132090bb9a72fe755977c1b4e",
+      "createdUtc": "2026-10-25T22:59:19.181Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gj-precision",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gj-precision.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gj-precision-0ce04072b6531d80e40e\\32gj-precision-dpr2.png",
+        "sha256": "32efc6191fc22b6a5518347bb91853b523d7f821dd5eac437a861c5b743a0ab3",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gj-precision-0ce04072b6531d80e40e\\result.json",
+        "sha256": "6916e06980e259da2d3a4f439e0a61be925a74ae6e031788011040e16a1459b3"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "32efc6191fc22b6a5518347bb91853b523d7f821dd5eac437a861c5b743a0ab3",
+        "sourceRecordSha256": "6916e06980e259da2d3a4f439e0a61be925a74ae6e031788011040e16a1459b3",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Yellow selected post in front of the brown portal beam and right brown post; the checkpoint-specific camera and geometry are contained with coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gj-precision-3a14c7c2ddf7eb7efe96e7c081efaa097cabfb02af3eef7d485be494f7c369ae.png",
+        "sha256": "3a14c7c2ddf7eb7efe96e7c081efaa097cabfb02af3eef7d485be494f7c369ae"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000285-15e7b72cc3974d76.json",
+        "sha256": "15e7b72cc3974d764707ea5263b30765cdb6a9b10bfc3a9ae6b61c887d2b0d4a"
+      },
+      "publicPath": "docs/screenshots/journey/32gj-precision.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gj-precision.png",
+        "status": 200,
+        "sha256": "32efc6191fc22b6a5518347bb91853b523d7f821dd5eac437a861c5b743a0ab3"
+      }
+    },
+    {
+      "sequence": 287,
+      "previousEventSha256": "f94fc5930ae63ee4e982e62fa951be412c21ef40bf9de9775c5bf98334d72575",
+      "createdUtc": "2026-10-25T22:59:19.671Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "32gja-failures",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\32gja-failures.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gja-failures-f9f4036042927327f684\\32gja-failures-dpr2.png",
+        "sha256": "a87b4d9938ddc06f58c391c168d710731a7bc212ee813509515f05725d786431",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\32gja-failures-f9f4036042927327f684\\result.json",
+        "sha256": "fd70a258162a33f80c2d7ef98bee0b9f74f9b9c6fa21d9bf56fcdbcee3847ffd"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "a87b4d9938ddc06f58c391c168d710731a7bc212ee813509515f05725d786431",
+        "sourceRecordSha256": "fd70a258162a33f80c2d7ef98bee0b9f74f9b9c6fa21d9bf56fcdbcee3847ffd",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Yellow selected post in front of the brown portal beam and right brown post; the checkpoint-specific camera and geometry are contained with coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\32gja-failures-71280cdb8b6a72a577f82d8236f198044454c3075947b9e1de40105602c49af9.png",
+        "sha256": "71280cdb8b6a72a577f82d8236f198044454c3075947b9e1de40105602c49af9"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000287-75eea8482650a94e.json",
+        "sha256": "75eea8482650a94ee29a8dc1c6804f7637708c01669dacdfa9235e1c1ada1dde"
+      },
+      "publicPath": "docs/screenshots/journey/32gja-failures.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/32gja-failures.png",
+        "status": 200,
+        "sha256": "a87b4d9938ddc06f58c391c168d710731a7bc212ee813509515f05725d786431"
+      }
+    },
+    {
+      "sequence": 289,
+      "previousEventSha256": "5767eb0b6c865649ebe8df1b5b94cb3f63dee6577379a90918d4142efdee1879",
+      "createdUtc": "2026-10-25T22:59:20.096Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "33-owner",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\33-owner.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\33-owner-8740bfa6bed56dc98dc9\\33-owner-dpr2.png",
+        "sha256": "dbe5d536bc2aa0d562c7650d3f52c3a85c3765af9efc85e5084921dab60eaf62",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\33-owner-8740bfa6bed56dc98dc9\\result.json",
+        "sha256": "81d4cef9e80d4f3a03ded45015e928f273444fb725cc7a3c597f44105d247227"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "dbe5d536bc2aa0d562c7650d3f52c3a85c3765af9efc85e5084921dab60eaf62",
+        "sourceRecordSha256": "81d4cef9e80d4f3a03ded45015e928f273444fb725cc7a3c597f44105d247227",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Yellow selected post in front of the brown portal beam and right brown post; the checkpoint-specific camera and geometry are contained with coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\33-owner-16c3e3ee69891ae06e37b2b7729cac4f76b09c280401f03fcf7172a63c85666a.png",
+        "sha256": "16c3e3ee69891ae06e37b2b7729cac4f76b09c280401f03fcf7172a63c85666a"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000289-ef23be3445b4e96b.json",
+        "sha256": "ef23be3445b4e96b4b6e0b48f766481e58552012b43d787502b68f3db688c746"
+      },
+      "publicPath": "docs/screenshots/journey/33-owner.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/33-owner.png",
+        "status": 200,
+        "sha256": "dbe5d536bc2aa0d562c7650d3f52c3a85c3765af9efc85e5084921dab60eaf62"
+      }
+    },
+    {
+      "sequence": 291,
+      "previousEventSha256": "3f9a955acf839cc92ae530589ff3f718dd9f1f094f4a55c8812dfe887ba6a46f",
+      "createdUtc": "2026-10-25T22:59:20.648Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "33a-runtime",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\33a-runtime.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\33a-runtime-264c6d423490f79db7e3\\33a-runtime-dpr2.png",
+        "sha256": "61f7bc8cd6647cfff3da1e3a0411d5d7b4fea917f3581438bad000411c40982c",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\33a-runtime-264c6d423490f79db7e3\\result.json",
+        "sha256": "1a0103c844a25b5784060b5ac9b99a226d07d5dca2701451f887df8c1304c7d8"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "61f7bc8cd6647cfff3da1e3a0411d5d7b4fea917f3581438bad000411c40982c",
+        "sourceRecordSha256": "1a0103c844a25b5784060b5ac9b99a226d07d5dca2701451f887df8c1304c7d8",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Yellow selected post in front of the brown portal beam and right brown post; the checkpoint-specific camera and geometry are contained with coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\33a-runtime-0f22cd55a8bd86d8f49169c7482c93dd4bcedba9a0ba242c867f88325fd3f180.png",
+        "sha256": "0f22cd55a8bd86d8f49169c7482c93dd4bcedba9a0ba242c867f88325fd3f180"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000291-5054a6e5d27fcd46.json",
+        "sha256": "5054a6e5d27fcd46a8ca80f6949156a0e2c9380d61fb190f28cff7f3782c4ef8"
+      },
+      "publicPath": "docs/screenshots/journey/33a-runtime.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/33a-runtime.png",
+        "status": 200,
+        "sha256": "61f7bc8cd6647cfff3da1e3a0411d5d7b4fea917f3581438bad000411c40982c"
+      }
+    },
+    {
+      "sequence": 293,
+      "previousEventSha256": "3d498b63d9a07c6b1cd48a9837271ac1fcd7d889c5588191cd2f810aa487b95a",
+      "createdUtc": "2026-10-25T22:59:21.408Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "33b-cache",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\33b-cache.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\33b-cache-b4bdb8b4cce4b53e0dc5\\33b-cache-dpr2.png",
+        "sha256": "92156ffdf66ad81e3c42c27cbd9b6693225cbab08eca0af5c40fd4404a295d85",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\33b-cache-b4bdb8b4cce4b53e0dc5\\result.json",
+        "sha256": "92514c5d0ba31baa7dfae41951ebaa1ab37441d95eb82dc0aa1524792dad554b"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "92156ffdf66ad81e3c42c27cbd9b6693225cbab08eca0af5c40fd4404a295d85",
+        "sourceRecordSha256": "92514c5d0ba31baa7dfae41951ebaa1ab37441d95eb82dc0aa1524792dad554b",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Yellow selected post in front of the brown portal beam and right brown post; the checkpoint-specific camera and geometry are contained with coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\33b-cache-837539f7dc3f1cea82863e21d619feab073de3ca5caeead0c0ded4193917d352.png",
+        "sha256": "837539f7dc3f1cea82863e21d619feab073de3ca5caeead0c0ded4193917d352"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000293-0b0ca912557508be.json",
+        "sha256": "0b0ca912557508beaa909f9237295e088a21c7ceeebac474d8b0261931c5e47b"
+      },
+      "publicPath": "docs/screenshots/journey/33b-cache.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/33b-cache.png",
+        "status": 200,
+        "sha256": "92156ffdf66ad81e3c42c27cbd9b6693225cbab08eca0af5c40fd4404a295d85"
+      }
+    },
+    {
+      "sequence": 295,
+      "previousEventSha256": "6fafc3a60f1571e38a6a6d99cffc4e59eb6bca839617d338ab253654ce6c7345",
+      "createdUtc": "2026-10-25T22:59:22.076Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34-fault",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34-fault.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34-fault-25c7359346e278920fdf\\34-fault-dpr2.png",
+        "sha256": "c832769bb7b57e5bf1251158ec8860cf3d75fc2f6a7a413c7117c9a8fba5d5da",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34-fault-25c7359346e278920fdf\\result.json",
+        "sha256": "5b4d8d69642aedca26f44a9c081a45e1762c591701d3e5b88ca15492058bae3f"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "c832769bb7b57e5bf1251158ec8860cf3d75fc2f6a7a413c7117c9a8fba5d5da",
+        "sourceRecordSha256": "5b4d8d69642aedca26f44a9c081a45e1762c591701d3e5b88ca15492058bae3f",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Yellow selected post in front of the brown portal beam and right brown post; the checkpoint-specific camera and geometry are contained with coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34-fault-9f83a0a9156dd2d24f45c82d7eb7da13260136eb943e06245f64b00b3d626a10.png",
+        "sha256": "9f83a0a9156dd2d24f45c82d7eb7da13260136eb943e06245f64b00b3d626a10"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000295-f11c938a0848c3ff.json",
+        "sha256": "f11c938a0848c3ff0565eb0a789a92355458c99fe9c7250e96babdb3a316b061"
+      },
+      "publicPath": "docs/screenshots/journey/34-fault.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34-fault.png",
+        "status": 200,
+        "sha256": "c832769bb7b57e5bf1251158ec8860cf3d75fc2f6a7a413c7117c9a8fba5d5da"
+      }
+    },
+    {
+      "sequence": 297,
+      "previousEventSha256": "8679e57ed33d8c0aaf0d4004bc4ce7db442796c5d84dc7280d38014c6423ff1b",
+      "createdUtc": "2026-10-25T22:59:22.627Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34a-stop",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34a-stop.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34a-stop-4c2f4520356d672bbeee\\34a-stop-dpr2.png",
+        "sha256": "541ebdf830c77bcf9b2f0aee865e4b0a5ffe36935ba93f5212314a0b7d936354",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34a-stop-4c2f4520356d672bbeee\\result.json",
+        "sha256": "6504acb60e621e97bc43ab0ce43e94cb2d9d753ec413048ead9070dcf761a2ea"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "541ebdf830c77bcf9b2f0aee865e4b0a5ffe36935ba93f5212314a0b7d936354",
+        "sourceRecordSha256": "6504acb60e621e97bc43ab0ce43e94cb2d9d753ec413048ead9070dcf761a2ea",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Oblique brown portal with yellow left post in front; all objects contained and coherent flat face shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34a-stop-3b16e1943e48bab7f1e1b741d2f63913911222a95c52c871ad6a6de8e833eac3.png",
+        "sha256": "3b16e1943e48bab7f1e1b741d2f63913911222a95c52c871ad6a6de8e833eac3"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000297-cf47466360c06af2.json",
+        "sha256": "cf47466360c06af2fa78c71b3b5aab2522a87381a5462d4e676da96683a20966"
+      },
+      "publicPath": "docs/screenshots/journey/34a-stop.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34a-stop.png",
+        "status": 200,
+        "sha256": "541ebdf830c77bcf9b2f0aee865e4b0a5ffe36935ba93f5212314a0b7d936354"
+      }
+    },
+    {
+      "sequence": 299,
+      "previousEventSha256": "a5f19c68173a40293654712e2c692d88ed2c106bd912157679772b11e39207ea",
+      "createdUtc": "2026-10-25T22:59:23.080Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34b-report",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34b-report.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34b-report-743365268d43acc2c615\\34b-report-dpr2.png",
+        "sha256": "68e3c49eefb313399b4672acb9bf4ae2e93c7fda173cbcaacce2ff0fa2473b8a",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34b-report-743365268d43acc2c615\\result.json",
+        "sha256": "ac9fc217941cfd623f24d711f22dd2f9197be56bddf5faff19636c37ecd7bafa"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "68e3c49eefb313399b4672acb9bf4ae2e93c7fda173cbcaacce2ff0fa2473b8a",
+        "sourceRecordSha256": "ac9fc217941cfd623f24d711f22dd2f9197be56bddf5faff19636c37ecd7bafa",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Low-angle rotated portal view with visible underside of yellow and brown posts; all objects contained."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34b-report-e53d4d2725301bde70aec381a2b32050ddfa067911aa4c887cc25d8af66a7411.png",
+        "sha256": "e53d4d2725301bde70aec381a2b32050ddfa067911aa4c887cc25d8af66a7411"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000299-ad667523a8340f64.json",
+        "sha256": "ad667523a8340f64621572a063bfad4b9648090257f701e425a77d8989815422"
+      },
+      "publicPath": "docs/screenshots/journey/34b-report.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34b-report.png",
+        "status": 200,
+        "sha256": "68e3c49eefb313399b4672acb9bf4ae2e93c7fda173cbcaacce2ff0fa2473b8a"
+      }
+    },
+    {
+      "sequence": 301,
+      "previousEventSha256": "2fe19f936fd3dfeb709d4a4ba53f850a8b8de686dbd11afef75b766fa6db27bc",
+      "createdUtc": "2026-10-25T22:59:23.694Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34ba-events",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34ba-events.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34ba-events-3f3dccb76147c134b907\\34ba-events-dpr2.png",
+        "sha256": "eccb4305597a9affa34b8263b6c26ad4b7bcc5c42db091b2ec5bd27e674efed5",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34ba-events-3f3dccb76147c134b907\\result.json",
+        "sha256": "b009510d8e4349a1a8afa596bd6a6ce3ab5ebc9794882e5a75eed57ce0afa233"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "eccb4305597a9affa34b8263b6c26ad4b7bcc5c42db091b2ec5bd27e674efed5",
+        "sourceRecordSha256": "b009510d8e4349a1a8afa596bd6a6ce3ab5ebc9794882e5a75eed57ce0afa233",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle view of the brown right post, brown beam and partly occluded yellow selected post; the fixed camera retains visible bottom faces and clear image margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34ba-events-8b8d5325d31ef409d0bafbf94bd27445935aaaffd5219b698edf71a7a8c63fbe.png",
+        "sha256": "8b8d5325d31ef409d0bafbf94bd27445935aaaffd5219b698edf71a7a8c63fbe"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000301-75e1e26d578a873a.json",
+        "sha256": "75e1e26d578a873abb979c86414d145edfbcbfce383b050c969ce6cb9f28072a"
+      },
+      "publicPath": "docs/screenshots/journey/34ba-events.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34ba-events.png",
+        "status": 200,
+        "sha256": "eccb4305597a9affa34b8263b6c26ad4b7bcc5c42db091b2ec5bd27e674efed5"
+      }
+    },
+    {
+      "sequence": 303,
+      "previousEventSha256": "5e9a72926e1ebdc1840f6fa2f4f80836752fb0b4a2bf578c8b8e0041b3cf68a5",
+      "createdUtc": "2026-10-25T22:59:24.413Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34c-browser",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34c-browser.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34c-browser-c54bafd5662aa7f50933\\34c-browser-dpr2.png",
+        "sha256": "6a79194e03555d2c5b632c382f775459bbd73ef37d599f3d6888c318e2a29dda",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34c-browser-c54bafd5662aa7f50933\\result.json",
+        "sha256": "2848e2870e969450784e0de86bcc914c0d8d076311481b63620c975f69a26380"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "6a79194e03555d2c5b632c382f775459bbd73ef37d599f3d6888c318e2a29dda",
+        "sourceRecordSha256": "2848e2870e969450784e0de86bcc914c0d8d076311481b63620c975f69a26380",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle view of the brown right post, brown beam and partly occluded yellow selected post; the fixed camera retains visible bottom faces and clear image margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34c-browser-47fa8244a4ca125eabceecccd9b81be65419370a3957270aa50b2fb312881542.png",
+        "sha256": "47fa8244a4ca125eabceecccd9b81be65419370a3957270aa50b2fb312881542"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000303-775e07c192640d8a.json",
+        "sha256": "775e07c192640d8aea20d0ed6d1d40ae6dd6659fa0fe7cdc29c3da508d3434db"
+      },
+      "publicPath": "docs/screenshots/journey/34c-browser.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34c-browser.png",
+        "status": 200,
+        "sha256": "6a79194e03555d2c5b632c382f775459bbd73ef37d599f3d6888c318e2a29dda"
+      }
+    },
+    {
+      "sequence": 305,
+      "previousEventSha256": "694abbc7a06e8d1c5d2133161c2a62995e701eddf2edf9a4c4bd6753b5fb63dc",
+      "createdUtc": "2026-10-25T22:59:24.897Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34d-download",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34d-download.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34d-download-c574f96d0c3b7fd6bc43\\34d-download-dpr2.png",
+        "sha256": "09f05387c89e7e671b1ccc4bcf65fe68c718657b0cc3043ea038012c2991c2b7",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34d-download-c574f96d0c3b7fd6bc43\\result.json",
+        "sha256": "d4ef55dad5396f0ba8c929bcafb7d744bf133d65177ccdcbc89129a712294559"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "09f05387c89e7e671b1ccc4bcf65fe68c718657b0cc3043ea038012c2991c2b7",
+        "sourceRecordSha256": "d4ef55dad5396f0ba8c929bcafb7d744bf133d65177ccdcbc89129a712294559",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle view of the brown right post, brown beam and partly occluded yellow selected post; the fixed camera retains visible bottom faces and clear image margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34d-download-b4d58daa262719fda924cb014a47eca9e46a2db82a986b5ce54079571ba94fd1.png",
+        "sha256": "b4d58daa262719fda924cb014a47eca9e46a2db82a986b5ce54079571ba94fd1"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000305-069d1fdebba3892a.json",
+        "sha256": "069d1fdebba3892a4d1da377f6952eb085e600267d46f35b7b535a7fb1bbe52b"
+      },
+      "publicPath": "docs/screenshots/journey/34d-download.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34d-download.png",
+        "status": 200,
+        "sha256": "09f05387c89e7e671b1ccc4bcf65fe68c718657b0cc3043ea038012c2991c2b7"
+      }
+    },
+    {
+      "sequence": 307,
+      "previousEventSha256": "6b152fba3eea0fa175df1edf585889b428418c9e03924b79bfdc806db7938139",
+      "createdUtc": "2026-10-25T22:59:25.407Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34e-schema",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34e-schema.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34e-schema-91a70cadcf0b28fa2325\\34e-schema-dpr2.png",
+        "sha256": "da8112247c3b56daafd0a66a8d9d1989743127086bae10bb6396c461e327f0d7",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34e-schema-91a70cadcf0b28fa2325\\result.json",
+        "sha256": "c341130f4aa9a893d91cf8dcfbdc7ee7e9a2f7587ad51d93fac9eb9ddb11e5bd"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "da8112247c3b56daafd0a66a8d9d1989743127086bae10bb6396c461e327f0d7",
+        "sourceRecordSha256": "c341130f4aa9a893d91cf8dcfbdc7ee7e9a2f7587ad51d93fac9eb9ddb11e5bd",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle view of the brown right post, brown beam and partly occluded yellow selected post; the fixed camera retains visible bottom faces and clear image margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34e-schema-1893760d277527fb90dd9add11c71e4e4f8b41d5d0f470ab726d0baa440c5cf9.png",
+        "sha256": "1893760d277527fb90dd9add11c71e4e4f8b41d5d0f470ab726d0baa440c5cf9"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000307-ff21610c75ac46f6.json",
+        "sha256": "ff21610c75ac46f6eb3902c1fbff49585a7e0327b891c68078f0654d550385c7"
+      },
+      "publicPath": "docs/screenshots/journey/34e-schema.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34e-schema.png",
+        "status": 200,
+        "sha256": "da8112247c3b56daafd0a66a8d9d1989743127086bae10bb6396c461e327f0d7"
+      }
+    },
+    {
+      "sequence": 309,
+      "previousEventSha256": "5fbe208f862a248003cee388111b70ef0b3b8c1d90d6a9ef8b7df412aae4b31a",
+      "createdUtc": "2026-10-25T22:59:25.965Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34ea-decode",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34ea-decode.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34ea-decode-1b9ed207c1c274883b15\\34ea-decode-dpr2.png",
+        "sha256": "2060da09d6e048aeb945d8ee12d782dab46e32dac2b8a2afc4647b0c8aa61d4b",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34ea-decode-1b9ed207c1c274883b15\\result.json",
+        "sha256": "5b492cd67e9fbe37d707131d68f1c8ca52673e079edb4ea9b370a3206014e010"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "2060da09d6e048aeb945d8ee12d782dab46e32dac2b8a2afc4647b0c8aa61d4b",
+        "sourceRecordSha256": "5b492cd67e9fbe37d707131d68f1c8ca52673e079edb4ea9b370a3206014e010",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame view with the yellow selected post now separated to its left; visible bottom faces, coherent flat shading and clear margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34ea-decode-aa1494b7083b574791ceca4c2a77e7213ce6fb1c23588598bf981790bb4c016e.png",
+        "sha256": "aa1494b7083b574791ceca4c2a77e7213ce6fb1c23588598bf981790bb4c016e"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000309-e0a45302a0781bea.json",
+        "sha256": "e0a45302a0781bea8f37f8ae66d6e50a130ff0d31cf3e59b1b8f2e1166c20ac0"
+      },
+      "publicPath": "docs/screenshots/journey/34ea-decode.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34ea-decode.png",
+        "status": 200,
+        "sha256": "2060da09d6e048aeb945d8ee12d782dab46e32dac2b8a2afc4647b0c8aa61d4b"
+      }
+    },
+    {
+      "sequence": 311,
+      "previousEventSha256": "a773b274ca31a4227be0132cab8809a9ac3262f4954892bc8fe3faa93ce5e6c3",
+      "createdUtc": "2026-10-25T22:59:26.604Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34eb-recency",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34eb-recency.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34eb-recency-8da279fe53215607e937\\34eb-recency-dpr2.png",
+        "sha256": "fd54c5acc6088e4dea54bc59ec22bfab62273718e10b46a2663e2595f37293fe",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34eb-recency-8da279fe53215607e937\\result.json",
+        "sha256": "c164abcf14afd51c1f58c68d7dd45fa1eb0790914e2aed91837c5b137bff5454"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "fd54c5acc6088e4dea54bc59ec22bfab62273718e10b46a2663e2595f37293fe",
+        "sourceRecordSha256": "c164abcf14afd51c1f58c68d7dd45fa1eb0790914e2aed91837c5b137bff5454",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame view with the yellow selected post now separated to its left; visible bottom faces, coherent flat shading and clear margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34eb-recency-117bf00eaca74a568b9e995a357c38dc16946505958d5d8e6d5ae95eea039d06.png",
+        "sha256": "117bf00eaca74a568b9e995a357c38dc16946505958d5d8e6d5ae95eea039d06"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000311-bbb15a0450d38532.json",
+        "sha256": "bbb15a0450d38532ef2f4c412f196759c5eb3c5e29d4cf5944ccfbbd9b1ef484"
+      },
+      "publicPath": "docs/screenshots/journey/34eb-recency.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34eb-recency.png",
+        "status": 200,
+        "sha256": "fd54c5acc6088e4dea54bc59ec22bfab62273718e10b46a2663e2595f37293fe"
+      }
+    },
+    {
+      "sequence": 313,
+      "previousEventSha256": "80153abbae9da3a275529a0e144e5d9465f9f8f468e58c91afdce044719f0ca5",
+      "createdUtc": "2026-10-25T22:59:27.248Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34ec-proof",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34ec-proof.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34ec-proof-c69d218714e9600ab108\\34ec-proof-dpr2.png",
+        "sha256": "ef6fc88251f6b4ddf39dcfbcb44dc65f651b89871eebbf1949380ca320640bda",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34ec-proof-c69d218714e9600ab108\\result.json",
+        "sha256": "72ae604f5cdda379cd6f72066ab14e4f7e281097c7a36961a407aefa9dee4cf9"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "ef6fc88251f6b4ddf39dcfbcb44dc65f651b89871eebbf1949380ca320640bda",
+        "sourceRecordSha256": "72ae604f5cdda379cd6f72066ab14e4f7e281097c7a36961a407aefa9dee4cf9",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame view with the yellow selected post now separated to its left; visible bottom faces, coherent flat shading and clear margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34ec-proof-f28e8dc89fe621f0965a92be5204c8d3908599cc0fca99122510a7959721f84a.png",
+        "sha256": "f28e8dc89fe621f0965a92be5204c8d3908599cc0fca99122510a7959721f84a"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000313-9e26e144eaa803b6.json",
+        "sha256": "9e26e144eaa803b6411d1515a89946f7a8316519b10bd2f036d2a99cfeee081c"
+      },
+      "publicPath": "docs/screenshots/journey/34ec-proof.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34ec-proof.png",
+        "status": 200,
+        "sha256": "ef6fc88251f6b4ddf39dcfbcb44dc65f651b89871eebbf1949380ca320640bda"
+      }
+    },
+    {
+      "sequence": 315,
+      "previousEventSha256": "0ea5cd901cbcdd477605523263520e30f4426c3acb51f20768e8974d8877d250",
+      "createdUtc": "2026-10-25T22:59:27.787Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34f-storage",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34f-storage.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34f-storage-05e2970f71d89a6e57d2\\34f-storage-dpr2.png",
+        "sha256": "278111ba30b5babb6eb97a2d379d2cfa15cbc225545d3a200032aa46cafcd26a",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34f-storage-05e2970f71d89a6e57d2\\result.json",
+        "sha256": "e0f10c2907f7366b66a13ef5ab111be0ab082772cfc7c452c8fd687b888b0f01"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "278111ba30b5babb6eb97a2d379d2cfa15cbc225545d3a200032aa46cafcd26a",
+        "sourceRecordSha256": "e0f10c2907f7366b66a13ef5ab111be0ab082772cfc7c452c8fd687b888b0f01",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame view with the yellow selected post now separated to its left; visible bottom faces, coherent flat shading and clear margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34f-storage-3e4271f04bba35b0a0993679a910ebd89e7e88992e56c301a32cdd02a64c2fed.png",
+        "sha256": "3e4271f04bba35b0a0993679a910ebd89e7e88992e56c301a32cdd02a64c2fed"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000315-fa25d8b33f00e267.json",
+        "sha256": "fa25d8b33f00e267c45fa8e6495934988f6a2edff1850002891c01d0d07479ad"
+      },
+      "publicPath": "docs/screenshots/journey/34f-storage.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34f-storage.png",
+        "status": 200,
+        "sha256": "278111ba30b5babb6eb97a2d379d2cfa15cbc225545d3a200032aa46cafcd26a"
+      }
+    },
+    {
+      "sequence": 317,
+      "previousEventSha256": "dda48b852a3ad4fa2f2ba3eb3f0438e176cdd644708665ff191cf66dcbbb3ab4",
+      "createdUtc": "2026-10-25T22:59:28.366Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34fa-retain",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34fa-retain.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34fa-retain-38440f771f27612e6e3a\\34fa-retain-dpr2.png",
+        "sha256": "544356b365f3f9cb7da5c817e7d57b1060523800872c5403fda8a88b946ea05c",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34fa-retain-38440f771f27612e6e3a\\result.json",
+        "sha256": "71d7f84af5d1155badc10e65c7d8f14b164d11ce6b440afccb4414e32608ef38"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "544356b365f3f9cb7da5c817e7d57b1060523800872c5403fda8a88b946ea05c",
+        "sourceRecordSha256": "71d7f84af5d1155badc10e65c7d8f14b164d11ce6b440afccb4414e32608ef38",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame view with the yellow selected post now separated to its left; visible bottom faces, coherent flat shading and clear margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34fa-retain-59d6532bc63b3863adf5b0a4a36d5546bb2ab4f8505d4a4040ffbdbb486684cf.png",
+        "sha256": "59d6532bc63b3863adf5b0a4a36d5546bb2ab4f8505d4a4040ffbdbb486684cf"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000317-d613abb1bd34252d.json",
+        "sha256": "d613abb1bd34252d05a423308eb1be313ab48e1f79dddb3f4850ae945a66aa69"
+      },
+      "publicPath": "docs/screenshots/journey/34fa-retain.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34fa-retain.png",
+        "status": 200,
+        "sha256": "544356b365f3f9cb7da5c817e7d57b1060523800872c5403fda8a88b946ea05c"
+      }
+    },
+    {
+      "sequence": 319,
+      "previousEventSha256": "ba47671465521bee3ae847e60940f5e983057135c1ad68b35c205695b2f34292",
+      "createdUtc": "2026-10-25T22:59:28.938Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34fb-store",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34fb-store.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34fb-store-83e92db36c5797ef35a0\\34fb-store-dpr2.png",
+        "sha256": "df12cc25b3d88f7dda2e574e79d009a96ec1c20ab6c81e4f444cce477522f8cc",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34fb-store-83e92db36c5797ef35a0\\result.json",
+        "sha256": "d3780ebd258ebbb49d96b96b424a4ce228c5f8d81b00278367702261c8ac95b1"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "df12cc25b3d88f7dda2e574e79d009a96ec1c20ab6c81e4f444cce477522f8cc",
+        "sourceRecordSha256": "d3780ebd258ebbb49d96b96b424a4ce228c5f8d81b00278367702261c8ac95b1",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame view with the yellow selected post now separated to its left; visible bottom faces, coherent flat shading and clear margins."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34fb-store-5aaaa71e5b58fbad6b136f1ac1a13d756c943bfbb72481d46a07e364f1d87a3e.png",
+        "sha256": "5aaaa71e5b58fbad6b136f1ac1a13d756c943bfbb72481d46a07e364f1d87a3e"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000319-cbb0ba57e5c38fb9.json",
+        "sha256": "cbb0ba57e5c38fb93fa7e1ed55ff34a8bfc74f09ed755f4da2486795e523ec0c"
+      },
+      "publicPath": "docs/screenshots/journey/34fb-store.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34fb-store.png",
+        "status": 200,
+        "sha256": "df12cc25b3d88f7dda2e574e79d009a96ec1c20ab6c81e4f444cce477522f8cc"
+      }
+    },
+    {
+      "sequence": 321,
+      "previousEventSha256": "ec4fe502ef73b3184933f0e4795c542a7feeb7ad07c9995e2d3b13a09a03b3dd",
+      "createdUtc": "2026-10-25T22:59:29.565Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34fc-retention",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34fc-retention.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34fc-retention-2db1897d1023e3d3970c\\34fc-retention-dpr2.png",
+        "sha256": "063769d4629aad5aff5ef4140273fa36d4274aac20f0c8215226caa318889a76",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34fc-retention-2db1897d1023e3d3970c\\result.json",
+        "sha256": "f8139b66da3bf79b0eeaa00c9f312bf7b4ebf96878e1419c07fba4ea91c012a3"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "063769d4629aad5aff5ef4140273fa36d4274aac20f0c8215226caa318889a76",
+        "sourceRecordSha256": "f8139b66da3bf79b0eeaa00c9f312bf7b4ebf96878e1419c07fba4ea91c012a3",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame and detached yellow selected post, fully contained with clear gap and coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34fc-retention-2acd20adb9f5330c14d603292078ece0216ca8c32f9c4cdbdee89d8554d461fc.png",
+        "sha256": "2acd20adb9f5330c14d603292078ece0216ca8c32f9c4cdbdee89d8554d461fc"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000321-1e49bb9dfc8ff717.json",
+        "sha256": "1e49bb9dfc8ff71705a31b7c5da3c943283f1714782f62cb88192efb4d7e1c6e"
+      },
+      "publicPath": "docs/screenshots/journey/34fc-retention.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34fc-retention.png",
+        "status": 200,
+        "sha256": "063769d4629aad5aff5ef4140273fa36d4274aac20f0c8215226caa318889a76"
+      }
+    },
+    {
+      "sequence": 323,
+      "previousEventSha256": "9d2de06b2c1617f88b8b47c7a47628eb04a8fd1b4fda58ba542eec3974a9fdfa",
+      "createdUtc": "2026-10-25T22:59:30.091Z",
+      "publisher": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-native-publication.ts",
+        "sha256": "5f0ad5b925836612bd1deefc570ec3086271fccedca94e6eb3bd21d1487f62d2"
+      },
+      "status": "PUBLISHED_REVIEWED",
+      "action": "PUBLISHED_NEW_BYTES",
+      "cohort": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\cohort.json",
+        "sha256": "88aa1ffaa2f65fbde912b6a825c489bf9a1df6bd9a6cdb63f0a82e748fc1ca90"
+      },
+      "id": "34g-heartbeat",
+      "destination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\34g-heartbeat.png",
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34g-heartbeat-c46682fcf4c42ea8a600\\34g-heartbeat-dpr2.png",
+        "sha256": "fa2344aeeb1b0c8de9aeac854b8401c7754d45ff46a76cd8e2f68dd89daea68c",
+        "width": 1280,
+        "height": 960
+      },
+      "sourceRecord": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\34g-heartbeat-c46682fcf4c42ea8a600\\result.json",
+        "sha256": "a6649fccb00321ceee887b6f0cdf781497cde91a8cf2158c8e938d261ebe5939"
+      },
+      "imageReviewer": {
+        "agentId": "/root/capture_quality_options",
+        "sha256": "fa2344aeeb1b0c8de9aeac854b8401c7754d45ff46a76cd8e2f68dd89daea68c",
+        "sourceRecordSha256": "a6649fccb00321ceee887b6f0cdf781497cde91a8cf2158c8e938d261ebe5939",
+        "originalResolution": true,
+        "verdict": "approved",
+        "observations": "Narrow low-angle brown frame and detached yellow selected post, fully contained with clear gap and coherent planar shading."
+      },
+      "reviewedRepresentative": null,
+      "rootPublicationApproval": {
+        "approved": true,
+        "agentId": "/root",
+        "basis": "Approve source-faithful delegated original-resolution QA, retaining explicit coplanar planar-contact limitations. Root additionally viewed 32gic original1280 versus historical640; no claim that the overlapping planar fixture is artifact-free."
+      },
+      "review": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\reviews\\3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1.json",
+        "sha256": "3671ea62a4b96a6c6e0537a190aa2424dd7da30f77a67669b1e927c0549aefe1"
+      },
+      "originalBackup": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\backups\\34g-heartbeat-29cfd35254da6e5c93aec53fb48228a9ad5c963b9bb4e735e3dbe5098c03d5c4.png",
+        "sha256": "29cfd35254da6e5c93aec53fb48228a9ad5c963b9bb4e735e3dbe5098c03d5c4"
+      },
+      "manualPublication": null,
+      "event": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-batches\\23639a9ee49402a71f10\\publication\\events\\000323-3244368b692dbb51.json",
+        "sha256": "3244368b692dbb5188e6b51d0916228ca750c932b9473110bdcacf185a198cd8"
+      },
+      "publicPath": "docs/screenshots/journey/34g-heartbeat.png",
+      "http": {
+        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/34g-heartbeat.png",
+        "status": 200,
+        "sha256": "fa2344aeeb1b0c8de9aeac854b8401c7754d45ff46a76cd8e2f68dd89daea68c"
+      }
+    }
+  ]
+}

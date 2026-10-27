@@ -6,7 +6,7 @@ fn maintained_root()->std::path::PathBuf{
 #[cfg(not(target_arch="wasm32"))]
 #[test]
 fn all_declared_current_rust_sources_and_external_dependencies_match(){
-    let snapshot=crate::source_audit::recorded();assert_eq!(snapshot.session_head.len(),40);assert_eq!(snapshot.wood_head.len(),40);crate::source_audit::verify(&maintained_root(),&snapshot).unwrap();assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),306);
+    let snapshot=crate::source_audit::recorded();assert_eq!(snapshot.session_head.len(),40);assert_eq!(snapshot.wood_head.len(),40);crate::source_audit::verify(&maintained_root(),&snapshot).unwrap();assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),312);
 }
 
 #[cfg(not(target_arch="wasm32"))]

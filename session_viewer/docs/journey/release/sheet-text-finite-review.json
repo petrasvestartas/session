@@ -1,0 +1,356 @@
+{
+  "status": "PASS finite Text, glyphs and drawing sheets criteria; global/source-specific obligations remain separate",
+  "feature": "Text, glyphs and drawing sheets",
+  "featurePointer": "/features/9",
+  "criterionAudit": {
+    "path": "target/course-windows-20261018/sheet-finite-closure-preparation/criteria-audit.json",
+    "sha256": "69449fa7d3023bc6ea9219d37145429ce64c3bb8fa948b36e21d65c342407cf2"
+  },
+  "originalCriterionMap": {
+    "path": "target/course-windows-20261018/sheet-finite-closure-preparation/publication-76-pass/map-before-sheet-closure.json",
+    "sha256": "110718f49a9634ee55840d3cb1f2b7c004057c6a609579456b0f008dbeaf1878"
+  },
+  "acceptedBrowserCriterion": {
+    "pointer": "/features/9/currentVerification/remainingAcceptance/0",
+    "literal": "Run the inherited sheets/drawing checks through the chapter13/14 entry callbacks and inspect the actual Sheet state before later scene replacement.",
+    "browserRecord": "release/76d-browser-review.json",
+    "sourceFingerprint": "be284802487701c94923dad393cec3b6cc3ba230bbffd61e949ceb62d8247482",
+    "sourceSignature": "96d355a623497a4a0a56eed9ab3ce0a4b60f6eedd1ec3e84107c70eedd0d3697",
+    "sourceFiles": 377,
+    "actualAwaitedDefaultChain": [
+      {
+        "file": "docs/journey/checks/browser/freeform.cjs",
+        "sha256": "9b19c196f14e68f4aabc504a1f5623f6724861749f8f92bee1fd0ba965ee9e20",
+        "awaits": "./round.cjs",
+        "line": 3,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      },
+      {
+        "file": "docs/journey/checks/browser/round.cjs",
+        "sha256": "b78a086216f67407409a6787fa1eda25b169b495b0615c0838dbafc8a0648a19",
+        "awaits": "./primitives.cjs",
+        "line": 3,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      },
+      {
+        "file": "docs/journey/checks/browser/primitives.cjs",
+        "sha256": "1a02d51d2dc246933683275160ba20ef189b7cc7f996db56692a2a16eabb7d12",
+        "awaits": "./planar.cjs",
+        "line": 3,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      },
+      {
+        "file": "docs/journey/checks/browser/planar.cjs",
+        "sha256": "324dc14b9910dc9652d16716f889d3bb8f77a91f6ea9b4191092d2fd7325cd2b",
+        "awaits": "./drawing.cjs",
+        "line": 3,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      },
+      {
+        "file": "docs/journey/checks/browser/drawing.cjs",
+        "sha256": "2a2ab086c129f1f1f182ecf9c861f1345fef68bd313295db0cb7dd544da7938f",
+        "awaits": "./sheets.cjs",
+        "line": 3,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      },
+      {
+        "file": "docs/journey/checks/browser/sheets.cjs",
+        "sha256": "d2c1fe32f287fe3c998ae853db76d639321aef05010d8dfe9c9639667fe13d1a",
+        "awaits": "./nested-placements.cjs",
+        "line": 15,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      },
+      {
+        "file": "docs/journey/checks/browser/nested-placements.cjs",
+        "sha256": "39e94435b6dd12c2f5d94711dcdd16088d7870cb244a67e232b8130e4e01b454",
+        "awaits": "./shape-reuse.cjs",
+        "line": 3,
+        "scope": "Inspected actual awaited default body call, not import-closure inference."
+      }
+    ],
+    "assertions": [
+      {
+        "file": "docs/journey/checks/browser/sheets.cjs",
+        "lines": [
+          19,
+          20,
+          21
+        ],
+        "assertions": "Actual resident Sheet5segments/meta, GPUrow counts,0.25model translation,Undo/Redo and Save/Close/reopen source identity."
+      },
+      {
+        "file": "docs/journey/checks/browser/sheets.cjs",
+        "lines": [
+          28,
+          30,
+          33,
+          34
+        ],
+        "assertions": "Byte-range-only source/metadata requests, bounded reads, two placed rows sharing original source, refused incomplete editable Save, exact source-axis entity selection and3metadata reads, cancellation of held response across Close, no obsolete result publication and zero Sheet/GPUrows."
+      },
+      {
+        "file": "docs/journey/checks/browser/drawing.cjs",
+        "lines": [
+          6,
+          7,
+          12,
+          15,
+          16,
+          17
+        ],
+        "assertions": "Construction-plane drawing, exact original line coordinates,Undo/Redo, precise world-coordinate endpoint, closed polyline and Save/reopen identity."
+      },
+      {
+        "file": "docs/journey/checks/browser/nested-placements.cjs",
+        "lines": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "assertions": "Actual original local frames, independent rotated/mirrored models, Move/Undo/Redo, Save/reopen original model/local matrices and Close release."
+      }
+    ],
+    "images": [
+      {
+        "source": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\76d-nvidia-sheet-observation-preparation\\76d-mask-fixed-current-v1-driver-qualified\\sheet-observation-20261024T022623703Z\\actual-sheet-before-drawing.png",
+        "figure": "journey/release/76d-current-sheet-before-drawing.png",
+        "sha256": "69698b390864f5ca72cfb3d5edbc50601fc56b3a8636b68171886118377696e8",
+        "kind": "Actual resident Sheet state immediately after unchanged Sheet body, before drawing resumes",
+        "rootIndividuallyReviewed": true
+      },
+      {
+        "source": "docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+        "figure": "journey/release/76d-current-final-curves.png",
+        "sha256": "4aa1f469da97467da184efd103cacc03f010318d5109951a6a89022f2e0bd013",
+        "kind": "Actual final canonical five-curve frame after complete current76callback",
+        "rootIndividuallyReviewed": true
+      }
+    ]
+  },
+  "acceptedNativeCriterion": {
+    "record": {
+      "path": "docs/journey/release/sheet-text-native-controls-review.json",
+      "sha256": "a78002811bafd3bc7863b93879b9800aa4c0f15aa39118c751cea70b19c5dd8b"
+    },
+    "pointer": "release/sheet-text-native-controls-review.json#/originalRequirement/criterion",
+    "literal": "Verify text shaping, glyph scale, placements, clipping, original queries and retained resource lifetime separately.",
+    "categories": [
+      "text shaping",
+      "glyph scale",
+      "placements",
+      "clipping",
+      "original queries",
+      "retained resource lifetime"
+    ],
+    "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+    "originalSuite": "release/native-97d-integration-review.json",
+    "tests": [
+      {
+        "name": "text::tests::ligatures_accents_spaces_and_symbols_are_shaped",
+        "source": {
+          "path": "src/text.rs",
+          "line": 398,
+          "sha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Actual shaped glyphs cover characters, multi-byte clusters, spaces and line width.",
+        "collectedE432StdoutResult": "test text::tests::ligatures_accents_spaces_and_symbols_are_shaped ... ok"
+      },
+      {
+        "name": "text::tests::composed_decomposed_accents_and_multiline_baselines_match",
+        "source": {
+          "path": "src/text.rs",
+          "line": 453,
+          "sha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Composed/decomposed accents yield equal glyph/advance; multiline baseline increment is 24.",
+        "collectedE432StdoutResult": "test text::tests::composed_decomposed_accents_and_multiline_baselines_match ... ok"
+      },
+      {
+        "name": "text_atlas_tests::actual_glyph_atlas_has_antialiased_coverage_and_preserves_css_size_at_two_densities",
+        "source": {
+          "path": "src/text_atlas_tests.rs",
+          "line": 15,
+          "sha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Rasterized antialiased glyph coverage and CSS dimensions at densities 1/2; repeated frame identical; no redundant reshape.",
+        "collectedE432StdoutResult": "test text_atlas_tests::actual_glyph_atlas_has_antialiased_coverage_and_preserves_css_size_at_two_densities ... ok"
+      },
+      {
+        "name": "text_atlas_tests::actual_glyph_clip_and_font_reload_preserve_source_words_and_reset_only_accepted_fonts",
+        "source": {
+          "path": "src/text_atlas_tests.rs",
+          "line": 26,
+          "sha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Pixels outside clip remain white, text placement changes pixels without reshaping, invalid font leaves state intact; accepted reload preserves source words.",
+        "collectedE432StdoutResult": "test text_atlas_tests::actual_glyph_clip_and_font_reload_preserve_source_words_and_reset_only_accepted_fonts ... ok"
+      },
+      {
+        "name": "sheet_scene_tests::sheet_import_copy_move_save_and_reopen_keep_original_columns_namespaces_and_flags",
+        "source": {
+          "path": "src/sheet_scene_tests.rs",
+          "line": 10,
+          "sha256": "810e5865699f40a21cdc1f3cf33360949dd242939573ef8b55b8697f19587181"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Shared source, distinct owners, moved placement, original columns and hidden/locked flags survive archive/reopen.",
+        "collectedE432StdoutResult": "test sheet_scene_tests::sheet_import_copy_move_save_and_reopen_keep_original_columns_namespaces_and_flags ... ok"
+      },
+      {
+        "name": "clipping_gpu_tests::clipping_sheet_centerline_color_and_crop_ids_preserve_original_source_entities",
+        "source": {
+          "path": "src/clipping_gpu_tests.rs",
+          "line": 32,
+          "sha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Sheet clipping/color/crop picks retain original source entity identity.",
+        "collectedE432StdoutResult": "test clipping_gpu_tests::clipping_sheet_centerline_color_and_crop_ids_preserve_original_source_entities ... ok"
+      },
+      {
+        "name": "sheet_lookup::tests::late_entity_answers_require_current_ticket_original_owner_and_current_selection_once",
+        "source": {
+          "path": "src/sheet_lookup.rs",
+          "line": 70,
+          "sha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Stale/cancelled/changed-owner or selection answers rejected; current answer admitted once.",
+        "collectedE432StdoutResult": "test sheet_lookup::tests::late_entity_answers_require_current_ticket_original_owner_and_current_selection_once ... ok"
+      },
+      {
+        "name": "sheet_lookup::tests::entity_queries_hold_no_original_source_and_cancellation_retires_the_read_token",
+        "source": {
+          "path": "src/sheet_lookup.rs",
+          "line": 95,
+          "sha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "Dropping scene releases source even with query; query cancellation retires read token.",
+        "collectedE432StdoutResult": "test sheet_lookup::tests::entity_queries_hold_no_original_source_and_cancellation_retires_the_read_token ... ok"
+      },
+      {
+        "name": "scene::pick_gpu_tests::actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and_locked_occlusion",
+        "source": {
+          "path": "src/pick_gpu_tests.rs",
+          "line": 533,
+          "sha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121"
+        },
+        "acceptedResult": "PASS in recorded unfiltered 1060 suite",
+        "assertions": "GPU sheet display/pick retains original full-width IDs and world pens; locked occluder blocks picks; clearing releases renderer/source ownership.",
+        "collectedE432StdoutResult": "test scene::pick_gpu_tests::actual_sheet_batches_share_source_uploads_keep_world_pens_full_entity_ids_and_locked_occlusion ... ok"
+      }
+    ],
+    "testSourceFiles": [
+      {
+        "path": "src/text.rs",
+        "accepted97dSha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243",
+        "finalFef4SourcePath": "target/course-final-clipping-guide-two-fixture-isolation/src/text.rs",
+        "finalFef4Sha256": "bb08893612d2dd048a0504f74721d1ef8e15c5939fa2f1de6daaec4bcf74f243",
+        "collectedExactMatch": true
+      },
+      {
+        "path": "src/text_atlas_tests.rs",
+        "accepted97dSha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0",
+        "finalFef4SourcePath": "target/course-final-clipping-guide-two-fixture-isolation/src/text_atlas_tests.rs",
+        "finalFef4Sha256": "88c37622bdc24ae5f5c9a699faa6786fdf610f0f8e851be3439b697407058ef0",
+        "collectedExactMatch": true
+      },
+      {
+        "path": "src/sheet_scene_tests.rs",
+        "accepted97dSha256": "810e5865699f40a21cdc1f3cf33360949dd242939573ef8b55b8697f19587181",
+        "finalFef4SourcePath": "target/course-final-clipping-guide-two-fixture-isolation/src/sheet_scene_tests.rs",
+        "finalFef4Sha256": "810e5865699f40a21cdc1f3cf33360949dd242939573ef8b55b8697f19587181",
+        "collectedExactMatch": true
+      },
+      {
+        "path": "src/clipping_gpu_tests.rs",
+        "accepted97dSha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+        "finalFef4SourcePath": "target/course-final-clipping-guide-two-fixture-isolation/src/clipping_gpu_tests.rs",
+        "finalFef4Sha256": "1563e57a958f92054c6d63d59e867ff4a2f6473eee63eb987226f4d27208a299",
+        "collectedExactMatch": true
+      },
+      {
+        "path": "src/sheet_lookup.rs",
+        "accepted97dSha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea",
+        "finalFef4SourcePath": "target/course-final-clipping-guide-two-fixture-isolation/src/sheet_lookup.rs",
+        "finalFef4Sha256": "b8a470b82ce891d0c6d82099efd28b566260fd0e85b62aea2d4b51713a5381ea",
+        "collectedExactMatch": true
+      },
+      {
+        "path": "src/pick_gpu_tests.rs",
+        "accepted97dSha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121",
+        "finalFef4SourcePath": "target/course-final-clipping-guide-two-fixture-isolation/src/pick_gpu_tests.rs",
+        "finalFef4Sha256": "d56fd6e82de070d521ad6045df0d35d8f3e97c52bc87c1692831594881ad4121",
+        "collectedExactMatch": true
+      }
+    ],
+    "scope": "Already accepted finite criterion; keep97d1060native and historical32Sheetingress pair source/environment/fixture scopes. No relabeling their pixels or assertions as historical76runtime proof."
+  },
+  "acceptedNativeRelevance": {
+    "record": {
+      "path": "docs/journey/release/native-ribbon-v4-qualified-recovery-review.json",
+      "sha256": "a2d4516e9743c230bfd8e41300416684e737f7691ba2207872be2c8668b41d6d"
+    },
+    "e432FullRunSourceFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+    "stdout": {
+      "path": "target/course-windows-20261018/native-full-ribbon-v4-20261023T232311703Z/suite.stdout.log",
+      "sha256": "496dae5f0c0e4830b1c1284ac7db0e187f5ffb52751acd504bb95d66a50ebebc"
+    },
+    "collectedNineNamedTestsAllPass": true,
+    "qualifiedFinalSourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+    "e432ToFef4": {
+      "sourceBeforeFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+      "sourceFingerprint": "fef4c7bdb6f4c0a6f7a7701b0ba5581469dd757a34eefbab030a06e92ce4e5a1",
+      "changedFiles": [
+        "src/global_outline_tests.rs",
+        "src/production_plane_tests.rs"
+      ],
+      "nativeTestOnlyGates": [
+        "renderer.rs cfg(all(test,not(target_arch=\"wasm32\")))",
+        "scene.rs cfg(test)"
+      ],
+      "allOther711SourceFilesIdentical": true,
+      "actual433ExternalInputsIdentical": true,
+      "cap13AssertionsRetained": true,
+      "ordinaryPlaneOriginalFrameIdentityAssertionsRetained": true,
+      "mixedGuideContractStrengthened": true,
+      "old4ImageProof": {
+        "sourceFingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+        "ready": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\ready-for-one-integration-native.json",
+        "sha256": "e257ace0c70b9b6469144007e3b5a6846f91b98e99268ba495b05f29aa9d79b3",
+        "scope": "Originale432PASS retained; production inputs unchanged, no rerender/relabel"
+      },
+      "qualifiedReuse": "1060 original named PASS bodies and runtime inputs unchanged; original fullrun remains FAIL, not a single1062PASS"
+    },
+    "scope": "Previously collected nine actual Sheet criterion names have individual ok lines in originale432fullsuite. Six criterion source files match finalfef4 exactly. Qualified e432?fef4 changes only two unrelated authored cfgtest fixtures, retaining1060namedPASS. This is not a single1062PASS or historical76/final713 whole-source equivalence."
+  },
+  "acceptedResidentIngress": {
+    "record": "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
+    "scope": "32alreadyaccepted originalresident ingress pairs retain original source/fixture/settings/environment, not relabeled as76browser pixels."
+  },
+  "counts": {
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "featuresTotal": 18,
+    "acceptedCallbacks": 3,
+    "pendingCallbacks": 15,
+    "totalCallbacks": 18,
+    "historicalFixturesAccepted": 1,
+    "historicalFixturesTotal": 4,
+    "releaseGatesDone": 0,
+    "releaseGatesTotal": 5
+  },
+  "scope": [
+    "The last literal finiteSheet browser criterion is satisfied by complete current76default execution through drawing -> sheets -> nested placements plus fresh actual Sheet image review before replacement. Literal did not require both complete historical entry runs.",
+    "Separate alreadyaccepted native six-category shaping/glyphscale/placements/clipping/originalqueries/resource-lifetime criterion stays at recorded97d with qualified later relevance. No whole76/final713source identity or cross-runtime RGBA claim.",
+    "Historical70d never executesSheet and remains its independent pending source-specific callback. Relatedchapter22entries are independent global obligations, not silently accepted.",
+    "No Point/Cloud/otherfeature/globalrelease closure implied. Oldfailed browser/nativecriterion records remain immutable."
+  ]
+}

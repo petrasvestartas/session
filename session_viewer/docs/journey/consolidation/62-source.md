@@ -1,2940 +1,1751 @@
 # 10.4 · Original world labels, plates and integer picks
 
-Place editable source words in the world, render their retained coverage and resolve clicks back to original label owners.
+**Steps:** 37 · **Source:** [engine/text.rs](../../../src/engine/text.rs) · [engine/gpu/text.rs](../../../src/engine/gpu/text.rs) · [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs) · [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">R8Unorm Glyph Atlas Shelf Packing (u0,v0..u1,v1)</text>
+  <rect x="58" y="48" width="224" height="106" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <line x1="58" y1="84" x2="282" y2="84" stroke="#111111" stroke-width="1.2"/>
+  <line x1="58" y1="120" x2="282" y2="120" stroke="#111111" stroke-width="1.2"/>
+  <rect x="66" y="52" width="28" height="28" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="80" y="72" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">A</text>
+  <rect x="100" y="52" width="28" height="28" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="114" y="72" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">B</text>
+  <rect x="134" y="52" width="28" height="28" fill="#fef08a" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="148" y="72" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">0</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">3D Plane Quad (O + x*u + y*v) vs 2D Billboard</text>
+  <polygon points="424,138 494,88 574,104 504,154" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="424" y1="138" x2="494" y2="88" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+  <line x1="424" y1="138" x2="504" y2="154" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <rect x="602" y="64" width="96" height="36" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="650" y="86" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#111111">Label #4</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">World Labels + Procedural 4×4 Matrix Grid</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="826" y="58" width="112" height="88" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="854" y1="58" x2="854" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="882" y1="58" x2="882" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="910" y1="58" x2="910" y2="146" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="826" y1="80" x2="938" y2="80" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="826" y1="102" x2="938" y2="102" stroke="#cbd5e1" stroke-width="1"/>
+  <line x1="826" y1="124" x2="938" y2="124" stroke="#cbd5e1" stroke-width="1"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="840" y="73" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="868" y="95" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="896" y="117" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="924" y="139" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#16a34a">1</text>
+  <rect x="956" y="78" width="88" height="32" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1000" y="98" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">(0, 0, 0)</text>
+</svg>
+</div>
 
-A source row owns original words, font metrics and placement while shaping and projected extents remain derived. World-plane and billboard labels retain world scale; screen/anchor/nameplate modes retain CSS sizing. Plates and glyph quads each own explicit buffers/pipelines; bounded coverage textures rebuild only when source/font/raster witnesses change. Frame preparation keeps CSS and physical coordinates separate, loads shared scene depth, draws anchored/world text before overlays and emits original IDs through bounded picking. Missing whole fonts adopt as one checked set, and errors remain visible.
-
-## The maintained implementation
-
-app/scene_text.rs owns maintained scene text rows; engine/text.rs defines the five placement variants. engine/gpu/text.rs orchestrates TextLane, text_plane.rs owns world coverage planes and text_plate.rs owns nameplates. src/shaders/text_plane.wgsl and text_plate.wgsl are maintained colour/ID paths. The many retained implementation checkpoints form one complete source-to-pixel feature rather than separate tiny reading assignments.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-62-source"></a>
-
-<details>
-<summary>Implementation 62-source: Own original scene words and font metrics</summary>
-
-Own original scene words and font metrics.
-
-Data flow: original words and placement → shared source → checked shaping → derived extent.
+## <a id="checkpoint-62-source"></a>1. Own scene words and font metrics
 
 ### 1. `src/scene_label.rs`
-
-Own immutable original label data and derive measured bounds separately.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/62-source-01.rs"
+use crate::text::{TextDocument, TextLabel, TextPlacement};
+use std::rc::Rc;
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
+pub struct Source {
+    pub guid: String,
+    pub name: String,
+    pub visible: bool,
+    pub locked: bool,
+    pub label: TextLabel,
+}
+#[derive(Clone)]
+pub struct Prepared {
+    pub source: Rc<Source>,
+    pub extent: [f64; 2],
+}
+impl Prepared {
+    pub fn new(source: Rc<Source>) -> Result<Self, &'static str> {
+        if matches!(
+            source.label.placement,
+            TextPlacement::Screen { .. }
+        ) {
+            return Err("Screen presentation text has no scene row");
+        }
+        if source.label.object.is_some() {
+            return Err("Original text does not carry a viewer pick address");
+        }
+        let mut document = TextDocument::new();
+        document
+            .set_labels(vec![source.label.clone()])
+            .map_err(|_| "Invalid scene text source")?;
+        let extent =
+            document.runs[0]
+                .buffer
+                .layout_runs()
+                .fold([0f64; 2], |[w, h], line| {
+                    [
+                        w.max(line.line_w as f64),
+                        h.max((line.line_top + line.line_height) as f64),
+                    ]
+                });
+        Ok(Self { source, extent })
+    }
+}
+pub fn example(placement: TextPlacement) -> Source {
+    let mut label = crate::text_example::label();
+    label.text = "Original CAD · Ø25 · Ω".into();
+    label.color = [255; 4];
+    label.placement = placement;
+    Source {
+        guid: uuid::Uuid::new_v4().to_string(),
+        name: "Original CAD label".into(),
+        visible: true,
+        locked: false,
+        label,
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 #[cfg(test)]
 mod text_atlas_tests;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62-source-02.rs" skip=35
+#[cfg(test)]
+mod text_atlas_tests;
+
+pub mod scene_label;
 ```
 
-</details>
-
-<a id="checkpoint-62a-placements"></a>
-
-<details>
-<summary>Implementation 62a-placements: Transform the label frame without changing its source</summary>
-
-Transform the label frame without changing its source.
-
-Data flow: shared original placement → instance model → checked world frame → presentation label.
+## <a id="checkpoint-62a-placements"></a>2. Transform the label frame without changing its source
 
 ### 1. `src/text.rs`
 
-Reuse the checked current label validator for placed labels.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 }
 
 fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
     anyhow::ensure!(
-        label.font_size.is_finite() && (1.0..=256.0).contains(&label.font_size),
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62a-placements-01.rs"
+}
+
+pub fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
+    anyhow::ensure!(
 ```
 
 ### 2. `src/scene_label.rs`
 
-Derive world labels and GPU addresses from stable source and instance identities.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
- }
 }
-pub fn example(placement:TextPlacement)->Source {let mut label=crate::text_example::label();label.text="Original CAD · Ø25 · Ω".into();label.color=[255;4];label.placement=placement;Source {guid:uuid::Uuid::new_v4().to_string(),name:"Original CAD label".into(),visible:true,locked:false,label}}
+pub fn example(placement: TextPlacement) -> Source {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62a-placements-02.rs"
+}
+#[derive(Clone)]
+pub struct Row {
+    pub id: crate::scene::ObjectId,
+    pub guid: String,
+    pub prepared: Prepared,
+    pub model: session_rust::Xform,
+}
+impl Row {
+    pub fn label(
+        &self,
+        selected: bool,
+        pickable: bool,
+    ) -> Result<TextLabel, &'static str> {
+        let mut label = self.prepared.source.label.clone();
+        label.id = self.id.value();
+        label.object = Some(crate::text::TextObject {
+            row: if pickable {
+                self.id.value() - 1
+            } else {
+                u32::MAX
+            },
+            selected,
+        });
+        let point = |p: [f64; 3]| {
+            let p = self
+                .model
+                .transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
+            [p[0], p[1], p[2]]
+        };
+        let vector = |v: [f64; 3]| {
+            std::array::from_fn::<_, 3, _>(|i| {
+                (0..3)
+                    .map(|j| self.model.m[j * 4 + i] * v[j])
+                    .sum::<f64>()
+            })
+        };
+        match &mut label.placement {
+            TextPlacement::WorldPlane {
+                world,
+                right,
+                up,
+                world_height,
+            } => {
+                *world = point(*world);
+                let r = vector(*right);
+                let u = vector(*up);
+                let rn = r.iter().map(|n| n * n).sum::<f64>().sqrt();
+                let un = u.iter().map(|n| n * n).sum::<f64>().sqrt();
+                if !rn.is_finite()
+                    || rn <= 0.
+                    || !un.is_finite()
+                    || un <= 0.
+                    || (rn - un).abs() > rn.max(un) * 1e-6
+                    || r.iter()
+                        .zip(u)
+                        .map(|(a, b)| a * b)
+                        .sum::<f64>()
+                        .abs()
+                        > rn * un * 1e-6
+                {
+                    return Err(
+                        "Text plane placement must preserve its orthogonal equal-scale axes",
+                    );
+                }
+                *right = r.map(|v| v / rn);
+                *up = u.map(|v| v / un);
+                *world_height *= rn;
+            }
+            TextPlacement::WorldBillboard {
+                world,
+                world_height,
+            } => {
+                *world = point(*world);
+                let x = vector([1., 0., 0.]);
+                let y = vector([0., 1., 0.]);
+                let z = vector([0., 0., 1.]);
+                let lengths =
+                    [x, y, z].map(|v| v.iter().map(|n| n * n).sum::<f64>().sqrt());
+                let size = lengths[0];
+                if !size.is_finite()
+                    || size <= 0.
+                    || lengths
+                        .iter()
+                        .any(|v| (v - size).abs() > size * 1e-6)
+                    || [x, y, z].iter().enumerate().any(|(i, v)| {
+                        [x, y, z].iter().skip(i + 1).any(|u| {
+                            v.iter()
+                                .zip(u)
+                                .map(|(a, b)| a * b)
+                                .sum::<f64>()
+                                .abs()
+                                > size * size * 1e-6
+                        })
+                    })
+                {
+                    return Err(
+                        "Billboard placement must use an orthogonal uniform scale",
+                    );
+                }
+                *world_height *= size;
+            }
+            TextPlacement::Anchor { world, .. }
+            | TextPlacement::Nameplate { world, .. } => *world = point(*world),
+            TextPlacement::Screen { .. } => {
+                return Err("Screen presentation text has no scene row");
+            }
+        }
+        crate::text::validate_label(&label).map_err(|_| "Text placement is invalid")?;
+        Ok(label)
+    }
+}
+pub fn example(placement: TextPlacement) -> Source {
 ```
 
-</details>
+## <a id="checkpoint-62b-bounds"></a>3. Measure the world-sized label and its padded plate
 
-<a id="checkpoint-62b-bounds"></a>
-
-<details>
-<summary>Implementation 62b-bounds: Measure the world-sized label and its padded plate</summary>
-
-Measure the world-sized label and its padded plate.
-
-Data flow: font-unit extent → world-height ratio → padded corners → fit bounds.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Curve Quadrature ∑ w_i ||C'(t_i)|| &amp; Surface Patch dA = ||Su×Sv||</text>
+  <path d="M 56 138 Q 112 52 176 126" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <circle cx="84" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="116" cy="84" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="148" cy="98" r="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <polygon points="196,136 226,74 288,74 258,136" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="226" y1="105" x2="268" y2="105" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+  <line x1="226" y1="105" x2="242" y2="74" stroke="#16a34a" stroke-width="2" marker-end="url(#arrG)"/>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Divergence Volume: V = (1/6) ∑ det(v0, v1, v2) &amp; Centroid C_g</text>
+  <circle cx="448" cy="138" r="4.5" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="448" y="154" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Origin O</text>
+  <polygon points="448,138 556,58 656,92" fill="#dbeafe" fill-opacity="0.55" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="556,58 656,92 596,142" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <circle cx="576" cy="104" r="5" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Exact Length, Area, Volume &amp; Centroid Marker</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="846,136 894,64 988,64 940,136" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
+  <circle cx="917" cy="100" r="6" fill="#fef08a" stroke="#dc2626" stroke-width="2.2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1016" y="96" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">C_g</text>
+</svg>
+</div>
 
 ### 1. `src/scene_label.rs`
 
-Derive source-owned world bounds without replacing f64 coordinates by display floats.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  crate::text::validate_label(&label).map_err(|_|"Text placement is invalid")?;Ok(label)
- }
+        Ok(label)
+    }
 }
-pub fn example(placement:TextPlacement)->Source {let mut label=crate::text_example::label();label.text="Original CAD · Ø25 · Ω".into();label.color=[255;4];label.placement=placement;Source {guid:uuid::Uuid::new_v4().to_string(),name:"Original CAD label".into(),visible:true,locked:false,label}}
+pub fn example(placement: TextPlacement) -> Source {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62b-bounds-01.rs"
+        Ok(label)
+    }
+    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
+        let label = self.label(false, true).ok()?;
+        let (world, right, up, height) = match label.placement {
+            TextPlacement::WorldPlane {
+                world,
+                right,
+                up,
+                world_height,
+            } => (world, right, up, world_height),
+            TextPlacement::WorldBillboard {
+                world,
+                world_height,
+            } => (
+                world,
+                [1., 0., 0.],
+                [0., 1., 0.],
+                world_height,
+            ),
+            TextPlacement::Anchor { world, .. }
+            | TextPlacement::Nameplate { world, .. } => {
+                return Some(crate::bounds::Bounds::point(world));
+            }
+            TextPlacement::Screen { .. } => return None,
+        };
+        let unit = height / label.font_size as f64;
+        let [width, line_height] = self.prepared.extent.map(|v| v * unit);
+        let vertical = height * 2. / 9.;
+        let horizontal = line_height * 0.5 + vertical;
+        let mut bounds = crate::bounds::Bounds::point(world);
+        for x in [-horizontal, width + horizontal] {
+            for y in [-vertical, line_height + vertical] {
+                bounds.include(std::array::from_fn(|i| {
+                    world[i] + right[i] * x - up[i] * y
+                }));
+            }
+        }
+        Some(bounds)
+    }
+}
+pub fn example(placement: TextPlacement) -> Source {
 ```
 
-</details>
-
-<a id="checkpoint-62c-rows"></a>
-
-<details>
-<summary>Implementation 62c-rows: Register text rows and release them with the scene</summary>
-
-Register text rows and release them with the scene.
-
-Data flow: validated text → stable row → current layer → explicit scene release.
+## <a id="checkpoint-62c-rows"></a>4. Register text rows and release them with the scene
 
 ### 1. `src/scene.rs`
 
-Add checked text rows, stable allocation and explicit source cleanup.
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+        self.ids = Default::default();
+        self.view = Default::default();
+        self.forest = Default::default();
+        self.points = Vec::new();
+```
+
+Replace it with:
+
+```rust
+        self.ids = Default::default();
+        self.view = Default::default();
+        self.forest = Default::default();
+        self.texts = Vec::new();
+        self.points = Vec::new();
+```
+
+**Locate this block:**
+
+```rust
+        self.lines.capacity() * std::mem::size_of::<LineObject>()
+    }
+
+    pub fn points(&self) -> &[PointObject] {
+        &self.points
+    }
+```
+
+Replace it with:
+
+```rust
+        self.lines.capacity() * std::mem::size_of::<LineObject>()
+    }
+
+    pub fn texts(&self) -> &[crate::scene_label::Row] {
+        &self.texts
+    }
+    pub(crate) fn texts_mut(&mut self) -> &mut [crate::scene_label::Row] {
+        &mut self.texts
+    }
+    pub fn insert_text(
+        &mut self,
+        prepared: crate::scene_label::Prepared,
+    ) -> Result<ObjectId, &'static str> {
+        let next = self
+            .next_id
+            .checked_add(1)
+            .ok_or("Object IDs exhausted")?;
+        let id = ObjectId(self.next_id);
+        let mut guid = prepared.source.guid.clone();
+        while self.texts.iter().any(|row| row.guid == guid) {
+            guid = uuid::Uuid::new_v4().to_string();
+        }
+        let label = prepared.source.name.clone();
+        let row = crate::scene_label::Row {
+            id,
+            guid: guid.clone(),
+            prepared,
+            model: session_rust::Xform::identity(),
+        };
+        row.label(false, true)?;
+        if row.bounds().is_some_and(|b| {
+            b.min
+                .into_iter()
+                .chain(b.max)
+                .any(|v| !(v as f32).is_finite())
+        }) {
+            return Err("Text bounds exceed the display range");
+        }
+        self.next_id = next;
+        Rc::make_mut(&mut self.ids).insert(id);
+        Rc::make_mut(&mut self.view).initial(
+            id,
+            row.prepared.source.visible,
+            row.prepared.source.locked,
+        );
+        self.texts.push(row);
+        crate::layer_edit::attach_generated(self, id, guid, label)?;
+        Ok(id)
+    }
+    pub fn place_text(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if !crate::placement::valid(&model.m) {
+            return Err("Invalid text placement");
+        }
+        let row = self
+            .texts
+            .iter_mut()
+            .find(|row| row.id == id)
+            .ok_or("Text object not found")?;
+        let mut candidate = row.clone();
+        candidate.model = model;
+        candidate.label(false, true)?;
+        if candidate.bounds().is_some_and(|b| {
+            b.min
+                .into_iter()
+                .chain(b.max)
+                .any(|v| !(v as f32).is_finite())
+        }) {
+            return Err("Text bounds exceed the display range");
+        }
+        *row = candidate;
+        Ok(())
+    }
+    pub fn text_labels(
+        &self,
+        selected: &[ObjectId],
+    ) -> Result<Vec<crate::text::TextLabel>, &'static str> {
+        self.texts
+            .iter()
+            .filter(|row| self.visible(row.id))
+            .map(|row| {
+                row.label(
+                    selected.contains(&row.id),
+                    self.pick_id(row.id.value()).is_some(),
+                )
+            })
+            .collect()
+    }
+    pub fn points(&self) -> &[PointObject] {
+        &self.points
+    }
+```
+
+**Locate this block:**
+
+```rust
+            ids: Default::default(),
+            view: Default::default(),
+            forest: Default::default(),
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
+```
+
+Replace it with:
+
+```rust
+            ids: Default::default(),
+            view: Default::default(),
+            forest: Default::default(),
+            texts: Vec::new(),
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
+```
+
+**Locate this block:**
+
+```rust
+    pub forest: crate::hierarchy::Forest,
+    points: Vec<PointObject>,
+    paths: Vec<PathObject>,
+    lines: Vec<LineObject>,
+```
+
+Replace it with:
+
+```rust
+    pub forest: crate::hierarchy::Forest,
+    texts: Vec<crate::scene_label::Row>,
+    points: Vec<PointObject>,
+    paths: Vec<PathObject>,
+    lines: Vec<LineObject>,
+```
+
+## <a id="checkpoint-62d-identity"></a>5. Include label owners in selection layers and history
+
+### 1. `src/scene.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
+            .chain(self.lines.iter().map(|r| r.id))
+            .chain(self.paths.iter().map(|r| r.id))
+            .chain(self.points.iter().map(|r| r.id))
+            .filter(|id| self.pick_id(id.value()).is_some())
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.texts=Vec::new();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
+            .chain(self.lines.iter().map(|r| r.id))
+            .chain(self.paths.iter().map(|r| r.id))
+            .chain(self.points.iter().map(|r| r.id))
+            .chain(self.texts.iter().map(|r| r.id))
+            .filter(|id| self.pick_id(id.value()).is_some())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
+        self.lines.retain(|row| row.id != id);
+        self.paths.retain(|row| row.id != id);
+        self.points.retain(|row| row.id != id);
+        if self.extra == Some(id) {
+            self.extra = None;
+        }
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn texts(&self)->&[crate::scene_label::Row] {&self.texts}
-    pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
-    pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid.clone();while self.texts.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();let row=crate::scene_label::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};row.label(false,true)?;if row.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,row.prepared.source.visible,row.prepared.source.locked);self.texts.push(row);crate::layer_edit::attach_generated(self,id,guid,label)?;Ok(id)
-    }
-    pub fn place_text(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid text placement");}let row=self.texts.iter_mut().find(|row|row.id==id).ok_or("Text object not found")?;let mut candidate=row.clone();candidate.model=model;candidate.label(false,true)?;if candidate.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}*row=candidate;Ok(())
-    }
-    pub fn text_labels(&self,selected:&[ObjectId])->Result<Vec<crate::text::TextLabel>,&'static str> {self.texts.iter().filter(|row|self.visible(row.id)).map(|row|row.label(selected.contains(&row.id),self.pick_id(row.id.value()).is_some())).collect()}
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
+        self.lines.retain(|row| row.id != id);
+        self.paths.retain(|row| row.id != id);
+        self.points.retain(|row| row.id != id);
+        self.texts.retain(|row| row.id != id);
+        if self.extra == Some(id) {
+            self.extra = None;
+        }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-```
+                    .find(|row| row.id == id)
+                    .map(|row| row.prepared.source.guid())
+            })
+    }
 
-</details>
+    pub fn clear(&mut self) {
+```
 
 Replace it with:
 
 ```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), texts:Vec::new(),objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
+                    .find(|row| row.id == id)
+                    .map(|row| row.prepared.source.guid())
+            })
+            .or_else(|| {
+                self.texts
+                    .iter()
+                    .find(|row| row.id == id)
+                    .map(|row| row.guid.as_str())
+            })
+    }
+
+    pub fn clear(&mut self) {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
+            row.id = copy;
+            row.guid = guid;
+            self.points.push(row);
+        }
+        self.next_id = next;
+        Rc::make_mut(&mut self.ids).insert(copy);
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    texts:Vec<crate::scene_label::Row>,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
+            row.id = copy;
+            row.guid = guid;
+            self.points.push(row);
+        } else if let Some(row) = self.texts.iter().find(|row| row.id == id) {
+            let mut row = row.clone();
+            row.id = copy;
+            row.guid = guid;
+            self.texts.push(row);
+        }
+        self.next_id = next;
+        Rc::make_mut(&mut self.ids).insert(copy);
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+**Locate this block:**
 
 ```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ObjectId(u32);
-
-impl ObjectId { pub fn value(self) -> u32 { self.0 } }
-
-#[derive(Clone)]
-pub struct Object {
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
-    pub id: ObjectId,
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
-    pub mesh: Rc<Mesh>,
-    pub model: session_rust::Xform,
-    editable: crate::edit_source::EditSource,
-}
-
-impl Object {
-    pub fn visible(&self) -> bool { self.metadata.is_visible }
-
-    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
-
-    pub fn source(&self) -> Option<&crate::document::Source> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(), _ => None }
-    }
-
-    pub fn origin(&self) -> Option<&Rc<crate::origin::Origin>> {
-        match &self.editable {
-            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref().map(|source| &source.origin),
-            crate::edit_source::EditSource::Released { origin, .. } => Some(origin),
+        if !self.visible(id) {
+            return None;
         }
-    }
+        let object = self
+            .objects
+            .iter()
+```
 
-    pub fn release_epoch(&self) -> Option<u64> {
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
-    }
+Replace it with:
 
-    pub fn can_unload(&self) -> bool {
-        let Some(source) = self.source() else { return false; };
-        let Some(geometry) = self.geometry() else { return false; };
-        source.origin.location.is_some() && self.metadata.source_guid == source.guid
-            && geometry.guid() == source.guid && self.metadata.name == geometry.name
-            && self.metadata.is_visible == geometry.is_visible && self.metadata.is_locked == geometry.is_locked
-            && source.document.objects.meshes.iter().any(|mesh| Rc::ptr_eq(mesh, geometry))
-    }
-
-    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
-        [world[0], world[1], world[2]]
-    }
-}
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-}
-
-impl LineObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn endpoints(&self) -> [session_rust::Point; 2] {
-        let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
-    }
-
-    pub fn stroke(&self) -> crate::stroke::Stroke {
-        let [start, end] = self.endpoints();
-        crate::stroke::Stroke { start: std::array::from_fn(|i| start[i] as f32),
-            end: std::array::from_fn(|i| end[i] as f32), ..self.prepared.display }
-    }
-}
-
-#[derive(Clone)]
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
-
-impl PathObject {
-    pub fn visible(&self) -> bool { self.prepared.source.visible() }
-
-    pub fn segments(&self) -> Vec<crate::chain::Segment> {
-        let mut points = Vec::new();
-        for p in self.points() {
-            let p = std::array::from_fn(|i| p[i] as f32);
-            if points.last() != Some(&p) { points.push(p); }
+```rust
+        if !self.visible(id) {
+            return None;
         }
-        crate::chain::PreparedChain { points: Rc::new(points), ..self.prepared.clone() }.segments()
-    }
-
-    pub fn bounds_points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.bounds_coordinates().into_iter().map(|p|
-            self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-    pub fn points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-
-}
-
-pub struct ControlMarker { pub parent: ObjectId, pub control: crate::controls::Control, pub display: crate::marker::Marker }
-
-#[derive(Clone)]
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
-
-impl PointObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
-
-#[derive(Clone)]
-pub struct Scene {
-    pub(crate) created:Option<u32>,
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    texts:Vec<crate::scene_label::Row>,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
-    objects: Vec<Object>,
-    next_id: u32,
-    extra: Option<ObjectId>,
-}
-
-impl Scene {
-    pub fn pick_id(&self,value:u32)->Option<ObjectId> {
-        let id=ObjectId(value);(self.visible(id) && !self.view.locked.contains(&id) && !self.forest.readonly(id)).then_some(id)
-    }
-
-    pub fn demo() -> Self {
-        let pink = PreparedMesh::triangle([
-            [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
-        ], [0.9, 0.25, 0.45]).expect("Valid pink triangle");
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), texts:Vec::new(),objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-    }
-
-    pub fn restore(&mut self, mut saved: Self) {
-        saved.next_id = saved.next_id.max(self.next_id);
-        *self = saved;
-    }
-
-    pub fn visible(&self,id:ObjectId)->bool {self.contains(id)&&!self.view.is_hidden(&id)}
-
-    pub(crate) fn restore_view(&mut self,mut saved:Self) {saved.view=Rc::clone(&self.view);self.restore(saved);Rc::make_mut(&mut self.view).refresh(&self.forest);}
-
-    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in self.objects.iter().filter(|row| self.visible(row.id)) {
-            for vertex in object.mesh.vertices() {
-                let point = object.world_point(*vertex);
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
+        if let Some(row) = self.texts.iter().find(|row| row.id == id) {
+            return row.bounds();
         }
-        for line in self.lines.iter().filter(|line| self.visible(line.id)) {
-            for point in line.endpoints() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
+        let object = self
+            .objects
+            .iter()
+```
+
+**Locate this block:**
+
+```rust
+            let model = &shift * &row.model;
+            return self.place_point(id, model);
         }
-        for row in self.paths.iter().filter(|row| self.visible(row.id)) {
-            for point in row.bounds_points() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
+        Err("Object not found")
+    }
+```
+
+Replace it with:
+
+```rust
+            let model = &shift * &row.model;
+            return self.place_point(id, model);
         }
-        for row in self.points.iter().filter(|row| self.visible(row.id)) {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
+        if let Some(row) = self.texts.iter().find(|r| r.id == id) {
+            let model = &shift * &row.model;
+            return self.place_text(id, model);
+        }
+        Err("Object not found")
+    }
+```
+
+**Locate this block:**
+
+```rust
+            self.place_line(id, model)
+        } else if self.paths.iter().any(|r| r.id == id) {
+            self.place_path(id, model)
+        } else {
+            self.place_point(id, model)
+        }
+```
+
+Replace it with:
+
+```rust
+            self.place_line(id, model)
+        } else if self.paths.iter().any(|r| r.id == id) {
+            self.place_path(id, model)
+        } else if self.texts.iter().any(|r| r.id == id) {
+            self.place_text(id, model)
+        } else {
+            self.place_point(id, model)
+        }
+```
+
+**Locate this block:**
+
+```rust
+                    .find(|r| r.id == id)
+                    .map(|r| r.model.clone())
+            })
+    }
+
+    pub fn with_descendants(&self, ids: &[ObjectId]) -> Vec<ObjectId> {
+```
+
+Replace it with:
+
+```rust
+                    .find(|r| r.id == id)
+                    .map(|r| r.model.clone())
+            })
+            .or_else(|| {
+                self.texts
+                    .iter()
+                    .find(|r| r.id == id)
+                    .map(|r| r.model.clone())
+            })
+    }
+
+    pub fn with_descendants(&self, ids: &[ObjectId]) -> Vec<ObjectId> {
+```
+
+**Locate this block:**
+
+```rust
         }
         bounds
     }
 
     pub fn bounds_of(&self, ids: &[ObjectId]) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for id in ids { if let Some(next) = self.selected_bounds(*id) {
-            if let Some(b) = &mut bounds { b.include(next.min); b.include(next.max); } else { bounds = Some(next); }
-        } } bounds
-    }
+```
 
-    pub fn placement(&self, id: ObjectId) -> Option<session_rust::Xform> {
-        self.objects.iter().find(|r| r.id==id).map(|r| r.model.clone())
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
+Replace it with:
 
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_following(id,model)
-    }
-
-    pub(crate) fn place_following(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else { self.place_point(id,model) }
-    }
-
-    pub fn translate(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<(), &'static str> {
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        if let Some(row) = self.objects().iter().find(|r| r.id == id) {
-            if row.geometry().is_none() { return Err("Reload editable sources before Move"); }
-            let model = &shift * &row.model; return self.place(id, model);
+```rust
         }
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
-        for vertex in vertices {
-            bounds.include(object.world_point(*vertex));
-        }
-        Some(bounds)
-    }
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn texts(&self)->&[crate::scene_label::Row] {&self.texts}
-    pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
-    pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid.clone();while self.texts.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();let row=crate::scene_label::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};row.label(false,true)?;if row.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,row.prepared.source.visible,row.prepared.source.locked);self.texts.push(row);crate::layer_edit::attach_generated(self,id,guid,label)?;Ok(id)
-    }
-    pub fn place_text(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid text placement");}let row=self.texts.iter_mut().find(|row|row.id==id).ok_or("Text object not found")?;let mut candidate=row.clone();candidate.model=model;candidate.label(false,true)?;if candidate.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}*row=candidate;Ok(())
-    }
-    pub fn text_labels(&self,selected:&[ObjectId])->Result<Vec<crate::text::TextLabel>,&'static str> {self.texts.iter().filter(|row|self.visible(row.id)).map(|row|row.label(selected.contains(&row.id),self.pick_id(row.id.value()).is_some())).collect()}
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
-
-    pub fn insert_point(&mut self, prepared: crate::marker::PreparedPoint) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.prepared.source.guid() == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let label=prepared.source.name.clone();let node_guid=guid.clone();self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid point placement"); }
-        let row = self.points.iter_mut().find(|row| row.id == id).ok_or("Point not found")?;
-        let point = model.transform_point(&row.prepared.source);
-        if (0..3).any(|i| !(point[i] as f32).is_finite()) { return Err("Point placement exceeds the display range"); }
-        row.model = model; Ok(())
-    }
-
-    pub fn show_controls(&mut self, visible: bool) {
-        for row in &mut self.paths { row.controls_visible = visible && matches!(row.prepared.source, crate::chain::Source::Curve(..)); }
-    }
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && self.visible(row.id)) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-                let display = crate::marker::Marker { center: p.to_f32(), ..control.marker().expect("Prepared control marker") };
-                markers.push(ControlMarker { parent: row.id, control, display });
-            }
-        }
-        markers
-    }
-
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
-
-    pub fn insert_path(&mut self, prepared: crate::chain::PreparedChain) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.prepared.source.guid() == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
-        let label=prepared.source.name().to_owned();let node_guid=guid.clone();self.paths.push(PathObject { controls_visible: false, id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid path placement"); }
-        let row = self.paths.iter_mut().find(|row| row.id == id).ok_or("Path not found")?;
-        for p in row.prepared.source.coordinates().into_iter().chain(row.prepared.source.bounds_coordinates()) {
-            let p = model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) { return Err("Path placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn lines(&self) -> &[LineObject] { &self.lines }
-
-    pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let guid=prepared.source.guid().to_owned();let label=prepared.source.name.clone();
-        self.lines.push(LineObject { id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
-
-    pub fn place_line(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid line placement"); }
-        let row = self.lines.iter_mut().find(|row| row.id == id).ok_or("Line not found")?;
-        for point in [row.prepared.source.start(), row.prepared.source.end()] {
-            let placed = model.transform_point(&point);
-            if (0..3).any(|i| !(placed[i] as f32).is_finite()) { return Err("Line placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn objects(&self) -> &[Object] {
-        &self.objects
-    }
-
-    pub(crate) fn objects_mut(&mut self) -> &mut [Object] { &mut self.objects }
-
-    pub(crate) fn unload(&mut self, origins: &std::collections::HashSet<uuid::Uuid>, epoch: u64) {
-        for row in &mut self.objects {
-            if let Some(origin) = row.origin().filter(|origin| origins.contains(&origin.id)).cloned() {
-                row.editable = crate::edit_source::EditSource::Released { origin, epoch };
-            }
-        }
-    }
-
-    pub(crate) fn hydrate(&mut self, prepared: &crate::rehydrate::PreparedReload) {
-        for row in &mut self.objects {
-            if !prepared.key.matches(row) { continue; }
-            let Some(geometry) = prepared.geometry(&row.metadata.source_guid).cloned() else { continue; };
-            let source = crate::document::Source { document: Rc::clone(&prepared.document),
-                guid: row.metadata.source_guid.clone(), origin: Rc::clone(&prepared.key.origin) };
-            row.editable = crate::edit_source::EditSource::Loaded { geometry, source: Some(source) };
-        }
-    }
-
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        if !crate::placement::valid(&prepared.model.m) { return Err("Placement must be finite, affine and fit the display range"); }
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        let mut guid = prepared.geometry.guid().to_owned();
-        while self.objects.iter().any(|object| object.guid == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.geometry.is_visible,prepared.geometry.is_locked);
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
-
-    pub fn insert_cad(&mut self,source:Rc<session_rust::BRep>)->Result<ObjectId,&'static str> {
-        let (prepared,mesh)=crate::cad_display::prepare(source)?;let prepared=Rc::new(prepared);let id=self.insert(mesh)?;self.objects.iter_mut().find(|row|row.id==id).unwrap().cad=Some(prepared);Ok(id)
-    }
-
-    pub fn insert_surface(&mut self,source:Rc<session_rust::NurbsSurface>)->Result<ObjectId,&'static str> {
-        let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
-        self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
-    }
-
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-        Ok(copy)
-    }
-
-    pub(crate) fn row_guid(&self,id:ObjectId)->Option<&str> {
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.prepared.source.guid()))
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.texts=Vec::new();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
-        self.extra = None;
-    }
-
-    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        self.clear();
-        self.import(loaded)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        let mut objects=Vec::new();let key=self.next_id;
-        for prepared in loaded.meshes {
-            let guid=prepared.geometry.guid().to_owned();let name=prepared.geometry.name.clone();
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);let colours=self.forest.colours(key);Rc::make_mut(&mut self.view).faces.extend(colours);Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_mesh(id,model)
-    }
-
-    fn place_mesh(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
+        for row in self
+            .texts
+            .iter()
+            .filter(|row| self.visible(row.id))
         {
-            return Err("Placement must be finite, affine and fit the display range");
-        }
-        let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
-        if object.geometry().is_none() { return Err("Reload editable sources before Move"); }
-        object.model = model;
-        Ok(())
-    }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(PreparedMesh::new(source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = PreparedMesh::triangle([
-                [-0.9, 0.3, 0.5], [-0.4, 0.3, 0.5], [-0.65, 0.9, 0.5],
-            ], [0.2, 0.8, 0.3]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unloading_policy_protects_generated_unlocated_and_modified_sources() {
-        let mut scene = Scene::demo(); assert!(!scene.objects[0].can_unload());
-        let bytes = crate::specimen::bytes();
-        scene.replace(crate::document::load(&bytes).unwrap()).unwrap(); assert!(!scene.objects[0].can_unload());
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:policy".into()));
-        scene.replace(crate::document::load_at(&bytes, Some(url)).unwrap()).unwrap();
-        assert!(scene.objects.iter().all(Object::can_unload));
-        let row = &mut scene.objects[0];
-        Rc::make_mut(&mut row.metadata).is_locked = true; assert!(!row.can_unload());
-        Rc::make_mut(&mut row.metadata).is_locked = row.geometry().unwrap().is_locked;
-        assert!(row.can_unload());
-        let source = row.source().cloned(); let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        row.editable = crate::edit_source::EditSource::Loaded { geometry, source }; assert!(!row.can_unload());
-    }
-
-    #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
-        scene.next_id = u32::MAX - 1;
-        let loaded = crate::document::load(&crate::specimen::bytes()).unwrap();
-        let mut history = crate::history::History::default();
-        assert!(history.try_edit(&mut scene, |scene| scene.replace(loaded)).is_err());
-        assert_eq!(scene.next_id, u32::MAX);
-        assert_eq!(scene.objects.len(), before.len());
-        for (object, old) in scene.objects.iter().zip(&before) {
-            assert_eq!(object.id, old.id);
-            assert!(Rc::ptr_eq(object.geometry().unwrap(), old.geometry().unwrap()));
-            assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
-    }
-
-    #[test]
-    fn removal_moves_a_row_without_changing_its_identity() {
-        let mut scene = Scene::demo();
-        let first = scene.objects()[0].id;
-        let second = scene.objects()[1].id;
-        assert!(scene.remove(first));
-        assert_eq!(scene.objects()[0].id, second);
-        assert_eq!(scene.next(None), Some(second));
-        assert!(!scene.contains(first));
-        scene.toggle_extra();
-        assert_ne!(scene.objects()[1].id, first);
-        assert_ne!(scene.objects()[1].id, second);
-    }
-
-    #[test]
-    fn toggling_the_extra_object_uses_its_id_after_other_removals() {
-        let mut scene = Scene::demo();
-        scene.toggle_extra();
-        let extra = scene.objects()[2].id;
-        scene.remove(scene.objects()[0].id);
-        scene.toggle_extra();
-        assert!(!scene.contains(extra));
-        assert_eq!(scene.objects().len(), 1);
-    }
-}
-
-#[cfg(all(test, not(target_arch = "wasm32")))]
-#[path = "pick_gpu_tests.rs"]
-mod pick_gpu_tests;
-
-impl Scene {
-    pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
-                source.vertex.get_mut(&key).ok_or("Missing source vertex")?.set_position(point);
-            }
-            source.clear_triangle_bvh();
-            let prepared=crate::prepared::PreparedMesh::new(source)?;
-            for vertex in prepared.display.vertices() {let point=model.transform_point(&session_rust::Point::new(vertex[0] as f64,vertex[1] as f64,vertex[2] as f64));
-                if (0..3).any(|i| !(point[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}}
-            row.mesh=Rc::new(prepared.display); row.editable=crate::edit_source::EditSource::Loaded {geometry:prepared.geometry,source:None}; return Ok(());
-        }
-        let row=self.paths.iter_mut().find(|r|r.id==target.owner).ok_or("Part owner is missing")?;
-        let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
-        let mut source=(**curve).clone(); let point=local.transform_point(&source.get_cv(index).ok_or("Missing curve control")?);
-        let weight=source.get_cv_4d(index).ok_or("Missing curve control")?.3;
-        let set=if source.m_is_rat {source.set_cv_4d(index,point[0]*weight,point[1]*weight,point[2]*weight,weight)} else {source.set_cv_point(index,&point)};
-        if !set {return Err("Cannot set curve control");}
-        let prepared=crate::chain::PreparedChain::curve(Rc::new(source))?;
-        for p in prepared.source.coordinates().into_iter().chain(prepared.source.bounds_coordinates()) {
-            let p=model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}
-        }
-        row.prepared=prepared;Ok(())
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62c-rows-01.rs"
-```
-
-```text
---8<-- "journey/code/62c-rows-02.rs"
-```
-
-```text
---8<-- "journey/code/62c-rows-03.rs"
-```
-
-```text
---8<-- "journey/code/62c-rows-04.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62d-identity"></a>
-
-<details>
-<summary>Implementation 62d-identity: Include label owners in selection layers and history</summary>
-
-Include label owners in selection layers and history.
-
-Data flow: stable label owner → layer eligibility → one history transaction → shared source reuse.
-
-### 1. `src/scene.rs`
-
-Connect text to the existing owner, bounds, placement, copy and removal routes.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).chain(self.texts.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.prepared.source.guid()))
-    }
-
-    pub fn clear(&mut self) {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.prepared.source.guid()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
-
-    pub fn clear(&mut self) {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.texts.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.texts.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        if let Some(row)=self.texts.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_text(id,model);}
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        if let Some(row)=self.texts.iter().find(|row|row.id==id) {return row.bounds();}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else { self.place_point(id,model) }
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else if self.texts.iter().any(|r|r.id==id) {self.place_text(id,model)}
-        else { self.place_point(id,model) }
-    }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
-
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
-
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        bounds
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        for row in self.texts.iter().filter(|row|self.visible(row.id)) {if let Some(next)=row.bounds() {if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}}
-        bounds
-    }
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ObjectId(u32);
-
-impl ObjectId { pub fn value(self) -> u32 { self.0 } }
-
-#[derive(Clone)]
-pub struct Object {
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
-    pub id: ObjectId,
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
-    pub mesh: Rc<Mesh>,
-    pub model: session_rust::Xform,
-    editable: crate::edit_source::EditSource,
-}
-
-impl Object {
-    pub fn visible(&self) -> bool { self.metadata.is_visible }
-
-    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
-
-    pub fn source(&self) -> Option<&crate::document::Source> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(), _ => None }
-    }
-
-    pub fn origin(&self) -> Option<&Rc<crate::origin::Origin>> {
-        match &self.editable {
-            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref().map(|source| &source.origin),
-            crate::edit_source::EditSource::Released { origin, .. } => Some(origin),
-        }
-    }
-
-    pub fn release_epoch(&self) -> Option<u64> {
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
-    }
-
-    pub fn can_unload(&self) -> bool {
-        let Some(source) = self.source() else { return false; };
-        let Some(geometry) = self.geometry() else { return false; };
-        source.origin.location.is_some() && self.metadata.source_guid == source.guid
-            && geometry.guid() == source.guid && self.metadata.name == geometry.name
-            && self.metadata.is_visible == geometry.is_visible && self.metadata.is_locked == geometry.is_locked
-            && source.document.objects.meshes.iter().any(|mesh| Rc::ptr_eq(mesh, geometry))
-    }
-
-    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
-        [world[0], world[1], world[2]]
-    }
-}
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-}
-
-impl LineObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn endpoints(&self) -> [session_rust::Point; 2] {
-        let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
-    }
-
-    pub fn stroke(&self) -> crate::stroke::Stroke {
-        let [start, end] = self.endpoints();
-        crate::stroke::Stroke { start: std::array::from_fn(|i| start[i] as f32),
-            end: std::array::from_fn(|i| end[i] as f32), ..self.prepared.display }
-    }
-}
-
-#[derive(Clone)]
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
-
-impl PathObject {
-    pub fn visible(&self) -> bool { self.prepared.source.visible() }
-
-    pub fn segments(&self) -> Vec<crate::chain::Segment> {
-        let mut points = Vec::new();
-        for p in self.points() {
-            let p = std::array::from_fn(|i| p[i] as f32);
-            if points.last() != Some(&p) { points.push(p); }
-        }
-        crate::chain::PreparedChain { points: Rc::new(points), ..self.prepared.clone() }.segments()
-    }
-
-    pub fn bounds_points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.bounds_coordinates().into_iter().map(|p|
-            self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-    pub fn points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-
-}
-
-pub struct ControlMarker { pub parent: ObjectId, pub control: crate::controls::Control, pub display: crate::marker::Marker }
-
-#[derive(Clone)]
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
-
-impl PointObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
-
-#[derive(Clone)]
-pub struct Scene {
-    pub(crate) created:Option<u32>,
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    texts:Vec<crate::scene_label::Row>,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
-    objects: Vec<Object>,
-    next_id: u32,
-    extra: Option<ObjectId>,
-}
-
-impl Scene {
-    pub fn pick_id(&self,value:u32)->Option<ObjectId> {
-        let id=ObjectId(value);(self.visible(id) && !self.view.locked.contains(&id) && !self.forest.readonly(id)).then_some(id)
-    }
-
-    pub fn demo() -> Self {
-        let pink = PreparedMesh::triangle([
-            [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
-        ], [0.9, 0.25, 0.45]).expect("Valid pink triangle");
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), texts:Vec::new(),objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-    }
-
-    pub fn restore(&mut self, mut saved: Self) {
-        saved.next_id = saved.next_id.max(self.next_id);
-        *self = saved;
-    }
-
-    pub fn visible(&self,id:ObjectId)->bool {self.contains(id)&&!self.view.is_hidden(&id)}
-
-    pub(crate) fn restore_view(&mut self,mut saved:Self) {saved.view=Rc::clone(&self.view);self.restore(saved);Rc::make_mut(&mut self.view).refresh(&self.forest);}
-
-    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in self.objects.iter().filter(|row| self.visible(row.id)) {
-            for vertex in object.mesh.vertices() {
-                let point = object.world_point(*vertex);
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
+            if let Some(next) = row.bounds() {
+                if let Some(bounds) = &mut bounds {
+                    bounds.include(next.min);
+                    bounds.include(next.max);
+                } else {
+                    bounds = Some(next);
                 }
             }
         }
-        for line in self.lines.iter().filter(|line| self.visible(line.id)) {
-            for point in line.endpoints() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for row in self.paths.iter().filter(|row| self.visible(row.id)) {
-            for point in row.bounds_points() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
-        }
-        for row in self.points.iter().filter(|row| self.visible(row.id)) {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        for row in self.texts.iter().filter(|row|self.visible(row.id)) {if let Some(next)=row.bounds() {if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}}
         bounds
     }
 
     pub fn bounds_of(&self, ids: &[ObjectId]) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for id in ids { if let Some(next) = self.selected_bounds(*id) {
-            if let Some(b) = &mut bounds { b.include(next.min); b.include(next.max); } else { bounds = Some(next); }
-        } } bounds
-    }
-
-    pub fn placement(&self, id: ObjectId) -> Option<session_rust::Xform> {
-        self.objects.iter().find(|r| r.id==id).map(|r| r.model.clone())
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
-
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_following(id,model)
-    }
-
-    pub(crate) fn place_following(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else if self.texts.iter().any(|r|r.id==id) {self.place_text(id,model)}
-        else { self.place_point(id,model) }
-    }
-
-    pub fn translate(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<(), &'static str> {
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        if let Some(row) = self.objects().iter().find(|r| r.id == id) {
-            if row.geometry().is_none() { return Err("Reload editable sources before Move"); }
-            let model = &shift * &row.model; return self.place(id, model);
-        }
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        if let Some(row)=self.texts.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_text(id,model);}
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        if let Some(row)=self.texts.iter().find(|row|row.id==id) {return row.bounds();}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
-        for vertex in vertices {
-            bounds.include(object.world_point(*vertex));
-        }
-        Some(bounds)
-    }
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn texts(&self)->&[crate::scene_label::Row] {&self.texts}
-    pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
-    pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid.clone();while self.texts.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();let row=crate::scene_label::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};row.label(false,true)?;if row.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,row.prepared.source.visible,row.prepared.source.locked);self.texts.push(row);crate::layer_edit::attach_generated(self,id,guid,label)?;Ok(id)
-    }
-    pub fn place_text(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid text placement");}let row=self.texts.iter_mut().find(|row|row.id==id).ok_or("Text object not found")?;let mut candidate=row.clone();candidate.model=model;candidate.label(false,true)?;if candidate.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}*row=candidate;Ok(())
-    }
-    pub fn text_labels(&self,selected:&[ObjectId])->Result<Vec<crate::text::TextLabel>,&'static str> {self.texts.iter().filter(|row|self.visible(row.id)).map(|row|row.label(selected.contains(&row.id),self.pick_id(row.id.value()).is_some())).collect()}
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
-
-    pub fn insert_point(&mut self, prepared: crate::marker::PreparedPoint) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.prepared.source.guid() == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let label=prepared.source.name.clone();let node_guid=guid.clone();self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid point placement"); }
-        let row = self.points.iter_mut().find(|row| row.id == id).ok_or("Point not found")?;
-        let point = model.transform_point(&row.prepared.source);
-        if (0..3).any(|i| !(point[i] as f32).is_finite()) { return Err("Point placement exceeds the display range"); }
-        row.model = model; Ok(())
-    }
-
-    pub fn show_controls(&mut self, visible: bool) {
-        for row in &mut self.paths { row.controls_visible = visible && matches!(row.prepared.source, crate::chain::Source::Curve(..)); }
-    }
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && self.visible(row.id)) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-                let display = crate::marker::Marker { center: p.to_f32(), ..control.marker().expect("Prepared control marker") };
-                markers.push(ControlMarker { parent: row.id, control, display });
-            }
-        }
-        markers
-    }
-
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
-
-    pub fn insert_path(&mut self, prepared: crate::chain::PreparedChain) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.prepared.source.guid() == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
-        let label=prepared.source.name().to_owned();let node_guid=guid.clone();self.paths.push(PathObject { controls_visible: false, id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid path placement"); }
-        let row = self.paths.iter_mut().find(|row| row.id == id).ok_or("Path not found")?;
-        for p in row.prepared.source.coordinates().into_iter().chain(row.prepared.source.bounds_coordinates()) {
-            let p = model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) { return Err("Path placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn lines(&self) -> &[LineObject] { &self.lines }
-
-    pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let guid=prepared.source.guid().to_owned();let label=prepared.source.name.clone();
-        self.lines.push(LineObject { id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
-
-    pub fn place_line(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid line placement"); }
-        let row = self.lines.iter_mut().find(|row| row.id == id).ok_or("Line not found")?;
-        for point in [row.prepared.source.start(), row.prepared.source.end()] {
-            let placed = model.transform_point(&point);
-            if (0..3).any(|i| !(placed[i] as f32).is_finite()) { return Err("Line placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn objects(&self) -> &[Object] {
-        &self.objects
-    }
-
-    pub(crate) fn objects_mut(&mut self) -> &mut [Object] { &mut self.objects }
-
-    pub(crate) fn unload(&mut self, origins: &std::collections::HashSet<uuid::Uuid>, epoch: u64) {
-        for row in &mut self.objects {
-            if let Some(origin) = row.origin().filter(|origin| origins.contains(&origin.id)).cloned() {
-                row.editable = crate::edit_source::EditSource::Released { origin, epoch };
-            }
-        }
-    }
-
-    pub(crate) fn hydrate(&mut self, prepared: &crate::rehydrate::PreparedReload) {
-        for row in &mut self.objects {
-            if !prepared.key.matches(row) { continue; }
-            let Some(geometry) = prepared.geometry(&row.metadata.source_guid).cloned() else { continue; };
-            let source = crate::document::Source { document: Rc::clone(&prepared.document),
-                guid: row.metadata.source_guid.clone(), origin: Rc::clone(&prepared.key.origin) };
-            row.editable = crate::edit_source::EditSource::Loaded { geometry, source: Some(source) };
-        }
-    }
-
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        if !crate::placement::valid(&prepared.model.m) { return Err("Placement must be finite, affine and fit the display range"); }
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        let mut guid = prepared.geometry.guid().to_owned();
-        while self.objects.iter().any(|object| object.guid == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.geometry.is_visible,prepared.geometry.is_locked);
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
-
-    pub fn insert_cad(&mut self,source:Rc<session_rust::BRep>)->Result<ObjectId,&'static str> {
-        let (prepared,mesh)=crate::cad_display::prepare(source)?;let prepared=Rc::new(prepared);let id=self.insert(mesh)?;self.objects.iter_mut().find(|row|row.id==id).unwrap().cad=Some(prepared);Ok(id)
-    }
-
-    pub fn insert_surface(&mut self,source:Rc<session_rust::NurbsSurface>)->Result<ObjectId,&'static str> {
-        let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
-        self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
-    }
-
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.texts.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.texts.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-        Ok(copy)
-    }
-
-    pub(crate) fn row_guid(&self,id:ObjectId)->Option<&str> {
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.prepared.source.guid()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.texts=Vec::new();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
-        self.extra = None;
-    }
-
-    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        self.clear();
-        self.import(loaded)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        let mut objects=Vec::new();let key=self.next_id;
-        for prepared in loaded.meshes {
-            let guid=prepared.geometry.guid().to_owned();let name=prepared.geometry.name.clone();
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);let colours=self.forest.colours(key);Rc::make_mut(&mut self.view).faces.extend(colours);Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_mesh(id,model)
-    }
-
-    fn place_mesh(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
-        {
-            return Err("Placement must be finite, affine and fit the display range");
-        }
-        let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
-        if object.geometry().is_none() { return Err("Reload editable sources before Move"); }
-        object.model = model;
-        Ok(())
-    }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).chain(self.texts.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(PreparedMesh::new(source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = PreparedMesh::triangle([
-                [-0.9, 0.3, 0.5], [-0.4, 0.3, 0.5], [-0.65, 0.9, 0.5],
-            ], [0.2, 0.8, 0.3]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unloading_policy_protects_generated_unlocated_and_modified_sources() {
-        let mut scene = Scene::demo(); assert!(!scene.objects[0].can_unload());
-        let bytes = crate::specimen::bytes();
-        scene.replace(crate::document::load(&bytes).unwrap()).unwrap(); assert!(!scene.objects[0].can_unload());
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:policy".into()));
-        scene.replace(crate::document::load_at(&bytes, Some(url)).unwrap()).unwrap();
-        assert!(scene.objects.iter().all(Object::can_unload));
-        let row = &mut scene.objects[0];
-        Rc::make_mut(&mut row.metadata).is_locked = true; assert!(!row.can_unload());
-        Rc::make_mut(&mut row.metadata).is_locked = row.geometry().unwrap().is_locked;
-        assert!(row.can_unload());
-        let source = row.source().cloned(); let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        row.editable = crate::edit_source::EditSource::Loaded { geometry, source }; assert!(!row.can_unload());
-    }
-
-    #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
-        scene.next_id = u32::MAX - 1;
-        let loaded = crate::document::load(&crate::specimen::bytes()).unwrap();
-        let mut history = crate::history::History::default();
-        assert!(history.try_edit(&mut scene, |scene| scene.replace(loaded)).is_err());
-        assert_eq!(scene.next_id, u32::MAX);
-        assert_eq!(scene.objects.len(), before.len());
-        for (object, old) in scene.objects.iter().zip(&before) {
-            assert_eq!(object.id, old.id);
-            assert!(Rc::ptr_eq(object.geometry().unwrap(), old.geometry().unwrap()));
-            assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
-    }
-
-    #[test]
-    fn removal_moves_a_row_without_changing_its_identity() {
-        let mut scene = Scene::demo();
-        let first = scene.objects()[0].id;
-        let second = scene.objects()[1].id;
-        assert!(scene.remove(first));
-        assert_eq!(scene.objects()[0].id, second);
-        assert_eq!(scene.next(None), Some(second));
-        assert!(!scene.contains(first));
-        scene.toggle_extra();
-        assert_ne!(scene.objects()[1].id, first);
-        assert_ne!(scene.objects()[1].id, second);
-    }
-
-    #[test]
-    fn toggling_the_extra_object_uses_its_id_after_other_removals() {
-        let mut scene = Scene::demo();
-        scene.toggle_extra();
-        let extra = scene.objects()[2].id;
-        scene.remove(scene.objects()[0].id);
-        scene.toggle_extra();
-        assert!(!scene.contains(extra));
-        assert_eq!(scene.objects().len(), 1);
-    }
-}
-
-#[cfg(all(test, not(target_arch = "wasm32")))]
-#[path = "pick_gpu_tests.rs"]
-mod pick_gpu_tests;
-
-impl Scene {
-    pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
-                source.vertex.get_mut(&key).ok_or("Missing source vertex")?.set_position(point);
-            }
-            source.clear_triangle_bvh();
-            let prepared=crate::prepared::PreparedMesh::new(source)?;
-            for vertex in prepared.display.vertices() {let point=model.transform_point(&session_rust::Point::new(vertex[0] as f64,vertex[1] as f64,vertex[2] as f64));
-                if (0..3).any(|i| !(point[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}}
-            row.mesh=Rc::new(prepared.display); row.editable=crate::edit_source::EditSource::Loaded {geometry:prepared.geometry,source:None}; return Ok(());
-        }
-        let row=self.paths.iter_mut().find(|r|r.id==target.owner).ok_or("Part owner is missing")?;
-        let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
-        let mut source=(**curve).clone(); let point=local.transform_point(&source.get_cv(index).ok_or("Missing curve control")?);
-        let weight=source.get_cv_4d(index).ok_or("Missing curve control")?.3;
-        let set=if source.m_is_rat {source.set_cv_4d(index,point[0]*weight,point[1]*weight,point[2]*weight,weight)} else {source.set_cv_point(index,&point)};
-        if !set {return Err("Cannot set curve control");}
-        let prepared=crate::chain::PreparedChain::curve(Rc::new(source))?;
-        for p in prepared.source.coordinates().into_iter().chain(prepared.source.bounds_coordinates()) {
-            let p=model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}
-        }
-        row.prepared=prepared;Ok(())
-    }
-}
 ```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62d-identity-01.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-02.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-03.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-04.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-05.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-06.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-07.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-08.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-09.rs"
-```
-
-</details>
 
 ### 2. `src/hierarchy.rs`
 
-Include text identities and truthful source capacity; reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
+                .map(|r| (r.id, r.prepared.source.name.as_str())),
+        );
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62d-identity-10.rs"
+                .map(|r| (r.id, r.prepared.source.name.as_str())),
+        )
+        .chain(
+            scene
+                .texts()
+                .iter()
+                .map(|r| (r.id, r.prepared.source.name.as_str())),
+        );
 ```
 
 ### 3. `src/document.rs`
 
-Include text identities and truthful source capacity; reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if scene.objects().iter().any(|row|row.surface.is_some()||row.cad.is_some()) {return Err("This checkpoint cannot save CAD surface objects yet");}
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
+    }
+    if !scene.points().is_empty() {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62d-identity-11.rs"
+    }
+    if !scene.texts().is_empty() {
+        return Err("This checkpoint cannot save scene text objects yet");
+    }
+    if !scene.points().is_empty() {
 ```
 
 ### 4. `src/memory.rs`
 
-Include text identities and truthful source capacity; reject incomplete mixed saves.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    counts[1]=sources.len();counts[2]=prepared.len();counts
+    counts
 }
 ```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/62d-identity-12.rs" skip=62
-```
-
-### 5. `src/editor.rs`
-
-Make generic whole-owner Move and Select All include the text lane.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            }
-            Action::SelectAll => {
-                let ids: Vec<_> = self.scene.objects().iter().map(|r| r.id).chain(self.scene.lines().iter().map(|r| r.id))
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).collect();
-                self.select_objects(ids, false);return Ok(Change::View);
-            }
-            Action::PickedTarget(target) => {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            }
-            Action::SelectAll => {
-                let ids: Vec<_> = self.scene.objects().iter().map(|r| r.id).chain(self.scene.lines().iter().map(|r| r.id))
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).collect();
-                self.select_objects(ids, false);return Ok(Change::View);
-            }
-            Action::PickedTarget(target) => {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        let object=self.scene.objects().iter().find(|row|row.id==id).ok_or("Object not found")?;
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if object.geometry().is_none() {return Err("Reload editable sources before Move");}
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
-        self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        if !self.scene.contains(id) {return Err("Object not found");}
-        let object=self.scene.objects().iter().find(|row|row.id==id);
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if object.is_some_and(|object|object.geometry().is_none()) {return Err("Reload editable sources before Move");}
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
-        self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
-pub enum Action {
-    CanvasStart {from:[f32;2],to:[f32;2],size:[f64;2],modified:bool,pointer:i32},
-    CanvasMove {screen:[f32;2],size:[f64;2]},
-    CanvasRelease {screen:[f32;2],size:[f64;2],add:bool,remove:bool},
-    CanvasHit(Option<ObjectId>),CanvasCancel,
-    SelectRows {ids:Vec<ObjectId>,add:bool,remove:bool},
-    PanScreen {delta:[f64;2],size:[f64;2]},ZoomAt {factor:f32,screen:[f32;2]},
-    Touch(Vec<Action>),
-    LayerEdit {key:String,edit:crate::layer_edit::Edit},
-    LayerProperty {key:String,property:crate::layer_properties::Property},
-    TreePick {ids:Vec<ObjectId>,additive:bool},
-    GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
-    GizmoTouch {pointer:i32,screen:[f32;2],size:[f64;2]},
-    GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoCancel,
-    GizmoNumber(String),
-    Snap(crate::snap::Setting),
-    ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
-    BeginTool(crate::tool::Shape),
-    ToolPoint([f64; 3]),
-    ToolHover(Option<[f64; 3]>),
-    CancelTool,
-    Pick([f32; 2]),
-    Picked(Option<ObjectId>),
-    PickedTarget(Option<crate::pick_sources::Target>),
-    PickedMany { target: Option<crate::pick_sources::Target>, additive: bool },
-    SelectAll,
-    PickMode(crate::pick_sources::Mode),
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    UnloadSources,
-    Hide,
-    Show,
-    AddBox,
-    AddNested,
-    AddCad,
-    AddSurface,
-    AddLine,
-    AddPoint,
-    AddCurve,
-    AddColours(crate::colour::Mode),
-    NormalView(bool),
-    Grid(Option<crate::grid::Settings>),
-    AddNormals(crate::normal_example::Mode),
-    Controls(bool),
-    AddPolyline,
-    AddArrow,
-    Translate([f64; 3]),
-    ToggleExtra,
-    SelectNext,
-    Delete,
-    Undo,
-    Redo,
-    Background,
-    Zoom(f32),
-    Pan(f32, f32),
-    Orbit(f64, f64),
-    Isometric,
-    ResetView,
-    Fit,
-    FitSelected,
-    Projection(crate::camera::Projection),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Change {
-    View,
-    Scene,
-    Preview,
-}
-
-pub struct Editor {
-    pub canvas_drag:Option<crate::canvas_drag::Drag>,
-    pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
-    gizmo_hover:Option<crate::gizmo::Handle>,
-    pub edit_preview: Option<crate::edit_preview::Preview>,
-    pub snapping: crate::snap::Settings,
-    snap_index: Option<crate::snap_index::Index>,
-    pub draft: Option<crate::tool::Draft>,
-    pub tool_status: String,
-    pub scene: Scene,
-    pub selected: Option<ObjectId>,
-    pub selected_part: Option<crate::pick_sources::Part>,
-    pub pick_mode: crate::pick_sources::Mode,
-    objects: crate::object_selection::Objects,
-    pub camera: Camera,
-    pub background: Background,
-    pub normal_view: bool,
-    history: History,
-    last_release: u64,
-}
-
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            draft: None, tool_status: String::new(),
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
-            camera: Camera::default(),
-            background: Background::default(),
-            normal_view: false,
-            history: History::default(),
-            last_release: 0,
-        }
-    }
-}
-
-impl Editor {
-    pub fn display_scene(&self) -> &Scene {
-        self.canvas_drag.as_ref().and_then(|d|d.preview.as_ref()).map_or_else(||self.gizmo_edit.as_ref().map_or_else(||self.edit_preview.as_ref().map_or(&self.scene,|p| &p.scene),|g|g.preview.scene()),|p|&p.scene)
-    }
-
-    pub fn gizmo_origin(&self)->Option<[f64;3]> {
-        if self.draft.is_some()||self.canvas_drag.is_some() {return None;}
-        if let Some(edit)=self.gizmo_edit.as_ref() {return Some(edit.origin());}
-        if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
-        self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
-    }
-
-    pub fn gizmo_hit(&self,screen:[f32;2],size:[f64;2])->Option<crate::gizmo::Handle> {self.gizmo_hit_radius(screen,size,8.)}
-
-    pub fn gizmo_hit_radius(&self,screen:[f32;2],size:[f64;2],radius:f64)->Option<crate::gizmo::Handle> {
-        if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-        let origin=self.gizmo_origin()?;
-        let scale=crate::widget_layout::world_per_pixel(&self.camera.view_projection(),origin,size[1])?;
-        let ray=self.camera.ray(screen)?;
-        crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2])).hit_with_radius(&ray.origin,&ray.direction,scale,radius)
-    }
-
-    pub fn number_prompt(&self,size:[f64;2])->Option<crate::number_box::NumberPrompt> {
-        let edit=self.gizmo_edit.as_ref()?;let handle=edit.gizmo.typing?;
-        let origin=edit.origin();let matrix=self.camera.view_projection();let scale=crate::widget_layout::world_per_pixel(&matrix,origin,size[1])?;
-        let point=edit.gizmo.handle_point(handle,scale);
-        let at=crate::snap_math::Screen {matrix:matrix.m,size}.point([point[0],point[1],point[2]])?;
-        let unit=handle.labels().2;
-        Some(crate::number_box::NumberPrompt {handle,title:handle.title(),unit,hint:if unit=="factor" {"1"} else {"0"},at:at.map(|v|v as f32)})
-    }
-
-    pub fn gizmo_active(&self)->f32 {crate::gizmo_edit::code(self.gizmo_edit.as_ref().and_then(|e|e.active()).or(self.gizmo_hover))}
-
-    pub fn hover_gizmo(&mut self,screen:Option<([f32;2],[f64;2])>) {
-        self.gizmo_hover=if self.gizmo_edit.is_some() {None} else {screen.and_then(|(point,size)|self.gizmo_hit(point,size))};
-    }
-
-    fn gizmo_press(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],modified:bool)->Result<Change,&'static str> {
-        self.gizmo_press_radius(pointer,screen,size,modified,8.)
-    }
-
-    fn gizmo_press_radius(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],modified:bool,radius:f64)->Result<Change,&'static str> {
-        if modified || self.draft.is_some() || self.gizmo_edit.as_ref().is_some_and(|g|g.pointer.is_some()) {return Ok(Change::View);}
-        let Some(handle)=self.gizmo_hit_radius(screen,size,radius) else {return Ok(Change::View);};
-        let origin=self.gizmo_origin().ok_or("No editable selection")?;
-        let preview=crate::gizmo_edit::Preview::new(&self.scene,self.selected_objects(),self.selection().filter(|_|self.selected_part.is_some()))?;
-        let ray=self.camera.ray(screen).ok_or("Invalid handle ray")?;
-        let gizmo=crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2]));
-        self.gizmo_edit=crate::gizmo_edit::Edit::begin(gizmo,handle,&ray,preview,pointer,screen);Ok(Change::View)
-    }
-
-    fn gizmo_move(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],shift:bool)->Result<Change,&'static str> {
-        if size.iter().any(|v| !v.is_finite() || *v<=0.) {return Err("Invalid handle viewport");}
-        let Some(ray)=self.camera.ray(screen) else {return Err("Invalid handle ray");};
-        let Some(edit)=self.gizmo_edit.as_mut() else {return Ok(Change::View);};
-        Ok(if edit.update(pointer,screen,size,&ray,shift)? {Change::Preview} else {Change::View})
-    }
-
-    fn gizmo_release(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],shift:bool)->Result<Change,&'static str> {
-        if self.gizmo_edit.as_ref().is_none_or(|g|g.pointer!=Some(pointer)) {return Ok(Change::View);}
-        self.gizmo_move(pointer,screen,size,shift)?;
-        let edit=self.gizmo_edit.as_mut().unwrap();
-        if edit.click() {self.tool_status=format!("{}: type a value in {}, Enter applies, Esc closes",edit.active().unwrap().title(),edit.active().unwrap().labels().2);return Ok(Change::Preview);}
-        let changed=edit.preview.commit(&mut self.scene,&mut self.history)?; self.gizmo_edit=None;
-        self.tool_status="Handle edit completed.".into();Ok(if changed {Change::Scene} else {Change::Preview})
-    }
-
-    fn gizmo_number(&mut self,text:&str)->Result<Change,&'static str> {
-        let edit=self.gizmo_edit.as_mut().ok_or("No handle number is being requested")?;
-        let handle=edit.gizmo.typing.ok_or("No handle number is being requested")?;
-        let value=crate::gizmo::typed_value(handle,text).map_err(|_|"Enter a finite number; scale needs a positive factor")?;
-        let Some(value)=value else {self.gizmo_edit=None;return Ok(Change::Preview);};
-        edit.preview.set(edit.gizmo.typed(handle,value))?;
-        let changed=edit.preview.commit(&mut self.scene,&mut self.history)?;self.gizmo_edit=None;
-        self.tool_status=format!("{} {value} {}",handle.title(),handle.labels().2);Ok(if changed {Change::Scene} else {Change::Preview})
-    }
-
-    fn update_edit_preview(&mut self) -> Result<Change, &'static str> {
-        let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
-        let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?; Ok(Change::Preview)
-    }
-
-    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
-        std::iter::once(&self.scene).chain(self.history.scenes())
-    }
-
-    pub fn presentation_scenes(&self)->impl Iterator<Item=&Scene> {
-        self.scenes().chain(self.canvas_drag.iter().filter_map(|d|d.preview.as_ref()).flat_map(|p|p.scenes())).chain(self.edit_preview.iter().flat_map(|p|p.scenes())).chain(self.gizmo_edit.iter().flat_map(|g|g.preview.scenes()))
-    }
-
-    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
-        let mut seen = std::collections::HashSet::new();
-        self.scene.objects().iter().filter_map(crate::rehydrate::ReloadKey::of)
-            .filter(|key| seen.insert(key.origin.id)).collect()
-    }
-
-    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
-        std::iter::once(&mut self.scene).chain(self.history.scenes_mut())
-    }
-
-    pub fn hydrate(&mut self, values: Vec<(crate::rehydrate::ReloadKey, Vec<u8>)>) -> Result<bool, &'static str> {
-        if values.is_empty() { return Ok(false); }
-        let mut seen = std::collections::HashSet::new();
-        for (key, _) in &values {
-            if !seen.insert(key.origin.id) || !self.scene.objects().iter().any(|row| key.matches(row)) {
-                return Ok(false);
-            }
-        }
-        let prepared: Vec<_> = values.into_iter().map(|(key, bytes)|
-            crate::rehydrate::PreparedReload::new(key, &bytes)).collect::<Result<_, _>>()?;
-        for plan in &prepared {
-            if self.scenes().flat_map(|scene| scene.objects()).filter(|row| plan.key.matches(row))
-                .any(|row| !plan.validates(row)) { return Err("Reloaded source GUID or metadata does not match"); }
-        }
-        for scene in self.scenes_mut() {
-            for plan in &prepared { scene.hydrate(plan); }
-        }
-        if self.edit_preview.take().is_some() { self.draft=None; } self.gizmo_edit=None; self.snap_index = None; Ok(true)
-    }
-
-    fn unload_sources(&mut self) -> Result<(), &'static str> {
-        let mut origins: std::collections::HashSet<_> = self.scenes().flat_map(|scene| scene.objects())
-            .filter(|row| row.can_unload()).filter_map(|row| row.origin().map(|origin| origin.id)).collect();
-        for row in self.scenes().flat_map(|scene| scene.objects()) {
-            if let Some(origin) = row.origin() {
-                if !row.can_unload() { origins.remove(&origin.id); }
-            }
-        }
-        if origins.is_empty() { return Err("No eligible imported sources to unload"); }
-        let epoch = self.last_release.checked_add(1).ok_or("Release epochs exhausted")?;
-        for scene in self.scenes_mut() { scene.unload(&origins, epoch); }
-        self.last_release = epoch;
-        Ok(())
-    }
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        if !self.scene.contains(id) {return Err("Object not found");}
-        let object=self.scene.objects().iter().find(|row|row.id==id);
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if object.is_some_and(|object|object.geometry().is_none()) {return Err("Reload editable sources before Move");}
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
-        self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
-
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        if !self.scene.contains(id) {return Err("Object not found");}
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if self.scene.objects().iter().find(|row| row.id == id).is_some_and(|row| row.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
-        }
-        let ids=self.scene.with_descendants(&[id]);
-        self.history.edit(&mut self.scene, |scene| {for id in ids {scene.remove(id);}});
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.objects.retain(&self.scene);
-        if self.selected == Some(id) { self.selected = self.objects.primary(); self.selected_part = None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
-
-    pub fn selected_objects(&self) -> Vec<ObjectId> {
-        if self.selected_part.is_some() { return Vec::new(); }
-        if self.objects.primary() == self.selected { self.objects.rows().to_vec() }
-        else { self.selected.into_iter().filter(|id| self.scene.pick_id(id.value()).is_some()).collect() }
-    }
-
-    pub fn select_objects(&mut self, rows: impl IntoIterator<Item = ObjectId>, additive: bool) {
-        if additive { let old = self.selected_objects(); self.objects.set(&self.scene, old, false); }
-        self.selected_part = None; self.objects.set(&self.scene, rows, additive); self.selected = self.objects.primary();
-    }
-
-    pub fn select_rows(&mut self,ids:Vec<ObjectId>,add:bool,remove:bool) {
-        if remove {let old=self.selected_objects();self.objects.set(&self.scene,old,false);self.objects.remove(&self.scene,ids);self.selected=self.objects.primary();self.selected_part=None;}
-        else {self.select_objects(ids,add);}
-    }
-
-    fn finish_canvas(&mut self)->Result<Change,&'static str> {
-        let Some(mut drag)=self.canvas_drag.take() else {return Ok(Change::View);};
-        let (add,remove)=drag.released.unwrap_or((false,false));
-        if let Some(preview)=drag.preview.take() {let changed=preview.commit(&mut self.scene,&mut self.history)?;if changed {self.snap_index=None;}return Ok(if changed {Change::Scene} else {Change::Preview});}
-        if drag.missed {if let Some(rectangle)=drag.rectangle() {let ids=crate::rect_select::found(&self.scene,&self.camera.view_projection().m,drag.size,rectangle);self.select_rows(ids,add,remove);}}
-        Ok(Change::View)
-    }
-
-    fn repair_selection(&mut self) {
-        if self.objects.primary() == self.selected && self.selected_part.is_none() {
-            self.objects.retain(&self.scene); self.selected = self.objects.primary();
-        } else { self.objects.clear(); }
-    }
-
-    fn move_selection(&mut self, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|n| n.is_finite()) { return Err("Move needs finite coordinates"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Err("Select an object before Move"); }
-        if offset.iter().all(|&n| n == 0.) { return Ok(Change::View); }
-        let mut preview=crate::edit_preview::Preview::new(&self.scene,ids)?;
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-        preview.commit(&mut self.scene,&mut self.history)?;Ok(Change::Scene)
-    }
-
-    fn delete_selection(&mut self) -> Result<Change, &'static str> {
-        if self.selected_part.is_some() { return Err("Use Select Object before Delete"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Ok(Change::View); }
-        if self.scene.objects().iter().any(|r| ids.contains(&r.id) && r.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
-        }
-        let ids=self.scene.with_descendants(&ids);
-        self.history.edit(&mut self.scene, |scene| { for id in ids { scene.remove(id); } });
-        self.objects.clear(); self.selected = None; Ok(Change::Scene)
-    }
-
-    pub fn selection(&self) -> Option<crate::pick_sources::Target> {
-        self.selected.map(|owner| crate::pick_sources::Target { owner, part: self.selected_part.unwrap_or(crate::pick_sources::Part::Object) })
-    }
-
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
-
-    pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some() || text.trim().eq_ignore_ascii_case("Escape")) {
-            return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
-        }
-        self.draft.as_ref()?;
-        if text.trim().is_empty() || text.eq_ignore_ascii_case("Escape") { return Some(Ok(Action::CancelTool)); }
-        text.contains(',').then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
-    }
-
-    fn place_tool_point(&mut self, point: [f64; 3]) -> Result<Change, &'static str> {
-        let draft = self.draft.as_mut().ok_or("No point tool is running")?;
-        let name = draft.tool.name();
-        let Some(built) = draft.submit(point)? else { self.tool_status = draft.prompt(); self.snap_index=None; return self.update_edit_preview(); };
-        if let crate::tool::Built::Move(offset)=built {
-            let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
-            preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-            let changed=preview.commit(&mut self.scene,&mut self.history)?;
-            if self.edit_preview.take().is_some() { self.draft=None; } self.tool_status="Move completed.".into();
-            return Ok(if changed { Change::Scene } else { Change::Preview });
-        }
-        self.history.try_edit(&mut self.scene, |scene| match built {
-            crate::tool::Built::Point(point) => scene.insert_point(point).map(|_| ()),
-            crate::tool::Built::Line(line) => scene.insert_line(line).map(|_| ()),
-            crate::tool::Built::Move(_) => unreachable!("Move uses its placement preview"),
-        })?;
-        self.draft = None; self.tool_status = format!("{name} created."); Ok(Change::Scene)
-    }
-
-    pub fn snap_point(&mut self, screen: [f32; 2], size: [f64; 2]) -> Option<crate::snap::Hit> {
-        let ray = self.camera.ray(screen)?;
-        let from = self.draft.as_ref()?.points.last().copied();
-        let hit = if self.snapping.objects {
-            let exclude=self.edit_preview.as_ref().filter(|_| from.is_some()).map_or_else(Vec::new,|p| p.ids().to_vec());
-            let index = self.snap_index.get_or_insert_with(|| crate::snap_index::Index::new(&self.scene).excluding(&exclude));
-            let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
-            index.query(viewport, &ray, [(screen[0] as f64+1.)*size[0]/2., (1.-screen[1] as f64)*size[1]/2.], self.snapping.modes, from)
-        } else { None };
-        hit.or_else(|| crate::snap_index::fallback(self.snapping, &self.camera, screen))
-    }
-
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
-            Action::CanvasStart {from,to,size,modified,pointer}=>{self.canvas_drag=crate::canvas_drag::Drag::new(from,to,size,modified);if let Some(drag)=self.canvas_drag.as_mut() {drag.pointer=pointer;}return Ok(Change::View);},
-            Action::CanvasMove {screen,size}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.released.is_none()&&drag.size==size&&screen.iter().all(|v|v.is_finite()) {drag.to=screen;drag.update(&self.camera)?;}if drag.preview.is_some() {return Ok(Change::Preview);}}return Ok(Change::View);},
-            Action::CanvasRelease {screen,size,add,remove}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.size!=size {self.canvas_drag=None;return Ok(Change::Preview);}drag.to=screen;drag.released=Some((add,remove));drag.update(&self.camera)?;if drag.preview.is_some()||drag.missed {return self.finish_canvas();}}return Ok(Change::View);},
-            Action::CanvasHit(hit)=>{
-                let Some(drag)=self.canvas_drag.as_ref() else {return Ok(Change::View);};let ids=hit.filter(|id|!drag.modified&&self.scene.pick_id(id.value()).is_some());
-                if let Some(id)=ids {let mut rows=self.selected_objects();if !rows.contains(&id) {self.select_objects([id],false);rows=vec![id];}if let Err(error)=self.canvas_drag.as_mut().unwrap().grab(&self.scene,rows,&self.camera) {self.canvas_drag=None;return Err(error);}}
-                else {self.canvas_drag.as_mut().unwrap().missed=true;}
-                if self.canvas_drag.as_ref().unwrap().released.is_some() {return self.finish_canvas();}return Ok(Change::Preview);
-            },
-            Action::CanvasCancel=>{let preview=self.canvas_drag.take().is_some_and(|d|d.preview.is_some());return Ok(if preview {Change::Preview} else {Change::View});},
-            Action::SelectRows {ids,add,remove}=>{self.select_rows(ids,add,remove);return Ok(Change::View);},
-            _=>{}
-        }
-        self.canvas_drag=None;
-        let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoTouch {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::ZoomAt {..}|Action::PanScreen {..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
-        let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoTouch {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
-        let mut change=self.apply_action(action)?;
-        self.gizmo_hover=None;
-        if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
-        if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
-        if change==Change::Scene { self.snap_index=None; }
-        Ok(change)
-    }
-
-    fn apply_action(&mut self, action: Action) -> Result<Change, &'static str> {
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
-        match action {
-            Action::LayerEdit {key,edit}=>{
-                if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
-                self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
-            },
-            Action::LayerProperty {key,property}=>{crate::layer_properties::apply(&mut self.scene,&key,property)?;self.repair_selection();if self.selected.is_some_and(|id|self.scene.pick_id(id.value()).is_none()) {self.selected=None;self.selected_part=None;}self.snap_index=None;return Ok(Change::Preview);},
-            Action::Hide=>{let ids=self.scene.with_descendants(&self.selected_objects());std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids,true);self.select_objects([],false);self.snap_index=None;return Ok(Change::Preview);},
-            Action::Show=>{std::rc::Rc::make_mut(&mut self.scene.view).show_all();self.snap_index=None;return Ok(Change::Preview);},
-            Action::TreePick {ids,additive}=>{let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
-            Action::GizmoTouch {pointer,screen,size}=>return self.gizmo_press_radius(pointer,screen,size,false,18.),
-            Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
-            Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
-            Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
-            Action::GizmoCancel=>{self.gizmo_edit=None;self.tool_status="Handle edit cancelled.".into();return Ok(Change::Preview);},
-            Action::GizmoNumber(text)=>return self.gizmo_number(&text),
-            Action::Snap(setting) => {
-                self.tool_status = self.snapping.apply(setting)?;
-                if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
-                return self.update_edit_preview();
-            }
-            Action::ToolScreen { screen, size, commit } => {
-                let hit = self.snap_point(screen,size);
-                if let Some(draft) = self.draft.as_mut() { draft.snapped = hit.filter(|h| h.owner.is_some() || h.kind == crate::snap::Kind::Grid).map(|h| h.kind); }
-                if commit { return hit.map_or(Ok(Change::View), |hit| self.place_tool_point(hit.point)); }
-                if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
-                return self.update_edit_preview();
-            }
-            Action::BeginTool(shape) => {
-                let preview=if matches!(shape,crate::tool::Shape::Move) {
-                    if self.selected_part.is_some() { return Err("Use Select Object before Move"); }
-                    Some(crate::edit_preview::Preview::new(&self.scene,self.selected_objects())?)
-                } else { None };
-                let changed=preview.is_some() || self.edit_preview.is_some(); self.edit_preview=preview;
-                self.snap_index=None; self.draft=Some(crate::tool::Draft::new(shape)); self.tool_status=self.draft.as_ref().unwrap().prompt();
-                return Ok(if changed { Change::Preview } else { Change::View });
-            }
-            Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.snapped=None; draft.hover(point)?; } return self.update_edit_preview(); }
-            Action::CancelTool => { let changed=self.edit_preview.take().is_some(); self.draft=None; self.tool_status="Tool cancelled.".into(); return Ok(if changed { Change::Preview } else { Change::View }); }
-            Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
-                self.select_objects(target.filter(|t| t.part == crate::pick_sources::Part::Object && t.valid(&self.scene)).map(|t| t.owner), additive);
-            }
-            Action::SelectAll => {
-                let ids: Vec<_> = self.scene.objects().iter().map(|r| r.id).chain(self.scene.lines().iter().map(|r| r.id))
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).collect();
-                self.select_objects(ids, false);return Ok(Change::View);
-            }
-            Action::PickedTarget(target) => {
-                let target = target.filter(|target| target.valid(&self.scene));
-                self.objects.clear();
-                self.selected = target.map(|target| target.owner);
-                if let Some(target) = target.filter(|t| t.part == crate::pick_sources::Part::Object) { self.objects.set(&self.scene, [target.owner], false); }
-                self.selected_part = target.map(|target| target.part).filter(|part| *part != crate::pick_sources::Part::Object);
-            }
-            Action::PickMode(mode) => { self.pick_mode = mode; self.selected = None; self.selected_part = None; self.objects.clear(); }
-            Action::Pick(screen) => {
-                let id = self.camera.ray(screen).and_then(|ray| crate::picking::pick(&self.scene, &ray));
-                self.select_objects(id, false);
-            }
-            Action::UnloadSources => self.unload_sources()?,
-            Action::Close => {
-                self.scene.clear();
-                self.history.clear();
-                self.objects.clear(); self.selected = None;
-            }
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::Import(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ImportAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ReplaceAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::AddPolyline | Action::AddArrow => {
-                let prepared = if matches!(action, Action::AddPolyline) {
-                    let mut line = session_rust::Polyline::new(vec![session_rust::Point::new(-0.6, -0.4, 0.0),
-                        session_rust::Point::new(0.0, 0.0, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
-                    line.width = 6.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                    crate::chain::PreparedChain::polyline(std::rc::Rc::new(line))?
-                } else {
-                    let mut line = session_rust::Line::new(-0.6, 0.3, 0.0, 0.6, 0.3, 0.0);
-                    line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
-                    line.arrowhead = session_rust::Arrowhead::BOTH;
-                    crate::chain::PreparedChain::line(std::rc::Rc::new(line))?
-                };
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::Controls(visible) => self.scene.show_controls(visible),
-            Action::AddNormals(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::normal_example::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
-            }
-            Action::AddColours(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
-            }
-            Action::AddCurve => {
-                let mut curve = session_rust::NurbsCurve::create(false, 2, &[session_rust::Point::new(-0.6, -0.4, 0.0),
-                    session_rust::Point::new(0.0, 0.6, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
-                curve.width = 5.0; curve.linecolors = vec![session_rust::Color::new(0.0, 0.0, 0.0, 0.5)];
-                let prepared = crate::chain::PreparedChain::curve(std::rc::Rc::new(curve))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::AddPoint => {
-                let mut point = session_rust::Point::new(0.0, 0.0, 0.0);
-                point.width = 12.0; point.pointcolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                let prepared = crate::marker::PreparedPoint::new(std::rc::Rc::new(point))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_point(prepared).map(|_| ()))?;
-            }
-            Action::AddLine => {
-                let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
-                line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
-                let prepared = crate::stroke::PreparedLine::new(std::rc::Rc::new(line))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_line(prepared).map(|_| ()))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-            Action::Translate(offset) => return self.move_selection(offset),
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => { let id = self.scene.next(self.selected); self.select_objects(id, false); }
-            Action::Delete => return self.delete_selection(),
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-            view => {
-                match view {
-                    Action::Background => self.background.toggle(),
-                    Action::NormalView(visible) => self.normal_view = visible,
-                    Action::Grid(settings) => {
-                        if let Some(grid) = settings { grid.half()?; grid.reach(self.camera.target)?; }
-                        self.camera.grid = settings;
-                    }
-                    Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::ZoomAt {factor,screen}=>self.camera.zoom_at(factor,screen),
-                    Action::PanScreen {delta,size}=>self.camera.pan_screen(delta,size),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
-                    Action::Isometric => self.camera.isometric(),
-                    Action::Projection(mode) => self.camera.projection = mode,
-                    Action::Fit => {
-                        if let Some(bounds) = self.display_scene().bounds_of(&self.selected_objects()).or_else(||self.display_scene().bounds()) {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::FitSelected => {
-                        if let Some(bounds) = self.display_scene().bounds_of(&self.selected_objects()).or_else(|| self.selected_part.and(self.selected).and_then(|id| self.scene.selected_bounds(id)))
-                        {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, grid: self.camera.grid,frame:self.camera.frame, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
-                return Ok(Change::View);
-            }
-        }
-        // Deletion and history travel can invalidate selection; repair it in one place.
-        self.repair_selection();
-        self.selected = self.selected.filter(|id| self.scene.contains(*id));
-        if let (Some(owner), Some(part)) = (self.selected, self.selected_part) {
-            if !(crate::pick_sources::Target { owner, part }).valid(&self.scene) { self.selected = None; }
-        }
-        if self.selected.is_none() { self.selected_part = None; }
-        Ok(Change::Scene)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_modified_history_row_protects_only_its_own_import_origin() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let first = Rc::new(crate::reload_url::ReloadUrl::new("test:first".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), first)).unwrap();
-        let origin = editor.scene.objects()[0].origin().unwrap().id;
-        let original = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        let second = Rc::new(crate::reload_url::ReloadUrl::new("test:second".into()));
-        editor.apply(Action::ImportAt(bytes, second)).unwrap();
-        let copy = Rc::downgrade(editor.scene.objects()[3].geometry().unwrap());
-        editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        let saved = editor.history.scenes_mut().last().unwrap();
-        assert_eq!(saved.objects()[0].origin().unwrap().id, origin);
-        Rc::make_mut(&mut saved.objects_mut()[0].metadata).is_locked = true;
-        assert!(editor.scene.objects()[0].can_unload());
-        editor.apply(Action::UnloadSources).unwrap();
-        assert!(original.upgrade().is_some()); assert!(copy.upgrade().is_none());
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        assert!(editor.scene.objects()[3].geometry().is_none());
-        assert_eq!(editor.last_release, 1);
-        assert!(editor.apply(Action::UnloadSources).is_err()); assert_eq!(editor.last_release, 1);
-    }
-
-    #[test]
-    fn release_epochs_do_not_wrap_or_reset_on_close() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:epoch".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), Rc::clone(&url))).unwrap();
-        editor.last_release = u64::MAX;
-        assert_eq!(editor.apply(Action::UnloadSources), Err("Release epochs exhausted"));
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        editor.last_release = 0; editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(1));
-        editor.apply(Action::Close).unwrap();
-        editor.apply(Action::ImportAt(bytes, url)).unwrap();
-        editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(2));
-    }
-
-    #[test]
-    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Import(crate::specimen::bytes())).unwrap();
-        editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap(); editor.apply(Action::Background).unwrap();
-        let view = editor.camera.uniform(); let background = editor.background.rgb();
-        editor.apply(Action::Close).unwrap();
-        assert!(editor.scene.objects().is_empty() && editor.selected.is_none());
-        assert_eq!(editor.scenes().count(), 1);
-        editor.apply(Action::Undo).unwrap(); editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.objects().is_empty());
-        assert_eq!(editor.camera.uniform(), view); assert_eq!(editor.background.rgb(), background);
-        editor.apply(Action::AddBox).unwrap();
-        assert!(!old.contains(&editor.scene.objects()[0].id));
-    }
-
-    #[test]
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
-        let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
-        let source = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
-        assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
-    }
-
-    #[test]
-    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
-        use std::rc::Rc;
-        let mut editor = Editor::default();
-        let bytes = crate::specimen::bytes();
-        editor.apply(Action::Import(bytes.clone())).unwrap();
-        editor.apply(Action::Replace(bytes.clone())).unwrap();
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(row.geometry().unwrap()))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-        assert!(displays.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(sources.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(documents.iter().all(|owner| owner.upgrade().is_none()));
-        editor.apply(Action::Import(bytes)).unwrap();
-        assert!(editor.scene.objects().iter().all(|row| !old.contains(&row.id)));
-    }
-
-    #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::ResetView).unwrap();
-        assert_eq!(editor.camera.aspect, 2.0);
-        assert_eq!(editor.camera.distance, 3.0);
-    }
-
-    #[test]
-    fn undo_changes_the_document_without_rewinding_the_view() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::Background).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert_eq!(editor.scene.objects().len(), 2);
-        assert_eq!(editor.camera.distance, 1.5);
-        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
-    }
-
-    #[test]
-    fn undo_repairs_selection_and_empty_delete_preserves_redo() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        for _ in 0..3 {
-            editor.apply(Action::SelectNext).unwrap();
-        }
-        let box_id = editor.selected.unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert!(editor.selected.is_none());
-        editor.apply(Action::Delete).unwrap();
-        editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.contains(box_id));
-    }
-
-    #[test]
-    fn picking_a_moved_view_uses_the_editors_current_camera() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
-        let point = session_rust::Point::new(0.2, 0.3, 0.75);
-        let screen = editor.camera.view_projection().transform_point(&point);
-        assert_eq!(editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap(), Change::Scene);
-        assert_eq!(editor.selected, Some(editor.scene.objects()[1].id));
-        assert_eq!(editor.apply(Action::Zoom(2.0)).unwrap(), Change::View);
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62d-identity-13.rs"
-```
-
-```text
---8<-- "journey/code/62d-identity-14.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62e-rectangles"></a>
-
-<details>
-<summary>Implementation 62e-rectangles: Select a label through its projected plate</summary>
-
-Select a label through its projected plate.
-
-Data flow: original placed label → projected plate → window or crossing rectangle → eligible owner.
-
-### 1. `src/scene_label_screen.rs`
-
-Project source-owned plate extents for rectangle selection.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/62e-rectangles-01.rs"
-```
-
-### 2. `src/lib.rs`
-
-Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod scene_label;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/62e-rectangles-02.rs" skip=22
-```
-
-### 3. `src/rect_select.rs`
-
-Include only eligible original label owners in rectangle results.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for row in scene.paths().iter().filter(|row|eligible(row.id)) {if matches(matrix,size,rectangle,vec![row.points().into_iter().map(|point|[point[0],point[1],point[2]]).collect()]) {found.push(row.id);}}
-    for row in scene.points().iter().filter(|row|eligible(row.id)) {let point=row.point();if matches(matrix,size,rectangle,vec![vec![[point[0],point[1],point[2]]]]) {found.push(row.id);}}
-    found.sort_unstable_by_key(|id|id.value());found.dedup();found
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62e-rectangles-03.rs"
+    counts
+}
+
+pub fn texts<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 4] {
+    let mut sources = HashSet::new();
+    let mut usage = [0; 4];
+    for scene in scenes {
+        usage[0] += scene.texts().len();
+        usage[2] +=
+            scene.texts().len() * std::mem::size_of::<crate::scene_label::Row>();
+        for row in scene.texts() {
+            if sources.insert(Rc::as_ptr(&row.prepared.source)) {
+                let source = &row.prepared.source;
+                usage[3] += std::mem::size_of::<crate::scene_label::Source>()
+                    + source.guid.capacity()
+                    + source.name.capacity()
+                    + source.label.text.capacity();
+            }
+        }
+    }
+    usage[1] = sources.len();
+    usage
+}
 ```
 
-</details>
+### 5. `src/editor.rs`
 
-<a id="checkpoint-62f-gpu-support"></a>
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Implementation 62f-gpu-support: Supply the text buffer and target adapters</summary>
+**Locate this block:**
 
-Supply the text buffer and target adapters.
+```rust
+                    .chain(self.scene.lines().iter().map(|r| r.id))
+                    .chain(self.scene.paths().iter().map(|r| r.id))
+                    .chain(self.scene.points().iter().map(|r| r.id))
+                    .collect();
+```
 
-Data flow: current text vertices → bounded buffer → explicit bindings → colour and integer targets.
+Replace it with:
 
-### 1. `src/text_gpu_support.rs`
+```rust
+                    .chain(self.scene.lines().iter().map(|r| r.id))
+                    .chain(self.scene.paths().iter().map(|r| r.id))
+                    .chain(self.scene.points().iter().map(|r| r.id))
+                    .chain(self.scene.texts().iter().map(|r| r.id))
+                    .collect();
+```
 
-Adapt current text buffers and bindings to this cumulative renderer.
+**Locate this block:**
+
+```rust
+        }
+        let object = self
+            .scene
+            .objects()
+            .iter()
+            .find(|row| row.id == id)
+            .ok_or("Object not found")?;
+        if self.scene.forest.readonly(id) {
+            return Err("Object attributes follow their parent and are read only");
+        }
+        if object.geometry().is_none() {
+            return Err("Reload editable sources before Move");
+        }
+        if offset.iter().all(|&value| value == 0.0) {
+```
+
+Replace it with:
+
+```rust
+        }
+        if !self.scene.contains(id) {
+            return Err("Object not found");
+        }
+        let object = self
+            .scene
+            .objects()
+            .iter()
+            .find(|row| row.id == id);
+        if self.scene.forest.readonly(id) {
+            return Err("Object attributes follow their parent and are read only");
+        }
+        if object.is_some_and(|object| object.geometry().is_none()) {
+            return Err("Reload editable sources before Move");
+        }
+        if offset.iter().all(|&value| value == 0.0) {
+```
+
+## <a id="checkpoint-62e-rectangles"></a>6. Select a label through its projected plate
+
+### 1. `src/scene_label_screen.rs`
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/62f-gpu-support-01.rs"
+use crate::{
+    rect_select::{Rectangle, screen},
+    scene_label::Row,
+    text::TextPlacement,
+};
+
+pub fn polygon(row: &Row, matrix: &[f64; 16], size: [f64; 2]) -> Option<Vec<[f64; 2]>> {
+    let label = row.label(false, true).ok()?;
+    let [width, height] = row.prepared.extent;
+    if let TextPlacement::WorldPlane {
+        world,
+        right,
+        up,
+        world_height,
+    } = label.placement
+    {
+        let unit = world_height / label.font_size as f64;
+        let vertical = label.font_size as f64 * 2. / 9.;
+        let horizontal = height * 0.5 + vertical;
+        return [
+            [-horizontal, -vertical],
+            [-horizontal, height + vertical],
+            [width + horizontal, height + vertical],
+            [width + horizontal, -vertical],
+        ]
+        .into_iter()
+        .map(|[x, y]| {
+            screen(
+                matrix,
+                std::array::from_fn(|i| world[i] + (right[i] * x - up[i] * y) * unit),
+                size,
+            )
+        })
+        .collect();
+    }
+    let (world, offset, scale, center, padding) = match label.placement {
+        TextPlacement::Anchor { world, offset } => (
+            world,
+            offset,
+            1.,
+            false,
+            [
+                height * 0.5 + label.font_size as f64 * 2. / 9.,
+                label.font_size as f64 * 2. / 9.,
+            ],
+        ),
+        TextPlacement::Nameplate {
+            world,
+            padding,
+            rounded,
+        } => (
+            world,
+            [0.; 2],
+            1.,
+            true,
+            [
+                if rounded {
+                    (padding[0] as f64).max(height * 0.5 + padding[1] as f64)
+                } else {
+                    padding[0] as f64
+                },
+                padding[1] as f64,
+            ],
+        ),
+        TextPlacement::WorldBillboard {
+            world,
+            world_height,
+        } => {
+            let w = (0..3)
+                .map(|i| matrix[i * 4 + 3] * world[i])
+                .sum::<f64>()
+                + matrix[15];
+            let projection = [matrix[1], matrix[5], matrix[9]]
+                .iter()
+                .map(|n| n * n)
+                .sum::<f64>()
+                .sqrt();
+            let scale =
+                world_height * projection * size[1] / (2. * w * label.font_size as f64);
+            if !scale.is_finite() || scale <= 0. {
+                return None;
+            }
+            (
+                world,
+                [0.; 2],
+                scale,
+                false,
+                [
+                    height * 0.5 + label.font_size as f64 * 2. / 9.,
+                    label.font_size as f64 * 2. / 9.,
+                ],
+            )
+        }
+        _ => return None,
+    };
+    let [mut left, mut top] = screen(matrix, world, size)?;
+    left += offset[0] as f64;
+    top += offset[1] as f64;
+    if center {
+        left -= width * scale * 0.5;
+        top -= height * scale * 0.5;
+    }
+    let bounds = [
+        left - padding[0] * scale,
+        top - padding[1] * scale,
+        left + (width + padding[0]) * scale,
+        top + (height + padding[1]) * scale,
+    ];
+    Some(vec![
+        [bounds[0], bounds[1]],
+        [bounds[0], bounds[3]],
+        [bounds[2], bounds[3]],
+        [bounds[2], bounds[1]],
+    ])
+}
+fn inside(p: [f64; 2], points: &[[f64; 2]]) -> bool {
+    let mut sign = 0.;
+    for (a, b) in points
+        .iter()
+        .zip(points.iter().cycle().skip(1))
+        .take(points.len())
+    {
+        let cross = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+        if cross == 0. {
+            continue;
+        }
+        if sign == 0. {
+            sign = cross.signum();
+        } else if sign != cross.signum() {
+            return false;
+        }
+    }
+    sign != 0.
+}
+pub fn matches(
+    row: &Row,
+    matrix: &[f64; 16],
+    size: [f64; 2],
+    rectangle: Rectangle,
+) -> bool {
+    let Some(points) = polygon(row, matrix, size) else {
+        return false;
+    };
+    if !rectangle.crossing {
+        return points.iter().all(|p| rectangle.contains(*p));
+    }
+    points.iter().any(|p| rectangle.contains(*p))
+        || points
+            .iter()
+            .zip(points.iter().cycle().skip(1))
+            .take(points.len())
+            .any(|(a, b)| rectangle.crosses(*a, *b))
+        || inside(
+            [rectangle.bounds[0], rectangle.bounds[1]],
+            &points,
+        )
+}
 ```
 
 ### 2. `src/lib.rs`
 
-Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+mod text_atlas_tests;
+
+pub mod scene_label;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod text_atlas_tests;
+
+pub mod scene_label;
 
 pub mod scene_label_screen;
 ```
 
-</details>
+### 3. `src/rect_select.rs`
 
-After that block, type:
-
-```rust
---8<-- "journey/code/62f-gpu-support-02.rs" skip=29
-```
-
-</details>
-
-<a id="checkpoint-62g-plane-shader"></a>
-
-<details>
-<summary>Implementation 62g-plane-shader: Keep plane clipping correct in a small pick window</summary>
-
-Keep plane clipping correct in a small pick window.
-
-Data flow: original clip position → cropped integer draw → original canvas clip → original row id.
-
-### 1. `src/text_plane.wgsl`
-
-Keep original clip coordinates through the bounded pick crop and shade actual rounded coverage.
-
-Create the file and type:
-
-```wgsl
---8<-- "journey/code/62g-plane-shader-01.rs"
-```
-
-</details>
-
-<a id="checkpoint-62h-plate-shader"></a>
-
-<details>
-<summary>Implementation 62h-plate-shader: Draw the current rounded nameplate and its original ID</summary>
-
-Draw the current rounded nameplate and its original ID.
-
-Data flow: projected plate → rounded distance → colour coverage or original integer id.
-
-### 1. `src/text_plate.wgsl`
-
-Shade current rounded plates and preserve integer coverage ownership.
-
-Create the file and type:
-
-```wgsl
---8<-- "journey/code/62h-plate-shader-01.rs"
-```
-
-</details>
-
-<a id="checkpoint-62i-coverage"></a>
-
-<details>
-<summary>Implementation 62i-coverage: Keep CSS pixels separate from framebuffer pixels</summary>
-
-Validate one uniform device scale before allocating or positioning text. Keep world origins in f64 and GPU matrices in f32.
-
-Data flow: keep css pixels separate from framebuffer pixels.
-
-### 1. `src/scene_text_gpu.rs`
-
-Add this part of keep css pixels separate from framebuffer pixels.
-
-Create the file and type:
+**Locate this existing block:**
 
 ```rust
---8<-- "journey/code/62i-coverage-01.rs"
+    }
+    found.sort_unstable_by_key(|id| id.value());
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    }
+    for row in scene
+        .texts()
+        .iter()
+        .filter(|row| eligible(row.id))
+    {
+        if crate::scene_label_screen::matches(row, matrix, size, rectangle) {
+            found.push(row.id);
+        }
+    }
+    found.sort_unstable_by_key(|id| id.value());
+```
+
+## <a id="checkpoint-62f-gpu-support"></a>7. Supply the text buffer and target adapters
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Camera / View Uniform (16-Byte Aligned)</text>
+  <rect x="52" y="48" width="268" height="106" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="66" y="58" width="240" height="38" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="81" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">view_proj: [[f32; 4]; 4] (64B)</text>
+  <rect x="66" y="104" width="240" height="36" fill="#fef08a" stroke="#d97706" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">eye_pos / viewport_px (16B)</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_buffer -&gt; wgpu::BindGroup (@group(0))</text>
+  <rect x="424" y="50" width="272" height="102" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <rect x="442" y="64" width="236" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="84" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">BufferUsages::UNIFORM | COPY_DST</text>
+  <rect x="442" y="106" width="236" height="32" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="126" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">pass.set_bind_group(0, &amp;bg, &amp;[])</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Shader Uniform Read: var&lt;uniform&gt;</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">@group(0) @binding(0)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="98" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">var&lt;uniform&gt; u: Uniforms;</text>
+  <rect x="828" y="114" width="212" height="32" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">u.view_proj * vec4(p, 1.0)</text>
+</svg>
+</div>
+
+### 1. `src/text_gpu_support.rs`
+
+Create the file and type:
+
+```rust
+pub struct GpuCtx {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+}
+impl GpuCtx {
+    pub fn new(device: &wgpu::Device, queue: &wgpu::Queue) -> Self {
+        Self {
+            device: device.clone(),
+            queue: queue.clone(),
+        }
+    }
+}
+pub type Pipeline = wgpu::RenderPipeline;
+#[derive(Clone, Copy)]
+pub struct Target {
+    pub format: wgpu::TextureFormat,
+    pub samples: u32,
+}
+impl Target {
+    pub const ID: Self = Self {
+        format: wgpu::TextureFormat::Rg32Uint,
+        samples: 1,
+    };
+}
+pub const VERTS: wgpu::BufferUsages =
+    wgpu::BufferUsages::VERTEX.union(wgpu::BufferUsages::COPY_DST);
+pub struct GrowBuf {
+    pub buf: wgpu::Buffer,
+    stride: u64,
+    len: u32,
+    label: &'static str,
+    usage: wgpu::BufferUsages,
+}
+impl GrowBuf {
+    pub fn new(
+        ctx: &GpuCtx,
+        label: &'static str,
+        stride: u64,
+        usage: wgpu::BufferUsages,
+    ) -> Self {
+        Self {
+            buf: ctx
+                .device
+                .create_buffer(&wgpu::BufferDescriptor {
+                    label: Some(label),
+                    size: stride,
+                    usage,
+                    mapped_at_creation: false,
+                }),
+            stride,
+            len: 0,
+            label,
+            usage,
+        }
+    }
+    pub fn append<const N: usize>(&mut self, ctx: &GpuCtx, vertices: &[[f32; N]]) {
+        assert_eq!(self.stride, N as u64 * 4);
+        if vertices.is_empty() {
+            return;
+        }
+        let count = u32::try_from(vertices.len()).expect("Bounded text vertices");
+        let size = (self.len as u64 + count as u64) * self.stride;
+        if size > self.buf.size() {
+            assert_eq!(
+                self.len, 0,
+                "Text upload starts at an empty buffer"
+            );
+            self.buf = ctx
+                .device
+                .create_buffer(&wgpu::BufferDescriptor {
+                    label: Some(self.label),
+                    size: size.next_power_of_two(),
+                    usage: self.usage,
+                    mapped_at_creation: false,
+                });
+        }
+        let bytes: Vec<u8> = vertices
+            .iter()
+            .flatten()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        ctx.queue.write_buffer(
+            &self.buf,
+            self.len as u64 * self.stride,
+            &bytes,
+        );
+        self.len += count;
+    }
+    pub fn reset(&mut self) {
+        self.len = 0;
+    }
+    pub fn release(&mut self, ctx: &GpuCtx) {
+        *self = Self::new(ctx, self.label, self.stride, self.usage);
+    }
+    pub fn len(&self) -> u32 {
+        self.len
+    }
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+pub fn texture_entry(
+    binding: u32,
+    visibility: wgpu::ShaderStages,
+    sample_type: wgpu::TextureSampleType,
+    multisampled: bool,
+) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility,
+        ty: wgpu::BindingType::Texture {
+            sample_type,
+            view_dimension: wgpu::TextureViewDimension::D2,
+            multisampled,
+        },
+        count: None,
+    }
+}
+pub fn resource_group<'a, const N: usize>(
+    ctx: &GpuCtx,
+    layout: &wgpu::BindGroupLayout,
+    label: &str,
+    entries: [(u32, wgpu::BindingResource<'a>); N],
+) -> wgpu::BindGroup {
+    ctx.device
+        .create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some(label),
+            layout,
+            entries: &entries
+                .into_iter()
+                .map(|(binding, resource)| wgpu::BindGroupEntry {
+                    binding,
+                    resource,
+                })
+                .collect::<Vec<_>>(),
+        })
+}
 ```
 
 ### 2. `src/lib.rs`
 
-Compile the text-frame preparation in the cumulative browser crate.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+pub mod scene_label;
+
+pub mod scene_label_screen;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod scene_label;
+
+pub mod scene_label_screen;
 
 pub mod text_gpu_support;
 ```
 
-</details>
+## <a id="checkpoint-62g-plane-shader"></a>8. Keep plane clipping correct in a small pick window
 
-After that block, type:
+### 1. `src/text_plane.wgsl`
 
-```rust
---8<-- "journey/code/62i-coverage-02.rs" skip=27
+Create the file and type:
+
+```wgsl
+struct Vertex {
+    @builtin(position) position: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+    @location(1) color: vec4<f32>,
+    @location(2) @interpolate(flat) clip: vec4<f32>,
+    @location(3) @interpolate(flat) object: u32,
+    @location(4) @interpolate(flat) selected: f32,
+    @location(5) original: vec4<f32>,
+}
+
+@group(0) @binding(0) var coverage_texture: texture_2d<f32>;
+@group(0) @binding(1) var coverage_sampler: sampler;
+
+@group(1) @binding(0) var<uniform> pick: mat4x4<f32>;
+
+fn plane_vertex(position: vec4<f32>, uv: vec2<f32>, color: vec4<f32>, clip: vec4<f32>,
+                object: u32, selected: f32) -> Vertex {
+    var out: Vertex;
+    out.original = position;
+    out.position = position; out.uv = uv; out.color = color; out.clip = clip;
+    out.object = object; out.selected = selected;
+    return out;
+}
+
+@vertex
+fn vs_main(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
+           @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
+           @location(4) object: u32, @location(5) selected: f32) -> Vertex {
+    return plane_vertex(position, uv, color, clip, object, selected);
+}
+
+@vertex
+fn vs_id(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
+         @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
+         @location(4) object: u32, @location(5) selected: f32) -> Vertex {
+    var out = plane_vertex(position, uv, color, clip, object, selected);
+    out.position = pick * position;
+    return out;
+}
+
+fn plate_distance(uv: vec2<f32>) -> f32 {
+    let half_size = vec2<f32>(textureDimensions(coverage_texture)) * 0.5;
+    let radius = min(half_size.x, half_size.y);
+    let q = abs((uv * 2.0 - 1.0) * half_size) - half_size + radius;
+    return length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
+}
+
+@fragment
+fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
+    let original = in.original.xy / in.original.w;
+    if (original.x < in.clip.x || original.y <= in.clip.y || original.x >= in.clip.z || original.y > in.clip.w) {
+        discard;
+    }
+
+    let coverage = textureSample(coverage_texture, coverage_sampler, in.uv).r;
+    let distance = plate_distance(in.uv);
+    let plate_coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
+    let background = vec3<f32>(in.selected, in.selected, 0.0);
+    return vec4<f32>(mix(background, in.color.rgb, coverage), in.color.a * plate_coverage);
+}
+
+@fragment
+fn fs_id(in: Vertex) -> @location(0) vec2<u32> {
+    let original = in.original.xy / in.original.w;
+    if (original.x < in.clip.x || original.y <= in.clip.y || original.x >= in.clip.z || original.y > in.clip.w) {
+        discard;
+    }
+
+    if (plate_distance(in.uv) > 0.0) {
+        discard;
+    }
+
+    return vec2<u32>(in.object, 0u);
+}
 ```
 
-</details>
+## <a id="checkpoint-62h-plate-shader"></a>9. Draw the current rounded nameplate and its ID
 
-<a id="checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"></a>
+### 1. `src/text_plate.wgsl`
 
-<details>
-<summary>Implementation 62ia-project-an-original-label-into-framebuffer-coordinates: Project an original label into framebuffer coordinates</summary>
+Create the file and type:
 
-Subtract the declared scene origin before projection. Cull invalid depth and apply the CSS/device scale once.
+```wgsl
+struct PlateVertex {
+    @builtin(position) position: vec4<f32>,
+    @location(0) local: vec2<f32>,
+    @location(1) half_size: vec2<f32>,
+    @location(2) radius: f32,
+    @location(3) @interpolate(flat) object: u32,
+    @location(4) @interpolate(flat) selected: f32,
+}
 
-Data flow: project an original label into framebuffer coordinates.
+@group(0) @binding(0) var<uniform> pick: mat4x4<f32>;
+
+fn plate_vertex(position: vec4<f32>, local: vec2<f32>, half_size: vec2<f32>, radius: f32,
+                object: u32, selected: f32) -> PlateVertex {
+    var out: PlateVertex;
+    out.position = position;
+    out.local = local;
+    out.half_size = half_size;
+    out.radius = radius;
+    out.object = object;
+    out.selected = selected;
+    return out;
+}
+
+@vertex
+fn vs_main(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
+           @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
+           @location(5) selected: f32) -> PlateVertex {
+    return plate_vertex(vec4<f32>(position, 1.0), local, half_size, radius, object, selected);
+}
+
+@vertex
+fn vs_id(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
+         @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
+         @location(5) selected: f32) -> PlateVertex {
+    return plate_vertex(pick * vec4<f32>(position, 1.0), local, half_size, radius, object, selected);
+}
+
+fn plate_distance(in: PlateVertex) -> f32 {
+    let radius = min(in.radius, min(in.half_size.x, in.half_size.y));
+    let q = abs(in.local) - in.half_size + vec2<f32>(radius);
+    return length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
+}
+
+@fragment
+fn fs_main(in: PlateVertex) -> @location(0) vec4<f32> {
+    let distance = plate_distance(in);
+    let coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
+    return vec4<f32>(in.selected, in.selected, 0.0, coverage);
+}
+
+@fragment
+fn fs_id(in: PlateVertex) -> @location(0) vec2<u32> {
+    if (plate_distance(in) > 0.0) {
+        discard;
+    }
+
+    return vec2<u32>(in.object, 0u);
+}
+```
+
+## <a id="checkpoint-62i-coverage"></a>10. Keep CSS pixels separate from framebuffer pixels
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of project an original label into framebuffer coordinates.
+Create the file and type:
 
-<details>
-<summary>Locate the existing block</summary>
+```rust
+use crate::text::{TextDocument, TextLabel, TextPlacement, TextRun};
+use crate::text_gpu_support::GpuCtx;
+use crate::text_gpu_support::Target;
+use glyphon::{
+    Cache, Color, ColorMode, Resolution, SwashCache, TextArea, TextAtlas, TextBounds,
+    TextRenderer, Viewport,
+};
+use serde::Serialize;
+use std::collections::{HashMap, HashSet};
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TextFrame {
+    pub mvp: [f32; 16],
+    pub origin: [f64; 3],
+    pub framebuffer: [u32; 2],
+    pub logical: [f64; 2],
+    pub ortho_half_height: f32,
+    pub clip: [[f64; 4]; 4],
+}
+
+impl TextFrame {
+    fn canvas(&self) -> TextFrame {
+        TextFrame {
+            mvp: [0.0; 16],
+            origin: [0.0; 3],
+            ortho_half_height: 0.0,
+            clip: [[0.0; 4]; 4],
+            ..self.clone()
+        }
+    }
+
+    pub fn cut(&self, p: [f64; 3]) -> bool {
+        self.clip
+            .iter()
+            .any(|k| k[0] * p[0] + k[1] * p[1] + k[2] * p[2] + k[3] < 0.0)
+    }
+
+    pub fn scale(&self) -> anyhow::Result<f32> {
+        anyhow::ensure!(
+            self.framebuffer[0] > 0 && self.framebuffer[1] > 0,
+            "empty text framebuffer"
+        );
+        anyhow::ensure!(
+            self.logical[0].is_finite()
+                && self.logical[1].is_finite()
+                && self.logical[0] > 0.0
+                && self.logical[1] > 0.0,
+            "empty text CSS box"
+        );
+        let x = self.framebuffer[0] as f64 / self.logical[0];
+        let y = self.framebuffer[1] as f64 / self.logical[1];
+        let tolerance = 1.0 / self.logical[0] + 1.0 / self.logical[1];
+        anyhow::ensure!(
+            (x - y).abs() <= tolerance,
+            "text canvas is stretched non-uniformly"
+        );
+        Ok(y as f32)
+    }
+}
+```
+
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod scene_label_screen;
+
+pub mod text_gpu_support;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod scene_label_screen;
+
+pub mod text_gpu_support;
+
+pub mod scene_text_gpu;
+```
+
+## <a id="checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"></a>11. Project an label into framebuffer coordinates
+
+### 1. `src/scene_text_gpu.rs`
+
+**Locate this existing block:**
 
 ```rust
     }
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ia-project-an-original-label-into-framebuffer-coordinates-01.rs" skip=8
+    }
+}
+
+struct PlacedText {
+    left: f32,
+    top: f32,
+    scale: f32,
+    depth: Option<f32>,
+}
+
+fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText> {
+    let (world, offset, world_height) = match label.placement {
+        TextPlacement::WorldPlane { .. } => return None,
+        TextPlacement::Screen { left, top } => {
+            return Some(PlacedText {
+                left: left * scale,
+                top: top * scale,
+                scale,
+                depth: None,
+            });
+        }
+        TextPlacement::Anchor { world, offset } => (world, offset, None),
+        TextPlacement::Nameplate { world, .. } => (world, [0.0; 2], None),
+        TextPlacement::WorldBillboard {
+            world,
+            world_height,
+        } => (world, [0.0; 2], Some(world_height)),
+    };
+
+    if frame.cut(world) {
+        return None;
+    }
+
+    let p = [
+        (world[0] - frame.origin[0]) as f32,
+        (world[1] - frame.origin[1]) as f32,
+        (world[2] - frame.origin[2]) as f32,
+    ];
+    let m = &frame.mvp;
+    let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
+
+    if !w.is_finite() || w <= 0.0 {
+        return None;
+    }
+
+    let z = (m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]) / w;
+
+    if !(0.0..=1.0).contains(&z) {
+        return None;
+    }
+
+    let x = (m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12]) / w;
+    let y = (m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13]) / w;
+    let raster_scale = match world_height {
+        Some(height) => {
+            let projection = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
+            height as f32 * projection * frame.framebuffer[1] as f32
+                / (2.0 * w * label.font_size)
+        }
+        None => scale,
+    };
+
+    if !raster_scale.is_finite() || raster_scale <= 0.0 {
+        return None;
+    }
+
+    Some(PlacedText {
+        left: (x + 1.0) * 0.5 * frame.framebuffer[0] as f32 + offset[0] * scale,
+        top: (1.0 - y) * 0.5 * frame.framebuffer[1] as f32 + offset[1] * scale,
+        scale: raster_scale,
+        depth: match label.placement {
+            TextPlacement::Nameplate { .. } => None,
+            _ => Some(z),
+        },
+    })
+}
+
+fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
+    match label.clip {
+        Some(c) => TextBounds {
+            left: (c[0] * scale).floor() as i32,
+            top: (c[1] * scale).floor() as i32,
+            right: (c[2] * scale).ceil() as i32,
+            bottom: (c[3] * scale).ceil() as i32,
+        },
+        None => TextBounds {
+            left: 0,
+            top: 0,
+            right: frame.framebuffer[0] as i32,
+            bottom: frame.framebuffer[1] as i32,
+        },
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>
-
-<details>
-<summary>Implementation 62ib-give-nameplate-vertices-one-gpu-owner: Give nameplate vertices one GPU owner</summary>
-
-Keep the rectangle input separate from the retained vertex buffer and its color/ID pipelines.
-
-Data flow: give nameplate vertices one gpu owner.
+## <a id="checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"></a>12. Give nameplate vertices one GPU owner
 
 ### 1. `src/text_plate.rs`
-
-Add this part of give nameplate vertices one gpu owner.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/62ib-give-nameplate-vertices-one-gpu-owner-01.rs"
+use crate::text_gpu_support::{GpuCtx, GrowBuf, VERTS};
+use crate::text_gpu_support::{Pipeline, Target};
+
+pub(super) struct Rectangle {
+    pub(super) bounds: [f32; 4],
+    pub(super) clip: [f32; 4],
+    pub(super) rounded: bool,
+    pub(super) depth: Option<f32>,
+    pub(super) object: Option<crate::text::TextObject>,
+}
+pub(super) struct Plates {
+    vertices: GrowBuf,
+    pipeline: Pipeline,
+    id_pipeline: Pipeline,
+    physical_vertices: u32,
+}
 ```
 
 ### 2. `src/scene_text_gpu.rs`
 
-Compile the already-created child owner in the text lane.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         },
@@ -2942,93 +1753,219 @@ Compile the already-created child owner in the text lane.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ib-give-nameplate-vertices-one-gpu-owner-02.rs" skip=19
+        },
+    }
+}
+
+#[path = "text_plate.rs"]
+mod plate;
 ```
 
-</details>
-
-<a id="checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"></a>
-
-<details>
-<summary>Implementation 62ic-build-nameplate-color-and-object-id-pipelines: Build nameplate color and object-ID pipelines</summary>
-
-Prepare color and original-ID pipelines for nameplate geometry.
-
-Data flow: build nameplate color and object-id pipelines.
+## <a id="checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"></a>13. Build nameplate color and object-ID pipelines
 
 ### 1. `src/text_plate.rs`
 
-Add this part of build nameplate color and object-id pipelines.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     physical_vertices: u32,
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ic-build-nameplate-color-and-object-id-pipelines-01.rs" skip=30
+    physical_vertices: u32,
+}
+
+fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> Pipeline {
+    let device = ctx.device.clone();
+    let pick = crate::gpu_layout::uniform(&ctx.device, 80);
+    {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("text plate shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("text_plate.wgsl").into()),
+        });
+        let id_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("text plate ids"),
+                bind_group_layouts: &[Some(&pick)],
+                immediate_size: 0,
+            });
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("text plates"),
+            layout: if ids { Some(&id_layout) } else { None },
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some(if ids { "vs_id" } else { "vs_main" }),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 40,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x2, 3 => Float32, 4 => Uint32, 5 => Float32],
+                }],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some(if ids { "fs_id" } else { "fs_main" }),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: target.format,
+                    blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) },
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: wgpu::MultisampleState {
+                count: target.samples,
+                ..Default::default()
+            },
+            multiview_mask: None,
+            cache: None,
+        })
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-62id-own-and-release-nameplate-draw-resources"></a>14. Own and release nameplate draw resources
 
-<a id="checkpoint-62id-own-and-release-nameplate-draw-resources"></a>
-
-<details>
-<summary>Implementation 62id-own-and-release-nameplate-draw-resources: Own and release nameplate draw resources</summary>
-
-Construct the buffers and pipelines once, draw physical and overlay plates in their declared phases, and reset logical vertex counts independently of capacity.
-
-Data flow: own and release nameplate draw resources.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU CommandEncoder Records GPU Commands</text>
+  <rect x="54" y="50" width="264" height="102" rx="6" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">wgpu::CommandEncoder</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#2563eb">1. begin_render_pass (3D Scene)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#16a34a">2. begin_render_pass (Overlay/UI)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#dc2626">3. encoder.finish()</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Pass 1 (LoadOp::Clear) -&gt; Pass 2 (LoadOp::Load)</text>
+  <rect x="416" y="52" width="128" height="96" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="480" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 1: Clear</text>
+  <polygon points="452,132 480,88 508,132" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="52" width="128" height="96" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Pass 2: Load</text>
+  <polygon points="612,126 640,86 668,126" fill="#93c5fd" stroke="#111111" stroke-width="1.5"/>
+  <rect x="590" y="130" width="100" height="12" fill="#fef08a" stroke="#111111" stroke-width="1"/>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.submit([cmd_buf]) -&gt; GPU Execution</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <polygon points="884,132 934,58 984,132" fill="#93c5fd" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="136" width="224" height="18" rx="3" fill="#f1f5f9" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="149" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Composited Frame Ready</text>
+</svg>
+</div>
 
 ### 1. `src/text_plate.rs`
 
-Add this part of own and release nameplate draw resources.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     }
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62id-own-and-release-nameplate-draw-resources-01.rs" skip=8
+    }
+}
+
+impl Plates {
+    pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
+        Self {
+            vertices: GrowBuf::new(ctx, "text.plates", 40, VERTS),
+            pipeline: pipeline(ctx, target, false),
+            id_pipeline: pipeline(ctx, Target::ID, true),
+            physical_vertices: 0,
+        }
+    }
+
+    pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
+        self.pipeline = pipeline(ctx, target, false);
+    }
+
+    pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>, overlay: bool) -> u32 {
+        let range = if overlay {
+            self.physical_vertices..self.vertices.len()
+        } else {
+            0..self.physical_vertices
+        };
+
+        if range.is_empty() {
+            return 0;
+        }
+
+        pass.set_pipeline(&self.pipeline);
+        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
+        pass.draw(range, 0..1);
+        1
+    }
+
+    pub(super) fn draw_ids(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        pick_transform: &wgpu::BindGroup,
+    ) -> u32 {
+        if self.vertices.is_empty() {
+            return 0;
+        }
+
+        pass.set_pipeline(&self.id_pipeline);
+        pass.set_bind_group(0, pick_transform, &[]);
+        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
+        pass.draw(0..self.vertices.len(), 0..1);
+        1
+    }
+
+    pub(super) fn reset(&mut self) {
+        self.vertices.reset();
+        self.physical_vertices = 0;
+    }
+
+    pub(super) fn release(&mut self, ctx: &GpuCtx) {
+        self.vertices.release(ctx);
+    }
+
+    pub(super) fn allocated_bytes(&self) -> u64 {
+        self.vertices.buf.size()
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>
-
-<details>
-<summary>Implementation 62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system: Upload nameplate rectangles in one physical coordinate system</summary>
-
-Generate the packed rectangle vertices once and retain the split between depth-tested plates and screen overlays.
-
-Data flow: upload nameplate rectangles in one physical coordinate system.
+## <a id="checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"></a>15. Upload nameplate rectangles in one physical coordinate system
 
 ### 1. `src/text_plate.rs`
 
-Add this part of upload nameplate rectangles in one physical coordinate system.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         self.vertices.buf.size()
@@ -3036,72 +1973,277 @@ Add this part of upload nameplate rectangles in one physical coordinate system.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system-01.rs" skip=41
+        self.vertices.buf.size()
+    }
+}
+
+impl Plates {
+    pub(super) fn prepare(
+        &mut self,
+        ctx: &GpuCtx,
+        rectangles: &[Rectangle],
+        size: [u32; 2],
+    ) {
+        self.vertices.reset();
+        let mut vertices = Vec::with_capacity(rectangles.len() * 6);
+        self.physical_vertices = 0;
+
+        for overlay in [false, true] {
+            for rectangle in rectangles {
+                if rectangle.depth.is_none() != overlay {
+                    continue;
+                }
+
+                let [left, top, right, bottom] = rectangle.bounds;
+                let half = [(right - left) * 0.5, (bottom - top) * 0.5];
+                let center = [(left + right) * 0.5, (top + bottom) * 0.5];
+                let radius = if rectangle.rounded {
+                    half[0].min(half[1]).max(0.0)
+                } else {
+                    0.0
+                };
+                let left = left.max(rectangle.clip[0]);
+                let top = top.max(rectangle.clip[1]);
+                let right = right.min(rectangle.clip[2]);
+                let bottom = bottom.min(rectangle.clip[3]);
+
+                if right <= left || bottom <= top {
+                    continue;
+                }
+
+                for [x, y] in [
+                    [left, top],
+                    [left, bottom],
+                    [right, bottom],
+                    [left, top],
+                    [right, bottom],
+                    [right, top],
+                ] {
+                    vertices.push([
+                        2.0 * x / size[0] as f32 - 1.0,
+                        1.0 - 2.0 * y / size[1] as f32,
+                        rectangle.depth.unwrap_or(0.0),
+                        x - center[0],
+                        y - center[1],
+                        half[0],
+                        half[1],
+                        radius,
+                        f32::from_bits(
+                            rectangle
+                                .object
+                                .map_or(0, |object| object.row.wrapping_add(1)),
+                        ),
+                        if rectangle
+                            .object
+                            .is_some_and(|object| object.selected)
+                        {
+                            1.0
+                        } else {
+                            0.0
+                        },
+                    ]);
+                }
+            }
+
+            if !overlay {
+                self.physical_vertices = vertices.len() as u32;
+            }
+        }
+
+        self.vertices.append(ctx, &vertices);
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62if-place-the-plate-around-the-shaped-label"></a>
-
-<details>
-<summary>Implementation 62if-place-the-plate-around-the-shaped-label: Place the plate around the shaped label</summary>
-
-Compute padding and rounded bounds in the same coordinate system as glyph placement. Define text statistics as observations, not source data.
-
-Data flow: place the plate around the shaped label.
+## <a id="checkpoint-62if-place-the-plate-around-the-shaped-label"></a>16. Place the plate around the shaped label
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of place the plate around the shaped label.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 #[path = "text_plate.rs"]
 mod plate;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62if-place-the-plate-around-the-shaped-label-01.rs" skip=37
+#[path = "text_plate.rs"]
+mod plate;
+
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct TextStats {
+    pub preparations: u64,
+    pub skipped_preparations: u64,
+    pub shape_count: u64,
+    pub shaping_ms: f64,
+    pub requested_glyphs: usize,
+    pub distinct_raster_keys: usize,
+    pub new_raster_keys: usize,
+    pub raster_images: usize,
+    pub new_raster_images: usize,
+    pub raster_image_capacity_bytes: usize,
+    pub atlas_resets: u64,
+    pub preparation_ms: f64,
+    pub active_instance_bytes: usize,
+    pub missing_glyphs: usize,
+    pub nameplate_capacity_bytes: u64,
+    pub world_plane_buffer_bytes: u64,
+    pub world_plane_texture_bytes: u64,
+    pub world_plane_rasterizations: u64,
+}
+
+fn text_rectangle(
+    run: &TextRun,
+    placed: &mut PlacedText,
+    frame: &TextFrame,
+    scale: f32,
+) -> Option<plate::Rectangle> {
+    let (mut padding, rounded, centered) = match run.label.placement {
+        TextPlacement::Nameplate {
+            padding, rounded, ..
+        } => (padding, rounded, true),
+        _ if run.label.object.is_some() => (
+            [0.0, run.label.font_size * 2.0 / 9.0],
+            true,
+            false,
+        ),
+        _ => return None,
+    };
+
+    if run.label.text.is_empty() {
+        return None;
+    }
+
+    let mut width = 0.0f32;
+    let mut top = f32::INFINITY;
+    let mut bottom = f32::NEG_INFINITY;
+
+    for line in run.buffer.layout_runs() {
+        width = width.max(line.line_w);
+        top = top.min(line.line_top);
+        bottom = bottom.max(line.line_top + line.line_height);
+    }
+
+    if !top.is_finite() || !bottom.is_finite() {
+        return None;
+    }
+
+    if rounded {
+        padding[0] = padding[0].max((bottom - top) * 0.5 + padding[1]);
+    }
+
+    let raster = placed.scale;
+
+    if centered {
+        placed.left -= width * raster * 0.5;
+        placed.top -= (top + bottom) * raster * 0.5;
+    }
+
+    let bounds = clip_bounds(&run.label, frame, scale);
+    let bounds = [
+        bounds.left as f32,
+        bounds.top as f32,
+        bounds.right as f32,
+        bounds.bottom as f32,
+    ];
+    Some(plate::Rectangle {
+        bounds: [
+            placed.left - padding[0] * raster,
+            placed.top + (top - padding[1]) * raster,
+            placed.left + (width + padding[0]) * raster,
+            placed.top + (bottom + padding[1]) * raster,
+        ],
+        clip: bounds,
+        rounded,
+        depth: placed.depth,
+        object: run.label.object,
+    })
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>
-
-<details>
-<summary>Implementation 62ig-give-world-text-a-bounded-coverage-cache: Give world text a bounded coverage cache</summary>
-
-A cached plane owns its texture and bind group. Drop destroys the texture; a changed placement may reuse the raster while font/text changes invalidate it.
-
-Data flow: give world text a bounded coverage cache.
+## <a id="checkpoint-62ig-give-world-text-a-bounded-coverage-cache"></a>17. Give world text a bounded coverage cache
 
 ### 1. `src/text_plane.rs`
-
-Add this part of give world text a bounded coverage cache.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/62ig-give-world-text-a-bounded-coverage-cache-01.rs"
+use super::TextFrame;
+use crate::text::{TextDocument, TextLabel, TextPlacement, TextRun};
+use crate::text_gpu_support::resource_group;
+use crate::text_gpu_support::texture_entry;
+use crate::text_gpu_support::{GpuCtx, GrowBuf, VERTS};
+use crate::text_gpu_support::{Pipeline, Target};
+use glyphon::{FontSystem, SwashCache, SwashContent};
+use wgpu::{ShaderStages, TextureSampleType};
+
+const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
+struct CachedPlane {
+    label: TextLabel,
+    font_revision: u64,
+    em_pixels: u32,
+    size: [u32; 2],
+    extent: [f32; 4],
+    texture: wgpu::Texture,
+    bind: wgpu::BindGroup,
+}
+impl Drop for CachedPlane {
+    fn drop(&mut self) {
+        self.texture.destroy();
+    }
+}
+pub(super) struct Planes {
+    cached: Vec<CachedPlane>,
+    draws: Vec<(usize, u32)>,
+    vertices: GrowBuf,
+    layout: wgpu::BindGroupLayout,
+    sampler: wgpu::Sampler,
+    pipeline: Pipeline,
+    id_pipeline: Pipeline,
+    target: Target,
+    pub(super) rasterizations: u64,
+}
+
+fn same_raster(
+    cached: &CachedPlane,
+    label: &TextLabel,
+    revision: u64,
+    em_pixels: u32,
+) -> bool {
+    cached.font_revision == revision
+        && cached.label.text == label.text
+        && cached.label.font_size == label.font_size
+        && cached.label.line_height == label.line_height
+        && cached.em_pixels >= em_pixels
+}
+
+fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
+    let point = [
+        (world[0] - frame.origin[0]) as f32,
+        (world[1] - frame.origin[1]) as f32,
+        (world[2] - frame.origin[2]) as f32,
+        1.0,
+    ];
+    let mut clip = [0.0; 4];
+
+    for (row, out) in clip.iter_mut().enumerate() {
+        for (column, value) in point.iter().enumerate() {
+            *out += frame.mvp[column * 4 + row] * value;
+        }
+    }
+
+    clip
+}
 ```
 
 ### 2. `src/scene_text_gpu.rs`
 
-Compile the already-created child owner in the text lane.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         object: run.label.object,
@@ -3109,62 +2251,119 @@ Compile the already-created child owner in the text lane.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ig-give-world-text-a-bounded-coverage-cache-02.rs" skip=43
+        object: run.label.object,
+    })
+}
+
+#[path = "text_plane.rs"]
+mod plane;
 ```
 
-</details>
-
-<a id="checkpoint-62ih-choose-bounded-glyph-raster-resolution"></a>
-
-<details>
-<summary>Implementation 62ih-choose-bounded-glyph-raster-resolution: Choose bounded glyph raster resolution</summary>
-
-Relate projected world height to framebuffer pixels, fit the shaped extent within the texture limit, and read mask/color/subpixel coverage consistently.
-
-Data flow: choose bounded glyph raster resolution.
+## <a id="checkpoint-62ih-choose-bounded-glyph-raster-resolution"></a>18. Choose bounded glyph raster resolution
 
 ### 1. `src/text_plane.rs`
 
-Add this part of choose bounded glyph raster resolution.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     clip
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ih-choose-bounded-glyph-raster-resolution-01.rs" skip=11
+    clip
+}
+
+fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
+    let TextPlacement::WorldPlane {
+        world,
+        right,
+        up,
+        world_height,
+        ..
+    } = label.placement
+    else {
+        return 32;
+    };
+    let a = project(world, frame);
+
+    if a[3] <= 0.0 {
+        return 32;
+    }
+
+    let mut projected_em = 0.0f32;
+
+    for direction in [right, up] {
+        let mut end = world;
+
+        for axis in 0..3 {
+            end[axis] += direction[axis] * world_height;
+        }
+
+        let b = project(end, frame);
+
+        if b[3] <= 0.0 {
+            continue;
+        }
+
+        let x = (a[0] / a[3] - b[0] / b[3]) * frame.framebuffer[0] as f32 * 0.5;
+        let y = (a[1] / a[3] - b[1] / b[3]) * frame.framebuffer[1] as f32 * 0.5;
+        projected_em = projected_em.max(x.hypot(y));
+    }
+
+    let needed = (projected_em * 2.0).clamp(32.0, 256.0);
+    let mut bucket = 32;
+
+    while (bucket as f32) < needed {
+        bucket *= 2;
+    }
+
+    bucket
+}
+
+fn fitting_em(run: &TextRun) -> u32 {
+    let mut size = 0.0f32;
+
+    for line in run.buffer.layout_runs() {
+        size = size
+            .max(line.line_w)
+            .max(line.line_top + line.line_height);
+    }
+
+    let ems = size / run.label.font_size + 3.0;
+    let mut em = 256;
+
+    while em > 32 && ems * em as f32 > 4000.0 {
+        em /= 2;
+    }
+
+    em
+}
+
+fn coverage(content: &SwashContent, data: &[u8], source: usize) -> u8 {
+    match content {
+        SwashContent::Mask => data[source],
+        SwashContent::Color => data[source * 4 + 3],
+        SwashContent::SubpixelMask => {
+            ((u16::from(data[source * 4])
+                + u16::from(data[source * 4 + 1])
+                + u16::from(data[source * 4 + 2]))
+                / 3) as u8
+        }
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>
-
-<details>
-<summary>Implementation 62ii-rasterize-the-shaped-run-into-owned-coverage-bytes: Rasterize the shaped run into owned coverage bytes</summary>
-
-Allocate bounded coverage storage from the shaped glyph bounds.
-
-Data flow: rasterize the shaped run into owned coverage bytes.
+## <a id="checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"></a>19. Rasterize the shaped run into owned coverage bytes
 
 ### 1. `src/text_plane.rs`
 
-Add this part of rasterize the shaped run into owned coverage bytes.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         }
@@ -3172,62 +2371,219 @@ Add this part of rasterize the shaped run into owned coverage bytes.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ii-rasterize-the-shaped-run-into-owned-coverage-bytes-01.rs" skip=18
+        }
+    }
+}
+
+fn rasterize(
+    run: &TextRun,
+    fonts: &mut FontSystem,
+    raster: &mut SwashCache,
+    em_pixels: u32,
+) -> anyhow::Result<(Vec<u8>, [u32; 2], [f32; 4])> {
+    let scale = em_pixels as f32 / run.label.font_size;
+    let mut glyphs = Vec::new();
+    let mut bounds = [0i32; 4];
+
+    for line in run.buffer.layout_runs() {
+        bounds[2] = bounds[2].max((line.line_w * scale).ceil() as i32);
+        bounds[3] =
+            bounds[3].max(((line.line_top + line.line_height) * scale).ceil() as i32);
+        anyhow::ensure!(
+            bounds[2] <= 4092 && bounds[3] <= 4092,
+            "world text layout exceeds 4096px extent"
+        );
+
+        for glyph in line.glyphs {
+            let physical = glyph.physical((0.0, 0.0), scale);
+            let Some(image) = raster.get_image(fonts, physical.cache_key) else {
+                continue;
+            };
+            let x = physical.x + image.placement.left;
+            let y =
+                (line.line_y * scale).round() as i32 + physical.y - image.placement.top;
+            bounds[0] = bounds[0].min(x);
+            bounds[1] = bounds[1].min(y);
+            bounds[2] = bounds[2].max(x + image.placement.width as i32);
+            bounds[3] = bounds[3].max(y + image.placement.height as i32);
+            glyphs.push((physical.cache_key, x, y));
+        }
+    }
+
+    let vertical_padding = (run.label.font_size * (2.0 / 9.0) * scale).ceil() as i32;
+    let horizontal_padding = (bounds[3] - bounds[1] + 2 * vertical_padding + 1) / 2;
+    bounds[0] -= horizontal_padding;
+    bounds[1] -= vertical_padding;
+    bounds[2] += horizontal_padding;
+    bounds[3] += vertical_padding;
+    let size = [
+        (bounds[2] - bounds[0]) as u32,
+        (bounds[3] - bounds[1]) as u32,
+    ];
+    anyhow::ensure!(
+        size[0] <= 4096 && size[1] <= 4096,
+        "world text texture exceeds 4096px extent"
+    );
+    let mut pixels = vec![0u8; (size[0] * size[1]) as usize];
+
+    for (key, x, y) in glyphs {
+        let Some(image) = raster.get_image(fonts, key) else {
+            continue;
+        };
+
+        for row in 0..image.placement.height {
+            for column in 0..image.placement.width {
+                let source = (row * image.placement.width + column) as usize;
+                let coverage = coverage(&image.content, &image.data, source);
+                let target = ((y - bounds[1] + row as i32) as u32 * size[0]
+                    + (x - bounds[0] + column as i32) as u32)
+                    as usize;
+                let previous = u16::from(pixels[target]);
+                pixels[target] =
+                    (previous + u16::from(coverage) * (255 - previous) / 255) as u8;
+            }
+        }
+    }
+
+    Ok((
+        pixels,
+        size,
+        [
+            bounds[0] as f32 / scale,
+            bounds[1] as f32 / scale,
+            bounds[2] as f32 / scale,
+            bounds[3] as f32 / scale,
+        ],
+    ))
+}
 ```
 
-</details>
+## <a id="checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture"></a>20. Upload and bind one world-text coverage texture
 
-<a id="checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture"></a>
-
-<details>
-<summary>Implementation 62ij-upload-and-bind-one-world-text-coverage-texture: Upload and bind one world-text coverage texture</summary>
-
-Create the R8 coverage texture, upload rows with the declared byte layout, and bind the texture/sampler into one cached owner.
-
-Data flow: upload and bind one world-text coverage texture.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU Rasterized Bytes (R8Unorm / Rgba8Unorm)</text>
+  <rect x="64" y="50" width="244" height="102" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="80" y="64" width="42" height="42" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="101" y="91" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">A</text>
+  <rect x="130" y="64" width="42" height="42" fill="#fef08a" stroke="#dc2626" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="151" y="91" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#111111">B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="134" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">CPU Shelf Bitmap &amp;[u8]</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">queue.write_texture(TexelCopyTextureInfo, Extent3d)</text>
+  <rect x="424" y="52" width="272" height="96" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="86" x2="672" y2="86" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">queue.write_texture(...)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="114" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">TEXTURE_BINDING | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="134" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">origin: (x, y, 0), size: (w, h, 1)</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU Texture2D + Sampler in @fragment</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="76" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#2563eb">textureSample(t_atlas, s, uv).r</text>
+  <rect x="852" y="96" width="164" height="44" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="123" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="#111111"> Crisp GPU Text </text>
+</svg>
+</div>
 
 ### 1. `src/text_plane.rs`
 
-Add this part of upload and bind one world-text coverage texture.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     ))
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ij-upload-and-bind-one-world-text-coverage-texture-01.rs" skip=9
+    ))
+}
+
+fn upload_plane(
+    ctx: &GpuCtx,
+    layout: &wgpu::BindGroupLayout,
+    sampler: &wgpu::Sampler,
+    label: &TextLabel,
+    font_revision: u64,
+    em_pixels: u32,
+    data: (Vec<u8>, [u32; 2], [f32; 4]),
+) -> CachedPlane {
+    let (pixels, size, extent) = data;
+    let texture = ctx
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("world text coverage"),
+            size: wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::R8Unorm,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+    ctx.queue.write_texture(
+        texture.as_image_copy(),
+        &pixels,
+        wgpu::TexelCopyBufferLayout {
+            offset: 0,
+            bytes_per_row: Some(size[0]),
+            rows_per_image: Some(size[1]),
+        },
+        texture.size(),
+    );
+    let view = texture.create_view(&Default::default());
+    let bind = resource_group(
+        ctx,
+        &layout,
+        "world text coverage",
+        [
+            (0, wgpu::BindingResource::TextureView(&view)),
+            (1, wgpu::BindingResource::Sampler(&sampler)),
+        ],
+    );
+    CachedPlane {
+        label: label.clone(),
+        font_revision: font_revision,
+        em_pixels,
+        size,
+        extent,
+        texture,
+        bind,
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>
-
-<details>
-<summary>Implementation 62ik-build-the-world-plane-text-quad: Build the world-plane text quad</summary>
-
-Transform the original text plane into rebased GPU vertices. Keep original label placement and color independent of the generated quad.
-
-Data flow: build the world-plane text quad.
+## <a id="checkpoint-62ik-build-the-world-plane-text-quad"></a>21. Build the world-plane text quad
 
 ### 1. `src/text_plane.rs`
 
-Add this part of build the world-plane text quad.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         bind,
@@ -3235,31 +2591,120 @@ Add this part of build the world-plane text quad.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ik-build-the-world-plane-text-quad-01.rs" skip=22
+        bind,
+    }
+}
+
+fn append_quad(
+    vertices: &mut Vec<[f32; 16]>,
+    label: &TextLabel,
+    extent: [f32; 4],
+    frame: &TextFrame,
+    srgb: bool,
+) {
+    let TextPlacement::WorldPlane {
+        world,
+        right,
+        up,
+        world_height,
+    } = label.placement
+    else {
+        return;
+    };
+    let unit = world_height / f64::from(label.font_size);
+    let mut color = [0.0; 4];
+
+    for (index, component) in color.iter_mut().enumerate() {
+        let value = f32::from(label.ink_color()[index]) / 255.0;
+        *component = if srgb && index < 3 {
+            if value <= 0.04045 {
+                value / 12.92
+            } else {
+                ((value + 0.055) / 1.055).powf(2.4)
+            }
+        } else {
+            value
+        };
+    }
+
+    let scale = frame.framebuffer[0] as f32 / frame.logical[0] as f32;
+    let mut bounds = [
+        0.0,
+        0.0,
+        frame.framebuffer[0] as f32,
+        frame.framebuffer[1] as f32,
+    ];
+
+    if let Some(clip) = label.clip {
+        for (index, value) in bounds.iter_mut().enumerate() {
+            *value = clip[index] * scale;
+        }
+    }
+
+    bounds = [
+        2.0 * bounds[0] / frame.framebuffer[0] as f32 - 1.0,
+        1.0 - 2.0 * bounds[3] / frame.framebuffer[1] as f32,
+        2.0 * bounds[2] / frame.framebuffer[0] as f32 - 1.0,
+        1.0 - 2.0 * bounds[1] / frame.framebuffer[1] as f32,
+    ];
+    for [u, v] in [
+        [0.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 1.0],
+        [0.0, 0.0],
+        [1.0, 1.0],
+        [1.0, 0.0],
+    ] {
+        let x = f64::from(extent[0] + (extent[2] - extent[0]) * u) * unit;
+        let y = f64::from(extent[1] + (extent[3] - extent[1]) * v) * unit;
+        let mut point = world;
+
+        for axis in 0..3 {
+            point[axis] += right[axis] * x - up[axis] * y;
+        }
+
+        let clip = project(point, frame);
+        vertices.push([
+            clip[0],
+            clip[1],
+            clip[2],
+            clip[3],
+            u,
+            v,
+            color[0],
+            color[1],
+            color[2],
+            color[3],
+            bounds[0],
+            bounds[1],
+            bounds[2],
+            bounds[3],
+            f32::from_bits(
+                label
+                    .object
+                    .map_or(0, |object| object.row.wrapping_add(1)),
+            ),
+            if label
+                .object
+                .is_some_and(|object| object.selected)
+            {
+                1.0
+            } else {
+                0.0
+            },
+        ]);
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62il-build-world-text-color-and-id-pipelines"></a>
-
-<details>
-<summary>Implementation 62il-build-world-text-color-and-id-pipelines: Build world-text color and ID pipelines</summary>
-
-The plane shader reads coverage while color and integer targets retain their distinct fragment contracts. Declare the same vertex layout for both passes.
-
-Data flow: build world-text color and id pipelines.
+## <a id="checkpoint-62il-build-world-text-color-and-id-pipelines"></a>22. Build world-text color and ID pipelines
 
 ### 1. `src/text_plane.rs`
 
-Add this part of build world-text color and id pipelines.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         ]);
@@ -3267,31 +2712,56 @@ Add this part of build world-text color and id pipelines.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62il-build-world-text-color-and-id-pipelines-01.rs" skip=20
+        ]);
+    }
+}
+
+fn pipeline(
+    ctx: &GpuCtx,
+    target: Target,
+    layout: &wgpu::BindGroupLayout,
+    ids: bool,
+) -> Pipeline {
+    let device = ctx.device.clone();
+    let layout = layout.clone();
+    let pick = crate::gpu_layout::uniform(&ctx.device, 80);
+    {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("world text shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("text_plane.wgsl").into()),
+        });
+        let colour_groups = [Some(&layout)];
+        let id_groups = [Some(&layout), Some(&pick)];
+        let pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("world text"),
+                bind_group_layouts: if ids {
+                    &id_groups
+                } else {
+                    &colour_groups
+                },
+                immediate_size: 0,
+            });
+        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("world text"), layout: Some(&pipeline_layout),
+            vertex: wgpu::VertexState { module: &shader, entry_point: Some(if ids { "vs_id" } else { "vs_main" }), buffers: &[wgpu::VertexBufferLayout { array_stride: 64, step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32] }], compilation_options: Default::default() },
+            fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
+            primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::LessEqual), stencil: Default::default(), bias: Default::default() }),
+            multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
+        })
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>
-
-<details>
-<summary>Implementation 62im-own-the-world-text-buffer-and-pipeline-lifetime: Own the world-text buffer and pipeline lifetime</summary>
-
-Create retained GPU resources, replace target-dependent pipelines on retarget, and distinguish reset, release and capacity accounting.
-
-Data flow: own the world-text buffer and pipeline lifetime.
+## <a id="checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"></a>23. Own the world-text buffer and pipeline lifetime
 
 ### 1. `src/text_plane.rs`
 
-Add this part of own the world-text buffer and pipeline lifetime.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         })
@@ -3299,31 +2769,96 @@ Add this part of own the world-text buffer and pipeline lifetime.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62im-own-the-world-text-buffer-and-pipeline-lifetime-01.rs" skip=19
+        })
+    }
+}
+
+impl Planes {
+    pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
+        let layout =
+            ctx.device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("world text texture"),
+                    entries: &[
+                        texture_entry(
+                            0,
+                            ShaderStages::FRAGMENT,
+                            TextureSampleType::Float { filterable: true },
+                            false,
+                        ),
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(
+                                wgpu::SamplerBindingType::Filtering,
+                            ),
+                            count: None,
+                        },
+                    ],
+                });
+        let sampler = ctx
+            .device
+            .create_sampler(&wgpu::SamplerDescriptor {
+                label: Some("world text coverage"),
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                ..Default::default()
+            });
+        let id_pipeline = pipeline(ctx, Target::ID, &layout, true);
+        let pipeline = pipeline(ctx, target, &layout, false);
+        Self {
+            cached: Vec::new(),
+            draws: Vec::new(),
+            vertices: GrowBuf::new(ctx, "world text vertices", 64, VERTS),
+            layout,
+            sampler,
+            pipeline,
+            id_pipeline,
+            target,
+            rasterizations: 0,
+        }
+    }
+
+    pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
+        self.target = target;
+        self.pipeline = pipeline(ctx, target, &self.layout, false);
+    }
+
+    pub(super) fn reset(&mut self) {
+        self.cached.clear();
+        self.draws.clear();
+        self.vertices.reset();
+    }
+
+    pub(super) fn release(&mut self, ctx: &GpuCtx) {
+        self.reset();
+        self.vertices.release(ctx);
+    }
+
+    pub(super) fn buffer_bytes(&self) -> u64 {
+        self.vertices.buf.size()
+    }
+
+    pub(super) fn texture_bytes(&self) -> u64 {
+        let mut total = 0;
+
+        for cached in &self.cached {
+            total += u64::from(cached.size[0]) * u64::from(cached.size[1]);
+        }
+
+        total
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"></a>
-
-<details>
-<summary>Implementation 62in-rebuild-only-invalid-world-text-cache-entries: Rebuild only invalid world-text cache entries</summary>
-
-Match a label to its cache entry, validate the total texture budget before upload, and replace or append one owned entry.
-
-Data flow: rebuild only invalid world-text cache entries.
+## <a id="checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"></a>24. Rebuild only invalid world-text cache entries
 
 ### 1. `src/text_plane.rs`
 
-Add this part of rebuild only invalid world-text cache entries.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         total
@@ -3331,31 +2866,91 @@ Add this part of rebuild only invalid world-text cache entries.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62in-rebuild-only-invalid-world-text-cache-entries-01.rs" skip=22
+        total
+    }
+}
+
+impl Planes {
+    fn cached_plane(
+        &mut self,
+        ctx: &GpuCtx,
+        run: &TextRun,
+        fonts: &mut FontSystem,
+        raster: &mut SwashCache,
+        font_revision: u64,
+        em_pixels: u32,
+    ) -> anyhow::Result<usize> {
+        let mut index = None;
+
+        for (at, cached) in self.cached.iter().enumerate() {
+            if cached.label.id == run.label.id {
+                index = Some(at);
+                break;
+            }
+        }
+
+        let rebuild = match index {
+            Some(at) => !same_raster(
+                &self.cached[at],
+                &run.label,
+                font_revision,
+                em_pixels,
+            ),
+            None => true,
+        };
+
+        if rebuild {
+            let (pixels, size, extent) = rasterize(run, fonts, raster, em_pixels)?;
+            let mut allocated = u64::from(size[0]) * u64::from(size[1]);
+
+            for (at, cached) in self.cached.iter().enumerate() {
+                if Some(at) != index {
+                    allocated += u64::from(cached.size[0]) * u64::from(cached.size[1]);
+                }
+            }
+
+            anyhow::ensure!(
+                allocated <= TEXTURE_BUDGET,
+                "world text coverage exceeds 32 MiB budget"
+            );
+            let cached = upload_plane(
+                ctx,
+                &self.layout,
+                &self.sampler,
+                &run.label,
+                font_revision,
+                em_pixels,
+                (pixels, size, extent),
+            );
+
+            match index {
+                Some(at) => self.cached[at] = cached,
+                None => {
+                    index = Some(self.cached.len());
+                    self.cached.push(cached);
+                }
+            }
+
+            self.rasterizations += 1;
+
+            if raster.image_cache.len() > 4096 {
+                *raster = SwashCache::new();
+            }
+        }
+
+        Ok(index.expect("a prepared world plane has a cache entry"))
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>
-
-<details>
-<summary>Implementation 62io-prepare-and-draw-the-retained-world-text-planes: Prepare and draw the retained world-text planes</summary>
-
-Prune expired labels, skip clipped/empty planes, reuse valid rasters, build the current quads and issue draws from retained cache indices.
-
-Data flow: prepare and draw the retained world-text planes.
+## <a id="checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"></a>25. Prepare and draw the retained world-text planes
 
 ### 1. `src/text_plane.rs`
 
-Add this part of prepare and draw the retained world-text planes.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         Ok(index.expect("a prepared world plane has a cache entry"))
@@ -3363,62 +2958,217 @@ Add this part of prepare and draw the retained world-text planes.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62io-prepare-and-draw-the-retained-world-text-planes-01.rs" skip=77
+        Ok(index.expect("a prepared world plane has a cache entry"))
+    }
+}
+
+impl Planes {
+    pub(super) fn prepare(
+        &mut self,
+        ctx: &GpuCtx,
+        document: &mut TextDocument,
+        raster: &mut SwashCache,
+        frame: &TextFrame,
+    ) -> anyhow::Result<()> {
+        self.draws.clear();
+        self.vertices.reset();
+        self.cached.retain(|cached| {
+            document.runs.iter().any(|run| {
+                run.label.id == cached.label.id
+                    && matches!(
+                        run.label.placement,
+                        TextPlacement::WorldPlane { .. }
+                    )
+            })
+        });
+        let mut vertices = Vec::new();
+
+        for run in &document.runs {
+            if !matches!(
+                run.label.placement,
+                TextPlacement::WorldPlane { .. }
+            ) || run.label.text.is_empty()
+            {
+                continue;
+            }
+
+            if let TextPlacement::WorldPlane { world, .. } = run.label.placement
+                && frame.cut(world)
+            {
+                continue;
+            }
+            let em_pixels = raster_em(&run.label, frame).min(fitting_em(run));
+            let index = self.cached_plane(
+                ctx,
+                run,
+                &mut document.fonts,
+                raster,
+                document.font_revision,
+                em_pixels,
+            )?;
+
+            let start = vertices.len() as u32;
+            append_quad(
+                &mut vertices,
+                &run.label,
+                self.cached[index].extent,
+                frame,
+                self.target.format.is_srgb(),
+            );
+            self.draws.push((index, start));
+        }
+
+        self.vertices.append(ctx, &vertices);
+        Ok(())
+    }
+
+    fn draw_run(&self, pass: &mut wgpu::RenderPass<'_>, pipeline: &Pipeline) -> u32 {
+        if self.draws.is_empty() {
+            return 0;
+        }
+
+        pass.set_pipeline(pipeline);
+        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
+
+        for &(index, start) in &self.draws {
+            pass.set_bind_group(0, &self.cached[index].bind, &[]);
+            pass.draw(start..start + 6, 0..1);
+        }
+
+        self.draws.len() as u32
+    }
+
+    pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        if self.draws.is_empty() {
+            return 0;
+        }
+
+        self.draw_run(pass, &self.pipeline)
+    }
+
+    pub(super) fn draw_ids(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        pick_transform: &wgpu::BindGroup,
+    ) -> u32 {
+        pass.set_bind_group(1, pick_transform, &[]);
+        self.draw_run(pass, &self.id_pipeline)
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"></a>
-
-<details>
-<summary>Implementation 62ip-collect-anchored-and-overlay-glyph-work-separately: Collect anchored and overlay glyph work separately</summary>
-
-Return borrow-scoped TextAreas alongside plate inputs and per-label depths. The borrowed runs survive through preparation; no new source owner is created.
-
-Data flow: collect anchored and overlay glyph work separately.
+## <a id="checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"></a>26. Collect anchored and overlay glyph work separately
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of collect anchored and overlay glyph work separately.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 #[path = "text_plane.rs"]
 mod plane;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ip-collect-anchored-and-overlay-glyph-work-separately-01.rs" skip=37
+#[path = "text_plane.rs"]
+mod plane;
+
+struct PreparedText<'a> {
+    overlays: Vec<TextArea<'a>>,
+    anchors: Vec<TextArea<'a>>,
+    depths: HashMap<usize, f32>,
+    plates: Vec<plate::Rectangle>,
+    overlay: bool,
+    anchored: bool,
+}
+
+fn areas<'a>(
+    runs: &'a [TextRun],
+    frame: &TextFrame,
+    scale: f32,
+    stats: &mut TextStats,
+    raster_keys: &mut HashSet<glyphon::CacheKey>,
+) -> PreparedText<'a> {
+    let mut overlay = false;
+    let mut anchored = false;
+    let mut overlays = Vec::new();
+    let mut anchors = Vec::new();
+    let mut depths = HashMap::new();
+    let mut plates = Vec::new();
+    stats.new_raster_keys = 0;
+    stats.requested_glyphs = 0;
+    stats.missing_glyphs = 0;
+
+    for run in runs {
+        let Some(mut placed) = place(&run.label, frame, scale) else {
+            continue;
+        };
+
+        if let Some(rectangle) = text_rectangle(run, &mut placed, frame, scale) {
+            plates.push(rectangle);
+        }
+
+        let area = TextArea {
+            buffer: &run.buffer,
+            left: placed.left,
+            top: placed.top,
+            scale: placed.scale,
+            bounds: clip_bounds(&run.label, frame, scale),
+            default_color: Color::rgba(
+                run.label.ink_color()[0],
+                run.label.ink_color()[1],
+                run.label.ink_color()[2],
+                run.label.ink_color()[3],
+            ),
+            custom_glyphs: &[],
+        };
+
+        for line in run.buffer.layout_runs() {
+            for glyph in line.glyphs {
+                stats.requested_glyphs += 1;
+                stats.missing_glyphs += usize::from(glyph.glyph_id == 0);
+                let physical = glyph.physical((placed.left, placed.top), placed.scale);
+                stats.new_raster_keys +=
+                    usize::from(raster_keys.insert(physical.cache_key));
+            }
+        }
+
+        if !run.label.text.is_empty() {
+            match run.label.placement {
+                TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
+                    overlay = true
+                }
+                _ => anchored = true,
+            }
+        }
+
+        if let Some(depth) = placed.depth {
+            depths.insert(run.label.id as usize, depth);
+            anchors.push(area);
+        } else {
+            overlays.push(area);
+        }
+    }
+    PreparedText {
+        overlays,
+        anchors,
+        depths,
+        plates,
+        overlay,
+        anchored,
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>
-
-<details>
-<summary>Implementation 62iq-give-the-text-lane-its-retained-resource-owners: Give the text lane its retained resource owners</summary>
-
-Declare the lane and its caches, atlas, viewport, pipelines and preparation witness. Build glyph renderers against the appropriate depth predicates.
-
-Data flow: give the text lane its retained resource owners.
+## <a id="checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"></a>27. Give the text lane its retained resource owners
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of give the text lane its retained resource owners.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         anchored,
@@ -3426,62 +3176,166 @@ Add this part of give the text lane its retained resource owners.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62iq-give-the-text-lane-its-retained-resource-owners-01.rs" skip=26
+        anchored,
+    }
+}
+
+pub struct Lane {
+    pub document: TextDocument,
+    pub stats: TextStats,
+    cache: Cache,
+    atlas: TextAtlas,
+    viewport: Viewport,
+    raster: SwashCache,
+    overlay: TextRenderer,
+    anchored: TextRenderer,
+    plates: plate::Plates,
+    planes: plane::Planes,
+    target: Target,
+    atlas_font_revision: u64,
+    prepared: Option<(u64, u64, TextFrame)>,
+    raster_keys: HashSet<glyphon::CacheKey>,
+    overlay_count: u32,
+    anchored_count: u32,
+}
+
+fn renderer(
+    ctx: &GpuCtx,
+    atlas: &mut TextAtlas,
+    target: Target,
+    compare: wgpu::CompareFunction,
+) -> TextRenderer {
+    TextRenderer::new(
+        atlas,
+        &ctx.device,
+        wgpu::MultisampleState {
+            count: target.samples,
+            ..Default::default()
+        },
+        Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(false),
+            depth_compare: Some(compare),
+            stencil: Default::default(),
+            bias: Default::default(),
+        }),
+    )
+}
+
+fn make_atlas(ctx: &GpuCtx, cache: &Cache, format: wgpu::TextureFormat) -> TextAtlas {
+    let mode = if format.is_srgb() {
+        ColorMode::Accurate
+    } else {
+        ColorMode::Web
+    };
+    TextAtlas::with_color_mode(&ctx.device, &ctx.queue, cache, format, mode)
+}
+
+fn depth_for(depths: &HashMap<usize, f32>, id: usize) -> f32 {
+    depths.get(&id).copied().unwrap_or(0.0)
+}
 ```
 
-</details>
-
-<a id="checkpoint-62ir-construct-and-rebuild-the-text-lane-once"></a>
-
-<details>
-<summary>Implementation 62ir-construct-and-rebuild-the-text-lane-once: Construct and rebuild the text lane once</summary>
-
-Initialize font/raster resources and world/plate owners. Rebuild atlas-dependent resources when fonts change while keeping original labels in the document.
-
-Data flow: construct and rebuild the text lane once.
+## <a id="checkpoint-62ir-construct-and-rebuild-the-text-lane-once"></a>28. Construct and rebuild the text lane once
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of construct and rebuild the text lane once.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     depths.get(&id).copied().unwrap_or(0.0)
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62ir-construct-and-rebuild-the-text-lane-once-01.rs" skip=46
+    depths.get(&id).copied().unwrap_or(0.0)
+}
+
+impl Lane {
+    pub fn new(ctx: &GpuCtx, target: Target) -> Self {
+        let cache = Cache::new(&ctx.device);
+        let viewport = Viewport::new(&ctx.device, &cache);
+        let mut atlas = make_atlas(ctx, &cache, target.format);
+        let overlay = renderer(
+            ctx,
+            &mut atlas,
+            target,
+            wgpu::CompareFunction::Always,
+        );
+        let anchored = renderer(
+            ctx,
+            &mut atlas,
+            target,
+            wgpu::CompareFunction::LessEqual,
+        );
+        Self {
+            document: TextDocument::new(),
+            stats: TextStats::default(),
+            cache,
+            atlas,
+            viewport,
+            raster: SwashCache::new(),
+            overlay,
+            anchored,
+            plates: plate::Plates::new(ctx, target),
+            planes: plane::Planes::new(ctx, target),
+            target,
+            atlas_font_revision: 1,
+            prepared: None,
+            raster_keys: HashSet::new(),
+            overlay_count: 0,
+            anchored_count: 0,
+        }
+    }
+
+    fn rebuild_resources(&mut self, ctx: &GpuCtx) {
+        self.atlas = make_atlas(ctx, &self.cache, self.target.format);
+        self.overlay = renderer(
+            ctx,
+            &mut self.atlas,
+            self.target,
+            wgpu::CompareFunction::Always,
+        );
+        self.anchored = renderer(
+            ctx,
+            &mut self.atlas,
+            self.target,
+            wgpu::CompareFunction::LessEqual,
+        );
+        self.raster = SwashCache::new();
+        self.raster_keys.clear();
+        self.stats.raster_images = 0;
+        self.stats.new_raster_images = 0;
+        self.stats.raster_image_capacity_bytes = 0;
+        self.stats.atlas_resets += 1;
+        self.atlas_font_revision = self.document.font_revision;
+        self.prepared = None;
+    }
+
+    pub fn allocated_bytes(&self) -> u64 {
+        self.plates.allocated_bytes() + self.planes.buffer_bytes()
+    }
+
+    pub fn texture_bytes(&self) -> u64 {
+        self.planes.texture_bytes()
+    }
+
+    pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
+        self.document.set_labels(labels)
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>
-
-<details>
-<summary>Implementation 62is-reset-the-text-lane-and-record-scoped-preparation-costs: Reset the text lane and record scoped preparation costs</summary>
-
-Retarget pipelines, clear logical work and release owned world/plate resources. Report raster images and buffer capacities with their actual scope.
-
-Data flow: reset the text lane and record scoped preparation costs.
+## <a id="checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"></a>29. Reset the text lane and record scoped preparation costs
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of reset the text lane and record scoped preparation costs.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         self.document.set_labels(labels)
@@ -3489,31 +3343,84 @@ Add this part of reset the text lane and record scoped preparation costs.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62is-reset-the-text-lane-and-record-scoped-preparation-costs-01.rs" skip=49
+        self.document.set_labels(labels)
+    }
+}
+
+impl Lane {
+    fn measure_preparation(&mut self, raster_images_before: usize, start: f64) {
+        self.stats.raster_images = 0;
+        self.stats.raster_image_capacity_bytes = 0;
+
+        for image in self.raster.image_cache.values().flatten() {
+            self.stats.raster_images += 1;
+            self.stats.raster_image_capacity_bytes += image.data.capacity();
+        }
+
+        self.stats.new_raster_images = self
+            .stats
+            .raster_images
+            .saturating_sub(raster_images_before);
+        self.stats.preparations += 1;
+        self.stats.shape_count = self.document.shape_count;
+        self.stats.shaping_ms = self.document.shaping_ms;
+        self.stats.distinct_raster_keys = self.raster_keys.len();
+        self.stats.active_instance_bytes = self.stats.requested_glyphs * 28;
+        self.stats.nameplate_capacity_bytes = self.plates.allocated_bytes();
+        self.stats.world_plane_buffer_bytes = self.planes.buffer_bytes();
+        self.stats.world_plane_texture_bytes = self.planes.texture_bytes();
+        self.stats.world_plane_rasterizations = self.planes.rasterizations;
+        self.stats.preparation_ms = crate::load_measure::now() - start;
+    }
+
+    pub fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
+        self.target = target;
+        self.plates.retarget(ctx, target);
+        self.planes.retarget(ctx, target);
+        self.overlay = renderer(
+            ctx,
+            &mut self.atlas,
+            target,
+            wgpu::CompareFunction::Always,
+        );
+        self.anchored = renderer(
+            ctx,
+            &mut self.atlas,
+            target,
+            wgpu::CompareFunction::LessEqual,
+        );
+        self.prepared = None;
+    }
+
+    pub fn reset(&mut self) {
+        self.document.clear();
+        self.prepared = None;
+        self.overlay_count = 0;
+        self.anchored_count = 0;
+        self.plates.reset();
+        self.planes.reset();
+    }
+
+    pub fn release(&mut self, ctx: &GpuCtx) {
+        self.reset();
+        self.plates.release(ctx);
+        self.planes.release(ctx);
+        self.stats.nameplate_capacity_bytes = self.plates.allocated_bytes();
+        self.stats.world_plane_buffer_bytes = self.planes.buffer_bytes();
+        self.stats.world_plane_texture_bytes = 0;
+        self.rebuild_resources(ctx);
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"></a>
-
-<details>
-<summary>Implementation 62it-prepare-glyphs-only-when-the-witness-changes: Prepare glyphs only when the witness changes</summary>
-
-Skip text preparation when its complete frame witness is unchanged.
-
-Data flow: prepare glyphs only when the witness changes.
+## <a id="checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"></a>30. Prepare glyphs only when the witness changes
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of prepare glyphs only when the witness changes.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         self.rebuild_resources(ctx);
@@ -3521,3961 +3428,1991 @@ Add this part of prepare glyphs only when the witness changes.
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62it-prepare-glyphs-only-when-the-witness-changes-01.rs" skip=45
+        self.rebuild_resources(ctx);
+    }
+}
+
+impl Lane {
+    pub fn prepare(&mut self, ctx: &GpuCtx, frame: &TextFrame) -> anyhow::Result<()> {
+        let fixed = self.document.runs.iter().all(|run| {
+            matches!(
+                run.label.placement,
+                TextPlacement::Screen { .. }
+            )
+        });
+        let key = (
+            self.document.revision,
+            self.document.font_revision,
+            if fixed {
+                frame.canvas()
+            } else {
+                frame.clone()
+            },
+        );
+
+        if self.prepared.as_ref() == Some(&key) {
+            self.stats.skipped_preparations += 1;
+            return Ok(());
+        }
+
+        self.overlay_count = 0;
+        self.anchored_count = 0;
+        self.plates.reset();
+        let scale = frame.scale()?;
+        let start = crate::load_measure::now();
+        let fonts_changed = self.atlas_font_revision != self.document.font_revision;
+
+        if fonts_changed || self.raster_keys.len() > 4096 {
+            self.rebuild_resources(ctx);
+        }
+
+        let raster_images_before = self
+            .raster
+            .image_cache
+            .values()
+            .flatten()
+            .count();
+        self.planes.prepare(
+            ctx,
+            &mut self.document,
+            &mut self.raster,
+            frame,
+        )?;
+        self.atlas.trim();
+        self.viewport.update(
+            &ctx.queue,
+            Resolution {
+                width: frame.framebuffer[0],
+                height: frame.framebuffer[1],
+            },
+        );
+        let prepared = areas(
+            &self.document.runs,
+            frame,
+            scale,
+            &mut self.stats,
+            &mut self.raster_keys,
+        );
+        self.overlay_count = u32::from(prepared.overlay);
+        self.anchored_count = u32::from(prepared.anchored);
+
+        self.overlay.prepare(
+            &ctx.device,
+            &ctx.queue,
+            &mut self.document.fonts,
+            &mut self.atlas,
+            &self.viewport,
+            prepared.overlays,
+            &mut self.raster,
+        )?;
+        self.anchored.prepare_with_depth(
+            &ctx.device,
+            &ctx.queue,
+            &mut self.document.fonts,
+            &mut self.atlas,
+            &self.viewport,
+            prepared.anchors,
+            &mut self.raster,
+            |id| depth_for(&prepared.depths, id),
+        )?;
+        self.plates
+            .prepare(ctx, &prepared.plates, frame.framebuffer);
+        self.measure_preparation(raster_images_before, start);
+        self.prepared = Some(key);
+        Ok(())
+    }
+}
 ```
 
-</details>
-
-<a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>
-
-<details>
-<summary>Implementation 62iu-draw-the-prepared-text-passes-in-order: Draw the prepared text passes in order</summary>
-
-Draw world planes, depth-tested plates and anchored glyphs before overlay plates/glyphs. Connect this completed lane to the frame in the next existing lesson.
-
-Data flow: draw the prepared text passes in order.
+## <a id="checkpoint-62iu-draw-the-prepared-text-passes-in-order"></a>31. Draw the prepared text passes in order
 
 ### 1. `src/scene_text_gpu.rs`
 
-Add this part of draw the prepared text passes in order.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
         Ok(())
     }
 }
 ```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/62iu-draw-the-prepared-text-passes-in-order-01.rs" skip=23
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/scene_text_gpu.rs`
-
-Keep the existing numerical regression fixtures as supplied validation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        Ok(draws)
-    }
-}
-```
-
-</details>
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/62iu-draw-the-prepared-text-passes-in-order-02.rs" skip=26
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62j-frame-pass"></a>
-
-<details>
-<summary>Implementation 62j-frame-pass: Prepare the full text frame and load the scene depth</summary>
-
-Prepare the full text frame and load the scene depth.
-
-Data flow: camera and CSS density → text frame → current lane preparation → colour/depth load pass.
-
-### 1. `src/renderer.rs`
-
-Prepare the complete current text frame and preserve already-rendered scene depth.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.device,&self.queue,self.size,self.density) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("screen glyphs"),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    pub fn set_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();let lane=lane.get_or_insert_with(||crate::text_atlas::Lane::new(&self.device,&self.queue,self.format));lane.document.set_labels(labels)
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{let [rasters,bytes]=lane.raster_usage();[lane.document.shape_count,lane.preparations,lane.skips,rasters as u64,bytes as u64,lane.resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    pub fn set_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();let lane=lane.get_or_insert_with(||crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1}));lane.document.set_labels(labels)
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::text_atlas::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode: crate::pick_sources::Mode,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let view_layout = crate::gpu_layout::uniform(&device, 80);
-        let model_layout = crate::gpu_layout::uniform(&device, 160);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout)], immediate_size: 0 });
-        let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 24,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }, wgpu::VertexBufferLayout {
-                    array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![2 => Float32x3],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface());
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink());
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: 80,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self { text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.picker.cancel(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.picker.cancel(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        self.markers.set_points(&self.device, scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker();if let Some(colour)=scene.view.faces.get(&row.id) {marker.colour=rgba(*colour);}marker}).chain(scene.control_markers().into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.view.faces.get(&row.id) {for segment in &mut segments {segment.stroke.colour=rgba(*colour);}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke();if let Some(colour)=scene.view.faces.get(&row.id) {stroke.colour=rgba(*colour);}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&self.device, &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry(&self.device, &layout, object,
-                    style(scene,object.id,selected==Some(object.id)), geometry)
-            };
-            self.meshes.push(row);
-        }
-        drop(old);
-        self.geometry.prune();
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density, mode: self.pick_mode })?;
-        self.pump_pick(transform); Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density) else { self.picker.cancel(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::new(transform, self.size, self.density) { Ok(view) => view, Err(error) => {
-            self.picker.cancel(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit))) => Some(Ok(hit)),
-            Some(Ok(crate::pick_gpu::Reply::Stale)) => { self.pump_pick(transform); None },
-            Some(Err(error)) => Some(Err(error)), None => None,
-        }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.picker.cancel(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self) -> [u64; 4] { crate::memory::gpu(&self.meshes) }
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 160 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self, settings: Option<crate::grid::Settings>) -> Result<(), &'static str> {
-        if settings == self.grid_settings { return Ok(()); }
-        let strokes = settings.map(crate::grid::Settings::strokes).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device, strokes)?; self.grid_settings = settings; Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; } Ok(())
-    }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let matrix=camera.view_projection();
-        let layout=origin.and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    pub fn set_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();let lane=lane.get_or_insert_with(||crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1}));lane.document.set_labels(labels)
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in &self.meshes {
-                mesh.draw(&mut pass);
-            }
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.highlight.mesh(&mut pass);
-            self.highlight.ink(&mut pass);
-            self.mesh_ink.draw(&mut pass);
-            self.grid.draw(&mut pass);
-            self.strokes.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
-            self.preview.draw(&mut pass);
-        }
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
-
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,pickable:scene.pick_id(id.value()).is_some(),colour:scene.view.faces.get(&id).copied()}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62j-frame-pass-01.rs"
-```
-
-```text
---8<-- "journey/code/62j-frame-pass-02.rs"
-```
-
-```text
---8<-- "journey/code/62j-frame-pass-03.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62k-lane-labels"></a>
-
-<details>
-<summary>Implementation 62k-lane-labels: Merge original scene labels with the screen specimen</summary>
-
-Merge original scene labels with the screen specimen.
-
-Data flow: visible source labels and overlays → stable label ids → one lazy document → reused shaping.
-
-### 1. `src/renderer.rs`
-
-Adopt visible source-owned labels and presentation text in one cached lane.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    pub fn set_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();let lane=lane.get_or_insert_with(||crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1}));lane.document.set_labels(labels)
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(merged)?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; } Ok(())
-    }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        }
-        drop(old);
-        self.geometry.prune();
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        }
-        drop(old);
-        self.geometry.prune();
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self { text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self {full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode: crate::pick_sources::Mode,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let view_layout = crate::gpu_layout::uniform(&device, 80);
-        let model_layout = crate::gpu_layout::uniform(&device, 160);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout)], immediate_size: 0 });
-        let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 24,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }, wgpu::VertexBufferLayout {
-                    array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![2 => Float32x3],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface());
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink());
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: 80,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self {full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.picker.cancel(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.picker.cancel(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        self.markers.set_points(&self.device, scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker();if let Some(colour)=scene.view.faces.get(&row.id) {marker.colour=rgba(*colour);}marker}).chain(scene.control_markers().into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.view.faces.get(&row.id) {for segment in &mut segments {segment.stroke.colour=rgba(*colour);}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke();if let Some(colour)=scene.view.faces.get(&row.id) {stroke.colour=rgba(*colour);}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&self.device, &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry(&self.device, &layout, object,
-                    style(scene,object.id,selected==Some(object.id)), geometry)
-            };
-            self.meshes.push(row);
-        }
-        drop(old);
-        self.geometry.prune();
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density, mode: self.pick_mode })?;
-        self.pump_pick(transform); Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density) else { self.picker.cancel(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::new(transform, self.size, self.density) { Ok(view) => view, Err(error) => {
-            self.picker.cancel(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit))) => Some(Ok(hit)),
-            Some(Ok(crate::pick_gpu::Reply::Stale)) => { self.pump_pick(transform); None },
-            Some(Err(error)) => Some(Err(error)), None => None,
-        }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.picker.cancel(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self) -> [u64; 4] { crate::memory::gpu(&self.meshes) }
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 160 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self, settings: Option<crate::grid::Settings>) -> Result<(), &'static str> {
-        if settings == self.grid_settings { return Ok(()); }
-        let strokes = settings.map(crate::grid::Settings::strokes).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device, strokes)?; self.grid_settings = settings; Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let matrix=camera.view_projection();
-        let layout=origin.and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(merged)?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in &self.meshes {
-                mesh.draw(&mut pass);
-            }
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.highlight.mesh(&mut pass);
-            self.highlight.ink(&mut pass);
-            self.mesh_ink.draw(&mut pass);
-            self.grid.draw(&mut pass);
-            self.strokes.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
-            self.preview.draw(&mut pass);
-        }
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
-
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,pickable:scene.pick_id(id.value()).is_some(),colour:scene.view.faces.get(&id).copied()}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62k-lane-labels-01.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-02.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-03.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-04.rs"
-```
-
-```text
---8<-- "journey/code/62k-lane-labels-05.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62l-picking"></a>
-
-<details>
-<summary>Implementation 62l-picking: Draw original text IDs through bounded readback</summary>
-
-Draw original text IDs through bounded readback.
-
-Data flow: current camera text preparation → bounded integer pass → original owner → current derived bounds.
-
-### 1. `src/renderer.rs`
-
-Connect bounded text IDs, current metrics and atomic accepted-font adoption.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene) {
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
-    }
-    pub fn text_stats(&self)->Option<crate::scene_text_gpu::TextStats> {self.text.borrow().as_ref().map(|lane|lane.stats.clone())}
-    pub fn text_scene_usage(&self)->[u64;4] {self.text.borrow().as_ref().map_or([0;4],|lane|[lane.allocated_bytes(),lane.texture_bytes(),lane.stats.world_plane_rasterizations,lane.document.runs.len() as u64])}
-    pub fn replace_text_fonts(&self,fonts:Vec<Vec<u8>>)->anyhow::Result<()> {if let Some(lane)=self.text.borrow_mut().as_mut() {lane.document.replace_fonts(fonts.clone())?;} else {let mut document=crate::text::TextDocument::new();document.replace_fonts(fonts.clone())?;}*self.full_text_fonts.borrow_mut()=Some(fonts);Ok(())}
-    pub fn clear_text_fonts(&self) {self.full_text_fonts.borrow_mut().take();}
-
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref()); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode: crate::pick_sources::Mode,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let view_layout = crate::gpu_layout::uniform(&device, 80);
-        let model_layout = crate::gpu_layout::uniform(&device, 160);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout)], immediate_size: 0 });
-        let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 24,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }, wgpu::VertexBufferLayout {
-                    array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![2 => Float32x3],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface());
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink());
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: 80,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self {full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.picker.cancel(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.picker.cancel(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        self.markers.set_points(&self.device, scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker();if let Some(colour)=scene.view.faces.get(&row.id) {marker.colour=rgba(*colour);}marker}).chain(scene.control_markers().into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.view.faces.get(&row.id) {for segment in &mut segments {segment.stroke.colour=rgba(*colour);}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke();if let Some(colour)=scene.view.faces.get(&row.id) {stroke.colour=rgba(*colour);}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&self.device, &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry(&self.device, &layout, object,
-                    style(scene,object.id,selected==Some(object.id)), geometry)
-            };
-            self.meshes.push(row);
-        }
-        drop(old);
-        self.geometry.prune();
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density, mode: self.pick_mode })?;
-        self.pump_pick(transform); Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density) else { self.picker.cancel(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref()); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::new(transform, self.size, self.density) { Ok(view) => view, Err(error) => {
-            self.picker.cancel(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit))) => Some(Ok(hit)),
-            Some(Ok(crate::pick_gpu::Reply::Stale)) => { self.pump_pick(transform); None },
-            Some(Err(error)) => Some(Err(error)), None => None,
-        }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.picker.cancel(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self) -> [u64; 4] { crate::memory::gpu(&self.meshes) }
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 160 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self, settings: Option<crate::grid::Settings>) -> Result<(), &'static str> {
-        if settings == self.grid_settings { return Ok(()); }
-        let strokes = settings.map(crate::grid::Settings::strokes).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device, strokes)?; self.grid_settings = settings; Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let matrix=camera.view_projection();
-        let layout=origin.and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(merged)?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene) {
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
-    }
-    pub fn text_stats(&self)->Option<crate::scene_text_gpu::TextStats> {self.text.borrow().as_ref().map(|lane|lane.stats.clone())}
-    pub fn text_scene_usage(&self)->[u64;4] {self.text.borrow().as_ref().map_or([0;4],|lane|[lane.allocated_bytes(),lane.texture_bytes(),lane.stats.world_plane_rasterizations,lane.document.runs.len() as u64])}
-    pub fn replace_text_fonts(&self,fonts:Vec<Vec<u8>>)->anyhow::Result<()> {if let Some(lane)=self.text.borrow_mut().as_mut() {lane.document.replace_fonts(fonts.clone())?;} else {let mut document=crate::text::TextDocument::new();document.replace_fonts(fonts.clone())?;}*self.full_text_fonts.borrow_mut()=Some(fonts);Ok(())}
-    pub fn clear_text_fonts(&self) {self.full_text_fonts.borrow_mut().take();}
-
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in &self.meshes {
-                mesh.draw(&mut pass);
-            }
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.highlight.mesh(&mut pass);
-            self.highlight.ink(&mut pass);
-            self.mesh_ink.draw(&mut pass);
-            self.grid.draw(&mut pass);
-            self.strokes.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
-            self.preview.draw(&mut pass);
-        }
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
-
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,pickable:scene.pick_id(id.value()).is_some(),colour:scene.view.faces.get(&id).copied()}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62l-picking-01.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-02.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-03.rs"
-```
-
-</details>
-
-### 2. `src/pick_gpu.rs`
-
-Draw existing text plate and plane integer IDs in the bounded pick window.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        bytes.extend((request.mode as u32).to_ne_bytes()); bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink, faces, request.mode)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        bytes.extend((request.mode as u32).to_ne_bytes()); bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink, faces, request.mode,text)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    }
-
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    }
-
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
-use std::sync::{Arc, atomic::{AtomicBool, AtomicU8, Ordering}};
-
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32, pub mode: crate::pick_sources::Mode }
-
-pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
-struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
-pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
-
-pub struct Picker {
-    pipeline: wgpu::RenderPipeline,
-    view: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    crop: wgpu::Buffer,
-    crop_group: wgpu::BindGroup,
-    image: Option<crate::pick_image::Image>,
-    active: Option<Flight>,
-    pending: Option<Queued>,
-    alive: Arc<AtomicBool>,
-    gate: crate::pick_gate::Gate,
-    pub submitted: u64,
-    pub coalesced: u64,
-}
-
-impl Drop for Picker { fn drop(&mut self) { self.alive.store(false, Ordering::Release); self.gate.close(); } }
-
-impl Picker {
-    pub fn new(device: &wgpu::Device, view_layout: &wgpu::BindGroupLayout, model_layout: &wgpu::BindGroupLayout) -> Self {
-        let crop_layout = crate::gpu_layout::uniform(device, 80);
-        let pipeline = crate::pick_pipeline::mesh(device, view_layout, model_layout, &crop_layout);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(80); let crop = buffer(80);
-        let view_group = crate::gpu_layout::group(device, view_layout, &view);
-        let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
-            alive: Arc::new(AtomicBool::new(true)), gate: Default::default(), submitted: 0, coalesced: 0 }
-    }
-
-    pub fn queue(&mut self, request: Request) -> Result<(), &'static str> {
-        let view = crate::pick_view::View::new(request.transform, request.window.full, request.density)?;
-        let ticket = self.gate.issue()?;
-        if self.pending.replace(Queued { request, ticket, view }).is_some() { self.coalesced += 1; }
-        Ok(())
-    }
-
-    pub fn queued(&self) -> bool { self.pending.is_some() }
-
-    pub fn cancel(&mut self) {
-        self.gate.invalidate(); self.pending = None;
-        let mapped = self.active.take().is_some_and(|flight| flight.ready.load(Ordering::Acquire) <= 1);
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
-    }
-
-    pub(crate) fn next(&mut self, view: crate::pick_view::View) -> Option<Queued> {
-        if self.active.is_some() { return None; }
-        let queued = self.pending.take()?;
-        if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
-    }
-
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
-            self.image = Some(crate::pick_image::Image::new(device, window));
-        }
-        let image = self.image.as_mut().unwrap(); image.window = window;
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
-        queue.write_buffer(&self.view, 0, &bytes);
-        let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
-        bytes.extend((request.mode as u32).to_ne_bytes()); bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink, faces, request.mode,text)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
-            if alive.load(Ordering::Acquire) {
-                #[cfg(target_arch = "wasm32")] crate::browser_pick::wake();
-            }
-        });
-        self.submitted += 1;
-    }
-
-    pub fn take(&mut self, view: crate::pick_view::View) -> Option<Result<Reply, &'static str>> {
-        let status = self.active.as_ref()?.ready.load(Ordering::Acquire);
-        if status == 0 { return None; }
-        let flight = self.active.take().unwrap();
-        let current = self.gate.accept(flight.ticket) && flight.view == view;
-        let image = self.image.as_ref().unwrap();
-        if status != 1 { return Some(if current { Err("Cannot read GPU pick image") } else { Ok(Reply::Stale) }); }
-        let bytes = image.readback.slice(..).get_mapped_range();
-        let result = if current { image.window.closest(&bytes).map(Reply::Hit) } else { Ok(Reply::Stale) };
-        drop(bytes); image.readback.unmap(); Some(result)
-    }
-
-    pub fn usage(&self) -> [u64; 3] {
-        [u64::from(self.active.is_some()), u64::from(self.pending.is_some()), self.image.as_ref().map_or(0, |image|
-            image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 12) + 160]
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62l-picking-04.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-05.rs"
-```
-
-</details>
-
-### 3. `src/pick_encode.rs`
-
-Draw existing text plate and plane integer IDs in the bounded pick window.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
-
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
-            for lane in ink { lane.pick(&mut pass, crop_group); }
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
-        }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
-```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62l-picking-06.rs"
-```
-
-```text
---8<-- "journey/code/62l-picking-07.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62m-whole-fonts"></a>
-
-<details>
-<summary>Implementation 62m-whole-fonts: Fetch missing whole fonts as one checked set</summary>
-
-Fetch missing whole fonts as one checked set.
-
-Data flow: subset coverage miss → bounded font requests → complete font set → atomic adoption.
-
-### 1. `src/text_fonts.rs`
-
-Fetch and validate the current whole fonts without letting stale replies survive Close.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/62m-whole-fonts-01.rs"
-```
-
-### 2. `src/lib.rs`
-
-Register the source component.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod scene_text_gpu;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/62m-whole-fonts-02.rs" skip=25
-```
-
-</details>
-
-<a id="checkpoint-62n-diagnostics"></a>
-
-<details>
-<summary>Implementation 62n-diagnostics: Show current text sources metrics and preparation errors</summary>
-
-Show current text sources metrics and preparation errors.
-
-Data flow: font delivery → current derived bounds → truthful diagnostics → visible error status.
-
-### 1. `src/browser.rs`
-
-Connect epoch-guarded fonts, current source/resource diagnostics and visible text errors.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        ..Default::default()
-    });
-    renderer.draw_mode(&view, background, transform, normals);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        ..Default::default()
-    });
-    renderer.draw_mode(&view, background, transform, normals);
-    if let Some(error)=renderer.text_error() {panel.result(&format!("Text: {error}"));}
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
-    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
-    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-scene-text-gpu",&serde_json::to_string(&renderer.text_scene_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
-    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
-    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        }
-        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
-        else { panel.tool(String::new(), Vec::new()); }
-        let rect=pointer_canvas.get_bounding_client_rect();
-        let number=editor.number_prompt([rect.width(),rect.height()]);
-        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        }
-        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
-        else { panel.tool(String::new(), Vec::new()); }
-        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
-        renderer.refresh_text_bounds(&mut editor.scene);
-        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
-        let rect=pointer_canvas.get_bounding_client_rect();
-        let number=editor.number_prompt([rect.width(),rect.height()]);
-        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _=renderer.set_text(Vec::new()); }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    surface.configure(&device, &config);
-    let mut editor = shared.borrow_mut();
-    let pipeline_started = crate::browser_phase::now();
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    surface.configure(&device, &config);
-    let mut editor = shared.borrow_mut();
-    let pipeline_started = crate::browser_phase::now();
-    let text_fonts=std::rc::Rc::new(crate::text_fonts::Inbox::default());
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
-    wasm_bindgen_futures::spawn_local(async move {
-        if crate::browser_runtime::stop_if(&fault) {
-            crate::browser_report::fatal(&message);
-            if crate::browser_recovery::request(&message) { return; }
-            report(&format!("Cannot draw: {message}"));
-        }
-    });
-}
-
-fn save_result(bytes: &[u8]) -> Result<String, String> {
-    crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
-        .map_err(|error| format!("Save failed: {error:?}"))
-}
-
-pub async fn run() -> Result<(), JsValue> { run_with(crate::drawing_document::new()).await }
-
-pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let recovery = crate::browser_recovery::adopt()?;
-    crate::browser_report::start()?;
-    let startup = crate::browser_startup::Guard::new()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter_started = crate::browser_phase::now();
-    let probe = crate::browser_adapter::Probe::new().ok();
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await;
-    if !startup.permits() { return Ok(()); }
-    crate::browser_phase::finish("adapter request", adapter_started, 0, "GPU");
-    let adapter = adapter.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    if let Some(info) = probe.as_ref().and_then(|probe| probe.info()) { let _ = crate::browser_report::adapter(info); }
-    else { let _ = crate::browser_report::observe("diagnostic", "Adapter identity unavailable"); }
-    drop(probe);
-    let device_started = crate::browser_phase::now();
-    let device = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await;
-    if !startup.permits() {
-        if let Ok((device, _)) = device { device.destroy(); }
-        return Ok(());
-    }
-    crate::browser_phase::finish("device request", device_started, 0, "GPU");
-    let (device, queue) = device.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let fault = crate::gpu_fault::Fault::default();
-    let errors = fault.clone();
-    device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
-    let lost = fault.clone();
-    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = shared.borrow_mut();
-    let pipeline_started = crate::browser_phase::now();
-    let text_fonts=std::rc::Rc::new(crate::text_fonts::Inbox::default());
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    crate::browser_phase::finish("renderer setup", pipeline_started, 0, "GPU");
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        crate::commands::names(),
-    );
-    if let Some(message) = crate::browser_report::previous_notice() { panel.result(message); }
-    if let Some(message) = &recovery { panel.result(message); }
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        let frame_started = crate::browser_phase::now();
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            editor.normal_view,
-            &mut panel,
-        )?;
-        let completing = fault.clone();
-        // Queue completion runs after submitted GPU work; checking the current device prevents a late result from reviving an exited runtime.
-        renderer.queue.on_submitted_work_done(move || {
-            if crate::browser_runtime::owns(&completing) && completing.message().is_none() {
-                crate::browser_phase::finish("first frame complete", frame_started, 0, "GPU");
-                let _ = crate::browser_report::observe("milestone", "geometry on screen");
-            }
-        });
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let mut touch=crate::touch::Touch::default();
-    let pick_remove=std::cell::Cell::new(false);
-    let pick_additive = std::rc::Rc::new(std::cell::Cell::new(false));
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let owned_request = std::rc::Rc::clone(&request);
-    let owned_reload = std::rc::Rc::clone(&reload);
-    let active_fault = fault.clone();
-    drop(editor);
-    let owned_editor = std::rc::Rc::clone(&shared);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if active_fault.message().is_some() { return; }
-        let mut editor = shared.borrow_mut();
-        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
-        if event.type_() == "pagehide" {
-            gesture.cancel();touch.cancel();let _=editor.apply(Action::CanvasCancel); let _=editor.apply(Action::GizmoCancel);
-            crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
-            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
-            return;
-        }
-        if matches!(event.type_().as_str(),"blur"|"resize"|"pointercancel")||event.dyn_ref::<web_sys::KeyboardEvent>().is_some_and(|key|key.key()=="Escape"&&!key.is_composing()) {
-            gesture.cancel();touch.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
-        }
-        if event.type_()=="lostpointercapture"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|editor.canvas_drag.as_ref().is_some_and(|d|d.pointer==p.pointer_id()&&d.released.is_none())) {
-            gesture.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
-        }
-        if event.type_()=="pointerdown"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.is_primary())&&editor.canvas_drag.as_ref().is_none_or(|d|d.released.is_some()) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let navigation=if line.is_none()&&!panel.consumed {navigation_action(&event,&pointer_canvas,&mut gesture,&mut touch)} else {None};
-        let line=if gesture.take_repeat() {event.prevent_default();if editor.draft.is_some()||editor.gizmo_edit.is_some() {Some(String::new())} else {panel.repeat_line()}} else {line};
-        let line = if (editor.draft.is_some() || editor.gizmo_edit.is_some()) && event.dyn_ref::<web_sys::KeyboardEvent>()
-            .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
-            event.prevent_default(); gesture.cancel(); Some("Escape".into())
-        } else { line };
-
-        let mut highlight_changed = false;
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
-                match reply.complete(&mut editor) {
-                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
-                        highlight_changed = true;
-                        crate::browser_upload::prepare(&mut renderer, editor.display_scene(), editor.whole_selection(), active_fault.clone());
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if command == "Reload Sources" {
-                            "Editable sources restored; display retained.".to_owned()
-                        } else { format!("{command} completed after source reload.") };
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
-                        let message = save_result(&bytes).unwrap_or_else(|error| error);
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(None) => {}
-                    Err(error) => { report(&error); panel.answer(command, &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            let command = editor.tool_line(&line).map(|result| result.map(crate::commands::Command::Editor).map_err(str::to_owned))
-                .unwrap_or_else(|| crate::commands::parse(&line));
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-            Ok(crate::commands::Command::Host(host)) => {
-            use crate::commands::Host;
-            match host {
-            Host::TextDemo=>{if let Err(error)=renderer.text_demo() {panel.result(&error.to_string());}None},
-            Host::Help => { panel.result(&crate::commands::names().join(" · ")); None }
-            Host::Selection => {
-                let rows = editor.selected_objects();
-                panel.result(&if rows.len() > 1 { format!("Objects {:?}", rows.iter().map(|id| id.value()).collect::<Vec<_>>()) }
-                    else { editor.selection().map_or_else(|| "Nothing selected".to_owned(), |target| target.describe()) });
-                None
-            }
-            Host::Reload => {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            }
-            Host::CancelReload => {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            }
-            Host::CancelOpen => {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            }
-            Host::Open | Host::Replace => {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if host == Host::Replace { reload.borrow_mut().cancel(); }
-                read_mode.set(if host == Host::Replace { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            }
-            Host::Report | Host::PreviousReport => {
-                let output = if host == Host::PreviousReport { crate::browser_report::download_previous() }
-                    else { crate::browser_report::download() };
-                let result = output.map(|()| "Diagnostic report downloaded.".to_owned())
-                    .unwrap_or_else(|error| format!("Diagnostic report failed: {error:?}"));
-                panel.result(&result);
-                None
-            }
-            Host::LayersOn=>{panel.tree.open=true;None},
-            Host::LayersOff=>{panel.tree.open=false;None},
-            Host::LayersAll=>{panel.tree.all();None},
-            Host::Save => {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::document::snapshot(&editor.scene).map_err(str::to_owned)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-                None
-            }
-            }
-            }
-            }
-        } else if !panel.consumed {
-            navigation
-        } else {
-            None
-        };
-        let handle_action=gizmo_action(&event,&pointer_canvas,&editor,panel.consumed);
-        let action = if let Some((key,edit))=panel.tree.edit.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::LayerEdit {key,edit})
-        } else if let Some((key,property))=panel.tree.property.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::LayerProperty {key,property})
-        } else if let Some((ids,additive))=panel.tree.action.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::TreePick {ids,additive})
-        } else if let Some(handle_action)=handle_action {
-            renderer.cancel_pick();gesture.cancel();Some(handle_action)
-        } else if event.type_() == "viewer-pick" {
-            match renderer.take_pick(editor.camera.uniform()) {
-                Some(Ok(hit)) => {
-                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
-                    if editor.canvas_drag.is_some() {Some(Action::CanvasHit(target.map(|t|t.owner)))}
-                    else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
-                    else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
-                },
-                Some(Err(error)) => { report(error); None },
-                None => None,
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) if editor.draft.is_some() => {
-                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
-            }
-            None if editor.draft.is_some() && matches!(event.type_().as_str(), "blur" | "resize" | "pointercancel" | "lostpointercapture") => Some(Action::ToolHover(None)),
-            None if editor.draft.is_some() && !panel.consumed && event.type_() == "pointermove" => {
-                event.dyn_ref::<web_sys::PointerEvent>().filter(|p| p.buttons() == 0).map(|p| {
-                    let r = pointer_canvas.get_bounding_client_rect();
-                    let screen = [(2. * (p.client_x() as f64-r.left())/r.width()-1.) as f32, (1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32];
-                    Action::ToolScreen { screen,size:[r.width(),r.height()],commit:false }
-                })
-            }
-            Some(Action::Touch(actions))=> {
-                let mut applied=Vec::new();
-                for action in actions {match action {
-                    Action::Pick(screen)=>{if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()) {report(error);}}},
-                    action=>{renderer.cancel_pick();applied.push(action);}
-                }}Some(Action::Touch(applied))
-            },
-            Some(Action::CanvasStart {from,to,size,modified,pointer}) if editor.draft.is_none()=> {
-                renderer.cancel_pick();
-                let modified=modified||editor.pick_mode!=crate::pick_sources::Mode::Object;
-                let start=Action::CanvasStart {from,to,size,modified,pointer};
-                let release=event.dyn_ref::<web_sys::PointerEvent>().filter(|_|event.type_()=="pointerup").map(|pointer|Action::CanvasRelease {screen:to,size,add:pointer.shift_key(),remove:pointer.ctrl_key()||pointer.meta_key()});
-                if !modified {if let Err(error)=renderer.request_pick(from,editor.camera.uniform()) {report(error);return;}}
-                Some(Action::Touch(std::iter::once(start).chain(release).collect()))
-            },
-            Some(Action::CanvasStart {..}|Action::CanvasMove {..}|Action::CanvasRelease {..}) if editor.draft.is_some()=>None,
-            Some(action @ (Action::CanvasMove {..}|Action::CanvasRelease {..}))=>Some(action),
-            Some(Action::Pick(screen)) => {
-                pick_remove.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.ctrl_key()||p.meta_key()));
-                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
-                if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
-                None
-            }
-            Some(action) => { renderer.cancel_pick(); Some(action) },
-            None => None,
-        } };
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = if editor.selected_objects().len() > 1 { Ok(None) }
-                else { crate::edit_intent::Intent::capture(&action, editor.whole_selection()) }
-                .map_err(str::to_owned).and_then(|intent| match intent {
-                    Some(intent) => crate::browser_reload::restore_for(intent, &editor,
-                        std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
-                    None => Ok(false),
-                });
-            let change = waiting.and_then(|waiting| {
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            if rename_action {panel.tree.rename_result(change.as_ref().err().map(String::as_str));}
-            if tool_action && change.is_ok() { panel.result(&editor.tool_status); }
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    highlight_changed = true;
-                    crate::browser_upload::prepare(&mut renderer, &editor.scene, editor.whole_selection(), active_fault.clone());
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Some(Change::Preview)) => {
-                    highlight_changed=true;
-                    crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());
-                }
-                Ok(Some(Change::View)) | Ok(None) => {}
-                Err(error) => {
-                    report(&error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", &error); }
-                    else { panel.result(&error); }
-                }
-            }
-        }
-        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
-        else { panel.tool(String::new(), Vec::new()); }
-        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
-        renderer.refresh_text_bounds(&mut editor.scene);
-        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
-        let rect=pointer_canvas.get_bounding_client_rect();
-        let number=editor.number_prompt([rect.width(),rect.height()]);
-        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
-            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
-        }
-        panel.rectangle=editor.canvas_drag.as_ref().filter(|d|d.missed).and_then(|d|d.rectangle());
-        panel.number(number);
-        panel.tree.refresh(&editor.scene,editor.selected_objects());
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(editor.pick_mode);
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.selected_objects())) { report(error); return; }
-        }
-        if let Err(error) = renderer.set_grid(editor.camera.grid) {
-            report(error); return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Some(frame)=panel.free_frame([rect.width(),rect.height()]) {if editor.camera.frame(frame) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}}
-            let hover=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|event.type_()=="pointermove" && p.buttons()==0 && !panel.consumed).map(|p| {
-                let r=pointer_canvas.get_bounding_client_rect();
-                ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
-            });
-            editor.hover_gizmo(hover);
-            renderer.set_gizmo(&editor.camera,editor.gizmo_origin(),editor.gizmo_active());
-            if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                editor.normal_view,
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    let mut listeners = crate::listeners::Listeners::new(update);
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        listeners.listen(canvas.as_ref(), name)?;
-    }
-    listeners.listen(canvas.as_ref(), "wheel")?;
-    listeners.listen(window.as_ref(), "resize")?;
-    listeners.listen(window.as_ref(), "blur")?;
-    listeners.listen(document.as_ref(), "change")?;
-    listeners.listen(document.as_ref(), "cancel")?;
-    listeners.listen(window.as_ref(), "viewer-pick")?;
-    listeners.listen(window.as_ref(), "viewer-file")?;
-    listeners.listen(window.as_ref(), "viewer-file-error")?;
-    listeners.listen(window.as_ref(), "viewer-reload")?;
-    listeners.listen(window.as_ref(), "pagehide")?;
-    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault, owned_editor);
-    report(&recovery.unwrap_or_else(|| "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.".into()));
-    Ok(())
-}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-    canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-scene-text-gpu",&serde_json::to_string(&renderer.text_scene_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
-    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
-    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
-    let cads=editor.scene.objects().iter().filter_map(|row|row.cad.as_ref().map(|cad|serde_json::json!({"id":row.id.value(),"source":cad.source.guid(),"faces":row.mesh.parts.faces,"edges":cad.edges.iter().map(|border|border.edge).collect::<Vec<_>>(),"vertices":cad.samples.len()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-cads",&serde_json::to_string(&cads).unwrap())?;
-    canvas.set_attribute("data-surface-cpu",&serde_json::to_string(&crate::memory::surfaces(editor.presentation_scenes())).unwrap())?;
-    let surfaces=editor.scene.objects().iter().filter_map(|row|row.surface.as_ref().map(|s|serde_json::json!({"id":row.id.value(),"source":s.source.guid(),"controls":s.source.m_cv_count,"steps":s.grid.steps,"samples":s.grid.samples.len(),"faces":row.mesh.parts.faces,"edges":s.grid.boundaries.iter().map(|b|b.edge).collect::<Vec<_>>()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-surfaces",&serde_json::to_string(&surfaces).unwrap())?;
-    canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
-    canvas.set_attribute("data-point-cpu", &serde_json::to_string(&crate::memory::points(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
-    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
-    canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
-    canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
-    canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
-    canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
-    canvas.set_attribute("data-highlight-bytes", &renderer.highlight_bytes().to_string())?;
-    canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
-    canvas.set_attribute("data-pick-mode", &format!("{:?}", editor.pick_mode))?;
-    canvas.set_attribute("data-part-usage", &serde_json::to_string(&renderer.part_usage()).unwrap())?;
-    canvas.set_attribute("data-selected-ids", &serde_json::to_string(&editor.selected_objects().iter().map(|id| id.value()).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
-    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.presentation_scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-    touch:&mut crate::touch::Touch,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            let rect=canvas.get_bounding_client_rect();
-            let Action::Zoom(factor)=crate::navigation::wheel(wheel.delta_y(),mode,rect.height())? else {return None;};
-            let screen=[(2.*(wheel.client_x() as f64-rect.left())/rect.width()-1.) as f32,(1.-2.*(wheel.client_y() as f64-rect.top())/rect.height()) as f32];
-            Some(Action::ZoomAt {factor,screen})
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _=>{
-            if let Some(pointer)=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|p.pointer_type()=="touch") {
-                event.prevent_default();let r=canvas.get_bounding_client_rect();let rect=[r.left(),r.top(),r.width(),r.height()];let at=[pointer.client_x() as f64,pointer.client_y() as f64];let id=pointer.pointer_id();
-                let actions=match event.type_().as_str() {
-                    "pointerdown"=>{gesture.cancel();let multiple=touch.count()>0;if touch.press(id,at,event.time_stamp()) {if canvas.set_pointer_capture(id).is_err() {touch.cancel();}}if multiple {vec![Action::GizmoCancel,Action::CanvasCancel]} else {Vec::new()}},
-                    "pointermove"=>touch.move_to(id,at,rect),
-                    "pointerup"=>{let actions=touch.release(id,at,event.time_stamp(),rect);let _=canvas.release_pointer_capture(id);actions},
-                    "pointercancel"=>{touch.cancel();Vec::new()},"lostpointercapture"=>{if touch.contains(id) {touch.cancel();}Vec::new()},_=>Vec::new(),
-                };return (!actions.is_empty()).then_some(Action::Touch(actions));
-            }
-            return pointer_action(event,canvas,gesture);
-        },
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press_with(id, pointer.button(), position,pointer.ctrl_key()||pointer.meta_key()) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    let mut action=motion.action([rect.left(),rect.top(),rect.width(),rect.height()])?;
-    match &mut action {
-        Action::CanvasStart {modified,pointer:id,..}=>{*id=pointer.pointer_id();*modified=pointer.shift_key()||pointer.ctrl_key()||pointer.meta_key();},
-        Action::CanvasRelease {add,remove,..}=>{*add=pointer.shift_key();*remove=pointer.ctrl_key()||pointer.meta_key();},_=>{}
-    }Some(action)
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let density = crate::browser_recovery::density(window.device_pixel_ratio());
-    renderer.set_density(density as f32);
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        density,
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    normals: bool,
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw_mode(&view, background, transform, normals);
-    if let Some(error)=renderer.text_error() {panel.result(&format!("Text: {error}"));}
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-
-fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:&Editor,consumed:bool)->Option<Action> {
-    if matches!(event.type_().as_str(),"blur"|"resize") && editor.gizmo_edit.is_some() {return Some(Action::GizmoCancel);}
-    let pointer=event.dyn_ref::<web_sys::PointerEvent>()?;
-    if matches!(event.type_().as_str(),"pointercancel"|"lostpointercapture") {
-        return editor.gizmo_edit.as_ref().filter(|e|e.pointer==Some(pointer.pointer_id())).map(|_|Action::GizmoCancel);
-    }
-    let rect=canvas.get_bounding_client_rect();let size=[rect.width(),rect.height()];
-    if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-    let screen=[(2.*(pointer.client_x() as f64-rect.left())/size[0]-1.) as f32,(1.-2.*(pointer.client_y() as f64-rect.top())/size[1]) as f32];
-    let id=pointer.pointer_id();
-    if editor.gizmo_edit.as_ref().is_some_and(|e|e.pointer==Some(id)) {
-        event.prevent_default();
-        return match event.type_().as_str() {
-            "pointermove"=>Some(Action::GizmoMove {pointer:id,screen,size,shift:pointer.shift_key()}),
-            "pointerup"=>{let _=canvas.release_pointer_capture(id);Some(Action::GizmoRelease {pointer:id,screen,size,shift:pointer.shift_key()})},
-            _=>None,
-        };
-    }
-    if consumed || event.type_()!="pointerdown" || !pointer.is_primary() || pointer.button()!=0 {return None;}
-    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {return None;}
-    let finger=pointer.pointer_type()=="touch";
-    if editor.gizmo_hit_radius(screen,size,if finger {18.} else {8.}).is_some() {
-        event.prevent_default();
-        if canvas.set_pointer_capture(id).is_err() {return Some(Action::GizmoCancel);}
-        Some(if finger {Action::GizmoTouch {pointer:id,screen,size}} else {Action::GizmoPress {pointer:id,screen,size,modified:false}})
-    } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/62n-diagnostics-01.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-02.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-03.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-04.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-05.rs"
-```
-
-```text
---8<-- "journey/code/62n-diagnostics-06.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-62o-labels"></a>
-
-<details>
-<summary>Implementation 62o-labels: Create pick move and delete the original scene labels</summary>
-
-Create pick move and delete the original scene labels.
-
-Data flow: original text example → current placement and coverage → original integer pick → one reversible edit.
-
-### 1. `src/editor.rs`
-
-Connect original label examples through the existing scene transactions and command dock.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                self.history.clear();
-                self.objects.clear(); self.selected = None;
-            }
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                self.history.clear();
-                self.objects.clear(); self.selected = None;
-            }
-            Action::AddText(placement)=>{let source=std::rc::Rc::new(crate::scene_label::example(placement));let prepared=crate::scene_label::Prepared::new(source)?;self.history.try_edit(&mut self.scene,|scene|scene.insert_text(prepared).map(|_|()))?;},
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    AddBox,
-    AddNested,
-    AddCad,
-    AddSurface,
-    AddLine,
-    AddPoint,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    AddBox,
-    AddNested,
-    AddCad,
-    AddText(crate::text::TextPlacement),
-    AddSurface,
-    AddLine,
-    AddPoint,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
-pub enum Action {
-    CanvasStart {from:[f32;2],to:[f32;2],size:[f64;2],modified:bool,pointer:i32},
-    CanvasMove {screen:[f32;2],size:[f64;2]},
-    CanvasRelease {screen:[f32;2],size:[f64;2],add:bool,remove:bool},
-    CanvasHit(Option<ObjectId>),CanvasCancel,
-    SelectRows {ids:Vec<ObjectId>,add:bool,remove:bool},
-    PanScreen {delta:[f64;2],size:[f64;2]},ZoomAt {factor:f32,screen:[f32;2]},
-    Touch(Vec<Action>),
-    LayerEdit {key:String,edit:crate::layer_edit::Edit},
-    LayerProperty {key:String,property:crate::layer_properties::Property},
-    TreePick {ids:Vec<ObjectId>,additive:bool},
-    GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
-    GizmoTouch {pointer:i32,screen:[f32;2],size:[f64;2]},
-    GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoCancel,
-    GizmoNumber(String),
-    Snap(crate::snap::Setting),
-    ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
-    BeginTool(crate::tool::Shape),
-    ToolPoint([f64; 3]),
-    ToolHover(Option<[f64; 3]>),
-    CancelTool,
-    Pick([f32; 2]),
-    Picked(Option<ObjectId>),
-    PickedTarget(Option<crate::pick_sources::Target>),
-    PickedMany { target: Option<crate::pick_sources::Target>, additive: bool },
-    SelectAll,
-    PickMode(crate::pick_sources::Mode),
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    UnloadSources,
-    Hide,
-    Show,
-    AddBox,
-    AddNested,
-    AddCad,
-    AddText(crate::text::TextPlacement),
-    AddSurface,
-    AddLine,
-    AddPoint,
-    AddCurve,
-    AddColours(crate::colour::Mode),
-    NormalView(bool),
-    Grid(Option<crate::grid::Settings>),
-    AddNormals(crate::normal_example::Mode),
-    Controls(bool),
-    AddPolyline,
-    AddArrow,
-    Translate([f64; 3]),
-    ToggleExtra,
-    SelectNext,
-    Delete,
-    Undo,
-    Redo,
-    Background,
-    Zoom(f32),
-    Pan(f32, f32),
-    Orbit(f64, f64),
-    Isometric,
-    ResetView,
-    Fit,
-    FitSelected,
-    Projection(crate::camera::Projection),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Change {
-    View,
-    Scene,
-    Preview,
-}
-
-pub struct Editor {
-    pub canvas_drag:Option<crate::canvas_drag::Drag>,
-    pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
-    gizmo_hover:Option<crate::gizmo::Handle>,
-    pub edit_preview: Option<crate::edit_preview::Preview>,
-    pub snapping: crate::snap::Settings,
-    snap_index: Option<crate::snap_index::Index>,
-    pub draft: Option<crate::tool::Draft>,
-    pub tool_status: String,
-    pub scene: Scene,
-    pub selected: Option<ObjectId>,
-    pub selected_part: Option<crate::pick_sources::Part>,
-    pub pick_mode: crate::pick_sources::Mode,
-    objects: crate::object_selection::Objects,
-    pub camera: Camera,
-    pub background: Background,
-    pub normal_view: bool,
-    history: History,
-    last_release: u64,
-}
-
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            draft: None, tool_status: String::new(),
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
-            camera: Camera::default(),
-            background: Background::default(),
-            normal_view: false,
-            history: History::default(),
-            last_release: 0,
-        }
-    }
-}
-
-impl Editor {
-    pub fn display_scene(&self) -> &Scene {
-        self.canvas_drag.as_ref().and_then(|d|d.preview.as_ref()).map_or_else(||self.gizmo_edit.as_ref().map_or_else(||self.edit_preview.as_ref().map_or(&self.scene,|p| &p.scene),|g|g.preview.scene()),|p|&p.scene)
-    }
-
-    pub fn gizmo_origin(&self)->Option<[f64;3]> {
-        if self.draft.is_some()||self.canvas_drag.is_some() {return None;}
-        if let Some(edit)=self.gizmo_edit.as_ref() {return Some(edit.origin());}
-        if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
-        self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
-    }
-
-    pub fn gizmo_hit(&self,screen:[f32;2],size:[f64;2])->Option<crate::gizmo::Handle> {self.gizmo_hit_radius(screen,size,8.)}
-
-    pub fn gizmo_hit_radius(&self,screen:[f32;2],size:[f64;2],radius:f64)->Option<crate::gizmo::Handle> {
-        if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-        let origin=self.gizmo_origin()?;
-        let scale=crate::widget_layout::world_per_pixel(&self.camera.view_projection(),origin,size[1])?;
-        let ray=self.camera.ray(screen)?;
-        crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2])).hit_with_radius(&ray.origin,&ray.direction,scale,radius)
-    }
-
-    pub fn number_prompt(&self,size:[f64;2])->Option<crate::number_box::NumberPrompt> {
-        let edit=self.gizmo_edit.as_ref()?;let handle=edit.gizmo.typing?;
-        let origin=edit.origin();let matrix=self.camera.view_projection();let scale=crate::widget_layout::world_per_pixel(&matrix,origin,size[1])?;
-        let point=edit.gizmo.handle_point(handle,scale);
-        let at=crate::snap_math::Screen {matrix:matrix.m,size}.point([point[0],point[1],point[2]])?;
-        let unit=handle.labels().2;
-        Some(crate::number_box::NumberPrompt {handle,title:handle.title(),unit,hint:if unit=="factor" {"1"} else {"0"},at:at.map(|v|v as f32)})
-    }
-
-    pub fn gizmo_active(&self)->f32 {crate::gizmo_edit::code(self.gizmo_edit.as_ref().and_then(|e|e.active()).or(self.gizmo_hover))}
-
-    pub fn hover_gizmo(&mut self,screen:Option<([f32;2],[f64;2])>) {
-        self.gizmo_hover=if self.gizmo_edit.is_some() {None} else {screen.and_then(|(point,size)|self.gizmo_hit(point,size))};
-    }
-
-    fn gizmo_press(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],modified:bool)->Result<Change,&'static str> {
-        self.gizmo_press_radius(pointer,screen,size,modified,8.)
-    }
-
-    fn gizmo_press_radius(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],modified:bool,radius:f64)->Result<Change,&'static str> {
-        if modified || self.draft.is_some() || self.gizmo_edit.as_ref().is_some_and(|g|g.pointer.is_some()) {return Ok(Change::View);}
-        let Some(handle)=self.gizmo_hit_radius(screen,size,radius) else {return Ok(Change::View);};
-        let origin=self.gizmo_origin().ok_or("No editable selection")?;
-        let preview=crate::gizmo_edit::Preview::new(&self.scene,self.selected_objects(),self.selection().filter(|_|self.selected_part.is_some()))?;
-        let ray=self.camera.ray(screen).ok_or("Invalid handle ray")?;
-        let gizmo=crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2]));
-        self.gizmo_edit=crate::gizmo_edit::Edit::begin(gizmo,handle,&ray,preview,pointer,screen);Ok(Change::View)
-    }
-
-    fn gizmo_move(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],shift:bool)->Result<Change,&'static str> {
-        if size.iter().any(|v| !v.is_finite() || *v<=0.) {return Err("Invalid handle viewport");}
-        let Some(ray)=self.camera.ray(screen) else {return Err("Invalid handle ray");};
-        let Some(edit)=self.gizmo_edit.as_mut() else {return Ok(Change::View);};
-        Ok(if edit.update(pointer,screen,size,&ray,shift)? {Change::Preview} else {Change::View})
-    }
-
-    fn gizmo_release(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],shift:bool)->Result<Change,&'static str> {
-        if self.gizmo_edit.as_ref().is_none_or(|g|g.pointer!=Some(pointer)) {return Ok(Change::View);}
-        self.gizmo_move(pointer,screen,size,shift)?;
-        let edit=self.gizmo_edit.as_mut().unwrap();
-        if edit.click() {self.tool_status=format!("{}: type a value in {}, Enter applies, Esc closes",edit.active().unwrap().title(),edit.active().unwrap().labels().2);return Ok(Change::Preview);}
-        let changed=edit.preview.commit(&mut self.scene,&mut self.history)?; self.gizmo_edit=None;
-        self.tool_status="Handle edit completed.".into();Ok(if changed {Change::Scene} else {Change::Preview})
-    }
-
-    fn gizmo_number(&mut self,text:&str)->Result<Change,&'static str> {
-        let edit=self.gizmo_edit.as_mut().ok_or("No handle number is being requested")?;
-        let handle=edit.gizmo.typing.ok_or("No handle number is being requested")?;
-        let value=crate::gizmo::typed_value(handle,text).map_err(|_|"Enter a finite number; scale needs a positive factor")?;
-        let Some(value)=value else {self.gizmo_edit=None;return Ok(Change::Preview);};
-        edit.preview.set(edit.gizmo.typed(handle,value))?;
-        let changed=edit.preview.commit(&mut self.scene,&mut self.history)?;self.gizmo_edit=None;
-        self.tool_status=format!("{} {value} {}",handle.title(),handle.labels().2);Ok(if changed {Change::Scene} else {Change::Preview})
-    }
-
-    fn update_edit_preview(&mut self) -> Result<Change, &'static str> {
-        let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
-        let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?; Ok(Change::Preview)
-    }
-
-    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
-        std::iter::once(&self.scene).chain(self.history.scenes())
-    }
-
-    pub fn presentation_scenes(&self)->impl Iterator<Item=&Scene> {
-        self.scenes().chain(self.canvas_drag.iter().filter_map(|d|d.preview.as_ref()).flat_map(|p|p.scenes())).chain(self.edit_preview.iter().flat_map(|p|p.scenes())).chain(self.gizmo_edit.iter().flat_map(|g|g.preview.scenes()))
-    }
-
-    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
-        let mut seen = std::collections::HashSet::new();
-        self.scene.objects().iter().filter_map(crate::rehydrate::ReloadKey::of)
-            .filter(|key| seen.insert(key.origin.id)).collect()
-    }
-
-    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
-        std::iter::once(&mut self.scene).chain(self.history.scenes_mut())
-    }
-
-    pub fn hydrate(&mut self, values: Vec<(crate::rehydrate::ReloadKey, Vec<u8>)>) -> Result<bool, &'static str> {
-        if values.is_empty() { return Ok(false); }
-        let mut seen = std::collections::HashSet::new();
-        for (key, _) in &values {
-            if !seen.insert(key.origin.id) || !self.scene.objects().iter().any(|row| key.matches(row)) {
-                return Ok(false);
-            }
-        }
-        let prepared: Vec<_> = values.into_iter().map(|(key, bytes)|
-            crate::rehydrate::PreparedReload::new(key, &bytes)).collect::<Result<_, _>>()?;
-        for plan in &prepared {
-            if self.scenes().flat_map(|scene| scene.objects()).filter(|row| plan.key.matches(row))
-                .any(|row| !plan.validates(row)) { return Err("Reloaded source GUID or metadata does not match"); }
-        }
-        for scene in self.scenes_mut() {
-            for plan in &prepared { scene.hydrate(plan); }
-        }
-        if self.edit_preview.take().is_some() { self.draft=None; } self.gizmo_edit=None; self.snap_index = None; Ok(true)
-    }
-
-    fn unload_sources(&mut self) -> Result<(), &'static str> {
-        let mut origins: std::collections::HashSet<_> = self.scenes().flat_map(|scene| scene.objects())
-            .filter(|row| row.can_unload()).filter_map(|row| row.origin().map(|origin| origin.id)).collect();
-        for row in self.scenes().flat_map(|scene| scene.objects()) {
-            if let Some(origin) = row.origin() {
-                if !row.can_unload() { origins.remove(&origin.id); }
-            }
-        }
-        if origins.is_empty() { return Err("No eligible imported sources to unload"); }
-        let epoch = self.last_release.checked_add(1).ok_or("Release epochs exhausted")?;
-        for scene in self.scenes_mut() { scene.unload(&origins, epoch); }
-        self.last_release = epoch;
         Ok(())
     }
+}
 
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        if !self.scene.contains(id) {return Err("Object not found");}
-        let object=self.scene.objects().iter().find(|row|row.id==id);
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if object.is_some_and(|object|object.geometry().is_none()) {return Err("Reload editable sources before Move");}
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
-        self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
+impl Lane {
+    pub fn draw_ids(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        pick_transform: &wgpu::BindGroup,
+    ) -> u32 {
+        self.planes.draw_ids(pass, pick_transform)
+            + self.plates.draw_ids(pass, pick_transform)
     }
 
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        if !self.scene.contains(id) {return Err("Object not found");}
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if self.scene.objects().iter().find(|row| row.id == id).is_some_and(|row| row.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> anyhow::Result<u32> {
+        let mut draws = self.planes.draw(pass);
+        draws += self.plates.draw(pass, false);
+
+        if self.anchored_count != 0 {
+            self.anchored
+                .render(&self.atlas, &self.viewport, pass)?;
+            draws += 1;
         }
-        let ids=self.scene.with_descendants(&[id]);
-        self.history.edit(&mut self.scene, |scene| {for id in ids {scene.remove(id);}});
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.objects.retain(&self.scene);
-        if self.selected == Some(id) { self.selected = self.objects.primary(); self.selected_part = None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
 
-    pub fn selected_objects(&self) -> Vec<ObjectId> {
-        if self.selected_part.is_some() { return Vec::new(); }
-        if self.objects.primary() == self.selected { self.objects.rows().to_vec() }
-        else { self.selected.into_iter().filter(|id| self.scene.pick_id(id.value()).is_some()).collect() }
-    }
+        draws += self.plates.draw(pass, true);
 
-    pub fn select_objects(&mut self, rows: impl IntoIterator<Item = ObjectId>, additive: bool) {
-        if additive { let old = self.selected_objects(); self.objects.set(&self.scene, old, false); }
-        self.selected_part = None; self.objects.set(&self.scene, rows, additive); self.selected = self.objects.primary();
-    }
-
-    pub fn select_rows(&mut self,ids:Vec<ObjectId>,add:bool,remove:bool) {
-        if remove {let old=self.selected_objects();self.objects.set(&self.scene,old,false);self.objects.remove(&self.scene,ids);self.selected=self.objects.primary();self.selected_part=None;}
-        else {self.select_objects(ids,add);}
-    }
-
-    fn finish_canvas(&mut self)->Result<Change,&'static str> {
-        let Some(mut drag)=self.canvas_drag.take() else {return Ok(Change::View);};
-        let (add,remove)=drag.released.unwrap_or((false,false));
-        if let Some(preview)=drag.preview.take() {let changed=preview.commit(&mut self.scene,&mut self.history)?;if changed {self.snap_index=None;}return Ok(if changed {Change::Scene} else {Change::Preview});}
-        if drag.missed {if let Some(rectangle)=drag.rectangle() {let ids=crate::rect_select::found(&self.scene,&self.camera.view_projection().m,drag.size,rectangle);self.select_rows(ids,add,remove);}}
-        Ok(Change::View)
-    }
-
-    fn repair_selection(&mut self) {
-        if self.objects.primary() == self.selected && self.selected_part.is_none() {
-            self.objects.retain(&self.scene); self.selected = self.objects.primary();
-        } else { self.objects.clear(); }
-    }
-
-    fn move_selection(&mut self, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|n| n.is_finite()) { return Err("Move needs finite coordinates"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Err("Select an object before Move"); }
-        if offset.iter().all(|&n| n == 0.) { return Ok(Change::View); }
-        let mut preview=crate::edit_preview::Preview::new(&self.scene,ids)?;
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-        preview.commit(&mut self.scene,&mut self.history)?;Ok(Change::Scene)
-    }
-
-    fn delete_selection(&mut self) -> Result<Change, &'static str> {
-        if self.selected_part.is_some() { return Err("Use Select Object before Delete"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Ok(Change::View); }
-        if self.scene.objects().iter().any(|r| ids.contains(&r.id) && r.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
+        if self.overlay_count != 0 {
+            self.overlay
+                .render(&self.atlas, &self.viewport, pass)?;
+            draws += 1;
         }
-        let ids=self.scene.with_descendants(&ids);
-        self.history.edit(&mut self.scene, |scene| { for id in ids { scene.remove(id); } });
-        self.objects.clear(); self.selected = None; Ok(Change::Scene)
-    }
 
-    pub fn selection(&self) -> Option<crate::pick_sources::Target> {
-        self.selected.map(|owner| crate::pick_sources::Target { owner, part: self.selected_part.unwrap_or(crate::pick_sources::Part::Object) })
-    }
-
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
-
-    pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some() || text.trim().eq_ignore_ascii_case("Escape")) {
-            return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
-        }
-        self.draft.as_ref()?;
-        if text.trim().is_empty() || text.eq_ignore_ascii_case("Escape") { return Some(Ok(Action::CancelTool)); }
-        text.contains(',').then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
-    }
-
-    fn place_tool_point(&mut self, point: [f64; 3]) -> Result<Change, &'static str> {
-        let draft = self.draft.as_mut().ok_or("No point tool is running")?;
-        let name = draft.tool.name();
-        let Some(built) = draft.submit(point)? else { self.tool_status = draft.prompt(); self.snap_index=None; return self.update_edit_preview(); };
-        if let crate::tool::Built::Move(offset)=built {
-            let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
-            preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-            let changed=preview.commit(&mut self.scene,&mut self.history)?;
-            if self.edit_preview.take().is_some() { self.draft=None; } self.tool_status="Move completed.".into();
-            return Ok(if changed { Change::Scene } else { Change::Preview });
-        }
-        self.history.try_edit(&mut self.scene, |scene| match built {
-            crate::tool::Built::Point(point) => scene.insert_point(point).map(|_| ()),
-            crate::tool::Built::Line(line) => scene.insert_line(line).map(|_| ()),
-            crate::tool::Built::Move(_) => unreachable!("Move uses its placement preview"),
-        })?;
-        self.draft = None; self.tool_status = format!("{name} created."); Ok(Change::Scene)
-    }
-
-    pub fn snap_point(&mut self, screen: [f32; 2], size: [f64; 2]) -> Option<crate::snap::Hit> {
-        let ray = self.camera.ray(screen)?;
-        let from = self.draft.as_ref()?.points.last().copied();
-        let hit = if self.snapping.objects {
-            let exclude=self.edit_preview.as_ref().filter(|_| from.is_some()).map_or_else(Vec::new,|p| p.ids().to_vec());
-            let index = self.snap_index.get_or_insert_with(|| crate::snap_index::Index::new(&self.scene).excluding(&exclude));
-            let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
-            index.query(viewport, &ray, [(screen[0] as f64+1.)*size[0]/2., (1.-screen[1] as f64)*size[1]/2.], self.snapping.modes, from)
-        } else { None };
-        hit.or_else(|| crate::snap_index::fallback(self.snapping, &self.camera, screen))
-    }
-
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
-            Action::CanvasStart {from,to,size,modified,pointer}=>{self.canvas_drag=crate::canvas_drag::Drag::new(from,to,size,modified);if let Some(drag)=self.canvas_drag.as_mut() {drag.pointer=pointer;}return Ok(Change::View);},
-            Action::CanvasMove {screen,size}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.released.is_none()&&drag.size==size&&screen.iter().all(|v|v.is_finite()) {drag.to=screen;drag.update(&self.camera)?;}if drag.preview.is_some() {return Ok(Change::Preview);}}return Ok(Change::View);},
-            Action::CanvasRelease {screen,size,add,remove}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.size!=size {self.canvas_drag=None;return Ok(Change::Preview);}drag.to=screen;drag.released=Some((add,remove));drag.update(&self.camera)?;if drag.preview.is_some()||drag.missed {return self.finish_canvas();}}return Ok(Change::View);},
-            Action::CanvasHit(hit)=>{
-                let Some(drag)=self.canvas_drag.as_ref() else {return Ok(Change::View);};let ids=hit.filter(|id|!drag.modified&&self.scene.pick_id(id.value()).is_some());
-                if let Some(id)=ids {let mut rows=self.selected_objects();if !rows.contains(&id) {self.select_objects([id],false);rows=vec![id];}if let Err(error)=self.canvas_drag.as_mut().unwrap().grab(&self.scene,rows,&self.camera) {self.canvas_drag=None;return Err(error);}}
-                else {self.canvas_drag.as_mut().unwrap().missed=true;}
-                if self.canvas_drag.as_ref().unwrap().released.is_some() {return self.finish_canvas();}return Ok(Change::Preview);
-            },
-            Action::CanvasCancel=>{let preview=self.canvas_drag.take().is_some_and(|d|d.preview.is_some());return Ok(if preview {Change::Preview} else {Change::View});},
-            Action::SelectRows {ids,add,remove}=>{self.select_rows(ids,add,remove);return Ok(Change::View);},
-            _=>{}
-        }
-        self.canvas_drag=None;
-        let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoTouch {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::ZoomAt {..}|Action::PanScreen {..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
-        let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoTouch {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
-        let mut change=self.apply_action(action)?;
-        self.gizmo_hover=None;
-        if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
-        if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
-        if change==Change::Scene { self.snap_index=None; }
-        Ok(change)
-    }
-
-    fn apply_action(&mut self, action: Action) -> Result<Change, &'static str> {
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
-        match action {
-            Action::LayerEdit {key,edit}=>{
-                if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
-                self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
-            },
-            Action::LayerProperty {key,property}=>{crate::layer_properties::apply(&mut self.scene,&key,property)?;self.repair_selection();if self.selected.is_some_and(|id|self.scene.pick_id(id.value()).is_none()) {self.selected=None;self.selected_part=None;}self.snap_index=None;return Ok(Change::Preview);},
-            Action::Hide=>{let ids=self.scene.with_descendants(&self.selected_objects());std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids,true);self.select_objects([],false);self.snap_index=None;return Ok(Change::Preview);},
-            Action::Show=>{std::rc::Rc::make_mut(&mut self.scene.view).show_all();self.snap_index=None;return Ok(Change::Preview);},
-            Action::TreePick {ids,additive}=>{let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
-            Action::GizmoTouch {pointer,screen,size}=>return self.gizmo_press_radius(pointer,screen,size,false,18.),
-            Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
-            Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
-            Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
-            Action::GizmoCancel=>{self.gizmo_edit=None;self.tool_status="Handle edit cancelled.".into();return Ok(Change::Preview);},
-            Action::GizmoNumber(text)=>return self.gizmo_number(&text),
-            Action::Snap(setting) => {
-                self.tool_status = self.snapping.apply(setting)?;
-                if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
-                return self.update_edit_preview();
-            }
-            Action::ToolScreen { screen, size, commit } => {
-                let hit = self.snap_point(screen,size);
-                if let Some(draft) = self.draft.as_mut() { draft.snapped = hit.filter(|h| h.owner.is_some() || h.kind == crate::snap::Kind::Grid).map(|h| h.kind); }
-                if commit { return hit.map_or(Ok(Change::View), |hit| self.place_tool_point(hit.point)); }
-                if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
-                return self.update_edit_preview();
-            }
-            Action::BeginTool(shape) => {
-                let preview=if matches!(shape,crate::tool::Shape::Move) {
-                    if self.selected_part.is_some() { return Err("Use Select Object before Move"); }
-                    Some(crate::edit_preview::Preview::new(&self.scene,self.selected_objects())?)
-                } else { None };
-                let changed=preview.is_some() || self.edit_preview.is_some(); self.edit_preview=preview;
-                self.snap_index=None; self.draft=Some(crate::tool::Draft::new(shape)); self.tool_status=self.draft.as_ref().unwrap().prompt();
-                return Ok(if changed { Change::Preview } else { Change::View });
-            }
-            Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.snapped=None; draft.hover(point)?; } return self.update_edit_preview(); }
-            Action::CancelTool => { let changed=self.edit_preview.take().is_some(); self.draft=None; self.tool_status="Tool cancelled.".into(); return Ok(if changed { Change::Preview } else { Change::View }); }
-            Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
-                self.select_objects(target.filter(|t| t.part == crate::pick_sources::Part::Object && t.valid(&self.scene)).map(|t| t.owner), additive);
-            }
-            Action::SelectAll => {
-                let ids: Vec<_> = self.scene.objects().iter().map(|r| r.id).chain(self.scene.lines().iter().map(|r| r.id))
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).collect();
-                self.select_objects(ids, false);return Ok(Change::View);
-            }
-            Action::PickedTarget(target) => {
-                let target = target.filter(|target| target.valid(&self.scene));
-                self.objects.clear();
-                self.selected = target.map(|target| target.owner);
-                if let Some(target) = target.filter(|t| t.part == crate::pick_sources::Part::Object) { self.objects.set(&self.scene, [target.owner], false); }
-                self.selected_part = target.map(|target| target.part).filter(|part| *part != crate::pick_sources::Part::Object);
-            }
-            Action::PickMode(mode) => { self.pick_mode = mode; self.selected = None; self.selected_part = None; self.objects.clear(); }
-            Action::Pick(screen) => {
-                let id = self.camera.ray(screen).and_then(|ray| crate::picking::pick(&self.scene, &ray));
-                self.select_objects(id, false);
-            }
-            Action::UnloadSources => self.unload_sources()?,
-            Action::Close => {
-                self.scene.clear();
-                self.history.clear();
-                self.objects.clear(); self.selected = None;
-            }
-            Action::AddText(placement)=>{let source=std::rc::Rc::new(crate::scene_label::example(placement));let prepared=crate::scene_label::Prepared::new(source)?;self.history.try_edit(&mut self.scene,|scene|scene.insert_text(prepared).map(|_|()))?;},
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::Import(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ImportAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ReplaceAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::AddPolyline | Action::AddArrow => {
-                let prepared = if matches!(action, Action::AddPolyline) {
-                    let mut line = session_rust::Polyline::new(vec![session_rust::Point::new(-0.6, -0.4, 0.0),
-                        session_rust::Point::new(0.0, 0.0, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
-                    line.width = 6.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                    crate::chain::PreparedChain::polyline(std::rc::Rc::new(line))?
-                } else {
-                    let mut line = session_rust::Line::new(-0.6, 0.3, 0.0, 0.6, 0.3, 0.0);
-                    line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
-                    line.arrowhead = session_rust::Arrowhead::BOTH;
-                    crate::chain::PreparedChain::line(std::rc::Rc::new(line))?
-                };
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::Controls(visible) => self.scene.show_controls(visible),
-            Action::AddNormals(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::normal_example::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
-            }
-            Action::AddColours(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
-            }
-            Action::AddCurve => {
-                let mut curve = session_rust::NurbsCurve::create(false, 2, &[session_rust::Point::new(-0.6, -0.4, 0.0),
-                    session_rust::Point::new(0.0, 0.6, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
-                curve.width = 5.0; curve.linecolors = vec![session_rust::Color::new(0.0, 0.0, 0.0, 0.5)];
-                let prepared = crate::chain::PreparedChain::curve(std::rc::Rc::new(curve))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::AddPoint => {
-                let mut point = session_rust::Point::new(0.0, 0.0, 0.0);
-                point.width = 12.0; point.pointcolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                let prepared = crate::marker::PreparedPoint::new(std::rc::Rc::new(point))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_point(prepared).map(|_| ()))?;
-            }
-            Action::AddLine => {
-                let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
-                line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
-                let prepared = crate::stroke::PreparedLine::new(std::rc::Rc::new(line))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_line(prepared).map(|_| ()))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-            Action::Translate(offset) => return self.move_selection(offset),
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => { let id = self.scene.next(self.selected); self.select_objects(id, false); }
-            Action::Delete => return self.delete_selection(),
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-            view => {
-                match view {
-                    Action::Background => self.background.toggle(),
-                    Action::NormalView(visible) => self.normal_view = visible,
-                    Action::Grid(settings) => {
-                        if let Some(grid) = settings { grid.half()?; grid.reach(self.camera.target)?; }
-                        self.camera.grid = settings;
-                    }
-                    Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::ZoomAt {factor,screen}=>self.camera.zoom_at(factor,screen),
-                    Action::PanScreen {delta,size}=>self.camera.pan_screen(delta,size),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
-                    Action::Isometric => self.camera.isometric(),
-                    Action::Projection(mode) => self.camera.projection = mode,
-                    Action::Fit => {
-                        if let Some(bounds) = self.display_scene().bounds_of(&self.selected_objects()).or_else(||self.display_scene().bounds()) {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::FitSelected => {
-                        if let Some(bounds) = self.display_scene().bounds_of(&self.selected_objects()).or_else(|| self.selected_part.and(self.selected).and_then(|id| self.scene.selected_bounds(id)))
-                        {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, grid: self.camera.grid,frame:self.camera.frame, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
-                return Ok(Change::View);
-            }
-        }
-        // Deletion and history travel can invalidate selection; repair it in one place.
-        self.repair_selection();
-        self.selected = self.selected.filter(|id| self.scene.contains(*id));
-        if let (Some(owner), Some(part)) = (self.selected, self.selected_part) {
-            if !(crate::pick_sources::Target { owner, part }).valid(&self.scene) { self.selected = None; }
-        }
-        if self.selected.is_none() { self.selected_part = None; }
-        Ok(Change::Scene)
+        Ok(draws)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn a_modified_history_row_protects_only_its_own_import_origin() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let first = Rc::new(crate::reload_url::ReloadUrl::new("test:first".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), first)).unwrap();
-        let origin = editor.scene.objects()[0].origin().unwrap().id;
-        let original = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        let second = Rc::new(crate::reload_url::ReloadUrl::new("test:second".into()));
-        editor.apply(Action::ImportAt(bytes, second)).unwrap();
-        let copy = Rc::downgrade(editor.scene.objects()[3].geometry().unwrap());
-        editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        let saved = editor.history.scenes_mut().last().unwrap();
-        assert_eq!(saved.objects()[0].origin().unwrap().id, origin);
-        Rc::make_mut(&mut saved.objects_mut()[0].metadata).is_locked = true;
-        assert!(editor.scene.objects()[0].can_unload());
-        editor.apply(Action::UnloadSources).unwrap();
-        assert!(original.upgrade().is_some()); assert!(copy.upgrade().is_none());
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        assert!(editor.scene.objects()[3].geometry().is_none());
-        assert_eq!(editor.last_release, 1);
-        assert!(editor.apply(Action::UnloadSources).is_err()); assert_eq!(editor.last_release, 1);
-    }
-
-    #[test]
-    fn release_epochs_do_not_wrap_or_reset_on_close() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:epoch".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), Rc::clone(&url))).unwrap();
-        editor.last_release = u64::MAX;
-        assert_eq!(editor.apply(Action::UnloadSources), Err("Release epochs exhausted"));
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        editor.last_release = 0; editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(1));
-        editor.apply(Action::Close).unwrap();
-        editor.apply(Action::ImportAt(bytes, url)).unwrap();
-        editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(2));
-    }
-
-    #[test]
-    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Import(crate::specimen::bytes())).unwrap();
-        editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap(); editor.apply(Action::Background).unwrap();
-        let view = editor.camera.uniform(); let background = editor.background.rgb();
-        editor.apply(Action::Close).unwrap();
-        assert!(editor.scene.objects().is_empty() && editor.selected.is_none());
-        assert_eq!(editor.scenes().count(), 1);
-        editor.apply(Action::Undo).unwrap(); editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.objects().is_empty());
-        assert_eq!(editor.camera.uniform(), view); assert_eq!(editor.background.rgb(), background);
-        editor.apply(Action::AddBox).unwrap();
-        assert!(!old.contains(&editor.scene.objects()[0].id));
-    }
-
-    #[test]
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
-        let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
-        let source = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
-        assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
-    }
-
-    #[test]
-    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
-        use std::rc::Rc;
-        let mut editor = Editor::default();
-        let bytes = crate::specimen::bytes();
-        editor.apply(Action::Import(bytes.clone())).unwrap();
-        editor.apply(Action::Replace(bytes.clone())).unwrap();
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(row.geometry().unwrap()))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-        assert!(displays.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(sources.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(documents.iter().all(|owner| owner.upgrade().is_none()));
-        editor.apply(Action::Import(bytes)).unwrap();
-        assert!(editor.scene.objects().iter().all(|row| !old.contains(&row.id)));
-    }
-
-    #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::ResetView).unwrap();
-        assert_eq!(editor.camera.aspect, 2.0);
-        assert_eq!(editor.camera.distance, 3.0);
-    }
-
-    #[test]
-    fn undo_changes_the_document_without_rewinding_the_view() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::Background).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert_eq!(editor.scene.objects().len(), 2);
-        assert_eq!(editor.camera.distance, 1.5);
-        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
-    }
-
-    #[test]
-    fn undo_repairs_selection_and_empty_delete_preserves_redo() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        for _ in 0..3 {
-            editor.apply(Action::SelectNext).unwrap();
+    fn frame(scale: f64) -> TextFrame {
+        TextFrame {
+            mvp: [
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0,
+            ],
+            origin: [0.0; 3],
+            framebuffer: [
+                (800.0 * scale) as u32,
+                (600.0 * scale) as u32,
+            ],
+            logical: [800.0, 600.0],
+            ortho_half_height: 1.0,
+            clip: [[0.0; 4]; 4],
         }
-        let box_id = editor.selected.unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert!(editor.selected.is_none());
-        editor.apply(Action::Delete).unwrap();
-        editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.contains(box_id));
     }
 
     #[test]
-    fn picking_a_moved_view_uses_the_editors_current_camera() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
-        let point = session_rust::Point::new(0.2, 0.3, 0.75);
-        let screen = editor.camera.view_projection().transform_point(&point);
-        assert_eq!(editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap(), Change::Scene);
-        assert_eq!(editor.selected, Some(editor.scene.objects()[1].id));
-        assert_eq!(editor.apply(Action::Zoom(2.0)).unwrap(), Change::View);
+    fn logical_to_physical_scale_is_applied_once() {
+        for scale in [1.0, 1.25, 1.5, 2.0] {
+            let frame = frame(scale);
+            assert_eq!(frame.scale().unwrap(), scale as f32);
+            let label = TextLabel {
+                object: None,
+                id: 1,
+                text: "A".into(),
+                font_size: 16.0,
+                line_height: 24.0,
+                color: [255; 4],
+                placement: TextPlacement::Screen {
+                    left: 12.25,
+                    top: 8.5,
+                },
+                clip: None,
+            };
+            let placed = place(&label, &frame, frame.scale().unwrap()).unwrap();
+            assert_eq!(placed.left, 12.25 * scale as f32);
+            assert_eq!(
+                placed.scale * label.font_size,
+                16.0 * scale as f32
+            );
+        }
+    }
+
+    #[test]
+    fn scene_anchor_preserves_rebased_depth_and_culls_near_plane() {
+        let mut frame = frame(2.0);
+        frame.origin = [1_000_000.0, 0.0, 0.0];
+        let mut label = TextLabel {
+            object: None,
+            id: 1,
+            text: "A".into(),
+            font_size: 16.0,
+            line_height: 24.0,
+            color: [255; 4],
+            placement: TextPlacement::Anchor {
+                world: [1_000_000.0, 0.0, 0.25],
+                offset: [0.0; 2],
+            },
+            clip: None,
+        };
+        let placed = place(&label, &frame, 2.0).unwrap();
+        assert_eq!((placed.left, placed.top), (800.0, 600.0));
+        assert_eq!(placed.depth, Some(0.25));
+        label.placement = TextPlacement::Anchor {
+            world: [1_000_000.0, 0.0, 1.01],
+            offset: [0.0; 2],
+        };
+        assert!(place(&label, &frame, 2.0).is_none());
+    }
+
+    #[test]
+    fn nameplate_center_padding_clip_and_scale_share_one_coordinate_system() {
+        let mut document = TextDocument::new();
+        let mut label = TextLabel {
+            object: None,
+            id: 1,
+            text: "Sphere Ø25".into(),
+            font_size: 18.0,
+            line_height: 26.0,
+            color: [255; 4],
+            placement: TextPlacement::Nameplate {
+                world: [0.0, 0.0, 0.25],
+                padding: [6.0, 4.0],
+                rounded: false,
+            },
+            clip: None,
+        };
+        document
+            .set_labels(vec![label.clone()])
+            .unwrap();
+
+        for scale in [1.0, 1.25, 2.0] {
+            let frame = frame(scale);
+            let run = &document.runs[0];
+            let mut placed = place(&run.label, &frame, scale as f32).unwrap();
+            let rectangle = text_rectangle(run, &mut placed, &frame, scale as f32)
+                .unwrap()
+                .bounds;
+            assert_eq!(
+                placed.depth, None,
+                "a source-center annotation overlays its own solid"
+            );
+            assert!(
+                ((rectangle[0] + rectangle[2]) * 0.5 - 400.0 * scale as f32).abs()
+                    < 0.001
+            );
+            assert!(
+                ((rectangle[1] + rectangle[3]) * 0.5 - 300.0 * scale as f32).abs()
+                    < 0.001
+            );
+            assert!((rectangle[3] - rectangle[1] - 34.0 * scale as f32).abs() < 0.001);
+        }
+
+        label.clip = Some([390.0, 290.0, 410.0, 310.0]);
+        label.color = [255, 255, 0, 255];
+        document
+            .set_labels(vec![label.clone()])
+            .unwrap();
+        assert_eq!(
+            document.shape_count, 1,
+            "annotation style and clip reuse shaping"
+        );
+        let frame = frame(2.0);
+        let run = &document.runs[0];
+        let mut placed = place(&run.label, &frame, 2.0).unwrap();
+        assert_eq!(
+            text_rectangle(run, &mut placed, &frame, 2.0)
+                .unwrap()
+                .clip,
+            [780.0, 580.0, 820.0, 620.0]
+        );
+        label.placement = TextPlacement::Nameplate {
+            world: [0.0, 0.0, 0.25],
+            padding: [f32::NAN, 4.0],
+            rounded: false,
+        };
+        assert!(document.set_labels(vec![label]).is_err());
+        assert_eq!(document.shape_count, 1);
+        assert_eq!(
+            document.runs.len(),
+            1,
+            "invalid padding preserves the previous document"
+        );
     }
 }
 ```
 
-</details>
+## <a id="checkpoint-62j-frame-pass"></a>32. Prepare the full text frame and load the scene depth
 
-<details>
-<summary>Optional patch references</summary>
+### 1. `src/renderer.rs`
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-```text
---8<-- "journey/code/62o-labels-01.rs"
-```
-
-```text
---8<-- "journey/code/62o-labels-02.rs"
-```
-
-</details>
-
-### 2. `src/commands.rs`
-
-Connect original label examples through the existing scene transactions and command dock.
-
-<details>
-<summary>Locate the existing block</summary>
+**Locate this block:**
 
 ```rust
-    ("Example Box", || Action::AddBox),
-    ("Example CAD",||Action::AddCad),
-    ("Example Surface",||Action::AddSurface),
-    ("Example Nested",||Action::AddNested),
+        self.text_error.borrow_mut().take();
+        if let Some(lane) = self.text.borrow_mut().as_mut() {
+            match lane.prepare(
+                &self.device,
+                &self.queue,
+                self.size,
+                self.density,
+            ) {
+                Ok(()) => {
+                    let mut pass =
+                        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                            label: Some("screen glyphs"),
+                            color_attachments: &[Some(
 ```
 
-</details>
+Replace it with:
+
+```rust
+        self.text_error.borrow_mut().take();
+        if let Some(lane) = self.text.borrow_mut().as_mut() {
+            match lane.prepare(
+                &self.text_context(),
+                &self.text_frame(*transform),
+            ) {
+                Ok(()) => {
+                    let mut pass =
+                        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                            label: Some("scene glyphs"),
+                            depth_stencil_attachment: Some(
+                                wgpu::RenderPassDepthStencilAttachment {
+                                    view: &self.depth,
+                                    depth_ops: Some(wgpu::Operations {
+                                        load: wgpu::LoadOp::Load,
+                                        store: wgpu::StoreOp::Store,
+                                    }),
+                                    stencil_ops: None,
+                                },
+                            ),
+                            color_attachments: &[Some(
+```
+
+**Locate this block:**
+
+```rust
+            .borrow()
+            .as_ref()
+            .map_or([0; 6], |lane| {
+                let [rasters, bytes] = lane.raster_usage();
+                [
+                    lane.document.shape_count,
+                    lane.preparations,
+                    lane.skips,
+                    rasters as u64,
+                    bytes as u64,
+                    lane.resets,
+                ]
+            })
+    }
+```
+
+Replace it with:
+
+```rust
+            .borrow()
+            .as_ref()
+            .map_or([0; 6], |lane| {
+                [
+                    lane.document.shape_count,
+                    lane.stats.preparations,
+                    lane.stats.skipped_preparations,
+                    lane.stats.raster_images as u64,
+                    lane.stats.raster_image_capacity_bytes as u64,
+                    lane.stats.atlas_resets,
+                ]
+            })
+    }
+```
+
+**Locate this block:**
+
+```rust
+        }
+        let mut lane = self.text.borrow_mut();
+        let lane = lane.get_or_insert_with(|| {
+            crate::text_atlas::Lane::new(&self.device, &self.queue, self.format)
+        });
+        lane.document.set_labels(labels)
+    }
+```
+
+Replace it with:
+
+```rust
+        }
+        let mut lane = self.text.borrow_mut();
+        let lane = lane.get_or_insert_with(|| {
+            crate::scene_text_gpu::Lane::new(
+                &self.text_context(),
+                crate::text_gpu_support::Target {
+                    format: self.format,
+                    samples: 1,
+                },
+            )
+        });
+        lane.document.set_labels(labels)
+    }
+```
+
+**Locate this block:**
+
+```rust
+        self.widget.extent()
+    }
+
+    pub fn set_text(&self, labels: Vec<crate::text::TextLabel>) -> anyhow::Result<()> {
+        if labels.is_empty() {
+            self.text.borrow_mut().take();
+```
+
+Replace it with:
+
+```rust
+        self.widget.extent()
+    }
+
+    fn text_context(&self) -> crate::text_gpu_support::GpuCtx {
+        crate::text_gpu_support::GpuCtx::new(&self.device, &self.queue)
+    }
+    fn text_frame(&self, transform: [f32; 16]) -> crate::scene_text_gpu::TextFrame {
+        crate::scene_text_gpu::TextFrame {
+            mvp: transform,
+            origin: [0.; 3],
+            framebuffer: self.size,
+            logical: [
+                self.size[0] as f64 / self.density as f64,
+                self.size[1] as f64 / self.density as f64,
+            ],
+            ortho_half_height: 0.,
+            clip: [[0.; 4]; 4],
+        }
+    }
+    pub fn set_text(&self, labels: Vec<crate::text::TextLabel>) -> anyhow::Result<()> {
+        if labels.is_empty() {
+            self.text.borrow_mut().take();
+```
+
+**Locate this block:**
+
+```rust
+pub struct Renderer {
+    text: std::cell::RefCell<Option<crate::text_atlas::Lane>>,
+    text_error: std::cell::RefCell<Option<String>>,
+    format: wgpu::TextureFormat,
+    pub device: wgpu::Device,
+```
+
+Replace it with:
+
+```rust
+pub struct Renderer {
+    text: std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
+    text_error: std::cell::RefCell<Option<String>>,
+    format: wgpu::TextureFormat,
+    pub device: wgpu::Device,
+```
+
+## <a id="checkpoint-62k-lane-labels"></a>33. Merge scene labels with the screen specimen
+
+### 1. `src/renderer.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            clip: [[0.; 4]; 4],
+        }
+    }
+    pub fn set_text(&self, labels: Vec<crate::text::TextLabel>) -> anyhow::Result<()> {
+        if labels.is_empty() {
+            self.text.borrow_mut().take();
+            return Ok(());
+        }
+        let mut lane = self.text.borrow_mut();
+        let lane = lane.get_or_insert_with(|| {
+            crate::scene_text_gpu::Lane::new(
+                &self.text_context(),
+                crate::text_gpu_support::Target {
+                    format: self.format,
+                    samples: 1,
+                },
+            )
+        });
+        lane.document.set_labels(labels)
+    }
+```
+
+Replace it with:
+
+```rust
+            clip: [[0.; 4]; 4],
+        }
+    }
+    fn adopt_text(&self, labels: Vec<crate::text::TextLabel>) -> anyhow::Result<()> {
+        if labels.is_empty() {
+            self.text.borrow_mut().take();
+            self.text_error.borrow_mut().take();
+            return Ok(());
+        }
+        let mut lane = self.text.borrow_mut();
+        if lane.is_none() {
+            let mut new = crate::scene_text_gpu::Lane::new(
+                &self.text_context(),
+                crate::text_gpu_support::Target {
+                    format: self.format,
+                    samples: 1,
+                },
+            );
+            if let Some(fonts) = self.full_text_fonts.borrow().as_ref() {
+                new.document.replace_fonts(fonts.clone())?;
+            }
+            *lane = Some(new);
+        }
+        lane.as_mut().unwrap().set_labels(labels)
+    }
+    pub fn set_text(
+        &self,
+        mut labels: Vec<crate::text::TextLabel>,
+    ) -> anyhow::Result<()> {
+        for (i, label) in labels.iter_mut().enumerate() {
+            label.id = u32::MAX - i as u32;
+            label.object = None;
+        }
+        let mut merged = self.scene_text.borrow().clone();
+        merged.extend(labels.clone());
+        self.adopt_text(merged)?;
+        *self.presentation_text.borrow_mut() = labels;
+        Ok(())
+    }
+    fn set_scene_text(
+        &self,
+        scene: &Scene,
+        selected: &[ObjectId],
+    ) -> anyhow::Result<()> {
+        let labels = scene
+            .text_labels(selected)
+            .map_err(anyhow::Error::msg)?;
+        let mut merged = labels.clone();
+        merged.extend(self.presentation_text.borrow().clone());
+        self.adopt_text(merged)?;
+        *self.scene_text.borrow_mut() = labels;
+        Ok(())
+    }
+```
+
+**Locate this block:**
+
+```rust
+            self.highlight
+                .objects(&self.device, scene, ids)?;
+        }
+        Ok(())
+    }
+```
+
+Replace it with:
+
+```rust
+            self.highlight
+                .objects(&self.device, scene, ids)?;
+        }
+        self.set_scene_text(scene, ids)
+            .map_err(|_| "Cannot prepare scene labels")?;
+        Ok(())
+    }
+```
+
+**Locate this block:**
+
+```rust
+        }
+        drop(old);
+        self.geometry.prune();
+    }
+
+    pub fn request_pick(
+```
+
+Replace it with:
+
+```rust
+        }
+        drop(old);
+        self.geometry.prune();
+        if let Err(error) = self.set_scene_text(scene, selected.as_slice()) {
+            *self.text_error.borrow_mut() = Some(error.to_string());
+        }
+    }
+
+    pub fn request_pick(
+```
+
+**Locate this block:**
+
+```rust
+        let faces = crate::face_pick::Faces::new(&device);
+        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
+        let mut renderer = Self {
+            text: std::cell::RefCell::new(None),
+            text_error: std::cell::RefCell::new(None),
+            format,
+```
+
+Replace it with:
+
+```rust
+        let faces = crate::face_pick::Faces::new(&device);
+        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
+        let mut renderer = Self {
+            full_text_fonts: Default::default(),
+            presentation_text: Default::default(),
+            scene_text: Default::default(),
+            text: std::cell::RefCell::new(None),
+            text_error: std::cell::RefCell::new(None),
+            format,
+```
+
+**Locate this block:**
+
+```rust
+    text_error: std::cell::RefCell<Option<String>>,
+    format: wgpu::TextureFormat,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+```
+
+Replace it with:
+
+```rust
+    text_error: std::cell::RefCell<Option<String>>,
+    scene_text: std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    presentation_text: std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    full_text_fonts: std::cell::RefCell<Option<Vec<Vec<u8>>>>,
+    format: wgpu::TextureFormat,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+```
+
+## <a id="checkpoint-62l-picking"></a>34. Draw text IDs through bounded readback
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU RAM: #[repr(C)] Structs -&gt; bytemuck::cast_slice</text>
+  <rect x="46" y="54" width="280" height="44" fill="#f8fafc" stroke="#111111" stroke-width="1.75"/>
+  <rect x="52" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="84" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v0: 24B</text>
+  <rect x="122" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="154" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v1: 24B</text>
+  <rect x="192" y="60" width="64" height="32" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="224" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">v2: 24B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="290" y="80" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">...</text>
+  <rect x="66" y="112" width="240" height="34" rx="4" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="133" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">&amp;[u8] Contiguous Byte Slice</text>
+  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">CPU -&gt; GPU DMA: queue.write_buffer(buf, 0, bytes)</text>
+  <rect x="424" y="54" width="272" height="92" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.75"/>
+  <line x1="448" y1="84" x2="672" y2="84" stroke="#16a34a" stroke-width="3" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="74" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">create_buffer_init / write_buffer</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="112" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#16a34a">VERTEX | INDEX | COPY_DST</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="132" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">array_stride = size_of::&lt;Vertex&gt;()</text>
+  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">GPU VRAM Buffer -&gt; @vertex Input Locations</text>
+  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="822" y="56" width="224" height="40" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="80" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(0) pos: vec3&lt;f32&gt;</text>
+  <rect x="822" y="106" width="224" height="40" rx="4" fill="#fce7f3" stroke="#db2777" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="130" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">@location(1) color: vec3&lt;f32&gt;</text>
+</svg>
+</div>
+
+### 1. `src/renderer.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+        *self.scene_text.borrow_mut() = labels;
+        Ok(())
+    }
+    pub fn text_error(&self) -> Option<String> {
+```
+
+Replace it with:
+
+```rust
+        *self.scene_text.borrow_mut() = labels;
+        Ok(())
+    }
+    pub fn refresh_text_bounds(&self, scene: &mut Scene) {
+        if let Some(lane) = self.text.borrow().as_ref() {
+            for row in scene.texts_mut() {
+                if let Some(run) = lane
+                    .document
+                    .runs
+                    .iter()
+                    .find(|run| run.label.id == row.id.value())
+                {
+                    row.prepared.extent =
+                        run.buffer
+                            .layout_runs()
+                            .fold([0f64; 2], |[w, h], line| {
+                                [
+                                    w.max(line.line_w as f64),
+                                    h.max((line.line_top + line.line_height) as f64),
+                                ]
+                            });
+                }
+            }
+        }
+    }
+    pub fn text_stats(&self) -> Option<crate::scene_text_gpu::TextStats> {
+        self.text
+            .borrow()
+            .as_ref()
+            .map(|lane| lane.stats.clone())
+    }
+    pub fn text_scene_usage(&self) -> [u64; 4] {
+        self.text
+            .borrow()
+            .as_ref()
+            .map_or([0; 4], |lane| {
+                [
+                    lane.allocated_bytes(),
+                    lane.texture_bytes(),
+                    lane.stats.world_plane_rasterizations,
+                    lane.document.runs.len() as u64,
+                ]
+            })
+    }
+    pub fn replace_text_fonts(&self, fonts: Vec<Vec<u8>>) -> anyhow::Result<()> {
+        if let Some(lane) = self.text.borrow_mut().as_mut() {
+            lane.document.replace_fonts(fonts.clone())?;
+        } else {
+            let mut document = crate::text::TextDocument::new();
+            document.replace_fonts(fonts.clone())?;
+        }
+        *self.full_text_fonts.borrow_mut() = Some(fonts);
+        Ok(())
+    }
+    pub fn clear_text_fonts(&self) {
+        self.full_text_fonts.borrow_mut().take();
+    }
+
+    pub fn text_error(&self) -> Option<String> {
+```
+
+**Locate this block:**
+
+```rust
+                    &self.markers,
+                ],
+                &self.faces,
+            );
+        }
+    }
+```
+
+Replace it with:
+
+```rust
+                    &self.markers,
+                ],
+                &self.faces,
+                self.text.borrow().as_ref(),
+            );
+        }
+    }
+```
+
+**Locate this block:**
+
+```rust
+                &self.sources.mesh_bases,
+            );
+        }
+        if let Some(request) = self.picker.next(view) {
+            self.picker.submit(
+                &self.device,
+```
+
+Replace it with:
+
+```rust
+                &self.sources.mesh_bases,
+            );
+        }
+        if let Some(lane) = self.text.borrow_mut().as_mut() {
+            if let Err(error) = lane.prepare(
+                &self.text_context(),
+                &self.text_frame(transform),
+            ) {
+                *self.text_error.borrow_mut() = Some(error.to_string());
+                return;
+            }
+        }
+        if let Some(request) = self.picker.next(view) {
+            self.picker.submit(
+                &self.device,
+```
+
+**Locate this block:**
+
+```rust
+    text_error: std::cell::RefCell<Option<String>>,
+    scene_text: std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    presentation_text: std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    full_text_fonts: std::cell::RefCell<Option<Vec<Vec<u8>>>>,
+    format: wgpu::TextureFormat,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+```
+
+Replace it with:
+
+```rust
+    text_error: std::cell::RefCell<Option<String>>,
+    full_text_fonts: std::cell::RefCell<Option<Vec<Vec<u8>>>>,
+    presentation_text: std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    scene_text: std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    format: wgpu::TextureFormat,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+```
+
+### 2. `src/pick_gpu.rs`
+
+**Locate this existing block:**
+
+```rust
+        faces: &crate::face_pick::Faces,
+    ) {
+        assert!(
+            self.active.is_none(),
+            "Only one pick may be in flight"
+        );
+        let request = queued.request;
+        let window = request.window;
+        if self.image.as_ref().is_none_or(|image| {
+            image.window.draw[2..] != window.draw[2..]
+                || image.readback.size() != window.bytes()
+        }) {
+            self.image = Some(crate::pick_image::Image::new(device, window));
+        }
+        let image = self.image.as_mut().unwrap();
+        image.window = window;
+        let mut bytes: Vec<u8> = request
+            .transform
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.view, 0, &bytes);
+        let mut bytes: Vec<u8> = window
+            .crop()
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.extend((request.mode as u32).to_ne_bytes());
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.crop, 0, &bytes);
+        for lane in ink {
+            lane.view(
+                queue,
+                &request.transform,
+                window.full,
+                request.density,
+            );
+        }
+        queue.submit([crate::pick_encode::draw(
+            device,
+            image,
+            window,
+            &self.pipeline,
+            &self.view_group,
+            &self.crop_group,
+            meshes,
+            ink,
+            faces,
+            request.mode,
+        )]);
+```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/62o-labels-03.rs"
+        faces: &crate::face_pick::Faces,
+        text: Option<&crate::scene_text_gpu::Lane>,
+    ) {
+        assert!(
+            self.active.is_none(),
+            "Only one pick may be in flight"
+        );
+        let request = queued.request;
+        let window = request.window;
+        if self.image.as_ref().is_none_or(|image| {
+            image.window.draw[2..] != window.draw[2..]
+                || image.readback.size() != window.bytes()
+        }) {
+            self.image = Some(crate::pick_image::Image::new(device, window));
+        }
+        let image = self.image.as_mut().unwrap();
+        image.window = window;
+        let mut bytes: Vec<u8> = request
+            .transform
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.view, 0, &bytes);
+        let mut bytes: Vec<u8> = window
+            .crop()
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.extend((request.mode as u32).to_ne_bytes());
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.crop, 0, &bytes);
+        for lane in ink {
+            lane.view(
+                queue,
+                &request.transform,
+                window.full,
+                request.density,
+            );
+        }
+        queue.submit([crate::pick_encode::draw(
+            device,
+            image,
+            window,
+            &self.pipeline,
+            &self.view_group,
+            &self.crop_group,
+            meshes,
+            ink,
+            faces,
+            request.mode,
+            text,
+        )]);
 ```
 
-<details>
-<summary>Supplied validation fixture</summary>
+### 3. `src/pick_encode.rs`
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+**Locate this existing block:**
 
-### 3. `src/scene_label_tests.rs`
-
-Copy original-word/f64 placement, source sharing, layer/copy/delete/Undo/Close, bounds, rectangle and invalid-source regressions.
-
-Copy this supplied file:
-
-```text
---8<-- "journey/code/62o-labels-04.rs"
+```rust
+    mode: crate::pick_sources::Mode,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("IDs"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &image.colour,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &image.depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(pipeline);
+        pass.set_bind_group(0, view_group, &[]);
+        pass.set_bind_group(2, crop_group, &[]);
+        for mesh in meshes {
+            mesh.draw(&mut pass);
+        }
+        if mode == crate::pick_sources::Mode::Face {
+            faces.draw(&mut pass, meshes, view_group, crop_group);
+        }
+        for lane in ink {
+            lane.pick(&mut pass, crop_group);
+        }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-<details>
-<summary>Supplied validation fixture</summary>
+```rust
+    mode: crate::pick_sources::Mode,
+    text: Option<&crate::scene_text_gpu::Lane>,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("IDs"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &image.colour,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &image.depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(pipeline);
+        pass.set_bind_group(0, view_group, &[]);
+        pass.set_bind_group(2, crop_group, &[]);
+        for mesh in meshes {
+            mesh.draw(&mut pass);
+        }
+        if mode == crate::pick_sources::Mode::Face {
+            faces.draw(&mut pass, meshes, view_group, crop_group);
+        }
+        for lane in ink {
+            lane.pick(&mut pass, crop_group);
+        }
+        if let Some(text) = text {
+            text.draw_ids(&mut pass, crop_group);
+        }
+```
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+## <a id="checkpoint-62m-whole-fonts"></a>35. Fetch missing whole fonts as one checked set
 
-### 4. `src/lib.rs`
+### 1. `src/text_fonts.rs`
 
-Register the source component.
+Create the file and type:
 
-<details>
-<summary>Locate the existing block</summary>
+```rust
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
+#[derive(Default)]
+pub struct Inbox {
+    pub asked: Cell<bool>,
+    epoch: Cell<u64>,
+    retry_after: Cell<f64>,
+    pub reply: RefCell<Option<Result<Vec<Vec<u8>>, String>>>,
+}
+impl Inbox {
+    pub fn clear(&self) {
+        self.epoch
+            .set(self.epoch.get().wrapping_add(1));
+        self.asked.set(false);
+        self.retry_after.set(0.);
+        self.reply.borrow_mut().take();
+    }
+    pub fn failed(&self) {
+        self.asked.set(false);
+        self.retry_after
+            .set(crate::load_measure::now() + 1000.);
+    }
+    pub fn need(self: &Rc<Self>, words: impl IntoIterator<Item = impl AsRef<str>>) {
+        if self.asked.get()
+            || crate::load_measure::now() < self.retry_after.get()
+            || words
+                .into_iter()
+                .all(|s| crate::text::covers(s.as_ref()))
+        {
+            return;
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            self.asked.set(true);
+            let inbox = Rc::clone(self);
+            let epoch = self.epoch.get();
+            wasm_bindgen_futures::spawn_local(async move {
+                let reply = fetch().await;
+                if inbox.epoch.get() != epoch {
+                    return;
+                }
+                if reply.is_err() {
+                    inbox.failed();
+                }
+                *inbox.reply.borrow_mut() = Some(reply);
+                crate::browser_pick::wake();
+            });
+        }
+    }
+}
+#[cfg(target_arch = "wasm32")]
+async fn fetch() -> Result<Vec<Vec<u8>>, String> {
+    use wasm_bindgen::JsCast;
+    let window = web_sys::window().ok_or("Missing browser window")?;
+    let mut faces = Vec::new();
+    for name in crate::text::FULL_FONTS {
+        let response = wasm_bindgen_futures::JsFuture::from(
+            window.fetch_with_str(&format!("text/{name}")),
+        )
+        .await
+        .map_err(|e| format!("Cannot fetch {name}: {e:?}"))?
+        .dyn_into::<web_sys::Response>()
+        .map_err(|_| "Invalid font response")?;
+        if !response.ok() {
+            return Err(format!(
+                "Font {name}: HTTP {}",
+                response.status()
+            ));
+        }
+        let promise = response
+            .array_buffer()
+            .map_err(|e| format!("Cannot read {name}: {e:?}"))?;
+        let data = wasm_bindgen_futures::JsFuture::from(promise)
+            .await
+            .map_err(|e| format!("Cannot read {name}: {e:?}"))?;
+        let bytes = js_sys::Uint8Array::new(&data);
+        if bytes.length() == 0 || bytes.length() > 4 * 1024 * 1024 {
+            return Err(format!(
+                "Font {name} exceeds the 4 MiB limit"
+            ));
+        }
+        faces.push(bytes.to_vec());
+    }
+    Ok(faces)
+}
+```
 
-```text
+### 2. `src/lib.rs`
+
+**Locate this existing block:**
+
+```rust
+pub mod text_gpu_support;
+
+pub mod scene_text_gpu;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod text_gpu_support;
+
+pub mod scene_text_gpu;
 
 pub mod text_fonts;
 ```
 
-</details>
+## <a id="checkpoint-62n-diagnostics"></a>36. Show current text sources metrics and preparation errors
 
-After that block, append this supplied code:
+### 1. `src/browser.rs`
 
-```text
---8<-- "journey/code/62o-labels-05.rs" skip=21
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+            ..Default::default()
+        });
+    renderer.draw_mode(&view, background, transform, normals);
+    panel.draw(renderer, &view);
 ```
 
-</details>
+Replace it with:
 
-<details>
-<summary>Supplied validation fixture</summary>
+```rust
+            ..Default::default()
+        });
+    renderer.draw_mode(&view, background, transform, normals);
+    if let Some(error) = renderer.text_error() {
+        panel.result(&format!("Text: {error}"));
+    }
+    panel.draw(renderer, &view);
+```
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+**Locate this block:**
 
-### 5. `src/pick_gpu_tests.rs`
+```rust
+        &serde_json::to_string(&renderer.point_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-text-error",
+        &renderer.text_error().unwrap_or_default(),
+    )?;
+```
 
-Copy actual plane/anchor/billboard/nameplate depth, integer IDs, rounded styles, clip-window agreement, atomic fonts and resource-release checks.
+Replace it with:
 
-<details>
-<summary>Locate the existing block</summary>
+```rust
+        &serde_json::to_string(&renderer.point_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-scene-text-stats",
+        &serde_json::to_string(&renderer.text_stats()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-scene-text-cpu",
+        &serde_json::to_string(&crate::memory::texts(
+            editor.presentation_scenes(),
+        ))
+        .unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-scene-text-gpu",
+        &serde_json::to_string(&renderer.text_scene_usage()).unwrap(),
+    )?;
+    canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
+    canvas.set_attribute(
+        "data-text-error",
+        &renderer.text_error().unwrap_or_default(),
+    )?;
+```
 
-```text
-    renderer.request_pick([0.,0.],identity()).unwrap();assert_eq!(finish(&mut renderer).unwrap()[0],id.value());renderer.request_pick([-0.85,0.8],identity()).unwrap();assert!(finish(&mut renderer).is_none());assert_eq!(renderer.text_usage()[0],1);renderer.set_text(Vec::new()).unwrap();assert_eq!(renderer.text_usage(),[0;6]);assert_eq!(colour_pixels(&mut renderer),before);
+**Locate this block:**
+
+```rust
+                .points()
+                .iter()
+                .map(|row| row.id),
+        );
+    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
+    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
+    canvas.set_attribute(
+```
+
+Replace it with:
+
+```rust
+                .points()
+                .iter()
+                .map(|row| row.id),
+        )
+        .chain(editor.scene.texts().iter().map(|row| row.id));
+    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
+    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
+    canvas.set_attribute(
+```
+
+**Locate this block:**
+
+```rust
+            } else {
+                panel.tool(String::new(), Vec::new());
+            }
+            let rect = pointer_canvas.get_bounding_client_rect();
+            let number = editor.number_prompt([rect.width(), rect.height()]);
+            if editor
+```
+
+Replace it with:
+
+```rust
+            } else {
+                panel.tool(String::new(), Vec::new());
+            }
+            if let Some(reply) = text_fonts.reply.borrow_mut().take() {
+                match reply {
+                    Ok(fonts) => {
+                        if let Err(error) = renderer.replace_text_fonts(fonts) {
+                            text_fonts.failed();
+                            panel.result(&format!("Text: {error}"));
+                        }
+                    }
+                    Err(error) => panel.result(&format!("Text: {error}")),
+                }
+            }
+            renderer.refresh_text_bounds(&mut editor.scene);
+            text_fonts.need(
+                editor
+                    .scene
+                    .texts()
+                    .iter()
+                    .filter(|row| editor.scene.visible(row.id))
+                    .map(|row| row.prepared.source.label.text.as_str()),
+            );
+            let rect = pointer_canvas.get_bounding_client_rect();
+            let number = editor.number_prompt([rect.width(), rect.height()]);
+            if editor
+```
+
+**Locate this block:**
+
+```rust
+                    Ok(crate::commands::Command::Editor(mut action)) => {
+                        if matches!(action, Action::Close) {
+                            request.borrow_mut().cancel();
+                            let _ = renderer.set_text(Vec::new());
+                        }
+                        if shortcut.is_some()
+                            && editor.selected.is_some()
+```
+
+Replace it with:
+
+```rust
+                    Ok(crate::commands::Command::Editor(mut action)) => {
+                        if matches!(action, Action::Close) {
+                            request.borrow_mut().cancel();
+                            let _ = {
+                                text_fonts.clear();
+                                renderer.clear_text_fonts();
+                                renderer.set_text(Vec::new())
+                            };
+                        }
+                        if shortcut.is_some()
+                            && editor.selected.is_some()
+```
+
+**Locate this block:**
+
+```rust
+    let pipeline_started = crate::browser_phase::now();
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+```
+
+Replace it with:
+
+```rust
+    let pipeline_started = crate::browser_phase::now();
+    let text_fonts = std::rc::Rc::new(crate::text_fonts::Inbox::default());
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+```
+
+## <a id="checkpoint-62o-labels"></a>37. Create pick move and delete the scene labels
+
+### 1. `src/editor.rs`
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+                self.objects.clear();
+                self.selected = None;
+            }
+```
+
+Replace it with:
+
+```rust
+                self.objects.clear();
+                self.selected = None;
+            }
+            Action::AddText(placement) => {
+                let source = std::rc::Rc::new(crate::scene_label::example(placement));
+                let prepared = crate::scene_label::Prepared::new(source)?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert_text(prepared).map(|_| ())
+                    })?;
+            }
+```
+
+**Locate this block:**
+
+```rust
+    AddCad,
+    AddSurface,
+    AddLine,
+    AddPoint,
+```
+
+Replace it with:
+
+```rust
+    AddCad,
+    AddText(crate::text::TextPlacement),
+    AddSurface,
+    AddLine,
+    AddPoint,
+```
+
+### 2. `src/commands.rs`
+
+**Locate this existing block:**
+
+```rust
+    ("Example CAD", || Action::AddCad),
+    ("Example Surface", || Action::AddSurface),
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    ("Example CAD", || Action::AddCad),
+    ("Example Scene Text", || {
+        Action::AddText(crate::text::TextPlacement::WorldPlane {
+            world: [-1.5, 0., 1.],
+            right: [1., 0., 0.],
+            up: [0., 1., 0.],
+            world_height: 0.22,
+        })
+    }),
+    ("Example Billboard", || {
+        Action::AddText(crate::text::TextPlacement::WorldBillboard {
+            world: [-1.5, 0., 1.],
+            world_height: 0.22,
+        })
+    }),
+    ("Example Anchor", || {
+        Action::AddText(crate::text::TextPlacement::Anchor {
+            world: [0., 0., 1.],
+            offset: [8., -12.],
+        })
+    }),
+    ("Example Nameplate", || {
+        Action::AddText(crate::text::TextPlacement::Nameplate {
+            world: [0., 0., 1.],
+            padding: [17., 4.],
+            rounded: true,
+        })
+    }),
+    ("Example Surface", || Action::AddSurface),
+```
+
+### 3. `src/scene_label_tests.rs`
+
+Create the file and type:
+
+```rust
+use crate::{
+    editor::{Action, Editor},
+    scene_label::{Prepared, example},
+    text::TextPlacement,
+};
+use std::rc::Rc;
+fn plane(world: [f64; 3]) -> TextPlacement {
+    TextPlacement::WorldPlane {
+        world,
+        right: [1., 0., 0.],
+        up: [0., 1., 0.],
+        world_height: 0.22,
+    }
+}
+
+#[test]
+fn original_scene_words_precision_placement_and_history_keep_one_source_owner() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let source = Rc::new(example(plane([
+        1_000_000_000.125,
+        2.25,
+        0.5,
+    ])));
+    let saved = serde_json::to_string(&*source).unwrap();
+    let prepared = Prepared::new(source.clone()).unwrap();
+    let id = e.scene.insert_text(prepared).unwrap();
+    e.apply(Action::Picked(Some(id))).unwrap();
+    let intent = crate::edit_intent::Intent::Move {
+        id,
+        offset: [0.25, -0.5, 1.],
+    };
+    assert!(
+        intent.keys(&e).unwrap().is_empty(),
+        "An already loaded text needs no mesh source fetch"
+    );
+    assert!(matches!(
+        intent.replay(&mut e).unwrap(),
+        crate::edit_replay::Reply::Changed(crate::editor::Change::Scene)
+    ));
+    assert_eq!(
+        e.scene.texts()[0]
+            .label(false, true)
+            .unwrap()
+            .placement,
+        plane([1_000_000_000.375, 1.75, 1.5])
+    );
+    assert!(Rc::ptr_eq(
+        &e.scene.texts()[0].prepared.source,
+        &source
+    ));
+    assert_eq!(
+        serde_json::to_string(&*source).unwrap(),
+        saved
+    );
+    assert_eq!(
+        crate::memory::texts(e.presentation_scenes())[1],
+        1
+    );
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(
+        e.scene.texts()[0]
+            .label(false, true)
+            .unwrap()
+            .placement,
+        plane([1_000_000_000.125, 2.25, 0.5])
+    );
+    e.apply(Action::Redo).unwrap();
+    let original = e.scene.texts()[0].model.m;
+    let mut scale = session_rust::Xform::identity();
+    scale.m[0] = 2.;
+    assert!(
+        crate::history::History::default()
+            .try_edit(&mut e.scene, |s| s.place_text(id, scale))
+            .is_err()
+    );
+    assert_eq!(e.scene.texts()[0].model.m, original);
+    assert_eq!(
+        serde_json::to_string(&*source).unwrap(),
+        saved
+    );
+    assert!(
+        crate::document::snapshot(&e.scene).is_err(),
+        "Mixed text persistence connects later; never silently omit it"
+    );
+}
+
+#[test]
+fn text_rows_follow_layers_selection_delete_undo_copy_and_close_lifetime() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddText(plane([0.; 3])))
+        .unwrap();
+    let id = e.scene.texts()[0].id;
+    let weak = Rc::downgrade(&e.scene.texts()[0].prepared.source);
+    let rows = crate::hierarchy::rows(&e.scene);
+    let key = rows
+        .iter()
+        .find(|row| row.ids == [id] && row.depth == 1)
+        .unwrap()
+        .key
+        .clone();
+    e.apply(Action::LayerProperty {
+        key: key.clone(),
+        property: crate::layer_properties::Property::Locked(true),
+    })
+    .unwrap();
+    e.apply(Action::SelectAll).unwrap();
+    assert!(e.selected_objects().is_empty());
+    assert_eq!(
+        e.scene.text_labels(&[]).unwrap()[0]
+            .object
+            .unwrap()
+            .row,
+        u32::MAX
+    );
+    e.apply(Action::LayerProperty {
+        key: key.clone(),
+        property: crate::layer_properties::Property::Locked(false),
+    })
+    .unwrap();
+    e.apply(Action::SelectAll).unwrap();
+    assert_eq!(e.selected_objects(), vec![id]);
+    let source = e.scene.texts()[0].prepared.source.clone();
+    let copied = e.scene.copy_row(id, false).unwrap();
+    assert_ne!(copied, id);
+    assert_ne!(
+        e.scene.texts()[0].guid,
+        e.scene.texts()[1].guid
+    );
+    assert!(Rc::ptr_eq(
+        &source,
+        &e.scene.texts()[1].prepared.source
+    ));
+    e.scene.remove(copied);
+    drop(source);
+    e.apply(Action::LayerProperty {
+        key,
+        property: crate::layer_properties::Property::Hidden(true),
+    })
+    .unwrap();
+    assert!(e.scene.text_labels(&[]).unwrap().is_empty());
+    e.apply(Action::Show).unwrap();
+    e.apply(Action::Picked(Some(id))).unwrap();
+    e.apply(Action::Delete).unwrap();
+    assert!(e.scene.texts().is_empty());
+    assert!(weak.upgrade().is_some());
+    e.apply(Action::Undo).unwrap();
+    assert_eq!(e.scene.texts()[0].id, id);
+    e.apply(Action::Redo).unwrap();
+    e.apply(Action::Close).unwrap();
+    assert!(weak.upgrade().is_none());
+    assert_eq!(
+        crate::memory::texts(e.presentation_scenes()),
+        [0; 4]
+    );
+}
+
+#[test]
+fn world_text_bounds_and_rectangles_use_the_original_words_and_plate_extent() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddText(plane([0., 0., 0.5])))
+        .unwrap();
+    let row = &e.scene.texts()[0];
+    let id = row.id;
+    let bounds = e.scene.selected_bounds(id).unwrap();
+    assert!(bounds.max[0] > 1. && bounds.min[1] < 0. && bounds.max[2] == 0.5);
+    assert_eq!(e.scene.bounds().unwrap().min, bounds.min);
+    let matrix = session_rust::Xform::identity().m;
+    let points =
+        crate::scene_label_screen::polygon(row, &matrix, [800., 600.]).unwrap();
+    let small = crate::rect_select::Rectangle::new([405., 305.], [401., 301.]).unwrap();
+    assert!(
+        crate::rect_select::found(&e.scene, &matrix, [800., 600.], small).contains(&id),
+        "Crossing rectangle wholly inside the plate selects its source row"
+    );
+    let tiny = crate::rect_select::Rectangle::new([401., 301.], [405., 305.]).unwrap();
+    assert!(
+        !crate::rect_select::found(&e.scene, &matrix, [800., 600.], tiny).contains(&id)
+    );
+    let min = [
+        points
+            .iter()
+            .map(|p| p[0])
+            .fold(f64::INFINITY, f64::min)
+            - 1.,
+        points
+            .iter()
+            .map(|p| p[1])
+            .fold(f64::INFINITY, f64::min)
+            - 1.,
+    ];
+    let max = [
+        points
+            .iter()
+            .map(|p| p[0])
+            .fold(f64::NEG_INFINITY, f64::max)
+            + 1.,
+        points
+            .iter()
+            .map(|p| p[1])
+            .fold(f64::NEG_INFINITY, f64::max)
+            + 1.,
+    ];
+    assert_eq!(
+        crate::rect_select::found(
+            &e.scene,
+            &matrix,
+            [800., 600.],
+            crate::rect_select::Rectangle::new(min, max).unwrap()
+        ),
+        [id]
+    );
+}
+
+#[test]
+fn invalid_scene_labels_do_not_consume_history_or_turn_screen_overlays_into_sources() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddText(plane([0.; 3])))
+        .unwrap();
+    e.apply(Action::Undo).unwrap();
+    let source = Rc::new(example(TextPlacement::Screen {
+        left: 0.,
+        top: 0.,
+    }));
+    assert!(Prepared::new(source).is_err());
+    let source = Rc::new(example(plane([f64::NAN, 0., 0.])));
+    assert!(Prepared::new(source).is_err());
+    assert!(e.apply(Action::Redo).is_ok());
+    assert_eq!(e.scene.texts().len(), 1);
+    assert!(e.scene.bounds().is_some());
 }
 ```
 
-</details>
+### 4. `src/lib.rs`
 
-After that block, append this supplied code:
+**Locate this existing block:**
 
-```text
---8<-- "journey/code/62o-labels-06.rs" skip=377
+```rust
+pub mod scene_text_gpu;
+
+pub mod text_fonts;
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-</details>
+```rust
+pub mod scene_text_gpu;
 
-## Run, check and save
+pub mod text_fonts;
 
-From `session_viewer`, after restoring any experimental edits:
+#[cfg(test)]
+mod scene_label_tests;
+```
+
+### 5. `src/pick_gpu_tests.rs`
+
+**Locate this existing block:**
+
+```rust
+    assert_eq!(colour_pixels(&mut renderer), before);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    assert_eq!(colour_pixels(&mut renderer), before);
+}
+
+#[test]
+fn actual_owned_text_plane_respects_depth_integer_picks_selection_cache_and_close() {
+    use crate::{
+        scene_label::{Prepared, example},
+        text::TextPlacement,
+    };
+    let mut scene = Scene::demo();
+    scene.clear();
+    let mesh = scene.insert(triangle(0.2)).unwrap();
+    let mut renderer = renderer(&scene);
+    let before = colour_pixels(&mut renderer);
+    let gpu = renderer.stats();
+    let mut source = example(TextPlacement::WorldPlane {
+        world: [-0.1, 0.05, 0.6],
+        right: [1., 0., 0.],
+        up: [0., 1., 0.],
+        world_height: 0.08,
+    });
+    source.label.text = "Hi".into();
+    let source = Rc::new(source);
+    let original = serde_json::to_string(&*source).unwrap();
+    let weak = Rc::downgrade(&source);
+    let id = scene
+        .insert_text(Prepared::new(source.clone()).unwrap())
+        .unwrap();
+    drop(source);
+    renderer.set_scene(&scene, None);
+    assert_eq!(
+        colour_pixels(&mut renderer),
+        before,
+        "Actual fixed text behind the opaque solid is hidden"
+    );
+    renderer
+        .request_pick([-0.06, 0.02], identity())
+        .unwrap();
+    assert_eq!(
+        finish(&mut renderer).unwrap()[0],
+        mesh.value()
+    );
+    scene
+        .place_text(
+            id,
+            session_rust::Xform::translation(0., 0., -0.45),
+        )
+        .unwrap();
+    renderer.set_scene(&scene, None);
+    let front = colour_pixels(&mut renderer);
+    assert_ne!(front, before);
+    assert_eq!(renderer.text_error(), None);
+    assert!(
+        front
+            .chunks_exact(4)
+            .filter(|p| p[0] < 10 && p[1] < 10 && p[2] < 10)
+            .count()
+            > 20
+    );
+    let raster = renderer.text_scene_usage()[2];
+    assert_eq!(
+        raster, 1,
+        "Placement reuses already rasterized original words"
+    );
+    assert_eq!(renderer.text_usage()[0], 1);
+    renderer
+        .request_pick([-0.06, 0.02], identity())
+        .unwrap();
+    assert_eq!(
+        finish(&mut renderer).unwrap(),
+        [id.value(), 0]
+    );
+    renderer
+        .select_objects(&scene, &[id])
+        .unwrap();
+    let selected = colour_pixels(&mut renderer);
+    assert!(
+        selected
+            .chunks_exact(4)
+            .filter(|p| p[0] > 200 && p[1] > 200 && p[2] < 40)
+            .count()
+            > 20
+    );
+    assert_eq!(renderer.text_scene_usage()[2], raster);
+    assert_eq!(renderer.text_usage()[0], 1);
+    assert_eq!(&renderer.stats()[..2], &gpu[..2]);
+    assert_eq!(
+        serde_json::to_string(&*scene.texts()[0].prepared.source).unwrap(),
+        original
+    );
+    Rc::make_mut(&mut scene.view).lock(&[id], true);
+    renderer.set_scene(&scene, None);
+    renderer
+        .request_pick([-0.06, -0.008], identity())
+        .unwrap();
+    assert!(
+        finish(&mut renderer).is_none(),
+        "The locked plate remains an occluder without a selectable id"
+    );
+    Rc::make_mut(&mut scene.view).hide(&[id], true);
+    renderer.set_scene(&scene, None);
+    renderer
+        .request_pick([-0.06, 0.02], identity())
+        .unwrap();
+    assert_eq!(
+        finish(&mut renderer).unwrap()[0],
+        mesh.value()
+    );
+    scene.clear();
+    renderer.set_scene(&scene, None);
+    assert!(weak.upgrade().is_none());
+    assert_eq!(renderer.text_scene_usage(), [0; 4]);
+    assert_eq!(renderer.text_usage(), [0; 6]);
+}
+
+#[test]
+fn actual_anchor_nameplate_and_billboard_follow_the_current_depth_and_plate_rules() {
+    use crate::{
+        scene_label::{Prepared, example},
+        text::TextPlacement,
+    };
+    for (placement, overlay) in [
+        (
+            TextPlacement::Anchor {
+                world: [0., 0., 0.6],
+                offset: [0.; 2],
+            },
+            false,
+        ),
+        (
+            TextPlacement::Nameplate {
+                world: [0., 0., 0.6],
+                padding: [17., 4.],
+                rounded: true,
+            },
+            true,
+        ),
+        (
+            TextPlacement::WorldBillboard {
+                world: [0., 0., 0.6],
+                world_height: 0.08,
+            },
+            false,
+        ),
+    ] {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let mesh = scene.insert(triangle(0.2)).unwrap();
+        let mut renderer = renderer(&scene);
+        let before = colour_pixels(&mut renderer);
+        let mut source = example(placement);
+        source.label.text = "Hi".into();
+        let id = scene
+            .insert_text(Prepared::new(Rc::new(source)).unwrap())
+            .unwrap();
+        renderer.set_scene(&scene, None);
+        let after = colour_pixels(&mut renderer);
+        assert_eq!(
+            after != before,
+            overlay,
+            "Only the nameplate overlays its own solid"
+        );
+        renderer
+            .request_pick([0., 0.], identity())
+            .unwrap();
+        assert_eq!(
+            finish(&mut renderer).unwrap()[0],
+            if overlay {
+                id.value()
+            } else {
+                mesh.value()
+            }
+        );
+        assert_eq!(renderer.text_error(), None);
+        let fonts = vec![
+            crate::text::FONT_BYTES.to_vec(),
+            crate::text::FALLBACK_BYTES.to_vec(),
+            crate::text::SYMBOL_BYTES.to_vec(),
+        ];
+        assert!(
+            renderer
+                .replace_text_fonts(vec![vec![0; 8]])
+                .is_err()
+        );
+        assert_eq!(colour_pixels(&mut renderer), after);
+        renderer.replace_text_fonts(fonts).unwrap();
+        assert_eq!(colour_pixels(&mut renderer), after);
+        assert_eq!(renderer.text_usage()[5], 1);
+    }
+}
+
+#[test]
+fn actual_world_text_clip_uses_canvas_coordinates_in_the_small_integer_pick_window() {
+    use crate::{
+        scene_label::{Prepared, example},
+        text::TextPlacement,
+    };
+    let mut scene = Scene::demo();
+    scene.clear();
+    let mut source = example(TextPlacement::WorldPlane {
+        world: [-0.2, 0.1, 0.3],
+        right: [1., 0., 0.],
+        up: [0., 1., 0.],
+        world_height: 0.2,
+    });
+    source.label.text = "Hi".into();
+    source.label.clip = Some([140., 100., 160., 140.]);
+    let id = scene
+        .insert_text(Prepared::new(Rc::new(source)).unwrap())
+        .unwrap();
+    let mut renderer = renderer(&scene);
+    let before = colour_pixels(&mut renderer);
+    assert_eq!(renderer.text_error(), None);
+    let mut clean = Scene::demo();
+    clean.clear();
+    let mut no_text = super::pick_gpu_tests::renderer(&clean);
+    let baseline = colour_pixels(&mut no_text);
+    let mut changed = 0;
+    for (i, (p, b)) in before
+        .chunks_exact(4)
+        .zip(baseline.chunks_exact(4))
+        .enumerate()
+    {
+        let (x, y) = (i % 320, i / 320);
+        if x < 140 || x >= 160 || y < 100 || y >= 140 {
+            assert_eq!(
+                p, b,
+                "Clipped text does not affect pixels outside the CSS clip"
+            );
+        } else {
+            changed += usize::from(p != b);
+        }
+    }
+    assert!(changed > 50);
+    renderer
+        .request_pick([-0.0625, 0.], identity())
+        .unwrap();
+    assert_eq!(finish(&mut renderer).unwrap()[0], id.value());
+    renderer
+        .request_pick([0.125, 0.], identity())
+        .unwrap();
+    assert!(finish(&mut renderer).is_none());
+}
+```
+
+## Build & Run
+
+![Recorded visual output for Lesson 10.4 (62o-labels)](../../screenshots/journey/62o-labels-browser.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 62o-labels
-npm --prefix ../session_tests run course -- check 62o-labels
-npm --prefix ../session_tests run course -- save 62o-labels
+npm --prefix ../session_tests run course -- dependencies 10.4
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 10.4
+npm --prefix ../session_tests run course -- save 10.4
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
-
-Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+Continue with [11.1 · Coverage-based screen-space outlines](63-radius.md).

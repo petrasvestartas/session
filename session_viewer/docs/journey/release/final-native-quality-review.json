@@ -1,0 +1,291 @@
+{
+  "date": "2026-10-25T22:16:54.925Z",
+  "status": "PASS one actual unfiltered current final97 native integration",
+  "scope": "One actual unfiltered native integration of corrected current final tutorial source. All original1068 names and assertions retained. This completes native integration validation; remaining image generation/review/publication is not complete.",
+  "sourceFingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
+  "sourceFiles": 714,
+  "finalCadFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
+  "tests": {
+    "passed": 1068,
+    "failed": 0,
+    "ignored": 0,
+    "measured": 0,
+    "filtered": 0,
+    "threads": 1
+  },
+  "prepared": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\prepared.json",
+    "sha256": "9e1a4822f6464dcd37c3474e0a592b5602b475ba7205b67094f3318ddbf3c55a"
+  },
+  "binary": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\build\\native-full-current.exe",
+    "sha256": "138f163d98037e71815032de88743d0df1677d1f733057bed1532761318a2adb"
+  },
+  "depInfo": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\build\\native-full-current.d",
+    "sha256": "882680cee06c116c2ce0203d77fdfb14e7439ff5360c5044a5892ca56f561e4b"
+  },
+  "build": {
+    "command": {
+      "name": "final-current-native-1c675a1041bd-20261025T214829054Z-build",
+      "args": [
+        "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+        "test",
+        "--manifest-path",
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\native-alias\\Cargo.toml",
+        "--lib",
+        "--no-run",
+        "--locked",
+        "--offline",
+        "--target",
+        "x86_64-pc-windows-msvc",
+        "-j1",
+        "-vv",
+        "--message-format=json-render-diagnostics"
+      ],
+      "returncode": 0
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\final-current-native-1c675a1041bd-20261025T214829054Z-build.log",
+      "sha256": "ff1c971e08b9e78b8f65af141a98fac402dc7ceab037d1830bf05928d5a88675"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\final-current-native-1c675a1041bd-20261025T214829054Z-build.resources.json",
+      "sha256": "e388aba17d2edc06126f532f7d9f0121a1bfbf145d88673c49bf0fe1170ff91a",
+      "measured": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-10-25T21:48:33.1073922Z",
+        "executable": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+        "arguments": [
+          "test",
+          "--manifest-path",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\native-alias\\Cargo.toml",
+          "--lib",
+          "--no-run",
+          "--locked",
+          "--offline",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "-vv",
+          "--message-format=json-render-diagnostics"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 66.131,
+        "peakJobCommitBytes": 3312017408,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 11788,
+        "descendantsAtCleanup": 1
+      }
+    }
+  },
+  "listing": {
+    "command": {
+      "name": "final-current-native-1c675a1041bd-20261025T214829054Z-list",
+      "args": [
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\build\\native-full-current.exe",
+        "--list"
+      ],
+      "returncode": 0
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\final-current-native-1c675a1041bd-20261025T214829054Z-list.log",
+      "sha256": "86951c483477b580435369c661f06f4a66c5eb18f21521641b94b31189d5578f"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\final-current-native-1c675a1041bd-20261025T214829054Z-list.resources.json",
+      "sha256": "64ee679cb3cf3bb1ef409fd3163090f215a114762db03467ebf08587ec8b8bcc",
+      "measured": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-10-25T21:49:46.7742856Z",
+        "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\build\\native-full-current.exe",
+        "arguments": [
+          "--list"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 1.351,
+        "peakJobCommitBytes": 3158016,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 64880,
+        "descendantsAtCleanup": 1
+      }
+    }
+  },
+  "execution": {
+    "command": {
+      "name": "final-current-native-1c675a1041bd-20261025T214829054Z-full",
+      "args": [
+        "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\build\\native-full-current.exe",
+        "--test-threads=1"
+      ],
+      "returncode": 0
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\final-current-native-1c675a1041bd-20261025T214829054Z-full.log",
+      "sha256": "3b6a5c06c530902e1d06223a8c7a27bc2fdde02532e3574f745d738d41eef1ea"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\final-current-native-1c675a1041bd-20261025T214829054Z-full.resources.json",
+      "sha256": "7cc4a0f9ad71873c6e3533c1004490a881284421b5ac4b449d33ccddd2c2eca8",
+      "measured": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-10-25T21:49:55.4629602Z",
+        "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-final-current-native-1c675a1041bd7ef637b4\\build\\native-full-current.exe",
+        "arguments": [
+          "--test-threads=1"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 1428.272,
+        "peakJobCommitBytes": 1484832768,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 45256,
+        "descendantsAtCleanup": 0
+      }
+    }
+  },
+  "baseline": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\final-brep-final-native-integration-review.json",
+    "sha256": "befcbe25a9ef21b6c03a081be14ed498c3bd6aaacf6219a64b0c93277d901d27",
+    "names": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\final-brep-refreeze-v2-publication-preparation\\native-current-test-list.json",
+      "sha256": "49660f94d767e926a0dd724899d69c41cd1baf88142a5f0397791aff5e207ae0"
+    },
+    "expectedCount": 1068
+  },
+  "namedPassedCount": 1068,
+  "namedPassedSha256": "3ae5d0eae86aa8cb94cf0e006206d0caa1008ed70c93a5ba90dd925c381c928c",
+  "actualResult": {
+    "path": "target/course-final-current-native-1c675a1041bd7ef637b4/result.json",
+    "sha256": "144d1a1ae3ad7fee669e17f2b9e4c2ad1fa64e538c2fda693bbffb1482b7ca0c"
+  },
+  "executionContext": {
+    "scope": "Per-job Windows resource limits. This is not an isolated performance benchmark: a separate image lane used logical processors8..15 during the final part of the test run. Native validation stayed at2CPU/4GiB/mask03; image lane8CPU/8GiB/maskFF00. Earlier approximate precompile-only overlap report is explicitly corrected.",
+    "qualifications": [
+      {
+        "path": "target\\course-final-current-native-1c675a1041bd7ef637b4\\concurrent-image-lane-context.json",
+        "sha256": "144e0b0c19b38817a369ac7194525f1f09ff71b2a99f7409b8ebe1184534a9a4"
+      },
+      {
+        "path": "target\\course-final-current-native-1c675a1041bd7ef637b4\\concurrent-image-lane-heavy-reported.json",
+        "sha256": "7960ccbfa91e63c76bf0363bc945a924779d91d51ee26e0fd21b51d0a6b77dca"
+      },
+      {
+        "path": "target\\course-final-current-native-1c675a1041bd7ef637b4\\concurrent-image-lane-first-attempt-correction.json",
+        "sha256": "f858e28141a226cffbfd1dd551bc20dbe26a6699d9bb96e21e64050a00e2737a"
+      }
+    ],
+    "actualImageBuildOverlap": [
+      {
+        "path": "target/course-presentation/image-builds/b348939473524661afc4211e/sample.resources.json",
+        "sha256": "4862ec0184cbe07e06078a41965f70f0610e9d4273473b208b783de99f71cd2f",
+        "measured": {
+          "platform": "windows-job-object",
+          "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+          "laneMutex": "Local\\SessionViewerCourseImageJob",
+          "affinityOffset": 8,
+          "requiredAffinityMask": "0xFF00",
+          "maximumOtherLaneProcessors": 8,
+          "maximumOtherLaneMemoryMiB": 8192,
+          "maximumAggregateOurProcessors": 16,
+          "maximumAggregateOurMemoryMiB": 16384,
+          "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-25T22:10:18.7568655Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "run",
+            "--example",
+            "sample",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j8"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-builds\\b348939473524661afc4211e\\workspace",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 114.992,
+          "peakJobCommitBytes": 4097687552,
+          "affinityMask": "0xFF00",
+          "processors": 8,
+          "processId": 55796,
+          "descendantsAtCleanup": 2
+        }
+      },
+      {
+        "path": "target/course-presentation/image-builds/b348939473524661afc4211e/wasm.resources.json",
+        "sha256": "bd5fbf443e039b2c8b3f56d301259d7bc86971881af63a0d3bfc0f048effbb13",
+        "measured": {
+          "platform": "windows-job-object",
+          "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+          "laneMutex": "Local\\SessionViewerCourseImageJob",
+          "affinityOffset": 8,
+          "requiredAffinityMask": "0xFF00",
+          "maximumOtherLaneProcessors": 8,
+          "maximumOtherLaneMemoryMiB": 8192,
+          "maximumAggregateOurProcessors": 16,
+          "maximumAggregateOurMemoryMiB": 16384,
+          "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+          "requestedProcessors": 8,
+          "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+          "startedUtc": "2026-10-25T22:12:18.8109704Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j8",
+            "-vv",
+            "--message-format=json-render-diagnostics"
+          ],
+          "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-builds\\b348939473524661afc4211e\\workspace",
+          "timeoutSeconds": 1800,
+          "jobCommitLimitBytes": 8589934592,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 64.494,
+          "peakJobCommitBytes": 3117600768,
+          "affinityMask": "0xFF00",
+          "processors": 8,
+          "processId": 18628,
+          "descendantsAtCleanup": 1
+        }
+      }
+    ]
+  }
+}

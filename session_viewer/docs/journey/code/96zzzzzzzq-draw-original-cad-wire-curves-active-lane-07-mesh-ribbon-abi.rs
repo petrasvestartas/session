@@ -1,0 +1,1 @@
+let metadata=gpu.strokes.mesh_usage();assert_eq!(metadata,[4,4*52]);assert_eq!(gpu.mesh_ink.clipping_bytes(),[0,0]);

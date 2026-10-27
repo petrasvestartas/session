@@ -1,0 +1,855 @@
+{
+  "status": "PASS complete original656-source quality callback andowncurrentoutputs; rootreviewed phase-qualified acceptance",
+  "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+  "sourceFiles": 656,
+  "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+  "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+  "courseSha256": "367065739cee3cbf01e1b240c9eca4a1e0c12092eccab2fe2345cbc783a55197",
+  "callback": {
+    "path": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+    "recursiveFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+    "captureSha256": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+    "original60msTypingUnchanged": true
+  },
+  "build": {
+    "proof": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality656-acceptance-publication-preparation\\build-proof.json",
+      "sha256": "1b41d6712fba3e0b4c3c3fec557bd890849f3d871e5b996c66b5ad588c8b2320"
+    },
+    "phases": {
+      "native-check": {
+        "input": {
+          "id": "96zzzzzzzl-choose-bounded-frame-quality",
+          "files": 656,
+          "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+          "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+            "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+            "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+          },
+          "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+          "callbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzzzzl-nvidia-current367-v1-native-check-20261024T051743780Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "check",
+            "--tests",
+            "--examples",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-native-check-20261024T051743780Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-native-check-20261024T051743780Z.log": "d0d0c7e2b189f51f6a9430b48469da17a27908601d55f2edb1eebb6df86ec5ea",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-native-check-20261024T051743780Z.resources.json": "fccebe9e69dbaa9e00da1c9d0026db20ae3eade55ed1110d4ce1dc3d7b14f5a9",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-native-check-20261024T051743780Z.command.json": "89e04f9a66f6cdb8ccb0733ba7ece06d2b448405513537f5de852c2a5bfb03ff"
+        },
+        "outputs": {}
+      },
+      "wasm": {
+        "input": {
+          "id": "96zzzzzzzl-choose-bounded-frame-quality",
+          "files": 656,
+          "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+          "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+            "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+            "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+          },
+          "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+          "callbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzzzzl-nvidia-current367-v1-wasm-20261024T051807314Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "build",
+            "--lib",
+            "--locked",
+            "--offline",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-wasm-20261024T051807314Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-wasm-20261024T051807314Z.log": "2f407c0b72ef891c333e0a37ddf85afc75e9a64bc44617fb70173142467ed63c",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-wasm-20261024T051807314Z.resources.json": "4163d7a3bfad5419597e634282d4782fffdd3cd9764f621434d65a9d380a6580",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-wasm-20261024T051807314Z.command.json": "d99d4207879eeb38f58afd5d89285ea7082daf4f79018fc83b3dc4ece463d9bd"
+        },
+        "outputs": {}
+      },
+      "web": {
+        "input": {
+          "id": "96zzzzzzzl-choose-bounded-frame-quality",
+          "files": 656,
+          "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+          "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+            "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+            "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+          },
+          "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+          "callbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzzzzl-nvidia-current367-v1-web-20261024T051832463Z",
+          "args": [
+            "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-web-20261024T051832463Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-web-20261024T051832463Z.log": "cb93ce628c0c7375b2c49e62050dfd8ef4a9cee7157c47db2efda370db75602e",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-web-20261024T051832463Z.resources.json": "50cf9b5ddbbea8b0885489a495351c25ad7bf0fde525d4541d3c09deb3d5b065",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-web-20261024T051832463Z.command.json": "85405df02f3268ed7d475528c1d8be1fbb6752252bf72ec0ec2d85bb8a6f12a4"
+        },
+        "outputs": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\assets\\pb\\course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\assets\\pb\\course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\assets\\pb\\course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\assets\\pb\\course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\index.html": "1cf475df2e006db0568e6429b4c144ff87f1cff7b6d06af3c1be3dd6d40626a0",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\snippets\\session_viewer-568dd7ccbb8842dd\\inline0.js": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\snippets\\viewer_journey-7519825317df163d\\src\\adapter_info.js": "3d87da73f9a18dd579c0e96f207899630a600a7839ff4d9857a87fe1211091bb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\text\\OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\viewer_journey-efa6bdbfb67471cc.js": "9c2b0e10265f31b95b0d74228a537cf50c62d9bb77b01ec1b721aa379f99ec75",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\dist\\viewer_journey-efa6bdbfb67471cc_bg.wasm": "ffdd526db44496d639ab2420a69593b41f0d583bd53ecaba988adb51e9a83253"
+        }
+      },
+      "frame": {
+        "input": {
+          "id": "96zzzzzzzl-choose-bounded-frame-quality",
+          "files": 656,
+          "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+          "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+            "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+            "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+          },
+          "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+          "callbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzzzzl-nvidia-current367-v1-frame-20261024T052120563Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-frame-20261024T052120563Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-frame-20261024T052120563Z.log": "83aeb2a9b42ed24d3629511c7bed58f09df470fa4d020432873a3e410d35e9b1",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-frame-20261024T052120563Z.resources.json": "8043240a41d349165c7c6e3021aa3bddfef47429474825b04660638fb9f18b4c",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-frame-20261024T052120563Z.command.json": "39bb3944103249ea0be5a7c1635887f9fa5c9805edc0d8cc15ba699566ec303a"
+        },
+        "outputs": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzzzzzzl-nvidia-current367-v1\\96zzzzzzzl-nvidia-current367-v1-frame-20261024T052120563Z-frame.exe": "3127079095e7207f3b898fdb33769785a57b25273abcfbe11b970b385608b085",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\frame.ppm": "a21dcd5886ccefb092f36c54883e4100dcc289de286d6d077b7f00c1b026b9ad"
+        }
+      },
+      "sample": {
+        "input": {
+          "id": "96zzzzzzzl-choose-bounded-frame-quality",
+          "files": 656,
+          "sourceFingerprint": "9c0e1769d6ea84c6c7a7af0551bb9942ba52805a906421a5d8e3ddcc50618864",
+          "sourceSignature": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+          "lock": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\94-Cargo.lock",
+          "lockSha256": "1df9f908a4aead0990495bcf505176ab0842191051943e422635b28f23ccab94",
+          "assets": {
+            "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+            "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+            "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+            "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+            "assets/text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+            "assets/text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+            "assets/text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+            "assets/pb/course-comparison.pb": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5",
+            "assets/pb/course-metadata.pb": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55",
+            "assets/pb/course-instance-features.pb": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500",
+            "assets/pb/course-feature-pick.pb": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d",
+            "docs/journey/checks/data/current-grid-physical-256-2026-10-15.ppm": "a1dea16ee3639ebebc9225a529366cda93d167266b93a95d29dd6b8beca84507",
+            "docs/journey/checks/data/current-grid-physical-512-2026-10-15.ppm": "d871ce0ed9583adc0100f2134e2ce86f7754ebf5883dc06721364edf652dda19"
+          },
+          "callback": "journey/checks/browser/quality-target-reuse-with-policy.cjs",
+          "callbackFingerprint": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+          "frame": "journey/checks/94-comparison.rs",
+          "frameConstructor": "make_renderer(device, queue, format)",
+          "frameSize": [
+            640,
+            480
+          ],
+          "sampleRequired": true,
+          "nativeSuite": "not run by this proportional lane; source preserved and typechecked"
+        },
+        "environment": {
+          "RUSTC": "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\rustc.exe",
+          "COURSE_MEMORY_MIB": "4096",
+          "COURSE_TIMEOUT_SECONDS": "1800",
+          "CARGO_TARGET_DIR": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-build",
+          "CARGO_BUILD_JOBS": "1",
+          "CARGO_INCREMENTAL": "0",
+          "CARGO_NET_OFFLINE": "true",
+          "REGEN_PROTO": "0",
+          "RUSTC_WRAPPER": "",
+          "RUSTC_WORKSPACE_WRAPPER": "",
+          "RUST_TEST_THREADS": "1",
+          "NO_COLOR": "true",
+          "VIEWER_GPU_WAIT_SECONDS": "60",
+          "VIEWER_ADAPTER": "Microsoft Basic Render Driver",
+          "WGPU_BACKEND": "dx12",
+          "VIEWER_DXC_PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint\\dxcompiler.dll",
+          "VK_ICD_FILENAMES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "VK_DRIVER_FILES": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\vk_swiftshader_icd.json",
+          "toolResolution": "{\"wasm-bindgen\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\",\"sha256\":\"207b71832e4c2810f061b1d6a4571fe7c7e85ec052a2027ef43caafb00cfabb4\",\"actualVersion\":\"wasm-bindgen 0.2.128\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-bindgen-0.2.128\\\\wasm-bindgen.exe\"},\"wasm-opt\":{\"path\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\",\"sha256\":\"9738733f02dc4b80ea42daeca89d7b8a0755656f3d2e405949ee1233bf473598\",\"actualVersion\":\"wasm-opt version 123 (version_123)\",\"pathFirst\":\"C:\\\\Users\\\\Petras\\\\AppData\\\\Local\\\\trunkrs\\\\trunk\\\\cache\\\\wasm-opt-version_123\\\\bin\\\\wasm-opt.exe\"}}",
+          "PATH": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\native-checkpoint;C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-browsers\\chromium_headless_shell-1208\\chrome-headless-shell-win64;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128;C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-opt-version_123\\bin;C:\\Users\\Petras\\.codex\\tmp\\arg0-windows\\codex-arg0BnckMm;C:\\Users\\Petras\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\codex-path;C:\\Users\\Petras\\.opencode\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\local\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\Program Files\\Git\\usr\\bin;C:\\Users\\Petras\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.2\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;C:\\WINDOWS\\System32\\OpenSSH;C:\\Program Files\\dotnet;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit;C:\\Program Files\\Git\\cmd;C:\\Program Files\\CMake\\bin;C:\\Program Files\\nodejs;C:\\Program Files\\GitHub CLI;C:\\Program Files (x86)\\ZeroTier\\One;C:\\Program Files\\PowerToys\\DSCModules;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2026.1.1;C:\\Users\\Petras\\.cargo\\bin;C:\\Users\\Petras\\.local\\bin;C:\\Users\\Petras\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Petras\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\Petras\\.dotnet\\tools;C:\\Users\\Petras\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Petras\\AppData\\Roaming\\npm;C:\\Users\\Petras\\AppData\\Local\\Python\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Users\\Petras\\.bun\\bin;C:\\Program Files\\Git\\usr\\bin\\vendor_perl;C:\\Program Files\\Git\\usr\\bin\\core_perl",
+          "inheritedBuildEnvironmentFingerprint": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "RUSTFLAGS": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "RUSTUP_TOOLCHAIN": null
+        },
+        "command": {
+          "name": "96zzzzzzzl-nvidia-current367-v1-sample-20261024T052204187Z",
+          "args": [
+            "C:\\Users\\Petras\\.rustup\\toolchains\\stable-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "run",
+            "--example",
+            "sample",
+            "--locked",
+            "--offline",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        "resources": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-sample-20261024T052204187Z.resources.json",
+        "evidence": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-sample-20261024T052204187Z.log": "d2785d7e6e5cd0439dba87c863f88f604df09605ae1b173605211d961287c2b0",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-sample-20261024T052204187Z.resources.json": "8e946b6091eba975cfe9237a88e2cfc77ddab39d19a0476a8529f9b20dfe21ff",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\96zzzzzzzl-nvidia-current367-v1-sample-20261024T052204187Z.command.json": "793d53fd0e56043f045aed3f5310299e12de6895e225ab682e7dd3585df6f9d0"
+        },
+        "outputs": {
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-96zzzzzzzl-choose-bounded-frame-quality\\sample.pb": "ec10f8a1a68009587ecfa0f354e1824b3c45b661373179995b82767b21f0f0a8"
+        }
+      }
+    },
+    "nativeSuite": {
+      "status": "not-run",
+      "reason": "Saved plan section4: native full-suite execution belongs to integrated batches/final freeze; historical tests are preserved and typechecked here."
+    },
+    "canonicalVerifyComplete": false,
+    "nativeFrame": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\next-source-aware-callback-preparation\\96zzzzzzzl-nvidia-current367-v1\\native-frame.png",
+      "sha256": "055ca425d87f68f0d353004fb08fab0ae49b75807474db7e52c2cf7569099fb3",
+      "visualReuse": "Exact055 SHA matches earlier individuallyroot-reviewed635nativeframe; actual656frameexecution retained. No duplicateinspection claimed."
+    }
+  },
+  "browser": {
+    "receipt": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality656-acceptance-publication-preparation\\receipt.json",
+      "sha256": "e722878f4945f13844313900f506634a69156459c37b60fae1e4772dba93adef"
+    },
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality656-acceptance-publication-preparation\\resources.json",
+      "sha256": "c5a76ac514e63c1e91caa0aa5557479a37b583528247202aa20525ff9608dac0"
+    },
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality656-acceptance-publication-preparation\\output.log",
+      "sha256": "8eb4154cb5ce651b55219d1a9a55db4cce2fb3ba66087558b02f30519a552b0d"
+    },
+    "elapsedSeconds": 305.098,
+    "peakJobCommitBytes": 926248960,
+    "exitCode": 0,
+    "processors": 2,
+    "memoryCapBytes": 6442450944,
+    "adapter": {
+      "index": 0,
+      "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+      "vendor": 4318,
+      "device": 10208,
+      "luid": "0,86780",
+      "luidHigh": 0,
+      "luidLow": 86780,
+      "dedicatedVideoMemoryBytes": 12577669120,
+      "flags": 0,
+      "scope": "Browser NVIDIA DXGI selection only; original native build/frame remain WARP",
+      "bootProofPath": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\nvidia-hardware-browser-preparation\\nvidia-current-fef4-boot-v1\\proof.json",
+      "bootProofSha256": "1f47e818b919455adeb18bd96126cc316c09adf4b84513e6c05cb0c405578558",
+      "bootBrowserSha256": "2ab1e6da5eb50ce14f5053dfebd782e99ad50ea6d28081694877c2f2f9da981e"
+    },
+    "canonical": {
+      "source": "146ba775dbadd3d9a7357b31a6dab36e9c908932b392511e4114fd073218b687",
+      "checker": "ecbc4c716aa91a7aedc2532132c4b08e0a7d1e7511c380b0dbbba0152325a733",
+      "extraChecker": "75158ad4c1082b014b27a83c69fc14a111dc46e48abdc889a7a8a9909fc742eb",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-24T06:29:59.766Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f05a4a59e8fe39b8db46dbccacd38265bec9e160fdd1e68b49f9632ff6c31406",
+      "file": "96zzzzzzzl-choose-bounded-frame-quality-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1cf475df2e006db0568e6429b4c144ff87f1cff7b6d06af3c1be3dd6d40626a0",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "frozenResults": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality656-acceptance-publication-preparation\\results.json",
+      "sha256": "5b0e0e30d01cd66f8c65b41d8132a83945c7535d08d642fd8eca1244a44e17f6"
+    },
+    "frozenCanonical": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\quality656-acceptance-publication-preparation\\browser.json",
+      "sha256": "9422453bb4923170f8b60d2144eee989d28524606c75b700db03c663d92e9d5d"
+    }
+  },
+  "outputs": [
+    {
+      "kind": "quality-automatic-dpr1",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/quality-automatic-dpr1.png",
+        "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/automatic-dpr1.png"
+    },
+    {
+      "kind": "quality-automatic-dpr2",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/quality-automatic-dpr2.png",
+        "sha256": "25d74fc3d025d0e34dd18938db04169b60366d8c4d41612c4b44b9167e71217d"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/automatic-dpr2.png"
+    },
+    {
+      "kind": "quality-forced-four-dpr1",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/quality-forced-four-dpr1.png",
+        "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/forced-four-dpr1.png"
+    },
+    {
+      "kind": "quality-forced-four-dpr2",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/quality-forced-four-dpr2.png",
+        "sha256": "d1f1540266f582dbb8594b29cfe58a3a1305785c221c296f6f1a46fdaa0ee65f"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/forced-four-dpr2.png"
+    },
+    {
+      "kind": "quality-recovered-forced-four",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/quality-recovered-forced-four.png",
+        "sha256": "cdd1bfb10a8931617648557a7743f876408c0520fbc6f0871253b5d6b1fcb154"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/recovered-forced-four.png"
+    },
+    {
+      "kind": "quality-result",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/quality-result.json",
+        "sha256": "36cf960b9ff3e3a8e9778e26dae76399e7cbc9e181f8d0eed0940206b8631175"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/result.json"
+    },
+    {
+      "kind": "prefix-contact-shading",
+      "density": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-contact-shading-dpr1.png",
+        "sha256": "d3c1a8a0a59bed383d4b7bee6638efa5fc7770ddd760b8ad6e595b0bf769e44d"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-contact-shading-dpr1.png"
+    },
+    {
+      "kind": "prefix-contact-shading",
+      "density": 2,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-contact-shading-dpr2.png",
+        "sha256": "e04bcd3d4e98ffa7c1328ed8ced90d54774ebef1433bdfef1b28ce2c634e6695"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-contact-shading-dpr2.png"
+    },
+    {
+      "kind": "prefix-resize-480",
+      "density": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-resize-480-dpr1.png",
+        "sha256": "1915cbda2037c4c9d18465636557eb0b29080b14f7d0dbb72e4fd0a1d3608fc7"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-resize-480-dpr1.png"
+    },
+    {
+      "kind": "prefix-resize-480",
+      "density": 2,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-resize-480-dpr2.png",
+        "sha256": "d0c32d1cf8c5ab4dce8328f0b6faa9416bf1d546e858676d1d79a9550f12f1c1"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-resize-480-dpr2.png"
+    },
+    {
+      "kind": "prefix-resize-620",
+      "density": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-resize-620-dpr1.png",
+        "sha256": "59d89b42e97ccfc42b8087929835b1ca7ddb6f2e5de69fc01710a1b8c3784ed5"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-resize-620-dpr1.png"
+    },
+    {
+      "kind": "prefix-resize-620",
+      "density": 2,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-resize-620-dpr2.png",
+        "sha256": "2ab18bb35d7db73c0e64b47ca901dabbc3a870701580849e4d0f51c2afe95783"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-resize-620-dpr2.png"
+    },
+    {
+      "kind": "prefix-shared-originals",
+      "density": 1,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-shared-originals-dpr1.png",
+        "sha256": "3893064ea6e6e5a37a8361c2aa3bdfb778c9a2e952d11174c845e6fbf343aae7"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-shared-originals-dpr1.png"
+    },
+    {
+      "kind": "prefix-shared-originals",
+      "density": 2,
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/prefix-shared-originals-dpr2.png",
+        "sha256": "1f7c68f14511b44f2107ca48969a51a6579811f277fef6027f86b72890821704"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-shared-originals-dpr2.png"
+    },
+    {
+      "kind": "target-reuse",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/target-reuse.json",
+        "sha256": "fbe36b6ba6fb13543b357b4b2cff78836c66174ca4b449d60991ad57ae68d3ea"
+      },
+      "original": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-target-reuse.json"
+    },
+    {
+      "kind": "canonical-final",
+      "evidence": {
+        "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/outputs/canonical-final.png",
+        "sha256": "2c3174d5544169db975c549b81eb624b1a40fb3df4b8182dd2bdcbbf3fe4abfd"
+      },
+      "original": "docs/screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality-browser.png"
+    }
+  ],
+  "images": [
+    {
+      "figure": "journey/release/quality656-current-quality-automatic-dpr1.png",
+      "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+      "kind": "quality-automatic-dpr1",
+      "review": {
+        "kind": "quality-automatic-dpr1",
+        "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-quality-automatic-dpr2.png",
+      "sha256": "25d74fc3d025d0e34dd18938db04169b60366d8c4d41612c4b44b9167e71217d",
+      "kind": "quality-automatic-dpr2",
+      "review": {
+        "kind": "quality-automatic-dpr2",
+        "sha256": "25d74fc3d025d0e34dd18938db04169b60366d8c4d41612c4b44b9167e71217d",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-quality-forced-four-dpr1.png",
+      "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+      "kind": "quality-forced-four-dpr1",
+      "review": {
+        "kind": "quality-forced-four-dpr1",
+        "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+        "review": "Exact SHA visual reuse of root-reviewed quality-automatic-dpr1; both ed26a17b."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-quality-forced-four-dpr2.png",
+      "sha256": "d1f1540266f582dbb8594b29cfe58a3a1305785c221c296f6f1a46fdaa0ee65f",
+      "kind": "quality-forced-four-dpr2",
+      "review": {
+        "kind": "quality-forced-four-dpr2",
+        "sha256": "d1f1540266f582dbb8594b29cfe58a3a1305785c221c296f6f1a46fdaa0ee65f",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-quality-recovered-forced-four.png",
+      "sha256": "cdd1bfb10a8931617648557a7743f876408c0520fbc6f0871253b5d6b1fcb154",
+      "kind": "quality-recovered-forced-four",
+      "review": {
+        "kind": "quality-recovered-forced-four",
+        "sha256": "cdd1bfb10a8931617648557a7743f876408c0520fbc6f0871253b5d6b1fcb154",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-contact-shading-dpr1.png",
+      "sha256": "d3c1a8a0a59bed383d4b7bee6638efa5fc7770ddd760b8ad6e595b0bf769e44d",
+      "kind": "prefix-contact-shading",
+      "density": 1,
+      "review": {
+        "kind": "prefix-contact-shading",
+        "density": 1,
+        "sha256": "d3c1a8a0a59bed383d4b7bee6638efa5fc7770ddd760b8ad6e595b0bf769e44d",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-contact-shading-dpr2.png",
+      "sha256": "e04bcd3d4e98ffa7c1328ed8ced90d54774ebef1433bdfef1b28ce2c634e6695",
+      "kind": "prefix-contact-shading",
+      "density": 2,
+      "review": {
+        "kind": "prefix-contact-shading",
+        "density": 2,
+        "sha256": "e04bcd3d4e98ffa7c1328ed8ced90d54774ebef1433bdfef1b28ce2c634e6695",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-resize-480-dpr1.png",
+      "sha256": "1915cbda2037c4c9d18465636557eb0b29080b14f7d0dbb72e4fd0a1d3608fc7",
+      "kind": "prefix-resize-480",
+      "density": 1,
+      "review": {
+        "kind": "prefix-resize-480",
+        "density": 1,
+        "sha256": "1915cbda2037c4c9d18465636557eb0b29080b14f7d0dbb72e4fd0a1d3608fc7",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-resize-480-dpr2.png",
+      "sha256": "d0c32d1cf8c5ab4dce8328f0b6faa9416bf1d546e858676d1d79a9550f12f1c1",
+      "kind": "prefix-resize-480",
+      "density": 2,
+      "review": {
+        "kind": "prefix-resize-480",
+        "density": 2,
+        "sha256": "d0c32d1cf8c5ab4dce8328f0b6faa9416bf1d546e858676d1d79a9550f12f1c1",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-resize-620-dpr1.png",
+      "sha256": "59d89b42e97ccfc42b8087929835b1ca7ddb6f2e5de69fc01710a1b8c3784ed5",
+      "kind": "prefix-resize-620",
+      "density": 1,
+      "review": {
+        "kind": "prefix-resize-620",
+        "density": 1,
+        "sha256": "59d89b42e97ccfc42b8087929835b1ca7ddb6f2e5de69fc01710a1b8c3784ed5",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-resize-620-dpr2.png",
+      "sha256": "2ab18bb35d7db73c0e64b47ca901dabbc3a870701580849e4d0f51c2afe95783",
+      "kind": "prefix-resize-620",
+      "density": 2,
+      "review": {
+        "kind": "prefix-resize-620",
+        "density": 2,
+        "sha256": "2ab18bb35d7db73c0e64b47ca901dabbc3a870701580849e4d0f51c2afe95783",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-shared-originals-dpr1.png",
+      "sha256": "3893064ea6e6e5a37a8361c2aa3bdfb778c9a2e952d11174c845e6fbf343aae7",
+      "kind": "prefix-shared-originals",
+      "density": 1,
+      "review": {
+        "kind": "prefix-shared-originals",
+        "density": 1,
+        "sha256": "3893064ea6e6e5a37a8361c2aa3bdfb778c9a2e952d11174c845e6fbf343aae7",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-prefix-shared-originals-dpr2.png",
+      "sha256": "1f7c68f14511b44f2107ca48969a51a6579811f277fef6027f86b72890821704",
+      "kind": "prefix-shared-originals",
+      "density": 2,
+      "review": {
+        "kind": "prefix-shared-originals",
+        "density": 2,
+        "sha256": "1f7c68f14511b44f2107ca48969a51a6579811f277fef6027f86b72890821704",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    },
+    {
+      "figure": "journey/release/quality656-current-canonical-final.png",
+      "sha256": "2c3174d5544169db975c549b81eb624b1a40fb3df4b8182dd2bdcbbf3fe4abfd",
+      "kind": "canonical-final",
+      "review": {
+        "kind": "canonical-final",
+        "sha256": "2c3174d5544169db975c549b81eb624b1a40fb3df4b8182dd2bdcbbf3fe4abfd",
+        "review": "Root individually viewed this frozen PNG. Red contact overlays/gray occluder, resized returns and separated originals are clear. Recovery is intentionally fresh default Scene/demo at default camera with loss notice; no unsaved-document restoration claim."
+      }
+    }
+  ],
+  "rootReview": {
+    "path": "target/course-windows-20261018/quality656-acceptance-publication-preparation/root-image-review.json",
+    "sha256": "5e1caca4a19864ec333907b2dd783543d6b771015ab4e7d5fedb982fa45172da"
+  },
+  "scope": "Complete own656quality-target-reuse-with-policy callback includingallprefix/targetresize/contact/sharedoriginals, fivequalityimages/result andfinalcanonical. Realdevice-loss recovery follows originaldefaultScene/demo and URL/sample policy; no unsaved-document restoration or FPS claim. Actualsource656 is not earlier acceptedfinal713proof.",
+  "preservedFailure": {
+    "record": "release/quality-and-marker-failure-review.json",
+    "status": "Original216.486s EEXISTfailure preserved; generateddirectory reversiblyrelocated for unchangedretry. No canonicalinput/assertion change."
+  },
+  "separateFinal713Record": "release/final-quality-recovery-review.json",
+  "counts": {
+    "callbacksAccepted": 8,
+    "callbacksPending": 10,
+    "pendingHistorical": 9,
+    "pendingLate": 1,
+    "featuresComplete": 4,
+    "featuresPartial": 14,
+    "fixturesAccepted": 2,
+    "fixturesTotal": 4,
+    "releaseGatesDone": 1
+  },
+  "limits": [
+    "Only656 source-specific callback acceptance; no finitefeature closure inferred.",
+    "Meshmarker/80d/Slot pendinginputexceptions/failures remain separate. Globalrelease gates/native713/maintained714 retain ownscope."
+  ]
+}

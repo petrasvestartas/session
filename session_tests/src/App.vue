@@ -10,8 +10,8 @@ import MainLayout from './components/layout/MainLayout.vue'
 /* Plain look: system fonts, black text, greys for rules and muted text, white background. */
 :root {
   --fg: #000000;
-  --muted: #666666;
-  --faint: #999999;
+  --muted: #000000;
+  --faint: #000000;
   --rule: #e2e2e2;
   --hover: #f2f2f2;
   --code-bg: #f6f6f6;

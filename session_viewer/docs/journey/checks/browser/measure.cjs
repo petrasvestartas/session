@@ -15,5 +15,5 @@ module.exports=async(page,helpers)=>{
     await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('canvas').getAttribute('data-measurement')==='null');
     await helpers.command(page,'Snap Off');await helpers.command(page,'CPlane XZ');await helpers.command(page,'Measure Distance');assert.equal((await value('data-snap-settings')).objects,true);
     await helpers.command(page,'0,0');await helpers.command(page,'@3,4');assert.deepEqual((await value('data-measurement')).points,[[0,0,0],[3,0,4]]);assert.equal((await value('data-measurement')).label,'5 mm');assert.equal(await value('data-object-count'),2);
-    await helpers.command(page,'Escape');assert.equal(await value('data-measurement'),null);
+    await page.keyboard.press('Escape');assert.equal(await value('data-measurement'),null);
 };

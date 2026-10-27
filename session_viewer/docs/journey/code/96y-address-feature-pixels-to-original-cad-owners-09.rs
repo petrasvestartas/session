@@ -1,0 +1,1 @@
+depth:0,end:index+1,ids:vec![row.id],members:vec![row.id],readonly:false
