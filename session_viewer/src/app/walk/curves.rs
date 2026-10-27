@@ -186,7 +186,7 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     }
 
     let spans = c.span_count().max(1);
-    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512); // chord count
+    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, spans.max(512)); // chord count
 
     let (t0, t1) = c.domain();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);
@@ -335,5 +335,19 @@ mod tests {
             seg.ribbon_heads,
             vec![(seg.ribbons.len() as u32 - 1, VectorRow::HEAD_END)]
         );
+    }
+
+    #[test]
+    fn dense_curve_spans_do_not_panic() {
+        let mut points = Vec::new();
+        for i in 0..790 {
+            points.push(Point::new(i as f64, 0.0, 0.0));
+        }
+        let curve = NurbsCurve::create(false, 1, &points);
+        let samples = sample_nurbscurve(&curve);
+        assert_eq!(curve.span_count(), 789);
+        assert_eq!(samples.len(), 790);
+        assert_eq!(samples.first(), Some(&[0.0, 0.0, 0.0]));
+        assert_eq!(samples.last(), Some(&[789.0, 0.0, 0.0]));
     }
 }
