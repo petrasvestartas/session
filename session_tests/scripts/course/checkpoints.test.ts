@@ -7,14 +7,38 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {createRequire} from 'node:module';
+import {spawnSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 import {save, restore, savedPath} from './checkpoints.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
-import {removeGenerated} from './verify.ts';
+import {removeGenerated, verificationCheckpoints} from './verify.ts';
 import {expected, edited, typingLoad, fingerprint, withExpectedSequence, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines} from './model.ts';
 const browserFingerprint = createRequire(import.meta.url)(path.join(viewer, 'docs/journey/checks/fingerprint.cjs'));
 
+test('building all checkpoints requires explicit scope while stored checks stay read-only', () => {
+    const known = course().steps.map(step => step.id);
+    assert.throws(() => verificationCheckpoints([]), /IDs or --all/);
+    assert.deepEqual(verificationCheckpoints([], false, true), known);
+    assert.deepEqual(verificationCheckpoints([], true), known);
+    assert.deepEqual(verificationCheckpoints([known[0], known.at(-1)!, known[0]]), [known[0], known.at(-1)!]);
+    assert.throws(() => verificationCheckpoints(['../outside']), /Unknown checkpoint/);
+});
+
+test('build and capture commands reject omitted scope before invoking tools', () => {
+    const scripts = path.resolve(viewer, '../session_tests/scripts');
+    for (const action of ['verify', 'verify-reference', 'capture']) {
+        const result = spawnSync(process.execPath, ['--import', pathToFileURL(path.join(scripts, 'typescript.mjs')).href,
+            path.join(scripts, 'course.ts'), action], {cwd: os.tmpdir(), encoding: 'utf8'});
+        assert.equal(result.status, 1, result.stderr);
+        assert.match(result.stderr, /checkpoint IDs or --all/);
+    }
+});
+
 test('generated cleanup rejects traversal and links outside its owned root', () => {
-    const root = fs.mkdtempSync(path.join(viewer, 'target/course-cleanup-test-'));
+    const targetDir = path.join(viewer, 'target');
+    const createdTarget = !fs.existsSync(targetDir);
+    fs.mkdirSync(targetDir, {recursive: true});
+    const root = fs.mkdtempSync(path.join(targetDir, 'course-cleanup-test-'));
     const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-cleanup-outside-'));
     const link = path.join(root, 'linked');
     try {
@@ -32,10 +56,11 @@ test('generated cleanup rejects traversal and links outside its owned root', () 
         assert.equal(fs.readFileSync(path.join(outside, 'keep'), 'utf8'), 'preserved');
     } finally {
         if (fs.existsSync(link)) fs.unlinkSync(link);
-        assert.equal(path.dirname(fs.realpathSync(root)), fs.realpathSync(path.join(viewer, 'target')));
+        assert.equal(path.dirname(fs.realpathSync(root)), fs.realpathSync(targetDir));
         assert.equal(path.dirname(fs.realpathSync(outside)), fs.realpathSync(os.tmpdir()));
         fs.rmSync(root, {recursive: true, force: true});
         fs.rmSync(outside, {recursive: true, force: true});
+        if (createdTarget && fs.readdirSync(targetDir).length === 0) fs.rmdirSync(targetDir);
     }
 });
 
@@ -166,7 +191,7 @@ test('restore preserves the unfinished project and does not overwrite a save', (
 test('unsafe names and references inside the project are rejected, including symlinks', () => fixture(folder => {
     const project = path.join(folder, 'journey');
     fs.mkdirSync(project);
-    fs.symlinkSync(project, path.join(folder, 'alias'), 'dir');
+    fs.symlinkSync(project, path.join(folder, 'alias'), process.platform === 'win32' ? 'junction' : 'dir');
     for (const name of ['', '../outside', '/tmp/outside', '..', '1..3', '22.2.3/../outside']) assert.throws(() => savedPath(name, project));
     for (const target of [project, path.join(project, 'answer'), path.join(folder, 'alias/answer')]) {
         assert.throws(() => safeOutput(target, project), /outside/);
@@ -422,7 +447,7 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
     assert.equal(fingerprint(expected('96zzzzzzzq-draw-original-cad-wire-curves')),
-        'e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163');
+        '3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32');
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);
     assert(typingLoad(step).minutes[1] <= 60);

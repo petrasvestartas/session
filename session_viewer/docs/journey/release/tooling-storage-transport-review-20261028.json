@@ -1,0 +1,82 @@
+{
+  "reviewedAt": "2026-10-28T19:54:15.888544+00:00",
+  "scope": "Storage/tooling and exact transport bytes; no new native/browser rendering acceptance.",
+  "fixtures": [
+    {
+      "path": "session_viewer/docs/journey/code/96y-address-feature-pixels-to-original-cad-owners-07.rs",
+      "workingSha256": "f16f364eb001a70e6cdc120a0b59d0dee3032092cb166671e4943e0de6500314",
+      "headBlobSha256": "6f9a7faec0959b74cfe10e37d0fe009b7ae815f707bb40f8c98fd58c8ca34ed6",
+      "normalizedTextEqualsHead": true,
+      "rawGitBlob": "0f1da33464530ed923dbcf9c7dbba9eda9987743",
+      "filteredGitBlob": "0f1da33464530ed923dbcf9c7dbba9eda9987743",
+      "attributes": [
+        "session_viewer/docs/journey/code/96y-address-feature-pixels-to-original-cad-owners-07.rs: text: unset",
+        "session_viewer/docs/journey/code/96y-address-feature-pixels-to-original-cad-owners-07.rs: diff: unset"
+      ]
+    },
+    {
+      "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-5-01-current_inventory.json",
+      "workingSha256": "1985c938772ab0a0d3d719f38e7684536795a55e354d72d0d1975c503cdf5870",
+      "headBlobSha256": "21de30eba00d0208bbf24507a91ca61eeccfd1d3f6392a319ee93719e754dba0",
+      "normalizedTextEqualsHead": true,
+      "rawGitBlob": "4ec82f024b758130c002fac96259a9400e9240ea",
+      "filteredGitBlob": "4ec82f024b758130c002fac96259a9400e9240ea",
+      "attributes": [
+        "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-5-01-current_inventory.json: text: unset",
+        "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-inventory-refresh-5-01-current_inventory.json: diff: unset"
+      ],
+      "jsonDataEqualsHead": true
+    }
+  ],
+  "checkoutPolicy": "Two narrow -text -diff attributes retain exact original Windows CRLF bytes on Linux and Windows; no global autocrlf dependency.",
+  "history": "Attempted exact HEAD LF fixture restoration failed 3 existing tests (21/24 passed). Root restored exact original pre-pull working CRLF bytes; no historical evidence deleted. No course locator normalization applied.",
+  "archivalCompatibility": {
+    "compactOwnerReconstructedFingerprint": "09db6bbe0f3e74eef99b165db08613800e1a7c4484c15c4b9ef3644f205becf0",
+    "confirmedBy": "Existing compact target-owner test, final 24/24 run.",
+    "currentLateqFingerprint": "3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32",
+    "currentFinal97Fingerprint": "e2887fefd8fda86e580435538466c212ba714389be588a4f5d567c6a71f542c7",
+    "previousLateqAssertion": "e86ab162ab76e3345a639f944bf082122c956c1c70ab475abb2abceda99dc163"
+  },
+  "rawFingerprintImpact": {
+    "96yAffectedDownstreamCheckpoints": 173,
+    "inventoryRefreshAffectedDownstreamCheckpoints": 2,
+    "note": "Counts overlap. Fingerprints include raw source text; line-ending differences require distinct raw hashes even when normalized source/JSON data are identical. Existing runtime proofs are not relabeled fresh."
+  },
+  "validation": {
+    "command": "python -B bash/workspace_storage.py run --reserve-gib 0 -- node --import ./session/session_tests/scripts/typescript.mjs --test ./session/session_tests/scripts/course/checkpoints.test.ts",
+    "tests": 24,
+    "passed": 24,
+    "failed": 0,
+    "durationMs": 10664.9642,
+    "exitCode": 0,
+    "syntax": "esbuild transform of all six owned TypeScript modules passed; no static typecheck claimed.",
+    "diffCheck": "git diff --check passed",
+    "nativeBrowserSiteBuildsRun": false,
+    "storageFinalBytes": 9364126780,
+    "generatedFinalBytes": 2024479235,
+    "storageErrors": []
+  },
+  "toolingModules": {
+    "course.ts": "df373aee12ec2b6f987ee1de8703323af0cfd2d2c1fcbc629ece64c442ac2d6a",
+    "course/checkpoints.test.ts": "c24d6ab0b2079cba4b7f696bc7ba71a90de84a6fcba10eadb9b8347e5e01a071",
+    "course/image-browser-build.ts": "a38495c547418d1830d4574317a9b00839a6b4cebfdad4abe591e9f090f3d8cc",
+    "course/incremental-browser-image-build.ts": "b6579f5227be6c44c60facaf4515e6d794afe394e0b32d2ceecfad20e8677dd5",
+    "course/reference.ts": "08163842284b682d5f2324a2a779597bfa7d7ef83d5c94f70d05185821565584",
+    "course/verify.ts": "7dd6aacd12a875c4eede562a2e5fb35405d1506e0ce00488dea72713ad12b173"
+  },
+  "limitations": [
+    "Capture optimized-bundle lifecycle reviewed in source; no Trunk/browser execution in this light validation.",
+    "Shared Cargo cache requires serialized heavy-build ownership.",
+    "Viewer/Gemini/Vue layout and canonical browser assertions unchanged."
+  ],
+  "maintainedSourceMetadataCorrection": {
+    "path": "session_viewer/docs/journey/current-viewer-2026-10-23.json",
+    "entry": "src/app/walk/curves.rs",
+    "previousSha256": "4da38304e6eb4dbed57d0406fe36a9dc4da823eb4f044d4434160983792756d7",
+    "correctedSha256": "d48996b6762694650fba6d1fc2c8d8d9eb92f17e79b3a53f3e93f11415cf9780",
+    "canonicalGitSourceSha256": "d48996b6762694650fba6d1fc2c8d8d9eb92f17e79b3a53f3e93f11415cf9780",
+    "allOtherMetadataUnchanged": true,
+    "maintainedSourceModified": false,
+    "scope": "Hash metadata now matches existing committed maintained source; no new native/browser runtime acceptance."
+  }
+}

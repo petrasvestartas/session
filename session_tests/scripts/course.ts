@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor} from './course/model.ts';
 import {save, restore} from './course/checkpoints.ts';
 import {generate} from './course/render.ts';
-import {structure, verify, runCommand, nativeTarget} from './course/verify.ts';
+import {structure, verify, runCommand, nativeTarget, removeGenerated} from './course/verify.ts';
 import {serve} from './course/serve.ts';
 import {verifyReference, parity} from './course/reference.ts';
 import {diagrams} from './course/diagrams.ts';
@@ -85,36 +85,50 @@ function main() {
         parity();
     } else if (action === 'verify-reference') {
         const ids = [name, ...args].filter(Boolean);
-        verifyReference(ids.filter(id => id !== '--stored'), ids.includes('--stored'));
+        verifyReference(ids.filter(id => id !== '--stored' && id !== '--all'), ids.includes('--stored'), ids.includes('--all'));
     } else if (action === 'verify') {
         const ids = [name, ...args].filter(Boolean);
         const stored = ids.includes('--stored');
-        verify(ids.filter(id => id !== '--stored').map(lessonId), stored);
+        const all = ids.includes('--all');
+        verify(ids.filter(id => id !== '--stored' && id !== '--all').map(lessonId), stored, all);
     } else if (action === 'capture') {
-        const ids = [name, ...args].filter(Boolean).map(lessonId);
-        verify(ids, true);
-        // Verification reconstructs each checkpoint from scratch. Recreate its
-        // handwritten specimen before Chrome opens the file picker.
+        const rawIds = [name, ...args].filter(Boolean);
+        const all = rawIds.includes('--all');
+        const ids = rawIds.filter(id => id !== '--all').map(lessonId);
+        if (!ids.length && !all) throw Error('Choose capture checkpoint IDs or --all');
+        verify(ids, true, all);
+        // Materialize and clean up each checkpoint one at a time so target/course-* never accumulates.
         for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
             const directory = path.join(viewer, 'target', `course-${step.id}`);
-            const uploads = (step.browser_actions || []).filter(action => 'file' in action);
-            if (uploads.some(action => 'file' in action && action.file !== 'sample.pb')) {
-                throw Error(`${step.id}: unsupported browser specimen`);
+            const bundles = path.join(viewer, 'target/course-checks');
+            const bundle = path.join(bundles, step.id, 'dist');
+            try {
+                removeGenerated(directory, path.join(viewer, 'target'));
+                materialize(expected(step.id), directory, lockFor(step.id), assetsFor(step.id));
+                const uploads = (step.browser_actions || []).filter(action => 'file' in action);
+                if (uploads.some(action => 'file' in action && action.file !== 'sample.pb')) {
+                    throw Error(`${step.id}: unsupported browser specimen`);
+                }
+                removeGenerated(bundle, bundles);
+                runCommand(`${step.id}-capture-web`, ['trunk', 'build', '--release', '--public-url', './'], directory);
+                fs.mkdirSync(path.dirname(bundle), {recursive: true});
+                fs.cpSync(path.join(directory, 'dist'), bundle, {recursive: true});
+                if (fs.existsSync(path.join(directory, 'examples/sample.rs'))) {
+                    runCommand(`${step.id}-sample`, ['cargo', 'run', '--example', 'sample', '--locked',
+                        '--target', nativeTarget(), '-j1'], directory);
+                } else if (uploads.length) {
+                    throw Error(`${step.id}: missing original sample generator`);
+                }
+                const capture = step.browser_check === 'journey/checks/browser/final.cjs' ? 'capture_current.cjs' : 'capture_journey.cjs';
+                runCommand(`${step.id}-browser`, [process.execPath, path.join(docs, capture), step.id], viewer,
+                    {NODE_PATH: path.join(viewer, 'target/course-tools/node_modules'), COURSE_SAMPLES_PREPARED: '1',
+                        COURSE_MEMORY_MIB: process.env.COURSE_BROWSER_MEMORY_MIB || '6144'});
+            } finally {
+                if (process.env.COURSE_KEEP_BUNDLES !== '1') removeGenerated(bundle, bundles);
+                if (process.env.COURSE_KEEP_WORKSPACES !== '1') {
+                    removeGenerated(directory, path.join(viewer, 'target'));
+                }
             }
-            if (!fs.existsSync(path.join(directory, 'examples/sample.rs'))) {
-                if (uploads.length) throw Error(`${step.id}: missing original sample generator`);
-                continue;
-            }
-            runCommand(`${step.id}-sample`, ['cargo', 'run', '--example', 'sample', '--locked',
-                '--target', nativeTarget(), '-j1'], directory);
-        }
-        // Each checkpoint owns its browser context. Init probes and storage-denial
-        // fixtures must not leak into the next checkpoint's Back-navigation test.
-        for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
-            const capture = step.browser_check === 'journey/checks/browser/final.cjs' ? 'capture_current.cjs' : 'capture_journey.cjs';
-            runCommand(`${step.id}-browser`, [process.execPath, path.join(docs, capture), step.id], viewer,
-                {NODE_PATH: path.join(viewer, 'target/course-tools/node_modules'), COURSE_SAMPLES_PREPARED: '1',
-                    COURSE_MEMORY_MIB: process.env.COURSE_BROWSER_MEMORY_MIB || '6144'});
         }
         generate();
     } else if (action === 'serve') {
@@ -128,7 +142,7 @@ function main() {
     } else {
         console.log('npm run course -- init | check LESSON | dependencies LESSON | save NAME | restore NAME | reference LESSON --output NEW_FOLDER');
         console.log('Use a book number such as 22.2.3 or an existing lesson ID. List shows book numbers; list --ids shows internal IDs.');
-        console.log('Authoring: dock-preview | generate | structure | verify [ID] [--stored] | verify-reference [ID] [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture | list');
+        console.log('Authoring: dock-preview | generate | structure | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
     }
 }
 

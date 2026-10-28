@@ -1209,7 +1209,7 @@
       "course": "02"
     },
     "src/app/walk/curves.rs": {
-      "sha256": "4da38304e6eb4dbed57d0406fe36a9dc4da823eb4f044d4434160983792756d7",
+      "sha256": "d48996b6762694650fba6d1fc2c8d8d9eb92f17e79b3a53f3e93f11415cf9780",
       "course": "02"
     },
     "src/app/walk/encode.rs": {

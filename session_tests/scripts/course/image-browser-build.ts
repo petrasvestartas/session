@@ -13,7 +13,7 @@ const self = fileURLToPath(import.meta.url);
 const original = fileURLToPath(new URL('./browser-presentation.ts', import.meta.url));
 const guard = fileURLToPath(new URL('./parallel-image-guard.ps1', import.meta.url));
 const sha = (file: string) => hash(fs.readFileSync(file));
-export const imageBuildTarget = path.join(viewer, 'target/course-image-build');
+export const imageBuildTarget = path.join(viewer, 'target/course-build');
 const policy = {purpose: 'Separate image lane; original behavior/capture guards unchanged', processors: 8, memoryMiB: 8192, jobs: 8, affinityMask: '0xFF00', timeoutSeconds: 1800, profile: 'debug', target: imageBuildTarget};
 const builtStatuses = ['BUILT_NOT_CAPTURED', 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW'];
 

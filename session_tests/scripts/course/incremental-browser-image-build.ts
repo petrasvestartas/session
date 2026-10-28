@@ -39,7 +39,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const native=path.join(folder,'canonical-source');materialize(expected(id),native,lockFor(id),assetsFor(id));
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
     const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,policy,helperSha256:sha(self),guardSha256:sha(guard)};
-    const groupKey=hash(JSON.stringify(groupIdentity)),group=path.join(viewer,'target/course-ib',groupKey.slice(0,20)),workbench=path.join(group,'workspace'),target=path.join(group,'target');
+    const groupKey=hash(JSON.stringify(groupIdentity)),group=path.join(viewer,'target/course-ib',groupKey.slice(0,20)),workbench=path.join(group,'workspace'),target=path.join(viewer,'target/course-build');
     const workspace=path.join(folder,'workspace'),dist=path.join(workspace,'target/course-checks',id,'dist');
     write(path.join(workspace,'docs/journey/course.json'),read(path.join(docs,'journey/course.json')));
     fs.cpSync(path.join(docs,'journey/checks'),path.join(workspace,'docs/journey/checks'),{recursive:true});

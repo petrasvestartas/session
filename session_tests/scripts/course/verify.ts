@@ -79,12 +79,19 @@ export function removeGenerated(directory: string, root: string) {
     fs.rmSync(directory, {recursive: true, force: true});
 }
 
-export function verify(ids: string[], stored = false) {
-    const report = path.join(evidence, 'results.json');
-    const records = fs.existsSync(report) ? json(report) : {};
+export function verificationCheckpoints(ids: string[], stored = false, all = false) {
     const known = course().steps.map(step => step.id);
     if (ids.some(id => !known.includes(id))) throw Error('Unknown checkpoint');
-    for (const id of ids.length ? ids : known) {
+    if (ids.length) return [...new Set(ids)];
+    if (all || stored) return known;
+    throw Error('Choose verification checkpoint IDs or --all');
+}
+
+export function verify(ids: string[], stored = false, all = process.env.COURSE_VERIFY_ALL === '1') {
+    const report = path.join(evidence, 'results.json');
+    const records = fs.existsSync(report) ? json(report) : {};
+    const selected = verificationCheckpoints(ids, stored, all);
+    for (const id of selected) {
         const step = course().steps.find(step => step.id === id)!;
         assert(/^[a-z0-9-]+$/.test(id), 'Invalid checkpoint ID');
         if (stored) {
@@ -104,54 +111,62 @@ export function verify(ids: string[], stored = false) {
         write(report, JSON.stringify(records, null, 2) + '\n');
         const target = path.join(viewer, 'target', `course-${id}`);
         removeGenerated(target, path.join(viewer, 'target'));
-        materialize(expected(id), target, lockFor(id), assetsFor(id));
-        assert.deepEqual(compare(expected(id), target), [], `${id}: the build must use the displayed source`);
-        const record: any = {source: signature(id), commands: [], browser: 'not verified'};
-        record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j1'], target));
-        if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', nativeTarget(), '-j1'], target));
-        record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--release', '--public-url', './'], target));
-        const bundle = path.join(evidence, id, 'dist');
-        removeGenerated(bundle, evidence);
-        fs.mkdirSync(path.dirname(bundle), {recursive: true});
-        fs.cpSync(path.join(target, 'dist'), bundle, {recursive: true});
-        if (id !== '01-canvas') {
-            const args = id === '02-clear' ? 'device, queue' : 'device, queue, format';
-            const constructor = step.frame_constructor || `Renderer::new(${args})`;
-            const [width, height] = step.frame_size || [640, 480];
-            assert([width, height].every(value => Number.isInteger(value) && value > 0 && value <= 4096));
-            let code = read(path.join(docs, 'journey/frame.rs'))
-                .replace('// COURSE_SIZE', `const WIDTH: u32 = ${width};\nconst HEIGHT: u32 = ${height};`)
-                .replace('// COURSE_NEW', `let renderer = ${constructor};`);
-            let draw = 'renderer.draw(&view);';
-            if (id === '04-input') {
-                draw = 'let mut background = viewer_journey::background::Background::default();\n' +
-                    '    let toggles: u32 = std::env::args().nth(1).unwrap_or("0".into()).parse()?;\n' +
-                    '    for _ in 0..toggles {\n        background.toggle();\n    }\n' +
-                    '    renderer.draw(&view, &background);';
+        try {
+            materialize(expected(id), target, lockFor(id), assetsFor(id));
+            assert.deepEqual(compare(expected(id), target), [], `${id}: the build must use the displayed source`);
+            const record: any = {source: signature(id), commands: [], browser: 'not verified'};
+            record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j1'], target));
+            if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', nativeTarget(), '-j1'], target));
+            record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--release', '--public-url', './'], target));
+            const bundle = path.join(evidence, id, 'dist');
+            removeGenerated(bundle, evidence);
+            if (process.env.COURSE_KEEP_BUNDLES === '1') {
+                fs.mkdirSync(path.dirname(bundle), {recursive: true});
+                fs.cpSync(path.join(target, 'dist'), bundle, {recursive: true});
             }
-            if (step.frame) {
-                draw = 'draw(&renderer, &view);';
-                code = code.slice(0, code.indexOf('fn verify_pixels(')) + read(path.join(docs, step.frame));
+            if (id !== '01-canvas') {
+                const args = id === '02-clear' ? 'device, queue' : 'device, queue, format';
+                const constructor = step.frame_constructor || `Renderer::new(${args})`;
+                const [width, height] = step.frame_size || [640, 480];
+                assert([width, height].every(value => Number.isInteger(value) && value > 0 && value <= 4096));
+                let code = read(path.join(docs, 'journey/frame.rs'))
+                    .replace('// COURSE_SIZE', `const WIDTH: u32 = ${width};\nconst HEIGHT: u32 = ${height};`)
+                    .replace('// COURSE_NEW', `let renderer = ${constructor};`);
+                let draw = 'renderer.draw(&view);';
+                if (id === '04-input') {
+                    draw = 'let mut background = viewer_journey::background::Background::default();\n' +
+                        '    let toggles: u32 = std::env::args().nth(1).unwrap_or("0".into()).parse()?;\n' +
+                        '    for _ in 0..toggles {\n        background.toggle();\n    }\n' +
+                        '    renderer.draw(&view, &background);';
+                }
+                if (step.frame) {
+                    draw = 'draw(&renderer, &view);';
+                    code = code.slice(0, code.indexOf('fn verify_pixels(')) + read(path.join(docs, step.frame));
+                }
+                code = code.replace('// COURSE_DRAW', draw);
+                write(path.join(target, 'examples/frame.rs'), code);
+                const command = ['cargo', 'run', '--example', 'frame', '--locked', '--target', nativeTarget(), '-j1'];
+                record.commands.push(runCommand(`${id}-frame`, command, target, {COURSE_FRAME: id === '02-clear' ? 'clear' : 'triangle'}));
+                const frame = path.join(target, 'frame.ppm');
+                const original = ppm(frame).pixels;
+                write(path.join(pictures, `${id}.png`), png(frame));
+                record.pixels = {sha256: hash(original)};
+                if (id === '04-input') {
+                    record.commands.push(runCommand(`${id}-toggle`, [...command, '--', '1'], target, {COURSE_FRAME: 'light'}));
+                    write(path.join(pictures, '04-input-light.png'), png(frame));
+                    record.commands.push(runCommand(`${id}-roundtrip`, [...command, '--', '2'], target, {COURSE_FRAME: 'triangle'}));
+                    assert.deepEqual(ppm(frame).pixels, original);
+                    record.roundtrip = true;
+                }
             }
-            code = code.replace('// COURSE_DRAW', draw);
-            write(path.join(target, 'examples/frame.rs'), code);
-            const command = ['cargo', 'run', '--example', 'frame', '--locked', '--target', nativeTarget(), '-j1'];
-            record.commands.push(runCommand(`${id}-frame`, command, target, {COURSE_FRAME: id === '02-clear' ? 'clear' : 'triangle'}));
-            const frame = path.join(target, 'frame.ppm');
-            const original = ppm(frame).pixels;
-            write(path.join(pictures, `${id}.png`), png(frame));
-            record.pixels = {sha256: hash(original)};
-            if (id === '04-input') {
-                record.commands.push(runCommand(`${id}-toggle`, [...command, '--', '1'], target, {COURSE_FRAME: 'light'}));
-                write(path.join(pictures, '04-input-light.png'), png(frame));
-                record.commands.push(runCommand(`${id}-roundtrip`, [...command, '--', '2'], target, {COURSE_FRAME: 'triangle'}));
-                assert.deepEqual(ppm(frame).pixels, original);
-                record.roundtrip = true;
+            records[id] = record;
+            write(report, JSON.stringify(records, null, 2) + '\n');
+            console.log(`${id}: Rust, WebAssembly and available rendering checks passed`);
+        } finally {
+            if (process.env.COURSE_KEEP_WORKSPACES !== '1') {
+                removeGenerated(target, path.join(viewer, 'target'));
             }
         }
-        records[id] = record;
-        write(report, JSON.stringify(records, null, 2) + '\n');
-        console.log(`${id}: Rust, WebAssembly and available rendering checks passed`);
     }
 }
 
