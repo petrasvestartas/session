@@ -12,9 +12,18 @@ const digest = (file: string) => fileReference(file).sha256;
 function exclusive(file: string, value: unknown) {
     fs.mkdirSync(path.dirname(file), {recursive: true});
     const fd = fs.openSync(file, 'wx');
-    try { fs.writeFileSync(fd, JSON.stringify(value, null, 2) + '\n'); fs.fsyncSync(fd); }
+    try {
+        const bytes = JSON.stringify(value, null, 2) + '\n';
+        fs.writeFileSync(fd, file.endsWith('.gz') ? gzipSync(bytes) : bytes); fs.fsyncSync(fd);
+    }
     finally { fs.closeSync(fd); }
     return fileReference(file);
+}
+
+export function ledgerReceiptFile(directory: string, name: 'capture' | 'retirement') {
+    const files = ['.json', '.json.gz'].map(suffix => path.resolve(directory, name + suffix)).filter(file => fs.existsSync(file));
+    assert(files.length <= 1, 'Ambiguous ledger receipt: ' + path.resolve(directory, name));
+    return files[0];
 }
 
 function owned(root: string, file: string) {
@@ -32,6 +41,7 @@ function owned(root: string, file: string) {
 
 export function sealCapture(options: {directory: string; ownedRoots: string[]; transientRoots?: string[]; capture: string; build?: string; evidence: string[]; image: string; execution: any; sourceIntegrity?: any; locks?: string[]; activeLock?: string}) {
     const {directory, execution} = options;
+    assert(!ledgerReceiptFile(directory, 'capture'), 'Capture receipt already exists');
     assert(execution?.before?.files?.length && execution.after?.files?.length, 'Actual before/after execution observations are required');
     assert.deepEqual(execution.before.files, execution.after.files);
     assert(Date.parse(execution.after.at) >= Date.parse(execution.before.at));
@@ -59,13 +69,15 @@ export function sealCapture(options: {directory: string; ownedRoots: string[]; t
     const receipt = {schema: 1, status: 'CAPTURED_NOT_PUBLISHED', capture: fileReference(options.capture), image: fileReference(options.image),
         build: options.build ? fileReference(options.build) : null,
         execution, sourceIntegrity: options.sourceIntegrity, evidence, blobs, candidates, locks: options.locks || [], scope: 'Immutable execution evidence; fresh build required for re-execution after retirement.'};
-    const reference = exclusive(path.join(directory, 'capture.json'), receipt);
+    const reference = exclusive(path.join(directory, 'capture.json.gz'), receipt);
     verifyCaptureLedger(reference.path);
     return reference;
 }
 
 export function verifyCaptureLedger(file: string) {
-    const receipt = json(file), directory = path.dirname(file);
+    const directory = path.dirname(file);
+    ledgerReceiptFile(directory, 'capture');
+    const receipt = json(file);
     assert.equal(receipt.schema, 1);
     assert.deepEqual(receipt.execution.before.files, receipt.execution.after.files);
     if (receipt.sourceIntegrity) {
@@ -114,8 +126,8 @@ export function verifyCaptureLedger(file: string) {
         assert.equal((capture.resources || capture.host?.resources).exitCode, 0);
     }
     assert.equal(digest(receipt.image.path), receipt.image.sha256);
-    const retiredFile = path.join(directory, 'retirement.json');
-    if (!fs.existsSync(retiredFile)) {
+    const retiredFile = ledgerReceiptFile(directory, 'retirement');
+    if (!retiredFile) {
         for (const item of receipt.execution.after.files) assert.equal(digest(item.path), item.sha256, 'Live artifact was replaced');
         return {status: 'CAPTURED_BINARY_AVAILABLE', receipt};
     }
@@ -156,13 +168,13 @@ function retireLocked(file: string, destination: string, publicationEvidence: st
         const published = {capture: fileReference(file), destination: fileReference(destination), evidence};
         if (fs.existsSync(publicationFile)) assert.deepEqual(json(publicationFile), published);
         else exclusive(publicationFile, published);
-        exclusive(path.join(directory, 'retirement.json'), {capture: fileReference(file), publication: fileReference(publicationFile), at: new Date().toISOString(), files});
+        exclusive(path.join(directory, 'retirement.json.gz'), {capture: fileReference(file), publication: fileReference(publicationFile), at: new Date().toISOString(), files});
     }
     for (const item of files) {
         owned(item.root, item.path);
         if (fs.existsSync(item.path)) { assert.equal(digest(item.path), item.sha256); fs.unlinkSync(item.path); }
     }
-    exclusive(path.join(directory, 'retired.json'), {retirement: fileReference(path.join(directory, 'retirement.json')), removed: files.length});
+    exclusive(path.join(directory, 'retired.json'), {retirement: fileReference(ledgerReceiptFile(directory, 'retirement')!), removed: files.length});
     return verifyCaptureLedger(file);
 }
 

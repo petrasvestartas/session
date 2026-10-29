@@ -3,6 +3,7 @@ export {lines} from './line-diff.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import {fileURLToPath} from 'node:url';
 
 export const viewer = fileURLToPath(new URL('../../../session_viewer/', import.meta.url));
@@ -32,7 +33,7 @@ export interface Step {
 export interface Course { release: string; inventory?: string; steps: Step[] }
 
 export const read = (file: string) => fs.readFileSync(file, 'utf8');
-export const json = (file: string) => JSON.parse(read(file));
+export const json = (file: string) => JSON.parse(file.endsWith('.gz') ? gunzipSync(fs.readFileSync(file)).toString('utf8') : read(file));
 export const hash = (value: string | Uint8Array) => crypto.createHash('sha256').update(value).digest('hex');
 export const course = (): Course => sequence?.data || json(path.join(docs, 'journey/course.json'));
 export const reference = () => json(path.join(docs, 'typing/manifest.json'));

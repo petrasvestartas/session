@@ -3,6 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {gzipSync} from 'node:zlib';
+import {json} from './model.ts';
 import {cargoTarget, fileReference, observeExecution, finishExecution, checkWorkbenchOwnership} from './capture-storage.ts';
 import {sealCapture, retirePublishedCapture, verifyCaptureLedger} from './capture-ledger.ts';
 import {selectAffected} from './compact-capture.ts';
@@ -57,14 +59,15 @@ test('failed publication leaves owned artifacts intact', () => {
         const destination = path.join(f.root, 'wrong.png'); fs.writeFileSync(destination, 'wrong');
         assert.throws(() => retirePublishedCapture(f.receipt, destination, f.files.record)); assert(fs.existsSync(f.files.exe));
         assert(!fs.existsSync(path.join(path.dirname(f.receipt), 'retirement.json')));
+        assert(!fs.existsSync(path.join(path.dirname(f.receipt), 'retirement.json.gz')));
     } finally { f.cleanup(); }
 });
 
 test('active lane prevents retirement', () => {
     const f = fixture();
     try {
-        const data = JSON.parse(fs.readFileSync(f.receipt, 'utf8')), lock = path.join(f.root, 'active.lock');
-        data.locks = [lock]; fs.writeFileSync(f.receipt, JSON.stringify(data)); fs.writeFileSync(lock, 'active');
+        const data = json(f.receipt), lock = path.join(f.root, 'active.lock');
+        data.locks = [lock]; fs.writeFileSync(f.receipt, gzipSync(JSON.stringify(data))); fs.writeFileSync(lock, 'active');
         assert.throws(() => retirePublishedCapture(f.receipt, f.files.image, f.files.record)); assert(fs.existsSync(f.files.exe));
     } finally { f.cleanup(); }
 });
@@ -76,7 +79,7 @@ test('retired receipt verifies archived evidence and publication hash', () => {
         retirePublishedCapture(f.receipt, f.files.image, publication);
         const oldHash = fileReference(publication).sha256;
         fs.appendFileSync(publication, 'later generation'); assert.equal(verifyCaptureLedger(f.receipt).status, 'PUBLISHED_BINARY_RETIRED');
-        const receipt = JSON.parse(fs.readFileSync(f.receipt, 'utf8'));
+        const receipt = json(f.receipt);
         fs.writeFileSync(path.join(receipt.blobs, oldHash + '.gz'), 'tamper'); assert.throws(() => verifyCaptureLedger(f.receipt));
     } finally { f.cleanup(); }
 });
@@ -84,7 +87,7 @@ test('retired receipt verifies archived evidence and publication hash', () => {
 test('source archive corruption is detected', () => {
     const f = fixture();
     try {
-        const receipt = JSON.parse(fs.readFileSync(f.receipt, 'utf8'));
+        const receipt = json(f.receipt);
         fs.writeFileSync(path.join(receipt.blobs, fileReference(f.files.source).sha256 + '.gz'), 'corrupted');
         assert.throws(() => verifyCaptureLedger(f.receipt));
     } finally { f.cleanup(); }
@@ -202,8 +205,8 @@ test('an old publication remains provable when a new generation replaces the pub
 test('retirement owns the coordinator lock during artifact removal', () => {
     const f = fixture(), remove = fs.unlinkSync;
     try {
-        const lock = path.join(f.root, 'active.lock'), data = JSON.parse(fs.readFileSync(f.receipt, 'utf8'));
-        data.locks = [lock]; fs.writeFileSync(f.receipt, JSON.stringify(data));
+        const lock = path.join(f.root, 'active.lock'), data = json(f.receipt);
+        data.locks = [lock]; fs.writeFileSync(f.receipt, gzipSync(JSON.stringify(data)));
         const publication = path.join(f.root, 'public.json'); fs.writeFileSync(publication, '{}');
         let checked = false;
         fs.unlinkSync = file => {

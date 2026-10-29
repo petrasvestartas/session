@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {course, docs, expected, filesIn, json, viewer, withExpectedSequence} from './model.ts';
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
-import {sealCapture, verifyCaptureLedger, retirePublishedCapture} from './capture-ledger.ts';
+import {sealCapture, verifyCaptureLedger, retirePublishedCapture, ledgerReceiptFile} from './capture-ledger.ts';
 import {nativeAdapterProfile} from './presentation.ts';
 
 const self = fileURLToPath(import.meta.url);
@@ -99,8 +99,9 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
     try {
         assert(!fs.existsSync(pendingFile), 'Unsealed attempt requires explicit diagnosis and owned-file cleanup before retry: ' + pendingFile);
         for (const entry of fs.readdirSync(root, {withFileTypes: true})) {
-            const receipt = path.join(root, entry.name, 'capture.json');
-            if (entry.isDirectory() && entry.name.startsWith(lane + '-') && fs.existsSync(receipt))
+            if (!entry.isDirectory() || !entry.name.startsWith(lane + '-')) continue;
+            const receipt = ledgerReceiptFile(path.join(root, entry.name), 'capture');
+            if (receipt)
                 assert(fs.existsSync(path.join(path.dirname(receipt), 'retired.json')), 'Publish and retire the prior lane capture before starting another; keep only one terminal bundle');
         }
         fs.writeFileSync(pendingFile, JSON.stringify({pid: process.pid, id, lane, attempt: process.env.COURSE_CAPTURE_ATTEMPT || null,

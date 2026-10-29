@@ -3,6 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {gzipSync} from 'node:zlib';
+import {json} from './model.ts';
 import {fileReference} from './capture-storage.ts';
 import {readBatchQueue, runCompactBatch} from './compact-capture-batch.ts';
 import {nativeDevelopmentProfile} from './incremental-native-presentation.ts';
@@ -16,7 +18,7 @@ test('native development profile defaults debug symbols off and preserves caller
     assert.deepEqual(nativeDevelopmentProfile(caller), caller);
 });
 
-function fixture(ids = ['a', 'b']) {
+function fixture(ids = ['a', 'b'], compressed = false) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'compact-batch-'));
     const destinations = path.join(root, 'docs/screenshots/journey'); fs.mkdirSync(destinations, {recursive: true});
     const source = path.join(root, 'source.rs'), tool = path.join(root, 'tool.ts');
@@ -36,18 +38,19 @@ function fixture(ids = ['a', 'b']) {
             if (controls.failCapture) throw Error('Fixture capture interrupted');
             const folder = path.join(root, 'capture-' + attempts.length); fs.mkdirSync(folder);
             const image = path.join(folder, 'image.png'); fs.writeFileSync(image, Buffer.concat([png, Buffer.from(id + fs.readFileSync(source, 'utf8'))]));
-            const receipt = path.join(folder, 'capture.json'); fs.writeFileSync(receipt, JSON.stringify({image: fileReference(image)}));
+            const receipt = path.join(folder, compressed ? 'capture.json.gz' : 'capture.json'), bytes = JSON.stringify({image: fileReference(image)});
+            fs.writeFileSync(receipt, compressed ? gzipSync(bytes) : bytes);
             return {receipt: fileReference(receipt), image: fileReference(image)};
         },
         verify: (file: string) => {
-            const receipt = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const receipt = json(file);
             assert.equal(fileReference(receipt.image.path).sha256, receipt.image.sha256);
             return {receipt, status: fs.existsSync(file + '.retired') ? 'PUBLISHED_BINARY_RETIRED' : 'CAPTURED_BINARY_AVAILABLE'};
         },
         retire: (file: string, destination: string) => {
             calls.push('retire ' + path.basename(destination, '.png'));
             if (controls.failRetirement) { controls.failRetirement = false; throw Error('Fixture retirement interrupted'); }
-            const receipt = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const receipt = json(file);
             assert.equal(fileReference(destination).sha256, receipt.image.sha256);
             fs.writeFileSync(file + '.retired', 'retired');
             return runtime.verify(file);
@@ -179,5 +182,39 @@ test('readonly release retention and separate-helper images stay explicit in tot
         const result = await runCompactBatch(f.queueFile, {}, f.runtime);
         assert.equal(result.total, 2); assert.equal(result.retired, 1); assert.equal(result.remaining, 1); assert.equal(result.retainedUnchanged, 2);
         assert.equal(result.unsupported[0].destination, special); assert.equal(fileReference(special).sha256, input.special[0].sha256);
+    } finally { f.cleanup(); }
+});
+
+test('gzip capture publication interruption resumes exact stored receipt without recapture or journal rewrites', async () => {
+    const f = fixture(['a'], true);
+    try {
+        f.controls.failRetirement = true;
+        const interrupted = await runCompactBatch(f.queueFile, {}, f.runtime);
+        assert.equal(interrupted.status, 'STOPPED_ON_FAILURE'); assert.equal(interrupted.captured, 1); assert.equal(interrupted.published, 1);
+        const folder = path.join(interrupted.directory, 'events');
+        const events = fs.readdirSync(folder).map(name => fileReference(path.join(folder, name)));
+        const capture = events.map(row => json(row.path)).find(row => row.data.capture).data.capture;
+        assert(capture.path.endsWith('capture.json.gz')); assert.deepEqual(fileReference(capture.path), capture);
+        const resumed = await runCompactBatch(f.queueFile, {}, f.runtime);
+        assert.equal(resumed.remaining, 0); assert.equal(resumed.retired, 1);
+        assert.deepEqual(f.calls, ['capture a', 'retire a', 'retire a']);
+        assert.deepEqual(events.map(row => fileReference(row.path)), events);
+        await runCompactBatch(f.queueFile, {}, f.runtime); assert.equal(f.calls.length, 3);
+    } finally { f.cleanup(); }
+});
+
+test('a journaled gzip receipt with unchanged decoded JSON but altered stored bytes blocks batch resume', async () => {
+    const f = fixture(['a'], true);
+    try {
+        f.controls.failRetirement = true;
+        const interrupted = await runCompactBatch(f.queueFile, {}, f.runtime);
+        const folder = path.join(interrupted.directory, 'events');
+        const capture = fs.readdirSync(folder).map(name => json(path.join(folder, name))).find(row => row.data.capture).data.capture;
+        const value = json(capture.path);
+        fs.writeFileSync(capture.path, gzipSync(JSON.stringify(value) + '\n'));
+        assert.deepEqual(json(capture.path), value); assert.notEqual(fileReference(capture.path).sha256, capture.sha256);
+        const resumed = await runCompactBatch(f.queueFile, {}, f.runtime);
+        assert.equal(resumed.status, 'STOPPED_ON_FAILURE'); assert.equal(resumed.retired, 0); assert.equal(resumed.remaining, 1);
+        assert.deepEqual(f.calls, ['capture a', 'retire a']);
     } finally { f.cleanup(); }
 });
