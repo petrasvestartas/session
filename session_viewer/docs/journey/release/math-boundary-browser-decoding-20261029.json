@@ -1,0 +1,112 @@
+{
+  "status": "PASS_ALL_11_PUBLISHED_IMAGES_CHROME_DECODE_AND_SHA",
+  "at": "2026-10-29T09:42:43.004Z",
+  "browser": "155.0.8059.80",
+  "homepage": {
+    "url": "http://127.0.0.1:8788/docs/#/",
+    "title": "Session docs",
+    "links": 10
+  },
+  "images": [
+    {
+      "id": "38b-source",
+      "lane": "browser",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38b-source-browser.png?v=d5d6395bc04f",
+      "status": 200,
+      "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "62o-labels",
+      "lane": "browser",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels-browser.png?v=acca558319bd",
+      "status": 200,
+      "sha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "browser",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=c8320a5ff6b5",
+      "status": 200,
+      "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "width": 2200,
+      "height": 1600
+    },
+    {
+      "id": "38b-source",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38b-source.png?v=743f45285278",
+      "status": 200,
+      "sha256": "743f45285278156ab1c1f2732233e6931a3d7e560335b2c7151351adc62393e4",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "42k-input",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/42k-input.png?v=618cbc4930c1",
+      "status": 200,
+      "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "43b-view",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/43b-view.png?v=618cbc4930c1",
+      "status": 200,
+      "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "55g-surface",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/55g-surface.png?v=157b8682f836",
+      "status": 200,
+      "sha256": "157b8682f836186112519db9b368c91edf48644301713a44b34a6c973613c19b",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "59f-cad",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=a64f72223098",
+      "status": 200,
+      "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "62o-labels",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png?v=62bc49710585",
+      "status": 200,
+      "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png?v=ca14710c7b2c",
+      "status": 200,
+      "sha256": "ca14710c7b2c96fc1b4dc19e8b8111eb871067455471aa1e8aa4a24a263bef5f",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "lane": "native",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png?v=b2c422ca5108",
+      "status": 200,
+      "sha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271",
+      "width": 1280,
+      "height": 960
+    }
+  ],
+  "scope": "Read-only static documentation/PNG verification; GPU disabled; no WASM scene, compiler, capture regeneration or source edits. Existing preview code pages have not yet been rebuilt."
+}

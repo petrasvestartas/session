@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T09:35:06.620951+00:00",
+  "updatedUtc": "2026-10-29T09:43:13.734220+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -39,7 +39,7 @@
       "imageSha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "62o-labels",
@@ -50,7 +50,7 @@
       "imageSha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "68ac-connect-current-pages-to-the-browser-renderer",
@@ -61,7 +61,7 @@
       "imageSha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "38b-source",
@@ -83,7 +83,7 @@
       "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "43b-view",
@@ -94,7 +94,7 @@
       "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "55g-surface",
@@ -127,7 +127,7 @@
       "imageSha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "88ad-exercise-original-sections-bores-and-ink",
@@ -138,7 +138,7 @@
       "imageSha256": "ca14710c7b2c96fc1b4dc19e8b8111eb871067455471aa1e8aa4a24a263bef5f",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "94c-prove-the-original-comparison-and-inspect-differences",
@@ -149,7 +149,7 @@
       "imageSha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     }
   ],
   "stages": [
@@ -180,5 +180,12 @@
     "firstPassHunks": 38,
     "groupedFollowupHunks": 91,
     "scope": "Only current code fences and missing implementation sections; existing prose, diagrams, headings and Vue preserved. Four short rendering explanations added within newly inserted sections."
+  },
+  "browserVerification": {
+    "receipt": "docs/journey/release/math-boundary-browser-decoding-20261029.json",
+    "sha256": "ae7dedaff9feab09fa257189a23aebbc32a579e5b740c3fa87b4ba988bd97eb8",
+    "browser": "155.0.8059.80",
+    "publishedImagesVerified": 11,
+    "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD"
   }
 }
