@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T11:43:16.967618+00:00",
+  "updatedUtc": "2026-10-29T21:53:21.589406+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -28,22 +28,28 @@
     "source13ReviewedIllustrations": 4,
     "source13SelftestSha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638",
     "networkFrameCorrection": {
-      "status": "SOURCE_VERIFIED_RUNTIME_PENDING",
+      "status": "RUNTIME_PASS",
       "frame": "docs/journey/checks/80-network.rs",
       "reason": "Keep initial upload count == 2 before display refinement; check live geometry/row counts and unchanged uploads during drawing afterwards.",
       "pixelAssertions": "BYTE_IDENTICAL",
       "sourceVerification": "124 pins, eight module fingerprints and extraction hashes PASS",
-      "affectedFrameBindings": 31
+      "affectedFrameBindings": 31,
+      "runtimeEvidence": {
+        "checkpoint": "80za-read-original-projection-planes",
+        "result": "PASS original pixel assertions and corrected upload lifecycle on NVIDIA DX12",
+        "executionSha256": "f73f86f615c786fda071ad6278e1739c95006dd37ca56f5a3c88850ca1506a73",
+        "maintainedSourcesChanged": 0
+      }
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 21,
-    "remainingAffected": 1313,
-    "acceptedForFinalSource": 14,
-    "remainingFinalSourceAcceptance": 1320,
+    "newPublishedReviewed": 22,
+    "remainingAffected": 1312,
+    "acceptedForFinalSource": 15,
+    "remainingFinalSourceAcceptance": 1319,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Every accepted image matches its current published hash and personal original-resolution review."
   },
   "published": [
@@ -335,6 +341,18 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "80za-read-original-projection-planes",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-3b7e7ab40ba6-000000-d6dc0acb2df7.json",
+      "receiptSha256": "be732168529822e2363d1a7e6f3cd334a5c18869dfb0a7adf3415c57d65ef175",
+      "image": "docs/screenshots/journey/80za-read-original-projection-planes.png",
+      "imageSha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -348,11 +366,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_14_IMAGES_PASS; NETWORK_FRAME_LIFECYCLE_CORRECTION_RUNTIME_PENDING"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_15_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "14_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 21_TOTAL_PUBLISHED_REVIEWED"
+      "status": "15_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 22_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -373,6 +391,6 @@
     "browser": "155.0.8059.80",
     "publishedImagesVerified": 11,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 14
+    "newSource13ImagesAwaitingChromeDecode": 15
   }
 }

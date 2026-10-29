@@ -1,0 +1,58 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T21:45:45.530221+00:00",
+  "id": "80za-read-original-projection-planes",
+  "lane": "native",
+  "batchIndex": 0,
+  "generation": "3b7e7ab40ba625bfbf2a9762a4bc891af886e55af0496e59041ac7af735699b6",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\3b7e7ab40ba625bfbf2a9762a4bc891af886e55af0496e59041ac7af735699b6\\manifest.json",
+    "sha256": "9789f0960026bfa90997d9c8fc4fd86b4ede4da1d259bcb84ba0f42d9db9375f",
+    "bytes": 4035912
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\3b7e7ab40ba625bfbf2a9762a4bc891af886e55af0496e59041ac7af735699b6\\publications\\000000.json",
+    "sha256": "33cad79efaebcd101adf1ab7b087ec22c5e744f7e7a35bcf3209acf8173b3090",
+    "bytes": 2014
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-80za-read-original-projection-planes-ae56aa3b730105dcefa5\\capture.json",
+    "sha256": "ac4dd1f8859c11eee44f168fde8176655a41d6704baec746fed83d9cc164b680",
+    "bytes": 1171585
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\3b7e7ab40ba625bfbf2a9762a4bc891af886e55af0496e59041ac7af735699b6\\events\\000004-f674cad1b5d999102354c661ea1d2a82dfd49bd319d8a9781b442b58599a10f5.json",
+    "sha256": "f674cad1b5d999102354c661ea1d2a82dfd49bd319d8a9781b442b58599a10f5",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\80za-read-original-projection-planes.png",
+    "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+    "bytes": 42057
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\80za-read-original-projection-planes.png",
+    "sha256": "b2654eb3c134c058ed0de8bb5d05e9010311105c63f3935ecd13901e2f752330",
+    "bytes": 41784
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\80za-read-original-projection-planes.png",
+    "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+    "bytes": 42057
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png?v=d6dc0acb2df7",
+    "status": 200,
+    "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a"
+  }
+}
