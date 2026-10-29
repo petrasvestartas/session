@@ -1,0 +1,57 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T10:53:43.448632+00:00",
+  "id": "current-native-floor-output",
+  "scope": "Immutable tutorial fixture illustration; no generator or physical geometry validation. Root personally viewed the original1280x960 image before publication.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\current-native-floor-output.png",
+    "sha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701",
+    "bytes": 180168
+  },
+  "previousImageSha256": "67217e5e18903c9979b15a32c12db8253e21a357517d2699805036c7b5397d76",
+  "fixture": {
+    "input": "session/session_viewer/tests/fixtures/timber-floor.pb",
+    "inputSha256": "1d53ea1f6aaa533a566febe4f9e7ca77f1e9d7e4bf52bf473d408695090fa1f4",
+    "sourceIdentity": "Published Session view_live.pb downloaded2026-10-03, per fixture README.",
+    "fixtureChange": true
+  },
+  "physicalSize": [
+    1280,
+    960
+  ],
+  "environment": {
+    "VIEWER_NO_GRID": "1",
+    "VIEWER_OPACITY": "1",
+    "VIEWER_LIT": "1",
+    "VIEWER_MSAA": "4",
+    "VIEWER_AO": "1",
+    "VIEWER_OUTLINES": "1",
+    "VIEWER_FRAMES": "8",
+    "VIEWER_FRAMES_ORBIT": "2",
+    "VIEWER_GPU_TIMING": "1",
+    "VIEWER_W": "1280",
+    "VIEWER_H": "960",
+    "VIEWER_DPR": "2",
+    "VIEWER_ADAPTER": "nvidia"
+  },
+  "adapter": "[INFO] adapter: NVIDIA GeForce RTX 4080 Laptop GPU (DiscreteGpu, Vulkan)",
+  "qualitySummary": "display quality: retained_source_bytes=0 charged_lane_bytes=3446112 accepted_rows=18 limited_rows=399",
+  "qualityScope": "Visual acceptance at the captured framing. Limited rows remain honestly reported; no unlimited-zoom or geometry-validity claim.",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\special-source13-02\\special-illustration-receipt.json",
+    "sha256": "b588b2a3320ea29b188dae2f967b85f38fa4d977dbcce33ab43112b29bd95de9"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-special-02-execution.json",
+    "sha256": "ef41ec0ecdeced73f5418b9aa247815977bc76fcd870a77a0cbaa9e33ad2fdfa"
+  },
+  "executableSha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638",
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-floor-output.png?v=772faf17c54d",
+    "status": 200,
+    "sha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701"
+  }
+}

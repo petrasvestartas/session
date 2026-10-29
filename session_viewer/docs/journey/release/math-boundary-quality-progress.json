@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T10:37:47.221832+00:00",
+  "updatedUtc": "2026-10-29T10:57:25.116629+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,18 +22,21 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "PENDING_SOURCE_13: existing test counts and compiler-method pairs below belong to source12.",
-    "previousRuntimeSourceFreeze": "source-freeze-12.json"
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues.",
+    "previousRuntimeSourceFreeze": "source-freeze-12.json",
+    "source13FocusedTests": 6,
+    "source13ReviewedIllustrations": 4,
+    "source13SelftestSha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638"
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 11,
-    "remainingAffected": 1323,
-    "acceptedForFinalSource": 0,
-    "remainingFinalSourceAcceptance": 1334,
-    "qualificationNote": "The 11 published/reviewed images are source12 captures. They remain published, with their immutable receipts, but require source13 requalification before final acceptance."
+    "newPublishedReviewed": 15,
+    "remainingAffected": 1319,
+    "acceptedForFinalSource": 4,
+    "remainingFinalSourceAcceptance": 1330,
+    "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Every accepted image matches its current published hash and personal original-resolution review."
   },
   "published": [
     {
@@ -156,12 +159,60 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": true
+    },
+    {
+      "id": "current-native-comparison",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-comparison.json",
+      "receiptSha256": "4d37cdd89289320c658913718ba59b493d35cc369662c11c0bfec7e20aeb4a94",
+      "image": "docs/screenshots/journey/current-native-comparison.png",
+      "imageSha256": "24437f0b44e1f4839de8ff55684f0cd1e6bda0e442d32b6dbc5f559147795c3f",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "current-native-dome",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-dome.json",
+      "receiptSha256": "8ed64265b8ecdc5c25382b5adade9731531d07cdeb6ee2d33144c782955ccbb2",
+      "image": "docs/screenshots/journey/current-native-dome.png",
+      "imageSha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "current-native-floor-input",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-floor-input.json",
+      "receiptSha256": "0cef171728c25b7cd030a81ededaab51a90ccf498a9721c4fdf7da982c21412c",
+      "image": "docs/screenshots/journey/current-native-floor-input.png",
+      "imageSha256": "8afdff4d62d0dcf95365d0ed1b6ddffbfc5a0de81b34de50bcb8eb12dcceeb04",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "current-native-floor-output",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-floor-output.json",
+      "receiptSha256": "3755665f443a397d9aef2d5b93669a0e8a2aa182eac1cc887c1c9fde1b972014",
+      "image": "docs/screenshots/journey/current-native-floor-output.png",
+      "imageSha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
     {
       "stage": "Renderer-only source adaptation",
-      "status": "SOURCE_13_REVIEW_PASS_RUNTIME_PENDING"
+      "status": "SOURCE13_REVIEW_AND_6_FOCUSED_RUNTIME_CHECKS_PASS"
     },
     {
       "stage": "Historical tutorial adapters",
@@ -169,11 +220,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE_13_RUNTIME_PENDING; SOURCE_12_COMPILER_METHOD_PAIRS_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_4_MAINTAINED_ILLUSTRATIONS_PASS; BULK_LESSON_CAPTURES_RUNNING"
     },
     {
       "stage": "Image regeneration",
-      "status": "11_SOURCE_12_IMAGES_PUBLISHED; 0_OF_1334_FINAL_SOURCE_ACCEPTED"
+      "status": "4_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 15_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -193,6 +244,7 @@
     "sha256": "ae7dedaff9feab09fa257189a23aebbc32a579e5b740c3fa87b4ba988bd97eb8",
     "browser": "155.0.8059.80",
     "publishedImagesVerified": 11,
-    "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD"
+    "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
+    "newSource13ImagesAwaitingChromeDecode": 4
   }
 }
