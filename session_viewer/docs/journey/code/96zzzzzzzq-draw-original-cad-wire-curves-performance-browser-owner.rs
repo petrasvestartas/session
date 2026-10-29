@@ -1,6 +1,7 @@
     let frames = crate::browser_frame::Frame::new(fault.clone(), &renderer.queue);
     let owned_frames = frames.clone();
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        if event.type_()=="viewer-math" {math_view.event();}
         if active_fault.message().is_some() { frames.close(); return; }
         if frames.take(&event) {
             let result = present_latest(&browser_window, &pointer_canvas, &surface, &mut config,

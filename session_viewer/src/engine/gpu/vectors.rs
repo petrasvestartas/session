@@ -753,6 +753,7 @@ mod walk_tests {
                     gpu.reset();
                     let mut up = Upload::default();
                     let cx = WalkCx {
+                quality: Default::default(),
                         vert_base: 0,
                         cloud_px: 0.0,
                         row: 0,

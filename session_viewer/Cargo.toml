@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
 
 [dependencies]
-session_rust = { path = "../session_rust", default-features = false } # no mini-tests in the wasm
+session_rust = { path = "../session_rust", default-features = false, features = ["viewer-display"] } # no mini-tests in the wasm
 # Wood's element classes over the kernel Element, beside session as the superproject lays them out;
 # viewer-check and viewer-pages clone wood/rust there (sparse, shallow) before building.
 wood = { path = "../../wood/rust" }

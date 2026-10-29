@@ -1,6 +1,11 @@
 fn original_scene()->viewer_journey::scene::Scene{viewer_journey::comparison::original_scene(&viewer_journey::comparison::specimen()).unwrap()}
 fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer{
-    let renderer=Renderer::new(device,queue,format,&original_scene());renderer.set_outlines(true);renderer
+    let renderer={let math_source=original_scene();let mut camera=viewer_journey::camera::Camera::default();camera.isometric();camera.aspect=4./3.;camera.fit(&original_scene().bounds().unwrap());
+    let mut renderer=Renderer::new(device,queue,format,&math_source);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&math_source,&camera.uniform(),[WIDTH,HEIGHT],None).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&math_source);
+    renderer};renderer.set_outlines(true);renderer
 }
 fn draw(renderer:&Renderer,view:&wgpu::TextureView){
     let mut camera=viewer_journey::camera::Camera::default();camera.isometric();camera.aspect=4./3.;camera.fit(&original_scene().bounds().unwrap());renderer.draw(view,&Default::default(),&camera.uniform());assert_eq!(renderer.global_outline_usage()[1],1);

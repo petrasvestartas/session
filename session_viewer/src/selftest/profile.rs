@@ -96,6 +96,7 @@ pub fn document(session: &Session) {
         let kind = kinds.entry(kind_of(geom)).or_default();
         let before = counts(&up);
         let cx = WalkCx {
+                quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: kind.objects as u32,

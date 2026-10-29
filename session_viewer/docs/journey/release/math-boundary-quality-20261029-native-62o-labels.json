@@ -1,0 +1,44 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T08:28:13.657Z",
+  "id": "62o-labels",
+  "scope": "Actual reconstructed tutorial source, NVIDIA hardware render and native fixture assertions. Fixed-resolution canonical pixel verification remains separate; no general geometry or Boolean validity claim.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "sourceFreeze": "source-freeze-12.json",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-62o-labels-471ee6b7a5f134539155\\capture.json",
+    "sha256": "422134fadd0e3680f959d4c57144c5500042f8fe554a9d5a5b59bfd639c5318a",
+    "bytes": 778873
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\62o-labels.png",
+    "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+    "bytes": 44966
+  },
+  "previousPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\62o-labels.png",
+    "sha256": "868a3d4786c0484d539ca370075eabe8bcbd0952b99de8f9a7887fdc6ea6b321",
+    "bytes": 44892
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\62o-labels.png",
+    "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+    "bytes": 44966
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png?v=62bc49710585",
+    "status": 200,
+    "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5"
+  },
+  "sourceRuntime": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\62o-labels-5a5b80f1e49f3b7aa15a\\runtime\\frame-adapter.json",
+    "sha256": "cb3947bb44751aaea0b2735071efd5ac3b09053e723be02cb14cd29cc0a3a404",
+    "bytes": 75,
+    "adapter": {
+      "vendor": 4318,
+      "device": 10208,
+      "backend": "Dx12",
+      "deviceType": "DiscreteGpu"
+    }
+  }
+}

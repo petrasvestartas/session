@@ -1,0 +1,44 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T08:36:15.678Z",
+  "id": "88ad-exercise-original-sections-bores-and-ink",
+  "scope": "Actual reconstructed tutorial source, NVIDIA hardware render and native fixture assertions. Fixed-resolution canonical pixel verification remains separate; no general geometry or Boolean validity claim.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "sourceFreeze": "source-freeze-12.json",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-88ad-exercise-original-sections-bores-and-ink-ae49ef8e16a2a03bc96c\\capture.json",
+    "sha256": "15a8c9affaa1b5633fdeed692491a381f5f917fcba5b9214ef56d0948c3e4884",
+    "bytes": 1435063
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink.png",
+    "sha256": "ca14710c7b2c96fc1b4dc19e8b8111eb871067455471aa1e8aa4a24a263bef5f",
+    "bytes": 16185
+  },
+  "previousPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink.png",
+    "sha256": "672cfe1ce2ab3e8561eec1d5a966f2561d2fa024c082e67c320f82ede972d953",
+    "bytes": 15670
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink.png",
+    "sha256": "ca14710c7b2c96fc1b4dc19e8b8111eb871067455471aa1e8aa4a24a263bef5f",
+    "bytes": 16185
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png?v=ca14710c7b2c",
+    "status": 200,
+    "sha256": "ca14710c7b2c96fc1b4dc19e8b8111eb871067455471aa1e8aa4a24a263bef5f"
+  },
+  "sourceRuntime": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\88ad-exercise-original-sections-bores-and-ink-7888f444cab41dcfc483\\runtime\\frame-adapter.json",
+    "sha256": "cb3947bb44751aaea0b2735071efd5ac3b09053e723be02cb14cd29cc0a3a404",
+    "bytes": 75,
+    "adapter": {
+      "vendor": 4318,
+      "device": 10208,
+      "backend": "Dx12",
+      "deviceType": "DiscreteGpu"
+    }
+  }
+}

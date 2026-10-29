@@ -6,7 +6,7 @@ use crate::engine::gpu::lane::LaneRows;
 use crate::engine::gpu::segments::SegRows;
 use brep::{walk_brep, walk_surface};
 use cloud::walk_cloud;
-use curves::{walk_line, walk_nurbscurve, walk_polyline};
+use curves::{walk_line, walk_polyline};
 use frames::{walk_obb, walk_plane};
 use mesh::{MeshCx, MeshOpts, walk_mesh};
 use mesh_ink::Ink;
@@ -24,6 +24,8 @@ pub mod brep_orient;
 pub mod brep_shapes;
 pub mod cloud;
 pub mod curves;
+pub mod display;
+pub mod display_features;
 pub mod encode;
 pub mod frames;
 pub mod mesh;
@@ -69,6 +71,7 @@ impl<'a> Walk<'a> {
 
 /// Where one object's rows go.
 pub struct WalkCx {
+    pub quality: display::Quality,
     pub vert_base: u32,   // arena vertices already on the GPU
     pub cloud_px: f32,    // point size override in px, 0 = file's own
     pub row: u32,         // this object's row index
@@ -108,6 +111,17 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
 
 /// Draw visible features, thick, into the row of `cx`: an element's own or an instance's; the interactions while Element Interactions is on, its own while Element Attributes is.
 pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bounds: &mut AABB) {
+    let compact;
+    let features = if cx.quality.tolerance.is_finite() && display::candidate_active() {
+        let Some(snapshot) = display_features::snapshot(features) else {
+            display::failed();
+            return;
+        };
+        compact = snapshot;
+        compact.as_slice()
+    } else {
+        features
+    };
     for feature in features {
         let on = if crate::app::interactions::is_interaction(feature) {
             cx.interactions
@@ -238,7 +252,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         }
         Geometry::Line(l) => walk_line(w.seg, w.lanes, l, cx.row),
         Geometry::Polyline(pl) => walk_polyline(w.seg, w.lanes, pl, cx.row),
-        Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, w.lanes, c, cx.row),
+        Geometry::NurbsCurve(c) => curves::walk_nurbscurve_quality(w.seg, w.lanes, c, cx.row, cx.quality),
         Geometry::Plane(p) if plane::is_clipping(p) => plane::walk(w.seg, p, cx.row),
         Geometry::Plane(p) => walk_plane(w.lanes, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),
@@ -300,6 +314,7 @@ mod tests {
         element.add_feature(hidden);
         let mut up = Upload::default();
         let cx = WalkCx {
+                quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: 4,
@@ -336,7 +351,8 @@ mod tests {
         let square = Polyline::new(vec![Point::new(0.0, 0.0, 5.0), Point::new(4.0, 0.0, 5.0), Point::new(4.0, 4.0, 5.0), Point::new(0.0, 4.0, 5.0), Point::new(0.0, 0.0, 5.0)]);
         element.add_feature(ElementFeature::new("contact", 0, vec![square], "side_side"));
         let mut up = Upload::default();
-        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 7, interactions: true, attributes: false };
+        let cx = WalkCx {
+                quality: Default::default(), vert_base: 0, cloud_px: 0.0, row: 7, interactions: true, attributes: false };
         let before = {
             let mut bare = Upload::default();
             let mut plain = element.clone();

@@ -302,6 +302,7 @@ mod tests {
         walk_geometry(
             &mut Walk::of(&mut up),
             &WalkCx {
+                quality: Default::default(),
                 vert_base: 0,
                 cloud_px: 0.,
                 row: 0,

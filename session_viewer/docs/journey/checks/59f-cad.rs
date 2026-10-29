@@ -10,7 +10,11 @@ fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureForma
     assert_eq!(row.mesh.parts.faces.len(),7);assert_eq!(cad.edges.len(),15);
     assert_eq!(cad.source.m_faces[6].wires.len(),2);
     assert_eq!(row.metadata.source_guid,cad.source.guid());
-    Renderer::new(device,queue,format,&editor.scene)
+    {let mut renderer=Renderer::new(device,queue,format,&editor.scene);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&editor.scene,&editor.camera.uniform(),[WIDTH,HEIGHT],editor.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&editor.scene);
+    renderer}
 }
 
 fn draw(renderer:&Renderer,view:&wgpu::TextureView) {

@@ -137,6 +137,13 @@ pub fn publish(state: &State) {
     snapshot["tombs"] = serde_json::json!(tombs); // register:document
     snapshot["tomb_bytes"] = serde_json::json!(tomb_bytes); // register:document
     snapshot["row_table_bytes"] = serde_json::json!(state.scene.row_table_bytes()); // register:document
+    let (source_bytes, charged_bytes, refined_rows, limited_rows) = state.scene.display_counters();
+    snapshot["display_refinement"] = serde_json::json!({
+        "retained_source_bytes": source_bytes,
+        "charged_lane_bytes": charged_bytes,
+        "refined_rows": refined_rows,
+        "limited_rows": limited_rows,
+    });
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes()); // register:editing
     let docs = &state.scene.docs;
     let slots = &state.gpu.arena.source_faces.slots;

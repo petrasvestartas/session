@@ -9265,93 +9265,87 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            if let Err(error) = renderer.set_measurement(editor.mark.as_ref()) {
-                panel.result(error);
-            }
-            renderer.refresh_text_bounds(&mut editor.scene);
-            text_fonts.need(
+        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
+        sheet_query.observe(&editor.scene,editor.selection(),&active_fault);
+        if let Some(reply)=sheet_query.take() {match reply {Ok(entity)=>panel.result(&format!("{} · {} · {}",entity.name,entity.kind,entity.guid)),Err(error)=>panel.result(&error)}}
+        let origin_frame=match crate::browser_rebase::prepare(&mut renderer,&editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){Ok(frame)=>frame,Err(error)=>{report(&format!("Cannot prepare view: {error:?}"));return;}};
+        if origin_frame.moved{highlight_changed=false;}
+        if let Err(error)=origin_wake.sync(origin_frame.pending,renderer.rebase_delay(crate::browser_phase::now()).unwrap_or(1)){report(&format!("Cannot schedule view: {error:?}"));return;}
+        let _=pointer_canvas.set_attribute("data-origin-pending",if origin_wake.pending(){"true"}else{"false"});
+        let guides=editor.guide_overlay_at(renderer.anchor());
+        if let Err(error)=renderer.set_guides(&guides){panel.result(error);}
+        if let Err(error)=renderer.set_measurement(editor.mark.as_ref()){panel.result(error);}
+        renderer.refresh_text_bounds(&mut editor.scene);
+        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
+        let rect=pointer_canvas.get_bounding_client_rect();
+        let number=editor.number_prompt([rect.width(),rect.height()]);
 ```
 
 Replace it with:
 
 ```rust
-            if let Err(error) = renderer.set_measurement(editor.mark.as_ref()) {
-                panel.result(error);
-            }
-            text_fonts.need(
+        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
+        sheet_query.observe(&editor.scene,editor.selection(),&active_fault);
+        if let Some(reply)=sheet_query.take() {match reply {Ok(entity)=>panel.result(&format!("{} · {} · {}",entity.name,entity.kind,entity.guid)),Err(error)=>panel.result(&error)}}
+        renderer.refresh_text_bounds(editor.display_scene_mut());
+        let origin_frame=match crate::browser_rebase::prepare(&mut renderer,&mut editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){Ok(frame)=>frame,Err(error)=>{report(&format!("Cannot prepare view: {error:?}"));return;}};
+        if origin_frame.moved{highlight_changed=false;}
+        if let Err(error)=origin_wake.sync(origin_frame.pending,renderer.rebase_delay(crate::browser_phase::now()).unwrap_or(1)){report(&format!("Cannot schedule view: {error:?}"));return;}
+        let _=pointer_canvas.set_attribute("data-origin-pending",if origin_wake.pending(){"true"}else{"false"});
+        let guides=editor.guide_overlay_at(renderer.anchor());
+        if let Err(error)=renderer.set_guides(&guides){panel.result(error);}
+        if let Err(error)=renderer.set_measurement(editor.mark.as_ref()){panel.result(error);}
+        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
+        let rect=pointer_canvas.get_bounding_client_rect();
+        let number=editor.number_prompt([rect.width(),rect.height()]);
 ```
 
 **Locate this block:**
 
 ```rust
-                    Err(error) => panel.result(&error),
-                }
-            }
-            let origin_frame =
-                match crate::browser_rebase::prepare(&mut renderer, &editor) {
-                    Ok(frame) => frame,
-                    Err(error) => {
-                        report(&format!("Cannot prepare view: {error:?}"));
+            event.prevent_default(); gesture.cancel(); Some("Escape".into())
+        } else { line };
+
+        if let Err(error)=crate::browser_rebase::prepare(&mut renderer,&editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){report(&format!("Cannot prepare view: {error:?}"));return;}
+        let mut highlight_changed=false;
+        let action = if event.type_() == "cancel" && event.target()
+            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
 ```
 
 Replace it with:
 
 ```rust
-                    Err(error) => panel.result(&error),
-                }
-            }
-            renderer.refresh_text_bounds(editor.display_scene_mut());
-            let origin_frame =
-                match crate::browser_rebase::prepare(&mut renderer, &mut editor) {
-                    Ok(frame) => frame,
-                    Err(error) => {
-                        report(&format!("Cannot prepare view: {error:?}"));
+            event.prevent_default(); gesture.cancel(); Some("Escape".into())
+        } else { line };
+
+        if let Err(error)=crate::browser_rebase::prepare(&mut renderer,&mut editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){report(&format!("Cannot prepare view: {error:?}"));return;}
+        let mut highlight_changed=false;
+        let action = if event.type_() == "cancel" && event.target()
+            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
 ```
 
 **Locate this block:**
 
 ```rust
-                line
-            };
-
-            if let Err(error) = crate::browser_rebase::prepare(&mut renderer, &editor) {
-                report(&format!("Cannot prepare view: {error:?}"));
-                return;
-            }
+        &mut editor,
+    ) {
+        panel.update(None,&canvas)?;
+        crate::browser_rebase::prepare(&mut renderer,&editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame})?;
+        canvas.set_attribute("data-origin-pending","false")?;
+        inspect(&editor,&renderer)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
 ```
 
 Replace it with:
 
 ```rust
-                line
-            };
-
-            if let Err(error) =
-                crate::browser_rebase::prepare(&mut renderer, &mut editor)
-            {
-                report(&format!("Cannot prepare view: {error:?}"));
-                return;
-            }
-```
-
-**Locate this block:**
-
-```rust
-        panel.update(None, &canvas)?;
-        crate::browser_rebase::prepare(&mut renderer, &editor)?;
-        canvas.set_attribute("data-origin-pending", "false")?;
-        inspect(&editor, &renderer)?;
-        let frame_started = crate::browser_phase::now();
-```
-
-Replace it with:
-
-```rust
-        panel.update(None, &canvas)?;
-        crate::browser_rebase::prepare(&mut renderer, &mut editor)?;
-        canvas.set_attribute("data-origin-pending", "false")?;
-        inspect(&editor, &renderer)?;
-        let frame_started = crate::browser_phase::now();
+        &mut editor,
+    ) {
+        panel.update(None,&canvas)?;
+        crate::browser_rebase::prepare(&mut renderer,&mut editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame})?;
+        canvas.set_attribute("data-origin-pending","false")?;
+        inspect(&editor,&renderer)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
 ```
 
 ### 8. `src/camera_extent_tests.rs`

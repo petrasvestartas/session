@@ -981,7 +981,7 @@
       "course": "03"
     },
     "src/app/inspection.rs": {
-      "sha256": "b3ddba11292063a66e625d9d31c0576d3df341362fad1841266edc462f0bffd3",
+      "sha256": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce",
       "course": "01"
     },
     "src/app/interactions.rs": {
@@ -1017,7 +1017,7 @@
       "course": "03"
     },
     "src/app/mesh_preview.rs": {
-      "sha256": "ec41fae6255735322acdb9f9e9cdd3891ba36ed1251b3f438678cc64891c8c4e",
+      "sha256": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f",
       "course": "04"
     },
     "src/app/mod.rs": {
@@ -1037,15 +1037,15 @@
       "course": "01"
     },
     "src/app/scene.rs": {
-      "sha256": "136710a388a2fdf301fa5e36e68c4b6e3a79f1dd903ef3f5e25e3ceb26f0e196",
+      "sha256": "de688c44a50d60fed993a1e1f823032a78ce96fc465a7049b3f738c12e80070a",
       "course": "01"
     },
     "src/app/scene_instances.rs": {
-      "sha256": "fa216bc9ebadbc25596c0e76711d49b72a9544317b265146f63614362ca39039",
+      "sha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
       "course": "04"
     },
     "src/app/scene_release.rs": {
-      "sha256": "b886d822f51516d904726d7ab2380447da7b8dd99f112c87d406ef54732fd95e",
+      "sha256": "bbae9c9738eafa3521de6ad4d47c46a99bd3995ab1611c9a31727f1abb70b107",
       "course": "03"
     },
     "src/app/scene_rows.rs": {
@@ -1061,7 +1061,7 @@
       "course": "05"
     },
     "src/app/scene_sync/compaction.rs": {
-      "sha256": "b7f65a6f4d78543ee866bed81f96ad807df7b154411cef59234c39367bd7d52e",
+      "sha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
       "course": "04"
     },
     "src/app/scene_sync/editing_tests.rs": {
@@ -1097,11 +1097,11 @@
       "course": "04"
     },
     "src/app/scene_sync/tombs.rs": {
-      "sha256": "a5b5d0082c95e04309c1c61f262a315c2eb610999bf471af8c80246a2a76c7d3",
+      "sha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
       "course": "04"
     },
     "src/app/scene_sync.rs": {
-      "sha256": "7160ce61ef8ba840ef536bff9532ed315b7c2b613301dc7993b61105411d0126",
+      "sha256": "d9da34c46f8552259a96fa5b7d02d442f3d09398d68d66324a4e9ae7cc52f20e",
       "course": "04"
     },
     "src/app/scene_text.rs": {
@@ -1133,7 +1133,7 @@
       "course": "03"
     },
     "src/app/surface_preview.rs": {
-      "sha256": "7971672cbd085559288dac7495c9d6b57fe0518fe052c8d95bfa8949d8abe8f5",
+      "sha256": "d5b0154230cfe68c90483f8afd014f594e7836080fce2c9f39db35f78db0166b",
       "course": "04"
     },
     "src/app/touch.rs": {
@@ -1189,19 +1189,19 @@
       "course": "02"
     },
     "src/app/walk/brep.rs": {
-      "sha256": "3d710cac554c1cfe9a6f8754ccb1569753cef6dd5e2a13b6b6e0d8fa666626d9",
+      "sha256": "7c279d18be0ad62b2d57fd00072e7901eb8b3fb23602272e7a1d3f0b254aabfd",
       "course": "02"
     },
     "src/app/walk/brep_edges.rs": {
-      "sha256": "9f1c26f77f08f487e1d4219f35d07fb1376ed2ba922eba1124c89a1d57442100",
+      "sha256": "cb44e7e314525e725b6d1ff6967d8c49d8a1a74f1b1d128948b50d635529d589",
       "course": "02"
     },
     "src/app/walk/brep_orient.rs": {
-      "sha256": "0778910bea71d83e47737d5d35100b38f18df8b9dca3d886f642b36125260638",
+      "sha256": "9c89ecaba1cc337eed0b55c610bd9b471137d451febb137c4707820b29bbb229",
       "course": "02"
     },
     "src/app/walk/brep_shapes.rs": {
-      "sha256": "c1621011e4006473015572ec811300241204838db2b96d4372b84a740e6fae2c",
+      "sha256": "f849835598cd3e84431fbf9e4cc21e5ab36f9cd3ebf67ad17db247633e0fb611",
       "course": "07"
     },
     "src/app/walk/cloud.rs": {
@@ -1209,7 +1209,7 @@
       "course": "02"
     },
     "src/app/walk/curves.rs": {
-      "sha256": "d48996b6762694650fba6d1fc2c8d8d9eb92f17e79b3a53f3e93f11415cf9780",
+      "sha256": "c0f6d64987050816c567ec62f1a26a925247100ae10dab3da36d68077f3cadb6",
       "course": "02"
     },
     "src/app/walk/encode.rs": {
@@ -1229,7 +1229,7 @@
       "course": "02"
     },
     "src/app/walk/mesh_ink.rs": {
-      "sha256": "349f85de9cb23dcb928a80b520468c58e84c4a03a6fd6d60280d2ec10a85cef4",
+      "sha256": "10598c605a7457970e7ac8f9cfabdc7dc052787ac1749cd1a63e206254163d55",
       "course": "02"
     },
     "src/app/walk/mesh_topology.rs": {
@@ -1237,7 +1237,7 @@
       "course": "02"
     },
     "src/app/walk/mod.rs": {
-      "sha256": "ac677c9a11ddbfa3e995443b0bf1548b105ced70320a6208b9956d7eba86bce1",
+      "sha256": "edad67a0cec70c6cf2e5dfa461cb2698d32c58f65063a9d4b5a3b638b86b3f74",
       "course": "02"
     },
     "src/app/walk/plane.rs": {
@@ -1349,7 +1349,7 @@
       "course": "01"
     },
     "src/engine/gpu/objects.rs": {
-      "sha256": "58abc890347f29a8d3deb9b7651e3a43b4444a1e1429bf3de830ceb54516e7d5",
+      "sha256": "352c75f4668c582d30e66e259fe91491dfe814c95ee23d50f93fb617e296a0b8",
       "course": "01"
     },
     "src/engine/gpu/pacing.rs": {
@@ -1389,7 +1389,7 @@
       "course": "01"
     },
     "src/engine/gpu/splat/cloud_witness/lod.rs": {
-      "sha256": "4356bca21aa40df54efb546d48f6d489177893ca7a0dc810a9158f4905f1e2e8",
+      "sha256": "be2ae4e40df5fa9aedbe603d8232cabea2c1c6241ee84ea670b26218c372c78d",
       "course": "07"
     },
     "src/engine/gpu/splat/cloud_witness.rs": {
@@ -1461,7 +1461,7 @@
       "course": "04"
     },
     "src/engine/gpu/vectors.rs": {
-      "sha256": "539d407e8e529d9cd9d4c507f675221805506221a49177773571e51e02d7fa3d",
+      "sha256": "c347276cfff5d62bb169f35d8ac328465bd107c70d83530826d489ba505891f7",
       "course": "02"
     },
     "src/engine/gpu/view.rs": {
@@ -1513,7 +1513,7 @@
       "course": "07"
     },
     "src/selftest/profile.rs": {
-      "sha256": "6c8cfa7be644e9e527c1b4a289ca8d2afb10075843207e7ef15415a56b1d6bb1",
+      "sha256": "95fdc977f6e25b50eebb2aec3a119e30413a9dbb1a96b95ad2863980849aaa5c",
       "course": "07"
     },
     "src/selftest/stroke_witness.rs": {
@@ -1521,7 +1521,7 @@
       "course": "07"
     },
     "src/selftest.rs": {
-      "sha256": "cbc606956962a9687a02cba1f3679f01dea85a5435d94e69fb303e1a030b8838",
+      "sha256": "28c8122d3043a97f39f07ea02f03508e99ef29231313b138391c31b571b14596",
       "course": "07"
     },
     "src/shaders/ambient_composite.wgsl": {
@@ -1713,16 +1713,28 @@
       "course": "05"
     },
     "src/state.rs": {
-      "sha256": "8bd89dd783fc205afd1cd8abb4e0323a7f61a9569514227a315557cc0038558a",
+      "sha256": "9039dbf08f2a150bb4bb97a7e31005e907c4dd4e3b5d5c740d2d635a4932951b",
       "course": "01"
     },
     "src/text_quality.rs": {
       "sha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
       "course": "02"
+    },
+    "src/app/scene_display.rs": {
+      "sha256": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5",
+      "course": "01"
+    },
+    "src/app/walk/display.rs": {
+      "sha256": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685",
+      "course": "02"
+    },
+    "src/app/walk/display_features.rs": {
+      "sha256": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829",
+      "course": "02"
     }
   },
   "inputs": {
-    "Cargo.toml": "f3c4a4e33279d03a069b041b21d5b25be8c5f2c1846adbf406c693fc40234002",
+    "Cargo.toml": "3ddb6fb7a488efcaddd5240c40c23790ad51256db5a1abe5f6813b6fec8db129",
     "Cargo.lock": "a84bbf92c6a14f11a5261587f6059387aca83e453e11e4d71c5c4d2bde70d437",
     "build.rs": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
     "index.html": "fd308bc334190d76723135c1c82b4cd0d0343f3dff0dda573bf338aa5d3961b0",
@@ -1890,8 +1902,8 @@
     "aliases": 15,
     "scope": "Observed by executing the compiled maintained registry; action/browser acceptance is separate."
   },
-  "session_head": "a391b10473d580ef548d2d1ba3ea118986623b52",
-  "wood_head": "07c57552c0d18c403bab0c16ba858d80561ffc47",
+  "session_head": "3632c98d00dfbdeb7ccb035ba53b51cd62677dbf",
+  "wood_head": "776dd923e056a9b17f3ce974e9c329592e9cd58d",
   "previous_reference": "journey/current-viewer-2026-10-11.json",
   "changes": [
     {

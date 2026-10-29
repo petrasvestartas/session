@@ -5,7 +5,11 @@ fn editor()->viewer_journey::editor::Editor {
         let action=if let Some(action)=editor.tool_line(line) {action.unwrap()}else{let Command::Editor(action)=parse(line).unwrap() else {panic!("Editor command")};action};editor.apply(action).unwrap();
     }editor
 }
-fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer {let editor=editor();Renderer::new(device,queue,format,&editor.scene)}
+fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer {let editor=editor();{let mut renderer=Renderer::new(device,queue,format,&editor.scene);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&editor.scene,&editor.camera.uniform(),[WIDTH,HEIGHT],editor.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&editor.scene);
+    renderer}}
 fn draw(renderer:&Renderer,view:&wgpu::TextureView) {let editor=editor();renderer.draw(view,&editor.background,&editor.camera.uniform());assert_eq!(editor.scene.paths().len(),2);assert_eq!(editor.scene.paths()[0].prepared.source.coordinates().len(),5);assert_eq!(editor.scene.paths()[1].prepared.source.coordinates().len(),6);}
 fn verify_pixels(pixels:&[u8]) {
     let ink=pixels.chunks_exact(4).filter(|p|p[0]<220&&p[1]<220&&p[2]<220).count();assert!(ink>500,"Antialiased original closed planar boundaries: {ink}");

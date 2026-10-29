@@ -1,0 +1,1 @@
+session_rust = { path = "../../../session_rust", default-features = false, features = ["viewer-display"] }

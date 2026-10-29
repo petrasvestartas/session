@@ -99,6 +99,12 @@ fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> us
 /// mesh vertex of the chain, so the face mesh and its edge meet at the mesh vertices and the
 /// curve shows between them. A straight edge keeps its mesh vertices.
 pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
+    if crate::math_quality::current().0.is_finite() {
+        match crate::math_cad::boundary(b,chain,fm) {
+            Ok(value)=>return DisplayChain{points:value.points,spans:value.spans,sags:value.sags},
+            Err(_)=>{crate::math_quality::fail();return coarse_display(Vec::new());}
+        }
+    }
     let coarse: Vec<[f64; 3]> = chain
         .keys
         .iter()

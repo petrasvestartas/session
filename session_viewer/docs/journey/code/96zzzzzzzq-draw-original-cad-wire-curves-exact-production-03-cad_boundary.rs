@@ -1,15 +1,3 @@
-use std::rc::Rc;
-use session_rust::{BRep,Mesh};
-
-pub const QUALITY:(f64,f64)=(5.,0.001);
-pub struct Prepared {pub source:Rc<BRep>,pub faces:Vec<Mesh>,pub chains:Vec<Option<crate::cad_edges::EdgeChain>>}
-impl Prepared {
-    pub fn new(source:Rc<BRep>)->Result<Self,&'static str> {
-        validate(&source)?;
-        let _=source.guid();let faces=source.face_meshes_q(Some(QUALITY));
-        if faces.len()!=source.m_faces.len()||faces.iter().any(|face|face.face.is_empty()) {return Err("BRep face could not be tessellated");}
-        let chains=crate::cad_edges::edge_chains(&source,&faces);
-        for (index,(edge,chain)) in source.m_edges.iter().zip(&chains).enumerate() {
             if !edge.degenerated&&!source.edge_faces(index).is_empty()&&chain.is_none()&&edge.curve_3d_index<0 {return Err("A CAD edge has no coherent face boundary");}
         }
         Ok(Self {source,faces,chains})
@@ -20,6 +8,7 @@ impl Prepared {
     }
     pub fn display(&self,edge:usize)->Option<(Vec<[f64;3]>,Vec<usize>)> {
         let chain=self.chains.get(edge)?.as_ref()?;let face=self.faces.get(chain.face)?;
+        if crate::math_quality::current().0.is_finite() {let display=crate::math_cad::boundary(&self.source,chain,face).ok()?;return Some((display.points,display.spans));}
         let coarse:Vec<[f64;3]>=chain.keys.iter().map(|key|face.vertex.get(key).map(|v|[v.x,v.y,v.z])).collect::<Option<_>>()?;
         let source=self.source.m_edges.get(edge)?;
         let Some(curve)=usize::try_from(source.curve_3d_index).ok().and_then(|index|self.source.m_curves_3d.get(index)) else {return Some((coarse,(0..chain.keys.len().saturating_sub(1)).collect()))};
@@ -81,4 +70,3 @@ pub fn validate(source:&BRep)->Result<(),&'static str> {
         for surface in &source.m_surfaces {crate::surface::validate(surface)?;}
         for curve in source.m_curves_3d.iter().chain(&source.m_curves_2d) {crate::curve::validate(curve)?;}
     Ok(())
-}

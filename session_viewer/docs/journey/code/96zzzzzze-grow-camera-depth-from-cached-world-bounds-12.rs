@@ -1,1 +1,1 @@
-        if let Err(error)=crate::browser_rebase::prepare(&mut renderer,&mut editor){
+        if let Err(error)=crate::browser_rebase::prepare(&mut renderer,&mut editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){report(&format!("Cannot prepare view: {error:?}"));return;}

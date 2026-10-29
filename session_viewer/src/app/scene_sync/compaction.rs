@@ -71,6 +71,7 @@ impl Scene {
 
     /// Forget where editable rows sit; the lanes are about to be walked again.
     pub(super) fn forget_editable(&mut self) {
+        self.display.reset_allocations();
         self.uploaded = Counts::default();
         self.dead = Counts::default();
         self.edge_sources.clear();
@@ -137,6 +138,7 @@ impl Scene {
             let from = Baselines::capture(&self.tables);
             let start = self.uploaded.plus(before);
             let cx = WalkCx {
+                quality: self.display.quality(row),
                 vert_base: self.uploaded.verts,
                 cloud_px: point_px,
                 row,

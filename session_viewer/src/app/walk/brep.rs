@@ -1,5 +1,5 @@
 use super::brep_edges::{
-    EdgeChain, EdgePen, FacingPair, display_chain, edge_chains, push_edge_pipes,
+    EdgeChain, EdgePen, FacingPair, edge_chains, push_edge_pipes,
 };
 use super::brep_orient::face_signs;
 use super::brep_shapes::{self, Marks, Recording, Share};
@@ -19,8 +19,6 @@ pub const QUALITY: (f64, f64) = (5.0, 0.001);
 
 /// Every face uploaded so far.
 struct Solid {
-    pos: Vec<[f32; 3]>, // vertex positions
-    tris: Vec<u32>,     // triangle indices into `pos`
     bounds: AABB,       // box of all vertices
 }
 
@@ -38,7 +36,6 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
         .face_ids
         .extend(std::iter::repeat_n(address, rm.indices.len() / 3));
     let base = cx.vert_base + arena.verts.len() as u32; // first GPU vertex index
-    let local = solid.pos.len() as u32; // first index in `solid`
     arena.verts.reserve(rm.vertices.len());
     arena.vids.reserve(rm.vertices.len());
 
@@ -48,7 +45,6 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
             v.position[1] as f64,
             v.position[2] as f64,
         );
-        solid.pos.push(v.position);
         arena.verts.push(*v);
         arena.vids.push(cx.row);
     }
@@ -57,13 +53,19 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
 
     for &i in &rm.indices {
         arena.idx.push(base + i);
-        solid.tris.push(local + i);
     }
 }
 
 /// A BRep: every face meshed and uploaded, then its edges; a copy of a BRep walked before in the
 /// same document gets that walk turned into place.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
+    let color_metadata = b.surfacecolor.name.len().saturating_add(
+        if b.surfacecolor.has_guid() { b.surfacecolor.guid().len() } else { 0 }
+    );
+    if super::display::candidate_active() && cx.quality.tolerance.is_finite() && color_metadata > 256 {
+        super::display::failed();
+        return Row::thin(AABB::empty());
+    }
     match brep_shapes::replay(b, arena, ink, cx) {
         Share::Replayed(row) => row,
         Share::Off => walk_brep_fresh(arena, ink, b, cx, false).0,
@@ -90,15 +92,26 @@ fn walk_brep_fresh(
     record: bool,
 ) -> (Row, usize, Vec<FacingPair>) {
     let mut lap = Lap::start("walk_brep");
-    let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face
+    let diagonal = super::display::brep_diagonal(b);
+    let quality = cx.quality.mesh(diagonal);
+    let mut fms = if cx.quality.tolerance.is_finite() {
+        match b.face_meshes_q_bounded(quality, super::display::BREP_WORK) {
+            Some(meshes) => meshes,
+            None if super::display::candidate_active() => {
+                super::display::failed();
+                return (Row::thin(AABB::empty()), 0, Vec::new());
+            }
+            None => b.face_meshes_q(Some(QUALITY)),
+        }
+    } else {
+        b.face_meshes_q(Some(quality))
+    }; // one mesh per face
     lap.mark("face meshes");
     let chains = edge_chains(b, &fms); // edge polylines on the meshes
     lap.mark("edge chains");
     let signs = face_signs(b, &fms, &chains); // +1 or -1 per face
     lap.mark("face signs");
     let mut solid = Solid {
-        pos: Vec::new(),
-        tris: Vec::new(),
         bounds: AABB::empty(),
     };
     let mut verts = 0; // vertex total for spacing
@@ -180,8 +193,8 @@ fn walk_brep_fresh(
             (&ep, &mut row.bounds),
             arena,
             &boundary_vertices,
+            cx.quality,
         );
-        ep.push_silhouette_pipes(ink.seg, &mut row.bounds);
         lap.mark("edges");
         normals = ep.take_normals();
     }
@@ -197,14 +210,21 @@ fn walk_brep_edges(
     out: (&EdgePen, &mut AABB),
     arena: &mut ArenaRows,
     boundary_vertices: &[std::collections::HashMap<usize, u32>],
+    quality: super::display::Quality,
 ) {
     let (ep, bounds) = out;
+    let first_pipe = ink.seg.pipes.len();
+    let first_ribbon = ink.seg.ribbons.len();
 
     for (ei, chain) in chains.iter().enumerate() {
         match chain {
             Some(c) => {
                 let first = ink.seg.pipes.len() as u32;
-                let display = display_chain(b, c, &ep.fms[c.face]);
+                let display = super::brep_edges::display_chain_quality(b, c, &ep.fms[c.face], quality);
+                if super::display::candidate_active() && quality.tolerance.is_finite() && ink.seg.pipes.len() - first_pipe + ink.seg.ribbons.len() - first_ribbon + display.points.len().saturating_sub(1) > super::display::OBJECT_CURVE_SEGMENTS {
+                    super::display::failed();
+                    return;
+                }
                 let spans = push_edge_pipes(ink.seg, c, &display, ep, bounds);
 
                 // remember which mesh vertices each pipe lies between
@@ -218,31 +238,39 @@ fn walk_brep_edges(
             }
             None => {
                 if !b.m_edges[ei].degenerated && !b.edge_faces(ei).is_empty() {
+                    if super::display::candidate_active() { super::display::failed(); return; }
                     log::warn!(
                         "BREP {:?} edge {ei}: missing tessellation boundary mapping; analytic display fallback is not a coherent CAD boundary",
                         b.name
                     );
                 }
 
-                push_curve_ribbon(ink, b, ei, (&ep.pen, bounds));
+                let used = ink.seg.pipes.len() - first_pipe + ink.seg.ribbons.len() - first_ribbon;
+                push_curve_ribbon(ink, b, ei, (&ep.pen, bounds), quality, super::display::OBJECT_CURVE_SEGMENTS.saturating_sub(used));
             }
         }
     }
 }
 
 /// An edge sampled from its 3D curve as a ribbon.
-fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB)) {
+fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB), quality: super::display::Quality, remaining: usize) {
     let edge = &b.m_edges[ei];
 
     if edge.degenerated || edge.curve_3d_index < 0 {
         return;
     }
 
-    let points: Vec<[f32; 3]> = sample_nurbscurve(&b.m_curves_3d[edge.curve_3d_index as usize])
+    let curve = &b.m_curves_3d[edge.curve_3d_index as usize];
+    let sampled = if quality.tolerance.is_finite() {
+        super::display::sample(curve, quality, remaining.min(super::display::CURVE_SEGMENTS)).parameters
+            .into_iter().map(|t| { let p = curve.point_at(t); [p[0], p[1], p[2]] }).collect()
+    } else { sample_nurbscurve(curve) };
+    let points: Vec<[f32; 3]> = sampled
         .into_iter()
         .map(super::curves::render_position)
         .collect();
 
+    if super::display::candidate_active() && points.len().saturating_sub(1) > remaining { super::display::failed(); return; }
     if points.len() < 2 {
         return;
     }
@@ -250,31 +278,38 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut AABB))
     push_polyline(ink.seg, &points, out.0, out.1);
 }
 
-fn surface_border_parameters(source:&session_rust::NurbsSurface,edge:usize,steps:usize)->Option<Vec<f64>> {
-    if edge>=4||steps==0 {return None;}
-    let fixed=edge/2;let varying=1-fixed;let domain=source.domain(fixed)?;
-    let curve=source.iso_curve(varying,if edge%2==0 {domain.0}else{domain.1})?;
-    let mut turning=0.;let mut previous:Option<[f64;3]>=None;
-    let control=|i:usize|{let at=i*curve.m_cv_stride;let weight=if curve.m_is_rat {curve.m_cv[at+curve.m_dim]}else{1.};std::array::from_fn::<_,3,_>(|axis|if axis<curve.m_dim {curve.m_cv[at+axis]/weight}else{0.})};
-    for i in 1..curve.m_cv_count {
-        let (a,b)=(control(i-1),control(i));let delta=std::array::from_fn::<_,3,_>(|axis|b[axis]-a[axis]);
-        let length=delta.iter().map(|v|v*v).sum::<f64>().sqrt();if length<1e-12 {continue;}
-        let unit=delta.map(|v|v/length);
-        if let Some(before)=previous {turning+=(0..3).map(|axis|before[axis]*unit[axis]).sum::<f64>().clamp(-1.,1.).acos().to_degrees();}
-        previous=Some(unit);
+fn surface_parameters(source: &NurbsSurface, direction: usize, quality: super::display::Quality) -> Vec<f64> {
+    let domain = source.domain(direction).unwrap();
+    let other = source.domain(1 - direction).unwrap();
+    let steps = (source.m_cv_count[direction] * 4).clamp(16, 96);
+    let mut parameters: Vec<f64> = if quality.tolerance.is_finite() {
+        vec![domain.0, domain.1]
+    } else { (0..=steps).map(|i| domain.0 + (domain.1 - domain.0) * i as f64 / steps as f64).collect() };
+    for i in 0..=4 {
+        if let Some(curve) = source.iso_curve(direction, other.0 + (other.1 - other.0) * i as f64 / 4.0) {
+            parameters.extend(super::display::sample(&curve, quality, super::display::SURFACE_STEPS).parameters);
+        }
     }
-    let count=((turning/4.-1e-6).ceil() as usize).max(curve.span_count()).clamp(1,256);
-    let mut parameters:Vec<f64>=(0..=steps).map(|i|i as f64/steps as f64).chain((0..=count).map(|i|i as f64/count as f64)).collect();
-    parameters.sort_by(f64::total_cmp);parameters.dedup_by(|a,b|(*a-*b).abs()<1e-12);Some(parameters)
+    parameters.sort_by(f64::total_cmp);
+    parameters.dedup_by(|a, b| (*a - *b).abs() < (domain.1 - domain.0) * 1e-12);
+    if parameters.len() > super::display::SURFACE_STEPS + 1 {
+        let last = parameters.len() - 1;
+        parameters = (0..=super::display::SURFACE_STEPS).map(|i| parameters[i * last / super::display::SURFACE_STEPS]).collect();
+        super::display::failed();
+        log::debug!("Surface display refinement reached its finite grid budget");
+    }
+    parameters
 }
 
-/// A NURBS surface as a fixed UV grid with its four border edges.
+/// Display grid and its border curves share exactly the same parameter schedule.
 pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
-    let (Some((u0, u1)), Some((v0, v1))) = (s.domain(0), s.domain(1)) else {
+    let (Some(_), Some(_)) = (s.domain(0), s.domain(1)) else {
         return Row::thin(AABB::empty());
     };
-    let nu = (s.m_cv_count[0] * 4).clamp(16, 96); // grid steps in u
-    let nv = (s.m_cv_count[1] * 4).clamp(16, 96); // grid steps in v
+    let us = surface_parameters(s, 0, cx.quality);
+    let vs = surface_parameters(s, 1, cx.quality);
+    let nu = us.len() - 1;
+    let nv = vs.len() - 1;
     let first = arena.verts.len(); // index of this surface's first vertex
     let base = cx.vert_base + first as u32; // first GPU vertex index
     let color = s.facecolors.first().cloned().unwrap_or_default().to_f32();
@@ -282,8 +317,8 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
     // one vertex per grid point
     for i in 0..=nu {
         for j in 0..=nv {
-            let u = u0 + (u1 - u0) * i as f64 / nu as f64;
-            let v = v0 + (v1 - v0) * j as f64 / nv as f64;
+            let u = us[i];
+            let v = vs[j];
             let point = s.point_at(u, v).unwrap_or_default();
             let normal = s.normal_at(u, v);
             bounds.union_with_point(point[0], point[1], point[2]);
@@ -333,22 +368,8 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
                 2 => (0..=nu).map(|i| i * (nv + 1)).collect(),
                 _ => (0..=nu).map(|i| i * (nv + 1) + nv).collect(),
             };
-            let varying=1-direction;let domains=[(u0,u1),(v0,v1)];
-            let Some(parameters)=surface_border_parameters(s,edge,indices.len()-1) else {continue;};
-            let mut refined=Vec::with_capacity(parameters.len());
-            for t in parameters {
-                let at=t*(indices.len()-1) as f64;let nearest=at.round();
-                if (at-nearest).abs()<1e-9 {refined.push(indices[nearest as usize]);continue;}
-                let mut uv=[0.;2];uv[direction]=if edge%2==0 {domains[direction].0}else{domains[direction].1};uv[varying]=domains[varying].0+(domains[varying].1-domains[varying].0)*t;
-                let point=s.point_at(uv[0],uv[1]).unwrap_or_default();let normal=s.normal_at(uv[0],uv[1]);
-                bounds.union_with_point(point[0],point[1],point[2]);
-                refined.push(arena.verts.len()-first);
-                arena.surface_samples.push(crate::engine::gpu::arena::Sample{index:arena.verts.len() as u32,surface:0,uv,sign:1.});
-                arena.verts.push(session_rust::RenderVertex{position:point.to_f32(),normal:[normal[0] as f32,normal[1] as f32,normal[2] as f32],color});
-                arena.vids.push(cx.row);
-            }
             let start = ink.seg.pipes.len() as u32;
-            for ends in refined.windows(2) {
+            for ends in indices.windows(2) {
                 ink.seg.pipes.push(crate::engine::gpu::CylinderSegment {
                     p0: arena.verts[first + ends[0]].position,
                     p1: arena.verts[first + ends[1]].position,
@@ -378,7 +399,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
 mod tests {
     use crate::engine::gpu::segments::is_silhouette;
     use super::*;
-    use crate::app::walk::brep_edges::edge_chains;
+    use crate::app::walk::brep_edges::{display_chain, edge_chains};
     use crate::engine::gpu::Instance;
     use crate::engine::gpu::glyphs::GlyphRows;
     use crate::engine::gpu::segments::SegRows;
@@ -389,6 +410,7 @@ mod tests {
         let mut seg = SegRows::default();
         let mut glyph = GlyphRows::default();
         let cx = WalkCx {
+                quality: Default::default(),
             vert_base: 100,
             cloud_px: 0.0,
             row: 5,
@@ -403,6 +425,30 @@ mod tests {
             walk_brep(&mut arena, &mut ink, b, &cx)
         };
         (arena, seg, glyph, row)
+    }
+
+    fn accepted_display(brep: &BRep, tolerance: f64) -> Option<(Row, ArenaRows, SegRows)> {
+        let mut arena = ArenaRows::default();
+        let mut seg = SegRows::default();
+        let mut glyph = GlyphRows::default();
+        let cx = WalkCx {
+            quality: super::super::display::Quality { tolerance },
+            vert_base: 0, cloud_px: 0.0, row: 0, interactions: false, attributes: false,
+        };
+        let result = super::super::display::candidate(|| {
+            let mut ink = Ink { seg: &mut seg, glyph: &mut glyph };
+            walk_brep(&mut arena, &mut ink, brep, &cx)
+        });
+        result.map(|row| (row, arena, seg))
+    }
+
+    #[test]
+    fn repeated_surface_color_metadata_cannot_expand_a_display_candidate() {
+        let mut brep = BRep::create_box(1.0, 2.0, 3.0);
+        brep.surfacecolor.name = "x".repeat(257);
+        assert!(accepted_display(&brep, 0.001).is_none());
+        let (arena, _, _, row) = walked(&brep);
+        assert!(row.faces && !arena.idx.is_empty());
     }
 
     /// The teapot's pipes lie on its authored edge curves.
@@ -508,7 +554,7 @@ mod tests {
 
         let silhouettes = seg.pipe_sags.iter().filter(|sag| is_silhouette(**sag)).count();
         assert_eq!(seg.pipes.len() - silhouettes, segments);
-        assert!(silhouettes > 0, "the curved side has silhouette pipes");
+        assert_eq!(silhouettes, 0, "mathematical faces never draw interior triangle edges");
         assert!(seg.ribbons.is_empty());
         assert!(glyph.spheres.is_empty());
         assert_ne!(row.flags & Instance::FLAG_SMOOTH, 0);
@@ -564,6 +610,7 @@ mod tests {
             glyph: &mut glyph,
         };
         let cx = WalkCx {
+                quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: 7,
@@ -577,6 +624,37 @@ mod tests {
         ids.sort_unstable();
         ids.dedup();
         assert_eq!(ids, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn zoom_refines_surface_faces_and_exact_boundary_together() {
+        let surface = BRep::create_cylinder(1.0, 2.0).m_surfaces.remove(0);
+        let walked = |tolerance| {
+            let mut arena = ArenaRows::default();
+            let mut seg = SegRows::default();
+            let mut glyph = GlyphRows::default();
+            let mut ink = Ink { seg: &mut seg, glyph: &mut glyph };
+            let cx = WalkCx {
+                quality: super::super::display::Quality { tolerance },
+                vert_base: 0, cloud_px: 0.0, row: 7, interactions: false, attributes: false,
+            };
+            walk_surface(&mut arena, &mut ink, &surface, &cx);
+            (arena, seg)
+        };
+        let (coarse, coarse_edges) = walked(0.01);
+        let (fine, fine_edges) = walked(0.0001);
+        assert!(fine.verts.len() > coarse.verts.len());
+        assert!(fine_edges.pipes.len() > coarse_edges.pipes.len());
+        assert!(fine.verts.len() <= (super::super::display::SURFACE_STEPS + 1).pow(2));
+        let triangle_edges: std::collections::HashSet<_> = fine.idx.chunks_exact(3)
+            .flat_map(|tri| [(tri[0].min(tri[1]), tri[0].max(tri[1])),
+                (tri[1].min(tri[2]), tri[1].max(tri[2])), (tri[2].min(tri[0]), tri[2].max(tri[0]))])
+            .collect();
+        for &(pipe, ends) in &fine.surface_boundaries {
+            assert!(triangle_edges.contains(&(ends[0].min(ends[1]), ends[0].max(ends[1]))));
+            assert_eq!(fine_edges.pipes[pipe as usize].p0, fine.verts[ends[0] as usize].position);
+            assert_eq!(fine_edges.pipes[pipe as usize].p1, fine.verts[ends[1] as usize].position);
+        }
     }
 
     /// Sphere poles and box corners keep unit normals.
@@ -738,6 +816,7 @@ mod refined_surface_border_regression {
         walk_geometry(
             &mut Walk::of(&mut upload),
             &WalkCx {
+                quality: Default::default(),
                 vert_base: 0,
                 cloud_px: 0.,
                 row: 7,
@@ -746,8 +825,8 @@ mod refined_surface_border_regression {
             },
             &source,
         );
-        let nu = (surface.m_cv_count[0] * 4).clamp(16, 96);
-        let nv = (surface.m_cv_count[1] * 4).clamp(16, 96);
+        let nu = surface_parameters(&surface, 0, Default::default()).len() - 1;
+        let nv = surface_parameters(&surface, 1, Default::default()).len() - 1;
         let face_vertices = (nu + 1) * (nv + 1);
         assert_eq!(upload.arena.idx.len(), nu * nv * 6);
         assert!(
@@ -757,7 +836,9 @@ mod refined_surface_border_regression {
                 .iter()
                 .all(|i| (*i as usize) < face_vertices)
         );
-        assert!(upload.arena.verts.len() > face_vertices);
+        assert_eq!(upload.arena.verts.len(), face_vertices);
+        let used: std::collections::HashSet<_> = upload.arena.idx.iter().copied().collect();
+        assert_eq!(used.len(), face_vertices, "every curve sample belongs to the shaded faces");
         assert_eq!(upload.arena.surface_samples.len(), upload.arena.verts.len());
         assert_eq!(
             upload.arena.surface_boundaries.len(),

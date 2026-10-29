@@ -5,7 +5,12 @@ fn original_scene()->viewer_journey::scene::Scene{
     let owner=scene.insert_cad(Rc::new(source)).unwrap();scene.place_owner(owner,session_rust::Xform::translation(0.,0.,-0.5)).unwrap();
     let plane=viewer_journey::clipping_geometry::plane_from(viewer_journey::clipping_geometry::Mode::Xy,&[[0.,0.,-0.5]],0.9).unwrap();viewer_journey::plane_original::insert(&mut scene,Rc::new(plane)).unwrap();scene
 }
-fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer{{let renderer=Renderer::new(device,queue,format,&original_scene());renderer.set_depth_pyramid(true);renderer}}
+fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer{{let renderer={let math_source=original_scene();let matrix=session_rust::Xform::orthographic(-1.,1.,-1.,1.,0.,1.).m.map(|v|v as f32);
+    let mut renderer=Renderer::new(device,queue,format,&math_source);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&math_source,&matrix,[WIDTH,HEIGHT],None).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&math_source);
+    renderer};renderer.set_depth_pyramid(true);renderer}}
 fn draw(renderer:&Renderer,view:&wgpu::TextureView){let matrix=session_rust::Xform::orthographic(-1.,1.,-1.,1.,0.,1.).m.map(|v|v as f32);renderer.draw(view,&Default::default(),&matrix);assert_eq!(renderer.cap_usage()[1],1);assert_eq!(renderer.cap_error(),None);assert_eq!(renderer.depth_pyramid_error(),None);assert_eq!(renderer.depth_pyramid_usage()[3],6);assert!(renderer.depth_pyramid_usage()[0]>600_000);}
 fn verify_pixels(pixels:&[u8]){
     let at=|x:usize,y:usize|&pixels[(y*640+x)*4..(y*640+x+1)*4];

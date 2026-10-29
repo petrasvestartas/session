@@ -14,6 +14,10 @@ fn make_renderer(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::Texture
     let editor=editor(); let mut renderer=Renderer::new(device,queue,format,&editor.scene); let before=renderer.stats();
     renderer.set_scene(editor.display_scene(),editor.selected); renderer.select_objects(editor.display_scene(),&editor.selected_objects()).unwrap();
     let after=renderer.stats(); assert_eq!(&after[..2],&before[..2],"Preview reuses original mesh uploads and existing row settings allocations");
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,editor.display_scene(),&editor.camera.uniform(),[WIDTH,HEIGHT],editor.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(editor.display_scene());
+    renderer.select_objects(&math_scene,&editor.selected_objects()).unwrap();
     renderer.set_preview(editor.draft.as_ref()).unwrap(); renderer
 }
 

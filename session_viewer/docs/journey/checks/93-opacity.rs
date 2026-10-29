@@ -10,7 +10,12 @@ fn original_scene()->viewer_journey::scene::Scene{
     scene
 }
 fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer{
-    let mut renderer=Renderer::new(device,queue,format,&original_scene());renderer.set_outlines(true);renderer.set_opacity(0.4);renderer
+    let mut renderer={let math_source=original_scene();let mut camera=viewer_journey::camera::Camera::default();camera.isometric();camera.aspect=4./3.;camera.target=[0.,0.,0.2];camera.distance=4.;
+    let mut renderer=Renderer::new(device,queue,format,&math_source);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&math_source,&camera.uniform(),[WIDTH,HEIGHT],None).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&math_source);
+    renderer};renderer.set_outlines(true);renderer.set_opacity(0.4);renderer
 }
 fn draw(renderer:&Renderer,view:&wgpu::TextureView){
     let mut camera=viewer_journey::camera::Camera::default();camera.isometric();camera.aspect=4./3.;camera.target=[0.,0.,0.2];camera.distance=4.;renderer.draw(view,&Default::default(),&camera.uniform());assert_eq!(renderer.global_outline_usage()[1],1);

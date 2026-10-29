@@ -1104,45 +1104,48 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                None
-            };
-            let action = if event.type_() == "viewer-pick" {
-                match renderer.take_pick() {
-                    Some(Ok(hit)) => Some(Action::Picked(
+            None
+        };
+        let action = if event.type_() == "viewer-pick" {
+            match renderer.take_pick() {
+                Some(Ok(hit)) => Some(Action::Picked(hit.and_then(|hit| editor.scene.pick_id(hit[0])))),
+                Some(Err(error)) => { report(error); None },
+                None => None,
 ```
 
 Replace it with:
 
 ```rust
-                None
-            };
-            let action = if event.type_() == "viewer-pick" {
-                match renderer.take_pick(editor.camera.uniform()) {
-                    Some(Ok(hit)) => Some(Action::Picked(
+            None
+        };
+        let action = if event.type_() == "viewer-pick" {
+            match renderer.take_pick(editor.camera.uniform()) {
+                Some(Ok(hit)) => Some(Action::Picked(hit.and_then(|hit| editor.scene.pick_id(hit[0])))),
+                Some(Err(error)) => { report(error); None },
+                None => None,
 ```
 
 **Locate this block:**
 
 ```rust
-            let mut editor = shared.borrow_mut();
-            if event.type_() == "pagehide" {
-                gesture.cancel();
-                if event
+        if event.type_()=="viewer-math" {math_view.event();}
+        if active_fault.message().is_some() { return; }
+        let mut editor = shared.borrow_mut();
+        if event.type_() == "pagehide" {
+            gesture.cancel();
+            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
 ```
 
 Replace it with:
 
 ```rust
-            let mut editor = shared.borrow_mut();
-            if matches!(
-                event.type_().as_str(),
-                "blur" | "pagehide" | "viewer-reload"
-            ) {
-                renderer.cancel_pick();
-            }
-            if event.type_() == "pagehide" {
-                gesture.cancel();
-                if event
+        if event.type_()=="viewer-math" {math_view.event();}
+        if active_fault.message().is_some() { return; }
+        let mut editor = shared.borrow_mut();
+        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
+        if event.type_() == "pagehide" {
+            gesture.cancel();
+            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
 ```
 
 ### 4. `src/pick_gpu_tests.rs`

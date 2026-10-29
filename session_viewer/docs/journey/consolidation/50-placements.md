@@ -385,79 +385,128 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        "data-line-usage",
-        &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap(),
-    )?;
+    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.scenes())).unwrap())?;
+    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
+    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
     canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
+    canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
+    canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
 ```
 
 Replace it with:
 
 ```rust
-        "data-line-usage",
-        &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap(),
-    )?;
+    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.scenes())).unwrap())?;
+    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
+    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
     canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
     canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
+    canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
+    canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
 ```
 
 **Locate this block:**
 
 ```rust
-            renderer.set_pick_mode(editor.pick_mode);
-            if highlight_changed {
-                if let Err(error) = renderer
-                    .set_highlight(&editor.scene, editor.selection())
-                    .and_then(|()| {
-                        renderer
-                            .select_objects(&editor.scene, &editor.selected_objects())
-                    })
-                {
-                    report(error);
+                report(&format!("Cannot lay out commands: {error:?}"));
+                return;
+            }
+            let pending=if editor.draft.is_some() {math_view.invalidate(&editor.scene);false} else {math_view.refresh(&mut renderer,&editor.scene,&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(&editor.scene);let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=pointer_canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+        if pending {math_view.schedule(&browser_window,&pointer_canvas);}
+            if let Err(error) = present(
 ```
 
 Replace it with:
 
 ```rust
-            renderer.set_pick_mode(editor.pick_mode);
-            if highlight_changed {
-                if let Err(error) = renderer
-                    .set_highlight(editor.display_scene(), editor.selection())
-                    .and_then(|()| {
-                        renderer.select_objects(
-                            editor.display_scene(),
-                            &editor.selected_objects(),
-                        )
-                    })
-                {
-                    report(error);
+                report(&format!("Cannot lay out commands: {error:?}"));
+                return;
+            }
+            let pending=if editor.draft.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=pointer_canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+        if pending {math_view.schedule(&browser_window,&pointer_canvas);}
+            if let Err(error) = present(
 ```
 
 **Locate this block:**
 
 ```rust
-                    }
-                    Ok(Some(Change::View)) | Ok(None) => {}
-                    Err(error) => {
-                        report(&error);
+        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
+        renderer.set_pick_mode(editor.pick_mode);
+        if highlight_changed {
+            if let Err(error) = renderer.set_highlight(&editor.scene, editor.selection())
+                .and_then(|()| renderer.select_objects(&editor.scene, &editor.selected_objects())) { report(error); return; }
+        }
+        if let Err(error) = renderer.set_grid(editor.camera.grid) {
+            report(error); return;
 ```
 
 Replace it with:
 
 ```rust
+        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
+        renderer.set_pick_mode(editor.pick_mode);
+        if highlight_changed {
+            if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
+                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.selected_objects())) { report(error); return; }
+        }
+        if let Err(error) = renderer.set_grid(editor.camera.grid) {
+            report(error); return;
+```
+
+**Locate this block:**
+
+```rust
+                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
                     }
-                    Ok(Some(Change::Preview)) => {
-                        highlight_changed = true;
-                        crate::browser_upload::prepare(
-                            &mut renderer,
-                            editor.display_scene(),
-                            editor.whole_selection(),
-                            active_fault.clone(),
-                        );
+                }
+                Ok(Some(Change::View)) | Ok(None) => {}
+                Err(error) => {
+                    report(&error);
+```
+
+Replace it with:
+
+```rust
+                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
                     }
-                    Ok(Some(Change::View)) | Ok(None) => {}
-                    Err(error) => {
-                        report(&error);
+                }
+                Ok(Some(Change::Preview)) => {
+                    highlight_changed=true;
+                    math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());
+                }
+                Ok(Some(Change::View)) | Ok(None) => {}
+                Err(error) => {
+                    report(&error);
+```
+
+**Locate this block:**
+
+```rust
+        &mut editor,
+    ) {
+        panel.update(None, &canvas)?;
+        let pending=if editor.draft.is_some() {math_view.invalidate(&editor.scene);false} else {math_view.refresh(&mut renderer,&editor.scene,&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(&editor.scene);let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+        if pending {math_view.schedule(&window,&canvas);}
+        let frame_started = crate::browser_phase::now();
+```
+
+Replace it with:
+
+```rust
+        &mut editor,
+    ) {
+        panel.update(None, &canvas)?;
+        let pending=if editor.draft.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+        if pending {math_view.schedule(&window,&canvas);}
+        let frame_started = crate::browser_phase::now();
 ```
 
 ## <a id="checkpoint-50c-move"></a>4. Preview Move from a base point to a target

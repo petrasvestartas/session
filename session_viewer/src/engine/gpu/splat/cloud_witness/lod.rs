@@ -13,6 +13,7 @@ impl Prepared {
     pub fn new(source: &PointCloud) -> Self {
         let mut rows = CloudRows::default();
         let row = walk_cloud(&mut rows, source, &WalkCx {
+                quality: Default::default(),
             vert_base: 0, cloud_px: 0.0, row: 0, interactions: false, attributes: false,
         });
         let draw = &rows.draws[0];

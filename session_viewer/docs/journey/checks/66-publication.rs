@@ -7,7 +7,10 @@ fn editor()->viewer_journey::editor::Editor {
     editor.apply(Action::Fit).unwrap();editor.apply(Action::Isometric).unwrap();let owner=editor.scene.clouds()[0].id;editor.apply(Action::Picked(Some(owner))).unwrap();editor.apply(Action::Controls(true)).unwrap();editor.apply(Action::PickedTarget(Some(Target {owner,part:Part::CloudPoint(840)}))).unwrap();editor
 }
 fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer {
-    let editor=editor();let mut renderer=Renderer::new(device,queue,format,&editor.scene);renderer.cloud_camera(&editor.camera);renderer.set_highlight(&editor.scene,editor.selection()).unwrap();assert!(renderer.highlight_bytes()>0);renderer
+    let editor=editor();let mut renderer=Renderer::new(device,queue,format,&editor.scene);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&editor.scene,&editor.camera.uniform(),[WIDTH,HEIGHT],editor.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&editor.scene);renderer.cloud_camera(&editor.camera);renderer.set_highlight(&math_scene,editor.selection()).unwrap();assert!(renderer.highlight_bytes()>0);renderer
 }
 fn draw(renderer:&Renderer,view:&wgpu::TextureView) {
     let editor=editor();renderer.cloud_camera(&editor.camera);renderer.draw(view,&editor.background,&editor.camera.uniform());assert_eq!(renderer.cloud_usage()[0],1681);assert_eq!(renderer.cloud_error(),None);assert!(editor.selection().unwrap().describe().contains("original point 840"));

@@ -1,92 +1,3 @@
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
-    wasm_bindgen_futures::spawn_local(async move {
-        if crate::browser_runtime::stop_if(&fault) {
-            crate::browser_report::fatal(&message);
-            if crate::browser_recovery::request(&message) { return; }
-            report(&format!("Cannot draw: {message}"));
-        }
-    });
-}
-
-fn save_result(bytes: &[u8]) -> Result<String, String> {
-    crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
-        .map_err(|error| format!("Save failed: {error:?}"))
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let shared=crate::drawing_document::new();
-    crate::browser_defaults::initialize(&mut shared.borrow_mut());
-    run_with(shared).await
-}
-
-pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let recovery = crate::browser_recovery::adopt()?;
-    crate::browser_report::start()?;
-    let startup = crate::browser_startup::Guard::new()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter_started = crate::browser_phase::now();
-    let probe = crate::browser_adapter::Probe::new().ok();
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await;
-    if !startup.permits() { return Ok(()); }
-    crate::browser_phase::finish("adapter request", adapter_started, 0, "GPU");
-    let adapter = adapter.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    if let Some(info) = probe.as_ref().and_then(|probe| probe.info()) { let _ = crate::browser_report::adapter(info); }
-    else { let _ = crate::browser_report::observe("diagnostic", "Adapter identity unavailable"); }
-    drop(probe);
-    let device_started = crate::browser_phase::now();
-    let device = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await;
-    if !startup.permits() {
-        if let Ok((device, _)) = device { device.destroy(); }
-        return Ok(());
-    }
-    crate::browser_phase::finish("device request", device_started, 0, "GPU");
-    let (device, queue) = device.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let fault = crate::gpu_fault::Fault::default();
-    let errors = fault.clone();
-    device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
-    let lost = fault.clone();
-    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
-    let limit = device.limits().max_texture_dimension_2d;
     let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
     let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
     canvas.set_width(width);
@@ -99,6 +10,7 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
     let mut editor = shared.borrow_mut();
     let pipeline_started = crate::browser_phase::now();
     let text_fonts=std::rc::Rc::new(crate::text_fonts::Inbox::default());
+    let mut math_view=crate::math_view::Presentation::default();
     let mut renderer = Renderer::new(
         device,
         queue,
@@ -125,6 +37,10 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
         &mut editor,
     ) {
         panel.update(None, &canvas)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+        if pending {math_view.schedule(&window,&canvas);}
         let frame_started = crate::browser_phase::now();
         present(
             &surface,
@@ -164,21 +80,22 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
     let sheet_query=crate::browser_sheet::Control::default();
     let owned_editor = std::rc::Rc::clone(&shared);
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        if event.type_()=="viewer-math" {math_view.event();}
         if active_fault.message().is_some() { return; }
         let mut editor = shared.borrow_mut();
         if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
         if event.type_() == "pagehide" {
             gesture.cancel();touch.cancel();let _=editor.apply(Action::CanvasCancel); let _=editor.apply(Action::GizmoCancel);
-            crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
+            math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
             if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
             wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
             return;
         }
         if matches!(event.type_().as_str(),"blur"|"resize"|"pointercancel")||event.dyn_ref::<web_sys::KeyboardEvent>().is_some_and(|key|key.key()=="Escape"&&!key.is_composing()) {
-            gesture.cancel();touch.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
+            gesture.cancel();touch.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {math_view.upload(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
         }
         if event.type_()=="lostpointercapture"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|editor.canvas_drag.as_ref().is_some_and(|d|d.pointer==p.pointer_id()&&d.released.is_none())) {
-            gesture.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
+            gesture.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {math_view.upload(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
         }
         if event.type_()=="pointerdown"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.is_primary())&&editor.canvas_drag.as_ref().is_none_or(|d|d.released.is_some()) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}
         let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
@@ -225,7 +142,7 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                 match reply.complete(&mut editor) {
                     Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
                         highlight_changed = true;
-                        crate::browser_upload::prepare(&mut renderer, editor.display_scene(), editor.whole_selection(), active_fault.clone());
+                        math_view.upload(&mut renderer, editor.display_scene(), editor.whole_selection(), active_fault.clone());
                         crate::browser_phase::revision(&editor.scene);
                         let message = if command == "Reload Sources" {
                             "Editable sources restored; display retained.".to_owned()
@@ -428,7 +345,7 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             match change {
                 Ok(Some(Change::Scene)) => {
                     highlight_changed = true;
-                    crate::browser_upload::prepare(&mut renderer, &editor.scene, editor.whole_selection(), active_fault.clone());
+                    math_view.upload(&mut renderer, &editor.scene, editor.whole_selection(), active_fault.clone());
                     if unloading {
                         report("Editable sources unloaded; display retained.");
                         panel.result("Editable sources unloaded; display retained.");
@@ -447,7 +364,7 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
                 }
                 Ok(Some(Change::Preview)) => {
                     highlight_changed=true;
-                    crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());
+                    math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());
                 }
                 Ok(Some(Change::View)) | Ok(None) => {}
                 Err(error) => {
@@ -475,7 +392,7 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
         let rect=pointer_canvas.get_bounding_client_rect();
         let number=editor.number_prompt([rect.width(),rect.height()]);
         if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
-            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
+            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
         }
         panel.rectangle=editor.canvas_drag.as_ref().filter(|d|d.missed).and_then(|d|d.rectangle());
         panel.number(number);
@@ -516,357 +433,12 @@ pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsV
             report(&format!("Cannot report projection: {error:?}"));
             return;
         }
+            let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=pointer_canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+        if pending {math_view.schedule(&browser_window,&pointer_canvas);}
             if let Err(error) = present(
                 &surface,
                 &renderer,
                 &editor.background,
                 &renderer.camera_matrix(&editor.camera),
-                editor.normal_view,
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    let mut listeners = crate::listeners::Listeners::new(update);
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        listeners.listen(canvas.as_ref(), name)?;
-    }
-    listeners.listen(canvas.as_ref(), "wheel")?;
-    listeners.listen(window.as_ref(), "resize")?;
-    listeners.listen(window.as_ref(), "blur")?;
-    listeners.listen(document.as_ref(), "change")?;
-    listeners.listen(document.as_ref(), "cancel")?;
-    listeners.listen(window.as_ref(), "viewer-pick")?;
-    listeners.listen(window.as_ref(), "viewer-tiles")?;
-    listeners.listen(window.as_ref(), "viewer-publication")?;
-    listeners.listen(window.as_ref(), "viewer-sheet-entity")?;
-    listeners.listen(window.as_ref(), "viewer-stream-page")?;
-    listeners.listen(window.as_ref(), "viewer-file")?;
-    listeners.listen(window.as_ref(), "viewer-file-error")?;
-    listeners.listen(window.as_ref(), "viewer-reload")?;
-    listeners.listen(window.as_ref(), "pagehide")?;
-    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault, owned_editor, publication);
-    report(&recovery.unwrap_or_else(|| "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.".into()));
-    start_publication.begin();
-    Ok(())
-}
-
-fn closing_action(action:&Action)->bool {matches!(action,Action::Close|Action::Adopt {..}|Action::Replace(_)|Action::ReplaceAt(_, _))}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id)).chain(editor.scene.clouds().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    let local=editor.scene.forest.documents.iter().flat_map(|doc|doc.nodes.iter().map(move |node|serde_json::json!({"document":doc.key,"name":node.source.name,"object":node.object.map(|id|id.value()),"local":node.placement.local.m,"original_world":node.placement.world.m}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-original-tree-placements",&serde_json::to_string(&local).unwrap())?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-    canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
-    canvas.set_attribute("data-source-metadata",&serde_json::to_string(&crate::source_metadata::usage(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-groups",&serde_json::json!(editor.scene.groups.iter().collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-graph",&serde_json::json!(crate::graph_edit::rows(&editor.scene)).to_string())?;
-    canvas.set_attribute("data-lasso",&editor.lasso.as_ref().map_or_else(||"null".into(),|l|serde_json::json!({"points":l.points.len(),"spacing":l.spacing,"density":l.density}).to_string()))?;
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"ambient":renderer.ambient_usage(),"ambient_error":renderer.ambient_error(),"arctic":editor.arctic,"opacity":editor.opacity,"outlines":editor.outlines,"global_outline":renderer.global_outline_usage(),"pyramid":renderer.depth_pyramid_usage(),"pyramid_error":renderer.depth_pyramid_error(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-cloud-gpu",&serde_json::to_string(&renderer.cloud_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-error",&renderer.cloud_error().unwrap_or_default())?;
-    canvas.set_attribute("data-cloud-sources",&serde_json::json!(editor.scene.clouds().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid(),"point_size":row.prepared.source.point_size,"point_px":row.point_px,"points":row.prepared.source.len(),"nodes":row.prepared.nodes.len(),"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-surface-outline",&serde_json::to_string(&renderer.outline_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-scene-text-gpu",&serde_json::to_string(&renderer.text_scene_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
-    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
-    canvas.set_attribute("data-cad-walks",&serde_json::json!({"scope":"last imported original document","walks":editor.scene.cad_walks[0],"replays":editor.scene.cad_walks[1]}).to_string())?;
-    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
-    let cads=editor.scene.objects().iter().filter_map(|row|row.cad.as_ref().map(|cad|serde_json::json!({"id":row.id.value(),"source":cad.source.guid(),"faces":row.mesh.parts.faces,"edges":cad.edges.iter().map(|border|border.edge).collect::<Vec<_>>(),"vertices":cad.samples.len()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-cads",&serde_json::to_string(&cads).unwrap())?;
-    canvas.set_attribute("data-surface-cpu",&serde_json::to_string(&crate::memory::surfaces(editor.presentation_scenes())).unwrap())?;
-    let surfaces=editor.scene.objects().iter().filter_map(|row|row.surface.as_ref().map(|s|serde_json::json!({"id":row.id.value(),"source":s.source.guid(),"controls":s.source.m_cv_count,"steps":s.grid.steps,"samples":s.grid.samples.len(),"faces":row.mesh.parts.faces,"edges":s.grid.boundaries.iter().map(|b|b.edge).collect::<Vec<_>>()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-surfaces",&serde_json::to_string(&surfaces).unwrap())?;
-    canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
-    canvas.set_attribute("data-point-cpu", &serde_json::to_string(&crate::memory::points(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
-    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
-    let originals=serde_json::json!({"points":editor.scene.points().iter().map(|row|(0..3).map(|i|row.prepared.source[i]).collect::<Vec<_>>()).collect::<Vec<_>>(),"lines":editor.scene.lines().iter().map(|row|{let s=&row.prepared.source;[s.start(),s.end()].map(|p|[p[0],p[1],p[2]])}).collect::<Vec<_>>(),"polylines":editor.scene.paths().iter().filter(|row|matches!(row.prepared.source,crate::chain::Source::Polyline(_))).map(|row|row.prepared.source.coordinates()).collect::<Vec<_>>()});
-    canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-drawing-originals",&originals.to_string())?;
-    canvas.set_attribute("data-cplane",&serde_json::json!({"fixed":editor.construction_plane.is_some(),"mode":format!("{:?}",editor.construction_plane),"chooser":editor.plane_menu}).to_string())?;
-    canvas.set_attribute("data-measurement",&editor.mark.as_ref().map_or_else(||"null".into(),|m|serde_json::json!({"points":m.points,"label":m.label}).to_string()))?;
-    canvas.set_attribute("data-measurement-gpu-bytes",&renderer.measurement_bytes().to_string())?;
-    canvas.set_attribute("data-guide-gpu-bytes",&renderer.guide_bytes().to_string())?;
-    canvas.set_attribute("data-trim",&editor.trim.as_ref().map_or_else(||"null".into(),|t|serde_json::json!({"phase":format!("{:?}",t.phase),"targets":t.targets.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"cutters":t.cutters.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"parts":t.cuts.iter().map(|c|c.parts.count()).collect::<Vec<_>>(),"removed":t.cuts.iter().map(|c|&c.removed).collect::<Vec<_>>(),"hover":t.hover}).to_string()))?;
-    canvas.set_attribute("data-split", &editor.split.as_ref().map_or_else(||"null".into(),|s|serde_json::json!({"target":s.target.id.value(),"face":s.face,"cutters":s.cutters.iter().map(|o|o.id.value()).collect::<Vec<_>>()}).to_string()))?;
-    canvas.set_attribute("data-project", &editor.draft.as_ref().and_then(|d|d.project.as_ref()).map_or_else(||"null".into(), |p|serde_json::json!({"targets":p.targets.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"points":p.points,"unsupported":p.unsupported}).to_string()))?;
-    canvas.set_attribute("data-extend", &editor.draft.as_ref().and_then(|d|d.extend.as_ref()).map_or_else(||"null".into(), |e|serde_json::json!({"boundaries":e.boundaries.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"curves":e.curves,"distance":e.distance,"asking":e.asking,"candidates":e.candidates.len(),"hover":e.hover.as_ref().map(|h|serde_json::json!({"owner":h.owner.id.value(),"end":format!("{:?}",h.end),"tail":h.tail})),"error":e.error}).to_string()))?;
-    canvas.set_attribute("data-gather",&editor.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||"null".into(),|g|serde_json::json!({"name":g.recipe.name,"step":g.progress.step,"rows":g.progress.rows,"answered":g.progress.answered,"choice":g.choice}).to_string()))?;
-    canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
-    canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
-    canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
-    canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
-    canvas.set_attribute("data-highlight-bytes", &renderer.highlight_bytes().to_string())?;
-    canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
-    let sheets=editor.scene.sheets().iter().map(|row|serde_json::json!({"row":row.id.value(),"guid":row.guid,"source":row.prepared.original.guid,"model":row.model.m,"segments":row.prepared.original.segment_count,"entities":row.prepared.original.entity_count,"meta":row.prepared.original.meta,"streamed":row.prepared.streamed.is_some(),"resident":row.prepared.pages().iter().map(|page|page.rows.end-page.rows.start).sum::<u32>()})).collect::<Vec<_>>();canvas.set_attribute("data-sheets",&serde_json::to_string(&sheets).unwrap())?;canvas.set_attribute("data-sheet-cpu",&serde_json::to_string(&crate::memory::sheets(editor.scenes())).unwrap())?;canvas.set_attribute("data-sheet-gpu",&serde_json::to_string(&renderer.sheet_usage()).unwrap())?;
-    canvas.set_attribute("data-instance-cpu",&serde_json::to_string(&crate::memory::instances(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-instance-gpu",&serde_json::to_string(&renderer.instance_usage()).unwrap())?;
-    canvas.set_attribute("data-instance-allocations",&serde_json::to_string(&renderer.instance_allocations()).unwrap())?;
-    let instances=editor.scene.instances.iter().map(|(id,owner)|serde_json::json!({"id":id.value(),"guid":editor.scene.row_guid(*id),"source_guid":owner.instance.guid(),"definition_guid":owner.definition.guid(),"document_guid":owner.document.guid(),"model":editor.scene.placement(*id).map(|m|m.m),"flags":owner.instance.flags,"colour":editor.scene.face_rgba(*id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-instances",&serde_json::to_string(&instances).unwrap())?;
-    let stream_usage=crate::memory::streams(editor.scenes());
-    canvas.set_attribute("data-range-sources",&serde_json::to_string(&stream_usage).unwrap())?;
-    let streamed=editor.scene.streams().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid,"name":row.prepared.source.name,"url":row.prepared.source.url,"revision":row.prepared.source.fields.revision,"total":row.prepared.source.fields.count,"model":row.model.m,"point_px":row.point_px,"controls":row.controls_visible})).collect::<Vec<_>>();
-    canvas.set_attribute("data-range-documents",&serde_json::to_string(&streamed).unwrap())?;
-
-    canvas.set_attribute("data-pick-mode", &format!("{:?}", editor.pick_mode))?;
-    canvas.set_attribute("data-part-usage", &serde_json::to_string(&renderer.part_usage()).unwrap())?;
-    canvas.set_attribute("data-selected-ids", &serde_json::to_string(&editor.selected_objects().iter().map(|id| id.value()).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-grid-plane",&serde_json::json!({"origin":(0..3).map(|i|editor.drawing_plane().origin()[i]).collect::<Vec<_>>(),"matrix":editor.drawing_plane().matrix()}).to_string())?;
-    canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
-    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let mut cpu = crate::memory::cpu(editor.presentation_scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    cpu[4]+=renderer.arena_cpu_bytes();
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-    touch:&mut crate::touch::Touch,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            let rect=canvas.get_bounding_client_rect();
-            let Action::Zoom(factor)=crate::navigation::wheel(wheel.delta_y(),mode,rect.height())? else {return None;};
-            let screen=[(2.*(wheel.client_x() as f64-rect.left())/rect.width()-1.) as f32,(1.-2.*(wheel.client_y() as f64-rect.top())/rect.height()) as f32];
-            Some(Action::ZoomAt {factor,screen})
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return Some(Action::Escape);
-            }
-            return None;
-        }
-        _=>{
-            if let Some(pointer)=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|p.pointer_type()=="touch") {
-                event.prevent_default();let r=canvas.get_bounding_client_rect();let rect=[r.left(),r.top(),r.width(),r.height()];let at=[pointer.client_x() as f64,pointer.client_y() as f64];let id=pointer.pointer_id();
-                let actions=match event.type_().as_str() {
-                    "pointerdown"=>{gesture.cancel();let multiple=touch.count()>0;if touch.press(id,at,event.time_stamp()) {if canvas.set_pointer_capture(id).is_err() {touch.cancel();}}if multiple {vec![Action::GizmoCancel,Action::CanvasCancel]} else {Vec::new()}},
-                    "pointermove"=>touch.move_to(id,at,rect),
-                    "pointerup"=>{let actions=touch.release(id,at,event.time_stamp(),rect);let _=canvas.release_pointer_capture(id);actions},
-                    "pointercancel"=>{touch.cancel();Vec::new()},"lostpointercapture"=>{if touch.contains(id) {touch.cancel();}Vec::new()},_=>Vec::new(),
-                };return (!actions.is_empty()).then_some(Action::Touch(actions));
-            }
-            return pointer_action(event,canvas,gesture);
-        },
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press_at(id, pointer.button(), position,pointer.ctrl_key()||pointer.meta_key(),pointer.time_stamp()) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_at(id, position,pointer.time_stamp()),
-        "pointerup" => {
-            let motion = gesture.release_at(id, position,pointer.time_stamp());
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    let mut action=motion.action([rect.left(),rect.top(),rect.width(),rect.height()])?;
-    match &mut action {
-        Action::CanvasStart {modified,pointer:id,..}=>{*id=pointer.pointer_id();*modified=pointer.shift_key()||pointer.ctrl_key()||pointer.meta_key();},
-        Action::CanvasRelease {add,remove,..}=>{*add=pointer.shift_key();*remove=pointer.ctrl_key()||pointer.meta_key();},_=>{}
-    }Some(action)
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let density = crate::browser_recovery::density(crate::browser_defaults::scale(window.device_pixel_ratio()));
-    renderer.set_density(density as f32);
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        density,
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    normals: bool,
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw_mode(&view, background, transform, normals);
-    if let Some(error)=renderer.cloud_error() {panel.result(&format!("Cloud: {error}"));}
-    if let Some(error)=renderer.text_error() {panel.result(&format!("Text: {error}"));}
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-
-fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:&Editor,consumed:bool)->Option<Action> {
-    if matches!(event.type_().as_str(),"blur"|"resize") && editor.gizmo_edit.is_some() {return Some(Action::GizmoCancel);}
-    let pointer=event.dyn_ref::<web_sys::PointerEvent>()?;
-    if matches!(event.type_().as_str(),"pointercancel"|"lostpointercapture") {
-        return editor.gizmo_edit.as_ref().filter(|e|e.pointer==Some(pointer.pointer_id())).map(|_|Action::GizmoCancel);
-    }
-    let rect=canvas.get_bounding_client_rect();let size=[rect.width(),rect.height()];
-    if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-    let screen=[(2.*(pointer.client_x() as f64-rect.left())/size[0]-1.) as f32,(1.-2.*(pointer.client_y() as f64-rect.top())/size[1]) as f32];
-    let id=pointer.pointer_id();
-    if editor.gizmo_edit.as_ref().is_some_and(|e|e.pointer==Some(id)) {
-        event.prevent_default();
-        return match event.type_().as_str() {
-            "pointermove"=>Some(Action::GizmoMove {pointer:id,screen,size,shift:pointer.shift_key()}),
-            "pointerup"=>{let _=canvas.release_pointer_capture(id);Some(Action::GizmoRelease {pointer:id,screen,size,shift:pointer.shift_key()})},
-            _=>None,
-        };
-    }
-    if consumed || event.type_()!="pointerdown" || !pointer.is_primary() || pointer.button()!=0 {return None;}
-    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {return None;}
-    let finger=pointer.pointer_type()=="touch";
-    if editor.gizmo_hit_radius(screen,size,if finger {18.} else {8.}).is_some() {
-        event.prevent_default();
-        if canvas.set_pointer_capture(id).is_err() {return Some(Action::GizmoCancel);}
-        Some(if finger {Action::GizmoTouch {pointer:id,screen,size}} else {Action::GizmoPress {pointer:id,screen,size,modified:false}})
-    } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
-}
-
-fn lasso_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:&Editor,consumed:bool)->Option<Action>{
-    let lasso=editor.lasso.as_ref()?;if matches!(event.type_().as_str(),"resize"|"blur"){return Some(Action::LassoCancel)}
-    let pointer=event.dyn_ref::<web_sys::PointerEvent>()?;let id=pointer.pointer_id();let r=canvas.get_bounding_client_rect();let at=[pointer.client_x() as f64-r.left(),pointer.client_y() as f64-r.top()];
-    if lasso.pointer==Some(id){event.prevent_default();return match event.type_().as_str(){"pointermove"=>Some(Action::LassoMove{at,pointer:id}),"pointerup"=>{let _=canvas.release_pointer_capture(id);Some(Action::LassoRelease{at,pointer:id,add:pointer.shift_key(),remove:pointer.ctrl_key()||pointer.meta_key()})},"pointercancel"|"lostpointercapture"=>Some(Action::LassoCancel),_=>None}}
-    if consumed||event.type_()!="pointerdown"||pointer.button()!=0||!pointer.is_primary(){return None}event.prevent_default();if canvas.set_pointer_capture(id).is_err(){return Some(Action::LassoCancel)}Some(Action::LassoPress{at,size:[r.width(),r.height()],density:canvas.width() as f64/r.width(),pointer:id})
-}

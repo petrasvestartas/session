@@ -1,0 +1,44 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T08:38:54.823Z",
+  "id": "94c-prove-the-original-comparison-and-inspect-differences",
+  "scope": "Actual reconstructed tutorial source, NVIDIA hardware render and native fixture assertions. Fixed-resolution canonical pixel verification remains separate; no general geometry or Boolean validity claim.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "sourceFreeze": "source-freeze-12.json",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-94c-prove-the-original-comparison-and-inspect-differences-a7b043b9dd1552c52511\\capture.json",
+    "sha256": "69dee72c0d352b78fd1540a60702b1efc7d8a925d59db64253f75fc6d0dd8957",
+    "bytes": 1850541
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\94c-prove-the-original-comparison-and-inspect-differences.png",
+    "sha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271",
+    "bytes": 46706
+  },
+  "previousPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\94c-prove-the-original-comparison-and-inspect-differences.png",
+    "sha256": "f0e1190dfe9fdd591b64f899260a2ab72815de8ae39cc63cab0d5d9e72d4987b",
+    "bytes": 46923
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\94c-prove-the-original-comparison-and-inspect-differences.png",
+    "sha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271",
+    "bytes": 46706
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png?v=b2c422ca5108",
+    "status": 200,
+    "sha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271"
+  },
+  "sourceRuntime": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\94c-prove-the-original-comparison-and-inspect-differences-943388a5f22a72ea0b02\\runtime\\frame-adapter.json",
+    "sha256": "cb3947bb44751aaea0b2735071efd5ac3b09053e723be02cb14cd29cc0a3a404",
+    "bytes": 75,
+    "adapter": {
+      "vendor": 4318,
+      "device": 10208,
+      "backend": "Dx12",
+      "deviceType": "DiscreteGpu"
+    }
+  }
+}

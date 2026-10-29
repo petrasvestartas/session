@@ -36,6 +36,7 @@ impl Scene {
 
     /// Hide a deleted object's row; its lane rows and id wait for an undo.
     pub(super) fn bury(&mut self, row: u32, record: Weak<history::Tomb>, item: &Work) {
+        self.display.forget(row);
         let i = row as usize;
         let place = self.doc_state[item.doc]
             .sheet

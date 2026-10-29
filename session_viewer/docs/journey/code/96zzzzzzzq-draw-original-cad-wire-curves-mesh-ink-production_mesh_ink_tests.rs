@@ -23,11 +23,11 @@ fn production_mesh_pipe_rows_preserve_pens_facing_sparse_keys_and_compact_owners
 }
 
 #[test]
-fn production_brep_pipe_rows_keep_curve_sag_silhouettes_and_rigid_replay_normals(){
+fn production_brep_pipe_rows_keep_only_original_edges_and_rigid_replay_normals(){
     let source=Rc::new(crate::cad_display::example());let _=source.guid();let original=source.to_proto();let mut cache=crate::cad_shape_cache::Cache::default();let(_,first)=cache.prepare(source.clone()).unwrap();let first=&first.display.parts.ink;
     assert!(first.active&&!first.segments.is_empty());assert_eq!(first.ids.len(),first.segments.len());assert_eq!(first.normals.len(),first.segments.len());
     assert!(first.segments.iter().any(|r|r.sag>0.),"Actual curved boundaries carry production chord slack");
-    assert!(first.segments.iter().zip(&first.ids).any(|(r,id)|r.sag.is_sign_negative()&&*id==u32::MAX),"Actual curved faces carry non-pickable silhouette pipes");
+    assert!(first.segments.iter().zip(&first.ids).all(|(r,id)|r.sag>=0.&&(*id as usize)<source.m_edges.len()),"CAD strokes belong only to original boundary edges");
     let motion=&Xform::translation(30.,-20.,10.)*&Xform::rotation_z(90.,true);let mut moved=source.transformed(&motion);moved.set_guid("rigid-pipe-copy".into());let moved=Rc::new(moved);let(_,replayed)=cache.prepare(moved.clone()).unwrap();let(_,independent)=crate::cad_display::prepare(moved).unwrap();
     let a=&replayed.display.parts.ink;let b=&independent.display.parts.ink;assert_eq!(cache.walks,1);assert_eq!(cache.replays,1);assert_eq!(a.ids.len(),b.ids.len());
     for(r,(n0,n1))in a.segments.iter().zip(&a.normals){assert_eq!(r.segment.facing,ink::pack_facing(n0.as_ref(),n1.as_ref()));}

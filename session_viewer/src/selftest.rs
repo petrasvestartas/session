@@ -354,6 +354,50 @@ pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Res
     f.flush()
 }
 
+fn drain_refinement(rows: usize, mut step: impl FnMut() -> (bool, bool)) -> Result<usize, &'static str> {
+    let mut changed = 0;
+    // Each step consumes at least one row; a replacement can add one hidden sink row.
+    for _ in 0..rows.saturating_add(1) {
+        let (pending, updated) = step();
+        changed += usize::from(updated);
+        if !pending { return Ok(changed); }
+    }
+    Err("capture display refinement did not settle within its row budget")
+}
+
+fn refine_capture(scene: &mut Scene, gpu: &mut Gpu, camera: &Camera) {
+    let changed = drain_refinement(scene.row_count(), || scene.refine_display(gpu, camera))
+        .expect("bounded capture display refinement");
+    if changed > 0 {
+        gpu.find_solids(|row| scene.solid_faces(row));
+        println!("display refinement: {changed} row or shared-batch replacements");
+    }
+    let (sources, charged, accepted, limited) = scene.display_counters();
+    println!("display quality: retained_source_bytes={sources} charged_lane_bytes={charged} accepted_rows={accepted} limited_rows={limited}");
+    for (row, actual, requested, reason) in scene.display_quality_sample(16) {
+        println!("display row {row}: accepted_tolerance={actual:?} unmet_requested_tolerance={requested:?} state={reason}");
+    }
+}
+
+#[cfg(test)]
+mod refinement_tests {
+    use super::drain_refinement;
+
+    #[test]
+    fn counts_the_final_replacement_and_stops_when_settled() {
+        let mut steps = [(true, true), (false, true)].into_iter();
+        assert_eq!(drain_refinement(2, || steps.next().expect("unexpected extra step")), Ok(2));
+        assert_eq!(drain_refinement(0, || (false, false)), Ok(0));
+    }
+
+    #[test]
+    fn nonsettling_capture_fails_instead_of_looping_or_claiming_ready() {
+        let mut calls = 0;
+        assert!(drain_refinement(3, || { calls += 1; (true, false) }).is_err());
+        assert_eq!(calls, 4);
+    }
+}
+
 /// Load, frame, draw one frame and write it to `out`.
 pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
@@ -397,6 +441,8 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
         let labels = bench_labels(&gpu, kind == "mixed");
         gpu.text.set_labels(labels).expect("bench labels");
     }
+
+    refine_capture(&mut scene, &mut gpu, &camera);
 
     // VIEWER_FRAMES=N times N frames first
     if let Some(n) = std::env::var("VIEWER_FRAMES")
@@ -480,6 +526,7 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
         }
     }
 
+    refine_capture(&mut scene, &mut gpu, &camera);
     let input = frame_input(&mut gpu, &camera, aspect);
     let rgba = gpu.render_offscreen(&input);
     write_ppm(out, &rgba, w, h).expect("write ppm");

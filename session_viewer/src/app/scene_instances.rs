@@ -78,6 +78,11 @@ impl Instancing {
         self.of_row.contains_key(&row)
     }
 
+    pub(crate) fn shared_definition(&self, row: u32) -> Option<&str> {
+        let batch = (*self.of_row.get(&row)?)?;
+        Some(&self.batches.get(batch)?.as_ref()?.definition)
+    }
+
     /// Row `row` draws an instance of batch `batch`, or of none when walked per instance.
     fn join(&mut self, row: u32, batch: Option<usize>) {
         self.of_row.insert(row, batch);
@@ -190,6 +195,7 @@ impl Scene {
     ) -> (Footprint, Row, Option<Hull>) {
         let mut up = Upload::default();
         let cx = WalkCx {
+            quality: Default::default(),
             vert_base: 0,
             cloud_px: self.docs.get(doc).map_or(0.0, |file| file.point_px),
             row,
@@ -334,6 +340,7 @@ impl Scene {
     fn shared_walk(&mut self, row: u32, definition: &Geometry) -> (Upload, Row) {
         let mut up = Upload::default();
         let cx = WalkCx {
+            quality: self.display.quality(row),
             vert_base: 0,
             cloud_px: 0.0,
             row,
@@ -342,6 +349,79 @@ impl Scene {
         };
         let walk = walk_geometry(&mut Walk::of(&mut up), &cx, definition);
         (up, walk)
+    }
+
+    pub(super) fn refine_instance_display(
+        &mut self,
+        member: u32,
+        definition: &Geometry,
+        available: u64,
+        gpu: &Gpu,
+    ) -> Option<u64> {
+        let index = (*self.instancing.of_row.get(&member)?)?;
+        let batch = self.instancing.batches[index].as_ref()?;
+        if batch.members.len() > 4096 {
+            return None;
+        }
+        let (row, doc, guid, members) = (
+            batch.row,
+            batch.doc,
+            Rc::clone(&batch.definition),
+            batch.members.clone(),
+        );
+        let (mut up, walk) =
+            crate::app::walk::display::candidate(|| self.shared_walk(row, definition))?;
+        let bytes = Counts::of(&up).bytes();
+        if bytes > crate::app::walk::display::OBJECT_BYTES as u64 || bytes > available {
+            return None;
+        }
+        let spheres = std::mem::take(&mut up.glyph.spheres);
+        let dots = std::mem::take(&mut up.glyph.dots);
+        let old = &self.instancing.batches[index].as_ref()?.walked;
+        if bytes == 0 || (old.faces && !walk.faces) {
+            return None;
+        }
+        if bytemuck::cast_slice::<GlyphPoint, u8>(&spheres)
+            != bytemuck::cast_slice::<GlyphPoint, u8>(&old.spheres)
+            || bytemuck::cast_slice::<GlyphPoint, u8>(&dots)
+                != bytemuck::cast_slice::<GlyphPoint, u8>(&old.dots)
+        {
+            return None;
+        }
+        let hull = hull_of(&up, &[], &walk.bounds);
+        let walked = Walked {
+            bounds: walk.bounds,
+            spacing: walk.spacing,
+            flags: walk.flags,
+            faces: walk.faces,
+            spheres,
+            dots,
+            hull,
+        };
+        let mut object = ObjectRow::new(
+            Xform::identity(),
+            Instance::FLAG_HIDDEN | Instance::FLAG_DEAD,
+        );
+        object.bounds = walk.bounds;
+        self.replace_walk(row, doc, &guid, definition, up, object, false);
+        for member in members {
+            if let (Some(place), Some(previous), Some(bounds)) = (
+                self.placement_of(member),
+                gpu.objects.row(member),
+                gpu.objects.local_bounds(member),
+            ) {
+                let mut object = ObjectRow::new(place, previous.flags);
+                object.bounds = bounds;
+                object.bounds.union_with(&walk.bounds);
+                object.spacing = walk.spacing;
+                object.faces = previous.flags & Instance::FLAG_HAS_FACES != 0;
+                self.staged.geometry.push((member, object));
+            }
+        }
+        self.instancing.batches[index].as_mut()?.walked = walked;
+        self.instancing.dirty = true;
+        self.instancing.full = true;
+        Some(bytes)
     }
 
     /// A row with no identity, for a definition's shared rows: a freed id, else one after every row.
@@ -367,6 +447,7 @@ impl Scene {
 
     /// Give a hidden row back; its lane rows go to the sink.
     fn free_hidden_row(&mut self, row: u32) {
+        self.display.forget(row);
         let i = row as usize;
         let foot = std::mem::take(&mut self.feet[i]);
         let span = self.spans.span(foot);
@@ -1071,7 +1152,10 @@ mod tests {
         scene.attributes = true;
         scene.rewalk_cpu();
         let ribbons = scene.uploaded.ribbons;
-        assert!(ribbons > plain, "enabled features reach the shared definition");
+        assert!(
+            ribbons > plain,
+            "enabled features reach the shared definition"
+        );
         scene.attributes = false;
         scene.rewalk_cpu();
         scene.verify();

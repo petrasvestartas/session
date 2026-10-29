@@ -216,8 +216,10 @@ pub(crate) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
 
 /// A curve as a sampled polyline.
 pub fn walk_nurbscurve(seg: &mut SegRows, lanes: &mut VectorRows, c: &NurbsCurve, row: u32) -> Row {
-    let pts: Vec<_> = sample_nurbscurve(c)
-        .into_iter()
+    walk_sampled_curve(seg,lanes,c,&sample_nurbscurve(c),row)
+}
+pub fn walk_sampled_curve(seg: &mut SegRows, lanes: &mut VectorRows, c: &NurbsCurve, points:&[[f64;3]], row:u32)->Row {
+    let pts:Vec<_>=points.iter().copied()
         .map(render_position)
         .collect();
     let color = c

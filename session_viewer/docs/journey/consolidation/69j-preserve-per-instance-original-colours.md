@@ -1691,72 +1691,58 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        Some((points, spans))
     }
 }
+
+fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], count: usize) -> f64 {
+    let (t0, t1) = curve.domain();
+    let distance = |t: f64| {
 ```
 
 Replace it with:
 
 ```rust
-        Some((points, spans))
     }
 }
 
-pub fn validate(source: &BRep) -> Result<(), &'static str> {
-    if !source.is_valid() {
-        return Err("BRep topology contains an invalid reference");
-    }
-    if source.m_faces.len() > 65_536 || source.m_edges.len() > 262_144 {
-        return Err("BRep topology exceeds the display budget");
-    }
-    for surface in &source.m_surfaces {
-        crate::surface::validate(surface)?;
-    }
-    for curve in source
-        .m_curves_3d
-        .iter()
-        .chain(&source.m_curves_2d)
-    {
-        crate::curve::validate(curve)?;
-    }
+pub fn validate(source:&BRep)->Result<(),&'static str> {
+        if !source.is_valid() {return Err("BRep topology contains an invalid reference");}
+        if source.m_faces.len()>65_536||source.m_edges.len()>262_144 {return Err("BRep topology exceeds the display budget");}
+        for surface in &source.m_surfaces {crate::surface::validate(surface)?;}
+        for curve in source.m_curves_3d.iter().chain(&source.m_curves_2d) {crate::curve::validate(curve)?;}
     Ok(())
 }
+
+fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], count: usize) -> f64 {
+    let (t0, t1) = curve.domain();
+    let distance = |t: f64| {
 ```
 
 **Locate this block:**
 
 ```rust
-    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
-        if !source.is_valid() {
-            return Err("BRep topology contains an invalid reference");
-        }
-        if source.m_faces.len() > 65_536 || source.m_edges.len() > 262_144 {
-            return Err("BRep topology exceeds the display budget");
-        }
-        for surface in &source.m_surfaces {
-            crate::surface::validate(surface)?;
-        }
-        for curve in source
-            .m_curves_3d
-            .iter()
-            .chain(&source.m_curves_2d)
-        {
-            crate::curve::validate(curve)?;
-        }
-        let _ = source.guid();
-        let faces = source.face_meshes_q(Some(QUALITY));
-        if faces.len() != source.m_faces.len()
+pub struct Prepared {pub source:Rc<BRep>,pub faces:Vec<Mesh>,pub chains:Vec<Option<crate::cad_edges::EdgeChain>>}
+impl Prepared {
+    pub fn new(source:Rc<BRep>)->Result<Self,&'static str> {
+        if !source.is_valid() {return Err("BRep topology contains an invalid reference");}
+        if source.m_faces.len()>65_536||source.m_edges.len()>262_144 {return Err("BRep topology exceeds the display budget");}
+        for surface in &source.m_surfaces {crate::surface::validate(surface)?;}
+        for curve in source.m_curves_3d.iter().chain(&source.m_curves_2d) {crate::curve::validate(curve)?;}
+        let _=source.guid();let faces=if crate::math_quality::current().0.is_finite() {crate::math_cad::faces(&source)?} else {source.face_meshes_q(Some(QUALITY))};
+        if faces.len()!=source.m_faces.len()||faces.iter().any(|face|face.face.is_empty()) {return Err("BRep face could not be tessellated");}
+        let chains=crate::cad_edges::edge_chains(&source,&faces);
 ```
 
 Replace it with:
 
 ```rust
-    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
+pub struct Prepared {pub source:Rc<BRep>,pub faces:Vec<Mesh>,pub chains:Vec<Option<crate::cad_edges::EdgeChain>>}
+impl Prepared {
+    pub fn new(source:Rc<BRep>)->Result<Self,&'static str> {
         validate(&source)?;
-        let _ = source.guid();
-        let faces = source.face_meshes_q(Some(QUALITY));
-        if faces.len() != source.m_faces.len()
+        let _=source.guid();let faces=if crate::math_quality::current().0.is_finite() {crate::math_cad::faces(&source)?} else {source.face_meshes_q(Some(QUALITY))};
+        if faces.len()!=source.m_faces.len()||faces.iter().any(|face|face.face.is_empty()) {return Err("BRep face could not be tessellated");}
+        let chains=crate::cad_edges::edge_chains(&source,&faces);
 ```
 
 ## <a id="checkpoint-69ab-replay-sampled-geometry-in-the-new-rigid-frame"></a>11. Replay sampled geometry in the new rigid frame

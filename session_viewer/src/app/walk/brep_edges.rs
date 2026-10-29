@@ -2,11 +2,10 @@ use session_rust::Mesh;
 use session_rust::brep::{BRep, BRepOrientation};
 
 use super::curves::turning_degrees;
-use super::mesh::COPLANAR_DOT;
 use super::encode::{Pen, pack_facing};
 use crate::app::knobs;
 use crate::engine::gpu::CylinderSegment;
-use crate::engine::gpu::segments::{SILHOUETTE_SAG, SegRows};
+use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
 
 /// Degrees of turning one display chord of a curved edge may span: how round a circle looks
@@ -443,14 +442,15 @@ fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> us
 
 /// The parameter of the curve's point nearest `p`: the nearest of `count` even samples, refined
 /// by golden section between its two neighbours.
-fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], count: usize) -> f64 {
+fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], scouts: &[[f64; 3]]) -> f64 {
+    let count = scouts.len() - 1;
     let (t0, t1) = curve.domain();
     let distance = |t: f64| {
         let q = curve.point_at(t);
         distance2([q[0], q[1], q[2]], p)
     };
     let step = (t1 - t0) / count as f64;
-    let nearest = (0..=count).min_by(|&i, &j| distance(t0 + step * i as f64).total_cmp(&distance(t0 + step * j as f64))).unwrap_or(0);
+    let nearest = (0..=count).min_by(|&i, &j| distance2(scouts[i], p).total_cmp(&distance2(scouts[j], p))).unwrap_or(0);
     let (mut lo, mut hi) = ((t0 + step * (nearest as f64 - 1.0)).max(t0), (t0 + step * (nearest as f64 + 1.0)).min(t1));
     let ratio = 0.5 * (5.0f64.sqrt() - 1.0);
 
@@ -473,6 +473,10 @@ fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], count: usize) 
 /// segment lies on one chain segment of the face mesh, which gives it its facing and its rise off
 /// the mesh, the depth it may sink in.
 pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
+    display_chain_quality(b, chain, fm, Default::default())
+}
+
+pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: super::display::Quality) -> DisplayChain {
     let coarse: Vec<[f64; 3]> = chain
         .keys
         .iter()
@@ -482,13 +486,22 @@ pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
         return coarse_display(coarse);
     };
     let segments = coarse.len() - 1;
-    let straight = !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges();
+    let finite_quality = quality.tolerance.is_finite();
+    let straight = if finite_quality {
+        curve.degree() == 1 && curve.cv_count() == 2
+    } else {
+        !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges()
+    };
     let chords = if straight { segments } else { display_chords(curve, segments) };
     let (t0, t1) = curve.domain();
     let period = t1 - t0;
 
     // every mesh vertex's parameter, unwrapped across the seam of a closed curve so the chain runs on
-    let mut parameters: Vec<f64> = coarse.iter().map(|&p| curve_parameter(curve, p, 8 * chords)).collect();
+    let count = (8 * chords).clamp(8, super::display::CURVE_SEGMENTS * 8);
+    let scouts: Vec<[f64; 3]> = (0..=count).map(|i| {
+        let p = curve.point_at(t0 + period * i as f64 / count as f64); [p[0], p[1], p[2]]
+    }).collect();
+    let mut parameters: Vec<f64> = coarse.iter().map(|&p| curve_parameter(curve, p, &scouts)).collect();
 
     if curve.is_closed() {
         for k in 1..parameters.len() {
@@ -510,35 +523,42 @@ pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
 
     let wrap = |t: f64| if curve.is_closed() { t0 + (t - t0).rem_euclid(period) } else { t.clamp(t0, t1) };
     let total: f64 = parameters.windows(2).map(|w| (w[1] - w[0]).abs()).sum();
-    let mut points = vec![coarse[0]];
+    let sampled = (quality.tolerance.is_finite() && segments + 2 < super::display::CURVE_SEGMENTS)
+        .then(|| super::display::sample(curve, quality, super::display::CURVE_SEGMENTS - segments - 2));
+    let first = curve.point_at(wrap(parameters[0]));
+    let mut points = vec![[first[0], first[1], first[2]]];
     let mut spans = Vec::with_capacity(chords);
     let mut sags = Vec::with_capacity(chords);
 
     for k in 0..segments {
         let (a, z) = (coarse[k], coarse[k + 1]);
         let share = if total > 0.0 { (parameters[k + 1] - parameters[k]).abs() / total } else { 0.0 };
-        let steps = if straight { 1 } else { ((chords as f64 * share).round() as usize).max(1) };
-        let mut previous = a;
+        let steps = if straight || sampled.is_some() { 1 } else { ((chords as f64 * share).round() as usize).max(1) };
+        let mut cuts: Vec<f64> = (1..=steps).map(|j| parameters[k] + (parameters[k + 1] - parameters[k]) * j as f64 / steps as f64).collect();
+        if let Some(sampled) = &sampled {
+            for &t in &sampled.parameters {
+                // Match the unwrapped interval of a closed chain without adding seam copies.
+                let t = if curve.is_closed() { t + ((parameters[k] - t) / period).round() * period } else { t };
+                if t > parameters[k].min(parameters[k + 1]) && t < parameters[k].max(parameters[k + 1]) {
+                    cuts.push(t);
+                }
+            }
+            cuts.sort_by(f64::total_cmp);
+            if parameters[k + 1] < parameters[k] { cuts.reverse(); }
+            cuts.dedup_by(|a, b| (*a - *b).abs() < period.abs() * 1e-12);
+        }
+        let mut previous = *points.last().unwrap();
 
-        for j in 1..=steps {
-            let p = if j == steps {
-                let q = curve.point_at(wrap(parameters[k + 1]));
-                [q[0], q[1], q[2]]
-            } else {
-                let q = curve.point_at(wrap(parameters[k] + (parameters[k + 1] - parameters[k]) * j as f64 / steps as f64));
-                [q[0], q[1], q[2]]
-            };
-            let rise = if straight { 0.0 } else { segment_distance(previous, a, z).max(segment_distance(p, a, z)) };
+        for t in cuts {
+            let q = curve.point_at(wrap(t));
+            let p = [q[0], q[1], q[2]];
+            let rise = if straight && !finite_quality { 0.0 } else { segment_distance(previous, a, z).max(segment_distance(p, a, z)) };
             points.push(p);
             spans.push(k);
             sags.push((rise * SAG_MARGIN) as f32);
             previous = p;
         }
     }
-
-    // the first point the curve's own too
-    let q = curve.point_at(wrap(parameters[0]));
-    points[0] = [q[0], q[1], q[2]];
 
     if !points.iter().flatten().all(|v| v.is_finite()) {
         return coarse_display(coarse);
@@ -696,50 +716,6 @@ impl<'a> EdgePen<'a> {
         }
 
         pack_facing(first.as_ref(), second.as_ref())
-    }
-
-    /// Every inner edge of a curved face, between two of its triangles that are not coplanar, as a
-    /// pipe drawn only where it is the face's silhouette: one triangle beside it faces the camera
-    /// and the other faces away. Planar faces and the face boundaries add none.
-    pub fn push_silhouette_pipes(&self, seg: &mut SegRows, bounds: &mut AABB) {
-        seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
-        seg.pipe_sags.resize(seg.pipes.len(), 0.0);
-
-        for (face, facets) in self.facets.iter().enumerate() {
-            let mut edges: Vec<_> = facets.iter().collect();
-            edges.sort_unstable_by_key(|(edge, _)| **edge);
-
-            for (edge, pair) in edges {
-                let (Some(n0), Some(n1)) = (pair.normals[0], pair.normals[1]) else {
-                    continue;
-                };
-
-                if pair.count != 2 || n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] >= COPLANAR_DOT {
-                    continue;
-                }
-
-                let p0 = super::curves::render_position(edge[0].map(f64::from_bits));
-                let p1 = super::curves::render_position(edge[1].map(f64::from_bits));
-
-                if p0 == p1 || !p0.into_iter().chain(p1).all(f32::is_finite) {
-                    continue;
-                }
-
-                bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
-                bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
-                let pair = (scaled_normal(Some(n0), self.signs[face]), scaled_normal(Some(n1), self.signs[face]));
-                seg.pipes.push(CylinderSegment {
-                    p0,
-                    radius: self.pen.radius,
-                    p1,
-                    instance_id: self.pen.row,
-                    color: self.pen.color,
-                    facing: self.facing_word(pair),
-                });
-                seg.pipe_ids.push(u32::MAX);
-                seg.pipe_sags.push(SILHOUETTE_SAG);
-            }
-        }
     }
 
     /// Outward normals of the faces beside one pipe; none when ambiguous.
@@ -1194,6 +1170,38 @@ mod tests {
         assert!(seg.pipe_ids.is_empty());
     }
 
+    #[test]
+    fn zoomed_shallow_curves_keep_their_measured_depth_envelope() {
+        use session_rust::{NurbsCurve, Point};
+        for offset in [0.01, 1e-8] {
+            let mut brep = BRep::create_box(40.0, 30.0, 25.0);
+            let meshes = brep.face_meshes_q(Some(QUALITY));
+            let chains = edge_chains(&brep, &meshes);
+            let chain = chains[0].as_ref().unwrap();
+            let curve_index = brep.m_edges[chain.edge].curve_3d_index as usize;
+            let curve = &brep.m_curves_3d[curve_index];
+            let (start, end) = curve.domain();
+            let (a, b) = (curve.point_at(start), curve.point_at(end));
+            let mut middle = Point::new((a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5, (a[2] + b[2]) * 0.5);
+            let axis = if (a[2] - b[2]).abs() < 1e-12 { 2 } else { 0 };
+            middle[axis] += offset;
+            brep.m_curves_3d[curve_index] = NurbsCurve::create(false, 2, &[a, middle, b]);
+            assert!(turning_degrees(&brep.m_curves_3d[curve_index]) < EDGE_DEGREES);
+            let legacy = display_chain(&brep, chain, &meshes[chain.face]);
+            assert!(legacy.sags.iter().all(|sag| *sag == 0.0));
+            let display = display_chain_quality(&brep, chain, &meshes[chain.face], super::super::display::Quality { tolerance: offset / 100.0 });
+            assert!(display.sags.iter().any(|sag| *sag > 0.0));
+            for (i, ends) in display.points.windows(2).enumerate() {
+                let span = display.spans[i];
+                let a = vertex_position(&meshes[chain.face], chain.keys[span]);
+                let b = vertex_position(&meshes[chain.face], chain.keys[span + 1]);
+                for point in ends {
+                    assert!(segment_distance(*point, a, b) <= f64::from(display.sags[i]) + offset * 1e-5);
+                }
+            }
+        }
+    }
+
     /// A circle edge is drawn from its curve, at least 64 chords along its 32-step chain, each
     /// chord facing the facets of the chain segment it lies on and rising off them by less than
     /// the chain's sag; a straight edge is drawn at its chain's steps, on its faces.
@@ -1422,6 +1430,22 @@ mod tests {
         );
         let fms = b.face_meshes_q(Some(QUALITY));
         assert!(!fms[0].face.is_empty());
+        assert!(b.face_meshes_q_bounded(QUALITY, 1).is_none());
+        let bounded = b.face_meshes_q_bounded(QUALITY, 1_000_000).expect("bounded generic curved trim");
+        let (before, after) = (fms[0].to_render(), bounded[0].to_render());
+        assert_eq!(before.indices, after.indices);
+        assert_eq!(bytemuck::cast_slice::<_, u8>(&before.vertices), bytemuck::cast_slice::<_, u8>(&after.vertices));
+
+        let absolute_chord = QUALITY.1 * super::super::display::brep_diagonal(&b);
+        let remote = surface.transformed(&session_rust::Xform::translation(100.0, 0.0, 0.0));
+        let mut wider = b.clone();
+        wider.add_surface(&remote);
+        let quality = (QUALITY.0, absolute_chord / super::super::display::brep_diagonal(&wider));
+        let wider_meshes = wider.face_meshes_q_bounded(quality, 1_000_000).unwrap();
+        let wider_render = wider_meshes[0].to_render();
+        assert_eq!(after.indices, wider_render.indices);
+        assert_eq!(bytemuck::cast_slice::<_, u8>(&after.vertices), bytemuck::cast_slice::<_, u8>(&wider_render.vertices));
+
         let chains = edge_chains(&b, &fms);
 
         for (edge, chain) in chains.iter().enumerate() {

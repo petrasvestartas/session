@@ -588,6 +588,19 @@ impl State {
         let interacting = self.interacting || wheeling;
         self.gpu.performance.interacting = interacting;
         self.camera.grow_extent(&self.gpu.bounds);
+        let editing = self.features.dragging.is_some()
+            || self.features.control_drag.is_some()
+            || self.features.object_drag.is_some()
+            || self.features.draft.is_some()
+            || self.features.pending_split.is_some();
+        if !interacting && !editing && !self.gpu.view.spin {
+            let (refining, changed) = self.scene.refine_display(&mut self.gpu, &self.camera);
+            self.needs_frame |= refining;
+            self.dirty |= changed;
+            if changed {
+                self.reselect_face();
+            }
+        }
         let origin = self.camera.origin();
         // the point GPU rows are measured from
         let rebase = self

@@ -147,8 +147,8 @@ pub fn rows(
             crate::chain::Source::Polyline(source) => {
                 walk::walk_polyline(&mut segments, &mut heads, source, index)
             }
-            crate::chain::Source::Curve(source, _) => {
-                walk::walk_nurbscurve(&mut segments, &mut heads, source, index)
+            crate::chain::Source::Curve(source, points) => {
+                walk::walk_sampled_curve(&mut segments, &mut heads, source, points, index)
             }
         };
         add(&mut out, row.id, &row.model, result.flags);

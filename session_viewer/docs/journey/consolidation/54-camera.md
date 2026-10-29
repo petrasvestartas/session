@@ -4320,152 +4320,71 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {
-        return None;
     }
-    if editor.gizmo_hit(screen, size).is_some() {
+    if consumed || event.type_()!="pointerdown" || !pointer.is_primary() || pointer.button()!=0 {return None;}
+    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {return None;}
+    if editor.gizmo_hit(screen,size).is_some() {
         event.prevent_default();
-        if canvas.set_pointer_capture(id).is_err() {
-            return Some(Action::GizmoCancel);
-        }
-        Some(Action::GizmoPress {
-            pointer: id,
-            screen,
-            size,
-            modified: false,
-        })
+        if canvas.set_pointer_capture(id).is_err() {return Some(Action::GizmoCancel);}
+        Some(Action::GizmoPress {pointer:id,screen,size,modified:false})
+    } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
+}
 ```
 
 Replace it with:
 
 ```rust
-    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {
-        return None;
     }
-    let finger = pointer.pointer_type() == "touch";
-    if editor
-        .gizmo_hit_radius(
-            screen,
-            size,
-            if finger {
-                18.
-            } else {
-                8.
-            },
-        )
-        .is_some()
-    {
+    if consumed || event.type_()!="pointerdown" || !pointer.is_primary() || pointer.button()!=0 {return None;}
+    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {return None;}
+    let finger=pointer.pointer_type()=="touch";
+    if editor.gizmo_hit_radius(screen,size,if finger {18.} else {8.}).is_some() {
         event.prevent_default();
-        if canvas.set_pointer_capture(id).is_err() {
-            return Some(Action::GizmoCancel);
-        }
-        Some(if finger {
-            Action::GizmoTouch {
-                pointer: id,
-                screen,
-                size,
-            }
-        } else {
-            Action::GizmoPress {
-                pointer: id,
-                screen,
-                size,
-                modified: false,
-            }
-        })
+        if canvas.set_pointer_capture(id).is_err() {return Some(Action::GizmoCancel);}
+        Some(if finger {Action::GizmoTouch {pointer:id,screen,size}} else {Action::GizmoPress {pointer:id,screen,size,modified:false}})
+    } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
+}
 ```
 
 **Locate this block:**
 
 ```rust
-                });
-                return;
-            }
-            let shortcut = event
-                .dyn_ref::<web_sys::KeyboardEvent>()
-                .and_then(|key| panel.shortcut(key));
+        let mut editor = shared.borrow_mut();
+        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
+        if event.type_() == "pagehide" {
+            gesture.cancel(); let _=editor.apply(Action::GizmoCancel);
+            math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
+            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
+            return;
+        }
+        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
+        let line = if let Some(shortcut) = shortcut {
+            event.prevent_default();
 ```
 
 Replace it with:
 
 ```rust
-                });
-                return;
-            }
-            if matches!(
-                event.type_().as_str(),
-                "blur" | "resize" | "pointercancel"
-            ) || event
-                .dyn_ref::<web_sys::KeyboardEvent>()
-                .is_some_and(|key| key.key() == "Escape" && !key.is_composing())
-            {
-                gesture.cancel();
-                touch.cancel();
-                renderer.cancel_pick();
-                if editor.apply(Action::CanvasCancel) == Ok(Change::Preview) {
-                    crate::browser_upload::prepare(
-                        &mut renderer,
-                        &editor.scene,
-                        editor.whole_selection(),
-                        active_fault.clone(),
-                    );
-                }
-            }
-            if event.type_() == "lostpointercapture"
-                && event
-                    .dyn_ref::<web_sys::PointerEvent>()
-                    .is_some_and(|p| {
-                        editor.canvas_drag.as_ref().is_some_and(|d| {
-                            d.pointer == p.pointer_id() && d.released.is_none()
-                        })
-                    })
-            {
-                gesture.cancel();
-                renderer.cancel_pick();
-                if editor.apply(Action::CanvasCancel) == Ok(Change::Preview) {
-                    crate::browser_upload::prepare(
-                        &mut renderer,
-                        &editor.scene,
-                        editor.whole_selection(),
-                        active_fault.clone(),
-                    );
-                }
-            }
-            if event.type_() == "pointerdown"
-                && event
-                    .dyn_ref::<web_sys::PointerEvent>()
-                    .is_some_and(|p| p.is_primary())
-                && editor
-                    .canvas_drag
-                    .as_ref()
-                    .is_none_or(|d| d.released.is_some())
-            {
-                renderer.cancel_pick();
-                let _ = editor.apply(Action::CanvasCancel);
-            }
-            let shortcut = event
-                .dyn_ref::<web_sys::KeyboardEvent>()
-                .and_then(|key| panel.shortcut(key));
-```
-
-**Locate this block:**
-
-```rust
-                gesture.cancel();
-                let _ = editor.apply(Action::GizmoCancel);
-                crate::browser_upload::prepare(
-                    &mut renderer,
-```
-
-Replace it with:
-
-```rust
-                gesture.cancel();
-                touch.cancel();
-                let _ = editor.apply(Action::CanvasCancel);
-                let _ = editor.apply(Action::GizmoCancel);
-                crate::browser_upload::prepare(
-                    &mut renderer,
+        let mut editor = shared.borrow_mut();
+        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
+        if event.type_() == "pagehide" {
+            gesture.cancel();touch.cancel();let _=editor.apply(Action::CanvasCancel); let _=editor.apply(Action::GizmoCancel);
+            math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
+            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
+            return;
+        }
+        if matches!(event.type_().as_str(),"blur"|"resize"|"pointercancel")||event.dyn_ref::<web_sys::KeyboardEvent>().is_some_and(|key|key.key()=="Escape"&&!key.is_composing()) {
+            gesture.cancel();touch.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {math_view.upload(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
+        }
+        if event.type_()=="lostpointercapture"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|editor.canvas_drag.as_ref().is_some_and(|d|d.pointer==p.pointer_id()&&d.released.is_none())) {
+            gesture.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {math_view.upload(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
+        }
+        if event.type_()=="pointerdown"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.is_primary())&&editor.canvas_drag.as_ref().is_none_or(|d|d.released.is_some()) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}
+        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
+        let line = if let Some(shortcut) = shortcut {
+            event.prevent_default();
 ```
 
 ## <a id="checkpoint-54o-frame"></a>17. Expose drag ownership and centre the available drawing
@@ -4477,75 +4396,71 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                .map(|row| row.id),
-        );
+    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
+    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id));
     let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
     canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
+    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
+    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
 ```
 
 Replace it with:
 
 ```rust
-                .map(|row| row.id),
-        );
+    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
+    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id));
     let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
     canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute(
-        "data-camera-frame",
-        &serde_json::to_string(&editor.camera.frame).unwrap(),
-    )?;
+    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
     canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
+    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
+    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
 ```
 
 **Locate this block:**
 
 ```rust
-                    ));
-                    return;
-                }
-                let hover = event
-                    .dyn_ref::<web_sys::PointerEvent>()
-                    .filter(|p| {
+                report(&format!("Cannot lay out commands: {error:?}"));
+                return;
+            }
+            let hover=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|event.type_()=="pointermove" && p.buttons()==0 && !panel.consumed).map(|p| {
+                let r=pointer_canvas.get_bounding_client_rect();
+                ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
 ```
 
 Replace it with:
 
 ```rust
-                    ));
-                    return;
-                }
-                if let Some(frame) = panel.free_frame([rect.width(), rect.height()]) {
-                    if editor.camera.frame(frame) {
-                        renderer.cancel_pick();
-                        let _ = editor.apply(Action::CanvasCancel);
-                    }
-                }
-                let hover = event
-                    .dyn_ref::<web_sys::PointerEvent>()
-                    .filter(|p| {
+                report(&format!("Cannot lay out commands: {error:?}"));
+                return;
+            }
+            if let Some(frame)=panel.free_frame([rect.width(),rect.height()]) {if editor.camera.frame(frame) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}}
+            let hover=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|event.type_()=="pointermove" && p.buttons()==0 && !panel.consumed).map(|p| {
+                let r=pointer_canvas.get_bounding_client_rect();
+                ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
 ```
 
 **Locate this block:**
 
 ```rust
-            }
-            panel.number(number);
-            panel
-                .tree
+        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
+            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
+        }
+        panel.number(number);
+        panel.tree.refresh(&editor.scene,editor.selected_objects());
+        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
 ```
 
 Replace it with:
 
 ```rust
-            }
-            panel.rectangle = editor
-                .canvas_drag
-                .as_ref()
-                .filter(|d| d.missed)
-                .and_then(|d| d.rectangle());
-            panel.number(number);
-            panel
-                .tree
+        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
+            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
+        }
+        panel.rectangle=editor.canvas_drag.as_ref().filter(|d|d.missed).and_then(|d|d.rectangle());
+        panel.number(number);
+        panel.tree.refresh(&editor.scene,editor.selected_objects());
+        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
 ```
 
 ## <a id="checkpoint-54p-navigation"></a>18. Exercise current navigation selection and delayed answers

@@ -99,6 +99,9 @@ fn make_renderer(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::Texture
     prove_hydrate(&device, &queue, format);
     let mut renderer = Renderer::new(device, queue, format, &editor.scene);
     renderer.set_scene(&editor.scene, editor.selected);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&editor.scene,&editor.camera.uniform(),[WIDTH,HEIGHT],editor.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&editor.scene);
     renderer
 }
 

@@ -1,4 +1,3 @@
-{
   "source_commit": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
   "shader": "Existing complete production_joined.wgsl, ownership-only fragment adapter from production ribbon pipeline",
   "compiled_shader_sha256": "177fcadef6325b5edf384bff97a1cdcc9f209782313ed7d0a251a1e7a9076355",
@@ -14,12 +13,12 @@
     "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
   },
   "extracted_modules": {
-    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
-    "production_brep_ink.rs": "82887eeacd9f0528c750118ef1d6a11eb9e58259a94ace9bf5c086c49f9a87bc"
+    "production_mesh_ink.rs": "817e74bec6aa83243df43195f18f2ceb87881f955963b1661977fb1fcd8f00c5",
+    "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
   },
   "adapters": [
     "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
-    "BRep display_chain, EdgePen, joined pipe chains, sag and silhouette algorithms retain production functions. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; triangle-derived silhouette strokes are omitted. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
     "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
     "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
     "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
@@ -37,5 +36,4 @@
     "semantics": "Every valid original3DNURBS edge, including straight ones, owns display coordinates. Projected face-chain parameters split chords; assigned flat facets provide facing/depth. Foreign-end chains yield valid originalcurve ribbon fallback with unknown facing.",
     "silhouetteNormals": "Original flat triangle cross-product normals retained; reverted exactsurface-normal experiment excluded.",
     "adapter": "End validation lives in cad_edges and display sampling in production_brep_ink because this course splits the maintained module. Existing source-owned ribbon fallback, originalwire dedup, owner IDs and source/archive contracts remain."
-  }
-}
+  },

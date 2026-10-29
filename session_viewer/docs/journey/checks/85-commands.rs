@@ -8,6 +8,9 @@ fn editor()->viewer_journey::editor::Editor{
 }
 fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer{
     let e=editor();let mut renderer=Renderer::new(device,queue,format,&e.scene);
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&e.scene,&e.camera.uniform(),[WIDTH,HEIGHT],e.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&e.scene);
     renderer.replace_text_fonts(vec![include_bytes!("../assets/text/NotoSans-Regular.ttf").to_vec(),include_bytes!("../assets/text/NotoSansSymbols2-Regular.ttf").to_vec(),include_bytes!("../assets/text/NotoSansSymbols-Regular.ttf").to_vec()]).unwrap();renderer.set_guides(&e.guide_overlay()).unwrap();renderer
 }
 fn draw(renderer:&Renderer,view:&wgpu::TextureView){let e=editor();renderer.draw(view,&e.background,&e.camera.uniform());assert_eq!(e.scene.paths().len(),2);assert_eq!(e.scene.texts().len(),1);assert_eq!(e.scene.groups.len(),1);assert_eq!(e.scene.texts()[0].prepared.source.label.text,"timber");let overlay=e.guide_overlay();assert!(!overlay.segments.is_empty());assert_eq!(overlay.label.as_ref().unwrap().1,"+0.800");assert!(renderer.guide_bytes()>0);assert_eq!(renderer.text_error(),None);assert_eq!(renderer.text_stats().unwrap().missing_glyphs,0);}

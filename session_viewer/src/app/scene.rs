@@ -1,5 +1,7 @@
 #[path = "scene_instances.rs"] // register:instancing
 pub(crate) mod instances; // register:instancing
+#[path = "scene_display.rs"]
+pub(crate) mod display;
 #[path = "scene_release.rs"] // register:release
 mod release; // register:release
 #[path = "scene_rows.rs"]
@@ -122,6 +124,7 @@ pub struct Scene {
     burials: u64,                           // tombs made, for their order; register:document
     tomb_cap: u64,                          // lane bytes the tombs may hold; register:document
     pub(crate) instancing: instances::Instancing, // definitions drawn once, placed by instance rows; register:instancing
+    display: display::Display,
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
     #[cfg(test)]
@@ -201,6 +204,7 @@ impl Scene {
             asked: RefCell::new(Vec::new()), // register:release
             stream_ceiling: 0,               // register:stream
             instancing: Default::default(),  // register:instancing
+            display: Default::default(),
             #[cfg(test)]
             ledger: HashMap::new(),
             #[cfg(test)]
@@ -232,6 +236,7 @@ impl Scene {
 
     /// Forget every row.
     fn reset_rows(&mut self) {
+        self.display = Default::default();
         self.row_revision = self.row_revision.wrapping_add(1);
         self.tables = Upload::default();
         self.streamed.clear(); // register:stream
@@ -505,6 +510,7 @@ impl Scene {
             let row = self.push_row(index, guid, object_place, flags);
             placed.insert(guid, row);
             let cx = WalkCx {
+                quality: Default::default(),
                 vert_base: self.uploaded.verts,
                 cloud_px: point_px,
                 row,

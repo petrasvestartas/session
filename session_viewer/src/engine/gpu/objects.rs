@@ -969,6 +969,10 @@ impl InstanceTable {
         b.is_valid().then_some(b)
     }
 
+    pub(crate) fn local_bounds(&self, row: u32) -> Option<AABB> {
+        self.local_bounds.get(row as usize).copied()
+    }
+
     /// Set the world box of a text row.
     pub fn set_text_bounds(&mut self, row: u32, bounds: AABB) {
         if let Some(target) = self.world_bounds.get_mut(row as usize) {

@@ -8,7 +8,10 @@ fn editor() -> viewer_journey::editor::Editor {
 
 fn make_renderer(device:wgpu::Device,queue:wgpu::Queue,format:wgpu::TextureFormat)->Renderer {
     let editor=editor();let mut renderer=Renderer::new(device,queue,format,&editor.scene);
-    renderer.select_objects(&editor.scene,&editor.selected_objects()).unwrap();
+    let mut math_quality=viewer_journey::math_view::Presentation::default();
+    math_quality.drain_matrix(&mut renderer,&editor.scene,&editor.camera.uniform(),[WIDTH,HEIGHT],editor.selected).expect("Native mathematical display must meet the requested physical-pixel quality before capture");
+    let math_scene=math_quality.scene(&editor.scene);
+    renderer.select_objects(&math_scene,&editor.selected_objects()).unwrap();
     renderer.set_gizmo(&editor.camera,editor.gizmo_origin(),editor.gizmo_active());
     let attribute=editor.scene.objects()[1].id;
     assert!(editor.scene.visible(attribute));assert_eq!(editor.scene.pick_id(attribute.value()),None);

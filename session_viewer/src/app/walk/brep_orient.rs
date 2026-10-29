@@ -267,6 +267,7 @@ mod tests {
                 &mut ink,
                 &b,
                 &WalkCx {
+                quality: Default::default(),
                     vert_base: 0,
                     cloud_px: 0.0,
                     row: 0,

@@ -4620,174 +4620,146 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            ..Default::default()
-        });
+        ..Default::default()
+    });
     renderer.draw_mode(&view, background, transform, normals);
     panel.draw(renderer, &view);
+    frame.present();
+    Ok(())
 ```
 
 Replace it with:
 
 ```rust
-            ..Default::default()
-        });
+        ..Default::default()
+    });
     renderer.draw_mode(&view, background, transform, normals);
-    if let Some(error) = renderer.text_error() {
-        panel.result(&format!("Text: {error}"));
-    }
+    if let Some(error)=renderer.text_error() {panel.result(&format!("Text: {error}"));}
     panel.draw(renderer, &view);
+    frame.present();
+    Ok(())
 ```
 
 **Locate this block:**
 
 ```rust
-        &serde_json::to_string(&renderer.point_usage()).unwrap(),
-    )?;
-    canvas.set_attribute(
-        "data-text-error",
-        &renderer.text_error().unwrap_or_default(),
-    )?;
+    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
+    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
+    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
+    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
+    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
 ```
 
 Replace it with:
 
 ```rust
-        &serde_json::to_string(&renderer.point_usage()).unwrap(),
-    )?;
-    canvas.set_attribute(
-        "data-scene-text-stats",
-        &serde_json::to_string(&renderer.text_stats()).unwrap(),
-    )?;
-    canvas.set_attribute(
-        "data-scene-text-cpu",
-        &serde_json::to_string(&crate::memory::texts(
-            editor.presentation_scenes(),
-        ))
-        .unwrap(),
-    )?;
-    canvas.set_attribute(
-        "data-scene-text-gpu",
-        &serde_json::to_string(&renderer.text_scene_usage()).unwrap(),
-    )?;
+    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
+    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
+    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
+    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
+    canvas.set_attribute("data-scene-text-gpu",&serde_json::to_string(&renderer.text_scene_usage()).unwrap())?;
     canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute(
-        "data-text-error",
-        &renderer.text_error().unwrap_or_default(),
-    )?;
+    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
+    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
+    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
 ```
 
 **Locate this block:**
 
 ```rust
-                .points()
-                .iter()
-                .map(|row| row.id),
-        );
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
+    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id));
     let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
     canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute(
+    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
 ```
 
 Replace it with:
 
 ```rust
-                .points()
-                .iter()
-                .map(|row| row.id),
-        )
-        .chain(editor.scene.texts().iter().map(|row| row.id));
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
+    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id));
     let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
     canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute(
+    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
 ```
 
 **Locate this block:**
 
 ```rust
-            } else {
-                panel.tool(String::new(), Vec::new());
-            }
-            let rect = pointer_canvas.get_bounding_client_rect();
-            let number = editor.number_prompt([rect.width(), rect.height()]);
-            if editor
+        }
+        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
+        else { panel.tool(String::new(), Vec::new()); }
+        let rect=pointer_canvas.get_bounding_client_rect();
+        let number=editor.number_prompt([rect.width(),rect.height()]);
+        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
 ```
 
 Replace it with:
 
 ```rust
-            } else {
-                panel.tool(String::new(), Vec::new());
-            }
-            if let Some(reply) = text_fonts.reply.borrow_mut().take() {
-                match reply {
-                    Ok(fonts) => {
-                        if let Err(error) = renderer.replace_text_fonts(fonts) {
-                            text_fonts.failed();
-                            panel.result(&format!("Text: {error}"));
-                        }
-                    }
-                    Err(error) => panel.result(&format!("Text: {error}")),
-                }
-            }
-            renderer.refresh_text_bounds(&mut editor.scene);
-            text_fonts.need(
-                editor
-                    .scene
-                    .texts()
-                    .iter()
-                    .filter(|row| editor.scene.visible(row.id))
-                    .map(|row| row.prepared.source.label.text.as_str()),
-            );
-            let rect = pointer_canvas.get_bounding_client_rect();
-            let number = editor.number_prompt([rect.width(), rect.height()]);
-            if editor
+        }
+        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
+        else { panel.tool(String::new(), Vec::new()); }
+        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
+        renderer.refresh_text_bounds(&mut editor.scene);
+        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
+        let rect=pointer_canvas.get_bounding_client_rect();
+        let number=editor.number_prompt([rect.width(),rect.height()]);
+        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
 ```
 
 **Locate this block:**
 
 ```rust
-                    Ok(crate::commands::Command::Editor(mut action)) => {
-                        if matches!(action, Action::Close) {
-                            request.borrow_mut().cancel();
-                            let _ = renderer.set_text(Vec::new());
-                        }
-                        if shortcut.is_some()
-                            && editor.selected.is_some()
+            match command {
+            Err(error) => { panel.result(&error); None }
+            Ok(crate::commands::Command::Editor(mut action)) => {
+                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _=renderer.set_text(Vec::new()); }
+                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
+                Some(action)
+            }
 ```
 
 Replace it with:
 
 ```rust
-                    Ok(crate::commands::Command::Editor(mut action)) => {
-                        if matches!(action, Action::Close) {
-                            request.borrow_mut().cancel();
-                            let _ = {
-                                text_fonts.clear();
-                                renderer.clear_text_fonts();
-                                renderer.set_text(Vec::new())
-                            };
-                        }
-                        if shortcut.is_some()
-                            && editor.selected.is_some()
+            match command {
+            Err(error) => { panel.result(&error); None }
+            Ok(crate::commands::Command::Editor(mut action)) => {
+                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
+                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
+                Some(action)
+            }
 ```
 
 **Locate this block:**
 
 ```rust
+    surface.configure(&device, &config);
+    let mut editor = shared.borrow_mut();
     let pipeline_started = crate::browser_phase::now();
+    let mut math_view=crate::math_view::Presentation::default();
     let mut renderer = Renderer::new(
         device,
-        queue,
 ```
 
 Replace it with:
 
 ```rust
+    surface.configure(&device, &config);
+    let mut editor = shared.borrow_mut();
     let pipeline_started = crate::browser_phase::now();
-    let text_fonts = std::rc::Rc::new(crate::text_fonts::Inbox::default());
+    let text_fonts=std::rc::Rc::new(crate::text_fonts::Inbox::default());
+    let mut math_view=crate::math_view::Presentation::default();
     let mut renderer = Renderer::new(
         device,
-        queue,
 ```
 
 ## <a id="checkpoint-62o-labels"></a>37. Create pick move and delete the scene labels

@@ -523,103 +523,126 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        .iter()
-        .map(|row| (format!("{:?}", row.id), row.model.m))
-        .collect();
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
+    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
 ```
 
 Replace it with:
 
 ```rust
-        .iter()
-        .map(|row| (format!("{:?}", row.id), row.model.m))
-        .collect();
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?;
+    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
+    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
 ```
 
 **Locate this block:**
 
 ```rust
-                }
+            editor.hover_gizmo(hover);
+            renderer.set_gizmo(&editor.camera,editor.gizmo_origin(),editor.gizmo_active());
+            if let Err(error) = inspect(&editor, &renderer) {
+                report(&format!("Cannot report projection: {error:?}"));
+                return;
             }
-            panel.number(number);
-            if let Err(error) = renderer.set_preview(editor.draft.as_ref()) {
-                panel.result(error);
-            }
+            let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=pointer_canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
 ```
 
 Replace it with:
 
 ```rust
-                }
-            }
-            panel.number(number);
-            panel
-                .tree
-                .refresh(&editor.scene, editor.selected_objects());
-            if let Err(error) = renderer.set_preview(editor.draft.as_ref()) {
-                panel.result(error);
-            }
+            editor.hover_gizmo(hover);
+            renderer.set_gizmo(&editor.camera,editor.gizmo_origin(),editor.gizmo_active());
+            if let Err(error) = inspect(&editor, &renderer) {
+            report(&format!("Cannot report projection: {error:?}"));
+            return;
+        }
+            let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=pointer_canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
 ```
 
 **Locate this block:**
 
 ```rust
-                &editor,
-                panel.consumed,
-            );
-            let action = if let Some(handle_action) = handle_action {
-                renderer.cancel_pick();
-                gesture.cancel();
-                Some(handle_action)
+            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
+        }
+        panel.number(number);
+        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
+        renderer.set_pick_mode(editor.pick_mode);
+        if highlight_changed {
 ```
 
 Replace it with:
 
 ```rust
-                &editor,
-                panel.consumed,
-            );
-            let action = if let Some((ids, additive)) = panel.tree.action.take() {
-                renderer.cancel_pick();
-                gesture.cancel();
-                Some(Action::TreePick { ids, additive })
-            } else if let Some(handle_action) = handle_action {
-                renderer.cancel_pick();
-                gesture.cancel();
-                Some(handle_action)
+            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;math_view.upload(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
+        }
+        panel.number(number);
+        panel.tree.refresh(&editor.scene,editor.selected_objects());
+        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
+        renderer.set_pick_mode(editor.pick_mode);
+        if highlight_changed {
 ```
 
 **Locate this block:**
 
 ```rust
-                            }
-                            Host::Save => {
-                                let result = crate::browser_reload::restore_for(
-                                    crate::edit_intent::Intent::Save,
+            None
+        };
+        let handle_action=gizmo_action(&event,&pointer_canvas,&editor,panel.consumed);
+        let action = if let Some(handle_action)=handle_action {
+            renderer.cancel_pick();gesture.cancel();Some(handle_action)
+        } else if event.type_() == "viewer-pick" {
+            match renderer.take_pick(editor.camera.uniform()) {
 ```
 
 Replace it with:
 
 ```rust
-                            }
-                            Host::LayersOn => {
-                                panel.tree.open = true;
-                                None
-                            }
-                            Host::LayersOff => {
-                                panel.tree.open = false;
-                                None
-                            }
-                            Host::LayersAll => {
-                                panel.tree.all();
-                                None
-                            }
-                            Host::Save => {
-                                let result = crate::browser_reload::restore_for(
-                                    crate::edit_intent::Intent::Save,
+            None
+        };
+        let handle_action=gizmo_action(&event,&pointer_canvas,&editor,panel.consumed);
+        let action = if let Some((ids,additive))=panel.tree.action.take() {
+            renderer.cancel_pick();gesture.cancel();Some(Action::TreePick {ids,additive})
+        } else if let Some(handle_action)=handle_action {
+            renderer.cancel_pick();gesture.cancel();Some(handle_action)
+        } else if event.type_() == "viewer-pick" {
+            match renderer.take_pick(editor.camera.uniform()) {
+```
+
+**Locate this block:**
+
+```rust
+                panel.result(&result);
+                None
+            }
+            Host::Save => {
+                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
+                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
+```
+
+Replace it with:
+
+```rust
+                panel.result(&result);
+                None
+            }
+            Host::LayersOn=>{panel.tree.open=true;None},
+            Host::LayersOff=>{panel.tree.open=false;None},
+            Host::LayersAll=>{panel.tree.all();None},
+            Host::Save => {
+                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
+                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
 ```
 
 ## <a id="checkpoint-52k-tree"></a>5. Exercise nested source ownership and exact undo

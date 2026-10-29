@@ -515,218 +515,174 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        &serde_json::to_string(&editor.camera.view_projection().m)
-            .map_err(|error| JsValue::from_str(&error.to_string()))?,
-    )?;
+    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
+    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
+    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
+        let m = &row.metadata;
 ```
 
 Replace it with:
 
 ```rust
-        &serde_json::to_string(&editor.camera.view_projection().m)
-            .map_err(|error| JsValue::from_str(&error.to_string()))?,
-    )?;
-    canvas.set_attribute(
-        "data-render-origin",
-        &serde_json::to_string(&renderer.anchor()).unwrap(),
-    )?;
-    canvas.set_attribute(
-        "data-render-matrix",
-        &serde_json::to_string(&renderer.camera_matrix(&editor.camera)).unwrap(),
-    )?;
+    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
+    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
+    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-render-origin",&serde_json::to_string(&renderer.anchor()).unwrap())?;
+    canvas.set_attribute("data-render-matrix",&serde_json::to_string(&renderer.camera_matrix(&editor.camera)).unwrap())?;
+    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
+        let m = &row.metadata;
 ```
 
 **Locate this block:**
 
 ```rust
-                    &surface,
-                    &renderer,
-                    &editor.background,
-                    &editor.camera.uniform(),
-                    editor.normal_view,
-                    &mut panel,
-                ) {
+                &surface,
+                &renderer,
+                &editor.background,
+                &editor.camera.uniform(),
+                editor.normal_view,
+                &mut panel,
+            ) {
 ```
 
 Replace it with:
 
 ```rust
-                    &surface,
-                    &renderer,
-                    &editor.background,
-                    &renderer.camera_matrix(&editor.camera),
-                    editor.normal_view,
-                    &mut panel,
-                ) {
+                &surface,
+                &renderer,
+                &editor.background,
+                &renderer.camera_matrix(&editor.camera),
+                editor.normal_view,
+                &mut panel,
+            ) {
 ```
 
 **Locate this block:**
 
 ```rust
-                                    p.shift_key() && !p.ctrl_key() && !p.meta_key()
-                                }),
-                        );
-                        if let Err(error) =
-                            renderer.request_pick(screen, editor.camera.uniform())
-                        {
-                            report(error);
-                        }
-                        None
+            Some(Action::Pick(screen)) => {
+                pick_remove.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.ctrl_key()||p.meta_key()));
+                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
+                if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
+                None
+            }
+            Some(action) => { renderer.cancel_pick(); Some(action) },
 ```
 
 Replace it with:
 
 ```rust
-                                    p.shift_key() && !p.ctrl_key() && !p.meta_key()
-                                }),
-                        );
-                        if let Err(error) = renderer.request_pick(
-                            screen,
-                            renderer.camera_matrix(&editor.camera),
-                        ) {
-                            report(error);
-                        }
-                        None
+            Some(Action::Pick(screen)) => {
+                pick_remove.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.ctrl_key()||p.meta_key()));
+                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
+                if let Err(error) = renderer.request_pick(screen, renderer.camera_matrix(&editor.camera)) { report(error); }
+                None
+            }
+            Some(action) => { renderer.cancel_pick(); Some(action) },
 ```
 
 **Locate this block:**
 
 ```rust
-                                remove: pointer.ctrl_key() || pointer.meta_key(),
-                            });
-                        if !modified {
-                            if let Err(error) =
-                                renderer.request_pick(from, editor.camera.uniform())
-                            {
-                                report(error);
-                                return;
-                            }
+                let modified=modified||editor.pick_mode!=crate::pick_sources::Mode::Object;
+                let start=Action::CanvasStart {from,to,size,modified,pointer};
+                let release=event.dyn_ref::<web_sys::PointerEvent>().filter(|_|event.type_()=="pointerup").map(|pointer|Action::CanvasRelease {screen:to,size,add:pointer.shift_key(),remove:pointer.ctrl_key()||pointer.meta_key()});
+                if !modified {if let Err(error)=renderer.request_pick(from,editor.camera.uniform()) {report(error);return;}}
+                Some(Action::Touch(std::iter::once(start).chain(release).collect()))
+            },
+            Some(Action::CanvasStart {..}|Action::CanvasMove {..}|Action::CanvasRelease {..}) if editor.draft.is_some()=>None,
 ```
 
 Replace it with:
 
 ```rust
-                                remove: pointer.ctrl_key() || pointer.meta_key(),
-                            });
-                        if !modified {
-                            if let Err(error) = renderer.request_pick(
-                                from,
-                                renderer.camera_matrix(&editor.camera),
-                            ) {
-                                report(error);
-                                return;
-                            }
+                let modified=modified||editor.pick_mode!=crate::pick_sources::Mode::Object;
+                let start=Action::CanvasStart {from,to,size,modified,pointer};
+                let release=event.dyn_ref::<web_sys::PointerEvent>().filter(|_|event.type_()=="pointerup").map(|pointer|Action::CanvasRelease {screen:to,size,add:pointer.shift_key(),remove:pointer.ctrl_key()||pointer.meta_key()});
+                if !modified {if let Err(error)=renderer.request_pick(from,renderer.camera_matrix(&editor.camera)) {report(error);return;}}
+                Some(Action::Touch(std::iter::once(start).chain(release).collect()))
+            },
+            Some(Action::CanvasStart {..}|Action::CanvasMove {..}|Action::CanvasRelease {..}) if editor.draft.is_some()=>None,
 ```
 
 **Locate this block:**
 
 ```rust
-                                        pick_remove.set(false);
-                                        if let Err(error) = renderer.request_pick(
-                                            screen,
-                                            editor.camera.uniform(),
-                                        ) {
-                                            report(error);
-                                        }
+            Some(Action::Touch(actions))=> {
+                let mut applied=Vec::new();
+                for action in actions {match action {
+                    Action::Pick(screen)=>{if editor.trimming_parts(){let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true});}else if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()){report(error)}}else if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()) {report(error);}}},
+                    action=>{renderer.cancel_pick();applied.push(action);}
+                }}Some(Action::Touch(applied))
+            },
 ```
 
 Replace it with:
 
 ```rust
-                                        pick_remove.set(false);
-                                        if let Err(error) = renderer.request_pick(
-                                            screen,
-                                            renderer.camera_matrix(&editor.camera),
-                                        ) {
-                                            report(error);
-                                        }
+            Some(Action::Touch(actions))=> {
+                let mut applied=Vec::new();
+                for action in actions {match action {
+                    Action::Pick(screen)=>{if editor.trimming_parts(){let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true});}else if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,renderer.camera_matrix(&editor.camera)){report(error)}}else if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,renderer.camera_matrix(&editor.camera)) {report(error);}}},
+                    action=>{renderer.cancel_pick();applied.push(action);}
+                }}Some(Action::Touch(applied))
+            },
 ```
 
 **Locate this block:**
 
 ```rust
-                                        pick_remove.set(false);
-                                        if let Err(error) = renderer.request_pick(
-                                            screen,
-                                            editor.camera.uniform(),
-                                        ) {
-                                            report(error)
-                                        }
+            }
+        } else { match action {
+            Some(Action::Pick(screen)) if editor.trimming_parts()=>{let r=pointer_canvas.get_bounding_client_rect();Some(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true})},
+            Some(Action::Pick(screen)) if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves()=>{pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()){report(error)}None},
+            Some(Action::Pick(screen)) if editor.draft.is_some() => {
+                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
+            }
 ```
 
 Replace it with:
 
 ```rust
-                                        pick_remove.set(false);
-                                        if let Err(error) = renderer.request_pick(
-                                            screen,
-                                            renderer.camera_matrix(&editor.camera),
-                                        ) {
-                                            report(error)
-                                        }
+            }
+        } else { match action {
+            Some(Action::Pick(screen)) if editor.trimming_parts()=>{let r=pointer_canvas.get_bounding_client_rect();Some(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true})},
+            Some(Action::Pick(screen)) if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves()=>{pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,renderer.camera_matrix(&editor.camera)){report(error)}None},
+            Some(Action::Pick(screen)) if editor.draft.is_some() => {
+                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
+            }
 ```
 
 **Locate this block:**
 
 ```rust
-                    {
-                        pick_additive.set(false);
-                        pick_remove.set(false);
-                        if let Err(error) =
-                            renderer.request_pick(screen, editor.camera.uniform())
-                        {
-                            report(error)
-                        }
-                        None
+        } else if let Some(handle_action)=handle_action {
+            renderer.cancel_pick();gesture.cancel();Some(handle_action)
+        } else if event.type_() == "viewer-pick" {
+            match renderer.take_pick(editor.camera.uniform()) {
+                Some(Ok(hit)) => {
+                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
+                    if editor.element.is_some(){Some(Action::ElementPick(target.map(|t|t.owner)))}else if editor.trimming_picks(){Some(Action::TrimPick(target.map(|t|t.owner)))}else if editor.split.is_some(){Some(Action::SplitPick(target.map(|t|t.owner)))}else if editor.editing_boundaries(){Some(Action::ExtendPick(target.map(|t|t.owner)))}else if editor.gathering_curves(){Some(Action::GatherPick(target.map(|t|t.owner)))}
 ```
 
 Replace it with:
 
 ```rust
-                    {
-                        pick_additive.set(false);
-                        pick_remove.set(false);
-                        if let Err(error) = renderer.request_pick(
-                            screen,
-                            renderer.camera_matrix(&editor.camera),
-                        ) {
-                            report(error)
-                        }
-                        None
+        } else if let Some(handle_action)=handle_action {
+            renderer.cancel_pick();gesture.cancel();Some(handle_action)
+        } else if event.type_() == "viewer-pick" {
+            match renderer.take_pick(renderer.camera_matrix(&editor.camera)) {
+                Some(Ok(hit)) => {
+                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
+                    if editor.element.is_some(){Some(Action::ElementPick(target.map(|t|t.owner)))}else if editor.trimming_picks(){Some(Action::TrimPick(target.map(|t|t.owner)))}else if editor.split.is_some(){Some(Action::SplitPick(target.map(|t|t.owner)))}else if editor.editing_boundaries(){Some(Action::ExtendPick(target.map(|t|t.owner)))}else if editor.gathering_curves(){Some(Action::GatherPick(target.map(|t|t.owner)))}
 ```
 
 **Locate this block:**
 
 ```rust
-                gesture.cancel();
-                Some(handle_action)
-            } else if event.type_() == "viewer-pick" {
-                match renderer.take_pick(editor.camera.uniform()) {
-                    Some(Ok(hit)) => {
-                        let target = hit
-                            .and_then(|hit| renderer.resolve_pick(&editor.scene, hit));
-```
-
-Replace it with:
-
-```rust
-                gesture.cancel();
-                Some(handle_action)
-            } else if event.type_() == "viewer-pick" {
-                match renderer.take_pick(renderer.camera_matrix(&editor.camera)) {
-                    Some(Ok(hit)) => {
-                        let target = hit
-                            .and_then(|hit| renderer.resolve_pick(&editor.scene, hit));
-```
-
-**Locate this block:**
-
-```rust
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        let frame_started = crate::browser_phase::now();
-        present(
             &surface,
             &renderer,
             &editor.background,
@@ -739,12 +695,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        inspect(&editor, &renderer)?;
-        let frame_started = crate::browser_phase::now();
-        present(
             &surface,
             &renderer,
             &editor.background,
@@ -757,47 +707,52 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    let limit = device.limits().max_texture_dimension_2d;
-    let density = window.device_pixel_ratio();
-    let density = if density.is_finite() && density > 0.0 {
-        density
-    } else {
-        1.0
-    };
-    let width = ((window
-        .inner_width()?
-        .as_f64()
-        .ok_or("No window width")?
-        * density)
-        .round() as u32)
-        .clamp(1, limit);
-    let height = ((window
-        .inner_height()?
-        .as_f64()
-        .ok_or("No window height")?
-        * density)
-        .round() as u32)
-        .clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
+        &mut editor,
+    ) {
+        panel.update(None, &canvas)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
 ```
 
 Replace it with:
 
 ```rust
+        &mut editor,
+    ) {
+        panel.update(None, &canvas)?;
+        inspect(&editor,&renderer)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
+        let _=canvas.set_attribute("data-math-display",&serde_json::json!({"pending":pending,"bytes":math_view.bytes,"generations":math_view.generations,"limited":math_view.limited,"qualities":math_view.qualities()}).to_string());
+```
+
+**Locate this block:**
+
+```rust
+    let lost = fault.clone();
+    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
     let limit = device.limits().max_texture_dimension_2d;
-    let width = (window
-        .inner_width()?
-        .as_f64()
-        .ok_or("No window width")? as u32)
-        .clamp(1, limit);
-    let height = (window
-        .inner_height()?
-        .as_f64()
-        .ok_or("No window height")? as u32)
-        .clamp(1, limit);
+    let density = window.device_pixel_ratio();
+    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };
+    let width = ((window.inner_width()?.as_f64().ok_or("No window width")? * density).round() as u32).clamp(1, limit);
+    let height = ((window.inner_height()?.as_f64().ok_or("No window height")? * density).round() as u32).clamp(1, limit);
     canvas.set_width(width);
     canvas.set_height(height);
+    let mut config = surface
+```
+
+Replace it with:
+
+```rust
+    let lost = fault.clone();
+    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
+    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let mut config = surface
 ```
 
 ## <a id="checkpoint-96zzzzzs-adopt-the-shared-origin-in-the-browser"></a>3. Adopt the shared origin in the browser
@@ -903,21 +858,24 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        "data-render-origin",
-        &serde_json::to_string(&renderer.anchor()).unwrap(),
-    )?;
+    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
+    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-render-origin",&serde_json::to_string(&renderer.anchor()).unwrap())?;
+    canvas.set_attribute("data-render-matrix",&serde_json::to_string(&renderer.camera_matrix(&editor.camera)).unwrap())?;
+    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
 ```
 
 Replace it with:
 
 ```rust
-        "data-render-origin",
-        &serde_json::to_string(&renderer.anchor()).unwrap(),
-    )?;
-    canvas.set_attribute(
-        "data-camera-target",
-        &serde_json::to_string(&editor.camera.target).unwrap(),
-    )?;
+    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
+    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    canvas.set_attribute("data-render-origin",&serde_json::to_string(&renderer.anchor()).unwrap())?;
+    canvas.set_attribute("data-camera-target",&serde_json::to_string(&editor.camera.target).unwrap())?;
+    canvas.set_attribute("data-render-matrix",&serde_json::to_string(&renderer.camera_matrix(&editor.camera)).unwrap())?;
+    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
 ```
 
 **Locate this block:**
@@ -937,7 +895,7 @@ Replace it with:
     listeners.listen(document.as_ref(), "change")?;
     listeners.listen(document.as_ref(), "cancel")?;
     listeners.listen(window.as_ref(), "viewer-pick")?;
-    listeners.listen(window.as_ref(), "viewer-origin")?;
+    listeners.listen(window.as_ref(),"viewer-origin")?;
     listeners.listen(window.as_ref(), "viewer-tiles")?;
     listeners.listen(window.as_ref(), "viewer-publication")?;
     listeners.listen(window.as_ref(), "viewer-sheet-entity")?;
@@ -946,120 +904,101 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-                    Err(error) => panel.result(&error),
-                }
-            }
-            let guides = editor.guide_overlay_at(renderer.anchor());
-            if let Err(error) = renderer.set_guides(&guides) {
-                panel.result(error);
+        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
+        sheet_query.observe(&editor.scene,editor.selection(),&active_fault);
+        if let Some(reply)=sheet_query.take() {match reply {Ok(entity)=>panel.result(&format!("{} · {} · {}",entity.name,entity.kind,entity.guid)),Err(error)=>panel.result(&error)}}
+        let guides=editor.guide_overlay_at(renderer.anchor());
+        if let Err(error)=renderer.set_guides(&guides){panel.result(error);}
+        if let Err(error)=renderer.set_measurement(editor.mark.as_ref()){panel.result(error);}
 ```
 
 Replace it with:
 
 ```rust
-                    Err(error) => panel.result(&error),
-                }
-            }
-            let origin_frame =
-                match crate::browser_rebase::prepare(&mut renderer, &editor) {
-                    Ok(frame) => frame,
-                    Err(error) => {
-                        report(&format!("Cannot prepare view: {error:?}"));
-                        return;
-                    }
-                };
-            if origin_frame.moved {
-                highlight_changed = false;
-            }
-            if let Err(error) = origin_wake.sync(
-                origin_frame.pending,
-                renderer
-                    .rebase_delay(crate::browser_phase::now())
-                    .unwrap_or(1),
-            ) {
-                report(&format!("Cannot schedule view: {error:?}"));
-                return;
-            }
-            let _ = pointer_canvas.set_attribute(
-                "data-origin-pending",
-                if origin_wake.pending() {
-                    "true"
-                } else {
-                    "false"
-                },
-            );
-            let guides = editor.guide_overlay_at(renderer.anchor());
-            if let Err(error) = renderer.set_guides(&guides) {
-                panel.result(error);
+        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
+        sheet_query.observe(&editor.scene,editor.selection(),&active_fault);
+        if let Some(reply)=sheet_query.take() {match reply {Ok(entity)=>panel.result(&format!("{} · {} · {}",entity.name,entity.kind,entity.guid)),Err(error)=>panel.result(&error)}}
+        let origin_frame=match crate::browser_rebase::prepare(&mut renderer,&editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){Ok(frame)=>frame,Err(error)=>{report(&format!("Cannot prepare view: {error:?}"));return;}};
+        if origin_frame.moved{highlight_changed=false;}
+        if let Err(error)=origin_wake.sync(origin_frame.pending,renderer.rebase_delay(crate::browser_phase::now()).unwrap_or(1)){report(&format!("Cannot schedule view: {error:?}"));return;}
+        let _=pointer_canvas.set_attribute("data-origin-pending",if origin_wake.pending(){"true"}else{"false"});
+        let guides=editor.guide_overlay_at(renderer.anchor());
+        if let Err(error)=renderer.set_guides(&guides){panel.result(error);}
+        if let Err(error)=renderer.set_measurement(editor.mark.as_ref()){panel.result(error);}
 ```
 
 **Locate this block:**
 
 ```rust
-                line
-            };
+            event.prevent_default(); gesture.cancel(); Some("Escape".into())
+        } else { line };
 
-            let mut highlight_changed = false;
-            let action = if event.type_() == "cancel"
-                && event
+        let mut highlight_changed = false;
+        let action = if event.type_() == "cancel" && event.target()
+            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
+            .is_some_and(|input| input.id() == "open")
 ```
 
 Replace it with:
 
 ```rust
-                line
-            };
+            event.prevent_default(); gesture.cancel(); Some("Escape".into())
+        } else { line };
 
-            if let Err(error) = crate::browser_rebase::prepare(&mut renderer, &editor) {
-                report(&format!("Cannot prepare view: {error:?}"));
-                return;
-            }
-            let mut highlight_changed = false;
-            let action = if event.type_() == "cancel"
-                && event
+        if let Err(error)=crate::browser_rebase::prepare(&mut renderer,&editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame}){report(&format!("Cannot prepare view: {error:?}"));return;}
+        let mut highlight_changed=false;
+        let action = if event.type_() == "cancel" && event.target()
+            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
+            .is_some_and(|input| input.id() == "open")
 ```
 
 **Locate this block:**
 
 ```rust
     drop(editor);
-    let sheet_query = crate::browser_sheet::Control::default();
+    let sheet_query=crate::browser_sheet::Control::default();
     let owned_editor = std::rc::Rc::clone(&shared);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
-        move |event: web_sys::Event| {
-            if active_fault.message().is_some() {
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        if event.type_()=="viewer-math" {math_view.event();}
+        if active_fault.message().is_some() { return; }
 ```
 
 Replace it with:
 
 ```rust
     drop(editor);
-    let sheet_query = crate::browser_sheet::Control::default();
+    let sheet_query=crate::browser_sheet::Control::default();
     let owned_editor = std::rc::Rc::clone(&shared);
-    let mut origin_wake = crate::browser_rebase::Wake::new(fault.clone());
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
-        move |event: web_sys::Event| {
-            if active_fault.message().is_some() {
+    let mut origin_wake=crate::browser_rebase::Wake::new(fault.clone());
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        if event.type_()=="viewer-math" {math_view.event();}
+        if active_fault.message().is_some() { return; }
 ```
 
 **Locate this block:**
 
 ```rust
+        &mut renderer,
+        &mut editor,
+    ) {
         panel.update(None, &canvas)?;
-        inspect(&editor, &renderer)?;
-        let frame_started = crate::browser_phase::now();
-        present(
+        inspect(&editor,&renderer)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
 ```
 
 Replace it with:
 
 ```rust
-        panel.update(None, &canvas)?;
-        crate::browser_rebase::prepare(&mut renderer, &editor)?;
-        canvas.set_attribute("data-origin-pending", "false")?;
-        inspect(&editor, &renderer)?;
-        let frame_started = crate::browser_phase::now();
-        present(
+        &mut renderer,
+        &mut editor,
+    ) {
+        panel.update(None,&canvas)?;
+        crate::browser_rebase::prepare(&mut renderer,&editor).map(|frame|{if frame.moved {math_view.invalidate(editor.display_scene());}frame})?;
+        canvas.set_attribute("data-origin-pending","false")?;
+        inspect(&editor,&renderer)?;
+        let pending=if editor.draft.is_some() || editor.gizmo_edit.is_some() {math_view.invalidate(editor.display_scene());false} else {math_view.refresh(&mut renderer,editor.display_scene(),&editor.camera,[config.width,config.height],editor.whole_selection())};
+        if math_view.uploaded {let view=math_view.scene(editor.display_scene());let _=renderer.set_highlight(&view,editor.selection());let _=renderer.select_objects(&view,&editor.selected_objects());}
 ```
 
 ## Build & Run

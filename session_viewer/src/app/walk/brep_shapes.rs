@@ -635,10 +635,11 @@ pub fn replay(b: &BRep, arena: &mut ArenaRows, ink: &mut Ink, cx: &WalkCx) -> Sh
         let Some(shapes) = shapes.as_ref() else {
             return Share::Off;
         };
-        let Some(key) = ShapeKey::of(b) else {
+        let Some(mut key) = ShapeKey::of(b) else {
             return Share::Off;
         };
 
+        key.words.push(cx.quality.tolerance.to_bits());
         match shapes.get(&key.words) {
             Some(Some(recording)) => Share::Replayed(recording.replay(&key.frame, arena, ink, cx)),
             Some(None) => Share::Off,
@@ -693,6 +694,7 @@ mod tests {
                 faces: self.arena.face_sources.len(),
             };
             let cx = WalkCx {
+                quality: Default::default(),
                 vert_base: 7,
                 cloud_px: 0.0,
                 row: 4,
@@ -818,6 +820,7 @@ mod tests {
         assert_eq!(pipes_per_edge(ids), pipes_per_edge(&alone.seg.pipe_ids));
         let silhouettes = |sags: &[f32]| sags.iter().filter(|sag| is_silhouette(**sag)).count();
         assert_eq!(silhouettes(&shared.seg.pipe_sags[at.pipes..]), silhouettes(&alone.seg.pipe_sags));
+        assert_eq!(silhouettes(&alone.seg.pipe_sags), 0, "shape sharing never restores triangle-edge strokes");
         let edge_pipes = ids.iter().filter(|id| **id != u32::MAX).count();
         let mut same_ends = 0;
 

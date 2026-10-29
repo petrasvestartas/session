@@ -1,18 +1,18 @@
 {
-  "session_head": "9d5a6f65fec1f03ec80a1ccb56cd8f26a59433bf",
-  "wood_head": "5318ba20048d6f4996fce2d593ee9560a9de0621",
+  "session_head": "3632c98d00dfbdeb7ccb035ba53b51cd62677dbf",
+  "wood_head": "776dd923e056a9b17f3ce974e9c329592e9cd58d",
   "kernel_head": "8445d2149f59c5a1caebb1a3e605833bf21996f2",
   "scope": "All files under the three Rust src trees and existing Cargo/build/web entries. Includes the preserved local rational-control change. Assets are separately hashed by the dependency evidence closure; C++ and generated models require their own provenance. Includes preserved October 10 hierarchy-path and parent Element-lamp changes; the original inventory remains historical. October 14 refresh records seven changed kernel/wood inputs and current repository heads; all viewer file hashes and the historical inventories remain unchanged. Checkpoint 1276 separately records regenerated Session protocol documentation comments about LOCAL placement; protocol fields and executable code are unchanged. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance. This final-checkpoint refresh hashes current working-tree bytes. Git HEADs are baseline identifiers, not proof of a clean tree; dirty and untracked paths are recorded separately. It verifies declared file hashes and inventory only, not compilation, runtime behavior or visual acceptance.",
   "working_tree": {
     "repositories": [
       {
         "name": "session",
-        "head": "9d5a6f65fec1f03ec80a1ccb56cd8f26a59433bf",
+        "head": "3632c98d00dfbdeb7ccb035ba53b51cd62677dbf",
         "dirty": true,
         "entries": [
           {
-            "status": "M ",
-            "path": "ession_data"
+            "status": " M",
+            "path": "session_cpp"
           },
           {
             "status": " M",
@@ -24,23 +24,656 @@
           },
           {
             "status": " M",
-            "path": "session_tests/scripts/course/cad-witness.rs"
+            "path": "session_tests/scripts/course/compact-capture-batch.test.ts"
           },
           {
             "status": " M",
-            "path": "session_viewer/src/selftest/stroke_witness.rs"
+            "path": "session_tests/scripts/course/compact-capture-batch.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/compact-capture.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/incremental-native-presentation.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_tests/scripts/course/presentation.ts"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/Cargo.toml"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/38b-source.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/38c-controls.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/38d-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/39-visible.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/39a-depth.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/40-colour.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/40a-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/40b-indices.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41-normals.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41a-placement.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41b-drawing.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41c-view.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41ca-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41d-grid.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41e-drawing.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/41f-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/44g-edge-ink.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/44l-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/45c-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/48d-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/49f-input.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/50d-ownership.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/51zf-handles.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/52k-tree.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/53u-layers.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/55g-surface.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/59f-cad.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/61d-glyphs.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/62-labels.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/63-outline.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/64-clouds.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/65-cloud-point.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/66-publication.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/68-streaming-cache.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/69-instances.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/69a-shape-reuse.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/70-nested-placements.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/71-sheet.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/72-drawing.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/73-planar.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/74-primitives.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/75-round.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/76-freeform.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/77-transform.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/78-gather.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/79-loft.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/80-network.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/81-editing.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/82-split.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/83-split-face.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/84-measure.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/85-commands.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/86-finite-ink.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/87-clipping.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/88-caps.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/89-pyramid.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/90-ambient.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/91-outlines.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/92-elements.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/93-opacity.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/94-comparison.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/checks/96zzzg-arctic-background.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/38a-samples-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/38a-samples-02.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/43b-view-07.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/44l-input-03.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/44l-input-07.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/45b-membership-09.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/50b-display-06.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/51zb-presentation-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/51zd-interruption-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/51zd-interruption-03.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/51zd-interruption-05.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/52j-input-10.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/52j-input-11.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/54n-cancellation-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/54n-cancellation-02.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/54o-frame-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/55a-grid-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/56a-shared-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/56a-shared-02.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/62n-diagnostics-01.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/67d-own-cancellable-range-requests-cargo.toml"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/68u-decode-bounded-cancellable-source-streams-cargo.toml"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/69aa-retain-cloneable-derived-cad-values-05.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-06.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-08.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzs-adopt-the-shared-origin-in-the-browser-03.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzs-adopt-the-shared-origin-in-the-browser-05.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzs-adopt-the-shared-origin-in-the-browser-06.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzze-grow-camera-depth-from-cached-world-bounds-11.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzze-grow-camera-depth-from-cached-world-bounds-12.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzze-grow-camera-depth-from-cached-world-bounds-13.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzze-grow-camera-depth-from-cached-world-bounds-15.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-02-production_brep_ink.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-03-cad_boundary.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-05-production_mesh_ink_provenance.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-06-current_inventory.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_brep_ink.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_provenance.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_tests.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-owner.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-pagehide.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-present.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-request.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_curve_walk.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-vector-production_joined.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/course.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/journey/current-viewer-2026-10-23.json"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/screenshots/journey/38b-source.png"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/screenshots/journey/55g-surface.png"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/docs/screenshots/journey/59f-cad.png"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/inspection.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/mesh_preview.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_instances.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_release.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_sync.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_sync/compaction.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/scene_sync/tombs.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/surface_preview.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/brep.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/brep_edges.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/brep_orient.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/brep_shapes.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/curves.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/mesh_ink.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/app/walk/mod.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/objects.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/splat/cloud_witness/lod.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/engine/gpu/vectors.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/selftest.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/selftest/profile.rs"
+          },
+          {
+            "status": " M",
+            "path": "session_viewer/src/state.rs"
           },
           {
             "status": "??",
-            "path": "session_tests/scripts/course/cap-bore-witness.rs"
+            "path": "session_viewer/docs/journey/code/38a-samples-math-display-3.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/38b-source-math-display-4.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/38b-source-math-display-5.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/38b-source-math-display-6.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/38b-source-math-display-7.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/44k-selection-math-display-9.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/48c-commit-math-display-13.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/51u-selection-math-display-15.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/55d-source-row-math-display-26.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/56a-shared-math-display-29.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/56a-shared-math-display-30.toml"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/59c-source-row-math-display-31.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-current-display-viewer-count.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/math-boundary-quality-20261029-native-38b-source.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/math-boundary-quality-20261029-native-55g-surface.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/docs/journey/release/math-boundary-quality-20261029-native-59f-cad.json"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/app/scene_display.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/app/walk/display.rs"
+          },
+          {
+            "status": "??",
+            "path": "session_viewer/src/app/walk/display_features.rs"
           }
         ]
       },
       {
         "name": "wood",
-        "head": "5318ba20048d6f4996fce2d593ee9560a9de0621",
-        "dirty": false,
-        "entries": []
+        "head": "776dd923e056a9b17f3ce974e9c329592e9cd58d",
+        "dirty": true,
+        "entries": [
+          {
+            "status": " M",
+            "path": "rust/src/proto/wood_proto.rs"
+          }
+        ]
       },
       {
         "name": "kernel",
@@ -48,8 +681,32 @@
         "dirty": true,
         "entries": [
           {
-            "status": "M ",
-            "path": "ession_data"
+            "status": " M",
+            "path": "Cargo.toml"
+          },
+          {
+            "status": " M",
+            "path": "session_data"
+          },
+          {
+            "status": " M",
+            "path": "src/brep.rs"
+          },
+          {
+            "status": " M",
+            "path": "src/lib.rs"
+          },
+          {
+            "status": " M",
+            "path": "src/nurbssurface_trimmed.rs"
+          },
+          {
+            "status": " M",
+            "path": "src/remesh_nurbssurface_grid.rs"
+          },
+          {
+            "status": "??",
+            "path": "src/display_budget.rs"
           }
         ]
       }
@@ -66,7 +723,7 @@
     {
       "root": "viewer",
       "path": "Cargo.toml",
-      "sha256": "f3c4a4e33279d03a069b041b21d5b25be8c5f2c1846adbf406c693fc40234002",
+      "sha256": "3ddb6fb7a488efcaddd5240c40c23790ad51256db5a1abe5f6813b6fec8db129",
       "topic": "Build, startup and application ownership",
       "lessons": "00–02,34–35,94,96"
     },
@@ -941,7 +1598,7 @@
     {
       "root": "viewer",
       "path": "src/app/inspection.rs",
-      "sha256": "b3ddba11292063a66e625d9d31c0576d3df341362fad1841266edc462f0bffd3",
+      "sha256": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1011,7 +1668,7 @@
     {
       "root": "viewer",
       "path": "src/app/mesh_preview.rs",
-      "sha256": "ec41fae6255735322acdb9f9e9cdd3891ba36ed1251b3f438678cc64891c8c4e",
+      "sha256": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1046,21 +1703,28 @@
     {
       "root": "viewer",
       "path": "src/app/scene.rs",
-      "sha256": "136710a388a2fdf301fa5e36e68c4b6e3a79f1dd903ef3f5e25e3ceb26f0e196",
+      "sha256": "de688c44a50d60fed993a1e1f823032a78ce96fc465a7049b3f738c12e80070a",
+      "topic": "Loading, source ownership, archives and routing",
+      "lessons": "43–54,66–71,85,96"
+    },
+    {
+      "root": "viewer",
+      "path": "src/app/scene_display.rs",
+      "sha256": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
     {
       "root": "viewer",
       "path": "src/app/scene_instances.rs",
-      "sha256": "fa216bc9ebadbc25596c0e76711d49b72a9544317b265146f63614362ca39039",
+      "sha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
     {
       "root": "viewer",
       "path": "src/app/scene_release.rs",
-      "sha256": "b886d822f51516d904726d7ab2380447da7b8dd99f112c87d406ef54732fd95e",
+      "sha256": "bbae9c9738eafa3521de6ad4d47c46a99bd3995ab1611c9a31727f1abb70b107",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1074,7 +1738,7 @@
     {
       "root": "viewer",
       "path": "src/app/scene_sync.rs",
-      "sha256": "7160ce61ef8ba840ef536bff9532ed315b7c2b613301dc7993b61105411d0126",
+      "sha256": "d9da34c46f8552259a96fa5b7d02d442f3d09398d68d66324a4e9ae7cc52f20e",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1095,7 +1759,7 @@
     {
       "root": "viewer",
       "path": "src/app/scene_sync/compaction.rs",
-      "sha256": "b7f65a6f4d78543ee866bed81f96ad807df7b154411cef59234c39367bd7d52e",
+      "sha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1158,7 +1822,7 @@
     {
       "root": "viewer",
       "path": "src/app/scene_sync/tombs.rs",
-      "sha256": "a5b5d0082c95e04309c1c61f262a315c2eb610999bf471af8c80246a2a76c7d3",
+      "sha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1214,7 +1878,7 @@
     {
       "root": "viewer",
       "path": "src/app/surface_preview.rs",
-      "sha256": "7971672cbd085559288dac7495c9d6b57fe0518fe052c8d95bfa8949d8abe8f5",
+      "sha256": "d5b0154230cfe68c90483f8afd014f594e7836080fce2c9f39db35f78db0166b",
       "topic": "Loading, source ownership, archives and routing",
       "lessons": "43–54,66–71,85,96"
     },
@@ -1312,28 +1976,28 @@
     {
       "root": "viewer",
       "path": "src/app/walk/brep.rs",
-      "sha256": "3d710cac554c1cfe9a6f8754ccb1569753cef6dd5e2a13b6b6e0d8fa666626d9",
+      "sha256": "7c279d18be0ad62b2d57fd00072e7901eb8b3fb23602272e7a1d3f0b254aabfd",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
     {
       "root": "viewer",
       "path": "src/app/walk/brep_edges.rs",
-      "sha256": "9f1c26f77f08f487e1d4219f35d07fb1376ed2ba922eba1124c89a1d57442100",
+      "sha256": "cb44e7e314525e725b6d1ff6967d8c49d8a1a74f1b1d128948b50d635529d589",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
     {
       "root": "viewer",
       "path": "src/app/walk/brep_orient.rs",
-      "sha256": "0778910bea71d83e47737d5d35100b38f18df8b9dca3d886f642b36125260638",
+      "sha256": "9c89ecaba1cc337eed0b55c610bd9b471137d451febb137c4707820b29bbb229",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
     {
       "root": "viewer",
       "path": "src/app/walk/brep_shapes.rs",
-      "sha256": "c1621011e4006473015572ec811300241204838db2b96d4372b84a740e6fae2c",
+      "sha256": "f849835598cd3e84431fbf9e4cc21e5ab36f9cd3ebf67ad17db247633e0fb611",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
@@ -1347,7 +2011,21 @@
     {
       "root": "viewer",
       "path": "src/app/walk/curves.rs",
-      "sha256": "4da38304e6eb4dbed57d0406fe36a9dc4da823eb4f044d4434160983792756d7",
+      "sha256": "c0f6d64987050816c567ec62f1a26a925247100ae10dab3da36d68077f3cadb6",
+      "topic": "Original source walking and shared display",
+      "lessons": "55–71,92,94,95"
+    },
+    {
+      "root": "viewer",
+      "path": "src/app/walk/display.rs",
+      "sha256": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685",
+      "topic": "Original source walking and shared display",
+      "lessons": "55–71,92,94,95"
+    },
+    {
+      "root": "viewer",
+      "path": "src/app/walk/display_features.rs",
+      "sha256": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
@@ -1382,7 +2060,7 @@
     {
       "root": "viewer",
       "path": "src/app/walk/mesh_ink.rs",
-      "sha256": "349f85de9cb23dcb928a80b520468c58e84c4a03a6fd6d60280d2ec10a85cef4",
+      "sha256": "10598c605a7457970e7ac8f9cfabdc7dc052787ac1749cd1a63e206254163d55",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
@@ -1396,7 +2074,7 @@
     {
       "root": "viewer",
       "path": "src/app/walk/mod.rs",
-      "sha256": "ac677c9a11ddbfa3e995443b0bf1548b105ced70320a6208b9956d7eba86bce1",
+      "sha256": "edad67a0cec70c6cf2e5dfa461cb2698d32c58f65063a9d4b5a3b638b86b3f74",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
@@ -1592,7 +2270,7 @@
     {
       "root": "viewer",
       "path": "src/engine/gpu/objects.rs",
-      "sha256": "58abc890347f29a8d3deb9b7651e3a43b4444a1e1429bf3de830ceb54516e7d5",
+      "sha256": "352c75f4668c582d30e66e259fe91491dfe814c95ee23d50f93fb617e296a0b8",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1676,7 +2354,7 @@
     {
       "root": "viewer",
       "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
-      "sha256": "4356bca21aa40df54efb546d48f6d489177893ca7a0dc810a9158f4905f1e2e8",
+      "sha256": "be2ae4e40df5fa9aedbe603d8232cabea2c1c6241ee84ea670b26218c372c78d",
       "topic": "Cloud rendering and current evidence",
       "lessons": "11,18,22,96"
     },
@@ -1788,7 +2466,7 @@
     {
       "root": "viewer",
       "path": "src/engine/gpu/vectors.rs",
-      "sha256": "539d407e8e529d9cd9d4c507f675221805506221a49177773571e51e02d7fa3d",
+      "sha256": "c347276cfff5d62bb169f35d8ac328465bd107c70d83530826d489ba505891f7",
       "topic": "GPU pipelines and current rendering",
       "lessons": "86–94"
     },
@@ -1865,7 +2543,7 @@
     {
       "root": "viewer",
       "path": "src/selftest.rs",
-      "sha256": "cbc606956962a9687a02cba1f3679f01dea85a5435d94e69fb303e1a030b8838",
+      "sha256": "28c8122d3043a97f39f07ea02f03508e99ef29231313b138391c31b571b14596",
       "topic": "Maintained native rendering and correctness reference",
       "lessons": "94–96"
     },
@@ -1886,7 +2564,7 @@
     {
       "root": "viewer",
       "path": "src/selftest/profile.rs",
-      "sha256": "6c8cfa7be644e9e527c1b4a289ca8d2afb10075843207e7ef15415a56b1d6bb1",
+      "sha256": "95fdc977f6e25b50eebb2aec3a119e30413a9dbb1a96b95ad2863980849aaa5c",
       "topic": "Maintained native rendering and correctness reference",
       "lessons": "94–96"
     },
@@ -2131,7 +2809,7 @@
     {
       "root": "viewer",
       "path": "src/state.rs",
-      "sha256": "8bd89dd783fc205afd1cd8abb4e0323a7f61a9569514227a315557cc0038558a",
+      "sha256": "9039dbf08f2a150bb4bb97a7e31005e907c4dd4e3b5d5c740d2d635a4932951b",
       "topic": "Build, startup and application ownership",
       "lessons": "00–02,34–35,94,96"
     },
@@ -2250,7 +2928,7 @@
     {
       "root": "kernel",
       "path": "Cargo.toml",
-      "sha256": "36bbbbb92d911ed1609118149d1a42bd5b8c74e7f246a09114a7eb8871a083c3",
+      "sha256": "9484ca17c13748ee5fa0d31e1c04f4ab5c42346cb1626fdc1439004f1b7c72e9",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2306,7 +2984,7 @@
     {
       "root": "kernel",
       "path": "src/brep.rs",
-      "sha256": "eb2e6eaa89ff30b3083e5ca30d6669af9ff25c3540e33dbf87453e453fbd0cad",
+      "sha256": "24faa1156f0f732e1024ffac8d6087d594bc3ded45cce3e39d9ee53bcbb59179",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2370,6 +3048,13 @@
       "root": "kernel",
       "path": "src/convex_hull_test.rs",
       "sha256": "f97a384db885e6e12421fb349c6ee15f78a3b1eac13be6189d370327ccab0d01",
+      "topic": "Original geometry and serialization",
+      "lessons": "source chapters,96"
+    },
+    {
+      "root": "kernel",
+      "path": "src/display_budget.rs",
+      "sha256": "31b5ab6020aad3d5a4f1e18a11b14f87eb91f9c06726d59e1c85cd739b9aefa2",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2523,7 +3208,7 @@
     {
       "root": "kernel",
       "path": "src/lib.rs",
-      "sha256": "51f6a8c03945f43f639b4827a1cde307b929e2cc1f9dabc63fee45a9e327b1ec",
+      "sha256": "a12bd77d1d2fd16d838d17c3427f643f35944d497e2c388a7c78a6ee73905c26",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2628,7 +3313,7 @@
     {
       "root": "kernel",
       "path": "src/nurbssurface_trimmed.rs",
-      "sha256": "a2a9ae122c047df3b2f926c1de9794b0e3a93bf83d316673ff8877d6e0e73661",
+      "sha256": "11b72bdabc78ec1bbf29b23f273328c526bc7ffb481ad8e838b0d479503fd4fc",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -2817,7 +3502,7 @@
     {
       "root": "kernel",
       "path": "src/remesh_nurbssurface_grid.rs",
-      "sha256": "5d059020f5b0c604c71c019bd07f09ecfe970d51d69054fb5ffb939b98fad453",
+      "sha256": "eb777e8a5c29b89ffc41c2d72acec78b7385c3167629ba3080f440e15f42d177",
       "topic": "Original geometry and serialization",
       "lessons": "source chapters,96"
     },
@@ -3013,63 +3698,63 @@
     {
       "root": "wood",
       "path": "build.rs",
-      "sha256": "9e5a81d2d6f6df9b812b7372c6b8d2696b21c30de8439ea950e19b8a2d60def4",
+      "sha256": "34049aa03ee9638e484398ab2f7e53fbea87a7d4daeb3359bcd7484073ca7644",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/beam.rs",
-      "sha256": "4e6ffd383e74febf21ee80a337db1c18651307c23f0a4ea2471a790c28769f07",
+      "sha256": "bd28b4ce783e24534ce497a3166029be46d30552520828e964baaf258f889fdf",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/beam_variable.rs",
-      "sha256": "dc203e3737fea4969482bc183f71be77d7f924323b47c8e0c4e5087046c0831d",
+      "sha256": "1e8ecbe6cbefa707bd9c8770d728a64114385eab1edc338a5585a587c3648d4e",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/block.rs",
-      "sha256": "fbd810e4fe5a98d9fe706f22c27c8af2ee21072e1c965d97c8c92f1a09479e4d",
+      "sha256": "9b212d087d0bfe8489b791da3e6cb9939a5f1b232dd1509f86904dd7f82fabff",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/column.rs",
-      "sha256": "e44ea0467821c7036eadd34c59d0f9a8a8a02b34d74d9f15cc996412a926927d",
+      "sha256": "c882264b6664c53e968d064cc5f31d89cefdc816e1f7cfd03fe7230cbe444233",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/element.rs",
-      "sha256": "0fae5a4eddf930a86f1ea7ae21d96d04488b38bce0399ed3b9f41aca19a11a8c",
+      "sha256": "165bb1a137ad508d20a7b888cab185f6c012dd3f2393df0e7692a04bd680722a",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/geometry.rs",
-      "sha256": "19dd88c0840ec311b8f4d7561697ecb5143d8992b6dad74766b8e38d6a6f8490",
+      "sha256": "68feb5f7e89b8846fa2efcdaa366d4d40e554b471523228011f0550bfe2841d9",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/lib.rs",
-      "sha256": "e0f0fd7d599eeb27168e25083946496a38e5057e96f3797b6e088dbfb0694cdd",
+      "sha256": "560b9bb42c531290985854b63e472c8f317dcff98ddf4ae99d3f4488b8ba6c38",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
     {
       "root": "wood",
       "path": "src/plate.rs",
-      "sha256": "59058e25eca287d11e42dc065a4f1830d32958c4dbd11de29c23fd4b28a3c03e",
+      "sha256": "906140aaf020a37cd8c40da4a7fa74d3cf35c9804c5f64b4c4e14416cabe2745",
       "topic": "Element builders and features",
       "lessons": "92,96"
     },
@@ -3083,7 +3768,7 @@
     {
       "root": "wood",
       "path": "src/support.rs",
-      "sha256": "9af8c322a9c8b396105b2b43104c9634950279a96ad7dcb76b04a7b86650fb60",
+      "sha256": "8a0b077de8725b7307ab0ab059356e2d025be692d8ac9fbf54ee82f0a8c88a1f",
       "topic": "Element builders and features",
       "lessons": "92,96"
     }

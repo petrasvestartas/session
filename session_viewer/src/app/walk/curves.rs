@@ -201,7 +201,13 @@ pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
 
 /// A curve as a sampled polyline.
 pub fn walk_nurbscurve(seg: &mut SegRows, lanes: &mut LaneRows, c: &NurbsCurve, row: u32) -> Row {
-    let pts: Vec<_> = sample_nurbscurve(c)
+    walk_nurbscurve_quality(seg, lanes, c, row, Default::default())
+}
+
+pub fn walk_nurbscurve_quality(seg: &mut SegRows, lanes: &mut LaneRows, c: &NurbsCurve, row: u32, quality: super::display::Quality) -> Row {
+    let sampled = super::display::sample(c, quality, super::display::CURVE_SEGMENTS);
+    if sampled.limited { log::debug!("Curve display refinement reached its finite budget"); }
+    let pts: Vec<_> = sampled.parameters.into_iter().map(|t| { let p = c.point_at(t); [p[0], p[1], p[2]] })
         .into_iter()
         .map(render_position)
         .collect();

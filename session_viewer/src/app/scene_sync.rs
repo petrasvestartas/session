@@ -22,7 +22,7 @@ use super::rows::{
     Cap, FREE, Footprint, GEOMETRY, Note, PLACE, PRESENCE, SINK, SUBTREE, TOMB, Tomb,
 };
 use crate::app::walk::bounds::{Baselines, in_band, mark_pens_from};
-use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
+use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry, walk_features};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
 use session_rust::history;
@@ -182,6 +182,16 @@ impl Scene {
 
     /// Queue what an edit did to document `doc`.
     pub(crate) fn noted(&mut self, doc: usize, notes: Vec<Note>) {
+        for note in &notes {
+            if note.what & (GEOMETRY | PRESENCE) != 0
+                && let Some(row) = self.row_of(doc, &note.guid)
+            {
+                self.display.forget(row);
+                if let Some(batch) = self.instance_batch_row(row) {
+                    self.display.forget(batch);
+                }
+            }
+        }
         self.pending
             .extend(notes.into_iter().map(|note| (doc, note)));
     }
@@ -325,23 +335,36 @@ impl Scene {
     }
 
     /// One object walked on its own at vertex 0: its rows and its object row without colors.
-    fn walk_one(
+    pub(super) fn walk_one(
         &self,
         doc: usize,
         row: u32,
         geometry: &Geometry,
         place: &Xform,
     ) -> (Upload, ObjectRow) {
+        self.walk_one_with_features(doc, row, geometry, place, &[])
+    }
+
+    pub(super) fn walk_one_with_features(
+        &self,
+        doc: usize,
+        row: u32,
+        geometry: &Geometry,
+        place: &Xform,
+        features: &[session_rust::element::ElementFeature],
+    ) -> (Upload, ObjectRow) {
         let file = &self.docs[doc];
         let mut up = Upload::default();
         let cx = WalkCx {
+            quality: self.display.quality(row),
             vert_base: 0,
             cloud_px: file.point_px,
             row,
             interactions: self.interactions,
             attributes: self.attributes,
         };
-        let walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
+        let mut walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
+        walk_features(&mut Walk::of(&mut up), &cx, features, &mut walked.bounds);
         let mut object = ObjectRow::new(place.clone(), walked.flags);
         object.bounds = walked.bounds;
         object.spacing = walked.spacing;
@@ -426,7 +449,20 @@ impl Scene {
         place: Xform,
         preview: bool,
     ) {
-        let (mut up, walked) = self.walk_one(doc, row, geometry, &place);
+        let (up, walked) = self.walk_one(doc, row, geometry, &place);
+        self.replace_walk(row, doc, guid, geometry, up, walked, preview);
+    }
+
+    pub(super) fn replace_walk(
+        &mut self,
+        row: u32,
+        doc: usize,
+        guid: &Rc<str>,
+        geometry: &Geometry,
+        mut up: Upload,
+        walked: ObjectRow,
+        preview: bool,
+    ) {
         let new = Counts::of(&up);
         let i = row as usize;
         let foot = self.feet[i];
@@ -496,6 +532,7 @@ impl Scene {
 
     /// Drop an identity's row: its lane rows go to the sink, its id waits for the end of the sync.
     pub(super) fn kill(&mut self, row: u32) {
+        self.display.forget(row);
         let i = row as usize;
         let doc = self.owners[i];
         let guid = std::mem::replace(&mut self.order[i], Rc::clone(&self.empty));
