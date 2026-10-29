@@ -1,3 +1,4 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -41,7 +42,7 @@ function command(label: string, args: string[], cwd: string, env: Record<string,
 }
 function nativeExample(label:string,folder:string,name:string,args:string[],env:Record<string,string>,retained?:any) {
     const commands:any[]=retained?[]:[command(label+'-build',['cargo','build','--example',name,'--locked','--offline','--target',nativeTarget(),'-j1'],folder)];
-    const executable=path.join(viewer,'target/course-build',nativeTarget(),'debug/examples',name+(process.platform==='win32'?'.exe':''));
+    const executable=path.join(cargoTarget(),nativeTarget(),'debug/examples',name+(process.platform==='win32'?'.exe':''));
     if(retained)assert.equal(sha(executable),retained.executable.sha256,'Reuse only this exact unchanged native executable');
     const transport=[];
     if(process.platform==='win32') {

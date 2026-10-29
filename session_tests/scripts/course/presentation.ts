@@ -104,7 +104,7 @@ export function bindings(id: string) {
 export function captureDirectory(id: string, density = 2) {
     const checkpoint = id === '04-input-light' ? '04-input' : id;
     const source = bindings(checkpoint);
-    const key = hash(JSON.stringify({source, density, variant: id}));
+    const key = hash(JSON.stringify({source, density, variant: id, attempt: process.env.COURSE_CAPTURE_ATTEMPT || null}));
     return {checkpoint, source, key, directory: path.join(viewer, 'target', `course-presentation-${id}-${key.slice(0, 16)}-dpr${density}`)};
 }
 

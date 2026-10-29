@@ -1,10 +1,11 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-const self=fileURLToPath(import.meta.url),repo=process.cwd(),viewer=path.join(repo,'session_viewer'),tools=path.join(repo,'session_tests/scripts/course');
+const self=fileURLToPath(import.meta.url),repo=fileURLToPath(new URL('../../../',import.meta.url)),viewer=path.join(repo,'session_viewer'),tools=path.join(repo,'session_tests/scripts/course');
 const {filesIn}=await import(pathToFileURL(path.join(tools,'model.ts')).href);
 const {exactBindgen}=await import(pathToFileURL(path.join(tools,'exact-bindgen.ts')).href);
 const {privateImageBrowserHost}=await import(pathToFileURL(path.join(tools,'parallel-image-browser-host.ts')).href);
@@ -42,7 +43,7 @@ if(mode==='prepare'){
     fs.writeFileSync(path.join(folder,'plan.json'),JSON.stringify(plan,null,2)+'\n');console.log(path.join(folder,'plan.json'));
 }else if(mode==='run'){
     const p=json(file);for(const[f,h]of Object.entries(p.inputs))assert.equal(sha(f),h,f);assert.equal(sha(p.worker.path),p.worker.sha256);
-    const target=path.join(viewer,'target/course-sup/browser-native-cache'),build=command(p.folder,'wasm',['cargo','build','--lib','--locked','--offline','--target','wasm32-unknown-unknown','-j8','-vv','--message-format=json-render-diagnostics'],p.source,{CARGO_TARGET_DIR:target,CARGO_NET_OFFLINE:'true'});
+    const target=cargoTarget(),build=command(p.folder,'wasm',['cargo','build','--lib','--locked','--offline','--target','wasm32-unknown-unknown','-j8','-vv','--message-format=json-render-diagnostics'],p.source,{CARGO_TARGET_DIR:target,CARGO_NET_OFFLINE:'true'});
     const artifacts=fs.readFileSync(build.log.path,'utf8').split(/\r?\n/).filter(s=>s.startsWith('{')).map(s=>{try{return JSON.parse(s)}catch{return null}}).filter(r=>r?.reason==='compiler-artifact'&&path.resolve(r.manifest_path)===path.join(p.source,'Cargo.toml'));
     const wasm=artifacts.flatMap(r=>r.filenames).find(f=>f.endsWith('.wasm'));assert(wasm);const retained=path.join(p.folder,'actual-source.wasm');fs.copyFileSync(wasm,retained,fs.constants.COPYFILE_EXCL);
     const bindgen=exactBindgen(path.join(p.source,'Cargo.lock'));const glue=command(p.folder,'bindgen',[bindgen.executable,retained,'--target','web','--out-dir',p.dist,'--out-name','session_viewer'],p.source);

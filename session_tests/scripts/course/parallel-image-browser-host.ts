@@ -1,3 +1,4 @@
+import {adapterMetadataPath, adapterMetadata, observeExecution, finishExecution, bundleInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -24,7 +25,7 @@ export async function privateImageBrowserHost(workspace: string, folder: string,
     });
     await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
     const port=(server.address() as {port:number}).port;
-    const metadataFile=path.join(viewer,'target/course-windows-20261018/nvidia-hardware-browser-preparation/adapter-metadata.json'),metadata=json(metadataFile);
+    const metadataFile=adapterMetadataPath(),metadata=adapterMetadata();
     assert.equal(metadata.selected.vendor,0x10de);assert.equal(metadata.selected.device,0x27e0);
     const chrome=process.env.VIEWER_BROWSER_EXECUTABLE||path.join(viewer,'target/course-browsers/chromium_headless_shell-1208/chrome-headless-shell-win64/chrome-headless-shell.exe');
     const configFile=path.join(folder,'config.json'),commandFile=path.join(folder,'image-worker.command.json');write(configFile,JSON.stringify(config,null,2)+'\n');
@@ -36,6 +37,7 @@ export async function privateImageBrowserHost(workspace: string, folder: string,
     const arguments_=['--require',fileURLToPath(new URL('./warp-browser-timeout.cjs',import.meta.url)),'--import',pathToFileURL(loader).href,worker,...workerArguments];
     write(commandFile,JSON.stringify({executable:process.execPath,arguments:arguments_})+'\n');
     const log=path.join(folder,'image-browser.log'),descriptor=fs.openSync(log,'wx'),resourcesFile=path.join(folder,'image-resources.json');
+    const beforeExecution = observeExecution([...bundleInputs(workspace, config.id), process.execPath, loader, worker, chrome, adapterMetadataPath(), configFile]);
     try{
         const args=['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','2400',
             '-WorkingDirectory',workspace,'-ManifestPath',resourcesFile,'-CommandFile',commandFile];
@@ -53,7 +55,7 @@ export async function privateImageBrowserHost(workspace: string, folder: string,
         assert.equal(resources.laneMutex,'Local\\SessionViewerCourseImageJob');
         assert.equal(resources.affinityMask,'0xFF00');
         for(const[file,digest]of Object.entries(inputs))assert.equal(sha(file),digest,file);
-        return{served,resources,log,logSha256:sha(log),resourcesFile,resourcesSha256:sha(resourcesFile),inputs,
+        return{executionIntegrity:finishExecution(beforeExecution),served,resources,log,logSha256:sha(log),resourcesFile,resourcesSha256:sha(resourcesFile),inputs,
             policy:'One image lane8CPU8GiB alongside at most one original controlled lane<=8CPU8GiB. Aggregate OUR guarded jobs<=16CPU16GiB; no whole-machine/external-process claim.'};
     }finally{fs.closeSync(descriptor);await new Promise<void>(resolve=>server.close(()=>resolve()));}
 }

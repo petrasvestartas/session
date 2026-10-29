@@ -1,3 +1,4 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ const self = fileURLToPath(import.meta.url);
 const original = fileURLToPath(new URL('./browser-presentation.ts', import.meta.url));
 const guard = fileURLToPath(new URL('./parallel-image-guard.ps1', import.meta.url));
 const sha = (file: string) => hash(fs.readFileSync(file));
-export const imageBuildTarget = path.join(viewer, 'target/course-build');
+export const imageBuildTarget = cargoTarget();
 const policy = {purpose: 'Separate image lane; original behavior/capture guards unchanged', processors: 8, memoryMiB: 8192, jobs: 8, affinityMask: '0xFF00', timeoutSeconds: 1800, profile: 'debug', target: imageBuildTarget};
 const builtStatuses = ['BUILT_NOT_CAPTURED', 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW'];
 
@@ -36,7 +37,7 @@ function validate(record: any) {
 export function prepareImageBrowser(id: string, density = 2) {
     assert([2, 3].includes(density));
     const capture = path.join(docs, 'capture_journey.cjs');
-    const key = hash(JSON.stringify({source: bindings(id), density, helper: sha(original), capture: sha(capture)}));
+    const key = hash(JSON.stringify({source: bindings(id), density, attempt: process.env.COURSE_CAPTURE_ATTEMPT || null, helper: sha(original), capture: sha(capture)}));
     const folder = path.join(viewer, 'target/course-presentation', `browser-${id}-${key.slice(0, 16)}-dpr${density}`);
     const preparedFile = path.join(folder, 'prepared.json');
     const record = fs.existsSync(preparedFile) ? json(preparedFile) : prepareBrowser(id, density);

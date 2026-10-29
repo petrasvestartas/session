@@ -1,3 +1,4 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -41,7 +42,7 @@ export function runCommand(name: string, args: string[], directory: string, extr
     const descriptor = fs.openSync(log, 'w');
     const env: Record<string, string | undefined> = {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: process.env.CARGO_NET_OFFLINE || 'true', NO_COLOR: 'true',
         CARGO_BUILD_JOBS: '1', RUST_TEST_THREADS: '1', REGEN_PROTO: '0',
-        CARGO_TARGET_DIR: path.join(viewer, 'target/course-build'), ...extra};
+        CARGO_TARGET_DIR: cargoTarget(), ...extra};
     let result;
     try {
         if (process.platform === 'win32') {

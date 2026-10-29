@@ -1,3 +1,4 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import Module from 'node:module';
@@ -58,7 +59,7 @@ export async function runPracticePresentation() {
     const commands = [runCommand('practice-' + key.slice(0, 16) + '-wasm', ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j1'], native,
         {COURSE_MEMORY_MIB: '4096', COURSE_TIMEOUT_SECONDS: '1800'})];
     const bindgen = exactBindgen(path.join(native, 'Cargo.lock'));
-    commands.push(runCommand('practice-' + key.slice(0, 16) + '-bindgen', [bindgen.executable, path.join(viewer, 'target/course-build/wasm32-unknown-unknown/debug/session_viewer.wasm'),
+    commands.push(runCommand('practice-' + key.slice(0, 16) + '-bindgen', [bindgen.executable, path.join(cargoTarget(), 'wasm32-unknown-unknown/debug/session_viewer.wasm'),
         '--target', 'web', '--out-dir', dist, '--out-name', 'session_viewer'], native));
     const start = `<script type="module">import init,* as bindings from './session_viewer.js';const wasm=await init({module_or_path:'./session_viewer_bg.wasm'});window.wasmBindings=bindings;dispatchEvent(new CustomEvent('TrunkApplicationStarted',{detail:{wasm}}));</script>`;
     const originalIndex = read(path.join(native, 'index.html'));

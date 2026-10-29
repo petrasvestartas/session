@@ -1,3 +1,4 @@
+import {cargoTarget, compilerTools, checkWorkbenchOwnership, workbenchPath} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -30,16 +31,16 @@ function sourceCheck(p:any){
 
 export function prepareIncrementalImageBrowser(id:string,density=2){
     assert.equal(density,2);
-    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,helperSha256:sha(self),guardSha256:sha(guard),policy,tools:tools()};
+    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy,toolFiles:compilerTools(),tools:tools()};
     const folder=path.join(root,'cases',id+'-'+hash(JSON.stringify(identity)).slice(0,20)),preparedFile=path.join(folder,'prepared.json');
     if(fs.existsSync(preparedFile)){const p=json(preparedFile);sourceCheck(p);return p;}
-    const baselineKey=hash(JSON.stringify({source,density,helper:sha(original),capture:sha(capture)}));
+    const baselineKey=hash(JSON.stringify({source,density,attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helper:sha(original),capture:sha(capture)}));
     const baselineFile=path.join(viewer,'target/course-presentation',`browser-${id}-${baselineKey.slice(0,16)}-dpr${density}`,'prepared.json');
     const base=fs.existsSync(baselineFile)?json(baselineFile):prepareBrowser(id,density);assert.deepEqual(base.source,source);
     const native=path.join(folder,'canonical-source');materialize(expected(id),native,lockFor(id),assetsFor(id));
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
     const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,policy,helperSha256:sha(self),guardSha256:sha(guard)};
-    const groupKey=hash(JSON.stringify(groupIdentity)),group=path.join(viewer,'target/course-ib',groupKey.slice(0,20)),workbench=path.join(group,'workspace'),target=path.join(viewer,'target/course-build');
+    const groupKey='compact-browser-v1',group=path.join(viewer,'target/course-ib',groupKey),workbench=path.join(group,'workspace'),target=cargoTarget();
     const workspace=path.join(folder,'workspace'),dist=path.join(workspace,'target/course-checks',id,'dist');
     write(path.join(workspace,'docs/journey/course.json'),read(path.join(docs,'journey/course.json')));
     fs.cpSync(path.join(docs,'journey/checks'),path.join(workspace,'docs/journey/checks'),{recursive:true});
@@ -54,7 +55,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
             const relocated=path.relative(workbench,absolute).replaceAll('\\','/');dependencyPaths.push({relative,absolute,relocated});return match.replace('"'+relative+'"','"'+relocated+'"');
         });
     }).join('\n');
-    const old=rebased.match(/^name\s*=\s*"([^"]+)"/m)![1],packageName='image_incremental_'+groupKey.slice(0,24),lock=read(path.join(native,'Cargo.lock'));
+    const old=rebased.match(/^name\s*=\s*"([^"]+)"/m)![1],packageName='image_incremental',lock=read(path.join(native,'Cargo.lock'));
     assert.equal(lock.split('name = "'+old+'"').length,2);
     const overlayCargo=rebased.replace('name = "'+old+'"','name = "'+packageName+'"').replace('[lib]','[lib]\nname = "viewer_journey"');
     const overlayLock=lock.replace('name = "'+old+'"','name = "'+packageName+'"');
@@ -74,15 +75,17 @@ export function buildIncrementalImageBrowser(id:string,density=2){
     const g=p.group;fs.mkdirSync(g.folder,{recursive:true});const lockFile=path.join(g.folder,'workbench.lock'),lockFd=fs.openSync(lockFile,'wx');
     fs.writeFileSync(lockFd,JSON.stringify({pid:process.pid,id,preparedFile:p.preparedFile}));
     try{
-        assert.deepEqual(tools(),p.tools);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);
+        assert.deepEqual(tools(),p.tools);assert.deepEqual(compilerTools(),p.toolFiles);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);
         const stateFile=path.join(g.folder,'state.json'),previous=fs.existsSync(stateFile)?json(stateFile):null;
         if(previous){assert.equal(previous.groupKey,g.key);assert(fs.existsSync(previous.completedReceipt),'Previous source must be frozen before reuse');assert.equal(sha(previous.completedReceipt),previous.completedReceiptSha256);}
         const pendingFile=path.join(g.folder,'pending.json');assert(!fs.existsSync(pendingFile),'An incomplete prior workbench attempt requires explicit recovery');
+        assert(!previous || previous.ownedInputs, 'Workbench requires an exact prior owned-input manifest');
+        checkWorkbenchOwnership(g.workbench, previous?.ownedInputs || {});
         write(pendingFile,JSON.stringify({id,preparedFile:p.preparedFile,previousReceipt:previous?.completedReceipt||null},null,2)+'\n');
         const desired={...p.canonicalFiles,'Cargo.toml':p.overlay.cargoSha256,'Cargo.lock':p.overlay.lockSha256},synced:string[]=[],removed:string[]=[];
-        for(const file of previous?.ownedFiles||[])if(!(file in desired)){const target=path.resolve(g.workbench,file);assert(target.startsWith(path.resolve(g.workbench)+path.sep));if(fs.existsSync(target)){fs.unlinkSync(target);removed.push(file);}}
+        for(const file of Object.keys(previous?.ownedInputs||{}))if(!(file in desired)){const target=workbenchPath(g.workbench,file);fs.unlinkSync(target);removed.push(file);}
         for(const[file,digest]of Object.entries(desired)){
-            const target=path.join(g.workbench,file);if(fs.existsSync(target)&&sha(target)===digest)continue;
+            const target=workbenchPath(g.workbench,file);if(fs.existsSync(target)&&sha(target)===digest)continue;
             if(file==='Cargo.toml')write(target,p.overlay.cargo);else if(file==='Cargo.lock')write(target,p.overlay.lock);else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(p.native,file),target);}synced.push(file);
         }
         const check=()=>{sourceCheck(p);for(const[file,digest]of Object.entries(desired))assert.equal(sha(path.join(g.workbench,file)),digest,file);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);};
@@ -107,18 +110,15 @@ export function buildIncrementalImageBrowser(id:string,density=2){
         let index=read(path.join(g.workbench,'index.html')).replace(/<link\b[^>]*\bdata-trunk\b[^>]*\brel="rust"[^>]*>/,start);assert(index.includes(start));index=index.replace(/<link\b[^>]*\bdata-trunk\b[^>]*>/g,'');write(path.join(p.dist,'index.html'),index);
         for(const asset of assetsFor(id)){const target=path.join(p.dist,asset.startsWith('assets/text/')?asset.replace('assets/text/','text/'):asset);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(g.workbench,asset),target);}
         const sceneSource=path.join(p.workspace,'target','course-'+id);fs.cpSync(p.native,sceneSource,{recursive:true});if(fs.existsSync(path.join(p.folder,'sample.pb')))fs.copyFileSync(path.join(p.folder,'sample.pb'),path.join(sceneSource,'sample.pb'));
-        const retainedArtifacts:any[]=[];
-        for(const file of [...new Set<string>([...artifacts[0].filenames,...filesIn(path.join(g.target,'wasm32-unknown-unknown/debug')).filter(f=>path.basename(f).startsWith('viewer_journey')&&f.endsWith('.d'))])])if(fs.existsSync(file)){
-            const destination=path.join(p.folder,'compiler-artifacts',path.relative(g.target,file));fs.mkdirSync(path.dirname(destination),{recursive:true});fs.copyFileSync(file,destination);retainedArtifacts.push({originalPath:file,path:destination,sha256:sha(destination)});
-        }
+        const retainedArtifacts=artifacts[0].filenames.map((file:string)=>({originalPath:file,sha256:sha(file)}));
         check();assert.equal(sha(retained),wasmSha256);
-        const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),policy,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,
+        const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),policy,toolFiles:p.toolFiles,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,
             synchronization:{previous:previous?{id:previous.id,receipt:previous.completedReceipt,sha256:previous.completedReceiptSha256}:null,copiedChangedFiles:synced,removedOwnedStaleFiles:removed},commands,compilerArtifact:artifacts[0],retainedArtifacts,bindgen,
             wasm:{path:retained,sha256:wasmSha256,compilerReportedPath:wasm},bundle:Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),canonicalBehaviorExecuted:false,
-            scope:'Actual Cargo invocation for this checkpoint with stable package/path and debug CARGO_INCREMENTAL=1. Immutable complete source, raw WASM, bundle and actual command/resource/artifact evidence retained before workbench reuse. No GPU image or canonical callback acceptance.'};
+            scope:'Actual Cargo invocation for this checkpoint with stable package/path and debug CARGO_INCREMENTAL=1. Complete source, one raw WASM and one bundle retained until compact publication retirement; compiler JSON and exact artifact hashes preserved without duplicate compiler-artifact copies. No GPU image or canonical callback acceptance.'};
         const methodFile=path.join(p.folder,'built.json');assert(!fs.existsSync(methodFile));write(methodFile,JSON.stringify(method,null,2)+'\n');
         const built={...p,status:'BUILT_NOT_CAPTURED',commands,wasm:method.wasm,bundle:method.bundle,imageBuild:{path:methodFile,sha256:sha(methodFile)}};sourceCheck(built);write(p.preparedFile,JSON.stringify(built,null,2)+'\n');
-        write(stateFile,JSON.stringify({groupKey:g.key,id,ownedFiles:Object.keys(desired),completedReceipt:methodFile,completedReceiptSha256:sha(methodFile)},null,2)+'\n');fs.unlinkSync(pendingFile);return built;
+        write(stateFile,JSON.stringify({groupKey:g.key,id,ownedFiles:Object.keys(desired),ownedInputs:manifest(g.workbench),completedReceipt:methodFile,completedReceiptSha256:sha(methodFile)},null,2)+'\n');fs.unlinkSync(pendingFile);return built;
     }finally{fs.closeSync(lockFd);fs.unlinkSync(lockFile);}
 }
 

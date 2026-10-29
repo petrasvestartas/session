@@ -1,3 +1,5 @@
+import {adapterMetadataPath, adapterMetadata} from './capture-storage.ts';
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -10,7 +12,7 @@ import {nativeTarget, runCommand} from './verify.ts';
 
 const sha = (file: string) => hash(fs.readFileSync(file));
 const rootFor = (id: string, density: number) => {
-    const key = hash(JSON.stringify({source: bindings(id), density, helper: sha(fileURLToPath(import.meta.url)), capture: sha(capture)}));
+    const key = hash(JSON.stringify({source: bindings(id), density, attempt: process.env.COURSE_CAPTURE_ATTEMPT || null, helper: sha(fileURLToPath(import.meta.url)), capture: sha(capture)}));
     return path.join(viewer, 'target/course-presentation', `browser-${id}-${key.slice(0, 16)}-dpr${density}`);
 };
 const capture = path.join(docs, 'capture_journey.cjs');
@@ -181,7 +183,7 @@ export function buildBrowser(id: string, density = 2) {
         {COURSE_MEMORY_MIB: '4096', COURSE_TIMEOUT_SECONDS: '1800'}));
     const manifest = read(path.join(prepared.native, 'Cargo.toml'));
     const crate = manifest.match(/^name\s*=\s*"([^"]+)"/m)![1].replaceAll('-', '_');
-    const wasm = path.join(viewer, 'target/course-build/wasm32-unknown-unknown/debug', crate + '.wasm');
+    const wasm = path.join(cargoTarget(), 'wasm32-unknown-unknown/debug', crate + '.wasm');
     const dist = path.join(prepared.workspace, 'target/course-checks', id, 'dist');
     commands.push(execute(`${label}-browser-bindgen`, [bindgenFor(path.join(prepared.native, 'Cargo.lock')), wasm, '--target', 'web', '--out-dir', dist, '--out-name', 'viewer_journey']));
     const start = `<script type="module">import init,* as bindings from './viewer_journey.js'; const wasm=await init({module_or_path:'./viewer_journey_bg.wasm'}); window.wasmBindings=bindings; dispatchEvent(new CustomEvent('TrunkApplicationStarted',{detail:{wasm}}));</script>`;
@@ -209,7 +211,7 @@ export async function runBrowser(id: string, density = 2) {
         assert.equal(sha(prepared.image.path), prepared.image.sha256); return prepared;
     }
     assert.equal(prepared.status, 'BUILT_NOT_CAPTURED');
-    const adapter = json(path.join(viewer, 'target/course-windows-20261018/nvidia-hardware-browser-preparation/adapter-metadata.json'));
+    const adapter = adapterMetadata();
     const chrome = process.env.VIEWER_BROWSER_EXECUTABLE || path.join(viewer, 'target/course-browsers/chromium_headless_shell-1208/chrome-headless-shell-win64/chrome-headless-shell.exe');
     assert(fs.existsSync(chrome), 'Pinned browser executable missing');
     const base = path.join(prepared.workspace, 'target/course-checks');

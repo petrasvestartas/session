@@ -1,3 +1,4 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -7,7 +8,7 @@ import {docs,viewer,filesIn,hash,json,read,write} from './model.ts';
 
 const self=fileURLToPath(import.meta.url),original=fileURLToPath(new URL('./supplemental-presentation.ts',import.meta.url));
 const guard=fileURLToPath(new URL('./parallel-image-guard.ps1',import.meta.url));
-export const supportTarget=path.join(viewer,'target/course-sup/native-cache');
+export const supportTarget=cargoTarget();
 const sha=(file:string)=>hash(fs.readFileSync(file));
 const ref=(file:string)=>({path:path.resolve(file),sha256:sha(file)});
 
@@ -63,7 +64,7 @@ export function preparePrivateSupport(oldPlanFile:string){
     replace("import {privateBrowserHost, observeGpu, validateGpu} from './private-browser-host.ts';","import {observeGpu,validateGpu} from './private-browser-host.ts';\nimport {privateImageBrowserHost as privateBrowserHost} from './parallel-image-browser-host.ts';\nimport {supportCommand,supportTarget,rebaseReferenceDependencies} from '"+pathToFileURL(self).href+"';");
     const start=source.indexOf('function command(label:');const end=source.indexOf('\nfunction nativeExample',start);assert(start>=0&&end>start);
     replace(source.slice(start,end),"function command(label:string,args:string[],cwd:string,env:Record<string,string>={}){return supportCommand(label,args,cwd,env);}");
-    replace("const executable=path.join(viewer,'target/course-build',nativeTarget(),'debug/examples',name+(process.platform==='win32'?'.exe':''));", "const compiled=path.join(supportTarget,nativeTarget(),'debug/examples',name+(process.platform==='win32'?'.exe':''));\n    const executable=retained?retained.executable.path:path.join(viewer,'target/course-sup/retained',label,name+(process.platform==='win32'?'.exe':''));\n    fs.mkdirSync(path.dirname(executable),{recursive:true});\n    if(!retained){assert(!fs.existsSync(executable));fs.copyFileSync(compiled,executable,fs.constants.COPYFILE_EXCL);assert.equal(sha(compiled),sha(executable));}");
+    replace("const executable=path.join(cargoTarget(),nativeTarget(),'debug/examples',name+(process.platform==='win32'?'.exe':''));", "const compiled=path.join(supportTarget,nativeTarget(),'debug/examples',name+(process.platform==='win32'?'.exe':''));\n    const executable=retained?retained.executable.path:path.join(viewer,'target/course-sup/retained',label,name+(process.platform==='win32'?'.exe':''));\n    fs.mkdirSync(path.dirname(executable),{recursive:true});\n    if(!retained){assert(!fs.existsSync(executable));fs.copyFileSync(compiled,executable,fs.constants.COPYFILE_EXCL);assert.equal(sha(compiled),sha(executable));}");
     replace('let cargo = read(cargoFile), lock = read(lockFile);','let cargo = rebaseReferenceDependencies(read(cargoFile),id,folder), lock = read(lockFile);');
     replace("{id,mode,folder,native,originalCapture:path.join(docs,'capture_journey.cjs')}","{canonicalBehaviorExecuted:false,id,mode,folder,native,originalCapture:path.join(docs,'capture_journey.cjs')}");
     const beforeImports=source;

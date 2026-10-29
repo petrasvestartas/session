@@ -1,3 +1,4 @@
+import {cargoTarget, observeExecution, finishExecution, compilerTools} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -39,7 +40,7 @@ function runCaptureCommand(name: string, args: string[], directory: string, extr
             '-WorkingDirectory', directory, '-CommandFile', command], {cwd: directory, windowsHide: true,
             env: {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: 'true', NO_COLOR: 'true',
                 CARGO_BUILD_JOBS: String(policy.jobs), RUST_TEST_THREADS: '1', REGEN_PROTO: '0',
-                CARGO_TARGET_DIR: path.join(viewer, 'target/course-build'), ...extra},
+                CARGO_TARGET_DIR: cargoTarget(), ...extra},
             stdio: ['ignore', descriptor, descriptor]});
     } finally { fs.closeSync(descriptor); }
     if (result.error || result.status !== 0) throw Error(`${name} failed. Read ${log}\n${read(log).slice(-4000)}`);
@@ -72,8 +73,8 @@ function compilerProfile() {
     const cargo = spawnSync('cargo', ['--version'], {encoding: 'utf8', windowsHide: true});
     assert.equal(rustc.status, 0); assert.equal(cargo.status, 0);
     const dxc = process.env.VIEWER_DXC_PATH;
-    return {host: nativeTarget(), rustc: rustc.stdout.trim(), cargo: cargo.stdout.trim(),
-        capture: capturePolicy(), CARGO_INCREMENTAL: '1', CARGO_BUILD_JOBS: String(capturePolicy().jobs), CARGO_TARGET_DIR: path.join(viewer, 'target/course-build'),
+    return {toolFiles: compilerTools(), host: nativeTarget(), rustc: rustc.stdout.trim(), cargo: cargo.stdout.trim(),
+        capture: capturePolicy(), CARGO_INCREMENTAL: '1', CARGO_BUILD_JOBS: String(capturePolicy().jobs), CARGO_TARGET_DIR: cargoTarget(),
         RUSTFLAGS: process.env.RUSTFLAGS || '', CARGO_ENCODED_RUSTFLAGS: process.env.CARGO_ENCODED_RUSTFLAGS || '',
         dxc: dxc && fs.existsSync(dxc) ? {path: path.resolve(dxc), sha256: sha(dxc), dxilSha256: sha(path.join(path.dirname(dxc), 'dxil.dll'))} : null};
 }
@@ -186,14 +187,15 @@ export function runIncremental(id: string, density = 2) {
         const runtime = path.join(record.folder, 'runtime');
         for (const [name, input] of Object.entries(record.inputs) as [string, any][]) write(path.join(runtime, name), fs.readFileSync(input.snapshot));
         assert(record.profile.dxc, 'Supply the same task-local DXC used by the canonical native capture');
-        const dxc = path.join(path.dirname(binary), 'dxcompiler.dll'), dxil = path.join(path.dirname(binary), 'dxil.dll');
-        fs.copyFileSync(record.profile.dxc.path, dxc); fs.copyFileSync(path.join(path.dirname(record.profile.dxc.path), 'dxil.dll'), dxil);
+        const dxc = record.profile.dxc.path, dxil = path.join(path.dirname(dxc), 'dxil.dll');
         assert.equal(sha(dxc), record.profile.dxc.sha256); assert.equal(sha(dxil), record.profile.dxc.dxilSha256);
         record.runtimeDlls = {dxc: {path: dxc, sha256: sha(dxc)}, dxil: {path: dxil, sha256: sha(dxil)}};
         record.status = 'EXECUTING'; save(); const executeStart = Date.now();
         const executeLog = path.join(viewer, 'target/course-checks', label + '-execute.log'); assert(!fs.existsSync(executeLog));
+        const beforeExecution = observeExecution([binary, dxc, dxil, ...Object.keys(record.inputs).map(name => path.join(runtime, name))]);
         const executed = runCaptureCommand(label + '-execute', [binary], runtime,
-            {VIEWER_DXC_PATH: dxc, COURSE_MEMORY_MIB: '6144', COURSE_TIMEOUT_SECONDS: '1800'});
+            {VIEWER_DXC_PATH: dxc, PATH: path.dirname(dxc) + path.delimiter + process.env.PATH, COURSE_MEMORY_MIB: '6144', COURSE_TIMEOUT_SECONDS: '1800'});
+        record.executionIntegrity = finishExecution(beforeExecution);
         checkSnapshot(record); checkWorkbench(record.inputs);
         for (const [name, input] of Object.entries(record.inputs) as [string, any][]) assert.equal(sha(path.join(runtime, name)), input.sha256, name);
         const frame = path.join(runtime, 'frame.ppm'), pixels = ppm(frame);

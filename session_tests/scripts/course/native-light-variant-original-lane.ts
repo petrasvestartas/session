@@ -1,3 +1,4 @@
+import {cargoTarget} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -23,7 +24,7 @@ export function prepareNativeLightVariant(){
     fs.cpSync(original.directory,workspace,{recursive:true,filter:f=>!path.relative(original.directory,f).split(path.sep).includes('target')&&!['frame.ppm','presentation.json'].includes(path.basename(f))});
     const sourceFiles=tree(workspace);assert.equal(sourceFiles['examples/presentation.rs'],original.driver.sha256);
     const dxc=path.join(viewer,'target/course-windows-20261018/native-checkpoint/dxcompiler.dll'),dxil=path.join(path.dirname(dxc),'dxil.dll');
-    const p={status:'PREPARED_PRIVATE_SOURCE_ONLY',id:'04-input-light',folder,workspace,target:path.join(folder,'target'),source,identity,sourceFiles,original:{path:path.join(original.directory,'presentation.json'),sha256:sha(path.join(original.directory,'presentation.json'))},pins:Object.fromEntries([self,guard,dxc,dxil].map(f=>[f,sha(f)])),dxc,driver:original.driver,width:1280,height:960};
+    const p={status:'PREPARED_PRIVATE_SOURCE_ONLY',id:'04-input-light',folder,workspace,target:cargoTarget(),source,identity,sourceFiles,original:{path:path.join(original.directory,'presentation.json'),sha256:sha(path.join(original.directory,'presentation.json'))},pins:Object.fromEntries([self,guard,dxc,dxil].map(f=>[f,sha(f)])),dxc,driver:original.driver,width:1280,height:960};
     write(file,JSON.stringify(p,null,2)+'\n');check(p);return p;
 }
 

@@ -1,3 +1,4 @@
+import {adapterMetadataPath, adapterMetadata, observeExecution, finishExecution, bundleInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -20,13 +21,14 @@ export async function privateBrowserHost(workspace: string, folder: string, work
     });
     await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
     const port = (server.address() as {port: number}).port;
-    const metadata = json(path.join(viewer, 'target/course-windows-20261018/nvidia-hardware-browser-preparation/adapter-metadata.json'));
+    const metadata = adapterMetadata();
     const chrome = process.env.VIEWER_BROWSER_EXECUTABLE || path.join(viewer, 'target/course-browsers/chromium_headless_shell-1208/chrome-headless-shell-win64/chrome-headless-shell.exe');
     assert(fs.existsSync(chrome));
     const configFile = path.join(folder, 'config.json'); write(configFile, JSON.stringify(config, null, 2) + '\n');
     const log = path.join(folder, 'browser.log'), descriptor = fs.openSync(log, 'wx');
+    const loader = fileURLToPath(new URL('../typescript.mjs', import.meta.url));
+    const beforeExecution = observeExecution([...bundleInputs(workspace, config.id), process.execPath, loader, worker, chrome, adapterMetadataPath(), configFile]);
     try {
-        const loader = fileURLToPath(new URL('../typescript.mjs', import.meta.url));
         const args = [path.resolve(viewer, '../session_tests/scripts/run-guarded.cjs'), '-MemoryLimitMiB', '6144', '-TimeoutSeconds', '2400',
             '-WorkingDirectory', workspace, '-ManifestPath', path.join(folder, 'resources.json'), process.execPath,
             '--require', fileURLToPath(new URL('warp-browser-timeout.cjs', import.meta.url)), '--import', pathToFileURL(loader).href, worker, '--worker', configFile];
@@ -43,7 +45,7 @@ export async function privateBrowserHost(workspace: string, folder: string, work
         assert.equal(code, 0, `Private browser failed; inspect ${log}`);
         const resources = json(path.join(folder, 'resources.json'));
         assert.equal(resources.exitCode, 0); assert.equal(resources.processors, 2); assert.equal(resources.jobCommitLimitBytes, 6442450944);
-        return {served, resources, log, logSha256: hash(fs.readFileSync(log))};
+        return {executionIntegrity: finishExecution(beforeExecution), served, resources, log, logSha256: hash(fs.readFileSync(log))};
     } finally { fs.closeSync(descriptor); await new Promise<void>(resolve => server.close(() => resolve())); }
 }
 

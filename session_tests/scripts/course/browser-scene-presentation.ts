@@ -1,3 +1,4 @@
+import {adapterMetadataPath, adapterMetadata} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -11,7 +12,7 @@ import {course, docs, filesIn, hash, json, read, viewer, write} from './model.ts
 const self = fileURLToPath(import.meta.url);
 const sha = (file: string) => hash(fs.readFileSync(file));
 const browserExecutable = () => process.env.VIEWER_BROWSER_EXECUTABLE || path.join(viewer, 'target/course-browsers/chromium_headless_shell-1208/chrome-headless-shell-win64/chrome-headless-shell.exe');
-const adapterMetadata = path.join(viewer, 'target/course-windows-20261018/nvidia-hardware-browser-preparation/adapter-metadata.json');
+const adapterMetadataFile = adapterMetadataPath();
 const comparisonCheck = 'journey/checks/browser/comparison.cjs';
 const cloudCheck = 'journey/checks/browser/cloud-points.cjs';
 const networkCheck = 'journey/checks/browser/network.cjs';
@@ -102,7 +103,7 @@ export function prepareScene(id: string, browserPreparation: string, baselineFil
     const baseline = baselineFile ? {path: path.resolve(baselineFile), sha256: sha(path.resolve(baselineFile))} : null;
     if (baseline) assert.deepEqual(json(baseline.path).source, source, 'Baseline must name the same current source');
     const executablePath = browserExecutable();
-    const pins = Object.fromEntries([browserPreparation, callback, ...extraPins, path.join(docs, 'journey/course.json'), executablePath, adapterMetadata].map(file => [file, sha(file)]));
+    const pins = Object.fromEntries([browserPreparation, callback, ...extraPins, path.join(docs, 'journey/course.json'), executablePath, adapterMetadataFile].map(file => [file, sha(file)]));
     const key = hash(JSON.stringify({source, recipe, bundle, baseline, helper: sha(self)})).slice(0, 20);
     const directory = path.join(viewer, 'target/course-presentation', 'scene-' + id + '-' + key);
     assert(!fs.existsSync(directory), 'Preserve previous scene attempt');
@@ -141,7 +142,7 @@ async function worker(preparedFile: string, base: string) {
     const prepared = json(preparedFile); validate(prepared);
     const require = createRequire(path.join(viewer, 'target/course-tools/package.json'));
     const {chromium} = require('playwright');
-    const metadata = json(adapterMetadata);
+    const metadata = adapterMetadata();
     const browser = await chromium.launch({executablePath: prepared.executablePath, headless: true, args: ['--enable-unsafe-webgpu', '--ignore-gpu-blocklist', '--use-gl=angle', '--use-angle=d3d11',
         '--use-adapter-luid=' + metadata.selected.luid, '--enable-dawn-features=d3d_skip_shader_optimizations']});
     const errors: string[] = [];

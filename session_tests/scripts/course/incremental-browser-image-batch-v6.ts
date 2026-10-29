@@ -1,3 +1,4 @@
+import {prepareStreaming, runStreaming} from './browser-streaming-presentation.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -22,7 +23,7 @@ import {course, docs, filesIn, hash, json, viewer, withExpectedSequence, write} 
 const self=fileURLToPath(import.meta.url),sha=(f:string)=>hash(fs.readFileSync(f));
 const ref=(f:string)=>({path:path.resolve(f),sha256:sha(path.resolve(f))});
 const done=(r:any)=>['CAPTURED_AWAITING_ROOT_VISUAL_REVIEW','PUBLISHED_ROOT_REVIEWED'].includes(r?.status);
-const modules=['fixture-qualified-browser-fallback-v2.ts','owned-file-action-browser-recipes.ts','main-page-browser-image-recipes.ts','owned-file-browser-fallback.ts','owned-deep-file-buffer-transport.cjs','incremental-browser-image-build.ts','browser-scene-presentation.ts','image-lane-browser-scene.ts','additional-browser-image-recipes.ts','exported-browser-image-recipes.ts','historical-browser-actions-presentation.ts','terminal-browser-image-recipes-v2.ts','child-context-browser-image-recipes.ts','maintained-browser-presentation.ts','browser-image-fallback.ts','parallel-image-browser-host.ts','parallel-image-guard.ps1','early-default-browser-presentation.ts','source-startup-status-browser-presentation-v2.ts'];
+const modules=['browser-streaming-presentation.ts','fixture-qualified-browser-fallback-v2.ts','owned-file-action-browser-recipes.ts','main-page-browser-image-recipes.ts','owned-file-browser-fallback.ts','owned-deep-file-buffer-transport.cjs','incremental-browser-image-build.ts','browser-scene-presentation.ts','image-lane-browser-scene.ts','additional-browser-image-recipes.ts','exported-browser-image-recipes.ts','historical-browser-actions-presentation.ts','terminal-browser-image-recipes-v2.ts','child-context-browser-image-recipes.ts','maintained-browser-presentation.ts','browser-image-fallback.ts','parallel-image-browser-host.ts','parallel-image-guard.ps1','early-default-browser-presentation.ts','source-startup-status-browser-presentation-v2.ts'];
 
 function imageCheck(image:any){const bytes=fs.readFileSync(image.path);assert.equal(hash(bytes),image.sha256);assert.equal(bytes.readUInt32BE(16),image.width);assert.equal(bytes.readUInt32BE(20),image.height);assert(image.width>=1280&&image.height>=960);}
 function actualRecord(id:string,file:string,source?:any){
@@ -125,11 +126,11 @@ export async function runIncrementalBrowserBatch(cohortFile:string,scope='all',r
         const old=p.items[item.id];if(done(old)){assert.equal(sha(old.sourceRecord.path),old.sourceRecord.sha256);actualRecord(item.id,old.sourceRecord.path,c.sources[item.id]);continue;}
         assert(!['FAILED','RUNNING'].includes(old.status),'Preserve previous incomplete/failed attempt for explicit diagnosis: '+item.id);if(limit&&count>=limit)break;
         check(c);const approval=item.plannedRoute==='exported'?recipeGate(reviewFile,c,item.id):item.plannedRoute==='historical'?recipeGate(historicalReview,c,item.id,'historical'):item.plannedRoute==='terminal'?recipeGate(terminalReview,c,item.id,'terminal'):item.plannedRoute==='child-context'?recipeGate(childReview,c,item.id,'child-context'):item.plannedRoute==='early-default'?recipeGate(earlyReview,c,item.id,'early-default'):null;
-        assert(item.plannedRoute!=='retained-streaming','Retain the already accepted special streaming record before running this successor');
         p.items[item.id]={...item,status:'RUNNING',started:new Date().toISOString()};write(progressFile,JSON.stringify(summary(p),null,2)+'\n');
         try{
             const built=withExpectedSequence(()=>buildIncrementalImageBrowser(item.id,2));let file:string;
-            if(item.plannedRoute==='retained-maintained')file=await incrementalMaintained(built);
+            if(item.plannedRoute==='retained-streaming'){const q=prepareStreaming(built.preparedFile);await runStreaming(path.join(q.directory,'prepared.json'));file=path.join(q.directory,'result.json');}
+            else if(item.plannedRoute==='retained-maintained')file=await incrementalMaintained(built);
             else if(item.plannedRoute==='generic'){const q=prepareImageLaneScene(item.id,built.preparedFile);await runImageLaneScene(path.join(q.directory,'prepared.json'));file=path.join(q.directory,'result.json');}
             else if(item.plannedRoute==='additional'){ownedActionsGate();const q=await prepareOwnedActionScene('additional',item.id,built.preparedFile);file=(await runOwnedActionScene('additional',path.join(q.folder,'prepared.json'))).record;}
             else if(item.plannedRoute==='exported'){const q=prepareExportedScene(item.id,built.preparedFile);await runExportedScene(path.join(q.folder,'prepared.json'));file=path.join(q.folder,'capture.json');}
