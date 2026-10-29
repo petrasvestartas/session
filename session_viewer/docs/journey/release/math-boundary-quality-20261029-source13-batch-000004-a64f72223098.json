@@ -1,0 +1,58 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T11:13:16.948303+00:00",
+  "id": "59f-cad",
+  "lane": "native",
+  "batchIndex": 4,
+  "generation": "9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Native CAD fixture: smooth circular opening, clean face and boundary edges, no triangle-wire overlays.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\manifest.json",
+    "sha256": "937543f217b27a0c10e0c640044d424bc5c894faec13b4dba744f621a3b8921c",
+    "bytes": 4033865
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\publications\\000004.json",
+    "sha256": "351790de7092f25842e109639d9e6f7e0b06ddcbd31824a7457f7e1696194be6",
+    "bytes": 1810
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-59f-cad-5d895fdeb2cbd39bdb3c\\capture.json",
+    "sha256": "1e53ed6ab2874d64a9115412d15fea245cbf61a22c1f075d0bcb6bd12275ea38",
+    "bytes": 733001
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\events\\000025-426d9c17ff8fbae4f41919f33532fd2e5fffbf2f70c45c5862c499c16e8f825e.json",
+    "sha256": "426d9c17ff8fbae4f41919f33532fd2e5fffbf2f70c45c5862c499c16e8f825e",
+    "bytes": 279
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\59f-cad.png",
+    "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+    "bytes": 40096
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\59f-cad.png",
+    "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+    "bytes": 40096
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\59f-cad.png",
+    "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+    "bytes": 40096
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=a64f72223098",
+    "status": 200,
+    "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e"
+  }
+}

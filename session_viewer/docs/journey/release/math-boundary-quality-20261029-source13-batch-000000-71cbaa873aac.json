@@ -1,0 +1,58 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T11:09:21.311306+00:00",
+  "id": "41f-input",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Grid-only browser frame matches this lesson title and its Close, Grid On, Reset and Isometric actions.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\manifest.json",
+    "sha256": "937543f217b27a0c10e0c640044d424bc5c894faec13b4dba744f621a3b8921c",
+    "bytes": 4033865
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\publications\\000000.json",
+    "sha256": "b478eb0bca8e61bfa9e32bccce7f824709e891714c30db4ea181b45d94bfe66c",
+    "bytes": 1856
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-41f-input-67f71e2dc12a24562d35\\capture.json",
+    "sha256": "3853191ca85e01e916eb361fcf4fec3354a76961c764be827e8757a641f3539b",
+    "bytes": 1424936
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\events\\000007-96ab9a4bd5a631304c3a3065112acc081259c293e319c0c63a30da8dcbfc00cc.json",
+    "sha256": "96ab9a4bd5a631304c3a3065112acc081259c293e319c0c63a30da8dcbfc00cc",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\41f-input-browser.png",
+    "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+    "bytes": 137188
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\41f-input-browser.png",
+    "sha256": "ffe1bf22bdb2bc1480fb52bc41d289bfb3dabf47b3bd967d8bba50a4a5632984",
+    "bytes": 137225
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\41f-input-browser.png",
+    "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+    "bytes": 137188
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input-browser.png?v=71cbaa873aac",
+    "status": 200,
+    "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79"
+  }
+}

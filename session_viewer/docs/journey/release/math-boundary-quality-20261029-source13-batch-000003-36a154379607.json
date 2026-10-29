@@ -1,0 +1,58 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T11:09:21.337720+00:00",
+  "id": "54p-navigation",
+  "lane": "native",
+  "batchIndex": 3,
+  "generation": "9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Native navigation fixture: clean beam and columns.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\manifest.json",
+    "sha256": "937543f217b27a0c10e0c640044d424bc5c894faec13b4dba744f621a3b8921c",
+    "bytes": 4033865
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\publications\\000003.json",
+    "sha256": "1bff1756c009c73c9f31d9faa8b3a1bc03f163688531c0c1d4f0e02de9589ce8",
+    "bytes": 1859
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54p-navigation-587baaf3a1f67b73d0ec\\capture.json",
+    "sha256": "24ab933412048c8990ec9438b69229e72a3a01519d04f248ea3755d7d0595805",
+    "bytes": 716511
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\9575309778a2b0f66d47079fd09d96dc88656ab66ccbdb6d7d6f61c8dce1f70d\\events\\000019-69c8d17a8f74e463c0e2a6f9f94330dc6a4a45ffe22c0740fcf2b1e2f7cb4981.json",
+    "sha256": "69c8d17a8f74e463c0e2a6f9f94330dc6a4a45ffe22c0740fcf2b1e2f7cb4981",
+    "bytes": 279
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54p-navigation.png",
+    "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+    "bytes": 41628
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54p-navigation.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9",
+    "bytes": 42184
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\54p-navigation.png",
+    "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+    "bytes": 41628
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png?v=36a154379607",
+    "status": 200,
+    "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b"
+  }
+}

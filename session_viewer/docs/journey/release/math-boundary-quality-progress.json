@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T10:57:25.116629+00:00",
+  "updatedUtc": "2026-10-29T11:19:18.150911+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -32,10 +32,10 @@
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 15,
-    "remainingAffected": 1319,
-    "acceptedForFinalSource": 4,
-    "remainingFinalSourceAcceptance": 1330,
+    "newPublishedReviewed": 19,
+    "remainingAffected": 1315,
+    "acceptedForFinalSource": 9,
+    "remainingFinalSourceAcceptance": 1325,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Every accepted image matches its current published hash and personal original-resolution review."
   },
   "published": [
@@ -164,7 +164,7 @@
       "id": "current-native-comparison",
       "lane": "native",
       "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-comparison.json",
-      "receiptSha256": "4d37cdd89289320c658913718ba59b493d35cc369662c11c0bfec7e20aeb4a94",
+      "receiptSha256": "255deb1add8317eec4c3fc0b289269cf391c0c30d676de84d67285521d92a609",
       "image": "docs/screenshots/journey/current-native-comparison.png",
       "imageSha256": "24437f0b44e1f4839de8ff55684f0cd1e6bda0e442d32b6dbc5f559147795c3f",
       "sourceFreeze": "source-freeze-13.json",
@@ -176,7 +176,7 @@
       "id": "current-native-dome",
       "lane": "native",
       "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-dome.json",
-      "receiptSha256": "8ed64265b8ecdc5c25382b5adade9731531d07cdeb6ee2d33144c782955ccbb2",
+      "receiptSha256": "3b07f3d082c762ba02171d93b8f56a03f919b6aa2ca885e9e76966aad602c6b1",
       "image": "docs/screenshots/journey/current-native-dome.png",
       "imageSha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161",
       "sourceFreeze": "source-freeze-13.json",
@@ -188,7 +188,7 @@
       "id": "current-native-floor-input",
       "lane": "native",
       "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-floor-input.json",
-      "receiptSha256": "0cef171728c25b7cd030a81ededaab51a90ccf498a9721c4fdf7da982c21412c",
+      "receiptSha256": "fd0c787e0089f20f60ed9f8b89ab448750514c5994236eec4f42ecebb3dd216b",
       "image": "docs/screenshots/journey/current-native-floor-input.png",
       "imageSha256": "8afdff4d62d0dcf95365d0ed1b6ddffbfc5a0de81b34de50bcb8eb12dcceeb04",
       "sourceFreeze": "source-freeze-13.json",
@@ -200,9 +200,69 @@
       "id": "current-native-floor-output",
       "lane": "native",
       "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-floor-output.json",
-      "receiptSha256": "3755665f443a397d9aef2d5b93669a0e8a2aa182eac1cc887c1c9fde1b972014",
+      "receiptSha256": "c1f3e763fa989080f712c410e6ef73d32ab03fce74f61f2074eaa1e661d1bc04",
       "image": "docs/screenshots/journey/current-native-floor-output.png",
       "imageSha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "41f-input",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000000-71cbaa873aac.json",
+      "receiptSha256": "9ea0b13405b0b35d0b359967037956c959e5d781cf71133287f6ab1e3b74f2d8",
+      "image": "docs/screenshots/journey/41f-input-browser.png",
+      "imageSha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "41f-input",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000001-618cbc4930c1.json",
+      "receiptSha256": "bd7613cdf4d36f0fcf1a20521fa38b11f16b478c27180986e2611c1e10178f36",
+      "image": "docs/screenshots/journey/41f-input.png",
+      "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "51zf-handles",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000002-6b7cb7dba7db.json",
+      "receiptSha256": "f55e5e9c24c28e72ef23a405e7f030341355cc41360f7750f2e2c99708381dee",
+      "image": "docs/screenshots/journey/51zf-handles.png",
+      "imageSha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "54p-navigation",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000003-36a154379607.json",
+      "receiptSha256": "524deb0c1c9f43b097526208e0be88f71655489f27e53c99fb7bcc33a29822f6",
+      "image": "docs/screenshots/journey/54p-navigation.png",
+      "imageSha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "59f-cad",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000004-a64f72223098.json",
+      "receiptSha256": "fa8de26364443c11511b8751fe436555cb2f417e1fcfed86b560ff43d08bad74",
+      "image": "docs/screenshots/journey/59f-cad.png",
+      "imageSha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
@@ -224,7 +284,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "4_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 15_TOTAL_PUBLISHED_REVIEWED"
+      "status": "9_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 19_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -245,6 +305,6 @@
     "browser": "155.0.8059.80",
     "publishedImagesVerified": 11,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 4
+    "newSource13ImagesAwaitingChromeDecode": 9
   }
 }
