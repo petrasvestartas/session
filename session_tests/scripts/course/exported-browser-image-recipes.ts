@@ -28,8 +28,16 @@ export function exportedImageRecipe(id:string){
         return {module,file,sha256:sha(file),kind:'unchanged-export',exportName,viewport:{width,height},
             scope:'One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance.'};
     }
-    const authority=module==='caps'?path.join(viewer,'target/course-windows-20261018/caps88ad-acceptance-publication-preparation/capture-visible.cjs'):module==='performance'?path.join(viewer,'target/course-windows-20261018/performance95f-two-correction-publication-preparation/capture-visible.cjs'):null;
-    if(['current-commands','caps','performance','hardware-grid'].includes(module))return {module,file,sha256:sha(file),kind:'original-visible-setup',authority:authority?{path:authority,sha256:sha(authority)}:null,viewport:{width:module==='hardware-grid'?960:900,height:module==='hardware-grid'?640:760},
+    let authority = null;
+    if (module === 'caps' || module === 'performance') {
+        const review = path.join(docs, 'journey/release', module === 'caps' ? 'exported88ad-browser-image-review.json' : 'exported-primary-three-browser-image-review.json');
+        const archived = json(review), recipe = module === 'caps' ? archived.recipe : archived.images.find((image: any) => image.recipe?.module === module)?.recipe;
+        assert(recipe?.authority && recipe.module === module, 'Visible setup needs its archived publication authority');
+        assert.equal(recipe.sha256, sha(file), 'The original visible callback changed');
+        authority = {path: review, sha256: sha(review), archivedHelper: recipe.authority,
+            recovery: 'Visible setup reconstructed from this maintained recipe and archived publication; missing private helper is not execution evidence.'};
+    }
+    if(['current-commands','caps','performance','hardware-grid'].includes(module))return {module,file,sha256:sha(file),kind:'original-visible-setup',authority,viewport:{width:module==='hardware-grid'?960:900,height:module==='hardware-grid'?640:760},
         scope:module==='current-commands'?'Exact original final main-page tail with all tail assertions; inherited measurement/history prefix is not executed.':module==='hardware-grid'?'Exact original first empty-grid scene and its four physical-pixel assertions at DPR2 only.':'Previously root-reviewed visible original fixture; the canonical callback ends Close and its empty termination frame is not used as a feature image.'};
     return null;
 }
