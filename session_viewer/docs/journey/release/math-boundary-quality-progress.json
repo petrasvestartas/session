@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T11:19:18.150911+00:00",
+  "updatedUtc": "2026-10-29T11:43:16.967618+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -26,16 +26,24 @@
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
-    "source13SelftestSha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638"
+    "source13SelftestSha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638",
+    "networkFrameCorrection": {
+      "status": "SOURCE_VERIFIED_RUNTIME_PENDING",
+      "frame": "docs/journey/checks/80-network.rs",
+      "reason": "Keep initial upload count == 2 before display refinement; check live geometry/row counts and unchanged uploads during drawing afterwards.",
+      "pixelAssertions": "BYTE_IDENTICAL",
+      "sourceVerification": "124 pins, eight module fingerprints and extraction hashes PASS",
+      "affectedFrameBindings": 31
+    }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 19,
-    "remainingAffected": 1315,
-    "acceptedForFinalSource": 9,
-    "remainingFinalSourceAcceptance": 1325,
+    "newPublishedReviewed": 21,
+    "remainingAffected": 1313,
+    "acceptedForFinalSource": 14,
+    "remainingFinalSourceAcceptance": 1320,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Every accepted image matches its current published hash and personal original-resolution review."
   },
   "published": [
@@ -267,6 +275,66 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "62o-labels",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000005-acca558319bd.json",
+      "receiptSha256": "c60bf7656e59d8ff6d9baaab49c04298ae79c88257109667f56ec79605b11dc5",
+      "image": "docs/screenshots/journey/62o-labels-browser.png",
+      "imageSha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000007-c8320a5ff6b5.json",
+      "receiptSha256": "e67a72827153087276287a25c6f58935135394180c1fa59245b576d17e424b0b",
+      "image": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "imageSha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "62o-labels",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000006-62bc49710585.json",
+      "receiptSha256": "3db2a3cbed87d654797e3c5f446774163b395bd8daeb6de077ddee2544be7da5",
+      "image": "docs/screenshots/journey/62o-labels.png",
+      "imageSha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000008-7c1c670edda4.json",
+      "receiptSha256": "b53509df7c9b651ede3f10cb2d01d73602bb0ea82457d6883bf38cd92b736f8d",
+      "image": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+      "imageSha256": "7c1c670edda4ac5778567f370c83a65b4bd35134b67788692b43d23c6783c0a0",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "70za-read-original-sheet-metadata-records",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-000009-ada90df919c9.json",
+      "receiptSha256": "e3df6ba930a90eb7f822883501360bf4f603c459c1be5b69e388b2bb3a3ac2a9",
+      "image": "docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "imageSha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -280,11 +348,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_4_MAINTAINED_ILLUSTRATIONS_PASS; BULK_LESSON_CAPTURES_RUNNING"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_14_IMAGES_PASS; NETWORK_FRAME_LIFECYCLE_CORRECTION_RUNTIME_PENDING"
     },
     {
       "stage": "Image regeneration",
-      "status": "9_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 19_TOTAL_PUBLISHED_REVIEWED"
+      "status": "14_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 21_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -305,6 +373,6 @@
     "browser": "155.0.8059.80",
     "publishedImagesVerified": 11,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 9
+    "newSource13ImagesAwaitingChromeDecode": 14
   }
 }
