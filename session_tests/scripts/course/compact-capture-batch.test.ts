@@ -5,6 +5,16 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {fileReference} from './capture-storage.ts';
 import {readBatchQueue, runCompactBatch} from './compact-capture-batch.ts';
+import {nativeDevelopmentProfile} from './incremental-native-presentation.ts';
+
+test('native development profile defaults debug symbols off and preserves caller compiler choices', () => {
+    const defaults = nativeDevelopmentProfile({});
+    assert.equal(defaults.CARGO_PROFILE_DEV_DEBUG, '0');
+    for (const name of ['OPT_LEVEL', 'INCREMENTAL', 'CODEGEN_UNITS', 'STRIP']) assert.equal(defaults['CARGO_PROFILE_DEV_' + name], null);
+    const caller = {CARGO_PROFILE_DEV_DEBUG: '2', CARGO_PROFILE_DEV_OPT_LEVEL: '1', CARGO_PROFILE_DEV_INCREMENTAL: 'false',
+        CARGO_PROFILE_DEV_CODEGEN_UNITS: '16', CARGO_PROFILE_DEV_STRIP: 'symbols', CARGO_PROFILE_DEV_OVERFLOW_CHECKS: 'false'};
+    assert.deepEqual(nativeDevelopmentProfile(caller), caller);
+});
 
 function fixture(ids = ['a', 'b']) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'compact-batch-'));
@@ -86,6 +96,24 @@ test('source and tool changes create fresh generations while old evidence stays 
     } finally { f.cleanup(); }
 });
 
+test('native profile changes start a fresh batch generation instead of reusing completed proof', async () => {
+    const f = fixture(['a']), original = process.env.CARGO_PROFILE_DEV_DEBUG;
+    const generation = f.runtime.generation;
+    f.runtime.generation = () => ({...generation(), profile: {nativeDevelopment: nativeDevelopmentProfile()}});
+    try {
+        delete process.env.CARGO_PROFILE_DEV_DEBUG;
+        const first = await runCompactBatch(f.queueFile, {}, f.runtime);
+        process.env.CARGO_PROFILE_DEV_DEBUG = '2';
+        const second = await runCompactBatch(f.queueFile, {}, f.runtime);
+        assert.notEqual(second.generation, first.generation);
+        assert.equal(second.remaining, 0); assert.equal(f.calls.filter(call => call === 'capture a').length, 2);
+    } finally {
+        if (original === undefined) delete process.env.CARGO_PROFILE_DEV_DEBUG;
+        else process.env.CARGO_PROFILE_DEV_DEBUG = original;
+        f.cleanup();
+    }
+});
+
 test('a changed current public hash is never skipped as a qualified completed entry', async () => {
     const f = fixture(['a']);
     try {
@@ -108,7 +136,7 @@ test('only explicit allowed PNG destinations are writable and retained scope sta
     } finally { f.cleanup(); }
 });
 
-test('unsealed failed captures block retries and maintained captures remain explicitly pending', async () => {
+test('unsealed failed captures block retries and unknown routes remain explicitly pending', async () => {
     const f = fixture(['a']);
     try {
         f.controls.failCapture = true;
@@ -116,9 +144,25 @@ test('unsealed failed captures block retries and maintained captures remain expl
         f.controls.failCapture = false;
         const retry = await runCompactBatch(f.queueFile, {}, f.runtime); assert.equal(retry.status, 'STOPPED_ON_FAILURE'); assert.equal(f.calls.length, 1);
         const input = JSON.parse(fs.readFileSync(f.queueFile, 'utf8'));
-        input.entries[0] = {...input.entries[0], lane: 'browser', id: '97-finish-with-the-maintained-browser-runtime', route: 'retained-maintained'};
+        input.entries[0] = {...input.entries[0], lane: 'browser', route: 'separate-helper'};
         fs.writeFileSync(f.queueFile, JSON.stringify(input));
         const pending = await runCompactBatch(f.queueFile, {}, f.runtime); assert.equal(pending.unsupported.length, 1); assert.equal(pending.remaining, 1); assert.equal(f.calls.length, 1);
+    } finally { f.cleanup(); }
+});
+
+test('maintained final checkpoint uses its explicit route and completes the normal publication contract', async () => {
+    const f = fixture(['97-finish-with-the-maintained-browser-runtime']);
+    try {
+        const input = JSON.parse(fs.readFileSync(f.queueFile, 'utf8'));
+        input.entries[0].lane = 'browser'; input.entries[0].route = 'retained-maintained';
+        fs.writeFileSync(f.queueFile, JSON.stringify(input));
+        assert.equal(readBatchQueue(f.queueFile, f.runtime).entries[0].route, 'maintained');
+        const result = await runCompactBatch(f.queueFile, {}, f.runtime);
+        assert.equal(result.retired, 1); assert.equal(result.remaining, 0); assert.equal(result.unsupported.length, 0);
+        input.entries[0].route = 'generic'; fs.writeFileSync(f.queueFile, JSON.stringify(input));
+        assert.throws(() => readBatchQueue(f.queueFile, f.runtime), /explicit maintained route/);
+        input.entries[0].route = 'maintained'; input.entries[0].id = 'other'; fs.writeFileSync(f.queueFile, JSON.stringify(input));
+        assert.throws(() => readBatchQueue(f.queueFile, f.runtime), /final browser checkpoint/);
     } finally { f.cleanup(); }
 });
 

@@ -4,7 +4,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {bindings, prepare as prepareSnapshot} from './presentation.ts';
+import {bindings, nativeAdapterProfile, verifyNativeAdapter, prepare as prepareSnapshot} from './presentation.ts';
 import {assetsFor, expected, filesIn, hash, json, read, viewer, write} from './model.ts';
 import {nativeTarget} from './verify.ts';
 import {png, ppm} from './png.ts';
@@ -26,6 +26,7 @@ export function capturePolicy() {
 
 function runCaptureCommand(name: string, args: string[], directory: string, extra: Record<string, string> = {}) {
     const policy = capturePolicy(), evidence = path.join(viewer, 'target/course-checks');
+    const development = Object.fromEntries(Object.entries(nativeDevelopmentProfile()).filter((entry): entry is [string, string] => entry[1] !== null));
     assert.equal(process.platform, 'win32', 'This image-only optional guard is Windows-specific');
     fs.mkdirSync(evidence, {recursive: true});
     const log = path.join(evidence, name + '.log'); assert(!fs.existsSync(log));
@@ -40,11 +41,11 @@ function runCaptureCommand(name: string, args: string[], directory: string, extr
             '-WorkingDirectory', directory, '-CommandFile', command], {cwd: directory, windowsHide: true,
             env: {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: 'true', NO_COLOR: 'true',
                 CARGO_BUILD_JOBS: String(policy.jobs), RUST_TEST_THREADS: '1', REGEN_PROTO: '0',
-                CARGO_TARGET_DIR: cargoTarget(), ...extra},
+                CARGO_TARGET_DIR: cargoTarget(), ...development, ...extra},
             stdio: ['ignore', descriptor, descriptor]});
     } finally { fs.closeSync(descriptor); }
     if (result.error || result.status !== 0) throw Error(`${name} failed. Read ${log}\n${read(log).slice(-4000)}`);
-    return {name, args, returncode: result.status};
+    return {name, args, environment: development, returncode: result.status};
 }
 
 function ownedPath(name: string) {
@@ -68,13 +69,19 @@ function ensureWorkbench() {
     assert.deepEqual(json(path.join(workbench, ownerName)), ownership, 'Only this private workbench is owned');
 }
 
+export function nativeDevelopmentProfile(environment: NodeJS.ProcessEnv = process.env) {
+    const names = new Set(['DEBUG', 'OPT_LEVEL', 'INCREMENTAL', 'CODEGEN_UNITS', 'STRIP'].map(name => 'CARGO_PROFILE_DEV_' + name));
+    for (const name of Object.keys(environment)) if (name.startsWith('CARGO_PROFILE_DEV_')) names.add(name);
+    return Object.fromEntries([...names].sort().map(name => [name, environment[name] || (name === 'CARGO_PROFILE_DEV_DEBUG' ? '0' : null)]));
+}
+
 function compilerProfile() {
     const rustc = spawnSync('rustc', ['-vV'], {encoding: 'utf8', windowsHide: true});
     const cargo = spawnSync('cargo', ['--version'], {encoding: 'utf8', windowsHide: true});
     assert.equal(rustc.status, 0); assert.equal(cargo.status, 0);
     const dxc = process.env.VIEWER_DXC_PATH;
     return {toolFiles: compilerTools(), host: nativeTarget(), rustc: rustc.stdout.trim(), cargo: cargo.stdout.trim(),
-        capture: capturePolicy(), CARGO_INCREMENTAL: '1', CARGO_BUILD_JOBS: String(capturePolicy().jobs), CARGO_TARGET_DIR: cargoTarget(),
+        capture: capturePolicy(), development: nativeDevelopmentProfile(), nativeAdapter: nativeAdapterProfile(), CARGO_INCREMENTAL: '1', CARGO_BUILD_JOBS: String(capturePolicy().jobs), CARGO_TARGET_DIR: cargoTarget(),
         RUSTFLAGS: process.env.RUSTFLAGS || '', CARGO_ENCODED_RUSTFLAGS: process.env.CARGO_ENCODED_RUSTFLAGS || '',
         dxc: dxc && fs.existsSync(dxc) ? {path: path.resolve(dxc), sha256: sha(dxc), dxilSha256: sha(path.join(path.dirname(dxc), 'dxil.dll'))} : null};
 }
@@ -83,6 +90,7 @@ function snapshotInputs(snapshot: any) {
     const names = new Set([...Object.keys(expected(snapshot.source.checkpoint)), 'Cargo.lock', ...assetsFor(snapshot.source.checkpoint)]);
     const driver = path.relative(snapshot.directory, path.join(viewer, snapshot.driver.path)).split(path.sep).join('/');
     names.add(driver);
+    if (snapshot.adapterBridge) for (const file of Object.values(snapshot.adapterBridge) as any[]) names.add(path.relative(snapshot.directory, file.path));
     return Object.fromEntries([...names].sort().map(name => [name, {snapshot: path.join(snapshot.directory, name), sha256: sha(path.join(snapshot.directory, name))}]));
 }
 
@@ -136,7 +144,7 @@ export function prepareIncremental(id: string, density = 2) {
     const recordFile = path.join(folder, 'result.json');
     if (fs.existsSync(recordFile)) { const existing = json(recordFile); checkSnapshot(existing); return existing; }
     const record = {status: 'PREPARED_NOT_EXECUTED', id, density, key, source: snapshot.source, snapshotKey: snapshot.key,
-        snapshotDirectory: snapshot.directory, snapshotDriver: snapshot.driver, profile, helperSha256,
+        snapshotDirectory: snapshot.directory, snapshotDriver: snapshot.driver, adapterBridge: snapshot.adapterBridge, profile, helperSha256,
         inputs: snapshotInputs(snapshot), folder, recordFile, workbench, width: snapshot.width, height: snapshot.height,
         scope: 'Exact keyed snapshot preserved; stable private compiler source path; every checkpoint still receives its own Cargo invocation and actual renderer execution.'};
     write(recordFile, JSON.stringify(record, null, 2) + '\n'); checkSnapshot(record); return record;
@@ -149,6 +157,7 @@ export function verifyIncremental(recordFile: string) {
     assert.equal(sha(record.image.path), record.image.sha256);
     assert.equal(sha(record.compilerArtifact.path), record.compilerArtifact.sha256);
     assert.equal(sha(record.compile.log), record.compile.logSha256); assert.equal(sha(record.execute.log), record.execute.logSha256);
+    assert.deepEqual(verifyNativeAdapter(path.join(record.folder, 'runtime'), record.profile.nativeAdapter), record.adapterReceipt || null);
     return record;
 }
 
@@ -192,10 +201,13 @@ export function runIncremental(id: string, density = 2) {
         record.runtimeDlls = {dxc: {path: dxc, sha256: sha(dxc)}, dxil: {path: dxil, sha256: sha(dxil)}};
         record.status = 'EXECUTING'; save(); const executeStart = Date.now();
         const executeLog = path.join(viewer, 'target/course-checks', label + '-execute.log'); assert(!fs.existsSync(executeLog));
-        const beforeExecution = observeExecution([binary, dxc, dxil, ...Object.keys(record.inputs).map(name => path.join(runtime, name))]);
+        if (record.profile.nativeAdapter) assert(!fs.existsSync(path.join(runtime, 'frame-adapter.json')), 'Preserve previous adapter execution evidence');
+        const adapterInputs = record.profile.nativeAdapter ? [record.profile.nativeAdapter.metadata.path, record.profile.nativeAdapter.enumerator.path] : [];
+        const beforeExecution = observeExecution([binary, dxc, dxil, ...adapterInputs, ...Object.keys(record.inputs).map(name => path.join(runtime, name))]);
         const executed = runCaptureCommand(label + '-execute', [binary], runtime,
             {VIEWER_DXC_PATH: dxc, PATH: path.dirname(dxc) + path.delimiter + process.env.PATH, COURSE_MEMORY_MIB: '6144', COURSE_TIMEOUT_SECONDS: '1800'});
         record.executionIntegrity = finishExecution(beforeExecution);
+        record.adapterReceipt = verifyNativeAdapter(runtime, record.profile.nativeAdapter);
         checkSnapshot(record); checkWorkbench(record.inputs);
         for (const [name, input] of Object.entries(record.inputs) as [string, any][]) assert.equal(sha(path.join(runtime, name)), input.sha256, name);
         const frame = path.join(runtime, 'frame.ppm'), pixels = ppm(frame);

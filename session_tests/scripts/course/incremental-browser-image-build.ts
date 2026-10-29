@@ -17,6 +17,18 @@ const root=path.join(viewer,'target/course-presentation/incremental-browser-buil
 const policy={purpose:'Image-only stable incremental compiler experiment; no canonical callback acceptance',processors:8,memoryMiB:8192,jobs:8,affinityMask:'0xFF00',timeoutSeconds:1800,profile:'debug',incremental:'1'};
 const manifest=(folder:string)=>Object.fromEntries(filesIn(folder).filter(f=>!path.relative(folder,f).split(path.sep).includes('target')).map(f=>[path.relative(folder,f).replaceAll('\\','/'),sha(f)]));
 
+export function copyTrunkFiles(native:string,dist:string){
+    for(const link of read(path.join(native,'index.html')).matchAll(/<link\b[^>]*data-trunk[^>]*rel="copy-file"[^>]*href="([^"]+)"[^>]*>/g)){
+        const source=path.resolve(native,link[1]),relative=path.relative(native,source);
+        assert(relative&&!relative.startsWith('..')&&!path.isAbsolute(relative),'Trunk copy-file must stay inside the materialized source');
+        assert.equal(fs.realpathSync(source),source,'Trunk copy-file source cannot be redirected');
+        const destination=path.join(dist,path.basename(source));
+        if(fs.existsSync(destination)){assert.equal(fs.realpathSync(destination),path.resolve(destination));assert.equal(sha(destination),sha(source),'Trunk copy-file destination collision');}
+        else fs.copyFileSync(source,destination,fs.constants.COPYFILE_EXCL);
+        assert.equal(sha(destination),sha(source));
+    }
+}
+
 function tools(){return Object.fromEntries(['rustc','cargo'].map(exe=>{const r=spawnSync(exe,['-Vv'],{encoding:'utf8',windowsHide:true});assert.equal(r.status,0);return[exe,r.stdout];}));}
 function sourceCheck(p:any){
     assert.equal(p.helperSha256,sha(self));assert.deepEqual(p.source,bindings(p.id));
@@ -109,6 +121,7 @@ export function buildIncrementalImageBrowser(id:string,density=2){
         const start=`<script type="module">import init,* as bindings from './viewer_journey.js'; const wasm=await init({module_or_path:'./viewer_journey_bg.wasm'}); window.wasmBindings=bindings; dispatchEvent(new CustomEvent('TrunkApplicationStarted',{detail:{wasm}}));</script>`;
         let index=read(path.join(g.workbench,'index.html')).replace(/<link\b[^>]*\bdata-trunk\b[^>]*\brel="rust"[^>]*>/,start);assert(index.includes(start));index=index.replace(/<link\b[^>]*\bdata-trunk\b[^>]*>/g,'');write(path.join(p.dist,'index.html'),index);
         for(const asset of assetsFor(id)){const target=path.join(p.dist,asset.startsWith('assets/text/')?asset.replace('assets/text/','text/'):asset);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(g.workbench,asset),target);}
+        copyTrunkFiles(p.native,p.dist);
         const sceneSource=path.join(p.workspace,'target','course-'+id);fs.cpSync(p.native,sceneSource,{recursive:true});if(fs.existsSync(path.join(p.folder,'sample.pb')))fs.copyFileSync(path.join(p.folder,'sample.pb'),path.join(sceneSource,'sample.pb'));
         const retainedArtifacts=artifacts[0].filenames.map((file:string)=>({originalPath:file,sha256:sha(file)}));
         check();assert.equal(sha(retained),wasmSha256);

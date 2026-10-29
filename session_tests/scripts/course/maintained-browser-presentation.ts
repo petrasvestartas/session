@@ -8,6 +8,7 @@ import {buildBrowser} from './browser-presentation.ts';
 import {bindings} from './presentation.ts';
 import {docs, hash, json, read, viewer, write} from './model.ts';
 import {observeGpu, privateBrowserHost, validateGpu} from './private-browser-host.ts';
+import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 
 const id = '97-finish-with-the-maintained-browser-runtime';
 const sha = (file: string) => hash(fs.readFileSync(file));
@@ -24,26 +25,47 @@ export function maintainedClone() {
     return {original, adapted, originalSha256: hash(original), adaptedSha256: hash(adapted)};
 }
 
-export async function runMaintainedPresentation() {
-    const built = buildBrowser(id, 2), clone = maintainedClone(), source = bindings(id);
+export async function runMaintainedPresentation(preparedFile?: string) {
+    const built = preparedFile ? json(preparedFile) : buildBrowser(id, 2), clone = maintainedClone(), source = bindings(id);
+    assert.equal(built.id, id); assert.deepEqual(built.source, source);
+    if (preparedFile) {
+        assert.equal(built.status, 'BUILT_NOT_CAPTURED');
+        assert.equal(sha(built.imageBuild.path), built.imageBuild.sha256);
+        const compiler = json(built.imageBuild.path);
+        assert.deepEqual(compiler.source, source); assert.deepEqual(compiler.bundle, built.bundle);
+    }
     const key = hash(JSON.stringify({helper: sha(script), host: sha(fileURLToPath(new URL('private-browser-host.ts', import.meta.url))), source,
-        capture: clone.originalSha256, adapted: clone.adaptedSha256}));
+        capture: clone.originalSha256, adapted: clone.adaptedSha256, prepared: preparedFile ? fileReference(preparedFile) : null}));
     const folder = path.join(built.folder, 'maintained-' + key.slice(0, 16)), recordFile = path.join(folder, 'result.json');
     if (fs.existsSync(recordFile)) {
         const record = json(recordFile); assert.deepEqual(bindings(id), record.source);
         assert.equal(sha(record.image.path), record.image.sha256); return record;
     }
     assert(!fs.existsSync(folder), 'Preserve the previous maintained attempt');
-    const workspace = path.join(folder, 'workspace'); fs.cpSync(built.workspace, workspace, {recursive: true});
+    const workspace = preparedFile ? built.workspace : path.join(folder, 'workspace');
+    if (!preparedFile) fs.cpSync(built.workspace, workspace, {recursive: true});
     const transportCopies = [];
     for (const link of read(path.join(built.native, 'index.html')).matchAll(/<link\b[^>]*data-trunk[^>]*rel="copy-file"[^>]*href="([^"]+)"[^>]*>/g)) {
         const sourceAsset = path.join(built.native, link[1]), destination = path.join(workspace, 'target/course-checks', id, 'dist', path.basename(link[1]));
-        fs.copyFileSync(sourceAsset, destination);
+        if (preparedFile) assert.equal(sha(destination), sha(sourceAsset), 'Copy-file transport must already belong to the immutable compiler bundle');
+        else fs.copyFileSync(sourceAsset, destination);
         transportCopies.push({source: link[1], destination: path.basename(link[1]), sha256: sha(destination), scope: 'Exact original Trunk copy-file transport, no source change.'});
     }
-    write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files, commands: built.commands}}, null, 2));
-    write(path.join(folder, 'capture-adapted.cjs'), clone.adapted);
-    const host = await privateBrowserHost(workspace, folder, script, {id, originalFile, adapted: path.join(folder, 'capture-adapted.cjs')});
+    const commands = built.commands.map((command: any) => {
+        if (!preparedFile) return command;
+        assert.equal(sha(command.resourcesFile), command.resourcesSha256);
+        assert.deepEqual(json(command.resourcesFile), command.resources);
+        assert.equal(command.resources.exitCode, 0); assert.equal(command.resources.timedOut, false);
+        return {...command, returncode: command.resources.exitCode};
+    });
+    const results = path.join(workspace, 'target/course-checks/results.json');
+    write(results, JSON.stringify({[id]: {source: source.files, commands}}, null, 2));
+    const adapted = path.join(folder, 'capture-adapted.cjs'); write(adapted, clone.adapted);
+    const before = observeExecution([originalFile, adapted, results, path.join(workspace, 'docs/journey/course.json'),
+        path.join(workspace, 'docs/journey/checks/browser/final.cjs'), path.join(workspace, 'docs/journey/checks/fingerprint.cjs')]);
+    const host = await privateBrowserHost(workspace, folder, script, {id, originalFile, adapted, adaptedSha256: clone.adaptedSha256});
+    const driver = finishExecution(before);
+    for (const phase of ['before', 'after'] as const) host.executionIntegrity[phase].files.push(...driver[phase].files);
     assert.deepEqual(bindings(id), source);
     const outputs = path.join(workspace, 'docs/screenshots/journey');
     const browser = json(path.join(outputs, 'browser.json')).steps[id];
@@ -56,6 +78,7 @@ export async function runMaintainedPresentation() {
     const record = {status: 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW', id, folder, source, originalCapture: {path: originalFile, sha256: clone.originalSha256},
         clone: {sha256: clone.adaptedSha256, assertionPreservation: 'Only additive actual-GPU observer/validation; all original DPR1/DPR2 behavior and pixel assertions retained.'},
         browser, host, transportCopies, sourceRecord: recordFile,
+        ...(preparedFile ? {bundle: built.bundle, imageBuild: built.imageBuild, prepared: fileReference(preparedFile)} : {}),
         image: {path: image, sha256: hash(bytes), width: 1800, height: 1520},
         destinations: [`docs/screenshots/journey/${id}-browser.png`, `docs/screenshots/journey/${id}-browser-dpr2.png`],
         scope: 'Both public filenames may use this one actual new-source DPR2 image after root review. Original DPR1 image and both-density behavior evidence remain private and preserved.'};
@@ -64,6 +87,7 @@ export async function runMaintainedPresentation() {
 
 if (process.argv[2] === '--worker') {
     const config = json(process.argv[3]), source = read(config.adapted), runner = new Module(config.originalFile);
+    if (config.adaptedSha256) assert.equal(hash(source), config.adaptedSha256);
     runner.filename = config.originalFile; runner.paths = Module._nodeModulePaths(path.dirname(config.originalFile));
     process.argv = [process.argv[0], config.originalFile, config.id]; runner._compile(source, config.originalFile);
 } else if (process.argv[1] && path.resolve(process.argv[1]) === script) {

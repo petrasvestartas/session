@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {captureCompact} from './compact-capture.ts';
+import {nativeDevelopmentProfile} from './incremental-native-presentation.ts';
+import {nativeAdapterProfile} from './presentation.ts';
 import {verifyCaptureLedger, retirePublishedCapture} from './capture-ledger.ts';
 import {adapterMetadataPath, cargoTarget, compilerTools, fileReference} from './capture-storage.ts';
 import {course, docs, filesIn, hash, json, lockFor, viewer} from './model.ts';
@@ -21,7 +23,7 @@ type Runtime = {
 };
 
 const script = fileURLToPath(import.meta.url);
-const routes = new Set(['generic', 'additional', 'exported', 'historical', 'terminal', 'child-context', 'early-default', 'main-page', 'streaming', 'fallback', 'source-status']);
+const routes = new Set(['generic', 'additional', 'exported', 'historical', 'terminal', 'child-context', 'early-default', 'main-page', 'streaming', 'fallback', 'source-status', 'maintained']);
 const aliases: Record<string, string> = {'retained-streaming': 'streaming', 'source-main-page': 'main-page', 'retained-maintained': 'maintained'};
 
 function destination(file: string, runtime: Runtime) {
@@ -48,6 +50,7 @@ export function readBatchQueue(file: string, runtime: Runtime = production): Que
         assert(['native', 'browser'].includes(row.lane) && typeof row.id === 'string' && row.id.length);
         const route = aliases[row.route] || row.route || 'generic';
         assert(row.lane !== 'browser' || row.id !== '97-finish-with-the-maintained-browser-runtime' || route === 'maintained', 'Final maintained runtime must have its explicit maintained route');
+        assert(route !== 'maintained' || (row.lane === 'browser' && row.id === '97-finish-with-the-maintained-browser-runtime'), 'Maintained route requires the final browser checkpoint');
         return {lane: row.lane, id: row.id, route, destination: destination(row.destination, runtime)};
     });
     const retained = (input.retained || []).map((row: any) => {
@@ -74,6 +77,7 @@ function sourceGeneration(queue: Queue) {
     inputs.push(path.join(docs, 'journey/course.json'), path.join(docs, 'journey/frame.rs'), path.join(docs, 'capture_journey.cjs'));
     for (const row of queue.entries) {
         inputs.push(lockFor(row.id));
+        if (row.route === 'maintained') inputs.push(path.join(docs, 'capture_current.cjs'));
         const step = steps.find(step => step.id === row.id)!;
         for (const file of [step.frame, step.browser_check]) if (file) inputs.push(path.join(docs, file));
         const module = path.basename(step.browser_check || '', '.cjs');
@@ -89,11 +93,14 @@ function sourceGeneration(queue: Queue) {
         inputs.push(process.env.VIEWER_BROWSER_EXECUTABLE || path.join(viewer, 'target/course-browsers/chromium_headless_shell-1208/chrome-headless-shell-win64/chrome-headless-shell.exe'));
     }
     if (process.env.VIEWER_DXC_PATH) inputs.push(path.join(path.dirname(process.env.VIEWER_DXC_PATH), 'dxil.dll'));
+    const nativeAdapter = queue.entries.some(row => row.lane === 'native') ? nativeAdapterProfile() : null;
+    if (nativeAdapter) inputs.push(...[nativeAdapter.metadata, nativeAdapter.enumerator, nativeAdapter.dxc, nativeAdapter.dxil].map(file => file.path));
     for (const match of (process.env.NODE_OPTIONS || '').matchAll(/(?:--require|-r)(?:=|\s+)(?:"([^"]+)"|'([^']+)'|(\S+))/g)) inputs.push(path.resolve(match[1] || match[2] || match[3]));
+    const nativeDevelopment = nativeDevelopmentProfile();
     const environment = Object.fromEntries(['RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'CARGO_INCREMENTAL', 'COURSE_CAPTURE_PROCESSORS', 'VIEWER_DXC_PATH',
-        'VIEWER_BROWSER_EXECUTABLE', 'COURSE_ADAPTER_METADATA', 'NODE_OPTIONS'].map(name => [name, process.env[name] || null]));
+        'VIEWER_BROWSER_EXECUTABLE', 'COURSE_ADAPTER_METADATA', 'COURSE_NATIVE_ADAPTER', 'NODE_OPTIONS', ...Object.keys(nativeDevelopment)].map(name => [name, process.env[name] || null]));
     return {files: [...new Set(inputs)].sort().map(fileReference), directories,
-        profile: {environment, target: cargoTarget(), compiler: compilerTools(), node: fileReference(process.execPath)}};
+        profile: {environment, nativeDevelopment, nativeAdapter, target: cargoTarget(), compiler: compilerTools(), node: fileReference(process.execPath)}};
 }
 
 const production: Runtime = {viewer, destinations: path.join(docs, 'screenshots/journey'), state: path.join(viewer, 'target/course-compact-batches'),
@@ -121,6 +128,7 @@ function assertSource(source: any) {
     for (const file of Object.values(source.profile?.compiler || {}) as Reference[]) assertReference(file);
     if (source.profile?.node) assertReference(source.profile.node);
     for (const [name, value] of Object.entries(source.profile?.environment || {})) assert.equal(process.env[name] || null, value, 'Capture environment changed during batch');
+    if (source.profile?.nativeDevelopment) assert.deepEqual(nativeDevelopmentProfile(), source.profile.nativeDevelopment, 'Native development profile changed during batch');
 }
 
 function publish(image: Reference, output: string, previous: Reference | null, runtime: Runtime) {
@@ -172,7 +180,7 @@ export async function runCompactBatch(queueFile: string, options: {limit?: numbe
             writeOnce(path.join(eventsFolder, `${String(event.sequence).padStart(6, '0')}-${sha256}.json`), event);
             events.push(event); previous = sha256; states[index] = {...states[index], ...data};
         };
-        const unsupported = queue.entries.flatMap((entry, index) => entry.route === 'maintained' || entry.lane === 'browser' && !routes.has(entry.route!)
+        const unsupported = queue.entries.flatMap((entry, index) => entry.lane === 'browser' && !routes.has(entry.route!)
             ? [{index, id: entry.id, route: entry.route, destination: entry.destination, reason: 'Requires a separately qualified capture helper; no generic substitution'}] : [])
             .concat(queue.special.map((entry, index) => ({index: queue.entries.length + index, ...entry, route: 'separate-helper'})));
         const current = new Set<number>();

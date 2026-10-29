@@ -6,10 +6,72 @@ import {assetsFor, course, docs, expected, filesIn, fingerprint, hash, json, loc
 import {dependencyInputs} from './dependency-inputs.ts';
 import {nativeTarget, runCommand} from './verify.ts';
 import {png, ppm} from './png.ts';
+import {adapterMetadataPath, fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 
 const output = path.join(viewer, 'target/course-presentation');
 const relative = (file: string) => path.relative(viewer, file).split(path.sep).join('/');
 const digest = (file: string) => hash(fs.readFileSync(file));
+
+export function nativeAdapterProfile() {
+    const mode = process.env.COURSE_NATIVE_ADAPTER || 'cpu';
+    assert(['cpu', 'nvidia'].includes(mode), 'Unsupported native image adapter profile');
+    if (mode === 'cpu') return null;
+    assert.equal(process.platform, 'win32', 'NVIDIA image profile requires Windows DX12');
+    const metadata = fileReference(adapterMetadataPath()), enumeration = json(metadata.path), selected = enumeration.selected;
+    assert.equal(selected.vendor, 0x10de);
+    assert(Number.isInteger(selected.device) && selected.device > 0 && selected.device <= 0xffffffff);
+    assert(selected.luid && Number.isInteger(selected.flags) && !(selected.flags & 2), 'Selected adapter must be enumerated hardware');
+    assert(enumeration.adapters.some((adapter: any) => ['vendor', 'device', 'luid', 'flags'].every(name => adapter[name] === selected[name])));
+    const enumerator = fileReference(enumeration.tool); assert.equal(enumerator.sha256, enumeration.toolSha256);
+    assert(process.env.VIEWER_DXC_PATH, 'NVIDIA image profile requires an explicit DXC SDK');
+    const dxc = fileReference(process.env.VIEWER_DXC_PATH), dxil = fileReference(path.join(path.dirname(dxc.path), 'dxil.dll'));
+    return {mode, vendor: selected.vendor, device: selected.device, enumeratedLuid: selected.luid,
+        backend: 'Dx12', deviceType: 'DiscreteGpu', metadata, enumerator, dxc, dxil};
+}
+
+export function adapterDriverBridge(code: string, profile: NonNullable<ReturnType<typeof nativeAdapterProfile>>) {
+    const changes = [{before: 'info.backend == wgpu::Backend::Dx12 && info.device_type == wgpu::DeviceType::Cpu\n' +
+        '                && info.vendor == 0x1414 && info.device == 0x8c\n' +
+        '        }).ok_or("Windows frame evidence requires the Microsoft WARP DX12 adapter")?',
+    after: 'info.backend == wgpu::Backend::Dx12 && info.device_type == wgpu::DeviceType::DiscreteGpu\n' +
+        `                && info.vendor == ${profile.vendor} && info.device == ${profile.device}\n` +
+        '        }).ok_or("NVIDIA image profile requires the selected hardware DX12 adapter")?'},
+    {before: '    eprintln!("Native frame adapter: {:?}", adapter.get_info());',
+    after: '    eprintln!("Native frame adapter: {:?}", adapter.get_info());\n' +
+        '    let info = adapter.get_info();\n' +
+        '    let mut adapter_receipt = std::fs::OpenOptions::new().write(true).create_new(true).open("frame-adapter.json")?;\n' +
+        '    writeln!(adapter_receipt, "{{\\"vendor\\":{},\\"device\\":{},\\"backend\\":\\"{:?}\\",\\"deviceType\\":\\"{:?}\\"}}",\n' +
+        '        info.vendor, info.device, info.backend, info.device_type)?;'}];
+    const beforeSha256 = hash(code);
+    let transformed = code;
+    for (const change of changes) {
+        assert.equal(transformed.split(change.before).length - 1, 1, 'Canonical adapter header changed');
+        transformed = transformed.replace(change.before, change.after);
+    }
+    let reversed = transformed;
+    for (const change of [...changes].reverse()) reversed = reversed.replace(change.after, change.before);
+    assert.equal(reversed, code, 'Adapter bridge must reverse to the exact generated presentation');
+    return {code: transformed, beforeSha256, afterSha256: hash(transformed), reversedSha256: hash(reversed),
+        changes: changes.map(change => ({...change, needleCount: 1}))};
+}
+
+export function verifyNativeAdapter(directory: string, profile: ReturnType<typeof nativeAdapterProfile>) {
+    if (!profile) return null;
+    const receipt = fileReference(path.join(directory, 'frame-adapter.json')), adapter = json(receipt.path);
+    for (const name of ['vendor', 'device', 'backend', 'deviceType'] as const) assert.equal(adapter[name], profile[name], 'Executed native adapter differs from image profile');
+    return {...receipt, adapter};
+}
+
+function checkAdapterBridge(record: any) {
+    if (!record.source.nativeAdapter) return;
+    const bridge = record.adapterBridge;
+    assert.equal(digest(bridge.before.path), bridge.before.sha256);
+    const transformed = adapterDriverBridge(read(bridge.before.path), record.source.nativeAdapter);
+    assert.equal(transformed.code, read(path.join(viewer, record.driver.path)));
+    const {code, ...proof} = transformed;
+    assert.deepEqual(json(bridge.record.path), proof);
+    assert.equal(digest(bridge.record.path), bridge.record.sha256);
+}
 
 function checkMaterialized(id: string, directory: string) {
     const kernel = path.relative(directory, path.resolve(viewer, '../session_rust')).split(path.sep).join('/');
@@ -98,7 +160,7 @@ export function bindings(id: string) {
         kernel: fingerprint(Object.fromEntries(inputs.map(file => [path.relative(kernel, file), digest(file)]))),
         fixture: step.frame ? digest(path.join(docs, step.frame)) : null,
         harness: digest(path.join(docs, 'journey/frame.rs')), constructor: step.frame_constructor || null,
-        logicalSize: step.frame_size || [640, 480], helper: digest(fileURLToPath(import.meta.url))};
+        logicalSize: step.frame_size || [640, 480], helper: digest(fileURLToPath(import.meta.url)), nativeAdapter: nativeAdapterProfile()};
 }
 
 export function captureDirectory(id: string, density = 2) {
@@ -112,8 +174,10 @@ function retained(record: any) {
     assert.deepEqual(bindings(record.source.checkpoint), record.source, 'Retained source/dependency binding changed');
     checkMaterialized(record.source.checkpoint, record.directory);
     assert.equal(digest(path.join(viewer, record.driver.path)), record.driver.sha256);
+    checkAdapterBridge(record);
     if (record.status === 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW') {
         assert.equal(digest(path.join(viewer, record.image.path)), record.image.sha256);
+        assert.deepEqual(verifyNativeAdapter(record.directory, record.source.nativeAdapter), record.adapterReceipt || null);
     }
     return record;
 }
@@ -154,11 +218,19 @@ export function prepare(id: string, density = 2) {
     assert.equal(code.split('    verify_pixels(&pixels);').length, 2, 'Canonical readback validation boundary changed');
     code = code.replace('// COURSE_DRAW', draw).replace('    verify_pixels(&pixels);',
         '    assert_eq!(pixels.len(), WIDTH as usize * HEIGHT as usize * 4);');
+    const bridge = source.nativeAdapter ? adapterDriverBridge(code, source.nativeAdapter) : null;
     materialize(files, directory, lockFor(checkpoint), assetsFor(checkpoint));
+    let adapterBridge = null;
+    if (bridge) {
+        const before = path.join(directory, 'adapter-driver-before.rs'), proof = path.join(directory, 'adapter-bridge.json');
+        write(before, code); write(proof, JSON.stringify({...bridge, code: undefined}, null, 2) + '\n');
+        adapterBridge = {before: fileReference(before), record: fileReference(proof)};
+        code = bridge.code;
+    }
     const driver = path.join(directory, 'examples/presentation.rs');
     write(driver, code);
     const record = {status: 'PREPARED_NOT_EXECUTED', key, source, directory, density, width, height,
-        rendererResize: resizeSignature, rendererDensity: scaling, driver: {path: relative(driver), sha256: digest(driver)},
+        rendererResize: resizeSignature, rendererDensity: scaling, driver: {path: relative(driver), sha256: digest(driver)}, adapterBridge,
         fixtureFunctionsPreserved: step.frame ? code.endsWith(read(path.join(docs, step.frame))) : true,
         canonicalPixelAssertions: 'Preserved unchanged in original fixture; fixed-resolution verification remains separate from this presentation capture.'};
     write(path.join(directory, 'presentation.json'), JSON.stringify(record, null, 2) + '\n');
@@ -174,11 +246,18 @@ export function run(id: string, density = 2) {
     assert.deepEqual(bindings(checkpoint), record.source, 'Checkpoint or dependencies changed after preparation');
     assert.equal(digest(path.join(viewer, record.driver.path)), record.driver.sha256);
     checkMaterialized(checkpoint, directory);
+    checkAdapterBridge(record);
+    const adapterProfile = record.source.nativeAdapter;
+    if (adapterProfile) assert(!fs.existsSync(path.join(directory, 'frame-adapter.json')), 'Preserve previous adapter execution evidence');
+    const adapterInputs = adapterProfile ? observeExecution([path.join(viewer, record.driver.path), ...['metadata', 'enumerator', 'dxc', 'dxil'].map(name => adapterProfile[name].path)]) : null;
     const label = `presentation-${id}-${key.slice(0, 16)}-dpr${density}`;
     assert(!fs.existsSync(path.join(viewer, 'target/course-checks', label + '.log')), 'Preserve the previous execution attempt');
     const command = runCommand(label,
         ['cargo', 'run', '--example', 'presentation', '--locked', '--target', nativeTarget(), '-j1'], directory,
-        {COURSE_MEMORY_MIB: process.env.COURSE_MEMORY_MIB || '4096', COURSE_TIMEOUT_SECONDS: '1800'});
+        {COURSE_MEMORY_MIB: process.env.COURSE_MEMORY_MIB || '4096', COURSE_TIMEOUT_SECONDS: '1800',
+            ...(adapterProfile ? {PATH: path.dirname(adapterProfile.dxc.path) + path.delimiter + process.env.PATH} : {})});
+    const adapterInputIntegrity = adapterInputs ? finishExecution(adapterInputs) : null;
+    const adapterReceipt = verifyNativeAdapter(directory, adapterProfile);
     assert.deepEqual(bindings(checkpoint), record.source, 'Checkpoint or dependencies changed during capture');
     checkMaterialized(checkpoint, directory);
     const frame = path.join(directory, 'frame.ppm');
@@ -186,7 +265,7 @@ export function run(id: string, density = 2) {
     assert.equal(pixels.width, record.width); assert.equal(pixels.height, record.height);
     const image = path.join(directory, `${id}-dpr${density}.png`);
     write(image, png(frame));
-    const result = {...record, status: 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW', command,
+    const result = {...record, status: 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW', command, adapterInputIntegrity, adapterReceipt,
         image: {path: relative(image), sha256: digest(image), width: pixels.width, height: pixels.height}};
     write(path.join(directory, 'presentation.json'), JSON.stringify(result, null, 2) + '\n');
     return result;

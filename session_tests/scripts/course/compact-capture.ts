@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {course, docs, expected, filesIn, json, viewer, withExpectedSequence} from './model.ts';
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture} from './capture-ledger.ts';
+import {nativeAdapterProfile} from './presentation.ts';
 
 const self = fileURLToPath(import.meta.url);
 const root = path.join(viewer, 'target/course-compact');
@@ -17,6 +18,7 @@ function sourceEvidence(id: string) {
         path.join(docs, 'journey/course.json'), path.join(docs, 'journey/frame.rs'), path.join(docs, 'capture_journey.cjs'),
         ...['typescript.mjs', 'run-guarded.cjs', 'run-guarded.ps1'].map(name => fileURLToPath(new URL('../' + name, import.meta.url)))];
     for (const relative of [step.frame, step.browser_check]) if (relative) files.push(path.join(docs, relative));
+    if (id === '97-finish-with-the-maintained-browser-runtime') files.push(path.join(docs, 'capture_current.cjs'));
     const roots = manifest.includes('session_rust') ? [path.resolve(viewer, '../session_rust')] : [];
     if (/^wood\s*=/m.test(manifest) || /^current_viewer\s*=/m.test(manifest)) roots.push(path.resolve(viewer, '../../wood/rust'));
     if (/^current_viewer\s*=/m.test(manifest)) roots.push(viewer);
@@ -37,6 +39,10 @@ export function selectAffected(ids: string[], firstChanged = '38a-samples') {
 
 async function browserCapture(id: string, route: string, built: any) {
     const file = built.preparedFile;
+    if (route === 'maintained') {
+        const module = await import('./maintained-browser-presentation.ts');
+        return (await module.runMaintainedPresentation(file)).sourceRecord;
+    }
     if (route === 'fallback') {
         const module = await import('./owned-file-browser-fallback.ts');
         return (await module.captureOwnedFileFallback(id, file)).record;
@@ -74,8 +80,11 @@ async function browserCapture(id: string, route: string, built: any) {
 export async function captureCompact(lane: string, id: string, route = 'generic') {
     assert(['native', 'browser'].includes(lane));
     assert(course().steps.some(step => step.id === id), 'Unknown checkpoint');
+    assert(route !== 'maintained' || (lane === 'browser' && id === '97-finish-with-the-maintained-browser-runtime'), 'Maintained route requires the final browser checkpoint');
+    assert(lane !== 'browser' || id !== '97-finish-with-the-maintained-browser-runtime' || route === 'maintained', 'Final browser checkpoint requires its maintained assertions');
     fs.mkdirSync(root, {recursive: true});
-    const inputs = sourceEvidence(id), sourceBefore = observeExecution(inputs);
+    const adapterProfile = lane === 'native' ? nativeAdapterProfile() : null;
+    const inputs = [...sourceEvidence(id), ...(adapterProfile ? [adapterProfile.metadata.path, adapterProfile.enumerator.path] : [])], sourceBefore = observeExecution(inputs);
     const descriptor = fs.openSync(laneLock, 'wx');
     fs.writeFileSync(descriptor, JSON.stringify({pid: process.pid, lane, id})); fs.closeSync(descriptor);
     let file: string, buildFile: string | undefined, ownedRoots: string[], transientRoots: string[], execution: any, evidence: string[];
@@ -99,6 +108,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             transientRoots = [record.snapshotDirectory, path.join(record.folder, 'runtime')];
             const prefix = record.compile.log.replace(/-build\.log$/, '');
             evidence = ['-build.log', '-build.command.json', '-build.resources.json', '-execute.log', '-execute.command.json', '-execute.resources.json'].map(suffix => prefix + suffix);
+            if (record.adapterReceipt) evidence.push(record.adapterReceipt.path, record.adapterBridge.record.path, record.adapterBridge.before.path);
         } else {
             const module = await import('./incremental-browser-image-build.ts');
             const built = withExpectedSequence(() => module.buildIncrementalImageBrowser(id));
