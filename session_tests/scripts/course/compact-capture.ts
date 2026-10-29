@@ -39,6 +39,10 @@ export function selectAffected(ids: string[], firstChanged = '38a-samples') {
 
 async function browserCapture(id: string, route: string, built: any) {
     const file = built.preparedFile;
+    if (route === 'measurement') {
+        const module = await import('./supplemental-presentation.ts');
+        return (await module.runMeasurementPresentation(file)).sourceRecord;
+    }
     if (route === 'maintained') {
         const module = await import('./maintained-browser-presentation.ts');
         return (await module.runMaintainedPresentation(file)).sourceRecord;
@@ -80,6 +84,7 @@ async function browserCapture(id: string, route: string, built: any) {
 export async function captureCompact(lane: string, id: string, route = 'generic') {
     assert(['native', 'browser'].includes(lane));
     assert(course().steps.some(step => step.id === id), 'Unknown checkpoint');
+    assert(route !== 'measurement' || (lane === 'browser' && id === '85ay-exercise-current-original-commands-together'), 'Measurement route requires the 85ay browser checkpoint');
     assert(route !== 'maintained' || (lane === 'browser' && id === '97-finish-with-the-maintained-browser-runtime'), 'Maintained route requires the final browser checkpoint');
     assert(lane !== 'browser' || id !== '97-finish-with-the-maintained-browser-runtime' || route === 'maintained', 'Final browser checkpoint requires its maintained assertions');
     fs.mkdirSync(root, {recursive: true});

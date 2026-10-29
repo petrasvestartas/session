@@ -1,4 +1,4 @@
-import {cargoTarget} from './capture-storage.ts';
+import {cargoTarget, fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -182,6 +182,52 @@ function nativeScenes(plan:any, generated:any) {
     });
 }
 
+export async function runMeasurementPresentation(preparedFile: string) {
+    const prepared = fileReference(preparedFile), built = json(prepared.path);
+    assert.equal(built.id, measurementId, 'Supply the actual 85ay incremental browser build');
+    assert.equal(built.status, 'BUILT_NOT_CAPTURED');
+    const compiler = json(built.imageBuild.path), source = bindings(measurementId);
+    assert.equal(built.group?.key, 'compact-browser-v1'); assert.deepEqual(compiler.group, built.group);
+    assert.equal(path.resolve(compiler.compilerArtifact.manifest_path), path.join(built.group.workbench, 'Cargo.toml'));
+    assert(built.bundle['index.html'] && Object.keys(built.bundle).some(name => name.endsWith('.wasm')));
+    assert.deepEqual(built.source, source); assert.deepEqual(compiler.source, source);
+    assert.deepEqual(compiler.bundle, built.bundle);
+    const dist = path.join(built.workspace, 'target/course-checks', measurementId, 'dist');
+    const checkBuild = () => {
+        assert.equal(sha(prepared.path), prepared.sha256);
+        assert.equal(sha(built.imageBuild.path), built.imageBuild.sha256);
+        assert.deepEqual(bindings(measurementId), source);
+        for (const [file, digest] of Object.entries(built.pins)) assert.equal(sha(file), digest, file);
+        assert.deepEqual(Object.fromEntries(filesIn(dist).map(file => [path.relative(dist, file).split(path.sep).join('/'), sha(file)])), built.bundle);
+    };
+    checkBuild();
+    const originalCapture = path.join(docs, 'capture_journey.cjs');
+    const key = hash(JSON.stringify({prepared, helper: sha(script), host: sha(fileURLToPath(new URL('private-browser-host.ts', import.meta.url))),
+        capture: sha(originalCapture)}));
+    const folder = path.join(built.folder, 'measurement-' + key.slice(0, 20)), sourceRecord = path.join(folder, 'result.json');
+    assert(!fs.existsSync(folder), 'Preserve previous standalone measurement attempts');
+    const before = observeExecution([prepared.path, built.imageBuild.path, originalCapture]);
+    const host = await privateBrowserHost(built.workspace, folder, script,
+        {id: measurementId, mode: 'measurement', folder, originalCapture});
+    const driver = finishExecution(before);
+    for (const phase of ['before', 'after'] as const) host.executionIntegrity[phase].files.push(...driver[phase].files);
+    checkBuild();
+    const result = json(path.join(folder, 'worker-result.json'));
+    assert.equal(result.status, 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW'); assert.deepEqual(result.errors, []);
+    assert.equal(result.images.length, 1);
+    const captured = result.images[0];
+    assert.equal(captured.path, path.join(folder, 'current85ay-visible-two-mm.png'));
+    assert.equal(captured.destination, 'docs/journey/release/current85ay-visible-two-mm.png');
+    assert.deepEqual(image(captured.path, captured.destination), captured);
+    assert.equal(captured.width, 1800); assert.equal(captured.height, 1520);
+    for (const name of Object.keys(built.bundle).filter(name => name === 'index.html' || name.endsWith('.wasm')))
+        assert.equal(host.served[`${measurementId}/dist/${name}`], built.bundle[name]);
+    const record = {...result, id: measurementId, folder, sourceRecord, source, prepared, imageBuild: built.imageBuild,
+        bundle: built.bundle, host, image: captured, canonicalBehaviorExecuted: false,
+        scope: 'Original standalone two-mm measurement recipe and framing assertions; fresh supplied incremental bundle, no supplemental cohort or scene generation.'};
+    write(sourceRecord, JSON.stringify(record, null, 2) + '\n'); return record;
+}
+
 async function browserRecipe(plan:any, mode:string, native?:any) {
     const id=mode==='measurement'?measurementId:'04-input';
     const folder=path.join(plan.folder,mode);assert(!fs.existsSync(folder),'Preserve previous browser attempt: '+folder);
@@ -290,8 +336,9 @@ if(process.argv[2]==='--worker') await worker(json(process.argv[3]));
 else if(process.argv[1]&&path.resolve(process.argv[1])===script) {
     const args=process.argv.slice(2),mode=args.shift(),option=(name:string)=>{const index=args.indexOf(name);return index<0?undefined:args[index+1];};
     const result=mode==='prepare'?prepareSupplemental(option('--native-cohort')!,option('--browser-cohort')!,option('--attempt')||'v1'):
+        mode==='measurement'?await runMeasurementPresentation(option('--built')!):
         mode==='run'?await runSupplemental(option('--plan')!,option('--scope')||'all'):
         mode==='publish'?publishSupplemental(option('--plan')!,option('--review')!):null;
-    assert(result,'Usage: supplemental-presentation.ts prepare --native-cohort DIR --browser-cohort DIR | run --plan FILE --scope aliases|practice|reference|native-inputs|scenes|dock|measurement|all');
+    assert(result,'Usage: supplemental-presentation.ts measurement --built PREPARED_JSON | prepare --native-cohort DIR --browser-cohort DIR | run --plan FILE --scope aliases|practice|reference|native-inputs|scenes|dock|measurement|all');
     console.log(JSON.stringify(result,null,2));
 }
