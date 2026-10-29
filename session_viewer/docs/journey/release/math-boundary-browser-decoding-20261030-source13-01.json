@@ -1,0 +1,356 @@
+{
+  "status": "PASS_CURRENT_PUBLISHED_IMAGES_CHROME_DECODE_AND_SHA",
+  "progressSha256": "0129d91983c1821c11ab630f63a5c2fa6ea51a7066450dd7c66b2baf8a099a12",
+  "acceptedForFinalSource": 26,
+  "publishedReviewRows": 37,
+  "uniquePublishedImages": 32,
+  "at": "2026-10-29T23:47:45.975Z",
+  "browser": "156.0.8078.74",
+  "homepage": {
+    "url": "http://127.0.0.1:8788/docs/#/course",
+    "title": "Session docs",
+    "heading": "Viewer course",
+    "links": 370
+  },
+  "images": [
+    {
+      "id": "38b-source",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/38b-source-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38b-source-browser.png?v=d5d6395bc04f",
+      "status": 200,
+      "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "62o-labels",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/62o-labels-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels-browser.png?v=acca558319bd",
+      "status": 200,
+      "sha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=c8320a5ff6b5",
+      "status": 200,
+      "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "width": 2200,
+      "height": 1600
+    },
+    {
+      "id": "38b-source",
+      "lane": "native",
+      "image": "docs/screenshots/journey/38b-source.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38b-source.png?v=743f45285278",
+      "status": 200,
+      "sha256": "743f45285278156ab1c1f2732233e6931a3d7e560335b2c7151351adc62393e4",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "42k-input",
+      "lane": "native",
+      "image": "docs/screenshots/journey/42k-input.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/42k-input.png?v=618cbc4930c1",
+      "status": 200,
+      "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "43b-view",
+      "lane": "native",
+      "image": "docs/screenshots/journey/43b-view.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/43b-view.png?v=618cbc4930c1",
+      "status": 200,
+      "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "55g-surface",
+      "lane": "native",
+      "image": "docs/screenshots/journey/55g-surface.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/55g-surface.png?v=157b8682f836",
+      "status": 200,
+      "sha256": "157b8682f836186112519db9b368c91edf48644301713a44b34a6c973613c19b",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "59f-cad",
+      "lane": "native",
+      "image": "docs/screenshots/journey/59f-cad.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=a64f72223098",
+      "status": 200,
+      "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "62o-labels",
+      "lane": "native",
+      "image": "docs/screenshots/journey/62o-labels.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png?v=62bc49710585",
+      "status": 200,
+      "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "lane": "native",
+      "image": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png?v=ca14710c7b2c",
+      "status": 200,
+      "sha256": "ca14710c7b2c96fc1b4dc19e8b8111eb871067455471aa1e8aa4a24a263bef5f",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "lane": "native",
+      "image": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png?v=b2c422ca5108",
+      "status": 200,
+      "sha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "current-native-comparison",
+      "lane": "native",
+      "image": "docs/screenshots/journey/current-native-comparison.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-comparison.png?v=24437f0b44e1",
+      "status": 200,
+      "sha256": "24437f0b44e1f4839de8ff55684f0cd1e6bda0e442d32b6dbc5f559147795c3f",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "current-native-dome",
+      "lane": "native",
+      "image": "docs/screenshots/journey/current-native-dome.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-dome.png?v=603bab6866d3",
+      "status": 200,
+      "sha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "current-native-floor-input",
+      "lane": "native",
+      "image": "docs/screenshots/journey/current-native-floor-input.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-floor-input.png?v=8afdff4d62d0",
+      "status": 200,
+      "sha256": "8afdff4d62d0dcf95365d0ed1b6ddffbfc5a0de81b34de50bcb8eb12dcceeb04",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "current-native-floor-output",
+      "lane": "native",
+      "image": "docs/screenshots/journey/current-native-floor-output.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-floor-output.png?v=772faf17c54d",
+      "status": 200,
+      "sha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "41f-input",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/41f-input-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input-browser.png?v=71cbaa873aac",
+      "status": 200,
+      "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "41f-input",
+      "lane": "native",
+      "image": "docs/screenshots/journey/41f-input.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input.png?v=618cbc4930c1",
+      "status": 200,
+      "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "51zf-handles",
+      "lane": "native",
+      "image": "docs/screenshots/journey/51zf-handles.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/51zf-handles.png?v=6b7cb7dba7db",
+      "status": 200,
+      "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "54p-navigation",
+      "lane": "native",
+      "image": "docs/screenshots/journey/54p-navigation.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png?v=36a154379607",
+      "status": 200,
+      "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "native",
+      "image": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png?v=7c1c670edda4",
+      "status": 200,
+      "sha256": "7c1c670edda4ac5778567f370c83a65b4bd35134b67788692b43d23c6783c0a0",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "70za-read-original-sheet-metadata-records",
+      "lane": "native",
+      "image": "docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png?v=ada90df919c9",
+      "status": 200,
+      "sha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "80za-read-original-projection-planes",
+      "lane": "native",
+      "image": "docs/screenshots/journey/80za-read-original-projection-planes.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png?v=d6dc0acb2df7",
+      "status": 200,
+      "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png?v=9a2fa0f4ac7a",
+      "status": 200,
+      "sha256": "9a2fa0f4ac7a20bcc0752bc4450904f70b6df829831ebe8c55958b9843e00ef8",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "38a-samples",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/38a-samples-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38a-samples-browser.png?v=d5d6395bc04f",
+      "status": 200,
+      "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "38c-controls",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/38c-controls-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38c-controls-browser.png?v=d5d6395bc04f",
+      "status": 200,
+      "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "38d-input",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/38d-input-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38d-input-browser.png?v=eab4aad534e5",
+      "status": 200,
+      "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "39-visible",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/39-visible-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/39-visible-browser.png?v=eab4aad534e5",
+      "status": 200,
+      "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "39a-depth",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/39a-depth-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/39a-depth-browser.png?v=eab4aad534e5",
+      "status": 200,
+      "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "40-colour",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/40-colour-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/40-colour-browser.png?v=eab4aad534e5",
+      "status": 200,
+      "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "40a-input",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/40a-input-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/40a-input-browser.png?v=92fdfa1b7918",
+      "status": 200,
+      "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "40b-indices",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/40b-indices-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/40b-indices-browser.png?v=92fdfa1b7918",
+      "status": 200,
+      "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "41-normals",
+      "lane": "browser",
+      "image": "docs/screenshots/journey/41-normals-browser.png",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41-normals-browser.png?v=92fdfa1b7918",
+      "status": 200,
+      "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "width": 1800,
+      "height": 1520
+    }
+  ],
+  "scope": "Read-only static documentation/PNG verification; GPU disabled; no WASM scene, compiler, capture regeneration or source edits. Existing preview code pages have not yet been rebuilt.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "verification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\docs-published-images-source13-01.json",
+    "sha256": "5db5259d8920bde5b4976e075d8c6023a32a61ffaee0af5eddf7acd0f4e52461",
+    "bytes": 13788
+  },
+  "resources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\docs-published-images-source13-02-resource.json",
+    "sha256": "80ac30044c0921dfffe9167949c75b632cb323874fbeae8b59211ff4f4d0cb52",
+    "bytes": 886
+  },
+  "resourceResult": {
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 1.809,
+    "peakJobCommitBytes": 350441472
+  }
+}

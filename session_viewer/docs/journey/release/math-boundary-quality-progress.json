@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T23:24:54.069973+00:00",
+  "updatedUtc": "2026-10-29T23:49:50.672243+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -57,16 +57,23 @@
       "status": "FULL_NVIDIA_CAPTURE_PASS_WITH_FRESH_IDENTIFIER_AND_ORIGINAL_FLAGS",
       "receipt": "docs/journey/release/math-boundary-hardware-refresh-20261030.json",
       "sha256": "5ad25f45f17c3981f92a62333ec1db7fb1ea61f5a2ba636f56a1203e2a543260"
+    },
+    "captureReceiptCompression": {
+      "status": "PASS_REAL_CAPTURE_GZIP_SEAL_PUBLICATION_RETIREMENT",
+      "focusedTestsPassed": 41,
+      "realLegacyLedgersVerified": 22,
+      "receipt": "docs/journey/release/math-boundary-capture-storage-20261030.json",
+      "sha256": "d3d3ba75ff89d013ae078e3dc252c0bddd45ebdd7eb7eff3e4c4d782831aefb0"
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 32,
-    "remainingAffected": 1302,
-    "acceptedForFinalSource": 26,
-    "remainingFinalSourceAcceptance": 1308,
+    "newPublishedReviewed": 33,
+    "remainingAffected": 1301,
+    "acceptedForFinalSource": 27,
+    "remainingFinalSourceAcceptance": 1307,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
   },
   "published": [
@@ -201,7 +208,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "current-native-dome",
@@ -213,7 +220,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "current-native-floor-input",
@@ -225,7 +232,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "current-native-floor-output",
@@ -237,7 +244,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41f-input",
@@ -249,7 +256,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41f-input",
@@ -261,7 +268,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "51zf-handles",
@@ -273,7 +280,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "54p-navigation",
@@ -285,7 +292,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "59f-cad",
@@ -297,7 +304,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "62o-labels",
@@ -309,7 +316,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "68ac-connect-current-pages-to-the-browser-renderer",
@@ -321,7 +328,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "62o-labels",
@@ -333,7 +340,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "68ac-connect-current-pages-to-the-browser-renderer",
@@ -345,7 +352,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "70za-read-original-sheet-metadata-records",
@@ -357,7 +364,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "80za-read-original-projection-planes",
@@ -369,7 +376,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
@@ -381,7 +388,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "38a-samples",
@@ -393,7 +400,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "38b-source",
@@ -405,7 +412,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "38c-controls",
@@ -417,7 +424,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "38d-input",
@@ -429,7 +436,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "39-visible",
@@ -441,7 +448,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "39a-depth",
@@ -453,7 +460,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "40-colour",
@@ -465,7 +472,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "40a-input",
@@ -477,7 +484,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "40b-indices",
@@ -489,7 +496,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41-normals",
@@ -497,6 +504,18 @@
       "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000009-92fdfa1b7918.json",
       "receiptSha256": "753ed60c462bd126331bac35c5872d605b2671d3a1f2bcaceef09d05b4efb26d",
       "image": "docs/screenshots/journey/41-normals-browser.png",
+      "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true
+    },
+    {
+      "id": "41a-placement",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000000-92fdfa1b7918.json",
+      "receiptSha256": "7e3dcb3e0b1371b4d7446254bc10623960d6b8f94537826d0b2502edb5133a92",
+      "image": "docs/screenshots/journey/41a-placement-browser.png",
       "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
@@ -515,11 +534,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_26_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_27_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "26_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 32_TOTAL_PUBLISHED_REVIEWED"
+      "status": "27_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 33_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -535,12 +554,12 @@
     "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
-    "receipt": "docs/journey/release/math-boundary-browser-decoding-20261029.json",
-    "sha256": "ae7dedaff9feab09fa257189a23aebbc32a579e5b740c3fa87b4ba988bd97eb8",
-    "browser": "155.0.8059.80",
-    "publishedImagesVerified": 11,
+    "receipt": "docs/journey/release/math-boundary-browser-decoding-20261030-source13-01.json",
+    "sha256": "9776468e22403efe35dda1f120d8594827fb0d9d2273028325a77cc04bdb843c",
+    "browser": "156.0.8078.74",
+    "publishedImagesVerified": 32,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 26,
+    "newSource13ImagesAwaitingChromeDecode": 1,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
