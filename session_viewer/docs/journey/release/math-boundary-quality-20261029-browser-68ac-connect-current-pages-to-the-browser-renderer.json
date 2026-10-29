@@ -1,0 +1,34 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T09:33:08.701Z",
+  "id": "68ac-connect-current-pages-to-the-browser-renderer",
+  "scope": "Actual reconstructed tutorial WASM, exact image recipe and NVIDIA Chrome capture. Canonical behavior acceptance is limited to the recorded callback scope.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "sourceFreeze": "source-freeze-12.json",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-68ac-connect-current-pages-to-the-browser-renderer-cfc4c2e2b9cc22cf3905\\capture.json",
+    "sha256": "dd2da73ac491a5489eee00abfdd5881f8d7efb4ef6c0244e1982b3e074f2b403",
+    "bytes": 2112052
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+    "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+    "bytes": 67191
+  },
+  "previousPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+    "sha256": "f109bb41eea6314097883b37e4989b38f581e6dccf2f93aca49b39bef72ee363",
+    "bytes": 67497
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+    "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+    "bytes": 67191
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=c8320a5ff6b5",
+    "status": 200,
+    "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf"
+  },
+  "canonicalBehaviorExecuted": false
+}

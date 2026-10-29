@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T09:01:28.963388+00:00",
+  "updatedUtc": "2026-10-29T09:35:06.620951+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -10,23 +10,59 @@
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
     "nativeFixturesWithActualNewCapture": 3,
-    "newBrowserRendererCaptures": 0,
+    "newBrowserRendererCaptures": 3,
     "nativeLessonsWithActualNewCapture": 8,
     "viewerRegressionTests": 18,
     "optionalDisplayBudgetTests": 8,
     "nativeCompilerMethodPairs": {
       "42k-input": "PASS_EXACT_PNG_BYTES",
       "43b-view": "PASS_EXACT_PNG_BYTES"
+    },
+    "browserCompilerMethodPairs": {
+      "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 8,
-    "remainingAffected": 1326
+    "newPublishedReviewed": 11,
+    "remainingAffected": 1323
   },
   "published": [
+    {
+      "id": "38b-source",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-browser-38b-source.json",
+      "receiptSha256": "6e6b9421aa5ab679efadaaa606b516974ef67f931c18af483aedb228900c0d19",
+      "image": "docs/screenshots/journey/38b-source-browser.png",
+      "imageSha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "62o-labels",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-browser-62o-labels.json",
+      "receiptSha256": "5db68ae09dcd5d5d2bb5780aa6e6891dfcd932f6da9448f6e9acb12a830bbeb1",
+      "image": "docs/screenshots/journey/62o-labels-browser.png",
+      "imageSha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-browser-68ac-connect-current-pages-to-the-browser-renderer.json",
+      "receiptSha256": "0d6da3f6bc3b5c26578ee8028aa45dfe8400fde2945b5ac49334448350317631",
+      "image": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "imageSha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
     {
       "id": "38b-source",
       "lane": "native",
@@ -44,6 +80,17 @@
       "receipt": "docs/journey/release/math-boundary-quality-20261029-native-42k-input.json",
       "receiptSha256": "b9b3b07de8c00f8e438c17958640882a73f5ef182679ed671fa8fa8fe93d6c93",
       "image": "docs/screenshots/journey/42k-input.png",
+      "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "43b-view",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-native-43b-view.json",
+      "receiptSha256": "955a61376e8a455c16b9d115993a9414b6f8f25a7e7e7151e74583984da710d7",
+      "image": "docs/screenshots/journey/43b-view.png",
       "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
@@ -100,17 +147,6 @@
       "receiptSha256": "b215b89ee97adf510bdae7fb5a7cd610d15d433a8b7926deaae438ca11f336bb",
       "image": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png",
       "imageSha256": "b2c422ca51083e5135d2fcd1a38698e4a8fdf11a981322feefcb08716665b271",
-      "rootVisuallyReviewed": true,
-      "httpSha256Verified": true,
-      "servedChromeVerified": false
-    },
-    {
-      "id": "43b-view",
-      "lane": "native",
-      "receipt": "docs/journey/release/math-boundary-quality-20261029-native-43b-view.json",
-      "receiptSha256": "955a61376e8a455c16b9d115993a9414b6f8f25a7e7e7151e74583984da710d7",
-      "image": "docs/screenshots/journey/43b-view.png",
-      "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
