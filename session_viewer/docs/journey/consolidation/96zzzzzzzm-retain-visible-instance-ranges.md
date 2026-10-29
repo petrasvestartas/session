@@ -34598,6 +34598,7 @@ pub fn brep(boundary:&crate::cad_boundary::Prepared)->Prepared {
     let pen=crate::production_curve_walk::Pen{row:0,radius:encode_width(source.width),color:BLACK};
     let ep=EdgePen::new(&boundary.faces,&signs,pen).recording();let mut seg=SegRows::default();let mut bounds=AABB::empty();
     for chain in boundary.chains.iter().flatten(){let display=display_chain(source,chain,&ep.fms[chain.face]);push_edge_pipes(&mut seg,chain,&display,&ep,&mut bounds);}
+    ep.push_silhouette_pipes(&mut seg,&mut bounds);
     let mut out=prepared(seg,1024|64|if source.is_solid(){8192}else{16}|if source.face_count()==1{128}else{0});out.normals=ep.take_normals();out
 }
 pub fn replay(ink:&mut Prepared,motion:&crate::cad_shape_key::Motion){
@@ -34671,12 +34672,12 @@ Create the file and type:
     "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
   },
   "extracted_modules": {
-    "production_mesh_ink.rs": "817e74bec6aa83243df43195f18f2ceb87881f955963b1661977fb1fcd8f00c5",
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
     "production_brep_ink.rs": "4b7a91b0f52395c123634b6bc507253514a3aa430403f10062b8952ccb2d0f52"
   },
   "adapters": [
     "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
-    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; triangle-derived silhouette strokes are omitted. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation uses the original two-argument emitter and retained row/ID/normal accounting; source13 finite-candidate rejection belongs to the maintained renderer only. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
     "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
     "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
     "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
@@ -34721,11 +34722,15 @@ fn production_mesh_pipe_rows_preserve_pens_facing_sparse_keys_and_compact_owners
 }
 
 #[test]
-fn production_brep_pipe_rows_keep_only_original_edges_and_rigid_replay_normals(){
+fn production_brep_pipe_rows_keep_original_edges_silhouettes_and_rigid_replay_normals(){
     let source=Rc::new(crate::cad_display::example());let _=source.guid();let original=source.to_proto();let mut cache=crate::cad_shape_cache::Cache::default();let(_,first)=cache.prepare(source.clone()).unwrap();let first=&first.display.parts.ink;
     assert!(first.active&&!first.segments.is_empty());assert_eq!(first.ids.len(),first.segments.len());assert_eq!(first.normals.len(),first.segments.len());
     assert!(first.segments.iter().any(|r|r.sag>0.),"Actual curved boundaries carry production chord slack");
-    assert!(first.segments.iter().zip(&first.ids).all(|(r,id)|r.sag>=0.&&(*id as usize)<source.m_edges.len()),"CAD strokes belong only to original boundary edges");
+    assert!(first.segments.iter().any(|r|r.sag.is_sign_negative()),"Curved faces retain apparent-contour candidates");
+    for((row,id),(n0,n1))in first.segments.iter().zip(&first.ids).zip(&first.normals){
+        if row.sag.is_sign_negative(){assert_eq!(row.sag.to_bits(),ink::SILHOUETTE_SAG.to_bits());assert_eq!(*id,u32::MAX);assert_ne!(row.segment.facing,u32::MAX);assert!(n0.is_some()&&n1.is_some());}
+        else{assert!(row.sag>=0.&&(*id as usize)<source.m_edges.len(),"Ordinary CAD strokes belong only to original boundary edges");}
+    }
     let motion=&Xform::translation(30.,-20.,10.)*&Xform::rotation_z(90.,true);let mut moved=source.transformed(&motion);moved.set_guid("rigid-pipe-copy".into());let moved=Rc::new(moved);let(_,replayed)=cache.prepare(moved.clone()).unwrap();let(_,independent)=crate::cad_display::prepare(moved).unwrap();
     let a=&replayed.display.parts.ink;let b=&independent.display.parts.ink;assert_eq!(cache.walks,1);assert_eq!(cache.replays,1);assert_eq!(a.ids.len(),b.ids.len());
     for(r,(n0,n1))in a.segments.iter().zip(&a.normals){assert_eq!(r.segment.facing,ink::pack_facing(n0.as_ref(),n1.as_ref()));}
@@ -47242,6 +47247,7 @@ Keep exact original BRep curves, matching face-chain parameters and flat facet f
 Replace the entire file with:
 
 ```json
+{
   "source_commit": "30c2b39da1950bb92abcd717aeac2bba296c2e52",
   "shader": "Existing complete production_joined.wgsl, ownership-only fragment adapter from production ribbon pipeline",
   "compiled_shader_sha256": "177fcadef6325b5edf384bff97a1cdcc9f209782313ed7d0a251a1e7a9076355",
@@ -47257,12 +47263,12 @@ Replace the entire file with:
     "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
   },
   "extracted_modules": {
-    "production_mesh_ink.rs": "817e74bec6aa83243df43195f18f2ceb87881f955963b1661977fb1fcd8f00c5",
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
     "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
   },
   "adapters": [
     "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
-    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; triangle-derived silhouette strokes are omitted. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation uses the original two-argument emitter and retained row/ID/normal accounting; source13 finite-candidate rejection belongs to the maintained renderer only. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
     "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
     "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
     "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
@@ -47281,6 +47287,11 @@ Replace the entire file with:
     "silhouetteNormals": "Original flat triangle cross-product normals retained; reverted exactsurface-normal experiment excluded.",
     "adapter": "End validation lives in cad_edges and display sampling in production_brep_ink because this course splits the maintained module. Existing source-owned ribbon fallback, originalwire dedup, owner IDs and source/archive contracts remain."
   },
+  "tutorial_display_quality": {
+    "status": "Candidate source adapter; runtime acceptance pending",
+    "scope": "Bounded camera quality and original mathematical edge strokes; historical source_commit remains origin provenance"
+  }
+}
 ```
 
 ### 275. `src/current_inventory.json`
@@ -54686,14 +54697,14 @@ Replace it with:
     {
       "root": "viewer",
       "path": "src/app/walk/brep.rs",
-      "sha256": "7c279d18be0ad62b2d57fd00072e7901eb8b3fb23602272e7a1d3f0b254aabfd",
+      "sha256": "981d3bb16f9e88b81032c8e3f9f03ef0c4326f689665c61dc29eab9b4612a778",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
     {
       "root": "viewer",
       "path": "src/app/walk/brep_edges.rs",
-      "sha256": "cb44e7e314525e725b6d1ff6967d8c49d8a1a74f1b1d128948b50d635529d589",
+      "sha256": "61ca2faab2f7e5c457462d19e3a7dac0650a9172114c086d2ad7925521a097e5",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },
@@ -54707,7 +54718,7 @@ Replace it with:
     {
       "root": "viewer",
       "path": "src/app/walk/brep_shapes.rs",
-      "sha256": "f849835598cd3e84431fbf9e4cc21e5ab36f9cd3ebf67ad17db247633e0fb611",
+      "sha256": "7fcd6e79f062d70d11b2023f9e05fcc24ca10c01cecbf3ce28eeeafc71161112",
       "topic": "Original source walking and shared display",
       "lessons": "55–71,92,94,95"
     },

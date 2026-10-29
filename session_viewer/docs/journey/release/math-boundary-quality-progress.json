@@ -1,12 +1,12 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T09:43:13.734220+00:00",
+  "updatedUtc": "2026-10-29T10:37:47.221832+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-12.json",
+    "maintainedSourceFreeze": "source-freeze-13.json",
     "frozenFiles": 477,
-    "historicalPinnedFiles": 123,
+    "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
     "nativeFixturesWithActualNewCapture": 3,
@@ -20,14 +20,20 @@
     },
     "browserCompilerMethodPairs": {
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
-    }
+    },
+    "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
+    "runtimeAcceptance": "PENDING_SOURCE_13: existing test counts and compiler-method pairs below belong to source12.",
+    "previousRuntimeSourceFreeze": "source-freeze-12.json"
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
     "newPublishedReviewed": 11,
-    "remainingAffected": 1323
+    "remainingAffected": 1323,
+    "acceptedForFinalSource": 0,
+    "remainingFinalSourceAcceptance": 1334,
+    "qualificationNote": "The 11 published/reviewed images are source12 captures. They remain published, with their immutable receipts, but require source13 requalification before final acceptance."
   },
   "published": [
     {
@@ -155,19 +161,19 @@
   "stages": [
     {
       "stage": "Renderer-only source adaptation",
-      "status": "SOURCE_COMPLETE_RUNTIME_QUALIFICATION_IN_PROGRESS"
+      "status": "SOURCE_13_REVIEW_PASS_RUNTIME_PENDING"
     },
     {
       "stage": "Historical tutorial adapters",
-      "status": "SOURCE_AND_LIVE_READER_CODE_COMPLETE_123_PINS_VERIFIED"
+      "status": "SOURCE_AND_LIVE_READER_CODE_COMPLETE_124_PINS_VERIFIED"
     },
     {
       "stage": "Capture qualification",
-      "status": "SIX_NATIVE_QUALIFICATION_CASES_AND_TWO_METHOD_PAIRS_PASS_26_RENDERER_REGRESSIONS_PASS_BROWSER_PENDING"
+      "status": "SOURCE_13_RUNTIME_PENDING; SOURCE_12_COMPILER_METHOD_PAIRS_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "8_OF_1334_PUBLISHED_REVIEWED"
+      "status": "11_SOURCE_12_IMAGES_PUBLISHED; 0_OF_1334_FINAL_SOURCE_ACCEPTED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -179,7 +185,8 @@
     "remainingMappings": 0,
     "firstPassHunks": 38,
     "groupedFollowupHunks": 91,
-    "scope": "Only current code fences and missing implementation sections; existing prose, diagrams, headings and Vue preserved. Four short rendering explanations added within newly inserted sections."
+    "scope": "Only current code fences and missing implementation sections; existing prose, diagrams, headings and Vue preserved. Four short rendering explanations added within newly inserted sections.",
+    "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
     "receipt": "docs/journey/release/math-boundary-browser-decoding-20261029.json",

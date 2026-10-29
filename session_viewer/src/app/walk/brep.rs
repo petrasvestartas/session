@@ -186,6 +186,8 @@ fn walk_brep_fresh(
             ep = ep.recording();
         }
 
+        let first_pipe = ink.seg.pipes.len();
+        let first_ribbon = ink.seg.ribbons.len();
         walk_brep_edges(
             ink,
             b,
@@ -195,6 +197,13 @@ fn walk_brep_fresh(
             &boundary_vertices,
             cx.quality,
         );
+        let remaining = if super::display::candidate_active() && cx.quality.tolerance.is_finite() {
+            let used = ink.seg.pipes.len() - first_pipe + ink.seg.ribbons.len() - first_ribbon;
+            super::display::OBJECT_CURVE_SEGMENTS.saturating_sub(used)
+        } else {
+            usize::MAX
+        };
+        ep.push_silhouette_pipes(ink.seg, &mut row.bounds, remaining);
         lap.mark("edges");
         normals = ep.take_normals();
     }
@@ -451,9 +460,9 @@ mod tests {
         assert!(row.faces && !arena.idx.is_empty());
     }
 
-    /// The teapot's pipes lie on its authored edge curves.
+    /// The teapot's boundary pipes lie on its authored edge curves.
     #[test]
-    fn teapot_ink_is_only_authored_patch_boundaries() {
+    fn teapot_boundary_ink_follows_authored_patch_curves() {
         let scene = session_rust::Session::pb_load(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/assets/pb/view_mixed_teapot.pb"
@@ -554,7 +563,16 @@ mod tests {
 
         let silhouettes = seg.pipe_sags.iter().filter(|sag| is_silhouette(**sag)).count();
         assert_eq!(seg.pipes.len() - silhouettes, segments);
-        assert_eq!(silhouettes, 0, "mathematical faces never draw interior triangle edges");
+        assert!(silhouettes > 0, "curved faces retain apparent contours");
+        assert_eq!(arena.surface_boundaries.len(), segments);
+        for ((pipe, &id), &sag) in seg.pipes.iter().zip(&seg.pipe_ids).zip(&seg.pipe_sags) {
+            if is_silhouette(sag) {
+                assert_eq!(id, u32::MAX, "apparent contours are not pickable edges");
+                assert_ne!(pipe.facing, super::super::encode::FACING_UNKNOWN);
+            } else {
+                assert!((id as usize) < b.m_edges.len(), "ordinary ink is an authored edge");
+            }
+        }
         assert!(seg.ribbons.is_empty());
         assert!(glyph.spheres.is_empty());
         assert_ne!(row.flags & Instance::FLAG_SMOOTH, 0);

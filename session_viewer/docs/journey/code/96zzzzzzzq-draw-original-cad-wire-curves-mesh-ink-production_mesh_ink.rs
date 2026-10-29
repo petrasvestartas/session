@@ -153,6 +153,7 @@ pub fn brep(boundary:&crate::cad_boundary::Prepared)->Prepared {
     let pen=crate::production_curve_walk::Pen{row:0,radius:encode_width(source.width),color:BLACK};
     let ep=EdgePen::new(&boundary.faces,&signs,pen).recording();let mut seg=SegRows::default();let mut bounds=AABB::empty();
     for chain in boundary.chains.iter().flatten(){let display=display_chain(source,chain,&ep.fms[chain.face]);push_edge_pipes(&mut seg,chain,&display,&ep,&mut bounds);}
+    ep.push_silhouette_pipes(&mut seg,&mut bounds);
     let mut out=prepared(seg,1024|64|if source.is_solid(){8192}else{16}|if source.face_count()==1{128}else{0});out.normals=ep.take_normals();out
 }
 pub fn replay(ink:&mut Prepared,motion:&crate::cad_shape_key::Motion){

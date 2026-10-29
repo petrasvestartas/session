@@ -3,9 +3,10 @@ use session_rust::brep::{BRep, BRepOrientation};
 
 use super::curves::turning_degrees;
 use super::encode::{Pen, pack_facing};
+use super::mesh::COPLANAR_DOT;
 use crate::app::knobs;
 use crate::engine::gpu::CylinderSegment;
-use crate::engine::gpu::segments::SegRows;
+use crate::engine::gpu::segments::{SILHOUETTE_SAG, SegRows};
 use session_rust::AABB;
 
 /// Degrees of turning one display chord of a curved edge may span: how round a circle looks
@@ -718,6 +719,51 @@ impl<'a> EdgePen<'a> {
         pack_facing(first.as_ref(), second.as_ref())
     }
 
+    /// Interior facet edges are visible only where their triangle normals straddle the view.
+    pub fn push_silhouette_pipes(&self, seg: &mut SegRows, bounds: &mut AABB, mut remaining: usize) {
+        seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
+        seg.pipe_sags.resize(seg.pipes.len(), 0.0);
+
+        for (face, facets) in self.facets.iter().enumerate() {
+            let mut edges: Vec<_> = facets.iter().collect();
+            edges.sort_unstable_by_key(|(edge, _)| **edge);
+
+            for (edge, pair) in edges {
+                let (Some(n0), Some(n1)) = (pair.normals[0], pair.normals[1]) else {
+                    continue;
+                };
+                if pair.count != 2 || n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] >= COPLANAR_DOT {
+                    continue;
+                }
+
+                let p0 = super::curves::render_position(edge[0].map(f64::from_bits));
+                let p1 = super::curves::render_position(edge[1].map(f64::from_bits));
+                if p0 == p1 || !p0.into_iter().chain(p1).all(f32::is_finite) {
+                    continue;
+                }
+                if remaining == 0 {
+                    super::display::failed();
+                    return;
+                }
+                remaining -= 1;
+
+                bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
+                bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
+                let pair = (scaled_normal(Some(n0), self.signs[face]), scaled_normal(Some(n1), self.signs[face]));
+                seg.pipes.push(CylinderSegment {
+                    p0,
+                    radius: self.pen.radius,
+                    p1,
+                    instance_id: self.pen.row,
+                    color: self.pen.color,
+                    facing: self.facing_word(pair),
+                });
+                seg.pipe_ids.push(u32::MAX);
+                seg.pipe_sags.push(SILHOUETTE_SAG);
+            }
+        }
+    }
+
     /// Outward normals of the faces beside one pipe; none when ambiguous.
     fn facing_pair(&self, chain: &EdgeChain, a: [f64; 3], b: [f64; 3]) -> FacingPair {
         let key = facet_edge(a, b);
@@ -808,6 +854,60 @@ pub fn push_edge_pipes(
 mod tests {
     use super::*;
     use crate::app::walk::brep::QUALITY;
+
+    fn folded_mesh(height: f64, nonmanifold: bool) -> Mesh {
+        let points = vec![
+            session_rust::Point::new(0.0, 0.0, 0.0),
+            session_rust::Point::new(1.0, 0.0, 0.0),
+            session_rust::Point::new(0.0, 1.0, 0.0),
+            session_rust::Point::new(0.0, -1.0, height),
+            session_rust::Point::new(0.0, 2.0, 1.0),
+        ];
+        let mut faces = vec![vec![0, 1, 2], vec![1, 0, 3]];
+        if nonmanifold {
+            faces.push(vec![0, 1, 4]);
+        }
+        Mesh::from_vertices_and_faces(points, faces)
+    }
+
+    #[test]
+    fn silhouettes_use_flat_triangle_normals_and_exclude_planar_and_boundary_edges() {
+        for (height, nonmanifold, expected) in [(0.0, false, 0), (1.0, false, 1), (1.0, true, 0)] {
+            let meshes = [folded_mesh(height, nonmanifold)];
+            let ep = EdgePen::new(&meshes, &[-1.0], Pen { row: 3, radius: 1.0, color: 0 }).recording();
+            let mut seg = SegRows::default();
+            ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), usize::MAX);
+            assert_eq!(seg.pipes.len(), expected);
+            let normals = ep.take_normals();
+            assert_eq!(normals.len(), expected);
+            if expected == 1 {
+                let (Some(a), Some(b)) = normals[0] else { panic!("missing triangle normals") };
+                assert_eq!(a, [0.0, 0.0, -1.0]);
+                assert_eq!(b, [0.0, -1.0 / 2.0f64.sqrt(), -1.0 / 2.0f64.sqrt()]);
+                assert_eq!(seg.pipes[0].facing, pack_facing(Some(&a), Some(&b)));
+                assert_eq!((seg.pipes[0].p0, seg.pipes[0].p1), ([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]));
+                assert_eq!(seg.pipe_ids, [u32::MAX]);
+                assert!(seg.pipe_sags[0].is_sign_negative());
+                assert!(seg.pipe_chains.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn silhouette_candidates_respect_the_remaining_segment_budget() {
+        let meshes = [folded_mesh(1.0, false)];
+        let ep = EdgePen::new(&meshes, &[1.0], Pen { row: 0, radius: 1.0, color: 0 }).recording();
+        let mut seg = SegRows::default();
+        assert!(super::super::display::candidate(|| {
+            ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), 0);
+        }).is_none());
+        assert!(seg.pipes.is_empty() && ep.take_normals().is_empty());
+        assert!(super::super::display::candidate(|| {
+            ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), 1);
+        }).is_some());
+        assert_eq!(seg.pipes.len(), 1);
+        assert_eq!(ep.take_normals().len(), 1);
+    }
 
     /// Labelled samples and inserted nodes form one ordered chain.
     #[test]

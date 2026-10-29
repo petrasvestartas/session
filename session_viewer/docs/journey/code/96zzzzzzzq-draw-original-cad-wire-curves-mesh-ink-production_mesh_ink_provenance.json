@@ -14,12 +14,12 @@
     "shaders/ink_visibility.wgsl": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475"
   },
   "extracted_modules": {
-    "production_mesh_ink.rs": "817e74bec6aa83243df43195f18f2ceb87881f955963b1661977fb1fcd8f00c5",
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
     "production_brep_ink.rs": "4b7a91b0f52395c123634b6bc507253514a3aa430403f10062b8952ccb2d0f52"
   },
   "adapters": [
     "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
-    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; triangle-derived silhouette strokes are omitted. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation uses the original two-argument emitter and retained row/ID/normal accounting; source13 finite-candidate rejection belongs to the maintained renderer only. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
     "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
     "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
     "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",

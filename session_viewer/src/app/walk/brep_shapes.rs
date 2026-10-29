@@ -820,7 +820,13 @@ mod tests {
         assert_eq!(pipes_per_edge(ids), pipes_per_edge(&alone.seg.pipe_ids));
         let silhouettes = |sags: &[f32]| sags.iter().filter(|sag| is_silhouette(**sag)).count();
         assert_eq!(silhouettes(&shared.seg.pipe_sags[at.pipes..]), silhouettes(&alone.seg.pipe_sags));
-        assert_eq!(silhouettes(&alone.seg.pipe_sags), 0, "shape sharing never restores triangle-edge strokes");
+        assert!(silhouettes(&alone.seg.pipe_sags) > 0, "the curved bore retains apparent contours");
+        for ((pipe, &id), &sag) in shared.seg.pipes[at.pipes..].iter().zip(ids).zip(&shared.seg.pipe_sags[at.pipes..]) {
+            assert_eq!(id == u32::MAX, is_silhouette(sag), "only silhouette candidates lack a source edge");
+            if is_silhouette(sag) {
+                assert_ne!(pipe.facing, FACING_UNKNOWN, "replay keeps the incident triangle normals");
+            }
+        }
         let edge_pipes = ids.iter().filter(|id| **id != u32::MAX).count();
         let mut same_ends = 0;
 
