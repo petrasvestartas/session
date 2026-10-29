@@ -12,7 +12,9 @@ export async function privateBrowserHost(workspace: string, folder: string, work
     const types: Record<string, string> = {'.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.json': 'application/json', '.ttf': 'font/ttf'};
     const server = http.createServer((request, response) => {
         try {
-            const file = path.resolve(base, '.' + decodeURIComponent(new URL(request.url!, 'http://localhost').pathname));
+            const url = new URL(request.url!, 'http://localhost');
+            if (url.pathname === '/favicon.ico') { response.writeHead(204).end(); return; }
+            const file = path.resolve(base, '.' + decodeURIComponent(url.pathname));
             assert(file.startsWith(base + path.sep));
             const actual = fs.statSync(file).isDirectory() ? path.join(file, 'index.html') : file;
             const bytes = fs.readFileSync(actual); served[path.relative(base, actual).split(path.sep).join('/')] = hash(bytes);

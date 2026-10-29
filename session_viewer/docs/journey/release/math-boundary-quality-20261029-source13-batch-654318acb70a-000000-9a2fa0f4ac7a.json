@@ -1,0 +1,58 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-29T22:12:30.226366+00:00",
+  "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "654318acb70a5e7fd1765c2bc6e1678ebaa1ea62997f2177f7b5a837587630f2",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\654318acb70a5e7fd1765c2bc6e1678ebaa1ea62997f2177f7b5a837587630f2\\manifest.json",
+    "sha256": "c0cfc29b02a5c903b31def32e021517053e4efecabc874868dc68754223bf9ad",
+    "bytes": 4036112
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\654318acb70a5e7fd1765c2bc6e1678ebaa1ea62997f2177f7b5a837587630f2\\publications\\000000.json",
+    "sha256": "6194466ad76c554adb63f4a4db917781041f2eb09cb8dedce38ca1beade104be",
+    "bytes": 2112
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zzzzx-retire-empty-arena-ranges-after-tail-trimming-01b6c82061bf727a0167\\capture.json",
+    "sha256": "eb07e21c21a7631195dd9928ffee3c79dd9456cfe343143eb6416144a728db62",
+    "bytes": 3253094
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\654318acb70a5e7fd1765c2bc6e1678ebaa1ea62997f2177f7b5a837587630f2\\events\\000004-9cd2319d50a91f720554c58e10e6f06ebbbe9191e9200c461795f742df523d12.json",
+    "sha256": "9cd2319d50a91f720554c58e10e6f06ebbbe9191e9200c461795f742df523d12",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+    "sha256": "9a2fa0f4ac7a20bcc0752bc4450904f70b6df829831ebe8c55958b9843e00ef8",
+    "bytes": 96634
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+    "sha256": "ed44bd71cfb0e7277eb51fea6a2cc01031384743c173989be1006705b0bf231c",
+    "bytes": 96678
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+    "sha256": "9a2fa0f4ac7a20bcc0752bc4450904f70b6df829831ebe8c55958b9843e00ef8",
+    "bytes": 96634
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png?v=9a2fa0f4ac7a",
+    "status": 200,
+    "sha256": "9a2fa0f4ac7a20bcc0752bc4450904f70b6df829831ebe8c55958b9843e00ef8"
+  }
+}

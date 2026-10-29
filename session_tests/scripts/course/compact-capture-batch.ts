@@ -77,7 +77,7 @@ function sourceGeneration(queue: Queue) {
     const inputs = directories.flatMap(directory => directory.names);
     inputs.push(path.join(docs, 'journey/course.json'), path.join(docs, 'journey/frame.rs'), path.join(docs, 'capture_journey.cjs'));
     for (const row of queue.entries) {
-        inputs.push(lockFor(row.id));
+        inputs.push(lockFor(row.id, steps));
         if (row.route === 'maintained') inputs.push(path.join(docs, 'capture_current.cjs'));
         const step = steps.find(step => step.id === row.id)!;
         for (const file of [step.frame, step.browser_check]) if (file) inputs.push(path.join(docs, file));

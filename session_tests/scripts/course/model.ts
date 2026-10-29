@@ -71,9 +71,9 @@ export function typingLoad(step: Step) {
     return {lines: added.length, characters, minutes: [Math.ceil(characters / 100), Math.ceil(characters / 50)]};
 }
 
-export function lockFor(id: string): string {
+export function lockFor(id: string, steps: Step[] = course().steps): string {
     let lock = 'journey/release/Cargo.lock';
-    for (const step of course().steps) {
+    for (const step of steps) {
         lock = step.lock || lock;
         if (step.id === id) return path.join(docs, lock);
     }

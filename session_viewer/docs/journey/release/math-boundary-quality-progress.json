@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T21:53:21.589406+00:00",
+  "updatedUtc": "2026-10-29T22:14:04.998835+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -40,16 +40,28 @@
         "executionSha256": "f73f86f615c786fda071ad6278e1739c95006dd37ca56f5a3c88850ca1506a73",
         "maintainedSourcesChanged": 0
       }
+    },
+    "browserCaptureHosts": {
+      "parallelImageHost": "PASS actual Chrome156 scene, GPU, strict console and pixel checks",
+      "privateBrowserHost": "Matching canonical favicon204 endpoint source-reviewed; runtime not separately claimed",
+      "faviconDiagnosis": "Actual missing resource was /favicon.ico; all other requests returned200",
+      "assertions": "All original assertions retained"
+    },
+    "batchStartup": {
+      "status": "PASS",
+      "redundantCourseParsesRemoved": 1312,
+      "defaultFreshReadSamples": 959,
+      "existingBatchTestsPassed": 10
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 22,
-    "remainingAffected": 1312,
-    "acceptedForFinalSource": 15,
-    "remainingFinalSourceAcceptance": 1319,
+    "newPublishedReviewed": 23,
+    "remainingAffected": 1311,
+    "acceptedForFinalSource": 16,
+    "remainingFinalSourceAcceptance": 1318,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Every accepted image matches its current published hash and personal original-resolution review."
   },
   "published": [
@@ -353,6 +365,18 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-654318acb70a-000000-9a2fa0f4ac7a.json",
+      "receiptSha256": "94cc2737e38ebbb5af480323ea720f1dfa5e2da1e12d1fe5a62b2a9fbfb7ad70",
+      "image": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+      "imageSha256": "9a2fa0f4ac7a20bcc0752bc4450904f70b6df829831ebe8c55958b9843e00ef8",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -366,11 +390,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_15_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_16_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "15_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 22_TOTAL_PUBLISHED_REVIEWED"
+      "status": "16_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 23_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -391,6 +415,6 @@
     "browser": "155.0.8059.80",
     "publishedImagesVerified": 11,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 15
+    "newSource13ImagesAwaitingChromeDecode": 16
   }
 }
