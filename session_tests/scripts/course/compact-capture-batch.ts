@@ -71,6 +71,7 @@ function sourceGeneration(queue: Queue) {
     const steps = course().steps, ids = new Set(steps.map(step => step.id));
     for (const row of queue.entries) assert(ids.has(row.id), 'Unknown checkpoint: ' + row.id);
     const roots = [path.dirname(script), path.join(docs, 'journey/code'), path.join(docs, 'journey/checks'),
+        path.join(viewer, 'examples'), path.join(viewer, '.cargo'),
         ...[viewer, path.resolve(viewer, '../session_rust'), path.resolve(viewer, '../../wood/rust')].flatMap(root => ['src', 'assets'].map(name => path.join(root, name)))].filter(fs.existsSync);
     const directories = roots.map(root => ({root, names: filesIn(root).sort()}));
     const inputs = directories.flatMap(directory => directory.names);
