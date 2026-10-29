@@ -1,0 +1,133 @@
+{
+  "status": "FRESH_WINDOWS_ADAPTER_PROFILE_FULL_CAPTURE_PASS",
+  "recordedUtc": "2026-10-29T23:03:02.419275+00:00",
+  "sourceFreeze": "source-freeze-13.json",
+  "maintainedFilesUnchanged": 477,
+  "cause": "The saved Windows adapter identifier no longer named the NVIDIA adapter. The controlled old/new identifier test selected Intel/NVIDIA respectively.",
+  "previousAdapter": {
+    "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+    "luid": "0,86780",
+    "vendor": 4318,
+    "device": 10208,
+    "flags": 0,
+    "dedicatedVideoBytes": 12577669120,
+    "luidLow": 86780,
+    "luidHigh": 0
+  },
+  "currentAdapter": {
+    "name": "NVIDIA GeForce RTX 4080 Laptop GPU",
+    "luid": "0,87939",
+    "vendor": 4318,
+    "device": 10208,
+    "flags": 0,
+    "dedicatedVideoBytes": 12577669120,
+    "luidLow": 87939,
+    "luidHigh": 0
+  },
+  "controlledCases": [
+    {
+      "name": "old_identifier_original_flags_default_request",
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-gl=angle",
+        "--use-angle=d3d11",
+        "--use-adapter-luid=0,86780",
+        "--enable-dawn-features=d3d_skip_shader_optimizations"
+      ],
+      "options": {},
+      "browser": "156.0.8078.74",
+      "actual": {
+        "available": true,
+        "vendor": "intel",
+        "device": "",
+        "description": "",
+        "architecture": "gen-12lp",
+        "fallback": false,
+        "deviceCreated": true
+      }
+    },
+    {
+      "name": "fresh_identifier_original_flags_default_request",
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-gl=angle",
+        "--use-angle=d3d11",
+        "--use-adapter-luid=0,87939",
+        "--enable-dawn-features=d3d_skip_shader_optimizations"
+      ],
+      "options": {},
+      "browser": "156.0.8078.74",
+      "actual": {
+        "available": true,
+        "vendor": "nvidia",
+        "device": "",
+        "description": "",
+        "architecture": "lovelace",
+        "fallback": false,
+        "deviceCreated": true
+      }
+    },
+    {
+      "name": "fresh_identifier_original_flags_high_request",
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-gl=angle",
+        "--use-angle=d3d11",
+        "--use-adapter-luid=0,87939",
+        "--enable-dawn-features=d3d_skip_shader_optimizations"
+      ],
+      "options": {
+        "powerPreference": "high-performance"
+      },
+      "browser": "156.0.8078.74",
+      "actual": {
+        "available": true,
+        "vendor": "nvidia",
+        "device": "",
+        "description": "",
+        "architecture": "lovelace",
+        "fallback": false,
+        "deviceCreated": true
+      }
+    },
+    {
+      "name": "fresh_identifier_forced_flags_default_request",
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-gl=angle",
+        "--use-angle=d3d11",
+        "--use-adapter-luid=0,87939",
+        "--enable-dawn-features=d3d_skip_shader_optimizations",
+        "--force-high-performance-gpu",
+        "--use-webgpu-power-preference=force-high-performance"
+      ],
+      "options": {},
+      "browser": "156.0.8078.74",
+      "actual": {
+        "available": true,
+        "vendor": "nvidia",
+        "device": "",
+        "description": "",
+        "architecture": "lovelace",
+        "fallback": false,
+        "deviceCreated": true
+      }
+    }
+  ],
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\fresh-adapter-qualification-01.json",
+    "sha256": "c862f078ffc8b23099a62c82bf0fa26c97054dc15af8db323322984db6411bb9"
+  },
+  "fullCapture": {
+    "id": "38a-samples",
+    "executionSha256": "c804f3abd6533946165e84ab5f4314c10cf42ad53755bf31ff8515790bb8b78c",
+    "exitCode": 0,
+    "reviewReceipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000000-d5d6395bc04f.json",
+    "reviewReceiptSha256": "4ed4996212f15074e660e7340d5086b3469ee16be6a7e9c99fd093ae0d83cb10"
+  },
+  "scope": "Capture hardware metadata refresh only. Original browser flags, lesson code, rendering implementation, GPU assertions and website layout remain unchanged. Experimental GPU flags were removed."
+}

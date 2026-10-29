@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T22:14:04.998835+00:00",
+  "updatedUtc": "2026-10-29T23:07:51.007568+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -52,16 +52,21 @@
       "redundantCourseParsesRemoved": 1312,
       "defaultFreshReadSamples": 959,
       "existingBatchTestsPassed": 10
+    },
+    "captureHardwareRefresh": {
+      "status": "FULL_NVIDIA_CAPTURE_PASS_WITH_FRESH_IDENTIFIER_AND_ORIGINAL_FLAGS",
+      "receipt": "docs/journey/release/math-boundary-hardware-refresh-20261030.json",
+      "sha256": "5ad25f45f17c3981f92a62333ec1db7fb1ea61f5a2ba636f56a1203e2a543260"
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 23,
-    "remainingAffected": 1311,
-    "acceptedForFinalSource": 16,
-    "remainingFinalSourceAcceptance": 1318,
+    "newPublishedReviewed": 24,
+    "remainingAffected": 1310,
+    "acceptedForFinalSource": 17,
+    "remainingFinalSourceAcceptance": 1317,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Every accepted image matches its current published hash and personal original-resolution review."
   },
   "published": [
@@ -377,6 +382,18 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "38a-samples",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000000-d5d6395bc04f.json",
+      "receiptSha256": "4ed4996212f15074e660e7340d5086b3469ee16be6a7e9c99fd093ae0d83cb10",
+      "image": "docs/screenshots/journey/38a-samples-browser.png",
+      "imageSha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -390,11 +407,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_16_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_17_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "16_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 23_TOTAL_PUBLISHED_REVIEWED"
+      "status": "17_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 24_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -415,6 +432,13 @@
     "browser": "155.0.8059.80",
     "publishedImagesVerified": 11,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 16
+    "newSource13ImagesAwaitingChromeDecode": 17,
+    "staticImageReferences": {
+      "status": "ALL_READER_IMAGES_PRESENT",
+      "pages": 267,
+      "images": 1763,
+      "missing": 0,
+      "browserAcceptance": false
+    }
   }
 }
