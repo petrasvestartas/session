@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T23:49:50.672243+00:00",
+  "updatedUtc": "2026-10-29T23:54:46.489855+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -70,10 +70,10 @@
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 33,
-    "remainingAffected": 1301,
-    "acceptedForFinalSource": 27,
-    "remainingFinalSourceAcceptance": 1307,
+    "newPublishedReviewed": 38,
+    "remainingAffected": 1296,
+    "acceptedForFinalSource": 32,
+    "remainingFinalSourceAcceptance": 1302,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
   },
   "published": [
@@ -521,6 +521,66 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "41b-drawing",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000001-92fdfa1b7918.json",
+      "receiptSha256": "d6a99226be8708fcd990e3677d1dc167d54629dfc701309df54e48c3b824768d",
+      "image": "docs/screenshots/journey/41b-drawing-browser.png",
+      "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "41c-view",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000002-8cdeee6212b6.json",
+      "receiptSha256": "e74a822d4938a953fc9bcf2bd86df27be4c40b254226104b96371b0fced77c5b",
+      "image": "docs/screenshots/journey/41c-view-browser.png",
+      "imageSha256": "8cdeee6212b6d270033fa2a18a2e32fb7fac7e03ece01755bb9f026b9b03941c",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "41ca-input",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000003-e3700c99fbe0.json",
+      "receiptSha256": "2f0e661759a2389f1c0272b6c7e9353a6b46031a555f54f5791d59687d061270",
+      "image": "docs/screenshots/journey/41ca-input-browser.png",
+      "imageSha256": "e3700c99fbe0f03211613c5e98056f3a00cec8539fbb6271fcbc9029062a6070",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "41d-grid",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000004-e3700c99fbe0.json",
+      "receiptSha256": "39f0633466e4d92bbc7a21782d54e495f3bc63a87f3e48f841b516e1cebab1d1",
+      "image": "docs/screenshots/journey/41d-grid-browser.png",
+      "imageSha256": "e3700c99fbe0f03211613c5e98056f3a00cec8539fbb6271fcbc9029062a6070",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
+    },
+    {
+      "id": "41e-drawing",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000005-e3700c99fbe0.json",
+      "receiptSha256": "b33bdef3a30cbb2ca2afea656559c0bb159e994928bce0c0b76e2e6bf581f3a7",
+      "image": "docs/screenshots/journey/41e-drawing-browser.png",
+      "imageSha256": "e3700c99fbe0f03211613c5e98056f3a00cec8539fbb6271fcbc9029062a6070",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -534,11 +594,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_27_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_32_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "27_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 33_TOTAL_PUBLISHED_REVIEWED"
+      "status": "32_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 38_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -559,7 +619,7 @@
     "browser": "156.0.8078.74",
     "publishedImagesVerified": 32,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 1,
+    "newSource13ImagesAwaitingChromeDecode": 6,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
