@@ -6,6 +6,7 @@ import {course, docs, expected, filesIn, json, viewer, withExpectedSequence} fro
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture, ledgerReceiptFile} from './capture-ledger.ts';
 import {nativeAdapterProfile} from './presentation.ts';
+import {cleanCompilerTransition} from './compiler-cache.ts';
 
 const self = fileURLToPath(import.meta.url);
 const root = path.join(viewer, 'target/course-compact');
@@ -98,11 +99,14 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
     let ownsPending = false;
     try {
         assert(!fs.existsSync(pendingFile), 'Unsealed attempt requires explicit diagnosis and owned-file cleanup before retry: ' + pendingFile);
+        const priorCaptures: string[] = [];
         for (const entry of fs.readdirSync(root, {withFileTypes: true})) {
             if (!entry.isDirectory() || !entry.name.startsWith(lane + '-')) continue;
             const receipt = ledgerReceiptFile(path.join(root, entry.name), 'capture');
-            if (receipt)
+            if (receipt) {
                 assert(fs.existsSync(path.join(path.dirname(receipt), 'retired.json')), 'Publish and retire the prior lane capture before starting another; keep only one terminal bundle');
+                priorCaptures.push(receipt);
+            }
         }
         fs.writeFileSync(pendingFile, JSON.stringify({pid: process.pid, id, lane, attempt: process.env.COURSE_CAPTURE_ATTEMPT || null,
             started: new Date().toISOString(), source: sourceBefore, status: 'ACTIVE_UNSEALED_ATTEMPT'}, null, 2) + '\n', {flag: 'wx'});
@@ -117,7 +121,9 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             if (record.adapterReceipt) evidence.push(record.adapterReceipt.path, record.adapterBridge.record.path, record.adapterBridge.before.path);
         } else {
             const module = await import('./incremental-browser-image-build.ts');
-            const built = withExpectedSequence(() => module.buildIncrementalImageBrowser(id));
+            const built = withExpectedSequence(() => module.buildIncrementalImageBrowser(id, 2, {
+                beforeIdentityChange: (previous, prepared) => cleanCompilerTransition({previous, prepared, captures: priorCaptures, viewer}),
+            }));
             file = await browserCapture(id, route, built);
             const record = json(file), baseline = json(built.baseline.path);
             ownedRoots = [built.folder, path.dirname(file), path.dirname(built.baseline.path), baseline.native];

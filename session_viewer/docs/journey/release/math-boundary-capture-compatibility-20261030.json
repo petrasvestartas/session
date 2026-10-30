@@ -1,0 +1,74 @@
+{
+  "status": "PASS_TOOLING_CHECKS_SCENE_RETRY_PENDING",
+  "recordedUtc": "2026-10-30T00:31:03.735871+00:00",
+  "scope": "Capture tooling only; renderer, Vue, Gemini content and canonical callbacks/assertions unchanged. No new image acceptance claimed by this receipt.",
+  "tests": {
+    "compilerAndCapturePassed": 62,
+    "deepFileTransportPassed": 12,
+    "failed": 0,
+    "compilerLog": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\compiler-cache-focused-tests-01.log",
+      "sha256": "339f2202bf4a7c2fe33ec41c72b40ff8048c39ff2e5f3e0a14eeaf9e35b52e4e",
+      "bytes": 5983
+    },
+    "transportLog": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\deep-file-transport-tests-01.log",
+      "sha256": "ea864312b5fc7e07329e986c452145a2e61c3dec2be3325eba253e0608d3893c",
+      "bytes": 1514
+    }
+  },
+  "actualCacheTransition": {
+    "status": "PACKAGE_VARIANTS_RETIRED",
+    "report": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\66bd-walk-json-records-within-a-depth-limit-113f13ac799de1f3eb43\\compiler-cache-transition.json",
+      "sha256": "02bb1e0ca67fcd84f046605c9e691a7800612e28b35711b332266d855468b325",
+      "bytes": 3683613
+    },
+    "actualCleanCommands": 3,
+    "removedMiB": [
+      661.8,
+      595.7,
+      248.6
+    ],
+    "sourceBoundNativeAndWasmCompile": "PASS",
+    "scene": "NOT_ACCEPTED: old missing private Playwright module; exact failure preserved."
+  },
+  "actualSdkAdapter": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\deep-file-sdk-smoke-01.json",
+    "sha256": "c0e0b46ac7d998fff469654cb26cdb1de8d1b432838efce03036fd24ada148d3",
+    "bytes": 1042
+  },
+  "files": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\compact-capture.ts",
+      "sha256": "1607a89b6083e61d7a4e559fda8b5b5347d1d0ea214e58fe8bedd4869e4e14c0",
+      "bytes": 12489
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\incremental-browser-image-build.ts",
+      "sha256": "c22d52d181b74fdebdc2be8bf1552c87b6a68a9f0baa37e977828303e118ea92",
+      "bytes": 17016
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\compiler-cache.ts",
+      "sha256": "bcfed73c37f25541191fa548c8e5f9c8ba0940a8187893708c72e996062f4d55",
+      "bytes": 9717
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\compiler-cache.test.ts",
+      "sha256": "eab98512c74b9e538f89db3bab34c03d45fca4335328d166f97c52b4556695ab",
+      "bytes": 14885
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.cjs",
+      "sha256": "14cbe129750b463fb1b18d7f383596859ea106af1c3f99269dad08ab8dfac864",
+      "bytes": 5927
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-deep-file-buffer-transport.test.cjs",
+      "sha256": "119b6df3ace845fa65ac11e07c60f215d8f211331103302d84e0682d24d65974",
+      "bytes": 17948
+    }
+  ],
+  "next": "Retry66bd using actual bundled SDK adapter; retain source, GPU, semantic, pixel and root review checks before accepting it."
+}

@@ -2,6 +2,7 @@ import {cargoTarget, compilerTools, checkWorkbenchOwnership, workbenchPath} from
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {isDeepStrictEqual} from 'node:util';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {prepareBrowser} from './browser-presentation.ts';
@@ -80,7 +81,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     write(preparedFile,JSON.stringify(p,null,2)+'\n');sourceCheck(p);return p;
 }
 
-export function buildIncrementalImageBrowser(id:string,density=2){
+export function buildIncrementalImageBrowser(id:string,density=2,options:{beforeIdentityChange?:(previous:any,prepared:any)=>unknown}={}){
     const p=prepareIncrementalImageBrowser(id,density);sourceCheck(p);
     if(p.status==='BUILT_NOT_CAPTURED')return p;
     assert.equal(p.status,'PREPARED_INCREMENTAL_IMAGE_BUILD_NOT_EXECUTED');
@@ -93,6 +94,9 @@ export function buildIncrementalImageBrowser(id:string,density=2){
         const pendingFile=path.join(g.folder,'pending.json');assert(!fs.existsSync(pendingFile),'An incomplete prior workbench attempt requires explicit recovery');
         assert(!previous || previous.ownedInputs, 'Workbench requires an exact prior owned-input manifest');
         checkWorkbenchOwnership(g.workbench, previous?.ownedInputs || {});
+        let compilerCacheTransition:unknown=null;
+        if(previous&&options.beforeIdentityChange&&!isDeepStrictEqual(json(previous.completedReceipt).group.identity,g.identity))
+            compilerCacheTransition=options.beforeIdentityChange(previous,p);
         write(pendingFile,JSON.stringify({id,preparedFile:p.preparedFile,previousReceipt:previous?.completedReceipt||null},null,2)+'\n');
         const desired={...p.canonicalFiles,'Cargo.toml':p.overlay.cargoSha256,'Cargo.lock':p.overlay.lockSha256},synced:string[]=[],removed:string[]=[];
         for(const file of Object.keys(previous?.ownedInputs||{}))if(!(file in desired)){const target=workbenchPath(g.workbench,file);fs.unlinkSync(target);removed.push(file);}
@@ -126,6 +130,7 @@ export function buildIncrementalImageBrowser(id:string,density=2){
         const retainedArtifacts=artifacts[0].filenames.map((file:string)=>({originalPath:file,sha256:sha(file)}));
         check();assert.equal(sha(retained),wasmSha256);
         const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),policy,toolFiles:p.toolFiles,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,
+            compilerCacheTransition,
             synchronization:{previous:previous?{id:previous.id,receipt:previous.completedReceipt,sha256:previous.completedReceiptSha256}:null,copiedChangedFiles:synced,removedOwnedStaleFiles:removed},commands,compilerArtifact:artifacts[0],retainedArtifacts,bindgen,
             wasm:{path:retained,sha256:wasmSha256,compilerReportedPath:wasm},bundle:Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),canonicalBehaviorExecuted:false,
             scope:'Actual Cargo invocation for this checkpoint with stable package/path and debug CARGO_INCREMENTAL=1. Complete source, one raw WASM and one bundle retained until compact publication retirement; compiler JSON and exact artifact hashes preserved without duplicate compiler-artifact copies. No GPU image or canonical callback acceptance.'};
