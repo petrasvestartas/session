@@ -8,6 +8,8 @@ import {nativeTarget, runCommand} from './verify.ts';
 import {png, ppm} from './png.ts';
 import {adapterMetadataPath, fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 
+import {imageProfile, nativeScaleBridge, verifyNativeScale} from './image-render-scale.ts';
+
 const output = path.join(viewer, 'target/course-presentation');
 const relative = (file: string) => path.relative(viewer, file).split(path.sep).join('/');
 const digest = (file: string) => hash(fs.readFileSync(file));
@@ -63,6 +65,15 @@ export function verifyNativeAdapter(directory: string, profile: ReturnType<typeo
 }
 
 function checkAdapterBridge(record: any) {
+    if (record.renderScaleBridge) {
+        const bridge = record.renderScaleBridge, before = read(bridge.before.path);
+        assert.equal(hash(before), bridge.before.sha256);
+        const generated = nativeScaleBridge(before, record.source.imageProfile.native, [record.width, record.height], record.density);
+        const {code, ...proof} = generated;
+        assert.deepEqual(json(bridge.record.path), proof);
+        assert.equal(digest(bridge.record.path), bridge.record.sha256);
+        assert.equal(code, read(record.adapterBridge?.before.path || path.join(viewer, record.driver.path)));
+    }
     if (!record.source.nativeAdapter) return;
     const bridge = record.adapterBridge;
     assert.equal(digest(bridge.before.path), bridge.before.sha256);
@@ -160,7 +171,7 @@ export function bindings(id: string) {
         kernel: fingerprint(Object.fromEntries(inputs.map(file => [path.relative(kernel, file), digest(file)]))),
         fixture: step.frame ? digest(path.join(docs, step.frame)) : null,
         harness: digest(path.join(docs, 'journey/frame.rs')), constructor: step.frame_constructor || null,
-        logicalSize: step.frame_size || [640, 480], helper: digest(fileURLToPath(import.meta.url)), nativeAdapter: nativeAdapterProfile()};
+        logicalSize: step.frame_size || [640, 480], imageProfile: {native: imageProfile(id, 'native', undefined, docs), browser: imageProfile(id, 'browser', undefined, docs)}, helper: digest(fileURLToPath(import.meta.url)), nativeAdapter: nativeAdapterProfile()};
 }
 
 export function captureDirectory(id: string, density = 2) {
@@ -178,6 +189,7 @@ function retained(record: any) {
     if (record.status === 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW') {
         assert.equal(digest(path.join(viewer, record.image.path)), record.image.sha256);
         assert.deepEqual(verifyNativeAdapter(record.directory, record.source.nativeAdapter), record.adapterReceipt || null);
+        assert.deepEqual(verifyNativeScale(record.directory, record.renderScaleBridge), record.renderScaleReceipt || null);
     }
     return record;
 }
@@ -218,8 +230,17 @@ export function prepare(id: string, density = 2) {
     assert.equal(code.split('    verify_pixels(&pixels);').length, 2, 'Canonical readback validation boundary changed');
     code = code.replace('// COURSE_DRAW', draw).replace('    verify_pixels(&pixels);',
         '    assert_eq!(pixels.len(), WIDTH as usize * HEIGHT as usize * 4);');
+    const scale = source.imageProfile.native ? nativeScaleBridge(code, source.imageProfile.native, [width, height], density) : null;
+    const scaleBefore = code;
+    if (scale) code = scale.code;
     const bridge = source.nativeAdapter ? adapterDriverBridge(code, source.nativeAdapter) : null;
     materialize(files, directory, lockFor(checkpoint), assetsFor(checkpoint));
+    let renderScaleBridge = null;
+    if (scale) {
+        const before = path.join(directory, 'render-scale-before.rs'), proof = path.join(directory, 'render-scale-bridge.json');
+        write(before, scaleBefore); write(proof, JSON.stringify({...scale, code: undefined}, null, 2) + '\n');
+        renderScaleBridge = {before: fileReference(before), record: fileReference(proof)};
+    }
     let adapterBridge = null;
     if (bridge) {
         const before = path.join(directory, 'adapter-driver-before.rs'), proof = path.join(directory, 'adapter-bridge.json');
@@ -230,8 +251,9 @@ export function prepare(id: string, density = 2) {
     const driver = path.join(directory, 'examples/presentation.rs');
     write(driver, code);
     const record = {status: 'PREPARED_NOT_EXECUTED', key, source, directory, density, width, height,
-        rendererResize: resizeSignature, rendererDensity: scaling, driver: {path: relative(driver), sha256: digest(driver)}, adapterBridge,
-        fixtureFunctionsPreserved: step.frame ? code.endsWith(read(path.join(docs, step.frame))) : true,
+        rendererResize: resizeSignature, rendererDensity: scaling, driver: {path: relative(driver), sha256: digest(driver)}, adapterBridge, renderScaleBridge,
+        fixtureFunctionsPreserved: !scale && (step.frame ? code.endsWith(read(path.join(docs, step.frame))) : true),
+        generatedConstructorAdaptedBeforeMath: Boolean(scale), generatedDrawAndPixelAssertionsPreserved: scale ? scale.drawAndPixelAssertionsPreserved : true,
         canonicalPixelAssertions: 'Preserved unchanged in original fixture; fixed-resolution verification remains separate from this presentation capture.'};
     write(path.join(directory, 'presentation.json'), JSON.stringify(record, null, 2) + '\n');
     return record;
@@ -258,6 +280,7 @@ export function run(id: string, density = 2) {
             ...(adapterProfile ? {PATH: path.dirname(adapterProfile.dxc.path) + path.delimiter + process.env.PATH} : {})});
     const adapterInputIntegrity = adapterInputs ? finishExecution(adapterInputs) : null;
     const adapterReceipt = verifyNativeAdapter(directory, adapterProfile);
+    const renderScaleReceipt = verifyNativeScale(directory, record.renderScaleBridge);
     assert.deepEqual(bindings(checkpoint), record.source, 'Checkpoint or dependencies changed during capture');
     checkMaterialized(checkpoint, directory);
     const frame = path.join(directory, 'frame.ppm');
@@ -265,7 +288,7 @@ export function run(id: string, density = 2) {
     assert.equal(pixels.width, record.width); assert.equal(pixels.height, record.height);
     const image = path.join(directory, `${id}-dpr${density}.png`);
     write(image, png(frame));
-    const result = {...record, status: 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW', command, adapterInputIntegrity, adapterReceipt,
+    const result = {...record, status: 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW', command, adapterInputIntegrity, adapterReceipt, renderScaleReceipt,
         image: {path: relative(image), sha256: digest(image), width: pixels.width, height: pixels.height}};
     write(path.join(directory, 'presentation.json'), JSON.stringify(result, null, 2) + '\n');
     return result;

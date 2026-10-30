@@ -99,7 +99,7 @@ function sourceGeneration(queue: Queue) {
     for (const match of (process.env.NODE_OPTIONS || '').matchAll(/(?:--require|-r)(?:=|\s+)(?:"([^"]+)"|'([^']+)'|(\S+))/g)) inputs.push(path.resolve(match[1] || match[2] || match[3]));
     const nativeDevelopment = nativeDevelopmentProfile();
     const environment = Object.fromEntries(['RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'CARGO_INCREMENTAL', 'COURSE_CAPTURE_PROCESSORS', 'VIEWER_DXC_PATH',
-        'VIEWER_BROWSER_EXECUTABLE', 'COURSE_ADAPTER_METADATA', 'COURSE_NATIVE_ADAPTER', 'NODE_OPTIONS', ...Object.keys(nativeDevelopment)].map(name => [name, process.env[name] || null]));
+        'VIEWER_BROWSER_EXECUTABLE', 'COURSE_ADAPTER_METADATA', 'COURSE_NATIVE_ADAPTER', 'COURSE_IMAGE_RENDER_SCALE', 'NODE_OPTIONS', ...Object.keys(nativeDevelopment)].map(name => [name, process.env[name] || null]));
     return {files: [...new Set(inputs)].sort().map(fileReference), directories,
         profile: {environment, nativeDevelopment, nativeAdapter, target: cargoTarget(), compiler: compilerTools(), node: fileReference(process.execPath)}};
 }

@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-30T02:43:48.221649+00:00",
+  "updatedUtc": "2026-10-30T03:40:14.056007+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native representatives and selected late-browser qualification remain pending.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -88,16 +88,27 @@
       "runtimeReceipt": "docs/journey/release/math-boundary-adaptive-accounting-20261030-runtime.json",
       "runtimeSha256": "63cfd6ae0dbc54fdab08296b609ae52d2b566ebf941ba92255c5f7ba3680f841",
       "maintainedSourceFilesUnchanged": 477
+    },
+    "capSupersampling": {
+      "status": "BROWSER88AD_SSAA_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+      "qualifiedBrowserCheckpoint": "88ad-exercise-original-sections-bores-and-ink",
+      "renderScale": 2,
+      "shaderSamples": 1,
+      "focusedSourceFakeTestsPassed": 73,
+      "native88adAnd89h": "PENDING",
+      "selectedLateBrowserRepresentatives": "PENDING",
+      "receipt": "docs/journey/release/math-boundary-cap-ssaa-20261030.json",
+      "sha256": "c0a78758bd60ea3cb819918133b6016ce3ed82d676c696f7c851af5a5b30d469"
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 45,
-    "remainingAffected": 1289,
-    "acceptedForFinalSource": 39,
-    "remainingFinalSourceAcceptance": 1295,
+    "newPublishedReviewed": 46,
+    "remainingAffected": 1288,
+    "acceptedForFinalSource": 40,
+    "remainingFinalSourceAcceptance": 1294,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
   },
   "published": [
@@ -689,6 +700,18 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-source13-cap-render-scale2-browser88ad-02-6f63dba1bccb.json",
+      "receiptSha256": "d6d03624539790d54f53cdf27fca23476fcd7a36165d77b91f14369609b7e756",
+      "image": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "imageSha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -702,15 +725,15 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_39_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS; FULL71_CALLBACK_IMAGE_PROFILE_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_40_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS; FULL71_CALLBACK_IMAGE_PROFILE_PASS; BROWSER88AD_SSAA_PASS_NATIVE_PENDING"
     },
     {
       "stage": "Image regeneration",
-      "status": "39_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 45_TOTAL_PUBLISHED_REVIEWED"
+      "status": "40_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 46_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
-      "status": "CURRENT_BUILD_AND_FIVE_READERS_PASS; FINAL_IMAGE_REFRESH_AND_PUBLICATION_PENDING"
+      "status": "PRIOR_SITE_BUILD_PASS; TWO_FINAL_PROSE_CHANGES_REBUILD_AND_REMAINING_IMAGES_PENDING"
     }
   ],
   "readerCodeSynchronization": {
@@ -726,8 +749,8 @@
     "sha256": "aee1119148c0e09bccb8673661c9694f1a3be0b733ba90cf9dd9ebe5bbc75167",
     "browser": "156.0.8078.74",
     "publishedImagesVerified": 39,
-    "rebuiltWebsiteCodePages": "PASS_CURRENT_BUILD_AND_FIVE_SOURCE_BOUND_READERS; FINAL_IMAGE_REFRESH_PENDING",
-    "newSource13ImagesAwaitingChromeDecode": 6,
+    "rebuiltWebsiteCodePages": "PRIOR_BUILD_AND_FIVE_READERS_PASS; TWO_FINAL_PROSE_CHANGES_NOT_REBUILT",
+    "newSource13ImagesAwaitingChromeDecode": 7,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
@@ -740,6 +763,19 @@
       "sha256": "82a5d9291b53a1d7807a25004bb65870b6977e0d3a9a0bf8135a602b0e61bca3",
       "pagesVerified": 5,
       "servedAssetsVerified": 11
+    },
+    "latestCapImageServing": {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png?v=6f63dba1bccb",
+      "status": 200,
+      "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "bytes": 26939,
+      "copiedPreview": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink-browser.png",
+        "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+        "bytes": 26939
+      },
+      "verification": "HTTP_BYTES_ONLY",
+      "chromeDecodePerformed": false
     }
   }
 }

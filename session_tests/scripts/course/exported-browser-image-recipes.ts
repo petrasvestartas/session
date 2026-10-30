@@ -1,3 +1,4 @@
+import {applyBrowserScale} from './image-render-scale.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -131,15 +132,17 @@ async function worker(p:any){
             const body=source.slice(start,end),original={url:()=>address};
             await(new Function('page','helpers','assert','PNG','require','original','return(async()=>{'+body+'})()'))(page,helpers,assert,originalRequire('pngjs').PNG,Module.createRequire(privateFile),original);
         }
+        const renderScale = await applyBrowserScale(page, p.source.imageProfile.browser, options =>
+            Module.createRequire(privateFile)('./adaptive-gpu-reuse.cjs').snapshot(page, options));
         await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
         const canvas=page.locator('canvas'),camera=JSON.parse(await canvas.getAttribute('data-camera-matrix'));assert.equal(camera.length,16);assert(camera.every(Number.isFinite));
         const size=await canvas.evaluate((c:any)=>{const r=c.getBoundingClientRect();return {width:c.width,height:c.height,cssWidth:r.width,cssHeight:r.height,dpr:devicePixelRatio};});
-        assert.equal(size.dpr,2);assert.equal(size.width,Math.round(size.cssWidth*2));assert.equal(size.height,Math.round(size.cssHeight*2));
+        assert.equal(size.dpr,2);assert.equal(size.width,Math.round(size.cssWidth*2)*(renderScale?2:1));assert.equal(size.height,Math.round(size.cssHeight*2)*(renderScale?2:1));
         await(new Function('page','assert','return(async()=>{'+validateGpu+'})()'))(page,assert);assert.deepEqual(errors,[]);
         const drawing=await helpers.drawing(page),file=path.join(p.folder,p.id+'-dpr2.png'),bytes=await page.screenshot({path:file,scale:'device'});
         assert.equal(bytes.readUInt32BE(16),p.viewport.width*2);assert.equal(bytes.readUInt32BE(20),p.viewport.height*2);assert.equal(await helpers.drawing(page),drawing);
         if(p.variant==='unselected-rgb'){const image=originalRequire('pngjs').PNG.sync.read(bytes),colors=new Set<string>();let chromatic=0;for(let i=0;i<image.data.length;i+=4){const rgb=[...image.data.subarray(i,i+3)];if(Math.max(...rgb)-Math.min(...rgb)>24){chromatic++;colors.add(rgb.join(','));}}assert(chromatic>10&&colors.size>8,'The actual source colors must remain visible without selection overlay');semantic.chromaticPixels=chromatic;semantic.distinctChromaticColors=colors.size;}
-        write(path.join(p.folder,'worker-result.json'),JSON.stringify({status:'PRESENTATION_ONLY_AWAITING_ROOT_VISUAL_REVIEW',canonicalBehaviorExecuted:false,source:p.source,recipe:p.recipe,errors,semantic,camera,physicalCanvas:size,drawingSha256:drawing,image:{path:file,sha256:hash(bytes),width:p.viewport.width*2,height:p.viewport.height*2}},null,2)+'\n');
+        write(path.join(p.folder,'worker-result.json'),JSON.stringify({status:'PRESENTATION_ONLY_AWAITING_ROOT_VISUAL_REVIEW',canonicalBehaviorExecuted:false,source:p.source,recipe:p.recipe,errors,semantic,camera,renderScale,physicalCanvas:size,drawingSha256:drawing,image:{path:file,sha256:hash(bytes),width:p.viewport.width*2,height:p.viewport.height*2}},null,2)+'\n');
     }finally{await browser.close();}
 }
 

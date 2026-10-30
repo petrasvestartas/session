@@ -1,0 +1,124 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-30T03:18:48.768Z",
+  "id": "88ad-exercise-original-sections-bores-and-ink",
+  "lane": "browser",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Actual pinned warm-runner frozen-source preflight and postflight; current hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser88ad-02-execution.json",
+      "sha256": "5d38359fb614ee9ac8d4e257a7e106eaeb2e93cfc8dc72939d8e4cb0337cf234",
+      "bytes": 2518
+    },
+    "runnerInputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\run_warm_course_checkpoint.py",
+        "sha256": "85535ffae9c5a729e3da9ca783ea0447573d17e0ff53ed6b1102013507665c46"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\windows_read_lease.py",
+        "sha256": "43ad54a76624b9527636b1202c4dc8f7f760af1d8d7bc3481d5b68fab5a6d3dd"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\cap88ad-retry02\\source13-cap-render-scale2-browser88ad-02-command.json",
+        "sha256": "0ebefdc6c9419d2c3a63a3db9a19419cf8672dfee34fd4b5673aa2ccdd39e058"
+      }
+    ]
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this exact1800x1520 PNG at original resolution. Circular section opening and uniform boundary remain clean, with no triangulation wire. Fixed-region comparison:596 fractional outer boundary pixels across32sectors versus0; direct black/fill pairs1128 to200; hole/fill controls zerooutliers; contour bounds identical and encoded line-width4.436 to4.398pixels. Actual scale/source/camera/selection/clipping/accepted-CAD-quality checks passed.",
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-88ad-exercise-original-sections-bores-and-ink-ecd2e3757a0d11f94c47\\capture.json.gz",
+    "sha256": "c40872146410f1375f04e8a1f2371e98196c002cc7d0446538b3291d57726a7a",
+    "bytes": 310404
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser88ad-02-qualification.json",
+    "sha256": "7c3a733225a9df9e8375508aed0bf27a7611cfd2cfae20cf1c2f5877c40fa42d",
+    "bytes": 11315
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser88ad-02-execution.json",
+    "sha256": "5d38359fb614ee9ac8d4e257a7e106eaeb2e93cfc8dc72939d8e4cb0337cf234",
+    "bytes": 2518
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser88ad-02-publication.json",
+    "sha256": "bbc2c90baf9648c64d7177383a484c9382b93cfe8ae463f1c841d8202c8c5387",
+    "bytes": 5415
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-88ad-exercise-original-sections-bores-and-ink-ecd2e3757a0d11f94c47\\publication.json",
+    "sha256": "372b4ee6c6e2f55e4a46f409175012cd870879e0f81c938a3875500555c51975",
+    "bytes": 886
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-88ad-exercise-original-sections-bores-and-ink-ecd2e3757a0d11f94c47\\retirement.json.gz",
+    "sha256": "3e76a1059f0095eb6d71cef00bf84ad648e7609b73a5e72a1ea6f9bc5915c7fe",
+    "bytes": 141321
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-88ad-exercise-original-sections-bores-and-ink-ecd2e3757a0d11f94c47\\retired.json",
+    "sha256": "b202bbca1586f585d6d5df7aa37f4711d384a4c6f6c329da51bc80ea7fad0a78",
+    "bytes": 348
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink-browser.png",
+    "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+    "bytes": 26939
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink-browser.png",
+    "sha256": "e57ba6e57a0c3c34704c3372f7c05ac6a9e88f656db0ece4a8eef90467fb6d56",
+    "bytes": 24545
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\cap-prior-png-e57ba6e57a0c3c34704c3372f7c05ac6a9e88f656db0ece4a8eef90467fb6d56.png",
+    "sha256": "e57ba6e57a0c3c34704c3372f7c05ac6a9e88f656db0ece4a8eef90467fb6d56",
+    "bytes": 24545
+  },
+  "renderScale": {
+    "renderScale": 2,
+    "lane": "browser",
+    "recipePins": [
+      {
+        "path": "journey/checks/browser/caps.cjs",
+        "sha256": "2e447e8d14e4be533d1337b70d300a0df242ff98038e74f306b9096732334afe"
+      }
+    ],
+    "samples": 1,
+    "presentation": "canvas-compositor",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "6912f9cbe4eb1f7f4a65dca82e6754059756e87d53a12f0d82b20bea9e1e873e"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "912fbcca86f5e9f9a58c533d3cd971c2b69e825e4d5682deaf58fcfa59f8786c"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      }
+    ]
+  },
+  "canonicalBehaviorExecuted": false,
+  "scope": "Standalone source13 image-profile qualification. Root directly viewed this exact original-resolution PNG. No new full browser callback, historical interactive MSAA, or broader geometry acceptance claim."
+}

@@ -76,6 +76,7 @@ export function prepareImageBrowser(id: string, density = 2) {
 }
 
 export function buildImageBrowser(id: string, density = 2) {
+    assert(!bindings(id).imageProfile.browser, 'Render-scale image profile requires the source-bound incremental browser overlay');
     const prepared = prepareImageBrowser(id, density), record = prepared.record;
     if (prepared.reused) return record;
     assert.equal(process.platform, 'win32', 'This accelerated policy uses the Windows image-only Job Object guard');

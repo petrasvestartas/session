@@ -163,7 +163,9 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <details>
 <summary>Viewer coverage and verification</summary>
 
-Retain maintained closedness, winding, crossing bounds and hatch recipes. Adapt the earlier forward-depth renderer through explicit color and integer section owners. Caps keep original element IDs and source geometry; full current primitive/MRT/selection-mask/MSAA integration follows in94 and GPU rebasing in95.
+Retain maintained closedness, winding, crossing bounds and hatch recipes. Adapt the earlier forward-depth renderer through explicit color and integer section owners. Caps keep original element IDs and source geometry; full current primitive/MRT/selection-mask/MSAA integration follows in the later 96-series renderer-integration lessons, with GPU rebasing in95.
+
+The browser reference uses an image-only 2× render scale before canvas composition at the original output size. It improves section-ink coverage while retaining this lesson’s single-sample shader.
 
 Retain all earlier checks. Supplied section fixtures read actual color and integer targets for closed/open sources, high-u32 IDs before color, nested and locked owners, hidden ink, coplanar and sloping widths, mirrored/inward sources, CAD bores, two-plane corners and release.
 

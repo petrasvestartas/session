@@ -1,3 +1,4 @@
+import {browserScaleBridge} from './image-render-scale.ts';
 import {cargoTarget, compilerTools, checkWorkbenchOwnership, workbenchPath} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,6 +40,7 @@ function sourceCheck(p:any){
     for(const[name,text]of Object.entries(expected(p.id)))assert.equal(read(path.join(p.native,name)),name==='Cargo.toml'?text.replaceAll('../../../session_rust',kernel):text,name);
     assert.equal(sha(path.join(p.native,'Cargo.lock')),sha(lockFor(p.id)));
     for(const name of assetsFor(p.id))assert.equal(sha(path.join(p.native,name)),sha(path.join(viewer,name)),name);
+    assert.deepEqual(p.overlay.renderScaleBridge, p.source.imageProfile.browser ? browserScaleBridge(read(path.join(p.native, 'src/browser.rs')), p.source.imageProfile.browser) : null);
     if(p.bundle)assert.deepEqual(Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),p.bundle);
 }
 
@@ -51,6 +53,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const baselineFile=path.join(viewer,'target/course-presentation',`browser-${id}-${baselineKey.slice(0,16)}-dpr${density}`,'prepared.json');
     const base=fs.existsSync(baselineFile)?json(baselineFile):prepareBrowser(id,density);assert.deepEqual(base.source,source);
     const native=path.join(folder,'canonical-source');materialize(expected(id),native,lockFor(id),assetsFor(id));
+    const renderScaleBridge = source.imageProfile.browser ? browserScaleBridge(read(path.join(native, 'src/browser.rs')), source.imageProfile.browser) : null;
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
     const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,policy,helperSha256:sha(self),guardSha256:sha(guard)};
     const groupKey='compact-browser-v1',group=path.join(viewer,'target/course-ib',groupKey),workbench=path.join(group,'workspace'),target=cargoTarget();
@@ -75,7 +78,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const p={...base,...identity,status:'PREPARED_INCREMENTAL_IMAGE_BUILD_NOT_EXECUTED',id,density,folder,preparedFile,workspace,dist,native,pins,
         baseline:{path:baselineFile,sha256:sha(baselineFile),sourceOnlyReused:true,priorBuiltStatus:base.status},canonicalFiles,
         group:{key:groupKey,identity:groupIdentity,folder:group,workbench,target,package:packageName,library:'viewer_journey'},
-        overlay:{cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},
+        overlay:{renderScaleBridge,cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},
         canonicalNativeUnchanged:{path:base.native,files:manifest(base.native)},canonicalBehaviorExecuted:false};
     delete p.bundle;delete p.commands;delete p.imageBuild;delete p.image;
     write(preparedFile,JSON.stringify(p,null,2)+'\n');sourceCheck(p);return p;
@@ -98,11 +101,11 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
         if(previous&&options.beforeIdentityChange&&!isDeepStrictEqual(json(previous.completedReceipt).group.identity,g.identity))
             compilerCacheTransition=options.beforeIdentityChange(previous,p);
         write(pendingFile,JSON.stringify({id,preparedFile:p.preparedFile,previousReceipt:previous?.completedReceipt||null},null,2)+'\n');
-        const desired={...p.canonicalFiles,'Cargo.toml':p.overlay.cargoSha256,'Cargo.lock':p.overlay.lockSha256},synced:string[]=[],removed:string[]=[];
+        const desired={...p.canonicalFiles,'Cargo.toml':p.overlay.cargoSha256,'Cargo.lock':p.overlay.lockSha256,...(p.overlay.renderScaleBridge ? {'src/browser.rs':p.overlay.renderScaleBridge.afterSha256} : {})},synced:string[]=[],removed:string[]=[];
         for(const file of Object.keys(previous?.ownedInputs||{}))if(!(file in desired)){const target=workbenchPath(g.workbench,file);fs.unlinkSync(target);removed.push(file);}
         for(const[file,digest]of Object.entries(desired)){
             const target=workbenchPath(g.workbench,file);if(fs.existsSync(target)&&sha(target)===digest)continue;
-            if(file==='Cargo.toml')write(target,p.overlay.cargo);else if(file==='Cargo.lock')write(target,p.overlay.lock);else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(p.native,file),target);}synced.push(file);
+            if(file==='src/browser.rs'&&p.overlay.renderScaleBridge)write(target,p.overlay.renderScaleBridge.code);else if(file==='Cargo.toml')write(target,p.overlay.cargo);else if(file==='Cargo.lock')write(target,p.overlay.lock);else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(p.native,file),target);}synced.push(file);
         }
         const check=()=>{sourceCheck(p);for(const[file,digest]of Object.entries(desired))assert.equal(sha(path.join(g.workbench,file)),digest,file);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);};
         const commands:any[]=[];
@@ -129,7 +132,7 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
         const sceneSource=path.join(p.workspace,'target','course-'+id);fs.cpSync(p.native,sceneSource,{recursive:true});if(fs.existsSync(path.join(p.folder,'sample.pb')))fs.copyFileSync(path.join(p.folder,'sample.pb'),path.join(sceneSource,'sample.pb'));
         const retainedArtifacts=artifacts[0].filenames.map((file:string)=>({originalPath:file,sha256:sha(file)}));
         check();assert.equal(sha(retained),wasmSha256);
-        const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),policy,toolFiles:p.toolFiles,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,
+        const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),policy,toolFiles:p.toolFiles,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,compiledInputs:desired,
             compilerCacheTransition,
             synchronization:{previous:previous?{id:previous.id,receipt:previous.completedReceipt,sha256:previous.completedReceiptSha256}:null,copiedChangedFiles:synced,removedOwnedStaleFiles:removed},commands,compilerArtifact:artifacts[0],retainedArtifacts,bindgen,
             wasm:{path:retained,sha256:wasmSha256,compilerReportedPath:wasm},bundle:Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),canonicalBehaviorExecuted:false,

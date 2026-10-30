@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {course, docs, expected, filesIn, json, viewer, withExpectedSequence} from './model.ts';
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture, ledgerReceiptFile} from './capture-ledger.ts';
+import {imageProfile} from './image-render-scale.ts';
 import {nativeAdapterProfile} from './presentation.ts';
 import {cleanCompilerTransition} from './compiler-cache.ts';
 
@@ -88,9 +89,11 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
     assert(route !== 'measurement' || (lane === 'browser' && id === '85ay-exercise-current-original-commands-together'), 'Measurement route requires the 85ay browser checkpoint');
     assert(route !== 'maintained' || (lane === 'browser' && id === '97-finish-with-the-maintained-browser-runtime'), 'Maintained route requires the final browser checkpoint');
     assert(lane !== 'browser' || id !== '97-finish-with-the-maintained-browser-runtime' || route === 'maintained', 'Final browser checkpoint requires its maintained assertions');
+    const captureImageProfile = imageProfile(id, lane, undefined, docs);
+    if (lane === 'browser' && captureImageProfile) assert.equal(route, id.startsWith('88ad-') ? 'exported' : 'main-page', 'Cap image profile requires its exact image recipe');
     fs.mkdirSync(root, {recursive: true});
     const adapterProfile = lane === 'native' ? nativeAdapterProfile() : null;
-    const inputs = [...sourceEvidence(id), ...(adapterProfile ? [adapterProfile.metadata.path, adapterProfile.enumerator.path] : [])], sourceBefore = observeExecution(inputs);
+    const inputs = [...sourceEvidence(id), ...(captureImageProfile?.files.map(file => file.path) || []), ...(adapterProfile ? [adapterProfile.metadata.path, adapterProfile.enumerator.path] : [])], sourceBefore = observeExecution(inputs);
     const descriptor = fs.openSync(laneLock, 'wx');
     fs.writeFileSync(descriptor, JSON.stringify({pid: process.pid, lane, id})); fs.closeSync(descriptor);
     let file: string, buildFile: string | undefined, ownedRoots: string[], transientRoots: string[], execution: any, evidence: string[];
@@ -118,6 +121,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             transientRoots = [record.snapshotDirectory, path.join(record.folder, 'runtime')];
             const prefix = record.compile.log.replace(/-build\.log$/, '');
             evidence = ['-build.log', '-build.command.json', '-build.resources.json', '-execute.log', '-execute.command.json', '-execute.resources.json'].map(suffix => prefix + suffix);
+            if (record.renderScaleReceipt) evidence.push(record.renderScaleReceipt.path, record.renderScaleBridge.record.path, record.renderScaleBridge.before.path);
             if (record.adapterReceipt) evidence.push(record.adapterReceipt.path, record.adapterBridge.record.path, record.adapterBridge.before.path);
         } else {
             const module = await import('./incremental-browser-image-build.ts');
@@ -137,6 +141,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
         sourceIntegrity = finishExecution(sourceBefore);
         const record = json(file!), image = path.isAbsolute(record.image.path) ? record.image.path : path.resolve(viewer, record.image.path);
         assert.equal(fileReference(image).sha256, record.image.sha256);
+        if (lane === 'browser' && captureImageProfile) assert.deepEqual(record.renderScale?.profile, captureImageProfile, 'The executed image must qualify the requested scale');
         for (const directory of ownedRoots!) {
             const relative = path.relative(path.join(viewer, 'target'), path.resolve(directory));
             assert(relative && !relative.startsWith('..') && !path.isAbsolute(relative));

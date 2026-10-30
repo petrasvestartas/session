@@ -1,3 +1,4 @@
+import {verifyNativeScale} from './image-render-scale.ts';
 import {cargoTarget, observeExecution, finishExecution, compilerTools} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -91,6 +92,7 @@ function snapshotInputs(snapshot: any) {
     const driver = path.relative(snapshot.directory, path.join(viewer, snapshot.driver.path)).split(path.sep).join('/');
     names.add(driver);
     if (snapshot.adapterBridge) for (const file of Object.values(snapshot.adapterBridge) as any[]) names.add(path.relative(snapshot.directory, file.path));
+    if (snapshot.renderScaleBridge) for (const file of Object.values(snapshot.renderScaleBridge) as any[]) names.add(path.relative(snapshot.directory, file.path));
     return Object.fromEntries([...names].sort().map(name => [name, {snapshot: path.join(snapshot.directory, name), sha256: sha(path.join(snapshot.directory, name))}]));
 }
 
@@ -144,7 +146,7 @@ export function prepareIncremental(id: string, density = 2) {
     const recordFile = path.join(folder, 'result.json');
     if (fs.existsSync(recordFile)) { const existing = json(recordFile); checkSnapshot(existing); return existing; }
     const record = {status: 'PREPARED_NOT_EXECUTED', id, density, key, source: snapshot.source, snapshotKey: snapshot.key,
-        snapshotDirectory: snapshot.directory, snapshotDriver: snapshot.driver, adapterBridge: snapshot.adapterBridge, profile, helperSha256,
+        snapshotDirectory: snapshot.directory, snapshotDriver: snapshot.driver, adapterBridge: snapshot.adapterBridge, renderScaleBridge: snapshot.renderScaleBridge, profile, helperSha256,
         inputs: snapshotInputs(snapshot), folder, recordFile, workbench, width: snapshot.width, height: snapshot.height,
         scope: 'Exact keyed snapshot preserved; stable private compiler source path; every checkpoint still receives its own Cargo invocation and actual renderer execution.'};
     write(recordFile, JSON.stringify(record, null, 2) + '\n'); checkSnapshot(record); return record;
@@ -158,6 +160,7 @@ export function verifyIncremental(recordFile: string) {
     assert.equal(sha(record.compilerArtifact.path), record.compilerArtifact.sha256);
     assert.equal(sha(record.compile.log), record.compile.logSha256); assert.equal(sha(record.execute.log), record.execute.logSha256);
     assert.deepEqual(verifyNativeAdapter(path.join(record.folder, 'runtime'), record.profile.nativeAdapter), record.adapterReceipt || null);
+    assert.deepEqual(verifyNativeScale(path.join(record.folder, 'runtime'), record.renderScaleBridge), record.renderScaleReceipt || null);
     return record;
 }
 
@@ -208,6 +211,7 @@ export function runIncremental(id: string, density = 2) {
             {VIEWER_DXC_PATH: dxc, PATH: path.dirname(dxc) + path.delimiter + process.env.PATH, COURSE_MEMORY_MIB: '6144', COURSE_TIMEOUT_SECONDS: '1800'});
         record.executionIntegrity = finishExecution(beforeExecution);
         record.adapterReceipt = verifyNativeAdapter(runtime, record.profile.nativeAdapter);
+        record.renderScaleReceipt = verifyNativeScale(runtime, record.renderScaleBridge);
         checkSnapshot(record); checkWorkbench(record.inputs);
         for (const [name, input] of Object.entries(record.inputs) as [string, any][]) assert.equal(sha(path.join(runtime, name)), input.sha256, name);
         const frame = path.join(runtime, 'frame.ppm'), pixels = ppm(frame);

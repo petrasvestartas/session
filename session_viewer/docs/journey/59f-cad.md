@@ -982,7 +982,7 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <details>
 <summary>Viewer coverage and verification</summary>
 
-Draw original BRep sources with current production meshing quality, boundary lookup and outward normal orientation. Map shaded triangles and sampled borders to original CAD face/edge IDs, preserve source UV addresses and share source/display ownership through whole placement history. Denser edge chords, smooth silhouettes and general modelling tools connect in their later subjects.
+Draw original BRep sources with current production meshing quality, boundary lookup and outward normal orientation. Map shaded triangles and sampled borders to original CAD face/edge IDs, preserve source UV addresses and share source/display ownership through whole placement history. Original boundary curves already receive bounded camera-dependent refinement; later subjects add further modelling tools.
 
 All earlier checks remain. Three new native checks cover original CAD identities, source release, precise whole-placement history and outward orientation. An actual GPU check proves the bore hole has no face target, the cap retains face 6 and its four outer edges plus hole rim retain original edge IDs.
 

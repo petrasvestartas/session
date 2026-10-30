@@ -1,0 +1,546 @@
+[
+  {
+    "id": "96zza-connect-section-primitive-images",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      }
+    ]
+  },
+  {
+    "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      },
+      {
+        "path": "journey/checks/browser/section-resources.cjs",
+        "sha256": "f99f1f17e15a0269efdec2b0aebcec218e68500451594b9afc717a3a31820d7e"
+      }
+    ]
+  },
+  {
+    "id": "96zzd-pack-surface-position-normal-and-color",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/96zzd-pack-surface-position-normal-and-color-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      },
+      {
+        "path": "journey/checks/browser/section-resources.cjs",
+        "sha256": "f99f1f17e15a0269efdec2b0aebcec218e68500451594b9afc717a3a31820d7e"
+      }
+    ]
+  },
+  {
+    "id": "96zzm-connect-the-renderer-to-one-mesh-arena",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/96zzm-connect-the-renderer-to-one-mesh-arena-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/arena-cache.cjs",
+        "sha256": "cc8c718d75c5418892418e3ed3bb9ea03e0f6110f9ce0d4a042cc383d6e5f3fe"
+      },
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      }
+    ]
+  },
+  {
+    "id": "96zzo-read-instance-properties-through-draw-slots",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/96zzo-read-instance-properties-through-draw-slots-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      },
+      {
+        "path": "journey/checks/browser/slot-pipeline.cjs",
+        "sha256": "958a5612a0f8b35ef32df3c0ce0f2b052625aefde5c69f975a1e827541d516f7"
+      }
+    ]
+  },
+  {
+    "id": "88ad-exercise-original-sections-bores-and-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89-copy-density-scaled-depth-reduction",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89-copy-density-scaled-depth-reduction.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89a-prepare-linear-original-depth-and-radius-addresses",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89a-prepare-linear-original-depth-and-radius-addresses.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89b-own-six-real-depth-and-radius-levels",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89b-own-six-real-depth-and-radius-levels.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89c-build-prepare-and-nearest-depth-pipelines",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89c-build-prepare-and-nearest-depth-pipelines.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89d-prepare-cached-pyramid-inputs-and-images",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89d-prepare-cached-pyramid-inputs-and-images.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89e-encode-six-levels-only-when-inputs-change",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89e-encode-six-levels-only-when-inputs-change.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89f-expose-actual-pyramid-allocation-and-levels",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89f-expose-actual-pyramid-allocation-and-levels.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89g-route-original-depth-into-the-pyramid-owner",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89g-route-original-depth-into-the-pyramid-owner.png",
+    "pins": [
+      {
+        "path": "journey/checks/88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+      }
+    ]
+  },
+  {
+    "id": "89h-exercise-actual-depth-levels-and-cache-release",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90-copy-maintained-original-contact-radius",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90-copy-maintained-original-contact-radius.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90a-copy-current-viewing-rays",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90a-copy-current-viewing-rays.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90b-adapt-the-earlier-forward-camera",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90b-adapt-the-earlier-forward-camera.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90c-gather-weak-original-ambient-properties",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90c-gather-weak-original-ambient-properties.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90d-copy-current-horizon-and-bilateral-recipes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90d-copy-current-horizon-and-bilateral-recipes.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90da-reconstruct-original-surfaces-from-depth",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90da-reconstruct-original-surfaces-from-depth.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90db-encode-normals-and-read-original-contact-metadata",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90db-encode-normals-and-read-original-contact-metadata.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90dc-prepare-a-compact-depth-radius-and-normal-target",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90dc-prepare-a-compact-depth-radius-and-normal-target.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90dd-measure-ground-contact-along-bounded-horizons",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90dd-measure-ground-contact-along-bounded-horizons.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90de-integrate-cosine-weighted-surface-visibility",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90de-integrate-cosine-weighted-surface-visibility.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90df-filter-contact-without-crossing-unrelated-surfaces",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90df-filter-contact-without-crossing-unrelated-surfaces.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90dg-reject-invalid-ambient-history-before-blending",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90dg-reject-invalid-ambient-history-before-blending.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90dh-reconstruct-full-resolution-contact-from-low-resolution-samples",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90dh-reconstruct-full-resolution-contact-from-low-resolution-samples.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90di-collect-bounded-sample-corrections-with-gpu-atomics",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90di-collect-bounded-sample-corrections-with-gpu-atomics.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90dj-composite-contact-as-black-alpha-over-the-original-scene",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90dj-composite-contact-as-black-alpha-over-the-original-scene.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90e-bind-real-original-normals-and-radii",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90e-bind-real-original-normals-and-radii.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90f-write-original-surface-contact-properties",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90f-write-original-surface-contact-properties.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90g-build-the-depth-equal-original-property-pass",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90g-build-the-depth-equal-original-property-pass.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90h-cache-original-radius-buffers-and-draw-properties",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90h-cache-original-radius-buffers-and-draw-properties.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90i-own-actual-ambient-image-allocation",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90i-own-actual-ambient-image-allocation.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90j-prepare-reduced-and-full-ambient-targets",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90j-prepare-reduced-and-full-ambient-targets.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90k-build-explicit-ambient-fullscreen-pipelines",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90k-build-explicit-ambient-fullscreen-pipelines.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90l-match-current-ambient-sampling-layouts",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90l-match-current-ambient-sampling-layouts.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90m-cache-reduced-levels-and-filtered-samples",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90m-cache-reduced-levels-and-filtered-samples.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90n-bind-exact-current-ambient-source-images",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90n-bind-exact-current-ambient-source-images.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90o-record-explicit-ambient-passes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90o-record-explicit-ambient-passes.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90p-own-cached-ambient-pipelines-and-release-images",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90p-own-cached-ambient-pipelines-and-release-images.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90q-prepare-changed-ambient-framebuffer-inputs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90q-prepare-changed-ambient-framebuffer-inputs.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90r-render-a-complete-ambient-result-in-one-frame",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90r-render-a-complete-ambient-result-in-one-frame.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90s-count-actual-ambient-resources-and-work",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90s-count-actual-ambient-resources-and-work.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90t-route-original-scene-properties-into-ambient-shading",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90t-route-original-scene-properties-into-ambient-shading.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "90u-enable-arctic-as-a-presentation-change",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/90u-enable-arctic-as-a-presentation-change.png",
+    "pins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ]
+  },
+  {
+    "id": "88ad-exercise-original-sections-bores-and-ink",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/caps.cjs",
+        "sha256": "2e447e8d14e4be533d1337b70d300a0df242ff98038e74f306b9096732334afe"
+      }
+    ]
+  }
+]
