@@ -1,0 +1,231 @@
+{
+  "status": "THREE_SSAA_REPRESENTATIVE_FAMILIES_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "recordedUtc": "2026-10-30T04:45:43.832072+00:00",
+  "checkpoint": "96zza-connect-section-primitive-images",
+  "lane": "browser",
+  "priorQualificationReceiptsPreserved": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-cap-ssaa-20261030.json",
+      "sha256": "c0a78758bd60ea3cb819918133b6016ce3ed82d676c696f7c851af5a5b30d469",
+      "bytes": 8396
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-cap-ssaa-20261030-native.json",
+      "sha256": "17242a67835e8225fafe5d42f24f4a4d77df61509dae743bab72d5d29f1d6c9d",
+      "bytes": 22130
+    }
+  ],
+  "qualifiedRepresentativeFamilies": [
+    "browser88ad original cap",
+    "native88ad/89h cap and cumulative depth-pyramid",
+    "browser96zza selected late primitive cap"
+  ],
+  "rootProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-cap-render-scale2-browser96zza-01-ae0d5a4fcfac.json",
+    "sha256": "fbfa6f96dbd8dc290a1b0330185e18ae53899b637a400ed95342b1b235b403a8",
+    "bytes": 6961
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "bytes": 100146
+  },
+  "maintainedSourceFilesUnchanged": 477,
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-d4a19aa22b7d0f08a1e0\\capture.json.gz",
+    "sha256": "e93ab91b6c817397607574d27e9b8f0b58b8bac1d8943bdae2cb7322f8b21333",
+    "bytes": 390873
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser96zza-01-qualification.json",
+    "sha256": "70b358bcbdae45697f16157a9eedcc57c6acbf08534db2e6f0129062c5f37991",
+    "bytes": 5933
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser96zza-01-execution.json",
+    "sha256": "6cea9f30b2348350ae55e0522342322bf613f8655986a808d9801047e17215ac",
+    "bytes": 2493
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-browser96zza-01-publication.json",
+    "sha256": "8966ff90880d8681216d6c216cce8a8648d7a0b8a1f531bf93a18851c4e92875",
+    "bytes": 5433
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-d4a19aa22b7d0f08a1e0\\publication.json",
+    "sha256": "5e7cfb1e5de7992950841af66cd21700c2a55939af9eede579d75e061b0be315",
+    "bytes": 873
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-d4a19aa22b7d0f08a1e0\\retirement.json.gz",
+    "sha256": "3b1bde2e6978067f11a11c6a1745496dc323662bda74c014ce21db91978c6805",
+    "bytes": 156184
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zza-connect-section-primitive-images-d4a19aa22b7d0f08a1e0\\retired.json",
+    "sha256": "bc32251169bff1500f4fa1eccd15197df3e58cc4188075b7b90ad1b706b85c3e",
+    "bytes": 341
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zza-connect-section-primitive-images-browser.png",
+    "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+    "bytes": 39355
+  },
+  "actualCaptureResult": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-2d2530910a9e7c537600\\main-page-capture.json",
+    "sha256": "d4a19aa22b7d0f08a1e071e89c3498bcee319c9d56b46058a12875a364509cbe",
+    "bytes": 79166
+  },
+  "actualCaptureStoredBlob": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\blobs\\d4a19aa22b7d0f08a1e071e89c3498bcee319c9d56b46058a12875a364509cbe.gz",
+    "sha256": "a0967db07cfa0e5c501224afb9b3c13b2354fc8e6f87488a4695d0e1968b1dd8",
+    "bytes": 20460
+  },
+  "profile": {
+    "renderScale": 2,
+    "lane": "browser",
+    "recipePins": [
+      {
+        "path": "journey/checks/browser/cap-primitives.cjs",
+        "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97"
+      }
+    ],
+    "samples": 1,
+    "presentation": "canvas-compositor",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "6912f9cbe4eb1f7f4a65dca82e6754059756e87d53a12f0d82b20bea9e1e873e"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "912fbcca86f5e9f9a58c533d3cd971c2b69e825e4d5682deaf58fcfa59f8786c"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      }
+    ]
+  },
+  "guard": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0xFF00",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 16,
+    "maximumAggregateOurMemoryMiB": 16384,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 8,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-10-30T04:36:11.4287133Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+      "--import",
+      "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\main-page-image-helper\\d8ae304a3181737e007d\\worker.ts",
+      "--worker",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\96zza-connect-section-primitive-images-2d2530910a9e7c537600\\config.json"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96zza-connect-section-primitive-images-49148c89cfa66965599a\\workspace",
+    "timeoutSeconds": 2400,
+    "jobCommitLimitBytes": 8589934592,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 7.683,
+    "peakJobCommitBytes": 1380352000,
+    "affinityMask": "0xFF00",
+    "processors": 8,
+    "processId": 17440,
+    "descendantsAtCleanup": 0
+  },
+  "chromeExecutableReadLease": {
+    "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "sharing": "FILE_SHARE_READ",
+    "released": true,
+    "sha256": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d",
+    "bytes": 4466840,
+    "sha256After": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d"
+  },
+  "invariants": {
+    "cpuObjects": 2,
+    "gpuRows": 2,
+    "cadQualities": 1,
+    "cameraUnchanged": true,
+    "selectedIds": [
+      3,
+      4
+    ],
+    "selectionUnchanged": true,
+    "sourcesUnchanged": true,
+    "clippingAndAppearanceUnchanged": true,
+    "staticGpuReuse": "PASS_SOURCE_PINNED_SNAPSHOT_AND_ROOT_ATTESTATION",
+    "settledGpuStats": [
+      8,
+      8,
+      3,
+      48
+    ],
+    "settledGpuUsage": [
+      2,
+      26032,
+      2,
+      320
+    ],
+    "physicalCanvas": {
+      "width": 3600,
+      "height": 3040,
+      "cssWidth": 900,
+      "cssHeight": 760,
+      "dpr": 2
+    },
+    "internalDensity": 4,
+    "output": [
+      1800,
+      1520
+    ],
+    "renderScale": 2,
+    "shaderSamples": 1,
+    "selectedYellowPixelAssertion": "PASS_GREATER_THAN_200",
+    "errors": []
+  },
+  "recipe": {
+    "source": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cap-primitives.cjs",
+      "sha256": "8f6aa6ed7ff902b3a832622b7e8a786753316865eb5fa27165b8c02ed1035f97",
+      "bytes": 2180
+    },
+    "kind": "unchanged-export",
+    "exportName": "__presentation",
+    "scope": "One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance."
+  },
+  "previewHttp": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png?v=ae0d5a4fcfac",
+    "status": 200,
+    "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+    "bytes": 39355,
+    "verification": "HTTP_BYTES_ONLY",
+    "chromeDecodePerformed": false
+  },
+  "acceptance": {
+    "source13Accepted": 43,
+    "source13Remaining": 1291,
+    "affectedDestinations": 1334
+  },
+  "scope": "All three representative families are qualified in the IMAGE profile; remaining affected images and all48 scoped checkpoints are not thereby accepted. Only original main-page fragment assertions executed for96zza, not the full callback or child-context/DPR matrix. No new canonical pixel-validation or interactive MSAA claim. Earlier browser/native receipts and proofs remain immutable. Preview verification is HTTP bytes only; two final site prose changes remain unbuilt."
+}

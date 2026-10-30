@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-30T04:20:10.411602+00:00",
+  "updatedUtc": "2026-10-30T04:45:55.205394+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza qualification remains pending. Canonical native verify_pixels was not executed.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -90,13 +90,13 @@
       "maintainedSourceFilesUnchanged": 477
     },
     "capSupersampling": {
-      "status": "BROWSER88AD_NATIVE88AD_89H_SSAA_PASS_LATE_BROWSER_PENDING",
+      "status": "THREE_SSAA_REPRESENTATIVE_FAMILIES_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
       "qualifiedBrowserCheckpoint": "88ad-exercise-original-sections-bores-and-ink",
       "renderScale": 2,
       "shaderSamples": 1,
       "focusedSourceFakeTestsPassed": 73,
       "native88adAnd89h": "PASS_ROOT_REVIEWED_PUBLISHED_RETIRED",
-      "selectedLateBrowserRepresentatives": "PENDING",
+      "selectedLateBrowserRepresentatives": "PASS_96ZZA_ROOT_REVIEWED_PUBLISHED_RETIRED",
       "receipt": "docs/journey/release/math-boundary-cap-ssaa-20261030.json",
       "sha256": "c0a78758bd60ea3cb819918133b6016ce3ed82d676c696f7c851af5a5b30d469",
       "qualifiedNativeCheckpoints": [
@@ -105,17 +105,24 @@
       ],
       "nativeCanonicalVerifyPixelsExecuted": false,
       "nativeReceipt": "docs/journey/release/math-boundary-cap-ssaa-20261030-native.json",
-      "nativeSha256": "17242a67835e8225fafe5d42f24f4a4d77df61509dae743bab72d5d29f1d6c9d"
+      "nativeSha256": "17242a67835e8225fafe5d42f24f4a4d77df61509dae743bab72d5d29f1d6c9d",
+      "qualifiedRepresentativeFamilies": [
+        "browser88ad original cap",
+        "native88ad/89h cap and cumulative depth-pyramid",
+        "browser96zza selected late primitive cap"
+      ],
+      "selectedLateReceipt": "docs/journey/release/math-boundary-cap-ssaa-20261030-selected-late.json",
+      "selectedLateSha256": "284759a81a12fe3edce824590e7b7f1588f9bd8aaf54aebab03b1636728b1a25"
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 47,
-    "remainingAffected": 1287,
-    "acceptedForFinalSource": 42,
-    "remainingFinalSourceAcceptance": 1292,
+    "newPublishedReviewed": 48,
+    "remainingAffected": 1286,
+    "acceptedForFinalSource": 43,
+    "remainingFinalSourceAcceptance": 1291,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
   },
   "published": [
@@ -743,6 +750,18 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "96zza-connect-section-primitive-images",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-source13-cap-render-scale2-browser96zza-01-ae0d5a4fcfac.json",
+      "receiptSha256": "fbfa6f96dbd8dc290a1b0330185e18ae53899b637a400ed95342b1b235b403a8",
+      "image": "docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
+      "imageSha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -756,11 +775,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_42_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS; FULL71_CALLBACK_IMAGE_PROFILE_PASS; BROWSER88AD_NATIVE88AD_89H_SSAA_PASS_LATE_BROWSER_PENDING"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_43_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS; FULL71_CALLBACK_IMAGE_PROFILE_PASS; THREE_SSAA_REPRESENTATIVE_FAMILIES_PASS_BULK_REFRESH_PENDING"
     },
     {
       "stage": "Image regeneration",
-      "status": "42_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 47_TOTAL_PUBLISHED_REVIEWED"
+      "status": "43_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 48_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -781,7 +800,7 @@
     "browser": "156.0.8078.74",
     "publishedImagesVerified": 39,
     "rebuiltWebsiteCodePages": "PRIOR_BUILD_AND_FIVE_READERS_PASS; TWO_FINAL_PROSE_CHANGES_NOT_REBUILT",
-    "newSource13ImagesAwaitingChromeDecode": 9,
+    "newSource13ImagesAwaitingChromeDecode": 10,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
@@ -827,6 +846,14 @@
         "verification": "HTTP_BYTES_ONLY",
         "chromeDecodePerformed": false
       }
-    ]
+    ],
+    "latestSelectedLateCapImageServing": {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png?v=ae0d5a4fcfac",
+      "status": 200,
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+      "bytes": 39355,
+      "verification": "HTTP_BYTES_ONLY",
+      "chromeDecodePerformed": false
+    }
   }
 }

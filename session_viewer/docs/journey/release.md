@@ -122,6 +122,30 @@ The full-window white canvas starts in lesson 01; GPU sizing starts in lesson 02
 
 The early dock stages have different purposes: 03a draws the styling, 03b adds the model, 03ca connects immediate typing, and the following small steps add submission, completion, pointer input and application handoff. Their captions state when input becomes usable. Native GPU images are separate evidence and are never labelled browser screenshots.
 
+### Regenerating section-cap illustrations
+
+The compact IMAGE capture workflow has an opt-in `COURSE_IMAGE_RENDER_SCALE=2` profile for exactly 48 section-cap illustrations: 42 native and six browser images. The default remains `1`; images outside the allowlist remain unchanged. The exact IDs, destinations and fixture/recipe source hashes are maintained in `session/session_tests/scripts/course/image-render-scale-scope.json`. This image-only profile renders at twice the internal width, height and density before math refinement, then presents at the original PNG dimensions. CSS viewport, camera and external DPR remain unchanged. The build records its image-only source adaptation and retains single-sample cap semantics. Original full browser callback/DPR checks keep their existing scale. Native IMAGE captures retain draw checks; fixed-size canonical `verify_pixels` assertions belong to the separate canonical harness.
+
+Use the existing configured Windows image environment (adapter metadata, Chrome, DXC and shared `course-cargo` target). From the workspace root, in PowerShell:
+
+```powershell
+$env:COURSE_IMAGE_RENDER_SCALE = '2'
+$env:COURSE_CAPTURE_ATTEMPT = 'caps-88ad-' + [guid]::NewGuid().ToString('N')
+$loader = './session/session_tests/scripts/typescript.mjs'
+$capture = './session/session_tests/scripts/course/compact-capture.ts'
+python -B bash/workspace_storage.py run -- node --import $loader $capture capture browser 88ad-exercise-original-sections-bores-and-ink exported
+```
+
+Capture one entry at a time with a fresh attempt value. For the other five browser entriesâ€”`96zza`, `96zzc`, `96zzd`, `96zzm` and `96zzo`â€”use their full IDs from the allowlist and the `main-page` route instead of `exported`. For a native entry, use `capture native FULL_ID` without a browser route. Use this compact incremental image path; the canonical browser builder does not support the scale-2 profile. The profile, helper files and source pins enter fresh capture evidence; an old scale-1 receipt cannot qualify a scale-2 image.
+
+Continue the [screenshot-evidence workflow](#screenshot-evidence): verify the returned receipt with `node --import $loader $capture verify RECEIPT`, inspect the original-resolution PNG, and record visual acceptance separately. Publication must copy the exact qualified PNG to its explicit destination and preserve immutable publication evidence. The existing `runCompactBatch` workflow in `compact-capture-batch.ts` performs explicit publication and retirement; batch publication alone does not record personal visual review. For a standalone capture, the existing retirement command is `node --import $loader $capture retire RECEIPT PUBLISHED_PNG PUBLICATION_EVIDENCE`, after publication. Preserve prior PNGs and proofs; never rewrite an old journal or mark a failed capture accepted. Finish publication/retirement, or resolve a failed attempt with its preserved evidence, before starting the next capture.
+
+After this image session, remove the opt-in environment values:
+
+```powershell
+Remove-Item Env:COURSE_IMAGE_RENDER_SCALE, Env:COURSE_CAPTURE_ATTEMPT
+```
+
 ## Fixed inputs and remaining scope
 
 The captured Delete checkpoint passes 100 native tests. It deletes the original identity in one history transaction, preserves later selection and camera, clears selection only for the removed target, and preserves Redo when the target is cold/missing or no row is selected. Chrome checks ordinary Delete/Undo/Redo through that same helper; native tests exercise the delayed identity. Automatic asynchronous replay remains pending.
