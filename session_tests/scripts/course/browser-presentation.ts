@@ -219,7 +219,9 @@ export async function runBrowser(id: string, density = 2) {
     const served: Record<string, string> = {};
     const server = http.createServer((request, response) => {
         try {
-            const file = path.resolve(base, '.' + decodeURIComponent(new URL(request.url!, 'http://localhost').pathname));
+            const url = new URL(request.url!, 'http://localhost');
+            if (url.pathname === '/favicon.ico') { response.writeHead(204).end(); return; }
+            const file = path.resolve(base, '.' + decodeURIComponent(url.pathname));
             assert(file.startsWith(base + path.sep));
             const actual = fs.statSync(file).isDirectory() ? path.join(file, 'index.html') : file;
             response.writeHead(200, {'Content-Type': mime[path.extname(actual)] || 'application/octet-stream', 'Cache-Control': 'no-store'});

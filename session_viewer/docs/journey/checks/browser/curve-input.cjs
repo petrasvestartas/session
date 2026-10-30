@@ -38,16 +38,36 @@ module.exports = async (original, helpers) => {
             };
             await helpers.command(page, 'Close'); const empty = await helpers.drawing(page);
             await helpers.command(page, 'Example Curve'); await shape(false); const curve = await helpers.drawing(page);
-            const uploaded = await paths(); assert(uploaded[0] > 20); assert.equal(uploaded[1], uploaded[0] * 72);
+            const adaptive = await page.locator('canvas').getAttribute('data-math-display') !== null;
+            const settledPaths = async () => {
+                if (adaptive) await page.waitForFunction(() => {
+                    const state = JSON.parse(document.querySelector('canvas').getAttribute('data-math-display'));
+                    return !state.pending && state.limited === null && state.qualities.length === 1
+                        && state.qualities.every(([, target, accepted, error]) => Number.isFinite(target) && target > 0 && Number.isFinite(accepted) && accepted > 0 && !error);
+                });
+                return paths();
+            };
+            const uploaded = await settledPaths(); assert(uploaded[0] > 20); assert.equal(uploaded[1], uploaded[0] * 72);
             assert.deepEqual((await value('data-curve-cpu')).slice(0, 3), [1, 1, 1]);
             await helpers.command(page, 'Controls On'); await shape(true);
             assert.equal(await page.locator('canvas').getAttribute('data-control-count'), '3');
-            assert.deepEqual((await markers()).slice(0, 2), [3, 96]); assert.deepEqual(await paths(), uploaded);
+            assert.deepEqual((await markers()).slice(0, 2), [3, 96]);
+            const controlsPaths = await settledPaths();
+            assert.deepEqual(adaptive ? controlsPaths.slice(0, 2) : controlsPaths, adaptive ? uploaded.slice(0, 2) : uploaded);
             const controlUploaded = await markers(), controlled = await helpers.drawing(page);
             for (const projection of ['View Perspective', 'View Orthographic']) {
                 await helpers.command(page, 'View Reset'); await helpers.command(page, projection); await shape(true);
                 await helpers.command(page, 'Zoom In'); await shape(true);
-                assert.deepEqual(await paths(), uploaded); assert.deepEqual(await markers(), controlUploaded);
+                if (adaptive) {
+                    const settled = await settledPaths();
+                    assert(settled[0] > 20 && settled[0] <= 1024); assert.equal(settled[1], settled[0] * 72);
+                    await page.evaluate(() => new Promise(resolve => {
+                        window.dispatchEvent(new Event('resize'));
+                        requestAnimationFrame(() => requestAnimationFrame(resolve));
+                    }));
+                    assert.deepEqual(await settledPaths(), settled);
+                } else assert.deepEqual(await paths(), uploaded);
+                assert.deepEqual(await markers(), controlUploaded);
             }
             await helpers.command(page, 'View Reset'); await quiet(); assert.equal(await helpers.drawing(page), controlled);
             await helpers.command(page, 'Controls Off'); await shape(false); assert.equal(await helpers.drawing(page), curve);

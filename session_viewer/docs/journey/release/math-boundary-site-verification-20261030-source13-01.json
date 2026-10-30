@@ -1,0 +1,150 @@
+{
+  "status": "PASS_REBUILT_DOCS_SOURCE_BOUND_STATIC_READER_QA",
+  "recordedUtc": "2026-10-30T00:37:47.866865+00:00",
+  "browser": "156.0.8078.74",
+  "build": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\docs-source13-build-01-resource.json",
+    "sha256": "947fea7e3a8b899d21cab186aa6f2fb42dcdb1a33fc5389d44b7308a80dbbb3f",
+    "bytes": 1042
+  },
+  "verification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\docs-source13-site-01.json",
+    "sha256": "736111996e50d534a441a78343938a6f7cee145108a65a1e82800d7b91935103",
+    "bytes": 67087
+  },
+  "resources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\docs-source13-site-01-resource.json",
+    "sha256": "e2232b9678028bb39d724786abb20fcbae4d9dafba90ddbb9118ba8139915389",
+    "bytes": 883
+  },
+  "assetIndex": {
+    "path": "session/session_viewer/target/docs/vue/assets/index-YAyeC_kg.js",
+    "sha256": "c0972b158ba65b55dadf94d00dcd435d721022b86526fe8841f115bf397519dc",
+    "url": "/docs/assets/index-YAyeC_kg.js"
+  },
+  "servedPinnedAssets": 11,
+  "pages": [
+    {
+      "slug": "journey/consolidation/38-layout",
+      "title": "5.4 \u00b7 NURBS source ownership and derived samples \u00b7 Session docs",
+      "source": {
+        "path": "session/session_viewer/docs/journey/consolidation/38-layout.md",
+        "sha256": "9e0e63060ca7b7a99886d965ce2a54ace92b06aed58abc315369de0a3e715659"
+      },
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-38-layout-BEN69yJF.json",
+        "sha256": "5cab3bd1e63aa41b76d3c046c42d3a43c8d3c01d18a218f38427c284334ad5c3",
+        "url": "/docs/assets/course-journey-consolidation-38-layout-BEN69yJF.json"
+      },
+      "codeBlocks": 57,
+      "matchedCurrentExplanations": [
+        "A curve keeps its exact NURBS source and a separate sampled display.",
+        "Refine the non-empty knot spans until the chords meet the requested physical-pixel tolerance."
+      ],
+      "matchedCurrentCode": [
+        "quality::TRANSIENT_BYTES",
+        "Requested camera quality exceeds the bounded presentation; retaining the finer existing display"
+      ],
+      "internalAnchorsVerified": 44,
+      "imagesDecoded": 1
+    },
+    {
+      "slug": "journey/consolidation/55-validation",
+      "title": "9.1 \u00b7 Original surfaces, analytic normals and trim boundaries \u00b7 Session docs",
+      "source": {
+        "path": "session/session_viewer/docs/journey/consolidation/55-validation.md",
+        "sha256": "35644e45c30280f43f1233db24a8a4c9fc485f2cdca5c223d26423769ddf8fdc"
+      },
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-55-validation-DbrZwhV0.json",
+        "sha256": "62d163cc8e956b7910111409bb060701916ecb136639a054327bef930ba322e8",
+        "url": "/docs/assets/course-journey-consolidation-55-validation-DbrZwhV0.json"
+      },
+      "codeBlocks": 56,
+      "matchedCurrentExplanations": [
+        "Refine the shaded surface grid and its four mathematical borders together.",
+        "Internal triangulation edges stay out of that list."
+      ],
+      "matchedCurrentCode": [
+        "fn quality_grid",
+        "Surface refinement reached its finite grid budget"
+      ],
+      "internalAnchorsVerified": 60,
+      "imagesDecoded": 1
+    },
+    {
+      "slug": "journey/consolidation/56-chains",
+      "title": "9.2 \u00b7 Shared CAD boundaries across incident faces \u00b7 Session docs",
+      "source": {
+        "path": "session/session_viewer/docs/journey/consolidation/56-chains.md",
+        "sha256": "14a7f94e2c304d715a9a8acbe6a88126d79c745db46bc8fa0a9303996bc3b7fd"
+      },
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-56-chains-CNd79OQo.json",
+        "sha256": "de2e07261ef52a5cd4a29e8380100f6d7d9867731f705f0b456dfaad0c62b0da",
+        "url": "/docs/assets/course-journey-consolidation-56-chains-CNd79OQo.json"
+      },
+      "codeBlocks": 12,
+      "matchedCurrentExplanations": [
+        "Use the BRep faces for shaded triangles and its original 3D NURBS edge curves for visible boundaries.",
+        "Apply one absolute chord target across the whole shape, then bound candidate memory and meshing work."
+      ],
+      "matchedCurrentCode": [
+        "face_meshes_q_bounded",
+        "CAD boundary reached its finite segment budget"
+      ],
+      "internalAnchorsVerified": 20,
+      "imagesDecoded": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzs-allocate-stable-object-record-rows",
+      "title": "20.5 \u00b7 Original picks, ambient metadata and cap consumers \u00b7 Session docs",
+      "source": {
+        "path": "session/session_viewer/docs/journey/consolidation/96zzzs-allocate-stable-object-record-rows.md",
+        "sha256": "4a9406ee9f1d4d540474d2edf18276ac46401000fb08e58031bc1e02f650ed5d"
+      },
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-96zzzs-allocate-stable-object-record-rows-R2AKFopJ.json",
+        "sha256": "46c94032b3c7f332270b1cbc9032271ee5a199aa4c80c071c801115f75742c81",
+        "url": "/docs/assets/course-journey-consolidation-96zzzs-allocate-stable-object-record-rows-R2AKFopJ.json"
+      },
+      "codeBlocks": 183,
+      "matchedCurrentExplanations": [
+        "Retain surviving original IDs, reuse the lowest free row and enforce the shared device bound.",
+        "Reserve surviving rows before regrouping instance geometry and reuse retired holes."
+      ],
+      "matchedCurrentCode": [
+        "fn stable_rows",
+        "fn retained_ids_reuse_holes_and_reject_capacity_overflow"
+      ],
+      "internalAnchorsVerified": 112,
+      "imagesDecoded": 0
+    },
+    {
+      "slug": "journey/97-finish-with-the-maintained-browser-runtime",
+      "title": "Reference comparison \u00b7 Compare with the maintained browser runtime \u00b7 Session docs",
+      "source": {
+        "path": "session/session_viewer/docs/journey/97-finish-with-the-maintained-browser-runtime.md",
+        "sha256": "1ecc7321191e18586ac19ee68b89ed768f019335cf1b19e91b51a26b97eb4f1f"
+      },
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-97-finish-with-the-maintained-browser-runtime-C4vFlMXD.json",
+        "sha256": "160586fb37296904c92409160df939b35e9e8cca7fc67f11108b76fb01b9dfa9",
+        "url": "/docs/assets/course-journey-97-finish-with-the-maintained-browser-runtime-C4vFlMXD.json"
+      },
+      "codeBlocks": 19,
+      "matchedCurrentExplanations": [
+        "Give WebAssembly automatic startup to the maintained event loop.",
+        "The maintained viewer also owns browser startup; the older teaching auto-start remains disabled."
+      ],
+      "matchedCurrentCode": [
+        "session_viewer",
+        "current_viewer::run_web()"
+      ],
+      "internalAnchorsVerified": 25,
+      "imagesDecoded": 2
+    }
+  ],
+  "errors": [],
+  "scope": "Existing Vue website rebuilt and five representative current source-bound readers verified in actual Chrome with GPU disabled. No Vue/Gemini edits or WASM scenes. This does not accept remaining image content; a final image-reference refresh follows bulk regeneration."
+}

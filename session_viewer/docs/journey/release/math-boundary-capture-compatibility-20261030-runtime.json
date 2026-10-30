@@ -1,0 +1,40 @@
+{
+  "status": "PASS_66_ORIGINAL_CALLBACK_AND_DPR2_CAPTURE_AFTER_COMPATIBILITY_FIX",
+  "at": "2026-10-30T00:54:05.490281+00:00",
+  "predecessor": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-capture-compatibility-20261030.json",
+    "sha256": "aad97c127a7d07fb2aae683a6bf005ba61d527c77cf3dc3d4a117b2ebbe9df91",
+    "bytes": 3462
+  },
+  "actualExecution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-fallback-favicon-retry-01-execution.json",
+    "sha256": "4b5dfd7d0c438e57efdba0e2670f7d4fee238fcc6cbee6df3d51d94d3be3d4aa",
+    "bytes": 1897
+  },
+  "rootImageReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-20261029-source13-batch-bead922bfe8c-000000-9294da0936e9.json",
+    "sha256": "9244a0d4c01f2e1ab182016fb8a656fee370d16e46fd39a58ca414951885a4ba",
+    "bytes": 3689
+  },
+  "captureLedger": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-66bd-walk-json-records-within-a-depth-limit-ff0fcab72947fda2cbeb\\capture.json.gz",
+    "sha256": "c3c90f3328c8c931019cc888fda071028ee3ce180f89b1fbaab318d6812f53f6",
+    "bytes": 218946
+  },
+  "originalCallback": {
+    "executed": true,
+    "behaviorDpr": 1,
+    "imageDpr": 2,
+    "canonicalValidationProfile": false,
+    "resources": "Image-generation8CPU/8GiB",
+    "allOriginalAssertionsRetained": true
+  },
+  "ownedDeepFileConversions": 0,
+  "faviconHosts": {
+    "browser-image-fallback.ts": "ACTUAL_RUNTIME_PASS",
+    "browser-presentation.ts": "Matching canonical204 source change; standalone host not separately rerun",
+    "browser-scene-presentation.ts": "Matching canonical204 source change; standalone host not separately rerun"
+  },
+  "maintainedSourceFilesUnchanged": 477,
+  "scope": "This case passes full original callback assertions under the image-only resource profile, original DPR2 presentation, root original-resolution review and HTTP SHA verification. Other images and deep-file byte conversions remain independently qualified."
+}

@@ -1,0 +1,27 @@
+{
+  "status": "PASS_FULL_CURVE_MODULE_BOTH_DPRS_LATER_71_PICK_CHECK_PENDING",
+  "at": "2026-10-30T01:40:09.745303+00:00",
+  "module": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\curve-input.cjs",
+    "sha256": "37c316e9b2ec8f1ff882cc73abfcb9d0ede409b056bf374bafcab7f954eeb833",
+    "bytes": 6627
+  },
+  "review": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\curve-input-upload-accounting-review-01.json",
+    "sha256": "fe05dd0e367820e3250813259a129d58fb610aaa2e4056f6c8d81b0c40cadfa0",
+    "bytes": 6076
+  },
+  "actualExecution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-curve-accounting-retry-01-execution.json",
+    "sha256": "a6a2ecbbbc83e59b32b9d6d28704fd31548245505ea2d8e27d14b1541c58f994",
+    "bytes": 1897
+  },
+  "actualBrowserLog": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\71aj-exercise-complete-and-ranged-original-drawings-c4e940c8554de80f7978\\image-browser.log",
+    "sha256": "c9aac4c03e2e315cbc71fd60a438954261ef863190674fce673426fdd14f0867",
+    "bytes": 5099
+  },
+  "correction": "Distinguish live path count/bytes from cumulative upload traffic. Camera refinement may change samples; require finite accepted quality, production1024-segment bound and exact complete counter reuse after same-camera redraw. Legacy checks unchanged.",
+  "preserved": "All curve/control pixel checks, both DPR/projection/zoom loops, CPUsource sharing, drawing comparisons, Undo/Redo, save rejection, Close and page errors.",
+  "scope": "Complete curve module passes inside the original71 callback chain. Enclosing71image remains unaccepted because the next pick module has the same stale accounting assumption. No renderer/Vue/Gemini/kernel change."
+}

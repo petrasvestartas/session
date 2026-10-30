@@ -307,7 +307,9 @@ export async function runScene(preparedFile: string) {
     const served: Record<string, string> = {}, mime: Record<string, string> = {'.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.json': 'application/json', '.ttf': 'font/ttf'};
     const server = http.createServer((request, response) => {
         try {
-            const url = new URL(request.url!, 'http://localhost'), name = decodeURIComponent(url.pathname).replace(/^\//, '') || 'index.html';
+            const url = new URL(request.url!, 'http://localhost');
+            if (url.pathname === '/favicon.ico') { response.writeHead(204).end(); return; }
+            const name = decodeURIComponent(url.pathname).replace(/^\//, '') || 'index.html';
             const file = path.resolve(prepared.dist, name);
             assert(file.startsWith(prepared.dist + path.sep));
             const bytes = fs.readFileSync(file); assert.equal(hash(bytes), prepared.bundle[name]); served[name] = hash(bytes);
