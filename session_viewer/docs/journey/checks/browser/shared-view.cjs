@@ -1,3 +1,4 @@
+const adaptive=require('./adaptive-gpu-reuse.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{PNG}=require('pngjs');
 const output=path.resolve(__dirname,'../../../screenshots/journey/review');
 const value=(page,key)=>page.locator('canvas').getAttribute(key).then(JSON.parse);
@@ -17,11 +18,12 @@ async function prepare(page,address,helpers,archive,point=false){
 }
 async function saved(page,helpers){const waiting=page.waitForEvent('download');await helpers.command(page,'Save');return fs.readFileSync(await(await waiting).path());}
 async function measured(page,helpers){
-    const before=await helpers.drawing(page),matrix=await value(page,'data-camera-matrix'),originals=await value(page,'data-drawing-originals'),placements=await value(page,'data-row-placements'),uploads=await value(page,'data-gpu-stats');
+    const gpu=await adaptive.snapshot(page,{lane:'mesh',source:'surface',expectedRows:2,expectedQualities:2});
+    const before=await helpers.drawing(page),matrix=await value(page,'data-camera-matrix'),originals=await value(page,'data-drawing-originals'),placements=await value(page,'data-row-placements'),uploads=gpu.stats;
     await page.evaluate(()=>{window.sharedViewWrites.writes={};window.sharedViewWrites.armed=true;});
     await helpers.command(page,'Zoom Out');assert.notEqual(await helpers.drawing(page),before);await helpers.command(page,'Zoom In');
     const stats=await page.evaluate(()=>{window.sharedViewWrites.armed=false;return window.sharedViewWrites;});
-    assert.equal(await helpers.drawing(page),before,'Shared frame restores every actual surface, input-curve and point pixel');assert.deepEqual(await value(page,'data-camera-matrix'),matrix);assert.deepEqual(await value(page,'data-drawing-originals'),originals);assert.deepEqual(await value(page,'data-row-placements'),placements);assert.equal((await value(page,'data-gpu-stats'))[0],uploads[0]);
+    assert.equal(await helpers.drawing(page),before,'Shared frame restores every actual surface, input-curve and point pixel');assert.deepEqual(await value(page,'data-camera-matrix'),matrix);assert.deepEqual(await value(page,'data-drawing-originals'),originals);assert.deepEqual(await value(page,'data-row-placements'),placements);if(!(await adaptive.snapshot(page,{lane:'mesh',source:'surface',expectedRows:2,expectedQualities:2})).adaptive)assert.equal((await value(page,'data-gpu-stats'))[0],uploads[0]);
     assert(stats.writes['view transform and normal diagnostic']?.count>0,'Observe actual color-frame GPU writes');return {stats,before,originals,placements,uploads};
 }
 async function picture(page,kind,density,helpers){if(!helpers.step||helpers.step.browser_check==='journey/checks/browser/shared-view.cjs'){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,`${helpers.step?.id||'shared-view'}-${kind}-dpr${density}.png`)});}}
@@ -37,7 +39,7 @@ async function feature(page,address,density,helpers){
     await page.waitForFunction(({owner,submitted})=>{const c=document.querySelector('canvas'),p=JSON.parse(c.getAttribute('data-pick-gpu'));return JSON.parse(c.getAttribute('data-selected-ids')).includes(owner)&&p[3]>submitted&&p[0]===0&&p[1]===0;},{owner,submitted});
     const png=PNG.sync.read(Buffer.from((await require('./canvas-image.cjs')(page.locator('canvas'))).split(',')[1],'base64')),sample=await project(page,[3.7,0.3,0.063]),index=(Math.floor(sample[1]*png.height)*png.width+Math.floor(sample[0]*png.width))*4,rgb=[...png.data.subarray(index,index+3)];
     assert(rgb[0]>240&&rgb[1]>240&&rgb[2]<20,`Actual original surface pick produces yellow interior fill away from the gizmo: ${rgb}`);await picture(page,'selected',density,helpers);
-    await helpers.command(page,'Select None');assert.equal(await helpers.drawing(page),result.before,'Independent original pick and clearing preserve exact restored color-frame pixels');assert.deepEqual(await saved(page,helpers),source,'Shared frames preserve exact saved NURBS/input-line/point archive bytes');assert.deepEqual(await value(page,'data-drawing-originals'),result.originals);assert.deepEqual(await value(page,'data-row-placements'),result.placements);assert.equal((await value(page,'data-gpu-stats'))[0],result.uploads[0]);
+    await helpers.command(page,'Select None');assert.equal(await helpers.drawing(page),result.before,'Independent original pick and clearing preserve exact restored color-frame pixels');assert.deepEqual(await saved(page,helpers),source,'Shared frames preserve exact saved NURBS/input-line/point archive bytes');assert.deepEqual(await value(page,'data-drawing-originals'),result.originals);assert.deepEqual(await value(page,'data-row-placements'),result.placements);if(!(await adaptive.snapshot(page,{lane:'mesh',source:'surface',expectedRows:2,expectedQualities:2})).adaptive)assert.equal((await value(page,'data-gpu-stats'))[0],result.uploads[0]);
     console.log(`Shared color/ink frame: exact preceding original pixels, zero duplicate lane buffers/writes, real original GPU pick/yellow fill, zoom/selection/archive restoration and geometry reuse passed at DPR ${density}`);return {density,stats:result.stats,baseline:baseline.stats,before:result.before,owner,rgb};
 }
 module.exports=async(originalPage,helpers)=>{

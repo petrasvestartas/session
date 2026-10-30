@@ -1,3 +1,4 @@
+const adaptive=require('./adaptive-gpu-reuse.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{PNG}=require('pngjs');
 const original=require('./surface-lighting-original.json'),output=path.resolve(__dirname,'../../../screenshots/journey/review');
 const capture=helpers=>!helpers.step||helpers.step.browser_check==='journey/checks/browser/surface-lighting.cjs';
@@ -15,6 +16,7 @@ async function network(page,address,density,helpers) {
     const choosing=page.waitForEvent('filechooser');await command('Open');await(await choosing).setFiles({name:'original-network.session',mimeType:'application/octet-stream',buffer:Buffer.from(original.archive,'base64')});
     await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas').getAttribute('data-surfaces')).length===2);
     for(const line of ['Layers Off','View Grid Off','Arctic Off','View Outline Off','View Isometric','Fit','Select None'])await command(line);
+    await adaptive.snapshot(page,{lane:'mesh',source:'surface',expectedRows:2,expectedQualities:2});
     const surfaces=await value(page,'data-surfaces'),drawing=await value(page,'data-drawing-originals'),placements=await value(page,'data-row-placements'),uploads=(await value(page,'data-gpu-stats'))[0];
     assert.equal(surfaces.length,2);assert.equal(drawing.lines.length,6);
     const flat=await helpers.drawing(page),png=await image(page),matrix=await value(page,'data-render-matrix'),origin=await value(page,'data-render-origin');
@@ -39,7 +41,7 @@ async function network(page,address,density,helpers) {
     const arcticDrawing=await helpers.drawing(page);await picture(page,'arctic',density,helpers);
     await command('Arctic Off');await command('View Outline Off');assert.equal(await helpers.drawing(page),flat,'Explicit current sticky-outline restoration returns exact flat pixels');
     assert.deepEqual(await saved(page,helpers),source,'View modes preserve exact saved original archive bytes');
-    assert.deepEqual(await value(page,'data-surfaces'),surfaces);assert.deepEqual(await value(page,'data-drawing-originals'),drawing);assert.deepEqual(await value(page,'data-row-placements'),placements);assert.equal((await value(page,'data-gpu-stats'))[0],uploads);
+    assert.deepEqual(await value(page,'data-surfaces'),surfaces);assert.deepEqual(await value(page,'data-drawing-originals'),drawing);assert.deepEqual(await value(page,'data-row-placements'),placements);await adaptive.snapshot(page,{lane:'mesh',source:'surface',expectedRows:2,expectedQualities:2});assert.equal((await value(page,'data-gpu-stats'))[0],uploads);
     await command('Arctic On');assert.equal(await helpers.drawing(page),arcticDrawing,'Final asserted current Arctic original scene repeats exactly');
     console.log(`Flat/Arctic surfaces: same saved NURBS originals, maintained-native flat fill color, continuous input curves, real changed surface interiors, exact mode/archive restoration and geometry reuse passed at DPR ${density}`);
     return {density,interior,changed,surfaces,uploads,archiveBytes:source.length};
@@ -47,6 +49,7 @@ async function network(page,address,density,helpers) {
 async function wide(page,address,density,helpers) {
     await ready(page,address);const command=line=>helpers.command(page,line);
     for(const line of ['Layers Off','Select All','Delete','Select None','Box w0,0,0 6000 4000 1000','View Reset','View Top','View Orthographic','View Grid Off','Arctic On'])await command(line);
+    await adaptive.snapshot(page,{lane:'mesh',source:'cad',expectedRows:1,expectedQualities:1});
     const originals=await value(page,'data-cads'),placements=await value(page,'data-row-placements'),uploads=(await value(page,'data-gpu-stats'))[0],matrix=await value(page,'data-camera-matrix'),source=await saved(page,helpers),near=await helpers.drawing(page);
     for(let i=0;i<3;i++)await command('Zoom Out');const state=await value(page,'data-clipping');assert.equal(state.ambient_error,null,'Wide current orthographic camera remains valid for the real ambient pass');assert(state.ambient[4]>0);
     const png=await image(page);let face=0;for(let i=0;i<png.data.length;i+=4)if(png.data[i]<240&&png.data[i+1]<240&&png.data[i+2]<240)face++;assert(face>100,'The actual wide Box has visible contrasting pixels');
@@ -60,7 +63,7 @@ async function wide(page,address,density,helpers) {
     assert(fill[0]>240&&fill[1]>240&&fill[2]<20,`Actual selected interior yellow fill accompanies the original GPU owner away from the gizmo: ${fill}`);
     await picture(page,'wide-selected',density,helpers);await command('Select None');assert.equal(await helpers.drawing(page),widePicture,'Clearing the real original selection restores exact wide Arctic pixels');
     await picture(page,'wide',density,helpers);for(let i=0;i<3;i++)await command('Zoom In');assert.deepEqual(await value(page,'data-camera-matrix'),matrix);assert.equal(await helpers.drawing(page),near,'Wide zoom and back restores exact current Arctic pixels');
-    assert.deepEqual(await saved(page,helpers),source);assert.deepEqual(await value(page,'data-cads'),originals);assert.deepEqual(await value(page,'data-row-placements'),placements);assert.equal((await value(page,'data-gpu-stats'))[0],uploads);
+    assert.deepEqual(await saved(page,helpers),source);assert.deepEqual(await value(page,'data-cads'),originals);assert.deepEqual(await value(page,'data-row-placements'),placements);if(!(await adaptive.snapshot(page,{lane:'mesh',source:'cad',expectedRows:1,expectedQualities:1})).adaptive)assert.equal((await value(page,'data-gpu-stats'))[0],uploads);
     console.log(`Wide Arctic camera: real original Box, stable ambient inverse, actual selected face/GPU owner, exact zoom/archive restoration and geometry reuse passed at DPR ${density}`);return {density,face,originals,uploads};
 }
 async function feature(page,address,density,helpers) {

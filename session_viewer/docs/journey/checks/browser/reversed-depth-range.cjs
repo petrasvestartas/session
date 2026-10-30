@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 module.exports = async (original, helpers) => {
     await require('./precise-origin-plane.cjs')(original, helpers);
     for (const density of [1, 2]) {
@@ -33,15 +34,30 @@ module.exports = async (original, helpers) => {
                 for (const line of ['View ' + projection, 'Select None', 'Fit']) await command(line);
                 const near = await project([0, 0, 3]), far = await project([0, 0, 0]);
                 assert(near[2] > far[2] && far[2] >= 0 && near[2] <= 1, 'The actual drawing matrix orders near depth above far depth');
+                await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 2, expectedQualities: 2});
                 const picture = await helpers.drawing(page), placement = await value('data-row-placements'), uploads = (await value('data-gpu-stats'))[0];
                 await pick([0, 0, 2.5], front);
                 for (const line of ['Hide', 'Select None']) await command(line);
+                const hiddenGpu = await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 2});
+                if (hiddenGpu.adaptive) {
+                    assert.deepEqual(await value('data-cads'), originals, 'Hide retains both original CAD sources');
+                    const rows = (await value('data-view-flags')).rows;
+                    assert.deepEqual(rows.map(row => row.id).sort((a, b) => a - b), [back, front].sort((a, b) => a - b));
+                    assert.deepEqual(rows.filter(row => row.visible).map(row => row.id), [back], 'Only the back original remains visible');
+                }
                 assert.notEqual(await helpers.drawing(page), picture);
                 await pick([0, 0, 0.5], back);
                 for (const line of ['Show', 'Select None']) await command(line);
+                const shownGpu = await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 2, expectedQualities: 2});
+                if (shownGpu.adaptive) {
+                    assert.deepEqual(await value('data-cads'), originals, 'Show retains both original CAD sources');
+                    const rows = (await value('data-view-flags')).rows;
+                    assert.deepEqual(rows.map(row => row.id).sort((a, b) => a - b), [back, front].sort((a, b) => a - b));
+                    assert(rows.every(row => row.visible), 'Show restores both original owners');
+                }
                 assert.equal(await helpers.drawing(page), picture, 'Showing the nearer original restores the exact drawing');
                 const shownUploads = (await value('data-gpu-stats'))[0];
-                assert.equal(shownUploads, uploads + 1, 'Showing a retired independent original uploads its geometry once');
+                if (!shownGpu.adaptive) assert.equal(shownUploads, uploads + 1, 'Showing a retired independent original uploads its geometry once');
                 await pick([0, 0, 2.5], front);
                 for (const line of ['Move 0,0,-4', 'Select None', 'Fit']) await command(line);
                 await pick([0, 0, 0.5], back);
@@ -49,7 +65,7 @@ module.exports = async (original, helpers) => {
                 assert.deepEqual(await value('data-row-placements'), placement);
                 assert.equal(await helpers.drawing(page), picture, 'Undo restores original depth ordering and pixels');
                 assert.deepEqual(await value('data-cads'), originals);
-                assert.equal((await value('data-gpu-stats'))[0], shownUploads, 'Move and Undo reuse the visible original geometry');
+                if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 2, expectedQualities: 2})).adaptive) assert.equal((await value('data-gpu-stats'))[0], shownUploads, 'Move and Undo reuse the visible original geometry');
             }
             assert.deepEqual(errors, []);
             console.log(`Reversed depth: actual near/far matrix ordering, overlapping original CAD picks, Hide/Show, placement Undo, exact pixels, original ownership, bounded Show uploads and Move/Undo geometry reuse passed for both projections at DPR ${density}`);

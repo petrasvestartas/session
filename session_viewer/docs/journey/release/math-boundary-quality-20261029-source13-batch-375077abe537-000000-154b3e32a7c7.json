@@ -1,0 +1,62 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-30T01:53:49.340035+00:00",
+  "id": "76d-exercise-exact-curves-and-rational-control-edits",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "375077abe537cc74e171643f6bfccb2eda5a12e27575190a859f987861036a8d",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\375077abe537cc74e171643f6bfccb2eda5a12e27575190a859f987861036a8d\\manifest.json",
+    "sha256": "7188de4f9d5f6ed1f089b1f626f6d39ca12a42c7516806502703c9998e887cf9",
+    "bytes": 4041717
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\375077abe537cc74e171643f6bfccb2eda5a12e27575190a859f987861036a8d\\publications\\000000.json",
+    "sha256": "96d4232299853f5676f52229086c19e20da3b036c33dbf5d5f8466c0ad0557e8",
+    "bytes": 2156
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-76d-exercise-exact-curves-and-rational-control-edits-92fa335769e6a4ab2527\\capture.json.gz",
+    "sha256": "85e5b6c77ad63bbeb3bd39147abc76bdcdc486e77fe0cf31767cb0a390bf138a",
+    "bytes": 247070
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\375077abe537cc74e171643f6bfccb2eda5a12e27575190a859f987861036a8d\\events\\000004-ff10293065c66bde04e1a672d1871f814bf6c09af5677f14eb9cc77707c238a9.json",
+    "sha256": "ff10293065c66bde04e1a672d1871f814bf6c09af5677f14eb9cc77707c238a9",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+    "sha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+    "bytes": 46280
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+    "sha256": "e4d54d01e83aca393ec5b153cf4d017ccf819c4be49035323f448484d45692a0",
+    "bytes": 46347
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+    "sha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+    "bytes": 46280
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png?v=154b3e32a7c7",
+    "status": 200,
+    "sha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4"
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4"
+  }
+}

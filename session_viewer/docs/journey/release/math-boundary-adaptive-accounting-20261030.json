@@ -1,0 +1,139 @@
+{
+  "status": "SOURCE_REVIEW_AND_FOCUSED_TESTS_PASS_FULL_CALLBACK_PENDING",
+  "recordedUtc": "2026-10-30T01:55:31.943943+00:00",
+  "scope": "Tutorial browser assertions only. Renderer, source topology, CPU, pixel, history, archive and fixed-mesh assertions retained. No Vue or kernel changes.",
+  "reviewedModules": 25,
+  "sharedHelper": "journey/checks/browser/adaptive-gpu-reuse.cjs",
+  "focusedTests": {
+    "command": "node --test session/session_viewer/docs/journey/checks/browser/adaptive-gpu-reuse.test.cjs",
+    "passed": 10,
+    "failed": 0,
+    "skipped": 0
+  },
+  "syntaxChecks": {
+    "passed": 27,
+    "failed": 0
+  },
+  "contract": [
+    "Wait for accepted finite mathematical qualities and exact fixture quality/owner counts.",
+    "Flush post-refinement diagnostics; require complete GPU counters and usage to remain identical over a second static redraw.",
+    "Retain live curve count and exact 72-byte stride under the production 1024-segment bound.",
+    "Keep legacy and authored-mesh cumulative comparisons exact."
+  ],
+  "changedFiles": [
+    {
+      "path": "docs\\journey\\checks\\browser\\gpu-pick-view.cjs",
+      "sha256": "4f118fb01ea5a78142fe122e32858adda4a86edbbe6ca8df1e66d83bbc2a45e3"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\surface.cjs",
+      "sha256": "5b78b41478176202772abc84b6ae104409b3c96a89f0161d0bffcd6de92a4776"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\cad.cjs",
+      "sha256": "973f645de69b486dcc5d4f631170c5e1fccdb162c0b8e053a7fc2d66de640005"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\cad-wire.cjs",
+      "sha256": "6e2a99b529111f8ed30d4d4d239574904f0f760771aca4b439ec1563af51c2cf"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\round-caps.cjs",
+      "sha256": "5af4104abe720cef78511c849ffb0cb859dcd2fd9df05157ffcf29b88c8e791c"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\shared-view.cjs",
+      "sha256": "f2682d1c1997b858c4fb66fccade0730d298b4a4a915dff3d6fad3a59c793c14"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\glyphs.cjs",
+      "sha256": "4e4dcdcbc79607496629ac89c18d6b0b5a98b8c7b7e631b7a6f9a10ea98e1c9f"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\labels.cjs",
+      "sha256": "1ee88e243f5553944bc4c3863d6625c31ad9d38d5ac666df5e2c13376296ba8a"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\outline.cjs",
+      "sha256": "c93ff48c5c30c7c31d52ace02c3bec01564e24ac11a6c2eb19125910ecd7345e"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\surface-lighting.cjs",
+      "sha256": "53901a06a80b4ad6310059a5bf53acac5b632c23311d35bf2dc46343a910fd12"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\adaptive-gpu-reuse.cjs",
+      "sha256": "df13850794e0fb2fdbe8fc7f678a6c2911676cd577c2bc37a93d58d5bc07f073"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\adaptive-gpu-reuse.test.cjs",
+      "sha256": "a949ff62f5dcbd92a459e164101556fe91b81eeb9b2989fecc816a168c3fa6f6"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-analytic-depth-evidence.cjs",
+      "sha256": "9129a88a59210d4c969b0e2cf70cbb60dd1c2a7a66a49af24b708f9e892946cb"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-analytic-depth.cjs",
+      "sha256": "abda6c3258709bef236cbe1fbe325f04a6da7ffd5961aecdba6835ea7ac1bb5f"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-defaults-range.cjs",
+      "sha256": "216cb2170a5bb42c879be88ef072c7cbb975bac1c7c1ba18702e4de4c762c1bf"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-defaults.cjs",
+      "sha256": "7683691818a27411052dbfa521b96b9c9948ed85b73555f5a2a2674f47919e48"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-extent-lighting-evidence.cjs",
+      "sha256": "5e22347b4d0c0be5d79a16a1cbaa24cc1fe6b25dd156f81cebb3e3ef72ce8176"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-extent.cjs",
+      "sha256": "c5a90a822ada1aceaaa7118fd3fcf094b9a81eb9a7dcfce740c8e0518c3dc7e9"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-navigation-lighting-evidence.cjs",
+      "sha256": "fd9b9bf14db52b68e503f30b47887ef1ca1c67038c20d958dfe46f0b34c3f50b"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\camera-navigation.cjs",
+      "sha256": "e50849c4631459f7b68c3103232b939a64a9f19d66d49898368f60252d4f58c1"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\precise-origin-plane.cjs",
+      "sha256": "5af65475df476c2d059a199c1a7cf352541b7eeca15704009e7b24bc250bad37"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\precise-origin-wakes.cjs",
+      "sha256": "3fd22119cb889e11c320bd217e0bb203a722f77fac19812cac1fa35a6363b1b1"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\precise-origin.cjs",
+      "sha256": "e644e384cf50c8f5e27f21da8b345817b45c0dfa0732ab665ccb574becdcd2b9"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\reversed-depth-range.cjs",
+      "sha256": "92ed0c1b0d5a075708fb88c14ed7ec8fdf900aa867443061ad1fb9a1d3486e7c"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\reversed-depth.cjs",
+      "sha256": "4f90f4523ef87bdb23a5bd59fe97972eab0a6a5511d4358375bbc524134f3fd5"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\hardware-grid.cjs",
+      "sha256": "4e539856d292f626c3c2be47dcc354612c9d9c3ae8d73b266e95f7cf46e4dba9"
+    },
+    {
+      "path": "docs\\journey\\checks\\browser\\hardware-grid-range.cjs",
+      "sha256": "fc946f00331fd347b03369043a1476333e4c475002462c515e0357efa8808c76"
+    }
+  ],
+  "runtime": "The full 71aj original callback remains unaccepted and will run after the external geometry heavy-job handback. No runtime acceptance claimed.",
+  "rendererFreeze": {
+    "files": 477,
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "unchanged": true
+  }
+}

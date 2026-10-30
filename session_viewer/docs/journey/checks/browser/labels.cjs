@@ -1,3 +1,4 @@
+const adaptive=require('./adaptive-gpu-reuse.cjs');
 const assert=require('node:assert/strict');
 const {PNG}=require('pngjs');
 const focused=async(original,helpers)=>{
@@ -12,8 +13,9 @@ const focused=async(original,helpers)=>{
             const sources=await value(page,'data-scene-texts');assert.equal(sources.length,1);assert.equal(sources[0].source.label.text,'Original CAD · Ø25 · Ω');assert.equal(sources[0].source.label.object,null);const originalSource=sources[0].source;
             await helpers.command(page,'Select Next');await helpers.command(page,'Select Next');assert.deepEqual(await value(page,'data-selected-ids'),[sources[0].id]);
             const shot=PNG.sync.read(await page.locator('canvas').screenshot());let gold=0;for(let i=0;i<shot.data.length;i+=4)if(shot.data[i]>200&&shot.data[i+1]>200&&shot.data[i+2]<50)gold++;assert(gold>100,'Selected text has a real yellow plate');
-            const shape=(await value(page,'data-text-atlas'))[0],gpu=(await value(page,'data-gpu-stats')).slice(0,2),raster=(await value(page,'data-scene-text-gpu'))[2];
-            await helpers.command(page,'Move 0.25 0 0');const moved=await value(page,'data-scene-texts');assert.deepEqual(moved[0].source,originalSource);assert.notDeepEqual(moved[0].model,sources[0].model);assert.equal((await value(page,'data-text-atlas'))[0],shape);assert.equal((await value(page,'data-scene-text-gpu'))[2],raster);assert.deepEqual((await value(page,'data-gpu-stats')).slice(0,2),gpu);
+            const gpuSnapshot=await adaptive.snapshot(page,{lane:'mesh',source:'cad',expectedRows:1,expectedQualities:1});
+            const shape=(await value(page,'data-text-atlas'))[0],gpu=gpuSnapshot.stats.slice(0,2),raster=(await value(page,'data-scene-text-gpu'))[2];
+            await helpers.command(page,'Move 0.25 0 0');const moved=await value(page,'data-scene-texts');assert.deepEqual(moved[0].source,originalSource);assert.notDeepEqual(moved[0].model,sources[0].model);assert.equal((await value(page,'data-text-atlas'))[0],shape);assert.equal((await value(page,'data-scene-text-gpu'))[2],raster);if(!(await adaptive.snapshot(page,{lane:'mesh',source:'cad',expectedRows:1,expectedQualities:1})).adaptive)assert.deepEqual((await value(page,'data-gpu-stats')).slice(0,2),gpu);
             await helpers.command(page,'Undo');assert.deepEqual((await value(page,'data-scene-texts'))[0].model,sources[0].model);await helpers.command(page,'Redo');assert.deepEqual((await value(page,'data-scene-texts'))[0].model,moved[0].model);
             const ui = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui'));
             if (ui.focused) {

@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 const fs = require('node:fs'), path = require('node:path'), {PNG} = require('pngjs');
 const output = path.resolve(__dirname, '../../../screenshots/journey/review');
 const capture = helpers => !helpers.step || helpers.step.browser_check === 'journey/checks/browser/camera-navigation.cjs';
@@ -26,6 +27,7 @@ async function wheel(page, address, density, helpers) {
     assert.equal(await page.evaluate(() => devicePixelRatio), density);
     const box = await canvas.boundingBox(), physical = await canvas.evaluate(c => [c.width, c.height]);
     assert.equal(physical[0], Math.round(box.width * Math.min(density, 2)), 'Render density is capped independently of actual window DPR');
+    await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
     const originals = await value('data-cads'), uploads = (await value('data-gpu-stats'))[0];
     const anchor = await project(page, [0, 0, 0]); await page.mouse.move(...anchor);
     await page.evaluate(() => window.addEventListener('wheel', e => window.navigationWheel = {delta: e.deltaY, mode: e.deltaMode, trusted: e.isTrusted}, {capture: true}));
@@ -54,7 +56,7 @@ async function wheel(page, address, density, helpers) {
     assert(Math.abs((await value('data-camera-matrix'))[15] / lineBefore - 1 / 0.9) < 1e-10, 'Synthetic line protocol keeps its step unit independently of DPR');
     const unchanged = await value('data-camera-matrix');
     for (const [delta, mode] of [[1, 2], [1e100, 0]]) {await dispatch(delta, mode); await page.waitForTimeout(120); assert.deepEqual(await value('data-camera-matrix'), unchanged, 'Page events and amounts overflowing f32 cannot move the camera');}
-    assert.deepEqual(await value('data-cads'), originals); assert.equal((await value('data-gpu-stats'))[0], uploads);
+    assert.deepEqual(await value('data-cads'), originals); if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads);
     console.log(`Current wheel: real pixel/DPR ${density}, render cap ${Math.min(density, 2)}, synthetic logical-pixel/line/page/overflow protocol, cursor anchor, originals and geometry reuse passed`);
     return {density, physical, pixelRatio: after / before, logicalPixelRatio, lineRatio: (await value('data-camera-matrix'))[15] / lineBefore, observed};
 }
@@ -62,6 +64,7 @@ async function framing(page, address, density, helpers) {
     await ready(page, address);
     const {canvas, value} = data(page), command = line => helpers.command(page, line);
     for (const line of ['Layers Off', 'Select All', 'Delete', 'Select None', 'CPlane XY', 'Arctic Off', 'View Outline Off', 'View Grid Off', 'Box w0,0,-1000 6000 2000 2000', 'Line w-2400,0,1000 w2400,0,1000', 'Select None', 'View Reset', 'View Top', 'View Orthographic']) await command(line);
+    await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
     const originals = await value('data-cads'), drawing = await value('data-drawing-originals'), placement = await value('data-row-placements'), uploads = (await value('data-gpu-stats'))[0];
     assert.equal(originals.length, 1); assert.equal(drawing.lines.length, 1);
     const landmarks = [[-2400, 0, 1000], [2400, 0, 1000]], bounds = await canvas.boundingBox();
@@ -90,7 +93,7 @@ async function framing(page, address, density, helpers) {
     for (const line of ['View Reset', 'View Top', 'View Orthographic']) await command(line);
     assert.equal(await helpers.drawing(page), initial, 'Reset restores the exact cropped orthographic original scene');
     await command('View Perspective'); assert.equal(await helpers.drawing(page), perspectivePicture, 'The current framed perspective result repeats exactly');
-    assert.deepEqual(await value('data-cads'), originals); assert.deepEqual(await value('data-drawing-originals'), drawing); assert.deepEqual(await value('data-row-placements'), placement); assert.equal((await value('data-gpu-stats'))[0], uploads);
+    assert.deepEqual(await value('data-cads'), originals); assert.deepEqual(await value('data-drawing-originals'), drawing); assert.deepEqual(await value('data-row-placements'), placement); if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads);
     if (capture(helpers)) await page.screenshot({path: path.join(output, `${name(helpers)}-perspective-dpr${density}.png`)});
     console.log(`Current framed projection: real cropped Box/original line endpoints, preserved visible landmarks, current refit, no-op/reverse guards, exact repeated pixels, original placements and geometry reuse passed at DPR ${density}`);
     return {density, before, after, distance: perspective[15], originals, drawing, placement, uploads};

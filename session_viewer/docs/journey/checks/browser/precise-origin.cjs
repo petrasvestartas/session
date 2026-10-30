@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 const fs = require('node:fs');
 const {PNG} = require('pngjs');
 
@@ -25,6 +26,7 @@ module.exports = async (original, helpers) => {
             const topology = cads => cads.map(({id, ...source}) => source);
             for (const line of ['Layers Off', 'Select All', 'Delete', 'Box w0,0,0 1 1 1', 'Arctic Off', 'View Outline Off', 'View Grid Off', 'Opacity 1', 'Select Object', 'View Top', 'View Orthographic', 'Fit', 'Select None']) await command(line);
             const source = await value('data-cads'); assert.equal(source.length, 1); assert(source[0].faces.length >= 6);
+            await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
             const localPlacement = await value('data-row-placements'), localPicture = await helpers.drawing(page);
             const imageUrl = await require('./canvas-image.cjs')(canvas);
             const image = PNG.sync.read(Buffer.from(imageUrl.split(',')[1], 'base64'));
@@ -41,7 +43,7 @@ module.exports = async (original, helpers) => {
             assert(origin.every((v, i) => Math.abs(v - shift[i]) < 10));
             for (let i = 0; i < 3; i++) assert.equal(distantPlacement[0][1][12 + i], localPlacement[0][1][12 + i] + shift[i]);
             assert.deepEqual(await value('data-cads'), source, 'Moving a placed original retains its source/topology identity');
-            assert.equal((await value('data-gpu-stats'))[0], uploads, 'A precise placement reuses original geometry');
+            if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads, 'A precise placement reuses original geometry');
             const farPicture = await helpers.drawing(page);
             assert.equal(farPicture, localPicture, 'A binary unit CAD box keeps exact pixels at a distant placement');
             const matrix = await value('data-render-matrix'), target = await value('data-camera-target'), box = await canvas.boundingBox();
@@ -62,7 +64,7 @@ module.exports = async (original, helpers) => {
             assert.equal(await helpers.drawing(page), localPicture, 'Undo restores the exact original drawing');
             for (const line of ['Redo', 'Fit', 'Select None']) await command(line);
             await settled(); assert.deepEqual(await value('data-row-placements'), distantPlacement);
-            assert.equal(await helpers.drawing(page), farPicture); assert.equal((await value('data-gpu-stats'))[0], uploads);
+            assert.equal(await helpers.drawing(page), farPicture); if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads);
             const downloading = page.waitForEvent('download'); await command('Save');
             const download = await downloading, bytes = fs.readFileSync(await download.path()); assert(bytes.length > 100);
             await command('Close');

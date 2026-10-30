@@ -1,3 +1,4 @@
+const adaptive=require('./adaptive-gpu-reuse.cjs');
 const assert = require('node:assert/strict');
 
 module.exports = async (original, helpers) => {
@@ -37,11 +38,15 @@ module.exports = async (original, helpers) => {
                     if (controls) await helpers.command(page, 'Controls On');
                     const usageName = command === 'Example Point' ? 'data-point-gpu'
                         : command === 'Example Line' ? 'data-stroke-usage' : 'data-path-gpu';
-                    const usage = await value(usageName), geometry = await value('data-gpu-stats');
+                    const curve = command === 'Example Curve' ? await adaptive.snapshot(page,{lane:'curve',source:'curve',expectedRows:0,expectedQualities:1}) : null;
+                    const usage = curve ? curve.path : await value(usageName), geometry = curve ? curve.stats : await value('data-gpu-stats');
                     await click(p); assert.match(await selected(), /^ObjectId\(\d+\)$/, command + ' must resolve its original row');
                     const id = await selected();
-                    assert.deepEqual(await value(usageName), usage, 'Selection must reuse the visible instance buffer');
+                    const picked = curve ? await adaptive.snapshot(page,{lane:'curve',source:'curve',expectedRows:0,expectedQualities:1}) : null;
+                    if (picked?.adaptive) assert.deepEqual(picked.path.slice(0,2),usage.slice(0,2),'Settled same-camera selection retains live curve segments and bytes');
+                    else assert.deepEqual(await value(usageName), usage, 'Selection must reuse the visible instance buffer');
                     await helpers.command(page, 'Zoom In'); await click(p); assert.equal(await selected(), id);
+                    if (curve) await adaptive.snapshot(page,{lane:'curve',source:'curve',expectedRows:0,expectedQualities:1});
                     assert.deepEqual(await value('data-gpu-stats'), geometry, 'Camera and picking must reuse geometry');
                     await helpers.command(page, 'Undo'); assert.equal(await selected(), '', 'Picking is outside document history');
                     await helpers.command(page, 'Redo'); await click(p); assert.equal(await selected(), id);

@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 const {PNG} = require('pngjs');
 const fs = require('node:fs'), path = require('node:path');
 const output = path.resolve(__dirname, '../../../screenshots/journey/review');
@@ -11,6 +12,7 @@ async function scene(page, address, density, helpers) {
     await page.waitForFunction(() => window.wasmBindings?.runtime_running?.() && JSON.parse(window.wasmBindings.diagnostic_snapshot()).outcome === 'ready');
     const canvas = page.locator('canvas'), value = name => canvas.getAttribute(name).then(JSON.parse), command = line => helpers.command(page, line);
     for (const line of ['Layers Off', 'Select All', 'Delete', 'Select None', 'CPlane XY', 'Arctic Off', 'View Outline Off', 'Background', 'Box w0,0,-2000 1000 1000 1000', 'View Reset', 'View Top', 'Zoom Out', 'Zoom Out', 'Select None', 'View Grid Off']) await command(line);
+    await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
     const cads = await value('data-cads'), placement = await value('data-row-placements'), matrix = await value('data-render-matrix'), target = await value('data-camera-target'), uploads = (await value('data-gpu-stats'))[0];
     assert.equal(cads.length, 1); assert.deepEqual(target, [0, 0, 0]);
     const owner = cads[0].id, bounds = await canvas.boundingBox(), origin = await value('data-render-origin');
@@ -39,7 +41,7 @@ async function scene(page, address, density, helpers) {
     assert.equal(await helpers.drawing(page), off);
     assert.deepEqual(await value('data-cads'), cads);
     assert.deepEqual(await value('data-row-placements'), placement);
-    assert.equal((await value('data-gpu-stats'))[0], uploads, 'Grid visibility reuses original geometry');
+    if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads, 'Grid visibility reuses original geometry');
     assert.deepEqual(errors, []);
     await page.screenshot({path: path.join(output, `camera-analytic-depth-hidden-grid-dpr${density}.png`)});
     console.log(`Current construction-plane depth: below-ground original after Reset, identical hidden/shown grid matrices, real grid pixels, exact restoration, original GPU selection/source/placement and geometry reuse passed at DPR ${density}`);

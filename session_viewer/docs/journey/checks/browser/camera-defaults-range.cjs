@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 module.exports = async (original, helpers) => {
     await require('./reversed-depth-range.cjs')(original, helpers);
     for (const density of [1, 2]) {
@@ -20,6 +21,7 @@ module.exports = async (original, helpers) => {
                 [3, 7, 11, 15].forEach((at, i) => assert(Math.abs(matrix[at] - expected[i]) < 1e-9, 'Reset restores the physical three-metre isometric camera'));
                 return matrix;
             };
+            await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
             const initial = await pose(), pixels = await helpers.drawing(page), sources = await value('data-cads'), uploads = (await value('data-gpu-stats'))[0];
             assert.equal(sources.length, 1);
             await command('Zoom In');
@@ -29,7 +31,7 @@ module.exports = async (original, helpers) => {
             assert.deepEqual(await pose(), initial);
             assert.equal(await helpers.drawing(page), pixels);
             assert.deepEqual(await value('data-cads'), sources);
-            assert.equal((await value('data-gpu-stats'))[0], uploads);
+            if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads);
             assert.deepEqual(errors, []);
             console.log(`Physical default camera: three-metre isometric Reset, actual original drawing, Zoom, named view/Fit/Reset, exact pixels, source preservation and geometry reuse passed at DPR ${density}`);
         } finally { await context.close(); await original.bringToFront(); }

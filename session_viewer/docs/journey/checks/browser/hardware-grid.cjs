@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 const {PNG} = require('pngjs');
 module.exports = async (original, helpers) => {
     await require('./camera-defaults.cjs')(original, helpers);
@@ -47,6 +48,7 @@ module.exports = async (original, helpers) => {
             }
             await command('Background'); await command('Box w0,0,-2000 1000 1000 1000');
             for (const line of ['Select None', 'Fit', 'Zoom Out', 'Zoom Out']) await command(line);
+            await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
             const sources = await value('data-cads'); assert.equal(sources.length, 1);
             const owner = sources[0].id, uploads = (await value('data-gpu-stats'))[0];
             const projected = (await project([0, 250, 0])).map(Math.floor);
@@ -69,7 +71,7 @@ module.exports = async (original, helpers) => {
             }, {owner, submitted});
             await command('Select None'); await command('Opacity 1');
             assert.deepEqual(await value('data-cads'), sources);
-            assert.equal((await value('data-gpu-stats'))[0], uploads);
+            if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads);
             for (const line of ['Select All', 'Delete', 'Background', 'View Grid On']) await command(line);
             await pose(); assert.deepEqual(await value('data-cads'), []);
             assert.equal(await helpers.drawing(page), emptyGrid);

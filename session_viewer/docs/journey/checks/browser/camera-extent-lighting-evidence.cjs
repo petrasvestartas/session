@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const adaptive = require('./adaptive-gpu-reuse.cjs');
 const fs = require('node:fs'), path = require('node:path'), {PNG} = require('pngjs');
 const output = path.resolve(__dirname, '../../../screenshots/journey/review');
 async function scene(page, address, density, helpers) {
@@ -12,6 +13,7 @@ async function scene(page, address, density, helpers) {
     assert(Math.abs((await value('data-camera-matrix'))[15] - 3000) < 1e-9, 'Reset keeps the physical three-metre distance');
     for (const line of ['View Top', 'View Orthographic', 'View Grid Off', 'Select None']) await command(line);
     const pose = async () => [await value('data-camera-target'), await value('data-camera-frame'), await canvas.getAttribute('data-projection'), (await value('data-camera-matrix')).filter((_, i) => i % 4 !== 2)];
+    await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1});
     const before = await pose(), originals = await value('data-cads'), placement = await value('data-row-placements'), uploads = (await value('data-gpu-stats'))[0];
     assert.deepEqual(before[0], [0, 0, 0]); assert.equal(before[2], 'Orthographic'); assert.equal(originals.length, 1);
     const owner = originals[0].id;
@@ -39,7 +41,7 @@ async function scene(page, address, density, helpers) {
     assert.deepEqual(await value('data-row-placements'), placement); assert.equal(await helpers.drawing(page), picture, 'Undo preserves the original view while extent stays grown');
     await command('Redo'); await command('Select None'); assert.deepEqual(await value('data-row-placements'), moved); assert.equal(await helpers.drawing(page), movedPicture);
     await command('Undo'); await command('Select None'); assert.equal(await helpers.drawing(page), picture);
-    assert.deepEqual(await pose(), before); assert.deepEqual(await value('data-cads'), originals); assert.equal((await value('data-gpu-stats'))[0], uploads);
+    assert.deepEqual(await pose(), before); assert.deepEqual(await value('data-cads'), originals); if (!(await adaptive.snapshot(page, {lane: 'mesh', source: 'cad', expectedRows: 1, expectedQualities: 1})).adaptive) assert.equal((await value('data-gpu-stats'))[0], uploads);
     assert.deepEqual(errors, []);
     if (capture) await page.screenshot({path: path.join(output, `${helpers.step?.id || 'camera-extent'}-dpr${density}.png`)});
     console.log(`Cached camera extent: real below-previous-range original pixels and GPU pick without Fit, unchanged pose, camera-only zoom restoration, Move/Undo/Redo, original sources and geometry reuse passed at DPR ${density}`);
