@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-30T01:54:54.147728+00:00",
+  "updatedUtc": "2026-10-30T02:43:48.221649+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -79,16 +79,25 @@
       "status": "PASS_FULL_CURVE_MODULE_BOTH_DPRS_LATER_71_PICK_CHECK_PENDING",
       "receipt": "docs/journey/release/math-boundary-curve-counter-correction-20261030.json",
       "sha256": "44c4809b55c0c537642c8166dc3ba548d8fda540a5b5c5c28b526e8a49b0a7db"
+    },
+    "adaptiveAccounting": {
+      "status": "FULL_ORIGINAL_CALLBACK_IMAGE_PROFILE_PASS_ROOT_REVIEWED_PUBLISHED_RETIRED",
+      "checkpoint": "71aj-exercise-complete-and-ranged-original-drawings",
+      "fullOriginalCallbackAssertions": "PASS",
+      "canonicalValidationProfile": false,
+      "runtimeReceipt": "docs/journey/release/math-boundary-adaptive-accounting-20261030-runtime.json",
+      "runtimeSha256": "63cfd6ae0dbc54fdab08296b609ae52d2b566ebf941ba92255c5f7ba3680f841",
+      "maintainedSourceFilesUnchanged": 477
     }
   },
   "images": {
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 44,
-    "remainingAffected": 1290,
-    "acceptedForFinalSource": 38,
-    "remainingFinalSourceAcceptance": 1296,
+    "newPublishedReviewed": 45,
+    "remainingAffected": 1289,
+    "acceptedForFinalSource": 39,
+    "remainingFinalSourceAcceptance": 1295,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
   },
   "published": [
@@ -668,6 +677,18 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "71aj-exercise-complete-and-ranged-original-drawings",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-917a140a3b72-000000-4b5576c626f2.json",
+      "receiptSha256": "34a5a4c6bc6086c9aa4f7fff0dba26df9eff8c80c34b09f1234d897d2cfbe42b",
+      "image": "docs/screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+      "imageSha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -681,11 +702,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_38_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_39_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS; FULL71_CALLBACK_IMAGE_PROFILE_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "38_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 44_TOTAL_PUBLISHED_REVIEWED"
+      "status": "39_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 45_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -706,7 +727,7 @@
     "browser": "156.0.8078.74",
     "publishedImagesVerified": 39,
     "rebuiltWebsiteCodePages": "PASS_CURRENT_BUILD_AND_FIVE_SOURCE_BOUND_READERS; FINAL_IMAGE_REFRESH_PENDING",
-    "newSource13ImagesAwaitingChromeDecode": 5,
+    "newSource13ImagesAwaitingChromeDecode": 6,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,

@@ -1,0 +1,104 @@
+{
+  "status": "FULL_ORIGINAL_CALLBACK_IMAGE_PROFILE_PASS_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "recordedUtc": "2026-10-30T02:43:48.040910+00:00",
+  "scope": "Actual71aj inherited original callback and every unchanged assertion passed in the8CPU/8GiB image profile. This is not canonical2CPU validation or general geometry acceptance. Existing source-only and failed-attempt proofs remain unchanged.",
+  "checkpoint": "71aj-exercise-complete-and-ranged-original-drawings",
+  "supersedesSourceOnlyStatus": {
+    "receipt": "docs/journey/release/math-boundary-adaptive-accounting-20261030.json",
+    "sha256": "a5d55625a3e3378fb2a78928403ecd3ca6fd19166bac997179853021c5c5499c",
+    "previousStatus": "SOURCE_REVIEW_AND_FOCUSED_TESTS_PASS_FULL_CALLBACK_PENDING"
+  },
+  "originalAssertions": "ALL_UNCHANGED_ORIGINAL_CALLBACK_ASSERTIONS_PASS",
+  "canonicalBehaviorExecuted": true,
+  "canonicalValidationProfile": false,
+  "profile": {
+    "kind": "IMAGE_ONLY",
+    "processors": 8,
+    "memoryLimitBytes": 8589934592,
+    "behaviorDpr": 1,
+    "imageDpr": 2
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-chrome79-71-retry-01-execution.json",
+    "sha256": "5e6bb9e850f38c00ca2c4550dfa56d8bccf16d781dfcbbc414f29e0e3a0264c8",
+    "bytes": 2555
+  },
+  "executionExitCode": 0,
+  "browserExecutableReadLease": {
+    "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "sharing": "FILE_SHARE_READ",
+    "released": true,
+    "sha256": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d",
+    "bytes": 4466840,
+    "sha256After": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d"
+  },
+  "maintainedSourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "filesVerified": 477,
+    "changedFiles": []
+  },
+  "childGuard": {
+    "resources": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\71aj-exercise-complete-and-ranged-original-drawings-ec49c8a5e7f57fa98a3c\\image-resources.json",
+      "sha256": "0e23813294360652daffac77f76f17785a0a9777193c587e00d04f302832534d",
+      "bytes": 2138
+    },
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 567.511,
+    "peakJobCommitBytes": 2367799296,
+    "descendantsAtCleanup": 0,
+    "log": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-fallback\\71aj-exercise-complete-and-ranged-original-drawings-ec49c8a5e7f57fa98a3c\\image-browser.log",
+      "sha256": "658e62852cf2974d1dc51d2195fb55e97a8d31e0ac9449ac15ab0f224fb30126",
+      "bytes": 2524
+    }
+  },
+  "generation": "917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804",
+  "batchIndex": 0,
+  "ledgerStatus": "PUBLISHED_BINARY_RETIRED",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-71aj-exercise-complete-and-ranged-original-drawings-1daf067ecf0410b9c5ac\\capture.json.gz",
+    "sha256": "d13569ca07d99c5c6f7e2552cb0cbc3961447dc87ec8fec57413e856522f342a",
+    "bytes": 239516
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804\\publications\\000000.json",
+    "sha256": "d648b0489974d7684b42e2cc9db352ded34beb812fb095cf0835260830d4ee92",
+    "bytes": 2205
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-71aj-exercise-complete-and-ranged-original-drawings-1daf067ecf0410b9c5ac\\retirement.json.gz",
+    "sha256": "e8652bb4570da6d4a717213c27bd5aee4df6210e3771048227d0506cc577358b",
+    "bytes": 106400
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-71aj-exercise-complete-and-ranged-original-drawings-1daf067ecf0410b9c5ac\\retired.json",
+    "sha256": "dbb3823a2f49b1ae56a97be8eddc4e817b8c7bf4f78737db6fdc162894931aa8",
+    "bytes": 354
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804\\events\\000004-faed768dd2626a1f601f91337a2c2c23a7ea845f561aa0de92b9a016bf12023f.json",
+    "sha256": "faed768dd2626a1f601f91337a2c2c23a7ea845f561aa0de92b9a016bf12023f",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+    "sha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6",
+    "bytes": 55259,
+    "width": 1800,
+    "height": 1520
+  },
+  "rootReview": {
+    "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-917a140a3b72-000000-4b5576c626f2.json",
+    "sha256": "34a5a4c6bc6086c9aa4f7fff0dba26df9eff8c80c34b09f1234d897d2cfbe42b",
+    "personallyViewedOriginalResolution": true
+  },
+  "publication": {
+    "currentPublishedSha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6",
+    "httpStatus": 200,
+    "httpSha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6"
+  },
+  "runtimeLimit": "This receipt qualifies the unchanged71aj callback chain. The subsequently applied12-file cap render-scale profile has71 focused tests passing; its actual GPU anti-aliasing qualification remains pending."
+}

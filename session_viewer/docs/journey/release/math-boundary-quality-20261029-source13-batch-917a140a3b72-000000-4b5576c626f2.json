@@ -1,0 +1,62 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-30T02:38:58.877112+00:00",
+  "id": "71aj-exercise-complete-and-ranged-original-drawings",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804\\manifest.json",
+    "sha256": "0b077e670c66b1a6e116e62174e81cf83a4d7ed65e291feec08cd839e98c0b00",
+    "bytes": 4043894
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804\\publications\\000000.json",
+    "sha256": "d648b0489974d7684b42e2cc9db352ded34beb812fb095cf0835260830d4ee92",
+    "bytes": 2205
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-71aj-exercise-complete-and-ranged-original-drawings-1daf067ecf0410b9c5ac\\capture.json.gz",
+    "sha256": "d13569ca07d99c5c6f7e2552cb0cbc3961447dc87ec8fec57413e856522f342a",
+    "bytes": 239516
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\917a140a3b72d7c2e81709a53f3d4554fd03639a8ff65ce877a813bfe1627804\\events\\000004-faed768dd2626a1f601f91337a2c2c23a7ea845f561aa0de92b9a016bf12023f.json",
+    "sha256": "faed768dd2626a1f601f91337a2c2c23a7ea845f561aa0de92b9a016bf12023f",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+    "sha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6",
+    "bytes": 55259
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+    "sha256": "f73ff609110572f27bd39af4b54c715de3c79178d71d57f4b98794fadbddcb06",
+    "bytes": 55302
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+    "sha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6",
+    "bytes": 55259
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings-browser.png?v=4b5576c626f2",
+    "status": 200,
+    "sha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6"
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6"
+  }
+}
