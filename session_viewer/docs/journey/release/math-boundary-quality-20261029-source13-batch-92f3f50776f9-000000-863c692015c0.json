@@ -1,0 +1,62 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-30T00:02:39.002145+00:00",
+  "id": "65c-cloud-point",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "92f3f50776f9e23c798729ca8132e0cad0b697105bd7aec17a7dd8a08f12aa16",
+  "scope": "Source13 source/content-qualified lesson image at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\92f3f50776f9e23c798729ca8132e0cad0b697105bd7aec17a7dd8a08f12aa16\\manifest.json",
+    "sha256": "446649a0a2be000590849b7c81c3ec482862163e724d199fa7d63b69ab05be76",
+    "bytes": 4039787
+  },
+  "manifestFreezeCoverage": {
+    "matchedFiles": 477,
+    "identicalDuplicateReferences": 1,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\92f3f50776f9e23c798729ca8132e0cad0b697105bd7aec17a7dd8a08f12aa16\\publications\\000000.json",
+    "sha256": "99f2d575f6dc962532d11159744fe08fa0119985aa5ade1aa89045b6e8a8594b",
+    "bytes": 1886
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-65c-cloud-point-c4e2ed1a9728dbab69bb\\capture.json.gz",
+    "sha256": "97534d44ad9927ba26d927d54d1eca9b17af2bede9f25ad32111034eb0b23c9c",
+    "bytes": 216741
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\92f3f50776f9e23c798729ca8132e0cad0b697105bd7aec17a7dd8a08f12aa16\\events\\000004-3bd010bb4eb098cb23fad7d3cafc14baf44ac14529756a000036d42b1565149f.json",
+    "sha256": "3bd010bb4eb098cb23fad7d3cafc14baf44ac14529756a000036d42b1565149f",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65c-cloud-point-browser.png",
+    "sha256": "863c692015c0225bd1ddaf5f6d410ece64187d85d3ae3e9b174de34517c10555",
+    "bytes": 60567
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65c-cloud-point-browser.png",
+    "sha256": "a919b903c31e436e542f20e9b912c442626aa11176a593a1749b8609de7f2cf3",
+    "bytes": 60484
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\65c-cloud-point-browser.png",
+    "sha256": "863c692015c0225bd1ddaf5f6d410ece64187d85d3ae3e9b174de34517c10555",
+    "bytes": 60567
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/65c-cloud-point-browser.png?v=863c692015c0",
+    "status": 200,
+    "sha256": "863c692015c0225bd1ddaf5f6d410ece64187d85d3ae3e9b174de34517c10555"
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "863c692015c0225bd1ddaf5f6d410ece64187d85d3ae3e9b174de34517c10555"
+  }
+}

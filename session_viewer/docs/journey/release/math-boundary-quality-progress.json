@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-29T23:54:46.489855+00:00",
+  "updatedUtc": "2026-10-30T00:03:30.594001+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -70,10 +70,10 @@
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 38,
-    "remainingAffected": 1296,
-    "acceptedForFinalSource": 32,
-    "remainingFinalSourceAcceptance": 1302,
+    "newPublishedReviewed": 39,
+    "remainingAffected": 1295,
+    "acceptedForFinalSource": 33,
+    "remainingFinalSourceAcceptance": 1301,
     "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
   },
   "published": [
@@ -520,7 +520,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41b-drawing",
@@ -532,7 +532,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41c-view",
@@ -544,7 +544,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41ca-input",
@@ -556,7 +556,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41d-grid",
@@ -568,7 +568,7 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
     },
     {
       "id": "41e-drawing",
@@ -580,7 +580,19 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": false
+      "servedChromeVerified": true
+    },
+    {
+      "id": "65c-cloud-point",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-92f3f50776f9-000000-863c692015c0.json",
+      "receiptSha256": "cc0f5f012e82862479261ed0bdb3850ec53d3b35e4e79b33efb7e712aa24c6d8",
+      "image": "docs/screenshots/journey/65c-cloud-point-browser.png",
+      "imageSha256": "863c692015c0225bd1ddaf5f6d410ece64187d85d3ae3e9b174de34517c10555",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true
     }
   ],
   "stages": [
@@ -594,11 +606,11 @@
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_32_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
+      "status": "SOURCE13_FOCUSED_RUNTIME_AND_33_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS"
     },
     {
       "stage": "Image regeneration",
-      "status": "32_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 38_TOTAL_PUBLISHED_REVIEWED"
+      "status": "33_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 39_TOTAL_PUBLISHED_REVIEWED"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -614,12 +626,12 @@
     "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
-    "receipt": "docs/journey/release/math-boundary-browser-decoding-20261030-source13-01.json",
-    "sha256": "9776468e22403efe35dda1f120d8594827fb0d9d2273028325a77cc04bdb843c",
+    "receipt": "docs/journey/release/math-boundary-browser-decoding-20261030-source13-02.json",
+    "sha256": "aee1119148c0e09bccb8673661c9694f1a3be0b733ba90cf9dd9ebe5bbc75167",
     "browser": "156.0.8078.74",
-    "publishedImagesVerified": 32,
+    "publishedImagesVerified": 39,
     "rebuiltWebsiteCodePages": "PENDING_FINAL_VITE_BUILD",
-    "newSource13ImagesAwaitingChromeDecode": 6,
+    "newSource13ImagesAwaitingChromeDecode": 0,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
