@@ -1,0 +1,444 @@
+{
+  "status": "NATIVE88AD_89H_SSAA_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "recordedUtc": "2026-10-30T04:19:58.093466+00:00",
+  "supersedesNativePendingScopeOf": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-cap-ssaa-20261030.json",
+    "sha256": "c0a78758bd60ea3cb819918133b6016ce3ed82d676c696f7c851af5a5b30d469",
+    "bytes": 8396
+  },
+  "browserReceiptPreserved": true,
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "bytes": 100146
+  },
+  "maintainedSourceFilesUnchanged": 477,
+  "profile": {
+    "renderScale": 2,
+    "internal": [
+      2560,
+      1920
+    ],
+    "output": [
+      1280,
+      960
+    ],
+    "internalDensity": 4,
+    "externalDpr": 2,
+    "format": "Rgba8UnormSrgb",
+    "filter": "linear",
+    "presentation": "linear-srgb-gpu",
+    "shaderSamples": 1,
+    "processors": 8,
+    "memoryBytes": 8589934592
+  },
+  "qualifiedNativeCheckpoints": [
+    "88ad-exercise-original-sections-bores-and-ink",
+    "89h-exercise-actual-depth-levels-and-cache-release"
+  ],
+  "qualifications": [
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "lane": "native",
+      "rootProof": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-cap-render-scale2-native88ad-01-3b94ceefea16.json",
+        "sha256": "f6c571be5e47d44b9d8370f1fe6f97ef55cd8e736787d482e442f00e39c92fc7",
+        "bytes": 6876
+      },
+      "rootReviewBasis": {
+        "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+        "imageSha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink.png",
+        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+        "bytes": 18325
+      },
+      "capture": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-88ad-exercise-original-sections-bores-and-ink-1a50c31d72617f2c9f46\\capture.json.gz",
+        "sha256": "b074888299c992381a6d7a01e6b64df7f6df1aee557a9e122a01bd9affd8977b",
+        "bytes": 188012
+      },
+      "qualification": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native88ad-01-qualification.json",
+        "sha256": "8359c7d14dd6887c3c2fae6b029f37346686310bdb6f3198d43ad754b94dd170",
+        "bytes": 4756
+      },
+      "execution": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native88ad-01-execution.json",
+        "sha256": "eac942bcc140fe381e422f0d24aaa9160914b958519351b163ff18c12fd59ac5",
+        "bytes": 2153
+      },
+      "publication": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native88ad-01-publication.json",
+        "sha256": "9495f9c09a71e6bb80d207ab14d8d8c6c786f34c992f43eccf0d26f51695c2a7",
+        "bytes": 5333
+      },
+      "ledgerPublication": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-88ad-exercise-original-sections-bores-and-ink-1a50c31d72617f2c9f46\\publication.json",
+        "sha256": "07c17cd716eed3adc0e261be2ee94c640a14de6f5ade09b8c8ba098786abf8d4",
+        "bytes": 876
+      },
+      "retirement": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-88ad-exercise-original-sections-bores-and-ink-1a50c31d72617f2c9f46\\retirement.json.gz",
+        "sha256": "7febbca44862b78c4a464b094e656f4ca23f53037093e3a79a444c400825e9ce",
+        "bytes": 54982
+      },
+      "retired": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-88ad-exercise-original-sections-bores-and-ink-1a50c31d72617f2c9f46\\retired.json",
+        "sha256": "1e2639dadd8969d5626a6a67e9f1f1672b378613c3695d033e052bb7ef7f0f71",
+        "bytes": 346
+      },
+      "actualCaptureResult": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\88ad-exercise-original-sections-bores-and-ink-5c264e16f8f78654df5f\\result.json",
+        "sha256": "1a50c31d72617f2c9f465ebeb2d8e4cab5e4ccc35d68db215ec9238807e42237",
+        "bytes": 567922
+      },
+      "profile": {
+        "renderScale": 2,
+        "lane": "native",
+        "recipePins": [
+          {
+            "path": "journey/checks/88-caps.rs",
+            "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779"
+          }
+        ],
+        "samples": 1,
+        "presentation": "linear-srgb-gpu",
+        "files": [
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+            "sha256": "6912f9cbe4eb1f7f4a65dca82e6754059756e87d53a12f0d82b20bea9e1e873e"
+          },
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+            "sha256": "912fbcca86f5e9f9a58c533d3cd971c2b69e825e4d5682deaf58fcfa59f8786c"
+          },
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+            "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+          },
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+            "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+          }
+        ]
+      },
+      "renderScaleReceipt": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\88ad-exercise-original-sections-bores-and-ink-5c264e16f8f78654df5f\\runtime\\frame-render-scale.json",
+        "sha256": "d3de8d71ed791b3bc5318814dd6f98048311237c310b7f5b07a801f127013b91",
+        "value": {
+          "renderScale": 2,
+          "internal": [
+            2560,
+            1920
+          ],
+          "output": [
+            1280,
+            960
+          ],
+          "density": 4,
+          "format": "Rgba8UnormSrgb",
+          "filter": "linear",
+          "samples": 1
+        }
+      },
+      "renderScaleStoredBlob": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\blobs\\d3de8d71ed791b3bc5318814dd6f98048311237c310b7f5b07a801f127013b91.gz",
+        "sha256": "49f2e4b648a37744fba513b8599e287c7743e11db0c173cc6202b5b58f99472a",
+        "bytes": 133
+      },
+      "runtimeGuard": {
+        "platform": "windows-job-object",
+        "scope": "Image-only capture profile; canonical test guard unchanged",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-30T03:55:59.1453020Z",
+        "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\88ad-exercise-original-sections-bores-and-ink-5c264e16f8f78654df5f\\bin\\presentation.exe",
+        "arguments": [],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\88ad-exercise-original-sections-bores-and-ink-5c264e16f8f78654df5f\\runtime",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.962,
+        "peakJobCommitBytes": 610205696,
+        "affinityMask": "0xFF",
+        "processors": 8,
+        "processId": 11776,
+        "descendantsAtCleanup": 0
+      },
+      "compileGuard": {
+        "platform": "windows-job-object",
+        "scope": "Image-only capture profile; canonical test guard unchanged",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-30T03:55:21.9976768Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "build",
+          "--example",
+          "presentation",
+          "--locked",
+          "--offline",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j8",
+          "--message-format=json-render-diagnostics"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-incremental-presentation-workbench",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 35.531,
+        "peakJobCommitBytes": 1669132288,
+        "affinityMask": "0xFF",
+        "processors": 8,
+        "processId": 40308,
+        "descendantsAtCleanup": 0
+      },
+      "executeLog": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\incremental-88ad-exercise-original-sections-bores-and-ink-5c264e16f8f78654-execute.log",
+        "sha256": "554d797c882f569ab637eb7443e95195aab779ae8993eb34455b87b53d453fa4",
+        "bytes": 304
+      },
+      "drawAssertions": {
+        "capCount": 1,
+        "capError": null
+      },
+      "sourceFixture": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\88-caps.rs",
+        "sha256": "875f5eee455970f21d2d69ee5a4421fefe345df57ab0ee8a4b4678451367c779",
+        "bytes": 2061
+      },
+      "maintainedSourceFilesUnchanged": 477,
+      "canonicalVerifyPixelsExecuted": false
+    },
+    {
+      "id": "89h-exercise-actual-depth-levels-and-cache-release",
+      "lane": "native",
+      "rootProof": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-cap-render-scale2-native89h-01-3b94ceefea16.json",
+        "sha256": "813de330b98a139c221c3dcb4f956afd0d58147f0318cb64f795dc5b8c1b5602",
+        "bytes": 7223
+      },
+      "rootReviewBasis": {
+        "mode": "EXACT_PNG_BYTES_PRIOR_REVIEW",
+        "canonicalReview": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-cap-render-scale2-native88ad-01-3b94ceefea16.json",
+          "sha256": "f6c571be5e47d44b9d8370f1fe6f97ef55cd8e736787d482e442f00e39c92fc7",
+          "bytes": 6876
+        },
+        "imageSha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07"
+      },
+      "image": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\89h-exercise-actual-depth-levels-and-cache-release.png",
+        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+        "bytes": 18325
+      },
+      "capture": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\capture.json.gz",
+        "sha256": "828548be524cd5aa09a41551b2b9be00bbaca39e594ccfabb1b28c68a50fa839",
+        "bytes": 190079
+      },
+      "qualification": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-qualification.json",
+        "sha256": "6687aac3f8f85101cf5268d538772d64185c9bd3e7b9a706c9eb693dc90936a8",
+        "bytes": 4777
+      },
+      "execution": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-execution.json",
+        "sha256": "b78238f1624ca05fbb6786c30ecdcc10d931e7b4ac5df77fd2d85516e6fdf310",
+        "bytes": 2150
+      },
+      "publication": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-publication.json",
+        "sha256": "ad3e741f8a6ef0f34429b4ef5318d12afca97a4321172f905bedaf8c88bd422a",
+        "bytes": 5348
+      },
+      "ledgerPublication": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\publication.json",
+        "sha256": "8c14c06222f3835b84c99aca02d013d6bfd249bf4b85f3fac8c4915441df9977",
+        "bytes": 885
+      },
+      "retirement": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\retirement.json.gz",
+        "sha256": "dc648711d4418725705d541284387649a46506c25d384cd3acdc3ba07656a35e",
+        "bytes": 55710
+      },
+      "retired": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\retired.json",
+        "sha256": "638052e061cbef0aa4ff5c559ecd912cd29b63eb11ac87bfb58f8b800a1e7982",
+        "bytes": 351
+      },
+      "actualCaptureResult": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\89h-exercise-actual-depth-levels-and-cache-release-13b25b37c4c059401d7d\\result.json",
+        "sha256": "1abdacc76b179cb58d25cefc051008469149f458559223a29dd44a3adc432128",
+        "bytes": 581980
+      },
+      "profile": {
+        "renderScale": 2,
+        "lane": "native",
+        "recipePins": [
+          {
+            "path": "journey/checks/89-pyramid.rs",
+            "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+          }
+        ],
+        "samples": 1,
+        "presentation": "linear-srgb-gpu",
+        "files": [
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+            "sha256": "6912f9cbe4eb1f7f4a65dca82e6754059756e87d53a12f0d82b20bea9e1e873e"
+          },
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+            "sha256": "912fbcca86f5e9f9a58c533d3cd971c2b69e825e4d5682deaf58fcfa59f8786c"
+          },
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+            "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+          },
+          {
+            "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+            "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+          }
+        ]
+      },
+      "renderScaleReceipt": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\89h-exercise-actual-depth-levels-and-cache-release-13b25b37c4c059401d7d\\runtime\\frame-render-scale.json",
+        "sha256": "d3de8d71ed791b3bc5318814dd6f98048311237c310b7f5b07a801f127013b91",
+        "value": {
+          "renderScale": 2,
+          "internal": [
+            2560,
+            1920
+          ],
+          "output": [
+            1280,
+            960
+          ],
+          "density": 4,
+          "format": "Rgba8UnormSrgb",
+          "filter": "linear",
+          "samples": 1
+        }
+      },
+      "renderScaleStoredBlob": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\blobs\\d3de8d71ed791b3bc5318814dd6f98048311237c310b7f5b07a801f127013b91.gz",
+        "sha256": "49f2e4b648a37744fba513b8599e287c7743e11db0c173cc6202b5b58f99472a",
+        "bytes": 133
+      },
+      "runtimeGuard": {
+        "platform": "windows-job-object",
+        "scope": "Image-only capture profile; canonical test guard unchanged",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-30T04:03:04.9923830Z",
+        "executable": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\89h-exercise-actual-depth-levels-and-cache-release-13b25b37c4c059401d7d\\bin\\presentation.exe",
+        "arguments": [],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\89h-exercise-actual-depth-levels-and-cache-release-13b25b37c4c059401d7d\\runtime",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.992,
+        "peakJobCommitBytes": 616448000,
+        "affinityMask": "0xFF",
+        "processors": 8,
+        "processId": 18036,
+        "descendantsAtCleanup": 0
+      },
+      "compileGuard": {
+        "platform": "windows-job-object",
+        "scope": "Image-only capture profile; canonical test guard unchanged",
+        "requestedProcessors": 8,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-10-30T04:02:57.0273511Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "build",
+          "--example",
+          "presentation",
+          "--locked",
+          "--offline",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j8",
+          "--message-format=json-render-diagnostics"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-incremental-presentation-workbench",
+        "timeoutSeconds": 1800,
+        "jobCommitLimitBytes": 8589934592,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.725,
+        "peakJobCommitBytes": 1408446464,
+        "affinityMask": "0xFF",
+        "processors": 8,
+        "processId": 41948,
+        "descendantsAtCleanup": 0
+      },
+      "executeLog": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\incremental-89h-exercise-actual-depth-levels-and-cache-release-13b25b37c4c05940-execute.log",
+        "sha256": "554d797c882f569ab637eb7443e95195aab779ae8993eb34455b87b53d453fa4",
+        "bytes": 304
+      },
+      "drawAssertions": {
+        "capCount": 1,
+        "capError": null,
+        "depthPyramidError": null,
+        "cumulativeDepthPyramidPasses": 6,
+        "depthPyramidAllocationBytesGreaterThan": 600000
+      },
+      "sourceFixture": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab",
+        "bytes": 2265
+      },
+      "maintainedSourceFilesUnchanged": 477,
+      "canonicalVerifyPixelsExecuted": false
+    }
+  ],
+  "previewHttp": [
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png?v=3b94ceefea16",
+      "status": 200,
+      "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "bytes": 18325,
+      "verification": "HTTP_BYTES_ONLY",
+      "chromeDecodePerformed": false
+    },
+    {
+      "id": "89h-exercise-actual-depth-levels-and-cache-release",
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png?v=3b94ceefea16",
+      "status": 200,
+      "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "bytes": 18325,
+      "verification": "HTTP_BYTES_ONLY",
+      "chromeDecodePerformed": false
+    }
+  ],
+  "acceptance": {
+    "source13Accepted": 42,
+    "source13Remaining": 1292,
+    "affectedDestinations": 1334,
+    "selectedLateBrowser96zza": "PENDING"
+  },
+  "scope": "Actual native image-profile GPU qualification of88ad and89h only. Native88ad directly reviewed at original resolution; native89h has exact PNG bytes matching that prior review. Actual draw assertions executed; existing IMAGE harness skips canonical verify_pixels. No canonical callback, interactive MSAA or all48-checkpoint acceptance claim. Selected late-browser96zza qualification and bulk refresh remain pending. Preview verification is HTTP bytes only; two final site prose changes have not been rebuilt."
+}

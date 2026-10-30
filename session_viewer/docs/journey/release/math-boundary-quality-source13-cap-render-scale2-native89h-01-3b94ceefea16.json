@@ -1,0 +1,129 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-10-30T04:08:57.996Z",
+  "id": "89h-exercise-actual-depth-levels-and-cache-release",
+  "lane": "native",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Actual pinned warm-runner frozen-source preflight and postflight; current hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-execution.json",
+      "sha256": "b78238f1624ca05fbb6786c30ecdcc10d931e7b4ac5df77fd2d85516e6fdf310",
+      "bytes": 2150
+    },
+    "runnerInputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\run_warm_course_checkpoint.py",
+        "sha256": "85535ffae9c5a729e3da9ca783ea0447573d17e0ff53ed6b1102013507665c46"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\windows_read_lease.py",
+        "sha256": "43ad54a76624b9527636b1202c4dc8f7f760af1d8d7bc3481d5b68fab5a6d3dd"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-command.json",
+        "sha256": "793d32c4dc3fa396117f1c7d14bada5121e7924d90b130d4f2b5cf825e04352a"
+      }
+    ]
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "ExactPNGbyte identity to the root-personally-reviewed native88ad image3b94ceef...; original1280x960pixels/source geometry framing andclean cap/bore/contours areidentical. Thisfresh89h source/capture independentlypassed actualdrawassertions:1cap/noerrors/sixcumulativepyramidpasses/allocationguard and2560x1920internal/density4->1280x960linear-sRGBpresentation. Canonicalverify_pixels isnotexecuted bythisexistingIMAGEharness.",
+  "rootReviewBasis": {
+    "mode": "EXACT_PNG_BYTES_PRIOR_REVIEW",
+    "canonicalReview": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-cap-render-scale2-native88ad-01-3b94ceefea16.json",
+      "sha256": "f6c571be5e47d44b9d8370f1fe6f97ef55cd8e736787d482e442f00e39c92fc7",
+      "bytes": 6876
+    },
+    "imageSha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\capture.json.gz",
+    "sha256": "828548be524cd5aa09a41551b2b9be00bbaca39e594ccfabb1b28c68a50fa839",
+    "bytes": 190079
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-qualification.json",
+    "sha256": "6687aac3f8f85101cf5268d538772d64185c9bd3e7b9a706c9eb693dc90936a8",
+    "bytes": 4777
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-execution.json",
+    "sha256": "b78238f1624ca05fbb6786c30ecdcc10d931e7b4ac5df77fd2d85516e6fdf310",
+    "bytes": 2150
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-cap-render-scale2-native89h-01-publication.json",
+    "sha256": "ad3e741f8a6ef0f34429b4ef5318d12afca97a4321172f905bedaf8c88bd422a",
+    "bytes": 5348
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\publication.json",
+    "sha256": "8c14c06222f3835b84c99aca02d013d6bfd249bf4b85f3fac8c4915441df9977",
+    "bytes": 885
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\retirement.json.gz",
+    "sha256": "dc648711d4418725705d541284387649a46506c25d384cd3acdc3ba07656a35e",
+    "bytes": 55710
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-89h-exercise-actual-depth-levels-and-cache-release-1abdacc76b179cb58d25\\retired.json",
+    "sha256": "638052e061cbef0aa4ff5c559ecd912cd29b63eb11ac87bfb58f8b800a1e7982",
+    "bytes": 351
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\89h-exercise-actual-depth-levels-and-cache-release.png",
+    "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+    "bytes": 18325
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\89h-exercise-actual-depth-levels-and-cache-release.png",
+    "sha256": "672cfe1ce2ab3e8561eec1d5a966f2561d2fa024c082e67c320f82ede972d953",
+    "bytes": 15670
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\cap-prior-png-672cfe1ce2ab3e8561eec1d5a966f2561d2fa024c082e67c320f82ede972d953.png",
+    "sha256": "672cfe1ce2ab3e8561eec1d5a966f2561d2fa024c082e67c320f82ede972d953",
+    "bytes": 15670
+  },
+  "renderScale": {
+    "renderScale": 2,
+    "lane": "native",
+    "recipePins": [
+      {
+        "path": "journey/checks/89-pyramid.rs",
+        "sha256": "95c288ffe0f4fb95d0607fdbee1de2d2a071c8745d5c932acf3fadcefbc278ab"
+      }
+    ],
+    "samples": 1,
+    "presentation": "linear-srgb-gpu",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "6912f9cbe4eb1f7f4a65dca82e6754059756e87d53a12f0d82b20bea9e1e873e"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "912fbcca86f5e9f9a58c533d3cd971c2b69e825e4d5682deaf58fcfa59f8786c"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      }
+    ]
+  },
+  "canonicalBehaviorExecuted": false,
+  "scope": "Standalone source13 image-profile qualification. Root directly viewed this exact original-resolution PNG. No new full browser callback, historical interactive MSAA, or broader geometry acceptance claim."
+}
