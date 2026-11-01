@@ -157,7 +157,7 @@ The capsule builder shares one dimension contract across preview and source prep
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build original capsules with shared dimensions.](../screenshots/journey/74za-build-original-cylinders-with-signed-height.png)
+![Native renderer output for build original capsules with shared dimensions.](../screenshots/journey/74zb-build-original-cones-and-spheres.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

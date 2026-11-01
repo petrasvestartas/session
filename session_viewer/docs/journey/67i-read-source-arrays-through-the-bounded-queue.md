@@ -58,7 +58,7 @@ The complete bounded source-array reader compiles before browser import and stre
 
 The mixed source archive scene remains unchanged.
 
-![Native renderer output for fetch original coordinates normals and colours.](../screenshots/journey/67hza-queue-original-source-range-reads.png)
+![Native renderer output for fetch original coordinates normals and colours.](../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

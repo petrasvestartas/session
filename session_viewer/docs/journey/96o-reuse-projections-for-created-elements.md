@@ -87,7 +87,7 @@ Created Elements use the existing projection owner, with independent child visib
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for use the same projection path for created elements.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for use the same projection path for created elements.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

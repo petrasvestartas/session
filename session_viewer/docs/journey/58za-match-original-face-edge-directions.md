@@ -58,7 +58,7 @@ The earlier blue parametric roof stays visible while shared orientation helpers 
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for match original face edge directions.](../screenshots/journey/55za-read-original-edge-use-samples.png)
+![Native renderer output for match original face edge directions.](../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

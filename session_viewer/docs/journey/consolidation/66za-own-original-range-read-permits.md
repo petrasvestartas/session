@@ -1891,7 +1891,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 12.3 (67m-cancel-range-work-when-its-runtime-closes)](../../screenshots/journey/67m-cancel-range-work-when-its-runtime-closes.png)
+![Recorded visual output for Lesson 12.3 (67m-cancel-range-work-when-its-runtime-closes)](../../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 12.3

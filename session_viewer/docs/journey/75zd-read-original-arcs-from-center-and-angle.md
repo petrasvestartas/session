@@ -55,7 +55,7 @@ The center-and-angle arc reader compiles before its browser tool connection.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for read original arcs from center and angle.](../screenshots/journey/75za-build-original-planar-circles.png)
+![Native renderer output for read original arcs from center and angle.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -150,7 +150,7 @@ The original split face and its cutter remain visible while measurement connects
 
 The original trimmed face and retained cutter remain visible.
 
-![Native renderer output for measure original closed-solid volume.](../screenshots/journey/83za-visit-original-mesh-triangles-and-format-measures.png)
+![Native renderer output for measure original closed-solid volume.](../screenshots/journey/83ze-integrate-original-surface-area.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -145,7 +145,7 @@ Navigation and delayed selection share the same original drawing and document hi
 
 Blue Posts retain original black boundaries and the independent brown source beam.
 
-![Native renderer output for exercise current navigation selection and delayed answers.](../screenshots/journey/54-camera.png)
+![Native renderer output for exercise current navigation selection and delayed answers.](../screenshots/journey/53u-layers.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

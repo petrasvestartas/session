@@ -102,7 +102,7 @@ The browser still shows the preceding finite-ink drawing. The clipping uniform l
 
 Actual finite visibility keeps the front red originals and blue solid visible while suppressing the hidden rear stroke.
 
-![Native renderer output for pack the clipping uniform with explicit byte offsets.](../screenshots/journey/87a-gather-six-visible-original-world-planes.png)
+![Native renderer output for pack the clipping uniform with explicit byte offsets.](../screenshots/journey/86aq-exercise-finite-color-and-original-picking.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

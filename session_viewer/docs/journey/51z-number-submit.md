@@ -915,7 +915,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The earlier two selected boxes and temporary Move band remain.
 
-![Native renderer output for apply precise typed handle values once.](../screenshots/journey/51z-number-submit.png)
+![Native renderer output for apply precise typed handle values once.](../screenshots/journey/50d-ownership.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

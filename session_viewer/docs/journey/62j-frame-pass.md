@@ -541,7 +541,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for prepare the full text frame and load the scene depth.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for prepare the full text frame and load the scene depth.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -64,7 +64,7 @@ Split input validation and original piece naming compile before their editing co
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for validate original split inputs and name pieces.](../screenshots/journey/81v-exercise-original-projection-retry-and-repeated-extension.png)
+![Native renderer output for validate original split inputs and name pieces.](../screenshots/journey/81za-validate-original-split-inputs-and-name-pieces.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

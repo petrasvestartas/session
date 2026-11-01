@@ -35,6 +35,35 @@ export interface Course { release: string; inventory?: string; steps: Step[] }
 export const read = (file: string) => fs.readFileSync(file, 'utf8');
 export const json = (file: string) => JSON.parse(file.endsWith('.gz') ? gunzipSync(fs.readFileSync(file)).toString('utf8') : read(file));
 export const hash = (value: string | Uint8Array) => crypto.createHash('sha256').update(value).digest('hex');
+export function resolveJourneyImage(file: string, expectedSha256?: string, directory = path.join(docs, 'screenshots/journey')): string {
+    const root = path.resolve(directory);
+    const safeName = (name: string) => typeof name === 'string' && /^[^\\:?#]+\.png$/.test(name)
+        && !path.posix.isAbsolute(name) && name.split('/').every(part => part && part !== '.' && part !== '..');
+    if (!path.isAbsolute(file) && !safeName(file)) throw Error(`Invalid journey image name: ${file}`);
+    const requested = path.isAbsolute(file) ? path.resolve(file) : path.join(root, file);
+    const verify = (actual: string, digest?: string) => {
+        if (digest !== undefined && (!/^[a-f0-9]{64}$/.test(digest) || hash(fs.readFileSync(actual)) !== digest))
+            throw Error(`Journey image hash mismatch: ${actual}`);
+        return actual;
+    };
+    if (fs.existsSync(requested)) return verify(requested, expectedSha256);
+    const name = path.relative(root, requested).split(path.sep).join('/');
+    if (!safeName(name)) throw Error(`Missing image is outside journey: ${file}`);
+    const manifest = path.join(root, 'image-aliases.json');
+    if (!fs.existsSync(manifest)) return requested;
+    const data = json(manifest);
+    if (data.version !== 1 || !data.aliases || typeof data.aliases !== 'object' || Array.isArray(data.aliases))
+        throw Error('Invalid journey image alias manifest');
+    if (!Object.hasOwn(data.aliases, name)) return requested;
+    const alias = data.aliases[name];
+    if (!alias || !safeName(alias.canonical) || !/^[a-f0-9]{64}$/.test(alias.sha256)
+        || Object.hasOwn(data.aliases, alias.canonical)) throw Error(`Invalid journey image alias: ${name}`);
+    if (expectedSha256 !== undefined && expectedSha256 !== alias.sha256) throw Error(`Journey image alias hash mismatch: ${name}`);
+    const canonical = path.join(root, alias.canonical);
+    if (fs.realpathSync(root) !== root || fs.realpathSync(canonical) !== canonical || !fs.lstatSync(canonical).isFile())
+        throw Error(`Journey image alias target is redirected: ${name}`);
+    return verify(canonical, alias.sha256);
+}
 export const course = (): Course => sequence?.data || json(path.join(docs, 'journey/course.json'));
 export const reference = () => json(path.join(docs, 'typing/manifest.json'));
 export const sorted = (files: Files) => Object.fromEntries(Object.keys(files).sort().map(name => [name, files[name]]));

@@ -150,7 +150,7 @@ In the browser developer console, call window.wasmBindings.validate_source_json(
 
 The original cloud and local point marker remain unchanged.
 
-![Native renderer output for walk json records within a depth limit.](../screenshots/journey/65za-read-original-manifest-records-and-placements.png)
+![Native renderer output for walk json records within a depth limit.](../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

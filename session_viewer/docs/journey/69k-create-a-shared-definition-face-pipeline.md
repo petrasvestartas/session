@@ -66,7 +66,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The existing CAD, surface and original coarse/detailed point pages remain visible.
 
-![Native renderer output for create a shared definition face pipeline.](../screenshots/journey/69-validate-original-definition-references.png)
+![Native renderer output for create a shared definition face pipeline.](../screenshots/journey/69i-check-sharing-precision-history-and-release.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -910,7 +910,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 11.2 (64e-identity)](../../../screenshots/journey/64e-identity.png)
+![Recorded visual output for Lesson 11.2 (64e-identity)](../../../screenshots/journey/63h-outline.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 11.2

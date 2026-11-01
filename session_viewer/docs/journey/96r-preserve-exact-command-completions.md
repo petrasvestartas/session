@@ -161,7 +161,7 @@ Type View Isometric and press Enter. The history must contain that exact command
 
 The original comparison frame is unchanged; actual command-field behavior is checked separately.
 
-![Native renderer output for prove exact commands across the expanded vocabulary.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for prove exact commands across the expanded vocabulary.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

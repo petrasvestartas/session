@@ -1313,7 +1313,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Actual finite visibility keeps the front red originals and blue solid visible while suppressing the hidden rear stroke.
 
-![Native renderer output for own clipping presentation and one history transaction.](../screenshots/journey/87a-gather-six-visible-original-world-planes.png)
+![Native renderer output for own clipping presentation and one history transaction.](../screenshots/journey/86aq-exercise-finite-color-and-original-picking.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

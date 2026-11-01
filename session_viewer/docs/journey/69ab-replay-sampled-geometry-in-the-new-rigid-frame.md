@@ -66,7 +66,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Independent yellow and blue shared-definition placements remain visible beside original CAD borders.
 
-![Native renderer output for replay sampled geometry in the new rigid frame.](../screenshots/journey/69n-inspect-and-exercise-original-definition-instances.png)
+![Native renderer output for replay sampled geometry in the new rigid frame.](../screenshots/journey/69a-describe-a-rigid-frame-and-original-shape-key.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

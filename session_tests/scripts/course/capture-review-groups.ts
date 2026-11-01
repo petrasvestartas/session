@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
-import {hash, json, viewer, write} from './model.ts';
+import {hash, json, viewer, write, resolveJourneyImage} from './model.ts';
 
 const sha = (file: string) => hash(fs.readFileSync(file));
 const absolute = (file: string) => path.isAbsolute(file) ? file : path.join(viewer, file);
@@ -16,7 +16,7 @@ export function groupCaptures(nativeDirectory = '', browserDirectory = '') {
         for (const [section, rows] of [['main', Object.values(progress.items)], ['supplemental', Object.values(progress.supplementalItems || {})]] as [string, any[]][]) {
             for (const row of rows) {
                 if (!row.image || !['CAPTURED_AWAITING_ROOT_VISUAL_REVIEW', 'PUBLISHED_ROOT_REVIEWED'].includes(row.status)) continue;
-                const image = absolute(row.image.path), bytes = fs.readFileSync(image);
+                const image = absolute(row.image.path), bytes = fs.readFileSync(resolveJourneyImage(image, row.image.sha256));
                 assert.equal(hash(bytes), row.image.sha256); assert.equal(sha(row.sourceRecord), row.sourceRecordSha256);
                 const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
                 assert.equal(width, row.image.width); assert.equal(height, row.image.height);
@@ -50,9 +50,9 @@ export function approveGroups(manifestFile: string, rootReviewFile: string) {
     for (const reviewed of review.reviewed) {
         assert.equal(reviewed.rootPersonallyReviewed, true);
         const group = manifest.groups.find((row: any) => row.sha256 === reviewed.sha256); assert(group, 'Reviewed SHA absent from the captured group manifest');
-        assert.equal(reviewed.representativeID, group.representativeID); assert.equal(sha(group.representativeImage), group.sha256);
+        assert.equal(reviewed.representativeID, group.representativeID); assert.equal(sha(resolveJourneyImage(group.representativeImage, group.sha256)), group.sha256);
         for (const member of group.members) {
-            assert.equal(sha(member.image), group.sha256); assert.equal(sha(member.sourceRecord), member.sourceRecordSha256);
+            assert.equal(sha(resolveJourneyImage(member.image, group.sha256)), group.sha256); assert.equal(sha(member.sourceRecord), member.sourceRecordSha256);
             outputs[member.kind].push({id: member.id, destination: member.destination, sha256: group.sha256,
                 representativeID: group.representativeID, duplicateOfReviewedSHA: member.id === group.representativeID ? null : group.sha256,
                 visualReviewScope: 'Exact PNG byte identity with the personally reviewed original; this member retains its own source-bound capture receipt.'});

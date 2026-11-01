@@ -136,7 +136,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The smooth surface and its original sections remain visible.
 
-![Native renderer output for construct the patch through four ordered corners.](../screenshots/journey/79zza-sample-original-network-curve-stations.png)
+![Native renderer output for construct the patch through four ordered corners.](../screenshots/journey/79zze-fit-the-original-gordon-surface.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

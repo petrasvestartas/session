@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {bindings, prepare as prepareSnapshot} from './presentation.ts';
-import {assetsFor, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write} from './model.ts';
+import {assetsFor, expected, filesIn, hash, json, lockFor, materialize, read, resolveJourneyImage, viewer, write} from './model.ts';
 import {nativeTarget} from './verify.ts';
 import {png, ppm} from './png.ts';
 
@@ -84,7 +84,7 @@ export function buildHardwareBenchmark(id:string){
 
 export function runHardwareBenchmark(id:string,role:'nvidia'|'warp'){
     assert(['nvidia','warp'].includes(role));const prepared=prepareHardwareBenchmark(id),built=json(path.join(prepared.folder,'built.json'));check(prepared);assert.equal(sha(built.executable.path),built.executable.sha256);
-    const file=path.join(prepared.folder,role+'.json');if(fs.existsSync(file)){const retained=json(file);assert.equal(sha(retained.image.path),retained.image.sha256);assert.equal(sha(retained.rgba.path),retained.rgba.sha256);return retained;}
+    const file=path.join(prepared.folder,role+'.json');if(fs.existsSync(file)){const retained=json(file);assert.equal(sha(resolveJourneyImage(retained.image.path,retained.image.sha256)),retained.image.sha256);assert.equal(sha(retained.rgba.path),retained.rgba.sha256);return retained;}
     const runtime=path.join(prepared.folder,role+'-runtime');assert(!fs.existsSync(runtime));fs.mkdirSync(runtime);
     for(const name of assetsFor(id))write(path.join(runtime,name),fs.readFileSync(path.join(prepared.workspace,name)));
     const executed=execute(prepared,'execute-'+role,[built.executable.path],runtime,role,{COURSE_BENCHMARK_ADAPTER:role,VIEWER_DXC_PATH:path.join(path.dirname(built.executable.path),'dxcompiler.dll')});
@@ -95,7 +95,7 @@ export function runHardwareBenchmark(id:string,role:'nvidia'|'warp'){
     const frame=path.join(runtime,'frame.ppm'),pixels=ppm(frame),rgba=path.join(runtime,'frame.rgba');assert.equal(pixels.width,1280);assert.equal(pixels.height,960);assert.equal(fs.statSync(rgba).size,1280*960*4);
     const rgbaBytes=fs.readFileSync(rgba);for(let i=0;i<pixels.pixels.length;i++)assert.equal(pixels.pixels[i],rgbaBytes[Math.floor(i/3)*4+i%3]);
     const image=path.join(runtime,id+'-'+role+'.png');write(image,png(frame));
-    const originalAgreement=prepared.originalImage?hash(fs.readFileSync(path.resolve(viewer,prepared.originalImage.path)))===sha(image):null;
+    const originalAgreement=prepared.originalImage?sha(resolveJourneyImage(path.resolve(viewer,prepared.originalImage.path),prepared.originalImage.sha256))===sha(image):null;
     if(role==='warp'&&prepared.originalImage)assert.equal(originalAgreement,true,'Reversible WARP variant must reproduce retained original RGB image');
     const result={status:'ACTUAL_IMAGE_AWAITING_ROOT_REVIEW',id,role,source:prepared.source,driver:prepared.driver,adapter,executed,executable:built.executable,
         rgba:{path:rgba,sha256:sha(rgba)},image:{path:image,sha256:sha(image),width:1280,height:960},matchesRetainedOriginalRGB:originalAgreement};

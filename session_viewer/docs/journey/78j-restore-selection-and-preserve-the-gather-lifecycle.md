@@ -1256,7 +1256,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Three original boxes retain independent placements.
 
-![Native renderer output for restore selection and preserve the gather lifecycle.](../screenshots/journey/78-copy-current-curve-collection-and-surfacing-recipes.png)
+![Native renderer output for restore selection and preserve the gather lifecycle.](../screenshots/journey/77zzo-revolve-original-profiles-around-an-axis.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -1470,7 +1470,7 @@ fn retention_headers_reject_invalid_bounds_and_clocks() {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 4.3 (34fc-retention)](../../../screenshots/journey/34fc-retention-browser.png)
+![Recorded visual output for Lesson 4.3 (34fc-retention)](../../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 cd workspace/journey

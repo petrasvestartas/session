@@ -1251,7 +1251,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The extended line and projected original curve remain visible.
 
-![Native renderer output for connect pending split completion to one history change.](../screenshots/journey/82a-own-the-split-target-and-toggle-original-cutters.png)
+![Native renderer output for connect pending split completion to one history change.](../screenshots/journey/81za-validate-original-split-inputs-and-name-pieces.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

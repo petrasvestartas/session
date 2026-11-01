@@ -60,20 +60,61 @@ export function prepareHistoricalScene(id: string, buildFile: string) {
     write(preparedFile,JSON.stringify(prepared,null,2)+'\n');check(prepared);return prepared;
 }
 
+export async function waitHistoricalStartup(page: any, prepared: any, errors: string[], startupEvents: any) {
+    try {
+        await page.goto(process.env.VIEWER_URL);
+        await page.waitForFunction(()=>{const w=window as any;return w.__presentationDevices?.length>0&&!/^Waiting/.test(document.querySelector('#status')?.textContent||'Waiting');});
+    } catch (error) {
+        const file = path.join(prepared.folder, 'startup-failure.json');
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+            let snapshot: any;
+            try {
+                snapshot = await Promise.race([
+                    page.evaluate(() => {
+                        const w = window as any, canvas = document.querySelector('canvas'), status = document.querySelector('#status');
+                        const rect = canvas?.getBoundingClientRect();
+                        return {url: location.href, readyState: document.readyState,
+                            status: {text: status?.textContent ?? null, hidden: status?.hasAttribute('hidden') ?? null},
+                            gpuAvailable: !!navigator.gpu, gpuAdapterAvailable: typeof w.GPUAdapter !== 'undefined',
+                            adapters: w.__presentationAdapters ?? null, deviceCount: w.__presentationDevices?.length ?? null,
+                            gpuErrors: w.__presentationErrors ?? null,
+                            canvas: canvas ? {width: canvas.width, height: canvas.height,
+                                client: rect ? {width: rect.width, height: rect.height} : null,
+                                attributes: Object.fromEntries(canvas.getAttributeNames().filter(name => name.startsWith('data-')).map(name => [name, canvas.getAttribute(name)]))} : null};
+                    }),
+                    new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Passive startup snapshot exceeded 2000ms')), 2000); }),
+                ]);
+            } catch (readError) { snapshot = {readError: String(readError)}; }
+            finally { if (timer) clearTimeout(timer); }
+            write(file, JSON.stringify({status: 'FAILED_INITIAL_READINESS_NO_CAPTURE', id: prepared.id,
+                recordedUtc: new Date().toISOString(), originalError: error instanceof Error ? {name: error.name, message: error.message, stack: error.stack} : String(error),
+                pageErrors: errors, ...startupEvents, snapshot}, null, 2) + '\n');
+            console.error('Historical browser startup failure evidence: ' + file);
+        } catch (diagnosticError) {
+            try { console.error('Could not record historical browser startup failure evidence at ' + file + ': ' + String(diagnosticError)); } catch {}
+        }
+        throw error;
+    }
+}
+
 async function worker(prepared: any) {
     const require = Module.createRequire(path.join(docs,'capture_journey.cjs')), {chromium} = require('playwright');
     const browser = await chromium.launch({headless:true,executablePath:process.env.VIEWER_BROWSER_EXECUTABLE,args:JSON.parse(process.env.VIEWER_CHROME_ARGS!)});
     try {
         const context = await browser.newContext({viewport:prepared.viewport,deviceScaleFactor:prepared.density,acceptDownloads:true});
         const page=await context.newPage(),errors:string[]=[];page.on('pageerror',(e:any)=>errors.push(e.message));
+        const startupEvents: any = {consoleErrors: [], requestFailures: [], httpErrors: []};
+        page.on('console', (message: any) => { if (message.type() === 'error') startupEvents.consoleErrors.push({text: message.text(), location: message.location()}); });
+        page.on('requestfailed', (request: any) => startupEvents.requestFailures.push({url: request.url(), method: request.method(), failure: request.failure()}));
+        page.on('response', (response: any) => { if (response.status() >= 400) startupEvents.httpErrors.push({url: response.url(), status: response.status()}); });
         await (new Function('page','return(async()=>{'+observeGpu+'})()'))(page);
         const capture=path.join(docs,'capture_journey.cjs'),original=read(capture),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
         const helpers=new Module(capture);helpers.filename=capture;helpers.paths=Module._nodeModulePaths(path.dirname(capture));
         const previous=process.argv;
         try{process.argv=[previous[0],capture,prepared.id];helpers._compile(original.split(boundary)[0]+'\nmodule.exports={command,drawing};',capture);}finally{process.argv=previous;}
         const command=(line:string)=>helpers.exports.command(page,line);
-        await page.goto(process.env.VIEWER_URL);
-        await page.waitForFunction(()=>{const w=window as any;return w.__presentationDevices?.length>0&&!/^Waiting/.test(document.querySelector('#status')?.textContent||'Waiting');});
+        await waitHistoricalStartup(page, prepared, errors, startupEvents);
         await page.waitForFunction(()=>{const c=document.querySelector('canvas')!,r=c.getBoundingClientRect();return devicePixelRatio===2&&c.width===Math.round(r.width*2)&&c.height===Math.round(r.height*2);});
         for(const action of prepared.recipe.actions) {
             if(action.command)await command(action.command);

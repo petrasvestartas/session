@@ -80,7 +80,7 @@ An extended original line and a projected original curve lie on the XY plane. Mi
 
 The extended line and projected curve lie on XY with retained original geometry identities.
 
-![Native renderer output for exercise original projection retry and repeated extension.](../screenshots/journey/81v-exercise-original-projection-retry-and-repeated-extension.png)
+![Native renderer output for exercise original projection retry and repeated extension.](../screenshots/journey/81za-validate-original-split-inputs-and-name-pieces.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

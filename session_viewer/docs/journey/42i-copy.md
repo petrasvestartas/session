@@ -61,7 +61,7 @@ Run the checks. ID recording and copy are prepared; the next step connects async
 
 The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.
 
-![Native renderer output for record the id draw and aligned image copy.](../screenshots/journey/41f-input.png)
+![Native renderer output for record the id draw and aligned image copy.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

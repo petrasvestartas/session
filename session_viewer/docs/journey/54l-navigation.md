@@ -1035,7 +1035,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Blue Posts retain original black boundaries and the independent brown source beam.
 
-![Native renderer output for route mouse touch and wheel after panel input.](../screenshots/journey/54-camera.png)
+![Native renderer output for route mouse touch and wheel after panel input.](../screenshots/journey/53u-layers.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

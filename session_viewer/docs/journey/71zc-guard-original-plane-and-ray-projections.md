@@ -285,7 +285,7 @@ Plane and ray projection guards compile before drawing input uses them.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for guard original plane and ray projections.](../screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings.png)
+![Native renderer output for guard original plane and ray projections.](../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

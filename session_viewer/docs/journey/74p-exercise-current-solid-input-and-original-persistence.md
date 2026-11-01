@@ -80,7 +80,7 @@ An original Box, Pyramid and Block With Hole render on white. Current solid ques
 
 Original Box, Pyramid and Block With Hole display from completed maintained solid commands.
 
-![Native renderer output for exercise current solid input and original persistence.](../screenshots/journey/74p-exercise-current-solid-input-and-original-persistence.png)
+![Native renderer output for exercise current solid input and original persistence.](../screenshots/journey/74zb-build-original-cones-and-spheres.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
-import {assetsFor, course, docs, expected, filesIn, fingerprint, hash, json, lockFor, materialize, read, reference, viewer, write} from './model.ts';
+import {assetsFor, course, docs, expected, filesIn, fingerprint, hash, json, lockFor, materialize, read, reference, viewer, write, resolveJourneyImage} from './model.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
 import {nativeTarget, runCommand} from './verify.ts';
 import {png, ppm} from './png.ts';
@@ -114,14 +114,17 @@ export function inventory() {
             const url = (match[1] || match[2]).replace(/^<|>$/g, '').split(/[?#]/)[0];
             if (!/\.png$/i.test(url) || /^(?:https?:|data:)/.test(url)) continue;
             const file = path.resolve(path.dirname(page), decodeURIComponent(url));
-            if (!fs.existsSync(file)) { missing.push({page: relative(page), image: url}); continue; }
+            const actual = file.startsWith(path.join(docs, 'screenshots/journey') + path.sep) ? resolveJourneyImage(file) : file;
+            if (!fs.existsSync(actual)) { missing.push({page: relative(page), image: url}); continue; }
             const sources = images.get(file) || new Set<string>();
             sources.add(relative(page)); images.set(file, sources);
         }
     }
     const readerImages = new Set(images.keys());
     const directRoot = path.join(docs, 'screenshots/journey');
-    for (const name of fs.readdirSync(directRoot)) {
+    const aliasFile = path.join(directRoot, 'image-aliases.json');
+    const aliases = fs.existsSync(aliasFile) ? Object.keys(json(aliasFile).aliases) : [];
+    for (const name of new Set([...fs.readdirSync(directRoot), ...aliases.filter(name => !name.includes('/'))])) {
         if (name.endsWith('.png')) {
             const file = path.join(directRoot, name);
             if (!images.has(file)) images.set(file, new Set());
@@ -134,9 +137,9 @@ export function inventory() {
         const exact = native || browser;
         const variant = exact ? null : steps.filter(step => name.startsWith(`${step.id}-`)).sort((a, b) => b.id.length - a.id.length)[0];
         const checkpoint = exact || variant;
-        const bytes = fs.readFileSync(file);
+        const actual = resolveJourneyImage(file), bytes = fs.readFileSync(actual);
         assert(bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), file);
-        return {path: relative(file), sha256: hash(bytes), width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20),
+        return {path: relative(file), ...(actual === file ? {} : {physicalPath: relative(actual)}), sha256: hash(bytes), width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20),
             checkpoint: checkpoint?.id || null, frame: checkpoint?.frame || null,
             kind: native ? 'native' : browser ? 'browser' : variant ? 'variant' : 'supporting',
             queue: readerImages.has(file) ? 'reader-published' : 'direct-public',

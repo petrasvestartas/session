@@ -159,7 +159,7 @@ The planar ellipse helper can use separate original radii before command input i
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build original planar ellipses.](../screenshots/journey/75za-build-original-planar-circles.png)
+![Native renderer output for build original planar ellipses.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

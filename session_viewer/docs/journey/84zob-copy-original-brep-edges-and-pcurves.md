@@ -120,7 +120,7 @@ BRep face extraction can preserve the required original edge and pcurve records.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for copy original brep edges and pcurves.](../screenshots/journey/84zza-describe-removable-cad-parts.png)
+![Native renderer output for copy original brep edges and pcurves.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

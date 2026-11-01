@@ -57,7 +57,7 @@ The world-text quad derives its vertices from the original label plane. The brow
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for build the world-plane text quad.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for build the world-plane text quad.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

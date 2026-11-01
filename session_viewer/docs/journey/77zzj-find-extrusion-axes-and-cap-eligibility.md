@@ -83,7 +83,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for find extrusion axes and cap eligibility.](../screenshots/journey/77zza-describe-curve-gathering-answers.png)
+![Native renderer output for find extrusion axes and cap eligibility.](../screenshots/journey/77zzo-revolve-original-profiles-around-an-axis.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

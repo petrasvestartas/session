@@ -64,7 +64,7 @@ Original profiles can be framed on their rail without changing the existing draw
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for frame original profiles on their rail.](../screenshots/journey/79-retain-current-loft-section-order-and-degree-options.png)
+![Native renderer output for frame original profiles on their rail.](../screenshots/journey/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

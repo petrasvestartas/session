@@ -864,7 +864,7 @@ Three copied and independently transformed original boxes remain visible while t
 
 Three original boxes retain independent placements.
 
-![Native renderer output for copy current curve collection and surfacing recipes.](../screenshots/journey/78-copy-current-curve-collection-and-surfacing-recipes.png)
+![Native renderer output for copy current curve collection and surfacing recipes.](../screenshots/journey/77zzo-revolve-original-profiles-around-an-axis.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -107,7 +107,7 @@ One original BRep face can be rebuilt from its retained boundary data.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build one original brep face.](../screenshots/journey/84zza-describe-removable-cad-parts.png)
+![Native renderer output for build one original brep face.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -117,7 +117,7 @@ The reconstruct original surfaces from depth shader section is written; the ambi
 
 The original section color is unchanged; supplied readback checks inspect all six actual depth/radius levels.
 
-![Native renderer output for reconstruct original surfaces from depth.](../screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png)
+![Native renderer output for reconstruct original surfaces from depth.](../screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

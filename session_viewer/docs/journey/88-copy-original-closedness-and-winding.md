@@ -162,7 +162,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Actual color clipping removes the right halves while retaining original geometry on the left.
 
-![Native renderer output for classify original closedness and winding.](../screenshots/journey/88-copy-original-closedness-and-winding.png)
+![Native renderer output for classify original closedness and winding.](../screenshots/journey/87ab-exercise-original-clipping-color-and-picking.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

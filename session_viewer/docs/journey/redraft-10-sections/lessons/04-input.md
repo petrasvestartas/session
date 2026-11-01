@@ -349,7 +349,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 ## Build & Run
 
-![Recorded visual output for Lesson 1.4 (04-input)](../../../screenshots/journey/04-input-browser.png)
+![Recorded visual output for Lesson 1.4 (04-input)](../../../screenshots/journey/03d-input-browser.png)
 
 ```sh
 cd workspace/journey

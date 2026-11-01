@@ -917,7 +917,7 @@ Two placements share one original triangle definition and one face batch. One se
 
 Independent yellow and blue shared-definition placements beside original black CAD boundaries.
 
-![Native renderer output for inspect and exercise original definition instances.](../screenshots/journey/69n-inspect-and-exercise-original-definition-instances.png)
+![Native renderer output for inspect and exercise original definition instances.](../screenshots/journey/69a-describe-a-rigid-frame-and-original-shape-key.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

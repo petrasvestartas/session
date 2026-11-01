@@ -121,7 +121,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The mixed original CAD, surface and coloured cloud scene remains visible.
 
-![Native renderer output for account for original and retained source data.](../screenshots/journey/67-supply-checked-array-layout-readers.png)
+![Native renderer output for account for original and retained source data.](../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

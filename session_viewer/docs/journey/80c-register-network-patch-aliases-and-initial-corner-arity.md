@@ -81,7 +81,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The smooth surface and its original sections remain visible.
 
-![Native renderer output for register network patch aliases and initial corner arity.](../screenshots/journey/79d-exercise-original-sections-rail-groups-and-exact-persistence.png)
+![Native renderer output for register network patch aliases and initial corner arity.](../screenshots/journey/79zze-fit-the-original-gordon-surface.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

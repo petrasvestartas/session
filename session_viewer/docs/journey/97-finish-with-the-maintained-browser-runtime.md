@@ -1457,15 +1457,7 @@ Serve the final maintained-runtime bundle on localhost with ?inspect=1&nogrid=1.
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
-
-The native teaching comparison retains its original blue pedestal and black boundaries. This illustration is not a browser screenshot or a pixel-equivalence claim.
-
-![Native renderer output for compare with the maintained browser runtime.](../screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas.png)
-
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
-
-This reference image is shared with [19.3.3 · Fit original box corners to the free canvas](96u-fit-original-box-corners-to-the-free-canvas.md). It does not demonstrate a new feature by itself.
+Run the maintained endpoint at `http://127.0.0.1:8780/?inspect=1&nogrid=1`; the diagram below shows its browser-runtime handoff.
 
 <details>
 <summary>Code explanation and diagram</summary>

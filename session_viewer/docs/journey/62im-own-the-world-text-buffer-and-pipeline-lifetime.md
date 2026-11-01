@@ -57,7 +57,7 @@ The world-text owner can retarget pipelines and release retained resources. The 
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for own the world-text buffer and pipeline lifetime.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for own the world-text buffer and pipeline lifetime.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

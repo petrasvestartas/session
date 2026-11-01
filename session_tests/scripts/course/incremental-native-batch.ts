@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {prepare as prepareCanonical} from './presentation.ts';
 import {runIncremental, verifyIncremental, capturePolicy} from './incremental-native-presentation.ts';
-import {filesIn, hash, json, viewer, withExpectedSequence, write} from './model.ts';
+import {filesIn, hash, json, resolveJourneyImage, viewer, withExpectedSequence, write} from './model.ts';
 
 const script = fileURLToPath(import.meta.url);
 const sha = (file: string) => hash(fs.readFileSync(file));
@@ -36,7 +36,7 @@ function canonicalCapture(id: string, row: any, density: number) {
     const result = prepareCanonical(id, density);
     assert.equal(result.status, 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW');
     assert.equal(result.image.sha256, row.image.sha256);
-    assert.equal(sha(absolute(result.image.path)), result.image.sha256);
+    assert.equal(sha(resolveJourneyImage(absolute(result.image.path), result.image.sha256)), result.image.sha256);
     return result;
 }
 
@@ -113,7 +113,7 @@ export function validateIncrementalBenchmark(proofFile: string) {
         assert.equal(incremental.id, id); assert.equal(canonical.status, 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW');
         const retained = prepareCanonical(id, 2); assert.equal(retained.status, 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW');
         assert.deepEqual(incremental.source, canonical.source); assert.deepEqual(canonical.source, retained.source);
-        assert.equal(sha(absolute(canonical.image.path)), canonical.image.sha256);
+        assert.equal(sha(resolveJourneyImage(absolute(canonical.image.path), canonical.image.sha256)), canonical.image.sha256);
         assert.equal(incremental.image.sha256, canonical.image.sha256, 'Fresh incremental GPU pixels must exactly match this checkpoint canonical capture');
         assert.equal(incremental.image.width, canonical.image.width); assert.equal(incremental.image.height, canonical.image.height);
         assert.equal(incremental.profile.CARGO_INCREMENTAL, '1');
@@ -156,7 +156,7 @@ export function runIncrementalBatch(directory: string, benchmarkFile: string) {
                 if (captured(canonical)) {
                     const retained = progress.items[item.id];
                     assert.equal(sha(retained.sourceRecord), retained.sourceRecordSha256);
-                    assert.equal(sha(absolute(retained.image.path)), retained.image.sha256); continue;
+                    assert.equal(sha(resolveJourneyImage(absolute(retained.image.path), retained.image.sha256)), retained.image.sha256); continue;
                 }
                 const snapshot = prepareCanonical(item.id, cohort.density);
                 if (snapshot.status === 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW') {
@@ -194,19 +194,19 @@ export function publishIncrementalApproved(directory: string, reviewFile: string
             if (item.backend === 'stable-incremental') {
                 const retained = verifyIncremental(item.sourceRecord); assert.equal(retained.image.sha256, approved.sha256);
             } else canonicalCapture(approved.id, item, cohort.density);
-            const image = absolute(item.image.path); assert.equal(sha(image), approved.sha256);
+            const image = resolveJourneyImage(absolute(item.image.path), approved.sha256); assert.equal(sha(image), approved.sha256);
             const destination = path.resolve(viewer, item.path);
             assert(destination.startsWith(path.join(viewer, 'docs/screenshots/journey') + path.sep));
-            const current = sha(destination), backup = path.join(directory, 'original-images', path.basename(destination));
+            const currentImage = resolveJourneyImage(destination), current = sha(currentImage), backup = path.join(directory, 'original-images', path.basename(destination));
             if (current !== approved.sha256) {
                 assert(current === item.originalSha256 || current === approved.explicitlyReviewedCurrentDestinationSHA,
                     'Preserve a manual publication unless its exact existing SHA is explicitly reviewed');
                 fs.mkdirSync(path.dirname(backup), {recursive: true});
-                if (!fs.existsSync(backup)) fs.copyFileSync(destination, backup, fs.constants.COPYFILE_EXCL);
+                if (!fs.existsSync(backup)) fs.copyFileSync(currentImage, backup, fs.constants.COPYFILE_EXCL);
                 assert.equal(sha(backup), current); fs.copyFileSync(image, destination);
                 item.originalBackup = {path: backup, sha256: current};
             } else item.preexistingMatchingPublication = true;
-            assert.equal(sha(destination), approved.sha256);
+            assert.equal(sha(resolveJourneyImage(destination, approved.sha256)), approved.sha256);
             item.status = 'PUBLISHED_ROOT_REVIEWED'; item.rootReview = {path: reviewFile, sha256: sha(reviewFile)};
         }
     });

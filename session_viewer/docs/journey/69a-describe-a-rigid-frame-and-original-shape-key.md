@@ -125,7 +125,7 @@ The complete key can identify candidates. Physical-size and original-source chec
 
 Independent yellow and blue shared-definition placements remain visible beside original CAD borders.
 
-![Native renderer output for assemble an original rigid shape key.](../screenshots/journey/69zza-move-between-original-rigid-frames.png)
+![Native renderer output for assemble an original rigid shape key.](../screenshots/journey/69a-describe-a-rigid-frame-and-original-shape-key.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -966,7 +966,7 @@ Finite ink no longer binds the float section image.
 
 This supporting frame has no instances; use the supplied original Session specimen for the browser exercise.
 
-![Native renderer output for read section visibility from one image.](../screenshots/journey/96zza-connect-section-primitive-images.png)
+![Native renderer output for read section visibility from one image.](../screenshots/journey/96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

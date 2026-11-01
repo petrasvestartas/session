@@ -4,7 +4,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare, assetsFor, withExpectedSequence} from './model.ts';
+import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare, assetsFor, withExpectedSequence, resolveJourneyImage, type Step} from './model.ts';
 import {png, ppm} from './png.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
 
@@ -181,8 +181,18 @@ function sourceHash(file: string) {
     return hash(Buffer.from(text, 'utf8').equals(bytes) ? text.replaceAll('\r\n', '\n') : bytes);
 }
 
+export function assertRepeatedImage(step: Step, file: string, previous: string | undefined, steps: Step[], byCheckpoint: Map<string, Set<string>>, digest: string) {
+    const firstClear = step.id === '02-clear' && path.basename(file).endsWith('-browser.png')
+        && previous && path.basename(previous).endsWith('-browser.png') && byCheckpoint.get('01-canvas')?.has(digest);
+    const sameAs = step.image_same_as;
+    const parent = sameAs ? steps.findIndex(candidate => candidate.id === sameAs) : -1;
+    if (sameAs) assert(parent >= 0 && parent < steps.indexOf(step), `${step.id}: repeated-image parent must precede this step`);
+    const declaredSame = sameAs && byCheckpoint.get(sameAs)?.has(digest);
+    assert(!previous || firstClear || declaredSame, `Undeclared repeated lesson image: ${file}`);
+}
+
 function structureChecks() {
-    const images = new Map<string, string>();
+    const images = new Map<string, string>(), byCheckpoint = new Map<string, Set<string>>();
     const steps = course().steps;
     for (const step of steps) {
         const files = expected(step.id);
@@ -193,17 +203,12 @@ function structureChecks() {
         assert(files['Cargo.toml'] && files['src/lib.rs']);
         for (const match of page.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
             const file = path.resolve(path.dirname(path.join(docs, step.page)), match[1]);
-            const digest = hash(fs.readFileSync(file));
+            const digest = hash(fs.readFileSync(resolveJourneyImage(file)));
             const previous = images.get(digest);
-            // Some changes (GPU initialization or ownership) deliberately keep the picture.
-            const firstClear = path.basename(file) === '02-clear-browser.png'
-                && previous && path.basename(previous) === '01-canvas-browser.png';
-            const sameAs = step.image_same_as;
-            const parent = sameAs ? steps.findIndex(candidate => candidate.id === sameAs) : -1;
-            if (sameAs) assert(parent >= 0 && parent < steps.indexOf(step), `${step.id}: repeated-image parent must precede this step`);
-            const declaredSame = sameAs && previous && [`${sameAs}.png`, `${sameAs}-browser.png`].includes(path.basename(previous));
-            assert(!previous || firstClear || declaredSame, `Undeclared repeated lesson image: ${file}`);
+            assertRepeatedImage(step, file, previous, steps, byCheckpoint, digest);
             images.set(digest, file);
+            const seen = byCheckpoint.get(step.id) || new Set<string>();
+            seen.add(digest); byCheckpoint.set(step.id, seen);
         }
     }
     const destination = json(path.join(docs, course().inventory || 'journey/current-viewer-2026-10-09.json'));

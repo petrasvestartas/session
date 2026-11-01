@@ -56,7 +56,7 @@ Anchored glyphs and overlays have separate preparation inputs. The browser frame
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for collect anchored and overlay glyph work separately.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for collect anchored and overlay glyph work separately.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

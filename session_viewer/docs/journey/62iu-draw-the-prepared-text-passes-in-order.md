@@ -85,7 +85,7 @@ All text owners are assembled. Their placement and depth fixtures validate the b
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for draw the prepared text passes in order.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for draw the prepared text passes in order.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

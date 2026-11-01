@@ -82,7 +82,7 @@ Inspect the four imported-feature regression tests, then repeat the Open sample.
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for prove imported feature ownership and round trips.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for prove imported feature ownership and round trips.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

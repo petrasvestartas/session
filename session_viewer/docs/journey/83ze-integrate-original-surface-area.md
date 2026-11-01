@@ -155,7 +155,7 @@ Surface-area integration can measure original surface data before the measuremen
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for integrate original surface area.](../screenshots/journey/83za-visit-original-mesh-triangles-and-format-measures.png)
+![Native renderer output for integrate original surface area.](../screenshots/journey/83ze-integrate-original-surface-area.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

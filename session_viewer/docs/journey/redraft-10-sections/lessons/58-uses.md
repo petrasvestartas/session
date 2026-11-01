@@ -332,7 +332,7 @@ pub mod cad_orient;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 9.4 (58za-match-original-face-edge-directions)](../../../screenshots/journey/58za-match-original-face-edge-directions.png)
+![Recorded visual output for Lesson 9.4 (58za-match-original-face-edge-directions)](../../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 ```sh
 cd workspace/journey

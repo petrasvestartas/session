@@ -1321,7 +1321,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 4.4 (34gbca-startup)](../../../screenshots/journey/34gbca-startup-browser.png)
+![Recorded visual output for Lesson 4.4 (34gbca-startup)](../../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 cd workspace/journey

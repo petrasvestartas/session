@@ -80,7 +80,7 @@ An original rectangle and five-sided polygon render on white. Both are closed ke
 
 A closed original rectangle and an oriented five-sided original polygon render from completed current commands.
 
-![Native renderer output for exercise oriented original planar constructions.](../screenshots/journey/73g-exercise-oriented-original-planar-constructions.png)
+![Native renderer output for exercise oriented original planar constructions.](../screenshots/journey/73t-build-regular-kernel-polyhedra.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

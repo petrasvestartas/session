@@ -2,7 +2,7 @@ import {changedBlocks, lines, lineContext} from './line-diff.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
-import {course, docs, read, json, write, hash, typingLoad, edited, expected, withExpectedSequence, type Step, type Edit} from './model.ts';
+import {course, docs, read, json, write, hash, typingLoad, edited, expected, withExpectedSequence, resolveJourneyImage, type Step, type Edit} from './model.ts';
 import {signature} from './verify.ts';
 import {courseBook, readingBook} from '../../src/courseBook.ts';
 
@@ -102,6 +102,13 @@ function implementationLinks(text: string, from: string, to: string) {
     }).join('\n');
 }
 
+export function resultImage(file: string, caption: string) {
+    const image = resolveJourneyImage(file);
+    fs.readFileSync(image);
+    const actual = path.relative(path.join(docs, 'screenshots/journey'), image).split(path.sep).join('/');
+    return `![${caption}](../screenshots/journey/${actual})`;
+}
+
 export function generate(ids?: string[]) {
     return withExpectedSequence(() => generatePages(ids ? new Set(ids) : undefined));
 }
@@ -117,13 +124,6 @@ function generatePages(selected?: Set<string>) {
     const consolidatedCount = json(path.join(docs, 'journey/book.json')).chapters.filter((chapter: {consolidated?: unknown[]}) => chapter.consolidated).length;
     const sources = new Map<string, string>();
     const files: Record<string, string> = {};
-    const pictureFiles = new Map<string, string>();
-    const resultImage = (file: string, caption: string) => {
-        const digest = hash(fs.readFileSync(path.join(docs, 'screenshots/journey', file)));
-        const shared = pictureFiles.get(digest) || file;
-        pictureFiles.set(digest, shared);
-        return `![${caption}](../screenshots/journey/${shared})`;
-    };
     const sourceFor = (id: string) => {
         if (!sources.has(id)) sources.set(id, signature(id));
         return sources.get(id)!;
@@ -147,7 +147,7 @@ function generatePages(selected?: Set<string>) {
             && review.source === proof.source && review.checker === proof.extraChecker && review.file === proof.file
             && review.images?.[proof.file]
             && Object.entries(review.images).every(([file, digest]) => {
-                const image = path.join(docs, 'screenshots/journey', file);
+                const image = resolveJourneyImage(file, String(digest));
                 return fs.existsSync(image) && digest === hash(fs.readFileSync(image));
             });
     };
@@ -274,7 +274,7 @@ function generatePages(selected?: Set<string>) {
                 ...(reviewed ? ['**Critical browser-scene review accepted.**', visualFor(step).caption] : step.browser_check ? ['**Feature-specific visual review pending.** Scripted acceptance and the final main-page capture are separate evidence. A checker may restore its general fixture after closing the feature-test page; this image does not establish the feature’s visual correctness.'] : []),
                 resultImage(evidence.file, reviewed ? visualFor(step).caption : step.browser_check ? `General browser fixture after ${step.title}; feature-scene visual acceptance pending.` : `Actual browser result: ${step.title}.`),
                 '[Verification scope](release.md).');
-        } else if (index && fs.existsSync(path.join(docs, 'screenshots/journey', `${step.id === '04-input' ? '04-input-light' : step.id}.png`))) {
+        } else if (index && fs.existsSync(resolveJourneyImage(`${step.id === '04-input' ? '04-input-light' : step.id}.png`))) {
             const picture = step.id === '04-input' ? '04-input-light' : step.id;
             const current = builds[step.id]?.source === source;
             page.push('### Recorded visual result',
@@ -363,7 +363,7 @@ function generatePages(selected?: Set<string>) {
         contents.push(`**Automated Chrome checks: ${checked} of ${lessons.length} checkpoints current.**${checked < lessons.length ? ' Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.' : ''}`);
         const reviewed = lessons.filter(lesson => reviewedBrowserScene(stepsById.get(lesson.id)!)).length;
         contents.push(`**Critical browser-scene review: ${reviewed} of ${lessons.length} checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.`);
-        const imageExists = (file: string) => fs.existsSync(path.join(docs, 'screenshots/journey', file));
+        const imageExists = (file: string) => fs.existsSync(resolveJourneyImage(file));
         const nativeFile = (id: string) => `${id === '04-input' ? '04-input-light' : id}.png`;
         const stepFor = (id: string) => stepsById.get(id)!;
         const reviewedCheckpoint = lessons.find(lesson => reviewedBrowserScene(stepFor(lesson.id)));
@@ -385,7 +385,7 @@ function generatePages(selected?: Set<string>) {
             else if (reviewed) contents.push(`**Critical browser-scene review accepted.** ${visualFor(stepFor(checkpoint.id)).caption}`);
             else contents.push('**Critical visual review pending.** This recorded reference is not an accepted visual-quality result.');
             contents.push(`**${status}.** [${checkpoint.number} · ${checkpoint.title}](${checkpoint.id}.md).${isBrowser && proof.captured ? ` Captured ${proof.captured.slice(0, 10)}.` : ''}`,
-                `![Chapter ${chapter.number}: ${checkpoint.title}. ${status}.](../screenshots/journey/${file})`);
+                resultImage(file, `Chapter ${chapter.number}: ${checkpoint.title}. ${status}.`));
         } else {
             contents.push('**Visual verification pending.** No recorded image is available for this chapter yet.');
         }

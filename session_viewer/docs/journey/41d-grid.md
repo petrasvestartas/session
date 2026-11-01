@@ -438,7 +438,7 @@ Run bounded-grid and depth-range checks. Grid data has a fixed checked maximum, 
 
 This checkpoint was rendered independently and has the same native comparison frame as [Inspect smooth normals and face winding through commands](41ca-input.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native renderer output for bound the ground grid and its camera depth range.](../screenshots/journey/41d-grid.png)
+![Native renderer output for bound the ground grid and its camera depth range.](../screenshots/journey/37d-render.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

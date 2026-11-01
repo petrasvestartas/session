@@ -268,7 +268,7 @@ Supported original families have an explode dispatcher; browser acceptance follo
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for explode supported original families.](../screenshots/journey/84zza-describe-removable-cad-parts.png)
+![Native renderer output for explode supported original families.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

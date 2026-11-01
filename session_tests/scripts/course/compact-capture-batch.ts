@@ -8,7 +8,7 @@ import {nativeDevelopmentProfile} from './incremental-native-presentation.ts';
 import {nativeAdapterProfile} from './presentation.ts';
 import {verifyCaptureLedger, retirePublishedCapture} from './capture-ledger.ts';
 import {adapterMetadataPath, cargoTarget, compilerTools, fileReference} from './capture-storage.ts';
-import {course, docs, filesIn, hash, json, lockFor, viewer} from './model.ts';
+import {course, docs, filesIn, hash, json, lockFor, viewer, resolveJourneyImage} from './model.ts';
 
 type Entry = {lane: 'native' | 'browser'; id: string; route?: string; destination: string};
 type Queue = {entries: Entry[]; retained: {destination: string; sha256: string; reason: string}[];
@@ -76,6 +76,8 @@ function sourceGeneration(queue: Queue) {
     const directories = roots.map(root => ({root, names: filesIn(root).sort()}));
     const inputs = directories.flatMap(directory => directory.names);
     inputs.push(path.join(docs, 'journey/course.json'), path.join(docs, 'journey/frame.rs'), path.join(docs, 'capture_journey.cjs'));
+    const imageAliases = path.join(docs, 'screenshots/journey/image-aliases.json');
+    if (fs.existsSync(imageAliases)) inputs.push(imageAliases);
     for (const row of queue.entries) {
         inputs.push(lockFor(row.id, steps));
         if (row.route === 'maintained') inputs.push(path.join(docs, 'capture_current.cjs'));
@@ -133,8 +135,8 @@ function assertSource(source: any) {
 }
 
 function publish(image: Reference, output: string, previous: Reference | null, runtime: Runtime) {
-    output = destination(output, runtime); assertReference(image);
-    const bytes = fs.readFileSync(image.path);
+    output = destination(output, runtime);
+    const bytes = fs.readFileSync(resolveJourneyImage(image.path, image.sha256, runtime.destinations));
     assert(bytes.length > 24 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), 'Capture must be a PNG');
     assert(bytes.readUInt32BE(16) > 0 && bytes.readUInt32BE(20) > 0);
     if (fs.existsSync(output) && fileReference(output).sha256 === image.sha256) return fileReference(output);
@@ -193,13 +195,13 @@ export async function runCompactBatch(queueFile: string, options: {limit?: numbe
                 retainedUnchanged: queue.retained.length, unsupported, visualReview: 'PENDING_INDEPENDENT_REVIEW',
                 status: current.size === total ? 'COMPLETE_EXECUTION_PUBLICATION_RETIREMENT' : 'CHECKPOINT_PENDING'};
         };
-        for (const row of queue.retained) assert.equal(fileReference(row.destination).sha256, row.sha256, 'Explicit unchanged image changed');
+        for (const row of queue.retained) assert.equal(fileReference(resolveJourneyImage(row.destination, row.sha256, runtime.destinations)).sha256, row.sha256, 'Explicit unchanged image changed');
         for (const [index, row] of Object.entries(states)) if (row.retired) {
             try {
                 assertReference(row.capture); assertReference(row.publication);
                 const verified = runtime.verify(row.capture.path);
                 assert.equal(verified.status, 'PUBLISHED_BINARY_RETIRED');
-                assert.equal(fileReference(queue.entries[Number(index)].destination).sha256, verified.receipt.image.sha256, 'Completed publication is no longer current');
+                assert.equal(fileReference(resolveJourneyImage(queue.entries[Number(index)].destination, verified.receipt.image.sha256, runtime.destinations)).sha256, verified.receipt.image.sha256, 'Completed publication is no longer current');
                 current.add(Number(index));
             } catch (error) {
                 return {...summary(), status: 'STOPPED_ON_FAILURE', failed: {index: Number(index), id: queue.entries[Number(index)].id, error: String(error)}};
@@ -233,11 +235,11 @@ export async function runCompactBatch(queueFile: string, options: {limit?: numbe
                     append(index, {publication}); state = states[index];
                 } else {
                     assertReference(state.publication);
-                    assert.equal(fileReference(entry.destination).sha256, image.sha256, 'Pending retirement publication changed');
+                    assert.equal(fileReference(resolveJourneyImage(entry.destination, image.sha256, runtime.destinations)).sha256, image.sha256, 'Pending retirement publication changed');
                 }
                 const retired = runtime.retire(state.capture.path, entry.destination, state.publication.path);
                 assert.equal(retired.status, 'PUBLISHED_BINARY_RETIRED');
-                assert.equal(fileReference(entry.destination).sha256, image.sha256);
+                assert.equal(fileReference(resolveJourneyImage(entry.destination, image.sha256, runtime.destinations)).sha256, image.sha256);
                 append(index, {retired: true}); current.add(index); completed++;
             } catch (error) {
                 append(index, {failure: {at: new Date().toISOString(), message: String((error as Error).stack || error)}});

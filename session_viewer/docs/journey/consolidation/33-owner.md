@@ -387,8 +387,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 4.1 (33b-cache)](../../screenshots/journey/33b-cache-browser.png)
-
 ```sh
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1

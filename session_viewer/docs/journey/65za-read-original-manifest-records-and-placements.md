@@ -179,7 +179,7 @@ Manifest records retain original source keys and precise placements; loading is 
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for read original manifest records and placements.](../screenshots/journey/65za-read-original-manifest-records-and-placements.png)
+![Native renderer output for read original manifest records and placements.](../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

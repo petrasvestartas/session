@@ -1082,7 +1082,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 4.2 (34d-download)](../../../screenshots/journey/34d-download-browser.png)
+![Recorded visual output for Lesson 4.2 (34d-download)](../../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 cd workspace/journey

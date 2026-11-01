@@ -5246,7 +5246,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 3.6 (32fl-guards)](../../../screenshots/journey/32fl-guards-browser.png)
+![Recorded visual output for Lesson 3.6 (32fl-guards)](../../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 3.6

@@ -583,7 +583,7 @@ Create a freeform curve through the existing browser command dock. Its original 
 
 Original Cylinder, Cone, Sphere and Torus remain visible.
 
-![Native renderer output for create editable freeform curves.](../screenshots/journey/75za-build-original-planar-circles.png)
+![Native renderer output for create editable freeform curves.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

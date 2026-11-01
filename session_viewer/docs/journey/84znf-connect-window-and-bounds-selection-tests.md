@@ -189,7 +189,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for connect window and bounds selection tests.](../screenshots/journey/84zza-describe-removable-cad-parts.png)
+![Native renderer output for connect window and bounds selection tests.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

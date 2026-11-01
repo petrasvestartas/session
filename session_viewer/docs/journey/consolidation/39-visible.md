@@ -777,7 +777,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 5.5 (39a-depth)](../../screenshots/journey/39a-depth-browser.png)
+![Recorded visual output for Lesson 5.5 (39a-depth)](../../screenshots/journey/38d-input-browser.png)
 
 ```sh
 cd workspace/journey

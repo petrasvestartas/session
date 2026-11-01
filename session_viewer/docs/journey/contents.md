@@ -94,7 +94,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Previous native render — fresh verification pending.** [4.2.37 · Recover once at reduced canvas density](34geb-reload.md).
 
-![Chapter 4: Recover once at reduced canvas density. Previous native render — fresh verification pending.](../screenshots/journey/34geb-reload.png)
+![Chapter 4: Recover once at reduced canvas density. Previous native render — fresh verification pending.](../screenshots/journey/34gba-lifecycle.png)
 
 
 
@@ -118,7 +118,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Previous native render — fresh verification pending.** [5.7.8 · Inspect the ground grid through actual commands](41f-input.md).
 
-![Chapter 5: Inspect the ground grid through actual commands. Previous native render — fresh verification pending.](../screenshots/journey/41f-input.png)
+![Chapter 5: Inspect the ground grid through actual commands. Previous native render — fresh verification pending.](../screenshots/journey/42k-input.png)
 
 
 
@@ -376,7 +376,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Previous native render — fresh verification pending.** [16.5.52 · Exercise current original commands together](85ay-exercise-current-original-commands-together.md).
 
-![Chapter 16: Exercise current original commands together. Previous native render — fresh verification pending.](../screenshots/journey/85ay-exercise-current-original-commands-together.png)
+![Chapter 16: Exercise current original commands together. Previous native render — fresh verification pending.](../screenshots/journey/86r-cache-projection-and-finish-current-reports.png)
 
 
 
@@ -400,7 +400,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Previous native render — fresh verification pending.** [17.3.32 · Exercise original sections bores and ink](88ad-exercise-original-sections-bores-and-ink.md).
 
-![Chapter 17: Exercise original sections bores and ink. Previous native render — fresh verification pending.](../screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png)
+![Chapter 17: Exercise original sections bores and ink. Previous native render — fresh verification pending.](../screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png)
 
 
 
@@ -422,7 +422,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Previous native render — fresh verification pending.** [18.7.7 · Prove cache invalidation and honest performance reports](95f-prove-cache-invalidation-and-honest-performance-reports.md).
 
-![Chapter 18: Prove cache invalidation and honest performance reports. Previous native render — fresh verification pending.](../screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports.png)
+![Chapter 18: Prove cache invalidation and honest performance reports. Previous native render — fresh verification pending.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 
 
@@ -450,7 +450,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Previous native render — fresh verification pending.** [19.4.7 · Rebuild an edited Element without replacing its owner](96zg-rebuild-an-edited-element-without-replacing-its-owner.md).
 
-![Chapter 19: Rebuild an edited Element without replacing its owner. Previous native render — fresh verification pending.](../screenshots/journey/96zg-rebuild-an-edited-element-without-replacing-its-owner.png)
+![Chapter 19: Rebuild an edited Element without replacing its owner. Previous native render — fresh verification pending.](../screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas.png)
 
 
 
@@ -522,7 +522,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 **Current Chrome capture — critically reviewed scene.** [22.6.4 · Apply semantic view controls](96zzzzzzzp-apply-semantic-view-controls.md). Captured 2026-10-17.
 
-![Chapter 22: Apply semantic view controls. Current Chrome capture — critically reviewed scene.](../screenshots/journey/96zzzzzzzp-apply-semantic-view-controls-browser.png)
+![Chapter 22: Apply semantic view controls. Current Chrome capture — critically reviewed scene.](../screenshots/journey/96zzzzzzt-keep-contact-ambient-inputs-on-originals-browser.png)
 
 
 

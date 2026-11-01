@@ -359,7 +359,7 @@ The original plan remains visible while the drawing tools gain current construct
 
 Original black physical drawing pens and the blue hairline remain visible.
 
-![Native renderer output for place original coordinates in the selected plane.](../screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings.png)
+![Native renderer output for place original coordinates in the selected plane.](../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

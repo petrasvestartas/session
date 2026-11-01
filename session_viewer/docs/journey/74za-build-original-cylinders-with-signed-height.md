@@ -162,7 +162,7 @@ The cylinder builder retains signed height; its browser command connection follo
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build original cylinders with signed height.](../screenshots/journey/74za-build-original-cylinders-with-signed-height.png)
+![Native renderer output for build original cylinders with signed height.](../screenshots/journey/74zb-build-original-cones-and-spheres.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

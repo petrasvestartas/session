@@ -98,7 +98,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build a block with a kernel hole.](../screenshots/journey/73h-match-solid-command-options.png)
+![Native renderer output for build a block with a kernel hole.](../screenshots/journey/73t-build-regular-kernel-polyhedra.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

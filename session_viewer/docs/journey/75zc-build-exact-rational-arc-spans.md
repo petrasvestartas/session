@@ -64,7 +64,7 @@ Exact rational arc spans are prepared for the original curve recipe.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build exact rational arc spans.](../screenshots/journey/75za-build-original-planar-circles.png)
+![Native renderer output for build exact rational arc spans.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

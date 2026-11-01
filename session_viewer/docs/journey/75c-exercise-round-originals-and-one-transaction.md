@@ -80,7 +80,7 @@ An original Cylinder, Cone, Sphere and Torus display on white. Capsule and Quad 
 
 Original Cylinder, Cone, Sphere and Torus display from current maintained round commands.
 
-![Native renderer output for exercise round originals and one transaction.](../screenshots/journey/75c-exercise-round-originals-and-one-transaction.png)
+![Native renderer output for exercise round originals and one transaction.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

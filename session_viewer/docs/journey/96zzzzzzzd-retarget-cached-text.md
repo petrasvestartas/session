@@ -2165,7 +2165,7 @@ These actual Native GPU pictures show original world text, nameplates and screen
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for retarget cached text colour.](../screenshots/journey/96zzzzzzzd-retarget-cached-text.png)
+![Native renderer output for retarget cached text colour.](../screenshots/journey/96zzzzzzo-close-original-boundary-joins.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

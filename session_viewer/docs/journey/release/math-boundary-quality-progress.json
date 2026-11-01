@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T11:28:39.519976+00:00",
+  "updatedUtc": "2026-11-01T11:53:48.707035+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -169,11 +169,11 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 50,
-    "remainingAffected": 1276,
-    "acceptedForFinalSource": 45,
-    "remainingFinalSourceAcceptance": 1281,
-    "qualificationNote": "45 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
+    "newPublishedReviewed": 51,
+    "remainingAffected": 1275,
+    "acceptedForFinalSource": 46,
+    "remainingFinalSourceAcceptance": 1280,
+    "qualificationNote": "46 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
     "removedUnusedImages": 329,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2
@@ -1087,6 +1087,21 @@
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
       "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
       "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+    },
+    {
+      "id": "96h-prove-current-source-grammar-and-explicit-differences",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-source13-outline-scale2-browser96h-02-2b28f4471c75.json",
+      "receiptSha256": "29f7cce3316b21bdb36c95d97c5478b8aaeb06a12b95d84f13c1e9344c0c18c3",
+      "image": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+      "imageSha256": "2b28f4471c75e648dbc64c8675a2997f75c8d5d3be627ced1d5a864ad0f6ecb2",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
     }
   ],
   "stages": [
@@ -1104,7 +1119,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "45_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1281_REMAIN"
+      "status": "46_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1280_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -1125,7 +1140,7 @@
     "browser": "156.0.8078.79",
     "publishedImagesVerified": 25,
     "rebuiltWebsiteCodePages": "BUILD02_SIX_SOURCE_BOUND_READERS_PASS_INCLUDING_59_RETAINED_BYTES_AND_ACCOUNT",
-    "newSource13ImagesAwaitingChromeDecode": 0,
+    "newSource13ImagesAwaitingChromeDecode": 1,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
@@ -1149,7 +1164,7 @@
       "acceptedSourceProofsAtQa": 45,
       "currentPublishedHttpAndChromeVerified": 25,
       "currentSourceOnlyHashVerifiedNotPublishedOrServed": 20,
-      "currentAcceptedOutsideQaScope": 0,
+      "currentAcceptedOutsideQaScope": 1,
       "historicalDecodeMatchesCurrentAccepted": 31,
       "historicalDecodeScope": "Older decode receipts only; no current served claim for those31 historical matches.",
       "freshHttpChecksPerformed": true,

@@ -79,7 +79,7 @@ Ordered geometry and topology can contribute to a normalized key without changin
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for encode original parameters and topology.](../screenshots/journey/69zza-move-between-original-rigid-frames.png)
+![Native renderer output for encode original parameters and topology.](../screenshots/journey/69a-describe-a-rigid-frame-and-original-shape-key.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

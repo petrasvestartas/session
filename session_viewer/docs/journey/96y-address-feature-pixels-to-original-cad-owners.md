@@ -553,7 +553,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 This supporting frame has no instances; use the supplied original Session specimen for the browser exercise.
 
-![Native renderer output for address feature pixels to original cad owners.](../screenshots/journey/96y-address-feature-pixels-to-original-cad-owners.png)
+![Native renderer output for address feature pixels to original cad owners.](../screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

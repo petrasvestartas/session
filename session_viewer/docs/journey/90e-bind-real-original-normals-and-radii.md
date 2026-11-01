@@ -79,7 +79,7 @@ The supplied fixture checks both assembled shader interfaces. The browser drawin
 
 The original section color is unchanged; supplied readback checks inspect all six actual depth/radius levels.
 
-![Native renderer output for validate the assembled original ambient shader contracts.](../screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png)
+![Native renderer output for validate the assembled original ambient shader contracts.](../screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

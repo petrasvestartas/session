@@ -266,7 +266,7 @@ fn bundled_fonts() -> FontSystem {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 10.1 (60b-coverage)](../../../screenshots/journey/60b-coverage.png)
+![Recorded visual output for Lesson 10.1 (60b-coverage)](../../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 10.1

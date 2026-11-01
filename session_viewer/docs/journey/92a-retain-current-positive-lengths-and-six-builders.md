@@ -126,7 +126,7 @@ Positive length validation and the six Element builders compile before dispatch 
 
 Actual original curved and flat surfaces use the same black outline width.
 
-![Native renderer output for write original support variable beam and block builders.](../screenshots/journey/91zza-write-original-beam-column-and-plate-builders.png)
+![Native renderer output for write original support variable beam and block builders.](../screenshots/journey/91i-prove-actual-outlines-and-original-ownership.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

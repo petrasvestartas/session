@@ -4,7 +4,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {gzipSync, gunzipSync} from 'node:zlib';
-import {hash, json} from './model.ts';
+import {hash, json, docs} from './model.ts';
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture, ledgerReceiptFile} from './capture-ledger.ts';
 
@@ -152,4 +152,52 @@ test('JSON gzip decoding is explicit by suffix and corrupted gzip fails closed',
         fs.writeFileSync(gz, '{}'); assert.throws(() => json(gz));
         fs.writeFileSync(f.receipt, 'corrupted gzip'); assert.throws(() => verifyCaptureLedger(f.receipt));
     } finally { f.cleanup(); }
+});
+
+test('missing or replaced unaliased publication stays a false current-publication status', () => {
+    const f = fixture();
+    try {
+        const destination = path.join(f.root, 'published.png');
+        fs.copyFileSync(f.image, destination);
+        retirePublishedCapture(f.receipt, destination, f.publication);
+        fs.writeFileSync(destination, 'changed');
+        assert.equal(verifyCaptureLedger(f.receipt).currentPublication, false);
+        fs.unlinkSync(destination);
+        assert.equal(verifyCaptureLedger(f.receipt).currentPublication, false);
+    } finally { f.cleanup(); }
+});
+
+test('aliased PNG reads preserve immutable ledger references and repeat retirement', t => {
+    const f = fixture(), root = path.join(docs, 'screenshots/journey');
+    const original = path.join(root, '__ledger-removed.png'), canonical = path.join(root, '__ledger-retained.png');
+    const manifest = path.join(root, 'image-aliases.json'), sha256 = fileReference(f.image).sha256;
+    let aliasHash = sha256, removed = false;
+    const read = fs.readFileSync.bind(fs), exists = fs.existsSync.bind(fs), realpath = fs.realpathSync.bind(fs);
+    const stat = fs.statSync.bind(fs), lstat = fs.lstatSync.bind(fs);
+    t.mock.method(fs, 'existsSync', (file: any) => file === original ? !removed : file === canonical || file === manifest ? true : exists(file));
+    t.mock.method(fs, 'readFileSync', (file: any, ...args: any[]) => file === manifest
+        ? JSON.stringify({version: 1, aliases: {'__ledger-removed.png': {canonical: '__ledger-retained.png', sha256: aliasHash}}})
+        : (read as any)(file === canonical || file === original ? f.image : file, ...args));
+    t.mock.method(fs, 'realpathSync', (file: any, ...args: any[]) => file === canonical || file === root ? file : (realpath as any)(file, ...args));
+    t.mock.method(fs, 'statSync', (file: any, ...args: any[]) => (stat as any)(file === canonical || file === original ? f.image : file, ...args));
+    t.mock.method(fs, 'lstatSync', (file: any, ...args: any[]) => (lstat as any)(file === canonical ? f.image : file, ...args));
+    try {
+        const receipt = sealCapture({...f.options, directory: path.join(f.root, 'proof', 'alias'), image: original}).path;
+        retirePublishedCapture(receipt, original, f.publication);
+        removed = true;
+        const proofFiles = [receipt, ...['publication.json', 'retirement.json.gz', 'retired.json'].map(name => path.join(path.dirname(receipt), name))];
+        const before = proofFiles.map(fileReference);
+        assert.equal(json(receipt).image.path, original);
+        assert.equal(json(proofFiles[1]).destination.path, original);
+        assert.equal(verifyCaptureLedger(receipt).currentPublication, true);
+        assert.equal(retirePublishedCapture(receipt, original, f.publication).status, 'PUBLISHED_BINARY_RETIRED');
+        assert.deepEqual(proofFiles.map(fileReference), before);
+        aliasHash = hash('different');
+        assert.throws(() => verifyCaptureLedger(receipt), /hash mismatch/);
+        aliasHash = sha256; fs.writeFileSync(f.image, 'different');
+        assert.throws(() => verifyCaptureLedger(receipt), /hash mismatch/);
+        fs.writeFileSync(f.image, 'image');
+        assert.deepEqual(proofFiles.map(fileReference), before);
+        assert.equal(verifyCaptureLedger(receipt).currentPublication, true);
+    } finally { t.mock.restoreAll(); f.cleanup(); }
 });

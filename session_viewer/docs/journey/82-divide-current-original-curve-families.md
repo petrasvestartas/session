@@ -140,7 +140,7 @@ The extended original line and projected curve remain visible while original spl
 
 The extended line and projected original curve remain visible.
 
-![Native renderer output for divide original curves and joined faces.](../screenshots/journey/81v-exercise-original-projection-retry-and-repeated-extension.png)
+![Native renderer output for divide original curves and joined faces.](../screenshots/journey/81za-validate-original-split-inputs-and-name-pieces.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

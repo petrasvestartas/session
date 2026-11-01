@@ -154,7 +154,7 @@ Beam, column and plate source builders are prepared before their values and comm
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for write original beam column and plate builders.](../screenshots/journey/91zza-write-original-beam-column-and-plate-builders.png)
+![Native renderer output for write original beam column and plate builders.](../screenshots/journey/91i-prove-actual-outlines-and-original-ownership.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

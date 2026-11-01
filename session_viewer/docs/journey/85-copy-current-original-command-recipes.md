@@ -1042,7 +1042,7 @@ The selected original bounding box and temporary measurement remain visible whil
 
 The preceding solid, wire bounding box and temporary distance annotation remain visible.
 
-![Native renderer output for write original text placement and curve heads.](../screenshots/journey/84zza-describe-removable-cad-parts.png)
+![Native renderer output for write original text placement and curve heads.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

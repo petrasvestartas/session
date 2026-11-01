@@ -64,7 +64,7 @@ Construction-plane frames can be built without changing the current browser view
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build original construction-plane frames.](../screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings.png)
+![Native renderer output for build original construction-plane frames.](../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

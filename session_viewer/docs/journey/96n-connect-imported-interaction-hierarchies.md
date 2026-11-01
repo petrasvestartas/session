@@ -70,7 +70,7 @@ Accepted imports retain editable children and attach the validated original inte
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for connect imported elements to their feature hierarchy.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for connect imported elements to their feature hierarchy.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

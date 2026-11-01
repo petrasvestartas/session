@@ -58,7 +58,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Original Box, Pyramid and Block With Hole remain visible.
 
-![Native renderer output for register current round names and choices.](../screenshots/journey/74p-exercise-current-solid-input-and-original-persistence.png)
+![Native renderer output for register current round names and choices.](../screenshots/journey/74zb-build-original-cones-and-spheres.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

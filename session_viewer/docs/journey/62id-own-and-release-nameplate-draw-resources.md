@@ -56,7 +56,7 @@ Nameplate resources can reset their draw counts and release their owner separate
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for own and release nameplate draw resources.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for own and release nameplate draw resources.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

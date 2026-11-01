@@ -1294,7 +1294,7 @@ Replace it with:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 6.2 (43b-view)](../../../screenshots/journey/43b-view.png)
+![Recorded visual output for Lesson 6.2 (43b-view)](../../../screenshots/journey/42k-input.png)
 
 ```sh
 cd workspace/journey

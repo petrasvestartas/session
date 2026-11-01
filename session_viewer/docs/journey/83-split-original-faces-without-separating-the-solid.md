@@ -105,7 +105,7 @@ One original surface becomes a two-region trimmed BRep beside its retained origi
 
 One original trimmed BRep displays both face regions and their shared boundary beside the retained cutter.
 
-![Native renderer output for split original faces without separating the solid.](../screenshots/journey/83-split-original-faces-without-separating-the-solid.png)
+![Native renderer output for split original faces without separating the solid.](../screenshots/journey/83ze-integrate-original-surface-area.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

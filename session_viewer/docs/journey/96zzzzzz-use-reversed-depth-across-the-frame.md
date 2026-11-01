@@ -3694,7 +3694,7 @@ Original draw lanes, asynchronous picks and CPU rays use one reversed depth conv
 
 **Feature-specific visual review pending.** Scripted acceptance and the final main-page capture are separate evidence. A checker may restore its general fixture after closing the feature-test page; this image does not establish the feature’s visual correctness.
 
-![General browser fixture after Use reversed depth across the frame; feature-scene visual acceptance pending.](../screenshots/journey/96zzzzn-adopt-retained-gpu-slots-and-physical-bases-browser.png)
+![General browser fixture after Use reversed depth across the frame; feature-scene visual acceptance pending.](../screenshots/journey/96zzv-bind-the-own-row-slot-for-ordinary-surfaces-browser.png)
 
 [Verification scope](release.md).
 

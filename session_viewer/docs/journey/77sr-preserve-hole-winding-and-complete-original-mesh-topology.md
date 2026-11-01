@@ -227,7 +227,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Original Circle, Ellipse, Arc, Parabola and freeform Curve remain visible.
 
-![Native renderer output for preserve hole winding and complete original mesh topology.](../screenshots/journey/77-copy-current-transformation-and-source-edit-algorithms.png)
+![Native renderer output for preserve hole winding and complete original mesh topology.](../screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

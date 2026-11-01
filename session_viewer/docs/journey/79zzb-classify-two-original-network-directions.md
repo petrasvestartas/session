@@ -139,7 +139,7 @@ The original curve network can be classified into two candidate directions.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for classify two original network directions.](../screenshots/journey/79zza-sample-original-network-curve-stations.png)
+![Native renderer output for classify two original network directions.](../screenshots/journey/79zze-fit-the-original-gordon-surface.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -111,7 +111,7 @@ This preparation compiles in the cumulative browser application and preserves th
 
 Original Circle, Ellipse, Arc, Parabola and freeform Curve remain visible.
 
-![Native renderer output for build directional scale transforms.](../screenshots/journey/77-copy-current-transformation-and-source-edit-algorithms.png)
+![Native renderer output for build directional scale transforms.](../screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

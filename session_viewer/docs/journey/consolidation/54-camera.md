@@ -5047,8 +5047,6 @@ fn actual_delayed_gpu_answer_finishes_a_released_drag_and_reuses_its_geometry() 
 
 ## Build & Run
 
-![Recorded visual output for Lesson 8.4 (54p-navigation)](../../screenshots/journey/54p-navigation.png)
-
 ```sh
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1

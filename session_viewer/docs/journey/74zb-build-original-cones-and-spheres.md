@@ -218,7 +218,7 @@ Original cone and sphere builders compile while the existing solids remain visib
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for build original cones and spheres.](../screenshots/journey/74za-build-original-cylinders-with-signed-height.png)
+![Native renderer output for build original cones and spheres.](../screenshots/journey/74zb-build-original-cones-and-spheres.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

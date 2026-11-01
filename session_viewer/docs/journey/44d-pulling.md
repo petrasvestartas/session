@@ -316,7 +316,7 @@ The inherited mesh keeps the same shape and primary geometry allocation.
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for reuse visible geometry for face identities.](../screenshots/journey/41f-input.png)
+![Native renderer output for reuse visible geometry for face identities.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

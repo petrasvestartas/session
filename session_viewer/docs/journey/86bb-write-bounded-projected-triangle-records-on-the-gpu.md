@@ -140,7 +140,7 @@ The finite projection compute recipe is assembled for source validation; its run
 
 The rendered headed line and world text remain black; a red dashed extension tail ends at its black +0.800 chip.
 
-![Native renderer output for write bounded projected triangle records on the gpu.](../screenshots/journey/86-copy-finite-tile-allocation-rules.png)
+![Native renderer output for write bounded projected triangle records on the gpu.](../screenshots/journey/86r-cache-projection-and-finish-current-reports.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

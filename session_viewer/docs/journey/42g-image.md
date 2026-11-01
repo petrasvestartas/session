@@ -61,7 +61,7 @@ Run the checks. The bounded image allocator is ready and does not change visible
 
 The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.
 
-![Native renderer output for own a small id image, depth target and readback buffer.](../screenshots/journey/41f-input.png)
+![Native renderer output for own a small id image, depth target and readback buffer.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

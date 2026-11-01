@@ -154,7 +154,7 @@ The original rectangle and polygon remain visible while current solid tools conn
 
 A closed original rectangle and an oriented five-sided original polygon remain visible.
 
-![Native renderer output for add the remaining regular kernel solids.](../screenshots/journey/73h-match-solid-command-options.png)
+![Native renderer output for add the remaining regular kernel solids.](../screenshots/journey/73t-build-regular-kernel-polyhedra.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -66,7 +66,7 @@ The cumulative browser application compiles. This parser preparation preserves t
 
 The mixed source archive scene remains unchanged.
 
-![Native renderer output for bound scalar headers and byte addresses.](../screenshots/journey/67-supply-checked-array-layout-readers.png)
+![Native renderer output for bound scalar headers and byte addresses.](../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

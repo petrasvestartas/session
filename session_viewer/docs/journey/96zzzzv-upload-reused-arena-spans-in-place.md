@@ -366,7 +366,7 @@ The arena can upload reused ranges correctly; live retirement remains unconnecte
 
 **Feature-specific visual review pending.** Scripted acceptance and the final main-page capture are separate evidence. A checker may restore its general fixture after closing the feature-test page; this image does not establish the feature’s visual correctness.
 
-![General browser fixture after Upload reused arena spans in place; feature-scene visual acceptance pending.](../screenshots/journey/96zzzzn-adopt-retained-gpu-slots-and-physical-bases-browser.png)
+![General browser fixture after Upload reused arena spans in place; feature-scene visual acceptance pending.](../screenshots/journey/96zzv-bind-the-own-row-slot-for-ordinary-surfaces-browser.png)
 
 [Verification scope](release.md).
 

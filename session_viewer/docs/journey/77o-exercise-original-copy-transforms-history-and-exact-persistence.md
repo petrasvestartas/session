@@ -80,7 +80,7 @@ Three original boxes retain their shared source and independent placements. Copy
 
 Three original boxes display with copied identities and independent scaled/rotated placements.
 
-![Native renderer output for exercise original copy transforms history and exact persistence.](../screenshots/journey/77o-exercise-original-copy-transforms-history-and-exact-persistence.png)
+![Native renderer output for exercise original copy transforms history and exact persistence.](../screenshots/journey/77zzo-revolve-original-profiles-around-an-axis.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

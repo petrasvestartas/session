@@ -59,7 +59,7 @@ Local handle vertex packing and sampling are prepared; the earlier Move drawing 
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for pack and sample local handle vertices.](../screenshots/journey/51ez-pack-and-sample-local-handle-vertices.png)
+![Native renderer output for pack and sample local handle vertices.](../screenshots/journey/50d-ownership.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -99,7 +99,7 @@ Run the window checks. No new picking behavior appears in the viewer yet.
 
 The native scene is unchanged from [drawing input](41f-input.md). This independently rendered frame does not exercise window-selection event delivery; use the state checks and browser exercise for that behavior.
 
-![Native renderer output for bound the cursor image and decode a hit.](../screenshots/journey/41f-input.png)
+![Native renderer output for bound the cursor image and decode a hit.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

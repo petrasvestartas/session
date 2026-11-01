@@ -116,7 +116,7 @@ The Gordon fitting helper compiles before the complete network recipe is assembl
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for fit the original gordon surface.](../screenshots/journey/79zza-sample-original-network-curve-stations.png)
+![Native renderer output for fit the original gordon surface.](../screenshots/journey/79zze-fit-the-original-gordon-surface.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

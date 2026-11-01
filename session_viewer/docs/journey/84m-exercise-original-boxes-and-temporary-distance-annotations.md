@@ -1093,7 +1093,7 @@ A selected original wire bounding box surrounds the solid. A temporary black dis
 
 The solid remains visible inside its selected twelve-edge original box, below a black measurement line and its 2 mm value chip.
 
-![Native renderer output for exercise original boxes and temporary distance annotations.](../screenshots/journey/84m-exercise-original-boxes-and-temporary-distance-annotations.png)
+![Native renderer output for exercise original boxes and temporary distance annotations.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -57,7 +57,7 @@ Keep the imported specimen and select feature rows through their original Elemen
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for resolve feature rows to original element owners.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for resolve feature rows to original element owners.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

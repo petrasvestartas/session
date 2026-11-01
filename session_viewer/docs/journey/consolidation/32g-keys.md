@@ -3649,7 +3649,7 @@ fn any_stale_or_duplicate_key_revokes_the_whole_reply() {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 3.7 (32gja-failures)](../../screenshots/journey/32gja-failures-browser.png)
+![Recorded visual output for Lesson 3.7 (32gja-failures)](../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 cd workspace/journey

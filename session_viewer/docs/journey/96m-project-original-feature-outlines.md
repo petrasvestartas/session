@@ -74,7 +74,7 @@ Placed original outlines produce derived black paths with independent attribute 
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for project original outlines without changing their coordinates.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for project original outlines without changing their coordinates.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

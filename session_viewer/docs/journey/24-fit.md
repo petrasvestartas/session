@@ -763,7 +763,7 @@ Open sample.pb, type Pan Right, then Fit. The whole scene returns with a margin 
 
 The native check imports the three-piece frame, chooses Isometric, pans three times, then fits. It checks every vertex against the view and verifies the visible orange beam. Browser command delivery needs the separate Chrome run.
 
-![Native renderer output for run fit through the command line.](../screenshots/journey/24-fit.png)
+![Native renderer output for run fit through the command line.](../screenshots/journey/23b-fit-camera.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

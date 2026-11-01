@@ -2478,7 +2478,7 @@ The camera prepares equivalent mm/metre and anchor-relative projections without 
 
 **Feature-specific visual review pending.** Scripted acceptance and the final main-page capture are separate evidence. A checker may restore its general fixture after closing the feature-test page; this image does not establish the feature’s visual correctness.
 
-![General browser fixture after Prepare unit-aware anchored camera space; feature-scene visual acceptance pending.](../screenshots/journey/96zzzzn-adopt-retained-gpu-slots-and-physical-bases-browser.png)
+![General browser fixture after Prepare unit-aware anchored camera space; feature-scene visual acceptance pending.](../screenshots/journey/96zzv-bind-the-own-row-slot-for-ordinary-surfaces-browser.png)
 
 [Verification scope](release.md).
 

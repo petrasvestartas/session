@@ -1170,7 +1170,7 @@ mod tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 12.2 (67si-validate-complete-octrees-before-range-streaming)](../../screenshots/journey/67si-validate-complete-octrees-before-range-streaming.png)
+![Recorded visual output for Lesson 12.2 (67si-validate-complete-octrees-before-range-streaming)](../../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 12.2

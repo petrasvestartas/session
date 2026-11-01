@@ -3242,7 +3242,7 @@ Replace it with:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 4.5 (34geb-reload)](../../../screenshots/journey/34geb-reload-browser.png)
+![Recorded visual output for Lesson 4.5 (34geb-reload)](../../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 cd workspace/journey

@@ -228,7 +228,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Original black physical drawing pens and the blue hairline remain visible.
 
-![Native renderer output for add original polylines to the point tool.](../screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings.png)
+![Native renderer output for add original polylines to the point tool.](../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

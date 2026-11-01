@@ -646,8 +646,6 @@ mod commands_tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 10.2 (60g-text-shaping)](../../screenshots/journey/60g-text-shaping.png)
-
 ```sh
 npm --prefix ../session_tests run course -- dependencies 10.2
 cd workspace/journey

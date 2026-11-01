@@ -82,7 +82,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 A closed original rectangle and an oriented five-sided original polygon remain visible.
 
-![Native renderer output for draw temporary solid wire sets and report current input failures.](../screenshots/journey/73g-exercise-oriented-original-planar-constructions.png)
+![Native renderer output for draw temporary solid wire sets and report current input failures.](../screenshots/journey/73t-build-regular-kernel-polyhedra.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

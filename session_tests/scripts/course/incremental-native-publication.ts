@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {bindings} from './presentation.ts';
 import {verifyIncremental} from './incremental-native-presentation.ts';
-import {assetsFor, expected, filesIn, hash, lockFor, viewer, withExpectedSequence} from './model.ts';
+import {assetsFor, expected, filesIn, hash, lockFor, viewer, withExpectedSequence, resolveJourneyImage} from './model.ts';
 
 const script = fileURLToPath(import.meta.url);
 const absolute = (file: string) => path.isAbsolute(file) ? file : path.resolve(viewer, file);
@@ -70,7 +70,7 @@ function verifyCapture(id: string, source: {path: string; sha256: string}, densi
         assert.equal(resources.exitCode, 0); assert.equal(resources.timedOut, false);
         assert.equal(path.resolve(resources.workingDirectory), path.resolve(record.directory));
     }
-    const bytes = fs.readFileSync(absolute(record.image.path));
+    const bytes = fs.readFileSync(resolveJourneyImage(absolute(record.image.path), record.image.sha256));
     assert(bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])));
     assert.equal(hash(bytes), record.image.sha256);
     assert.equal(bytes.readUInt32BE(16), record.image.width); assert.equal(bytes.readUInt32BE(20), record.image.height);
@@ -122,9 +122,9 @@ function verifyManual(reference: {path: string; sha256: string}, item: any, imag
     assert(row); assert.equal(row.image.sha256, image.sha256);
     assert.equal(absolute(row.sourceRecord.path), absolute(source.path)); assert.equal(row.sourceRecord.sha256, source.sha256);
     assert.equal(row.originalSha256, item.originalSha256);
-    assert.equal(sha(row.originalBackup), item.originalSha256);
-    assert.equal(sha(item.path), image.sha256);
-    return {receipt: reference, originalBackup: ref(row.originalBackup)};
+    assert.equal(sha(resolveJourneyImage(absolute(row.originalBackup), item.originalSha256)), item.originalSha256);
+    assert.equal(sha(resolveJourneyImage(absolute(item.path), image.sha256)), image.sha256);
+    return {receipt: reference, originalBackup: {path: absolute(row.originalBackup), sha256: item.originalSha256}};
 }
 
 function inheritedPublication(item: any) {
@@ -134,7 +134,7 @@ function inheritedPublication(item: any) {
     assert.equal(review.rootPersonallyViewedOriginalResolution, true);
     assert(row); assert.equal(row.sha256, item.image.sha256);
     const backup = item.originalBackup || ref(path.join(item.retainedFromCohort, 'original-images', path.basename(item.path)));
-    assert.equal(sha(backup.path), item.originalSha256);
+    assert.equal(sha(resolveJourneyImage(absolute(backup.path), item.originalSha256)), item.originalSha256);
     return {receipt: item.rootReview, originalBackup: {path: absolute(backup.path), sha256: item.originalSha256}};
 }
 
@@ -178,7 +178,7 @@ export function checkPublication(directory: string, reviewFile: string) {
         if (current === capture.image.sha256) {
             assert(last || manual || fs.existsSync(path.join(c.ledger, 'backups', `${item.id}-${item.originalSha256}.png`)),
                 'Matching manual publication needs its pinned original backup/receipt');
-            if (last) assert.equal(sha(last.originalBackup.path), last.originalBackup.sha256);
+            if (last) assert.equal(sha(resolveJourneyImage(absolute(last.originalBackup.path), last.originalBackup.sha256)), last.originalBackup.sha256);
         } else assert(current === item.originalSha256 || current === approved.explicitlyReviewedCurrentDestinationSHA,
             'Unknown manual destination change needs explicit exact-SHA replacement approval');
         return {id: item.id, destination: target, originalSha256: item.originalSha256, currentSha256: current,
@@ -201,7 +201,7 @@ export function publishReviewed(directory: string, reviewFile: string) {
         const output = [];
         for (const item of plan.images) {
             assert.equal(sha(item.sourceRecord.path), item.sourceRecord.sha256);
-            assert.equal(sha(item.image.path), item.image.sha256); assert.equal(sha(item.destination), item.currentSha256);
+            assert.equal(sha(resolveJourneyImage(absolute(item.image.path), item.image.sha256)), item.image.sha256); assert.equal(sha(item.destination), item.currentSha256);
             let originalBackup = item.manual?.originalBackup;
             if (item.currentSha256 !== item.image.sha256) {
                 if (!fs.existsSync(item.backup)) atomic(item.backup, fs.readFileSync(item.destination));
@@ -209,12 +209,12 @@ export function publishReviewed(directory: string, reviewFile: string) {
                 append(ledger, {status: 'PUBLICATION_INTENT', cohort: ref(plan.context.cohortFile),
                     id: item.id, destination: item.destination, image: item.image, sourceRecord: item.sourceRecord,
                     originalBackup, review: ref(retainedReview), rootPublicationApproval: plan.rootPublicationApproval});
-                atomic(item.destination, fs.readFileSync(item.image.path));
+                atomic(item.destination, fs.readFileSync(resolveJourneyImage(absolute(item.image.path), item.image.sha256)));
             } else if (!originalBackup) {
                 const last = events(ledger).findLast((row: any) => row.id === item.id && row.image.sha256 === item.image.sha256);
                 originalBackup = last?.originalBackup || ref(path.join(ledger, 'backups', `${item.id}-${item.originalSha256}.png`));
             }
-            assert.equal(sha(item.destination), item.image.sha256); assert.equal(sha(originalBackup.path), originalBackup.sha256);
+            assert.equal(sha(item.destination), item.image.sha256); assert.equal(sha(resolveJourneyImage(absolute(originalBackup.path), originalBackup.sha256)), originalBackup.sha256);
             output.push(append(ledger, {status: 'PUBLISHED_REVIEWED', action: item.currentSha256 === item.image.sha256 ? 'RECONCILED_EXISTING_BYTES' : 'PUBLISHED_NEW_BYTES',
                 cohort: ref(plan.context.cohortFile), id: item.id, destination: item.destination, image: item.image,
                 sourceRecord: item.sourceRecord, imageReviewer: item.imageReviewer,
@@ -251,10 +251,10 @@ export function stageGroups(directory: string, ids: string[] = []) {
 export function publicationStatus(directory: string) {
     const c = context(directory), rows = events(c.ledger), published = new Set<string>();
     for (const item of Object.values(c.progress.items) as any[])
-        if (item.status === 'PUBLISHED_ROOT_REVIEWED' && sha(item.path) === item.image.sha256) published.add(item.id);
+        if (item.status === 'PUBLISHED_ROOT_REVIEWED' && sha(fs.existsSync(absolute(item.path)) ? item.path : resolveJourneyImage(absolute(item.path), item.image.sha256)) === item.image.sha256) published.add(item.id);
     const changed = [];
     for (const row of new Map(rows.filter(row => row.status === 'PUBLISHED_REVIEWED').map(row => [row.id, row])).values()) {
-        if (sha(row.destination) === row.image.sha256) published.add(row.id);
+        if (sha(fs.existsSync(absolute(row.destination)) ? row.destination : resolveJourneyImage(absolute(row.destination), row.image.sha256)) === row.image.sha256) published.add(row.id);
         else { published.delete(row.id); changed.push(row.id); }
     }
     return {captureCompleted: c.progress.completed, captureRemaining: c.progress.remaining,

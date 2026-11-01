@@ -121,7 +121,7 @@ Run current-owner and degenerate-segment checks. Close must invalidate every old
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for validate a part against the current source.](../screenshots/journey/41f-input.png)
+![Native renderer output for validate a part against the current source.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

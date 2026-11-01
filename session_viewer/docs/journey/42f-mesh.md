@@ -71,7 +71,7 @@ Run the viewer and check existing mesh colors and normals. The mesh ID pipeline 
 
 The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.
 
-![Native renderer output for draw depth-tested mesh owners into an integer attachment.](../screenshots/journey/41f-input.png)
+![Native renderer output for draw depth-tested mesh owners into an integer attachment.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

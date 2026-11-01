@@ -62,7 +62,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The preceding solid, wire bounding box and temporary distance annotation remain visible.
 
-![Native renderer output for keep annotations during touch navigation and capture lasso input.](../screenshots/journey/84m-exercise-original-boxes-and-temporary-distance-annotations.png)
+![Native renderer output for keep annotations during touch navigation and capture lasso input.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

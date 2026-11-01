@@ -56,7 +56,7 @@ Original source-array reads can enter the bounded queue without changing the cur
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for queue original source range reads.](../screenshots/journey/67hza-queue-original-source-range-reads.png)
+![Native renderer output for queue original source range reads.](../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -123,7 +123,7 @@ The existing scene remains visible while byte-revision tracking is prepared. Lat
 
 The original cloud and local point marker remain unchanged.
 
-![Native renderer output for compare live byte revisions.](../screenshots/journey/66a-compare-live-byte-revisions.png)
+![Native renderer output for compare live byte revisions.](../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

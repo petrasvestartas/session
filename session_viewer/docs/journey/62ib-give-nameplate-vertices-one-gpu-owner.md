@@ -67,7 +67,7 @@ One retained owner describes nameplate geometry and draw ranges. The browser fra
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for give nameplate vertices one gpu owner.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for give nameplate vertices one gpu owner.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

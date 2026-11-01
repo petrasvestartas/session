@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {spawn, spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {bindings, captureDirectory, prepare} from './presentation.ts';
-import {assetsFor, course, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write} from './model.ts';
+import {assetsFor, course, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write, resolveJourneyImage} from './model.ts';
 import {nativeTarget, runCommand} from './verify.ts';
 
 const sha = (file: string) => hash(fs.readFileSync(file));
@@ -141,8 +141,10 @@ runner._compile(source,filename);\n`;
     fs.cpSync(path.join(docs, 'journey/checks'), path.join(workspace, 'docs/journey/checks'), {recursive: true});
     fs.mkdirSync(path.join(workspace, 'docs/screenshots/journey'), {recursive: true});
     const prior = ['03-triangle-browser.png', '03a-panel-browser.png', '03b-memory-browser.png'];
-    for (const file of prior) if (fs.existsSync(path.join(docs, 'screenshots/journey', file)))
-        fs.copyFileSync(path.join(docs, 'screenshots/journey', file), path.join(workspace, 'docs/screenshots/journey', file));
+    for (const file of prior) {
+        const source = resolveJourneyImage(file);
+        if (fs.existsSync(source)) fs.copyFileSync(source, path.join(workspace, 'docs/screenshots/journey', file));
+    }
     write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files}}));
     const pins = Object.fromEntries([capture, fileURLToPath(import.meta.url), ...filesIn(path.join(docs, 'journey/checks'))].map(file => [file, sha(file)]));
     const record = {status: 'PREPARED_NOT_BUILT', id, density, folder, workspace, native, source, pins,

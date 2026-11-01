@@ -760,7 +760,7 @@ Color and cropped first picks retain exact section addresses, matching depth and
 
 This supporting frame has no instances; use the supplied original Session specimen for the browser exercise.
 
-![Native renderer output for connect section primitives to color and first picking.](../screenshots/journey/96zza-connect-section-primitive-images.png)
+![Native renderer output for connect section primitives to color and first picking.](../screenshots/journey/96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -57,7 +57,7 @@ Prepared draw indices reference the surviving retained text planes. The browser 
 
 The CAD bore and real-font screen specimen remain visible; this preparation adds no interactive scene-text example yet.
 
-![Native renderer output for prepare and draw the retained world-text planes.](../screenshots/journey/62i-coverage.png)
+![Native renderer output for prepare and draw the retained world-text planes.](../screenshots/journey/61d-glyphs.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

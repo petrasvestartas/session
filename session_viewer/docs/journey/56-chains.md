@@ -118,7 +118,7 @@ The boundary lookup helpers are assembled for original BRep chains. The existing
 
 The blue parametric roof and black domain boundaries remain visible.
 
-![Native renderer output for connect original cad edge chains.](../screenshots/journey/55za-read-original-edge-use-samples.png)
+![Native renderer output for connect original cad edge chains.](../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

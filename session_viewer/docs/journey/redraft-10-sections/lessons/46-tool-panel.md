@@ -1476,7 +1476,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 7.1 (46-tool-panel)](../../../screenshots/journey/46-tool-panel.png)
+![Recorded visual output for Lesson 7.1 (46-tool-panel)](../../../screenshots/journey/45c-input.png)
 
 ```sh
 cd workspace/journey

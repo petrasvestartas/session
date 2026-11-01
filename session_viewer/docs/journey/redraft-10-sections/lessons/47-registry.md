@@ -1327,7 +1327,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 7.2 (47c-route)](../../../screenshots/journey/47c-route.png)
+![Recorded visual output for Lesson 7.2 (47c-route)](../../../screenshots/journey/45c-input.png)
 
 ```sh
 cd workspace/journey

@@ -50,7 +50,7 @@ Inspect the table-building code; the inherited drawing and input still work.
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for map visible ink back to original sources.](../screenshots/journey/41f-input.png)
+![Native renderer output for map visible ink back to original sources.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

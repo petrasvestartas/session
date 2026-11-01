@@ -112,7 +112,7 @@ Select the cloud, type Controls or press canvas F10, then click a visible origin
 
 A local yellow marker identifies original cloud point 840 while the original coloured source cloud remains unchanged.
 
-![Native renderer output for pick original points and prove source query reuse.](../screenshots/journey/65c-cloud-point.png)
+![Native renderer output for pick original points and prove source query reuse.](../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

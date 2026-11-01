@@ -246,7 +246,7 @@ The range gate queues reads in arrival order before its browser range-read conne
 
 The mixed source archive scene remains unchanged.
 
-![Native renderer output for poll and cancel original queued range reads.](../screenshots/journey/66za-own-original-range-read-permits.png)
+![Native renderer output for poll and cancel original queued range reads.](../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

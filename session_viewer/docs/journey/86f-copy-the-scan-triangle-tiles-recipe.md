@@ -46,7 +46,7 @@ This scan section is written; its GPU passes are not connected yet.
 
 The rendered headed line and world text remain black; a red dashed extension tail ends at its black +0.800 chip.
 
-![Native renderer output for scan bounded tile counts in workgroup memory.](../screenshots/journey/86-copy-finite-tile-allocation-rules.png)
+![Native renderer output for scan bounded tile counts in workgroup memory.](../screenshots/journey/86r-cache-projection-and-finish-current-reports.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

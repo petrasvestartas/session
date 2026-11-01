@@ -61,7 +61,7 @@ Run the checks. Request ownership is prepared; no asynchronous pick is submitted
 
 The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.
 
-![Native renderer output for bound asynchronous picking ownership.](../screenshots/journey/41f-input.png)
+![Native renderer output for bound asynchronous picking ownership.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

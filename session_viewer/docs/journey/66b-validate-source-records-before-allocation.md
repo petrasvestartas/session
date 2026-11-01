@@ -66,7 +66,7 @@ This validator compiles in the browser application; source loading is connected 
 
 The original cloud and local point marker remain unchanged.
 
-![Native renderer output for bound finite coordinates and packed integer reads.](../screenshots/journey/65za-read-original-manifest-records-and-placements.png)
+![Native renderer output for bound finite coordinates and packed integer reads.](../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

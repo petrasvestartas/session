@@ -1,0 +1,29 @@
+{
+  "status": "PASS_PHYSICAL_PNG_DEDUPLICATION",
+  "recordedUtc": "2026-11-01T13:18:21.601254+00:00",
+  "scope": "Actual byte-identical PNG removal from docs/screenshots/journey, including nested review images. One physical file per unique SHA256. No unique image bytes removed.",
+  "beforePngFiles": 2145,
+  "afterPngFiles": 524,
+  "removedDuplicatePngFiles": 1621,
+  "removedDuplicateBytes": 52605441,
+  "remainingExactDuplicateGroups": 0,
+  "aliases": {
+    "path": "docs/screenshots/journey/image-aliases.json",
+    "sha256": "7564fd582c4dcc965ab9f5480662dbfa69e2be9618cc9b8194dbac841ef48017",
+    "entries": 1621,
+    "policy": "Legacy logical checkpoint names resolve only to their explicitly mapped retained PNG after its recorded SHA256 is verified. Fresh physical recaptures retain their own path."
+  },
+  "reader": {
+    "chapters": 22,
+    "pages": 111,
+    "crossChapterSharedIllustrations": 0,
+    "missingAssets": 0,
+    "markdownUrlReplacements": 626,
+    "codeFencesChanged": 0
+  },
+  "verification": {
+    "focusedResolverRendererRepeatedImageBatchAndLedgerTestsPassed": 40,
+    "maintainedRendererSourceFilesUnchanged": 477
+  },
+  "limits": "This cleanup is not acceptance of outstanding rendering captures or kernel algorithms."
+}

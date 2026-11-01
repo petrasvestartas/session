@@ -50,7 +50,7 @@ The validated hierarchy adds read-only feature groups beneath their owning origi
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for attach a bounded feature tree to its host.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for attach a bounded feature tree to its host.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

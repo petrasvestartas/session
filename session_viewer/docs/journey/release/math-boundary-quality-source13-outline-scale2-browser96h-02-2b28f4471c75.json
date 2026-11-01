@@ -1,0 +1,138 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-01T11:53:48.476Z",
+  "id": "96h-prove-current-source-grammar-and-explicit-differences",
+  "lane": "browser",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Actual pinned warm-runner frozen-source preflight and postflight; current hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser96h-02-execution.json",
+      "sha256": "22d9a7e9a1eed24e897ba75d6595d737b44ef01f099a6c106b2f01cf6f556ceb",
+      "bytes": 2617
+    },
+    "runnerInputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\run_warm_course_checkpoint.py",
+        "sha256": "85535ffae9c5a729e3da9ca783ea0447573d17e0ff53ed6b1102013507665c46"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\windows_read_lease.py",
+        "sha256": "43ad54a76624b9527636b1202c4dc8f7f760af1d8d7bc3481d5b68fab5a6d3dd"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser96h-02-command.json",
+        "sha256": "d9aaeb465bbce3dc99ef0f1019e7906641ce249bf2a7344f4c21b767ae5f0458"
+      }
+    ]
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this exact1800x1520 fallback image with the original-detail image tool. Curved cap and cylinder boundaries are smooth, rectangular face boundaries are clean, and the shaded faces show no internal triangulation wires. The original callback's terminal camera and composition are preserved. The entire original callback and its assertions passed under the IMAGE8CPU/8GiB profile: behaviorDpr1, including internally logged DPR1/2 feature cases, followed by the originalDPR2 presentation and scale2 image checks. This is not original2CPU canonical resource-profile acceptance. Actual internal3600x3040/density4 refinement reached four matching requested=accepted0.17677669529663687 quality rows for current owners174,175,176,177; pending=false, limited=null, bytes251440 and full same-camera GPU reuse passed. The caption retains the actual Document-replaced/Undo state. All477 maintained source files and the read-leased Chrome executable remained unchanged. The measured-retention02 successor/application and source-bound actual callback handoff are retained in the qualification and capture ledger.",
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "2b28f4471c75e648dbc64c8675a2997f75c8d5d3be627ced1d5a864ad0f6ecb2"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96h-prove-current-source-grammar-and-explicit-differences-a52b50f75d4291a5b200\\capture.json.gz",
+    "sha256": "f8d58112cd9274a89635873d3c42b80507444d5dc31fc4c0e7cacd69d0ebcdbd",
+    "bytes": 361190
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser96h-02-qualification.json",
+    "sha256": "8d7b910695d02cbcfbe28a31704cbe8edf9f2854f18ca600201299b56f84522b",
+    "bytes": 11261
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser96h-02-execution.json",
+    "sha256": "22d9a7e9a1eed24e897ba75d6595d737b44ef01f099a6c106b2f01cf6f556ceb",
+    "bytes": 2617
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser96h-02-publication.json",
+    "sha256": "c681c0224ebb2827e490e2fe22a870ad51c5581274508d659350cd122ccf7f9a",
+    "bytes": 6707
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96h-prove-current-source-grammar-and-explicit-differences-a52b50f75d4291a5b200\\publication.json",
+    "sha256": "6fad7b991652630963ca6bea05dab7f87cef368f1a6896f2516a5d658fc3e8a6",
+    "bytes": 907
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96h-prove-current-source-grammar-and-explicit-differences-a52b50f75d4291a5b200\\retirement.json.gz",
+    "sha256": "9f956f6418b6d472c093784f04560984a54056feed9289e1efffc12e8d4f5aae",
+    "bytes": 141125
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96h-prove-current-source-grammar-and-explicit-differences-a52b50f75d4291a5b200\\retired.json",
+    "sha256": "a83cc8aca9375357fe4b94b4e1327fd19b34f198edfaf8e94a11000ff8f5a5df",
+    "bytes": 360
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+    "sha256": "2b28f4471c75e648dbc64c8675a2997f75c8d5d3be627ced1d5a864ad0f6ecb2",
+    "bytes": 120526
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+    "sha256": "b1badc9c342fb5a9219821195a15fe6683c233bb1da03473aeddad7179edac93",
+    "bytes": 110163
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\outline-prior-png-b1badc9c342fb5a9219821195a15fe6683c233bb1da03473aeddad7179edac93.png",
+    "sha256": "b1badc9c342fb5a9219821195a15fe6683c233bb1da03473aeddad7179edac93",
+    "bytes": 110163
+  },
+  "renderScale": {
+    "renderScale": 2,
+    "lane": "browser",
+    "scene": "comparison",
+    "route": "fallback",
+    "recipePins": [
+      {
+        "path": "journey/checks/browser/inventory.cjs",
+        "sha256": "ab53fa70e4404f7f11224ebe41898473a080a739e78dafe43576f74ed34089d5"
+      },
+      {
+        "path": "journey/checks/browser/performance.cjs",
+        "sha256": "884df20926a81fe78b5c22f8aba22fe12b4043ae65d85e25d3d313fcb46d0d1a"
+      },
+      {
+        "path": "../assets/pb/course-metadata.pb",
+        "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+      }
+    ],
+    "samples": 1,
+    "presentation": "canvas-compositor",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "7944aabc515499799136dc3872dbdbab5f1812d638113a1fd76e15bb9298ce33"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "98cb76d3dea6be78e8a9ebcaf5730e197f3c683d71c048a272485519055598d1"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\adaptive-gpu-reuse.cjs",
+        "sha256": "df13850794e0fb2fdbe8fc7f678a6c2911676cd577c2bc37a93d58d5bc07f073"
+      }
+    ]
+  },
+  "canonicalBehaviorExecuted": true,
+  "scope": "Standalone source13 image-profile qualification. Root directly viewed this exact original-resolution PNG. The canonicalBehaviorExecuted field distinguishes actual full callback execution from an original image recipe; no canonical resource-profile, historical interactive MSAA, or physical geometry acceptance claim."
+}

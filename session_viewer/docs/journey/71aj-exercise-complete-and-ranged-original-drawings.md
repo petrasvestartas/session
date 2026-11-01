@@ -1067,7 +1067,7 @@ The original plan has black physical-width boundaries and a blue hairline axis. 
 
 Original black physical pens and the original blue hairline axis render from one shared drawing segment buffer.
 
-![Native renderer output for exercise complete and ranged original drawings.](../screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings.png)
+![Native renderer output for exercise complete and ranged original drawings.](../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

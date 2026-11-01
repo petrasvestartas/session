@@ -646,7 +646,7 @@ mod commands_tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 10.2 (60g-text-shaping)](../../../screenshots/journey/60g-text-shaping.png)
+![Recorded visual output for Lesson 10.2 (60g-text-shaping)](../../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 10.2

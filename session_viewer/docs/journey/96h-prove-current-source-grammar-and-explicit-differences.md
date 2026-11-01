@@ -3178,7 +3178,7 @@ The original comparison scene remains intact while source and registry fixtures 
 
 Original blue solids and black boundaries remain; source and parser coverage are checked independently of this illustration.
 
-![Native renderer output for prove current source grammar and explicit differences.](../screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences.png)
+![Native renderer output for prove current source grammar and explicit differences.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

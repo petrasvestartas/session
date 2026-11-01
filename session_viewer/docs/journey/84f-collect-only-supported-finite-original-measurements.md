@@ -56,7 +56,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The original trimmed face and retained cutter remain visible.
 
-![Native renderer output for collect only supported finite original measurements.](../screenshots/journey/83-split-original-faces-without-separating-the-solid.png)
+![Native renderer output for collect only supported finite original measurements.](../screenshots/journey/83ze-integrate-original-surface-area.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

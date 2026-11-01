@@ -94,7 +94,7 @@ Original-family classification and single mesh-face extraction are prepared.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for classify originals and isolate one mesh face.](../screenshots/journey/84zza-describe-removable-cad-parts.png)
+![Native renderer output for classify originals and isolate one mesh face.](../screenshots/journey/84zod-explode-supported-original-families.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

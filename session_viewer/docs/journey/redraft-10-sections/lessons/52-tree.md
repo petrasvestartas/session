@@ -1186,7 +1186,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 8.1 (52f-save)](../../../screenshots/journey/52f-save.png)
+![Recorded visual output for Lesson 8.1 (52f-save)](../../../screenshots/journey/52-tree.png)
 
 ```sh
 cd workspace/journey

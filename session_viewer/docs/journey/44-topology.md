@@ -322,7 +322,7 @@ Run the source polygon checks; the drawing remains unchanged.
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for preserve source faces and edges.](../screenshots/journey/41f-input.png)
+![Native renderer output for preserve source faces and edges.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

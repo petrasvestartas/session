@@ -865,7 +865,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The selected CAD bore and black original and silhouette contours remain visible.
 
-![Native renderer output for cache the nearest point frame until its inputs change.](../screenshots/journey/64-nodes.png)
+![Native renderer output for cache the nearest point frame until its inputs change.](../screenshots/journey/63h-outline.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

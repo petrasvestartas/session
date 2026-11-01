@@ -14,14 +14,14 @@ import {earlyDefaultRecipe,prepareEarlyDefaultScene,runEarlyDefaultScene} from '
 import {sourceStartupStatusRecipe,captureSourceStartupStatus} from './source-startup-status-browser-presentation-v2.ts';
 import {bindings} from './presentation.ts';
 import {captureOwnedFileFallback} from './owned-file-browser-fallback.ts';
-import {course, docs, filesIn, hash, json, viewer, withExpectedSequence, write} from './model.ts';
+import {course, docs, filesIn, hash, json, viewer, withExpectedSequence, write, resolveJourneyImage} from './model.ts';
 
 const self=fileURLToPath(import.meta.url),sha=(f:string)=>hash(fs.readFileSync(f));
 const ref=(f:string)=>({path:path.resolve(f),sha256:sha(path.resolve(f))});
 const done=(r:any)=>['CAPTURED_AWAITING_ROOT_VISUAL_REVIEW','PUBLISHED_ROOT_REVIEWED'].includes(r?.status);
 const modules=['owned-file-browser-fallback.ts','owned-deep-file-buffer-transport.cjs','incremental-browser-image-build.ts','browser-scene-presentation.ts','image-lane-browser-scene.ts','additional-browser-image-recipes.ts','exported-browser-image-recipes.ts','historical-browser-actions-presentation.ts','terminal-browser-image-recipes-v2.ts','child-context-browser-image-recipes.ts','maintained-browser-presentation.ts','browser-image-fallback.ts','parallel-image-browser-host.ts','parallel-image-guard.ps1','early-default-browser-presentation.ts','source-startup-status-browser-presentation-v2.ts'];
 
-function imageCheck(image:any){const bytes=fs.readFileSync(image.path);assert.equal(hash(bytes),image.sha256);assert.equal(bytes.readUInt32BE(16),image.width);assert.equal(bytes.readUInt32BE(20),image.height);assert(image.width>=1280&&image.height>=960);}
+function imageCheck(image:any){const bytes=fs.readFileSync(resolveJourneyImage(image.path,image.sha256));assert.equal(hash(bytes),image.sha256);assert.equal(bytes.readUInt32BE(16),image.width);assert.equal(bytes.readUInt32BE(20),image.height);assert(image.width>=1280&&image.height>=960);}
 function actualRecord(id:string,file:string,source?:any){
     const r=json(file);assert.deepEqual(r.source,source||withExpectedSequence(()=>bindings(id)));imageCheck(r.image);
     const resources=r.resources||r.host?.resources;assert(resources);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);
@@ -60,7 +60,7 @@ export function prepareIncrementalBrowserBatch(originalFile:string,reviewFile:st
     const publicationFile=path.join(docs,'journey/release/image-quality-publication-index.json');
     if(fs.existsSync(publicationFile))for(const published of json(publicationFile).images||[]){
         const item=queue.find((q:any)=>q.path===published.path);if(!item||done(items[item.id]))continue;
-        assert.equal(sha(published.path),published.sha256);assert.equal(sha(published.receipt.path),published.receipt.sha256);
+        assert.equal(sha(resolveJourneyImage(published.path,published.sha256)),published.sha256);assert.equal(sha(published.receipt.path),published.receipt.sha256);
         const review=json(published.receipt.path),entry=(review.images||[review.image]).find((r:any)=>(r.destination||r.publicPath||r.path)===item.path),candidate=entry?.sourceRecord||review.sourceRecord;
         const file=typeof candidate==='string'?candidate:candidate?.path;if(!file||!fs.existsSync(file))continue;
         const r=json(file);if(!r.image||r.image.sha256!==published.sha256)continue;
@@ -140,7 +140,7 @@ export function refreshBrowserPublications(cohortFile:string){
     const c=json(path.resolve(cohortFile));check(c);const file=path.join(c.directory,'progress.json'),p=json(file),index=json(path.join(docs,'journey/release/image-quality-publication-index.json'));
     for(const published of index.images||[]){
         const item=c.queue.find((q:any)=>q.path===published.path);if(!item||p.items[item.id]?.status==='PUBLISHED_ROOT_REVIEWED')continue;
-        assert.equal(sha(published.path),published.sha256);assert.equal(sha(published.receipt.path),published.receipt.sha256);
+        assert.equal(sha(resolveJourneyImage(published.path,published.sha256)),published.sha256);assert.equal(sha(published.receipt.path),published.receipt.sha256);
         const review=json(published.receipt.path),entry=(review.images||[review.image]).find((r:any)=>(r?.destination||r?.publicPath||r?.path)===item.path),candidate=entry?.sourceRecord||review.sourceRecord,record=typeof candidate==='string'?candidate:candidate?.path;
         if(!record||!fs.existsSync(record))continue;const raw=json(record);if(!raw.image||raw.image.sha256!==published.sha256)continue;
         const r=actualRecord(item.id,record,c.sources[item.id]);p.items[item.id]={...item,status:'PUBLISHED_ROOT_REVIEWED',sourceRecord:ref(record),source:r.source,image:r.image,reusedOriginalScope:true,rootReview:published.receipt,canonicalBehaviorExecuted:r.canonicalBehaviorExecuted,canonicalValidationProfile:r.canonicalValidationProfile};

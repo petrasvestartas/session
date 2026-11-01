@@ -310,7 +310,7 @@ Three-point input completes the arc source recipe; the browser command route fol
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for read three-point arcs and connect the recipe.](../screenshots/journey/75za-build-original-planar-circles.png)
+![Native renderer output for read three-point arcs and connect the recipe.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

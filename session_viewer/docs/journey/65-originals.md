@@ -1137,7 +1137,7 @@ The coloured original cloud remains visible. The final checkpoint adds a local y
 
 The coloured original cloud remains visible.
 
-![Native renderer output for resolve source point identities and precise positions.](../screenshots/journey/65-originals.png)
+![Native renderer output for resolve source point identities and precise positions.](../screenshots/journey/64t-clouds.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -1415,7 +1415,7 @@ Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and 
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for inspect the ground grid through actual commands.](../screenshots/journey/41f-input.png)
+![Native renderer output for inspect the ground grid through actual commands.](../screenshots/journey/42k-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

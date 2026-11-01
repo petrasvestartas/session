@@ -387,7 +387,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 4.1 (33b-cache)](../../../screenshots/journey/33b-cache-browser.png)
+![Recorded visual output for Lesson 4.1 (33b-cache)](../../../screenshots/journey/30e-recovery-browser.png)
 
 ```sh
 cd workspace/journey

@@ -522,7 +522,7 @@ Continue the blue Posts layer exercise. This preparation connects one navigation
 
 Blue Posts retain original black boundaries and the independent brown source beam.
 
-![Native renderer output for navigate and fit inside the free canvas.](../screenshots/journey/54-camera.png)
+![Native renderer output for navigate and fit inside the free canvas.](../screenshots/journey/53u-layers.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

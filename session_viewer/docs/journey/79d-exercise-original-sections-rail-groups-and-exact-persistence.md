@@ -80,7 +80,7 @@ A smooth original NURBS surface passes through three original sections. Current 
 
 A smooth surface spans three retained original curved sections.
 
-![Native renderer output for exercise original sections rail groups and exact persistence.](../screenshots/journey/79d-exercise-original-sections-rail-groups-and-exact-persistence.png)
+![Native renderer output for exercise original sections rail groups and exact persistence.](../screenshots/journey/79zze-fit-the-original-gordon-surface.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

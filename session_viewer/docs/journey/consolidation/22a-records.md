@@ -2142,46 +2142,7 @@ fn empty_scene_and_single_point_have_defined_fit_behaviour() {
 
 ## <a id="checkpoint-24a-projection"></a>10. Build perspective and orthographic camera matrices
 
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="184" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="186" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Perspective Frustum (w = -z_eye) vs Ortho Box (w = 1)</text>
-  <circle cx="58" cy="102" r="4.5" fill="#111111"/>
-  <polygon points="58,102 158,52 158,152" fill="#fef9c3" fill-opacity="0.45" stroke="#111111" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <rect x="184" y="56" width="102" height="92" fill="#dbeafe" fill-opacity="0.45" stroke="#2563eb" stroke-width="1.75"/>
-  <line x1="184" y1="78" x2="286" y2="78" stroke="#2563eb" stroke-width="1.2" marker-end="url(#arrB)"/>
-  <line x1="184" y1="126" x2="286" y2="126" stroke="#2563eb" stroke-width="1.2" marker-end="url(#arrB)"/>
-  <line x1="358" y1="94" x2="384" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="388" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="560" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Foreshortening x_ndc = x/(z*tan(fov/2)) vs Parallel x/s</text>
-  <polygon points="432,140 468,62 544,82 518,140" fill="#fce7f3" stroke="#db2777" stroke-width="1.75"/>
-  <rect x="582" y="66" width="96" height="72" fill="#dbeafe" stroke="#2563eb" stroke-width="1.75"/>
-  <line x1="582" y1="66" x2="678" y2="66" stroke="#16a34a" stroke-width="2"/>
-  <line x1="582" y1="138" x2="678" y2="138" stroke="#16a34a" stroke-width="2"/>
-  <line x1="732" y1="94" x2="758" y2="94" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <rect x="762" y="12" width="344" height="164" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">True-Scale Parallel CAD Elevation View</text>
-  <rect x="806" y="44" width="256" height="118" rx="4" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="844" y="62" width="82" height="82" fill="#dbeafe" stroke="#111111" stroke-width="2"/>
-  <line x1="844" y1="103" x2="926" y2="103" stroke="#2563eb" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="992" y="106" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Top / Front</text>
-</svg>
-</div>
+See the [perspective and parallel projections diagram in Lesson 21.5](96zzzzzza-match-physical-camera-defaults-and-limits.md).
 
 ### 1. `src/camera.rs`
 

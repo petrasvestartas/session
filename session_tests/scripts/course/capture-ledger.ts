@@ -2,12 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {gzipSync, gunzipSync} from 'node:zlib';
-import {hash, json, filesIn} from './model.ts';
+import {hash, json, filesIn, docs, resolveJourneyImage} from './model.ts';
 import {fileReference} from './capture-storage.ts';
 
 const retained = /\.(png|json|jsonl|log)$/i;
 const binary = /\.(exe|dll|wasm|rlib|rmeta|pdb|ppm)$/i;
 const digest = (file: string) => fileReference(file).sha256;
+const imageReference = (file: string, sha256: string) => ({...fileReference(resolveJourneyImage(file, sha256)), path: path.resolve(file)});
 
 function exclusive(file: string, value: unknown) {
     fs.mkdirSync(path.dirname(file), {recursive: true});
@@ -125,7 +126,7 @@ export function verifyCaptureLedger(file: string) {
             assert.equal((capture.served || capture.host?.served)[capture.id + '/dist/' + name], capture.bundle[name]);
         assert.equal((capture.resources || capture.host?.resources).exitCode, 0);
     }
-    assert.equal(digest(receipt.image.path), receipt.image.sha256);
+    assert.equal(imageReference(receipt.image.path, receipt.image.sha256).sha256, receipt.image.sha256);
     const retiredFile = ledgerReceiptFile(directory, 'retirement');
     if (!retiredFile) {
         for (const item of receipt.execution.after.files) assert.equal(digest(item.path), item.sha256, 'Live artifact was replaced');
@@ -141,9 +142,13 @@ export function verifyCaptureLedger(file: string) {
     if (completed) assert.equal(completed.removed, retired.files.length);
     assert.equal(published.destination.sha256, receipt.image.sha256);
     assert.equal(hash(gunzipSync(fs.readFileSync(path.join(receipt.blobs, published.evidence.sha256 + '.gz')))), published.evidence.sha256);
-    for (const item of receipt.candidates.filter((item: any) => !item.retire)) assert.equal(digest(item.path), item.sha256);
+    for (const item of receipt.candidates.filter((item: any) => !item.retire))
+        assert.equal(/\.png$/i.test(item.path) ? imageReference(item.path, item.sha256).sha256 : digest(item.path), item.sha256);
+    const imageRoot = path.join(docs, 'screenshots/journey') + path.sep;
+    const destination = !fs.existsSync(published.destination.path) && path.resolve(published.destination.path).startsWith(imageRoot)
+        ? resolveJourneyImage(published.destination.path, receipt.image.sha256) : published.destination.path;
     return {status: completed ? 'PUBLISHED_BINARY_RETIRED' : 'RETIREMENT_INCOMPLETE', receipt, publication: published, retirement: retired,
-        currentPublication: fs.existsSync(published.destination.path) && digest(published.destination.path) === receipt.image.sha256,
+        currentPublication: fs.existsSync(destination) && digest(destination) === receipt.image.sha256,
         execution: completed
             ? 'Verified immutable execution chain; binary retired. Current compiler paths are not execution evidence. Re-execution requires a fresh build.'
             : 'Verified immutable execution chain; retirement recorded but deletion is incomplete. Resume retirement with the same publication evidence.'};
@@ -151,21 +156,22 @@ export function verifyCaptureLedger(file: string) {
 
 function retireLocked(file: string, destination: string, publicationEvidence: string) {
     const verified = verifyCaptureLedger(file), receipt = verified.receipt, directory = path.dirname(file);
-    assert.equal(digest(destination), receipt.image.sha256, 'Publication must complete before retirement');
+    const destinationReference = imageReference(destination, receipt.image.sha256);
+    assert.equal(destinationReference.sha256, receipt.image.sha256, 'Publication must complete before retirement');
     const evidence = fileReference(publicationEvidence);
     const evidenceBlob = path.join(receipt.blobs, evidence.sha256 + '.gz');
     if (!fs.existsSync(evidenceBlob)) fs.writeFileSync(evidenceBlob, gzipSync(fs.readFileSync(evidence.path)), {flag: 'wx'});
     assert.equal(hash(gunzipSync(fs.readFileSync(evidenceBlob))), evidence.sha256);
     if (verified.publication) {
         assert.deepEqual(verified.publication.evidence, evidence);
-        assert.deepEqual(verified.publication.destination, fileReference(destination));
+        assert.deepEqual(verified.publication.destination, destinationReference);
         if (verified.status === 'PUBLISHED_BINARY_RETIRED') return verified;
     }
     const files = receipt.candidates.filter((item: any) => item.retire);
     if (!verified.retirement) {
         for (const item of files) { owned(item.root, item.path); assert.equal(digest(item.path), item.sha256); }
         const publicationFile = path.join(directory, 'publication.json');
-        const published = {capture: fileReference(file), destination: fileReference(destination), evidence};
+        const published = {capture: fileReference(file), destination: destinationReference, evidence};
         if (fs.existsSync(publicationFile)) assert.deepEqual(json(publicationFile), published);
         else exclusive(publicationFile, published);
         exclusive(path.join(directory, 'retirement.json.gz'), {capture: fileReference(file), publication: fileReference(publicationFile), at: new Date().toISOString(), files});

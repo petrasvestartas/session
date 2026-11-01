@@ -56,7 +56,7 @@ Original cloud node tables can be decoded; streamed drawing connects later.
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for read original cloud node tables.](../screenshots/journey/67hza-queue-original-source-range-reads.png)
+![Native renderer output for read original cloud node tables.](../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

@@ -783,7 +783,7 @@ Selection membership now handles unique order, locked and hidden exclusions and 
 
 The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.
 
-![Native renderer output for connect multi-hit state and highlight every selected row.](../screenshots/journey/45b-membership.png)
+![Native renderer output for connect multi-hit state and highlight every selected row.](../screenshots/journey/44l-input.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

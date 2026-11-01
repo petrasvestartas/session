@@ -1186,8 +1186,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 8.1 (52f-save)](../../screenshots/journey/52f-save.png)
-
 ```sh
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1

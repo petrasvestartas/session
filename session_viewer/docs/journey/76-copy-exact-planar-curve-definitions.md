@@ -184,7 +184,7 @@ The original round solids remain visible while exact curves connect. The final e
 
 Original Cylinder, Cone, Sphere and Torus remain visible.
 
-![Native renderer output for read original parabola inputs in a checked frame.](../screenshots/journey/75za-build-original-planar-circles.png)
+![Native renderer output for read original parabola inputs in a checked frame.](../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

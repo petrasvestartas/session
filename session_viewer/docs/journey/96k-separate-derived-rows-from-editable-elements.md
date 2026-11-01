@@ -925,7 +925,7 @@ The archive retains editable child Elements and excludes their generated display
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for keep nested elements editable and projections unsaved.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for keep nested elements editable and projections unsaved.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

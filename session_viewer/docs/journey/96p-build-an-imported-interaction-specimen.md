@@ -102,7 +102,7 @@ Download the [supplied interaction sample.pb](fixtures/interaction-96p.pb). Type
 
 The existing original comparison scene is unchanged; this step prepares imported Element ownership.
 
-![Native renderer output for build an original interaction specimen.](../screenshots/journey/96i-separate-own-and-hosted-element-features.png)
+![Native renderer output for build an original interaction specimen.](../screenshots/journey/95-record-comparable-large-scene-conditions.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

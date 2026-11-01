@@ -10,7 +10,7 @@ import {runMaintainedPresentation} from './maintained-browser-presentation.ts';
 import {prepareStreaming, runStreaming} from './browser-streaming-presentation.ts';
 import {additionalImageRecipe, prepareAdditionalScene, runAdditionalScene} from './additional-browser-image-recipes.ts';
 import {bindings} from './presentation.ts';
-import {course, docs, filesIn, hash, json, viewer, withExpectedSequence, write} from './model.ts';
+import {course, docs, filesIn, hash, json, resolveJourneyImage, viewer, withExpectedSequence, write} from './model.ts';
 
 const self = fileURLToPath(import.meta.url);
 const sha = (file: string) => hash(fs.readFileSync(file));
@@ -32,7 +32,7 @@ function check(cohort: any, full = false) {
 }
 
 function checkImage(image: any, id: string) {
-    const bytes = fs.readFileSync(image.path);
+    const bytes = fs.readFileSync(resolveJourneyImage(image.path, image.sha256));
     assert.equal(hash(bytes), image.sha256);
     assert(bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])));
     assert.equal(bytes.readUInt32BE(16), image.width); assert.equal(bytes.readUInt32BE(20), image.height);
@@ -339,16 +339,16 @@ export function publishSceneBatch(directory: string, reviewFile: string, rootRev
         assert.equal(row.sourceRecordSha256, item.sourceRecord.sha256, 'Root review must name the actual per-image scope receipt');
         const destination = path.resolve(viewer, item.path);
         assert.equal(path.dirname(destination), path.join(docs, 'screenshots/journey'));
-        const current = sha(destination); assert([item.originalSha256, item.image.sha256].includes(current), 'Preserve outside image edits: ' + destination);
-        return {item, destination, current};
+        const currentImage = resolveJourneyImage(destination), current = sha(currentImage); assert([item.originalSha256, item.image.sha256].includes(current), 'Preserve outside image edits: ' + destination);
+        return {item, destination, currentImage, current};
     });
-    for (const {item, destination, current} of approved) {
+    for (const {item, destination, currentImage, current} of approved) {
         if (current !== item.image.sha256) {
             const backup = path.join(directory, 'original-images', path.basename(destination)); fs.mkdirSync(path.dirname(backup), {recursive: true});
-            if (!fs.existsSync(backup)) fs.copyFileSync(destination, backup, fs.constants.COPYFILE_EXCL);
-            assert.equal(sha(backup), item.originalSha256); fs.copyFileSync(item.image.path, destination);
+            if (!fs.existsSync(backup)) fs.copyFileSync(currentImage, backup, fs.constants.COPYFILE_EXCL);
+            assert.equal(sha(backup), item.originalSha256); fs.copyFileSync(resolveJourneyImage(item.image.path, item.image.sha256), destination);
         }
-        assert.equal(sha(destination), item.image.sha256); item.status = 'PUBLISHED_ROOT_REVIEWED'; item.rootReview = reference(reviewFile);
+        assert.equal(sha(resolveJourneyImage(destination, item.image.sha256)), item.image.sha256); item.status = 'PUBLISHED_ROOT_REVIEWED'; item.rootReview = reference(reviewFile);
     }
     check(cohort, true); write(path.join(directory, 'progress.json'), JSON.stringify(summarize(progress), null, 2) + '\n'); return progress;
 }

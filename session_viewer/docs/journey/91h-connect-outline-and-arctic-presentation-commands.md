@@ -2611,7 +2611,7 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 Actual isometric original geometry and contact shading are rendered in one completed frame.
 
-![Native renderer output for connect outline and arctic presentation commands.](../screenshots/journey/91-include-visible-section-coverage.png)
+![Native renderer output for connect outline and arctic presentation commands.](../screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

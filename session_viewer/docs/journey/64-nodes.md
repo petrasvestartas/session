@@ -66,7 +66,7 @@ The selected CAD bore and its black silhouette remain visible. These preparation
 
 The selected CAD bore and black original and silhouette contours remain visible.
 
-![Native renderer output for check cloud cubes against their original point rows.](../screenshots/journey/64-nodes.png)
+![Native renderer output for check cloud cubes against their original point rows.](../screenshots/journey/63h-outline.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

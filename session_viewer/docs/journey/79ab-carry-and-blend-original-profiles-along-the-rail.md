@@ -138,7 +138,7 @@ The sweep helpers can carry and blend the framed profiles along the original rai
 
 **Previous native render — current verification pending.**
 
-![Native renderer output for carry and blend original profiles along the rail.](../screenshots/journey/79-retain-current-loft-section-order-and-degree-options.png)
+![Native renderer output for carry and blend original profiles along the rail.](../screenshots/journey/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 

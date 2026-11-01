@@ -579,7 +579,7 @@ mod cad_boundary_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 9.2 (56b-boundaries)](../../../screenshots/journey/56b-boundaries.png)
+![Recorded visual output for Lesson 9.2 (56b-boundaries)](../../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 ```sh
 cd workspace/journey

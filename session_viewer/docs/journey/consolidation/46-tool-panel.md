@@ -1476,8 +1476,6 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 7.1 (46-tool-panel)](../../screenshots/journey/46-tool-panel.png)
-
 ```sh
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
