@@ -1,0 +1,134 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-01T10:16:49.083Z",
+  "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+  "lane": "browser",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Actual pinned warm-runner frozen-source preflight and postflight; current hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-execution.json",
+      "sha256": "4ce9b48e250ca2f3983af8ed6105a3687f4f5dd40c80002edbd20980e5be1a56",
+      "bytes": 2617
+    },
+    "runnerInputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\run_warm_course_checkpoint.py",
+        "sha256": "85535ffae9c5a729e3da9ca783ea0447573d17e0ff53ed6b1102013507665c46"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\windows_read_lease.py",
+        "sha256": "43ad54a76624b9527636b1202c4dc8f7f760af1d8d7bc3481d5b68fab5a6d3dd"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-command.json",
+        "sha256": "2904596fca35ac25fb4897e50af2cf4980078b4f73bdd026de8a1b67eeabcd14"
+      }
+    ]
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this exact 1800x1520 exported-route image with the original-detail image tool. The curved cap and cylinder have smooth external contours and clean exact boundary curves; shaded faces show no triangulation wires. Its bytes also exactly match the independently reviewed94c04 image. Actual scale2 capture verified internal3600x3040, externalDPR2, four CAD owners/four GPU rows/four finite qualities with requested=accepted0.17677669529663687, no pending refinement or limit, and static GPU reuse with unchanged sources/camera/selection/clipping. Measured retained payload is251440 bytes under the unchanged64MiB budget. This original exported image recipe did not execute the full canonical behavior callback. The measured-retention02 successor and actual nine-test regression gate are bound in the qualification record; all477 maintained sources and Chrome executable remained unchanged.",
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\capture.json.gz",
+    "sha256": "a2c7fdc4e3650f6d47f0f0158483aa663c119418f0ee683e91674e1722b458bd",
+    "bytes": 381801
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-qualification.json",
+    "sha256": "a5c658f7e1bab2a4b752ee7a0dbbac8bf442aeccbf6bc252db61db65c8a0bd35",
+    "bytes": 10477
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-execution.json",
+    "sha256": "4ce9b48e250ca2f3983af8ed6105a3687f4f5dd40c80002edbd20980e5be1a56",
+    "bytes": 2617
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-publication.json",
+    "sha256": "ff9566bbf482dba1f3667e01942aeec729dfa6c212f496104398c3373b145e4e",
+    "bytes": 6345
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\publication.json",
+    "sha256": "e4f29f031b83dc3e90e7a5d3d0b5e748051b06fc66fa246d5c549cff7e595c34",
+    "bytes": 910
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\retirement.json.gz",
+    "sha256": "8882eb55aa7b569c8e78a406b4da80fb4f6e50ccb02adb8495f4ce46fd027c45",
+    "bytes": 150946
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\retired.json",
+    "sha256": "c6de76920edfa363c787cce66b490ac8f829c7239900cd1f30c2c7c97cf885c4",
+    "bytes": 362
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+    "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+    "bytes": 94288
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+    "sha256": "2e42d7698512fbc560de78fde2279d754abe61f1515feb4544a7f1c9210643cc",
+    "bytes": 85408
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\outline-prior-png-2e42d7698512fbc560de78fde2279d754abe61f1515feb4544a7f1c9210643cc.png",
+    "sha256": "2e42d7698512fbc560de78fde2279d754abe61f1515feb4544a7f1c9210643cc",
+    "bytes": 85408
+  },
+  "renderScale": {
+    "renderScale": 2,
+    "lane": "browser",
+    "scene": "comparison",
+    "route": "exported",
+    "recipePins": [
+      {
+        "path": "journey/checks/browser/performance.cjs",
+        "sha256": "884df20926a81fe78b5c22f8aba22fe12b4043ae65d85e25d3d313fcb46d0d1a"
+      },
+      {
+        "path": "../assets/pb/course-comparison.pb",
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+      }
+    ],
+    "samples": 1,
+    "presentation": "canvas-compositor",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "53f898d94b6e45962bb2bd1d01c34ea9113e4495aa75715a46eb95e96451a03a"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "98cb76d3dea6be78e8a9ebcaf5730e197f3c683d71c048a272485519055598d1"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\adaptive-gpu-reuse.cjs",
+        "sha256": "df13850794e0fb2fdbe8fc7f678a6c2911676cd577c2bc37a93d58d5bc07f073"
+      }
+    ]
+  },
+  "canonicalBehaviorExecuted": false,
+  "scope": "Standalone source13 image-profile qualification. Root directly viewed this exact original-resolution PNG. The canonicalBehaviorExecuted field distinguishes actual full callback execution from an original image recipe; no canonical resource-profile, historical interactive MSAA, or physical geometry acceptance claim."
+}

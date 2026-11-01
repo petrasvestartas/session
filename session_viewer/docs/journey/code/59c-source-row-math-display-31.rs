@@ -13,6 +13,22 @@ impl Prepared {
             Self::Cad(_,mesh)=>mesh.vertices().len().saturating_add(mesh.indices().len()).saturating_mul(256),
         }
     }
+    fn retained_bytes(&self)->Option<usize> {
+        match self {
+            Self::Curve(prepared)=>match &prepared.source {
+                crate::chain::Source::Curve(_,samples)=>sum_bytes([rc_bytes(&prepared.points),allocation_bytes(&prepared.points),rc_bytes(samples),allocation_bytes(samples)]),
+                _=>None,
+            },
+            Self::Surface(prepared,mesh)=>sum_bytes([
+                rc_bytes(prepared),allocation_bytes(&prepared.grid.samples),allocation_bytes(&prepared.grid.indices),allocation_bytes(&prepared.grid.boundaries),
+                sum_bytes(prepared.grid.boundaries.iter().map(|boundary|allocation_bytes(&boundary.segments))),rc_bytes(mesh),Some(mesh.payload_bytes()),
+            ]),
+            Self::Cad(prepared,mesh)=>sum_bytes([
+                rc_bytes(prepared),allocation_bytes(&prepared.edges),sum_bytes(prepared.edges.iter().map(|edge|allocation_bytes(&edge.points))),
+                allocation_bytes(&prepared.samples),allocation_bytes(&prepared.edge_ids),rc_bytes(mesh),Some(mesh.payload_bytes()),
+            ]),
+        }
+    }
 }
 struct Request { id:ObjectId, source:Source, model:Xform }
 struct Entry { key:(u32,u8,usize), _source:Source, target:Quality, accepted:Quality, rejected:Option<Quality>, error:Option<&'static str>, data:Option<Prepared>, bytes:usize }
@@ -110,6 +126,14 @@ fn requests(scene:&Scene)->Result<Vec<Request>,&'static str> {
 }
 
 impl Presentation {
+    fn account(&mut self,keep_table:bool)->bool {
+        if !keep_table&&self.entries.is_empty() {self.entries=Vec::new();self.bytes=0;return true;}
+        let bytes=sum_bytes([Some(std::mem::size_of::<Self>()),allocation_bytes(&self.entries),sum_bytes(self.entries.iter().map(|entry|Some(entry.bytes)))]);
+        match bytes {
+            Some(bytes) if bytes<=quality::SCENE_BYTES=>{self.bytes=bytes;true},
+            _=>{self.limited=Some("Presentation cache reached its finite byte budget");false},
+        }
+    }
     pub fn qualities(&self)->Vec<(u32,Option<f64>,Option<f64>,bool)> {
         self.entries.iter().map(|entry|(entry.key.0,entry.target.0.is_finite().then_some(entry.target.0),entry.accepted.0.is_finite().then_some(entry.accepted.0),entry.error.is_some())).collect()
     }
@@ -119,7 +143,7 @@ impl Presentation {
             Ok(requests)=>self.entries.retain(|entry|requests.iter().any(|request|request.source.key(request.id)==entry.key)),
             Err(error)=>{self.entries.clear();self.limited=Some(error);}
         }
-        self.bytes=self.entries.iter().map(|entry|entry.bytes).sum();
+        let _=self.account(false);
     }
 
     #[cfg(target_arch="wasm32")]

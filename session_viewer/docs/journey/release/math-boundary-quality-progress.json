@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T09:50:14.941217+00:00",
+  "updatedUtc": "2026-11-01T10:21:50.873988+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Fresh HTTP/Chrome checks and remaining native/profile representatives are pending.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -120,17 +120,36 @@
       "sha256": "278b4edb4d952c586c0b54819a0fa0310345e008b4d6008f983a21754a397f9b",
       "maintainedSourcesUnchanged": 477,
       "scope": "One historical browser image recipe; no full-callback or all-profile claim."
+    },
+    "measuredRetention02": {
+      "status": "BROWSER95F_MEASURED_RETENTION02_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+      "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "route": "exported",
+      "receipt": "docs/journey/release/math-boundary-measured-retention-20261101-runtime.json",
+      "sha256": "0b6bb239c93d06387d533105f98f99eb951caa39cadb2d0eb201a76f557f61f2",
+      "sourceSuccessor": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-measured-retention-20261101-source.json",
+        "sha256": "fb82c78697e521d93e94473dffd16f6dee487e6a1ea551214005ddd09a599e1d",
+        "bytes": 17902
+      },
+      "cpuRegressionTestsPassed": 9,
+      "measuredRetainedPayloadBytes": 251440,
+      "acceptedCadQualities": 4,
+      "fullCanonicalCallbackExecuted": false,
+      "maintainedSourcesUnchanged": 477,
+      "freshHttpVerified": false,
+      "freshServedChromeVerified": false
     }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 47,
-    "remainingAffected": 1279,
-    "acceptedForFinalSource": 42,
-    "remainingFinalSourceAcceptance": 1284,
-    "qualificationNote": "42 currently required images match freeze13 and their explicit root review. Two earlier accepted illustrations and six pending targets were removed as unused, not accepted again. Five still-current historical publications lack the target source binding and remain separately scoped.",
+    "newPublishedReviewed": 48,
+    "remainingAffected": 1278,
+    "acceptedForFinalSource": 43,
+    "remainingFinalSourceAcceptance": 1283,
+    "qualificationNote": "43 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
     "removedUnusedImages": 329,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2
@@ -791,6 +810,19 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "liveRequired": true
+    },
+    {
+      "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-source13-outline-scale2-browser95f-02-d510a8435bc9.json",
+      "receiptSha256": "e97a855384fbd83846780f5b95e78a823e37fc2a951123ca427028feb4aa682f",
+      "image": "docs/screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+      "imageSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false
     }
   ],
   "stages": [
@@ -800,19 +832,19 @@
     },
     {
       "stage": "Historical tutorial adapters",
-      "status": "HISTORICAL_CACHE_SUCCESSOR_124_PINS_8_FINGERPRINTS_AND_EXACT_READER_FENCE_VERIFIED"
+      "status": "MEASURED_RETENTION02_124_PINS_8_FINGERPRINTS_3_READERS_5_FENCES_AND_2_LOCATORS_VERIFIED"
     },
     {
       "stage": "Capture qualification",
-      "status": "84_TOOLING_CHECKS_4_CACHE_REGRESSIONS_AND_BROWSER94C_QUALITY_PASS; OTHER_PROFILE_REPRESENTATIVES_PENDING"
+      "status": "MEASURED_RETENTION02_9_CPU_REGRESSIONS_AND_BROWSER95F_GPU_PASS; OTHER_REPRESENTATIVES_PENDING"
     },
     {
       "stage": "Image regeneration",
-      "status": "42_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1284_REMAIN"
+      "status": "43_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1283_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
-      "status": "FINAL_SITE_REBUILD_CURRENT_IMAGE_HTTP_DECODE_AND_PUBLICATION_PENDING"
+      "status": "FINAL_SOURCE_SITE_REBUILD_CURRENT_IMAGE_HTTP_DECODE_AND_PUBLICATION_PENDING"
     }
   ],
   "readerCodeSynchronization": {
@@ -828,8 +860,8 @@
     "sha256": "aee1119148c0e09bccb8673661c9694f1a3be0b733ba90cf9dd9ebe5bbc75167",
     "browser": "156.0.8078.74",
     "publishedImagesVerified": 39,
-    "rebuiltWebsiteCodePages": "REBUILD_PENDING_LATEST_READER_FENCE_AND_UNUSED_ASSET_REMOVAL",
-    "newSource13ImagesAwaitingChromeDecode": 10,
+    "rebuiltWebsiteCodePages": "PRIOR_SITE_BUILD_ONLY; MEASURED_RETENTION_SOURCE_READER_CHANGES_NOT_REBUILT",
+    "newSource13ImagesAwaitingChromeDecode": 12,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
       "pages": 267,
@@ -886,9 +918,9 @@
     },
     "currentRequiredScope": {
       "recordedChromeHttpDecodeMatchesCurrentAccepted": 31,
-      "currentAcceptedWithoutMatchingDecodeRecord": 11,
+      "currentAcceptedWithoutMatchingDecodeRecord": 12,
       "freshHttpChecksPerformed": false,
-      "note": "Only exact matching immutable200/PNG decode receipts count here. No blanket44-image HTTP claim; this updater performs no network request."
+      "note": "Only exact matching immutable200/PNG decode receipts count. No fresh network/browser checks were performed by this metadata updater."
     }
   },
   "unusedImageCleanup": {

@@ -1,0 +1,384 @@
+{
+  "status": "PRIVATE_MEASURED_RETENTION02_SOURCE_SUCCESSOR_NOT_APPLIED",
+  "recordedUtc": "2026-11-01T10:08:38.168Z",
+  "predecessor": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\historical-cache-admission-successor.json",
+    "sha256": "a6e74c9a7a756ec2bd5e0174995e3ab05839e62a82448a98ebc63adbb2566a6a",
+    "bytes": 9246
+  },
+  "predecessorLineage": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-promotion.json",
+      "sha256": "4bf6e9d22f51a4f4caf58d2d592adeb562747929d7bb11fdca1de0cbd86f2815",
+      "bytes": 28415
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-cad-successor.json",
+      "sha256": "9e49938aebf651e4dbcb8e675d29419f3e90bf05bcec5be5b2c2953748a7d80b",
+      "bytes": 2558
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-inventory-successor.json",
+      "sha256": "3123889ebb1c0410dd2b7b8c9a5b9651bdd0bb8628020a1efc70661f14571cad",
+      "bytes": 86849
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-id-successor.json",
+      "sha256": "d4887a2bd5b3c1383e7666b1a9c044e2d67612f98ff14020815fccb460be1f56",
+      "bytes": 2572
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-native-frame-successor.json",
+      "sha256": "dcb9b172d3e32b2abf1b17009c682abd99936be532fd1fe966ab2d3ae9d602b5",
+      "bytes": 89099
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-source12-inventory-successor.json",
+      "sha256": "3d6dd552408bff3b27bee95319d320cf07efba77a1c3802f30ff7f01cc93f73a",
+      "bytes": 4505
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-source13-silhouette-successor.json",
+      "sha256": "14308164c0d10eb9d24c2a802b0a738f456f9a102bfae8e20ead20af1bd85efe",
+      "bytes": 7002
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-source13-lifecycle-successor.json",
+      "sha256": "bc4035070517f915201434c42825153233e3c5fcb725eccd345c3db434c9a6af",
+      "bytes": 8329
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\historical-cache-admission-successor.json",
+      "sha256": "a6e74c9a7a756ec2bd5e0174995e3ab05839e62a82448a98ebc63adbb2566a6a",
+      "bytes": 9246
+    }
+  ],
+  "algorithmPacket": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\manifest.json",
+    "sha256": "33d854105615c0f959ed1b186e8676e85942389fef0c25de075f2e0d93153113",
+    "bytes": 2733
+  },
+  "locatorPatch": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\course-before-replacements.json",
+    "sha256": "4e995bd15f950a6be09dd820cdee705bc83940ad1fd03e7ffa8ce99a02e2d83e",
+    "bytes": 22829
+  },
+  "regressions": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\regressions-01.json",
+    "sha256": "1613015a3f764c19837d2d9b04eb90f06ae9330158d60a77e9df55d033a4b3f8",
+    "bytes": 5353
+  },
+  "pins": [
+    {
+      "path": "journey/code/38b-source-math-display-4.rs",
+      "before": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed",
+      "after": "c50396a7d508c59ff62d42ca35c5a44a381937a93b5f65432564bad27afbfa93"
+    },
+    {
+      "path": "journey/code/55d-source-row-math-display-26.rs",
+      "before": "6e4c39ad0408d46fecfe148ec217b1aee5f92224556d6f47d9a6b7725510ec8e",
+      "after": "57f771544adad98f6dc3f9359d2d166b008de156094fa4f49a0bead7653896ce"
+    },
+    {
+      "path": "journey/code/59c-source-row-math-display-31.rs",
+      "before": "8e7df143c7268c49285481c714b7ab9080476b591e20d7043491d2d259bd8b1b",
+      "after": "2506a58585d30713a6f01dd6a37fc917c6a8072ec496fcb8df007de1c21225f7"
+    },
+    {
+      "path": "journey/course.json",
+      "before": "41affedf8a5bceb0f505ced7ffea79945b1ffbce553e0a54d496c6d7fc0b151a",
+      "after": "e8168d1020cde4103782b492c886e9a665c3910cd770ea0a68d7ae9c266c7b9f"
+    }
+  ],
+  "priorUniquePins": 124,
+  "snippets": [
+    {
+      "path": "journey/code/38b-source-math-display-4.rs",
+      "before": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed",
+      "after": "c50396a7d508c59ff62d42ca35c5a44a381937a93b5f65432564bad27afbfa93",
+      "base": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\38b-source-math-display-4.rs",
+        "sha256": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed",
+        "bytes": 10915
+      },
+      "candidate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\proposed\\38b-source-math-display-4.rs",
+        "sha256": "c50396a7d508c59ff62d42ca35c5a44a381937a93b5f65432564bad27afbfa93",
+        "bytes": 12573
+      }
+    },
+    {
+      "path": "journey/code/55d-source-row-math-display-26.rs",
+      "before": "6e4c39ad0408d46fecfe148ec217b1aee5f92224556d6f47d9a6b7725510ec8e",
+      "after": "57f771544adad98f6dc3f9359d2d166b008de156094fa4f49a0bead7653896ce",
+      "base": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\55d-source-row-math-display-26.rs",
+        "sha256": "6e4c39ad0408d46fecfe148ec217b1aee5f92224556d6f47d9a6b7725510ec8e",
+        "bytes": 5672
+      },
+      "candidate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\proposed\\55d-source-row-math-display-26.rs",
+        "sha256": "57f771544adad98f6dc3f9359d2d166b008de156094fa4f49a0bead7653896ce",
+        "bytes": 6905
+      }
+    },
+    {
+      "path": "journey/code/59c-source-row-math-display-31.rs",
+      "before": "8e7df143c7268c49285481c714b7ab9080476b591e20d7043491d2d259bd8b1b",
+      "after": "2506a58585d30713a6f01dd6a37fc917c6a8072ec496fcb8df007de1c21225f7",
+      "base": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\59c-source-row-math-display-31.rs",
+        "sha256": "8e7df143c7268c49285481c714b7ab9080476b591e20d7043491d2d259bd8b1b",
+        "bytes": 7231
+      },
+      "candidate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\proposed\\59c-source-row-math-display-31.rs",
+        "sha256": "2506a58585d30713a6f01dd6a37fc917c6a8072ec496fcb8df007de1c21225f7",
+        "bytes": 8807
+      }
+    }
+  ],
+  "course": {
+    "path": "journey/course.json",
+    "before": "41affedf8a5bceb0f505ced7ffea79945b1ffbce553e0a54d496c6d7fc0b151a",
+    "after": "e8168d1020cde4103782b492c886e9a665c3910cd770ea0a68d7ae9c266c7b9f",
+    "base": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\course.json.gz",
+      "sha256": "30bdf773c19e00ac3b855e6925171e336133623b9faf531f26d7833ed7f60ea8",
+      "bytes": 1961719,
+      "encoding": "gzip",
+      "decodedSha256": "41affedf8a5bceb0f505ced7ffea79945b1ffbce553e0a54d496c6d7fc0b151a",
+      "decodedBytes": 11328902
+    },
+    "candidate": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\proposed\\course.json.gz",
+      "sha256": "0ae0f54857a593608f60498b8bdf4a8124b12d87d4f5bfc8449b56b16f067721",
+      "bytes": 1962557,
+      "encoding": "gzip",
+      "decodedSha256": "e8168d1020cde4103782b492c886e9a665c3910cd770ea0a68d7ae9c266c7b9f",
+      "decodedBytes": 11331022
+    },
+    "hunks": [
+      {
+        "start": 1939576,
+        "beforeEnd": 1943893,
+        "afterStart": 1939576,
+        "afterEnd": 1944758,
+        "beforeSha256": "1311acc707dfe1d361916064566c9e440564ce7ac27e3e108044834bf6fb9643",
+        "afterSha256": "51b9cc3f95bfc35bf1958ccd0a5f91f65824882036ca785b0205081b833cf3a6",
+        "step": "55d-source-row",
+        "index": 5
+      },
+      {
+        "start": 1995728,
+        "beforeEnd": 2001447,
+        "afterStart": 1996593,
+        "afterEnd": 2003567,
+        "beforeSha256": "ae1970c2fbfe57f0927593ee8e91d66fcc00c65462d3c4f52c040aeef17c67b8",
+        "afterSha256": "eb42d4a73cdfd3686450e1dd41e34fc2467a6de8ee16989e7d57add4b75675cc",
+        "step": "59c-source-row",
+        "index": 5
+      }
+    ]
+  },
+  "readerPages": [
+    {
+      "path": "journey/consolidation/38-layout.md",
+      "before": "46762d07c5d15460df9b046158702253129c33faaa5121bd82d08e16a8d8ddba",
+      "after": "4c50f7bf2c9b1ee342a1a7274da500b864e3108056a020a3e61fbcab5831dd4e",
+      "base": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\38-layout.md",
+        "sha256": "46762d07c5d15460df9b046158702253129c33faaa5121bd82d08e16a8d8ddba",
+        "bytes": 154470
+      },
+      "candidate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\proposed\\38-layout.md",
+        "sha256": "4c50f7bf2c9b1ee342a1a7274da500b864e3108056a020a3e61fbcab5831dd4e",
+        "bytes": 156128
+      },
+      "hunks": [
+        {
+          "start": 53484,
+          "beforeEnd": 64399,
+          "afterStart": 53484,
+          "afterEnd": 66057,
+          "beforeSha256": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed",
+          "afterSha256": "c50396a7d508c59ff62d42ca35c5a44a381937a93b5f65432564bad27afbfa93",
+          "kind": "whole-file",
+          "sourcePayloadTrailingWhitespaceOmittedBytes": 0
+        }
+      ],
+      "outsideFenceBytesUnchanged": true,
+      "crlfBefore": 0,
+      "crlfAfter": 0
+    },
+    {
+      "path": "journey/consolidation/55-validation.md",
+      "before": "35644e45c30280f43f1233db24a8a4c9fc485f2cdca5c223d26423769ddf8fdc",
+      "after": "90788c953e1c9999a437dd22fbb882611a6a27bd89ce128173d115f773d8124f",
+      "base": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\55-validation.md",
+        "sha256": "35644e45c30280f43f1233db24a8a4c9fc485f2cdca5c223d26423769ddf8fdc",
+        "bytes": 67738
+      },
+      "candidate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\proposed\\55-validation.md",
+        "sha256": "90788c953e1c9999a437dd22fbb882611a6a27bd89ce128173d115f773d8124f",
+        "bytes": 69818
+      },
+      "hunks": [
+        {
+          "start": 29387,
+          "beforeEnd": 33594,
+          "afterStart": 29387,
+          "afterEnd": 34441,
+          "beforeSha256": "d17da5799b69cb0b9e66735fda264718e049106435637e3a673109c00bf7f955",
+          "afterSha256": "17161a06ec327dc82af113f3bf5ecb3a2f971b1f4f2184dbf3c88bfbc2022449",
+          "kind": "locator",
+          "sourcePayloadTrailingWhitespaceOmittedBytes": 0
+        },
+        {
+          "start": 33674,
+          "beforeEnd": 39333,
+          "afterStart": 34521,
+          "afterEnd": 41413,
+          "beforeSha256": "ab2eac4a42e9c226cfccd0cfa4ba1cf0eda6c9ffdceefdb73fc6801f0da14830",
+          "afterSha256": "3284e49fbe9d298d6485120f66e882d3c806ce963d1ff0b02cab0b9af43916d1",
+          "kind": "replacement",
+          "sourcePayloadTrailingWhitespaceOmittedBytes": 13
+        }
+      ],
+      "outsideFenceBytesUnchanged": true,
+      "crlfBefore": 0,
+      "crlfAfter": 0
+    },
+    {
+      "path": "journey/consolidation/59-orientation.md",
+      "before": "0903dd493dd7a3fba86fbf7cad2de4c53dec830a092abb371089e2db01dd0f7f",
+      "after": "b5a0f0efae6ede04b49743a56bcaec1a20ab93890d4167060eaede7432d9f731",
+      "base": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\base\\59-orientation.md",
+        "sha256": "0903dd493dd7a3fba86fbf7cad2de4c53dec830a092abb371089e2db01dd0f7f",
+        "bytes": 45667
+      },
+      "candidate": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\proposed\\59-orientation.md",
+        "sha256": "b5a0f0efae6ede04b49743a56bcaec1a20ab93890d4167060eaede7432d9f731",
+        "bytes": 48476
+      },
+      "hunks": [
+        {
+          "start": 15503,
+          "beforeEnd": 21085,
+          "afterStart": 15503,
+          "afterEnd": 22318,
+          "beforeSha256": "507fb7f669b033c8bfd11726721d8eb0a41b0ea0b9336fa2eec8024507217c0b",
+          "afterSha256": "79225aa41bcabf9c4431a2fd38b1cbac62b423226b7cb06c18d519927f80ac92",
+          "kind": "locator",
+          "sourcePayloadTrailingWhitespaceOmittedBytes": 0
+        },
+        {
+          "start": 21165,
+          "beforeEnd": 28396,
+          "afterStart": 22398,
+          "afterEnd": 31205,
+          "beforeSha256": "8e7df143c7268c49285481c714b7ab9080476b591e20d7043491d2d259bd8b1b",
+          "afterSha256": "2506a58585d30713a6f01dd6a37fc917c6a8072ec496fcb8df007de1c21225f7",
+          "kind": "replacement",
+          "sourcePayloadTrailingWhitespaceOmittedBytes": 0
+        }
+      ],
+      "outsideFenceBytesUnchanged": true,
+      "crlfBefore": 0,
+      "crlfAfter": 0
+    }
+  ],
+  "previousChecked": [
+    {
+      "id": "38b-source",
+      "fingerprint": "1f47399a440ecb67b764b044fe2bd4f0db60046a630faa7f8f1a9de11353ce23"
+    },
+    {
+      "id": "55g-surface",
+      "fingerprint": "1fe664f5ad4855976382a99a421b5c3ea1fd2fc9f20664197f9a8f73a0aa4f71"
+    },
+    {
+      "id": "59f-cad",
+      "fingerprint": "7d4eb158ab64ab96238b7797e31e7c7064d3811e3732692e4cd6e34579977d63"
+    },
+    {
+      "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "fingerprint": "4c3e855d1a98ee566b87e00c0516b91a642681295a18511fbc2d21f02f10bc2b"
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "fingerprint": "ec2b8b08c88ae5016ff709389f4cdde6cb0a0bf8b11dab0478bbda6ea1aba9d7"
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "fingerprint": "9c3f93d8b66e07b26ae117bb38e421902b8dcf7751c31448466ed8a5f7d7da2b"
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "fingerprint": "3883ec78ce8bffd8e58847bfa8ec9510042088d4e680f6dedb2646dd09d0efdc"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "fingerprint": "205a83ae61f1fe9a282275a5d1984ce2814d19193b919dc9286da6c0c7af4cfe"
+    }
+  ],
+  "checked": [
+    {
+      "id": "38b-source",
+      "fingerprint": "1ee2349f6e1513ee482ce2862c174d5acc476a67f0cdb7215b645d8a81fdb553"
+    },
+    {
+      "id": "55g-surface",
+      "fingerprint": "dcdd69bef739b252ce909c6445ddabfe9766773971bb9fa895ce7a5908ede3d9"
+    },
+    {
+      "id": "59f-cad",
+      "fingerprint": "bf162d9f50c0574bf1069c5093ae1ed04e7bf4a28e595b0c4c73dd83005fe3b8"
+    },
+    {
+      "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "fingerprint": "8b97f4f4f15ff3d35de563249f3409f599ba0ee34a7ce64fb33b20695f6ffe37"
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "fingerprint": "05eb27b1fad14f2a70459f313e69fdf7e337903de41ee4923340db0a6a74c652"
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "fingerprint": "75385d31e00e2f6614778f0969f0ef4c6e4c1c4a3a0609bdd4569000a49cc844"
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "fingerprint": "bf36e825bba1653db7ca81565cc95695f5b258a34f3215126992a3a9103723fd"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "fingerprint": "618a5eb982626f25bebe6086852fdb72570b3e3affa068f7ac04a605950caa09"
+    }
+  ],
+  "baselineCacheSourceSha256": "8e014488dfa72e87f2585000d18859311c303cad2a5a8214fc21db65119a11a8",
+  "candidateCacheSourceSha256": "3b1411a7a941b28a079e9c96d4a7011435530dd9f8d6d10e4e3c0adf924b7eb6",
+  "extractionHashes": {
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+    "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
+  },
+  "provenanceSha256": "0a060f80f6229eb02e39e71a38fbceb209a53254ac2e4b7aaf46b18fe5b88135",
+  "freeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "bytes": 100146,
+    "filesVerified": 477,
+    "newFreeze14": false
+  },
+  "preserved94c04Proof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-outline-scale2-browser94c-04-d510a8435bc9.json",
+    "sha256": "1bc71fac52350527828daea80bd0a691f452f7f37d1d0a50bff8f8d85886432a",
+    "bytes": 7936
+  },
+  "scope": "Three historical snippets, two exact course.before string-token updates and five fence bodies across three reader pages only. Preserve all other JSON/reader bytes and prior proofs. CPU regression gate required; no GPU or native95f acceptance."
+}

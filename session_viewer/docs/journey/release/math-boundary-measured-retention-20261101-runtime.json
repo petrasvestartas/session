@@ -1,0 +1,176 @@
+{
+  "status": "BROWSER95F_MEASURED_RETENTION02_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "recordedUtc": "2026-11-01T10:19:46.831684+00:00",
+  "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+  "route": "exported",
+  "rootProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-outline-scale2-browser95f-02-d510a8435bc9.json",
+    "sha256": "e97a855384fbd83846780f5b95e78a823e37fc2a951123ca427028feb4aa682f",
+    "bytes": 8045
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\capture.json.gz",
+    "sha256": "a2c7fdc4e3650f6d47f0f0158483aa663c119418f0ee683e91674e1722b458bd",
+    "bytes": 381801
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-qualification.json",
+    "sha256": "a5c658f7e1bab2a4b752ee7a0dbbac8bf442aeccbf6bc252db61db65c8a0bd35",
+    "bytes": 10477
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-execution.json",
+    "sha256": "4ce9b48e250ca2f3983af8ed6105a3687f4f5dd40c80002edbd20980e5be1a56",
+    "bytes": 2617
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser95f-02-publication.json",
+    "sha256": "ff9566bbf482dba1f3667e01942aeec729dfa6c212f496104398c3373b145e4e",
+    "bytes": 6345
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\publication.json",
+    "sha256": "e4f29f031b83dc3e90e7a5d3d0b5e748051b06fc66fa246d5c549cff7e595c34",
+    "bytes": 910
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\retirement.json.gz",
+    "sha256": "8882eb55aa7b569c8e78a406b4da80fb4f6e50ccb02adb8495f4ce46fd027c45",
+    "bytes": 150946
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-95f-prove-cache-invalidation-and-honest-performance-reports-6e3f71f8465794663bdb\\retired.json",
+    "sha256": "c6de76920edfa363c787cce66b490ac8f829c7239900cd1f30c2c7c97cf885c4",
+    "bytes": 362
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+    "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+    "bytes": 94288
+  },
+  "sourceSuccessor": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-measured-retention-20261101-source.json",
+    "sha256": "fb82c78697e521d93e94473dffd16f6dee487e6a1ea551214005ddd09a599e1d",
+    "bytes": 17902
+  },
+  "apply": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\apply-execution-01.json",
+    "sha256": "48191463563d27b968052687e7c0be1ec735f93e051f537f6bc3e76f2b7dbe9f",
+    "bytes": 5093
+  },
+  "cpuRegressionGate": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\regressions-01.json",
+    "sha256": "1613015a3f764c19837d2d9b04eb90f06ae9330158d60a77e9df55d033a4b3f8",
+    "bytes": 5353
+  },
+  "sourceRequalification": {
+    "sourcePins": 4,
+    "snippetChanges": 3,
+    "courseBeforeLocatorChanges": 2,
+    "readerPages": 3,
+    "readerFenceBodies": 5,
+    "sourceFingerprints": 8,
+    "maintainedSourcesUnchanged": 477,
+    "newFreeze14": false,
+    "extractionHashesUnchanged": {
+      "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+      "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
+    }
+  },
+  "actualGpuEvidence": {
+    "actualCaptureResult": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\95f-prove-cache-invalidation-and-honest-performance-reports-f7ae7db9c05be18aaa92\\capture.json",
+      "sha256": "6e3f71f8465794663bdbf192d5b17f353702ed09b4baa1b5dcf6558892cba99d",
+      "bytes": 82310
+    },
+    "sourceFingerprint": "817eb2df0f5d417b7354fbef85f3c3024dc14e01b266d1534efb5ba722888788",
+    "cadOwners": 4,
+    "liveGpuRows": 4,
+    "qualities": [
+      [
+        4,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ],
+      [
+        5,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ],
+      [
+        6,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ],
+      [
+        7,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ]
+    ],
+    "measuredRetainedPayloadBytes": 251440,
+    "retainedBudgetBytes": 67108864,
+    "transientBudgetBytes": 33554432,
+    "pending": false,
+    "limited": null,
+    "staticReuse": "PASS_SOURCE_PINNED_SNAPSHOT_AND_ROOT_ATTESTATION",
+    "sourceCameraSelectionClippingCssUnchanged": true,
+    "stats": [
+      17,
+      17,
+      0,
+      0
+    ],
+    "usage": [
+      4,
+      43536,
+      4,
+      640
+    ],
+    "renderScale": 2,
+    "internal": [
+      3600,
+      3040
+    ],
+    "internalDensity": 4,
+    "output": [
+      1800,
+      1520
+    ],
+    "externalDpr": 2,
+    "shaderSamples": 1
+  },
+  "resourceProfile": {
+    "processors": 8,
+    "jobCommitLimitBytes": 8589934592,
+    "peakJobCommitBytes": 1194790912,
+    "elapsedSeconds": 6.723,
+    "exitCode": 0
+  },
+  "chromeExecutableReadLease": {
+    "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "sharing": "FILE_SHARE_READ",
+    "released": true,
+    "sha256": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d",
+    "bytes": 4466840,
+    "sha256After": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d"
+  },
+  "canonicalBehaviorExecuted": false,
+  "freshHttpVerified": false,
+  "freshServedChromeVerified": false,
+  "acceptance": {
+    "source13RequiredAccepted": 43,
+    "source13RequiredRemaining": 1283,
+    "affected": 1326,
+    "explicitlyUnchanged": 426
+  },
+  "scope": "One authored exported browser95f IMAGE recipe on actual GPU, with root original-resolution review, publication and retirement. Measured retained payload is a conservative CPU cache accounting charge, not RSS or cumulativeGPU allocation. PNG bytes match prior reviewed94c04 but this95f source/recipe is independently qualified. Full canonical callback, canonical resource/pixel validation, native95f, remaining images and allcontrols acceptance are not claimed. Old proofs and unused-image deletions remain unchanged. Fresh HTTP/Chrome decode verification is pending."
+}

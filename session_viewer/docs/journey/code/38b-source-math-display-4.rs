@@ -2,6 +2,15 @@ use crate::{math_quality::{self as quality, Quality, Projection}, scene::{Scene,
 use session_rust::{NurbsCurve,Xform};
 use std::rc::Rc;
 
+fn allocation_bytes<T>(values:&Vec<T>)->Option<usize> {values.capacity().checked_mul(std::mem::size_of::<T>())}
+fn rc_bytes<T>(_:&Rc<T>)->Option<usize> {
+    let padding=std::mem::align_of::<T>().max(std::mem::align_of::<usize>()).checked_mul(2)?;
+    std::mem::size_of::<T>().checked_add(2*std::mem::size_of::<usize>())?.checked_add(padding)
+}
+fn sum_bytes(values:impl IntoIterator<Item=Option<usize>>)->Option<usize> {
+    values.into_iter().try_fold(0usize,|total,bytes|total.checked_add(bytes?))
+}
+
 #[derive(Clone)]
 enum Source {
     Curve(Rc<NurbsCurve>),
@@ -13,6 +22,14 @@ impl Prepared {
     fn upload_bytes(&self)->usize {
         match self {
             Self::Curve(prepared)=>prepared.points.len().saturating_mul(256),
+        }
+    }
+    fn retained_bytes(&self)->Option<usize> {
+        match self {
+            Self::Curve(prepared)=>match &prepared.source {
+                crate::chain::Source::Curve(_,samples)=>sum_bytes([rc_bytes(&prepared.points),allocation_bytes(&prepared.points),rc_bytes(samples),allocation_bytes(samples)]),
+                _=>None,
+            },
         }
     }
 }
@@ -78,6 +95,14 @@ fn requests(scene:&Scene)->Result<Vec<Request>,&'static str> {
 }
 
 impl Presentation {
+    fn account(&mut self,keep_table:bool)->bool {
+        if !keep_table&&self.entries.is_empty() {self.entries=Vec::new();self.bytes=0;return true;}
+        let bytes=sum_bytes([Some(std::mem::size_of::<Self>()),allocation_bytes(&self.entries),sum_bytes(self.entries.iter().map(|entry|Some(entry.bytes)))]);
+        match bytes {
+            Some(bytes) if bytes<=quality::SCENE_BYTES=>{self.bytes=bytes;true},
+            _=>{self.limited=Some("Presentation cache reached its finite byte budget");false},
+        }
+    }
     pub fn qualities(&self)->Vec<(u32,Option<f64>,Option<f64>,bool)> {
         self.entries.iter().map(|entry|(entry.key.0,entry.target.0.is_finite().then_some(entry.target.0),entry.accepted.0.is_finite().then_some(entry.accepted.0),entry.error.is_some())).collect()
     }
@@ -87,7 +112,7 @@ impl Presentation {
             Ok(requests)=>self.entries.retain(|entry|requests.iter().any(|request|request.source.key(request.id)==entry.key)),
             Err(error)=>{self.entries.clear();self.limited=Some(error);}
         }
-        self.bytes=self.entries.iter().map(|entry|entry.bytes).sum();
+        let _=self.account(false);
     }
 
     #[cfg(target_arch="wasm32")]
@@ -118,7 +143,8 @@ impl Presentation {
         self.limited=None;
         let requests=match requests(source) {Ok(rows)=>rows,Err(error)=>{self.limited=Some(error);return false;}};
         self.entries.retain(|entry|requests.iter().any(|request|request.source.key(request.id)==entry.key));
-        self.bytes=self.entries.iter().map(|entry|entry.bytes).sum();
+        if !requests.is_empty() {self.entries.reserve(128-self.entries.len());}
+        if !self.account(!requests.is_empty()) {return false;}
         let mut attempted=false;let mut pending=false;let mut changed=false;
         for request in requests {
             let key=request.source.key(request.id);
@@ -138,10 +164,12 @@ impl Presentation {
             if attempted {pending=true;continue;}
             attempted=true;
             let reserve=request.source.reserve();
-            if (self.bytes-self.entries[index].bytes).saturating_add(reserve)>quality::SCENE_BYTES {
+            let retained=self.bytes.checked_sub(self.entries[index].bytes);
+            if retained.is_none_or(|bytes|bytes.saturating_add(reserve)>quality::SCENE_BYTES) {
                 let error="Presentation cache reached its finite byte budget";
                 self.entries[index].rejected=Some(requested);self.entries[index].error=Some(error);self.limited=Some(error);continue;
             }
+            let retained=retained.unwrap();
             let mut effective=requested;let mut result=Err("Requested camera quality is unavailable");
             let initial_chord=request.source.initial_chord(self.entries[index].accepted);
             for _ in 0..4 {
@@ -149,19 +177,20 @@ impl Presentation {
                     result=Err("Initial CAD refinement exceeds the existing absolute chord");break;
                 }
                 result=request.source.prepare(effective).and_then(|data|{
+                    let bytes=data.retained_bytes().filter(|&bytes|bytes<=reserve).ok_or("Prepared payload exceeds its finite byte budget")?;
                     let retained=self.entries.iter().filter(|entry|entry.key!=key).filter_map(|entry|entry.data.as_ref()).fold(0usize,|n,data|n.saturating_add(data.upload_bytes()));
                     let baseline=source.objects().iter().fold(0usize,|n,row|n.saturating_add(row.mesh.vertices().len()).saturating_add(row.mesh.indices().len()))
                         .saturating_add(source.paths().iter().map(|row|row.prepared.points.len()).sum::<usize>()).saturating_mul(256);
-                    if baseline.saturating_add(retained).saturating_add(data.upload_bytes())>quality::TRANSIENT_BYTES {Err("Combined scene upload exceeds the transient budget")}else{Ok(data)}
+                    if baseline.saturating_add(retained).saturating_add(data.upload_bytes())>quality::TRANSIENT_BYTES {Err("Combined scene upload exceeds the transient budget")}else{Ok((data,bytes))}
                 });
                 if result.is_ok() {break;}
                 effective=Quality(effective.0*2.);
             }
             match result {
-                Ok(data) if effective.0<self.entries[index].accepted.0||requested.0>=self.entries[index].accepted.0=>{
+                Ok((data,bytes)) if effective.0<self.entries[index].accepted.0||requested.0>=self.entries[index].accepted.0=>{
                     let error=(effective!=requested).then_some("Requested camera quality exceeds the bounded presentation; using a coarser display");
-                    self.bytes=self.bytes-self.entries[index].bytes+reserve;
-                    self.entries[index]=Entry{key,_source:request.source.clone(),target:requested,accepted:effective,rejected:(effective!=requested).then_some(requested),error,data:Some(data),bytes:reserve};
+                    self.bytes=retained+bytes;
+                    self.entries[index]=Entry{key,_source:request.source.clone(),target:requested,accepted:effective,rejected:(effective!=requested).then_some(requested),error,data:Some(data),bytes};
                     self.limited=error.or(self.limited);
                     changed=true;self.generations+=1;
                 }
