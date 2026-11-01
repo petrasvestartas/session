@@ -353,6 +353,11 @@ impl<'a> EdgePen<'a> {
                 if p0 == p1 || !p0.into_iter().chain(p1).all(f32::is_finite) {
                     continue;
                 }
+                if crate::math_quality::current().0.is_finite()
+                    && crate::math_quality::charge_curves(1).is_err()
+                {
+                    return;
+                }
 
                 bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
                 bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);

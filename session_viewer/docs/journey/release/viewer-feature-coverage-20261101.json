@@ -1,0 +1,286 @@
+{
+  "scope": "Implementation-family coverage of the current22chapter/111reader tutorial; distinct from exact per-module/current-behavior parity. Kernel boolean/intersection/offset algorithms are excluded.",
+  "snapshot": {
+    "production_src_files": 310,
+    "chapters": 22,
+    "reader_pages": 111,
+    "noncomparison_checkpoints": 1360,
+    "maintained_runtime_comparison": 97,
+    "course_sha256": "e8168d1020cde4103782b492c886e9a665c3910cd770ea0a68d7ae9c266c7b9f",
+    "book_sha256": "392b9ff86eb234ab70660f04bf8bf53b26b7c7e691954242b89b3e8627d6995f"
+  },
+  "verdict": "All20 major inventoried viewer feature families have teaching implementations.119 module rows retain pending exact source provenance; that is not119 missing features.188 rows have teaching-owner fence references, also not whole-module parity certification.3 new presentation modules have related teaching adapters and current exact production implementation through reference comparison97.",
+  "families": [
+    {
+      "family": "Startup, browser lifetime and device recovery",
+      "chapters": [
+        1,
+        4,
+        22
+      ]
+    },
+    {
+      "family": "Diagnostics: current and previous failed/interrupted runs",
+      "chapters": [
+        4
+      ]
+    },
+    {
+      "family": "Camera, physical pixels, precision and touch",
+      "chapters": [
+        2,
+        8,
+        14,
+        21
+      ]
+    },
+    {
+      "family": "Command dock, completion, shortcuts and registry",
+      "chapters": [
+        1,
+        7,
+        19
+      ]
+    },
+    {
+      "family": "Original source ownership, definitions, hydration and instances",
+      "chapters": [
+        3,
+        13,
+        19
+      ]
+    },
+    {
+      "family": "Hierarchy, layers, locks, attributes and groups",
+      "chapters": [
+        8,
+        16,
+        19
+      ]
+    },
+    {
+      "family": "Object/face/edge/control/cloud selection",
+      "chapters": [
+        6,
+        19,
+        21
+      ]
+    },
+    {
+      "family": "Drawing, snapping, construction planes and handles",
+      "chapters": [
+        7,
+        14,
+        15
+      ]
+    },
+    {
+      "family": "Transforms, editing, history and persistence",
+      "chapters": [
+        3,
+        15,
+        16
+      ]
+    },
+    {
+      "family": "Surface construction and original geometry",
+      "chapters": [
+        9,
+        14,
+        15,
+        16
+      ]
+    },
+    {
+      "family": "Exact NURBS/BRep presentation and boundary curves",
+      "chapters": [
+        5,
+        9,
+        22
+      ]
+    },
+    {
+      "family": "Text, fonts, labels and measurements",
+      "chapters": [
+        10,
+        16
+      ]
+    },
+    {
+      "family": "Archives, files and scene manifests",
+      "chapters": [
+        3,
+        12
+      ]
+    },
+    {
+      "family": "HTTP reload, cancellation, range streaming and budgets",
+      "chapters": [
+        3,
+        4,
+        12
+      ]
+    },
+    {
+      "family": "Drawing sheets and metadata",
+      "chapters": [
+        13,
+        14
+      ]
+    },
+    {
+      "family": "Cloud octrees, LOD, splats, EDL and picking",
+      "chapters": [
+        11,
+        12,
+        22
+      ]
+    },
+    {
+      "family": "Matrix values, colored cells and numeric glyphs",
+      "chapters": [
+        22
+      ]
+    },
+    {
+      "family": "Clipping, sections and cap picking",
+      "chapters": [
+        17,
+        18,
+        20
+      ]
+    },
+    {
+      "family": "Lighting, outlines, transparency and antialiasing",
+      "chapters": [
+        18,
+        22
+      ]
+    },
+    {
+      "family": "GPU resources, shared storage, passes and retirement",
+      "chapters": [
+        4,
+        18,
+        20,
+        22
+      ]
+    }
+  ],
+  "explicit_cli_evidence": {
+    "Layers On / Layers Off / Layers All": {
+      "reader": "session/session_viewer/docs/journey/consolidation/52g-rows.md",
+      "chapter": 8,
+      "checkpoint": "52j-input",
+      "registration_lines": [
+        492,
+        494
+      ],
+      "dispatch_lines": [
+        640,
+        642
+      ],
+      "behavior": "On opens tree; Off closes tree; All expands its rows. Implemented command dispatch, not only registry inventory.",
+      "browser_check": "session/session_viewer/docs/journey/checks/browser/layers.cjs:11,19,21,40"
+    },
+    "Add Group [name]": {
+      "reader": "session/session_viewer/docs/journey/consolidation/85-copy-current-original-command-recipes.md",
+      "chapter": 16,
+      "planning_checkpoint": "85t-plan-world-preserving-original-groups",
+      "plan_line": 2353,
+      "owner_checkpoint": "85ai-dispatch-current-original-commands-through-checked-owners",
+      "owner_line": 5097,
+      "parser_checkpoint": "85at-validate-current-command-words-and-options",
+      "parser_lines": [
+        6736,
+        6741
+      ],
+      "integration_checkpoint": "85ay-exercise-current-original-commands-together",
+      "integration_lines": [
+        8218,
+        8255
+      ],
+      "behavior": "Parses optional name, rejects slash-containing names, groups selected originals within one document, preserves world transforms/source identities and retains selection/history/archive behavior."
+    }
+  },
+  "high_priority_confirmations": {
+    "matrix_value_shader": "Chapter22.6 embeds current shader and numeric packing. All12 current shader function bodies match after comments/whitespace normalization.",
+    "BRep_boundary_presentation": "Chapters5/9/22 teach exact original boundary curves with face mesh only for shading/facing/depth; ordinary triangulation edges are hidden.",
+    "cold_sources": "Chapter3.7 captures requested edit, loads required sources, validates and replays original intent.",
+    "device_recovery": "Chapter4 implements one recovery reload and reduced DPR; chapter22.5 feeds reduced() into sample quality policy.",
+    "touch": "Chapter8 implements orbit, pan/pinch and double-tap fit."
+  },
+  "identified_budget_difference": {
+    "status": "Applied to four tutorial files; production renderer unchanged.",
+    "difference": "Finite-quality silhouette candidates must share the existing candidate-wide curve budget with boundary chords. Both old/new implementations already reject invalid endpoints.",
+    "candidate_patch": "candidate-budget-port.diff",
+    "exact_apply_script": "python -B .codex/private/viewer-coverage-20261101/apply-reviewed-budget-port.py --apply",
+    "checked_before_hashes": "candidate-before-hashes.json",
+    "check_status": "All4 before hashes verified before application; all4 candidate hashes and477 production hashes verified after application. Original line endings preserved.",
+    "changes": "5-line finite-quality charge guard in canonical emitter and matching reader; two canonical provenance fragments and matching reader hash/disclosure updates. No caller/API, production, Vue or Gemini changes.",
+    "targeted_native_proof": "Exact extracted emitter plus actual existing math_quality budget owner compiled in isolated native probe: before2pass/1budgetfail; candidate3pass. Checks exhausted/last/two slots, legacy policy+scope restoration, invalid endpoints not spending final slot. No end-to-end browser/native course acceptance claimed.",
+    "proofs": [
+      "probe-before-results.json",
+      "probe-candidate-results.json"
+    ],
+    "followup": "Module extraction replay and focused native probe passed. Complete the affected course runtime acceptance and include this source correction in the next website build."
+  },
+  "recordedUtc": "2026-11-01T16:13:03.872897+00:00",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "tutorialBudgetCorrection": {
+    "status": "APPLIED_TUTORIAL_ONLY_LOCAL_NATIVE_PROBE_PASS",
+    "changes": [
+      {
+        "path": "session/session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_brep_ink.rs",
+        "before_sha256": "4b7a91b0f52395c123634b6bc507253514a3aa430403f10062b8952ccb2d0f52",
+        "candidate_sha256": "e54a8624f4c19b8c622d7e37e5b26f7db4ff839241ac42c864f09751fad4d016"
+      },
+      {
+        "path": "session/session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-mesh-ink-production_mesh_ink_provenance.json",
+        "before_sha256": "9ff3b557dfb7b0bade24ba5240fbc96548c03dd62335911f5665ffdc40fb93d3",
+        "candidate_sha256": "5f9acfaaac23feeedd52092817b9af120e2a76022558f8de4c09b195b0c95923"
+      },
+      {
+        "path": "session/session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-05-production_mesh_ink_provenance.json",
+        "before_sha256": "23be348216680114b6d547de5be2c8407d953dff35ee93d50cbe4656eadda4fa",
+        "candidate_sha256": "81a4d2960a935cb68565e2dd47f4d06260546bf294b0ba47aa385c30105de7a1"
+      },
+      {
+        "path": "session/session_viewer/docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+        "before_sha256": "45bf6e0cf6b1fab299b10d7e7b6e8827354d8c5d39f491d706b30442bbb59e83",
+        "candidate_sha256": "df88781caf6d3984eb3a9e27960ed02cf83b436e81f05c6085dcb0fb630009f7"
+      }
+    ],
+    "candidateProbe": {
+      "variant": "candidate",
+      "returncode": 0,
+      "stdout": "\nrunning 3 tests\ntest finite_candidates_share_the_precharged_boundary_budget ... ok\ntest invalid_endpoints_do_not_spend_the_last_candidate_slot ... ok\ntest legacy_quality_remains_unrestricted_and_counter_scope_is_restored ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "",
+      "probe_sha256": "afa6023362463ffe10ccb4871a6ec510caa3792150ab06deb40438b1cc95a54a"
+    },
+    "baselineProbe": {
+      "variant": "before",
+      "returncode": 101,
+      "stdout": "\nrunning 3 tests\ntest legacy_quality_remains_unrestricted_and_counter_scope_is_restored ... ok\ntest invalid_endpoints_do_not_spend_the_last_candidate_slot ... ok\ntest finite_candidates_share_the_precharged_boundary_budget ... FAILED\n\nfailures:\n\nfailures:\n    finite_candidates_share_the_precharged_boundary_budget\n\ntest result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "stderr": "\nthread 'finite_candidates_share_the_precharged_boundary_budget' (49388) panicked at .codex/private/viewer-coverage-20261101/silhouette-budget-probe-before.rs:115:3:\nassertion `left == right` failed: used=8192\n  left: 2\n right: 0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n",
+      "probe_sha256": "5675fd5f159e346a5853f78ff2c8a43f9c4d300d040b40bbc107ca0f9d3a19af"
+    },
+    "moduleReplay": {
+      "status": "PASS",
+      "module": "src/production_brep_ink.rs",
+      "base_sha256": "4b7a91b0f52395c123634b6bc507253514a3aa430403f10062b8952ccb2d0f52",
+      "candidate_base_sha256": "e54a8624f4c19b8c622d7e37e5b26f7db4ff839241ac42c864f09751fad4d016",
+      "old_block_matches": 1,
+      "old_block_sha256": "0c8f0910aac819772e19de49d099e415f965f68dfe3b3f221c06ca15ed167038",
+      "replacement_block_sha256": "476b617945bb232213c23faabf21d0cf7930a18b3d316271a48e6e299f2f0562",
+      "replacement_matches_unchanged_canonical_partial": true,
+      "unchanged_partial_raw_sha256": "ef888be204b3c487b63386e88dad31d4bb53ee04c9e8d439a9b771a998e311c9",
+      "actual_assembled_before_sha256": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e",
+      "actual_assembled_candidate_sha256": "d7cd560e6fece809e676fc0781de9b79ab6613b62d5815d038cf3d3b48af0393",
+      "meaning": "Later active exact-curve instruction replaces DisplayChain region only; the budget guard remains elsewhere in the assembled module. No source/frozen evidence mutated."
+    },
+    "scope": "Candidate-wide silhouette budget uses the existing teaching quality owner. Invalid endpoints remain rejected before charging; unbounded legacy preparation is unchanged. Native probes cover the exact emitter, not a full GPU/cache run.",
+    "productionFilesUnchanged": 477,
+    "websiteRebuiltAfterCorrection": false
+  }
+}

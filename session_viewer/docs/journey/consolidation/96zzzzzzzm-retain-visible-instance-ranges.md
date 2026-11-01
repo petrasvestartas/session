@@ -34168,6 +34168,11 @@ impl<'a> EdgePen<'a> {
                 if p0 == p1 || !p0.into_iter().chain(p1).all(f32::is_finite) {
                     continue;
                 }
+                if crate::math_quality::current().0.is_finite()
+                    && crate::math_quality::charge_curves(1).is_err()
+                {
+                    return;
+                }
 
                 bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
                 bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
@@ -34594,11 +34599,11 @@ Create the file and type:
   },
   "extracted_modules": {
     "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
-    "production_brep_ink.rs": "4b7a91b0f52395c123634b6bc507253514a3aa430403f10062b8952ccb2d0f52"
+    "production_brep_ink.rs": "e54a8624f4c19b8c622d7e37e5b26f7db4ff839241ac42c864f09751fad4d016"
   },
   "adapters": [
     "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
-    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation uses the original two-argument emitter and retained row/ID/normal accounting; source13 finite-candidate rejection belongs to the maintained renderer only. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation retains the two-argument emitter and row/ID/normal accounting; finite-quality silhouette candidates charge the existing candidate-wide curve budget shared with exact boundary chords. Invalid endpoints spend no budget, and legacy preparation remains unrestricted. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
     "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
     "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
     "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
@@ -47185,11 +47190,11 @@ Replace the entire file with:
   },
   "extracted_modules": {
     "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
-    "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
+    "production_brep_ink.rs": "d7cd560e6fece809e676fc0781de9b79ab6613b62d5815d038cf3d3b48af0393"
   },
   "adapters": [
     "Mesh push_pipes, face-normal packing, coplanar suppression, dense-wire black and radius encoding retain production functions. Default all_edges=false; visibility remains a frame control.",
-    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation uses the original two-argument emitter and retained row/ID/normal accounting; source13 finite-candidate rejection belongs to the maintained renderer only. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
+    "BRep display_chain, EdgePen, joined pipe chains, sag retain production functions; noncoplanar paired flat-triangle normals emit non-pickable SILHOUETTE_SAG candidates, filtered by the existing opposite-facing shader predicate. Historical preparation retains the two-argument emitter and row/ID/normal accounting; finite-quality silhouette candidates charge the existing candidate-wide curve budget shared with exact boundary chords. Invalid endpoints spend no budget, and legacy preparation remains unrestricted. Default coarse_edges=false. Existing exact boundary face meshes/signs/chains feed them once during preparation.",
     "NURBS borders use the existing exact production grid samples/indices and boundary chain order.",
     "Prepared rows retain display data only. BRep shape-cache replay turns retained exact normals before packing, as production brep_shapes does.",
     "Compact object/edge ownership and buffer offsets adapt to the existing source query registry. No geometry, fragment coverage, depth or width algorithm changes.",
