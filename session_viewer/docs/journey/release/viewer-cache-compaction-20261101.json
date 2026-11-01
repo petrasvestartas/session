@@ -1,0 +1,24 @@
+{
+  "status": "OWNED_INACTIVE_VIEWER_CACHE_COMPACTION_COMPLETE",
+  "terminalWasmBytes": 67975922,
+  "obsoleteVariantLogicalBytes": 453590543,
+  "materializedSourceFiles": 56576,
+  "materializedSourcePayloadNetBytes": 1277726960,
+  "incrementalPayloadNetBytes": 277961999,
+  "payloadNetBytesAtLeast": 2077255424,
+  "sourceManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\materialized-source-archive-proposal-01\\sources-manifest.json",
+    "sha256": "38bc73eb285a5673e7b1e90f0f9a25035c4f85d662688708725f347e05c2bc50"
+  },
+  "kernelManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\materialized-source-archive-proposal-01\\kernel-manifest.json",
+    "sha256": "1cbdf06b292fd633c4caedb9f5ae218f6c1c59ab2396ad3b443241611bf02349"
+  },
+  "archives": "Content-addressed verified gzip inside target; generated-file accounting retained.",
+  "preserved": "Original sources, datasets, screenshots, current96t/96u inputs, b7, Vue output, CPP and Wood/Gemini files.",
+  "budgetsUnchanged": {
+    "totalGiB": 20,
+    "generatedGiB": 8
+  },
+  "cppCleanupPerformed": false
+}

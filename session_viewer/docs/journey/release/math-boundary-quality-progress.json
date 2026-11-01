@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T16:37:27.013360+00:00",
+  "updatedUtc": "2026-11-01T18:31:19.168801+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build04 composite QA records22 canonical PNG HTTP/body SHA and Chrome decodes, covering31 current logical acceptances;15 are source-only and3 are outside that QA scope. This metadata update performs no fresh HTTP or browser checks. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build04 composite QA records22 canonical PNG HTTP/body SHA and Chrome decodes, covering31 current logical acceptances;15 are source-only and4 are outside that QA scope. This metadata update performs no fresh HTTP or browser checks. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -168,18 +168,27 @@
       "receipt": "docs/journey/release/feature-owner-highlight-upload-20261101.json",
       "sha256": "c54409f6e417e04d1890b99e37424dc7828c16f29475bdca43592318f45c49a2",
       "sourceReplayCheckpoints": 1361,
-      "runtimeAcceptance": "PENDING_UNCHANGED_96U_CALLBACK"
+      "runtimeAcceptance": "PASS_ORIGINAL_96U_CALLBACK_IMAGE_PROFILE",
+      "runtimeReceipt": "docs/journey/release/feature-owner-highlight-runtime-96u-20261101.json",
+      "runtimeReceiptSha256": "47f0e39f20ef659a2f8b0973e4887a0a6dd1e262089c229c254ec33f548b24bb"
+    },
+    "nativeFixtureCachePolicy": {
+      "nativeSampleIncremental": "0",
+      "wasmIncremental": "1",
+      "runtime": "PASS_96U",
+      "source": "session_tests/scripts/course/incremental-browser-image-build.ts",
+      "sha256": "dd2a16bf62e3b217d57fe0f9f9d65dfd1cf7e718b5383a32bdea7ad4b4f90930"
     }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 54,
-    "remainingAffected": 1272,
-    "acceptedForFinalSource": 49,
-    "remainingFinalSourceAcceptance": 1277,
-    "qualificationNote": "49 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
+    "newPublishedReviewed": 55,
+    "remainingAffected": 1271,
+    "acceptedForFinalSource": 50,
+    "remainingFinalSourceAcceptance": 1276,
+    "qualificationNote": "50 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
     "removedUnusedImages": 329,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2
@@ -1155,6 +1164,21 @@
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
       "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96u-fit-original-box-corners-to-the-free-canvas",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-3611a9ad3084-000000-bab041efc6f5.json",
+      "receiptSha256": "6ea3fd7c88b500720b1531ba84640da7423e8f2ae0d1c85c50ff3d0319ee0594",
+      "image": "docs/screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas-browser.png",
+      "imageSha256": "bab041efc6f5fb7cfff4eab1788df739be913813a80741b5a5d0042a52d929c6",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
     }
   ],
   "stages": [
@@ -1172,7 +1196,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "49_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1277_REMAIN"
+      "status": "50_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1276_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -1195,7 +1219,7 @@
     "acceptedSourceProofsAtQa": 46,
     "acceptedLogicalProofsWithPublishedCanonicals": 31,
     "sourceOnlyAcceptedProofsNotPublished": 15,
-    "currentAcceptedOutsideQaScope": 3,
+    "currentAcceptedOutsideQaScope": 4,
     "sourceAndCompiledPrimaryReaders": 111,
     "chapterRoutesVerified": 22,
     "criticalReaderChecks": 6,
@@ -1237,5 +1261,9 @@
     "includeOrderChecksPassed": 1361,
     "supportedImageReferenceCorrections": 5,
     "historicalImageDisagreementsPending": 6
+  },
+  "cacheMaintenance": {
+    "receipt": "docs/journey/release/viewer-cache-compaction-20261101.json",
+    "sha256": "6d752e18a53659dbcc29e914c4cd44f4ec61ae764304d1e7fccf9d872ecc2e6e"
   }
 }

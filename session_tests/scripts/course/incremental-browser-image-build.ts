@@ -16,7 +16,7 @@ const self=fileURLToPath(import.meta.url), original=fileURLToPath(new URL('./bro
 const guard=fileURLToPath(new URL('./parallel-image-guard.ps1',import.meta.url));
 const sha=(file:string)=>hash(fs.readFileSync(file));
 const root=path.join(viewer,'target/course-presentation/incremental-browser-builds');
-const policy={purpose:'Image-only stable incremental compiler experiment; no canonical callback acceptance',processors:8,memoryMiB:8192,jobs:8,affinityMask:'0xFF00',timeoutSeconds:1800,profile:'debug',incremental:'1'};
+const policy={purpose:'Image-only stable incremental compiler experiment; no canonical callback acceptance',processors:8,memoryMiB:8192,jobs:8,affinityMask:'0xFF00',timeoutSeconds:1800,profile:'debug',incremental:{nativeSample:'0',wasm:'1'}};
 const manifest=(folder:string)=>Object.fromEntries(filesIn(folder).filter(f=>!path.relative(folder,f).split(path.sep).includes('target')).map(f=>[path.relative(folder,f).replaceAll('\\','/'),sha(f)]));
 
 export function copyTrunkFiles(native:string,dist:string){
@@ -110,13 +110,14 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
         const check=()=>{sourceCheck(p);for(const[file,digest]of Object.entries(desired))assert.equal(sha(path.join(g.workbench,file)),digest,file);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);};
         const commands:any[]=[];
         const execute=(label:string,args:string[])=>{
+            const environment={CARGO_INCREMENTAL:label==='sample'?'0':'1'};
             check();const prefix=path.join(p.folder,label),commandFile=prefix+'.command.json',log=prefix+'.log',resourcesFile=prefix+'.resources.json';assert(!fs.existsSync(log),'Preserve old attempt: '+log);
             write(commandFile,JSON.stringify({executable:args[0],arguments:args.slice(1)})+'\n');const fd=fs.openSync(log,'wx');let result;
             try{result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','1800','-WorkingDirectory',g.workbench,'-ManifestPath',resourcesFile,'-CommandFile',commandFile],
-                {cwd:g.workbench,windowsHide:true,stdio:['ignore',fd,fd],env:{...process.env,RUSTC_WRAPPER:'',CARGO_NET_OFFLINE:process.env.CARGO_NET_OFFLINE||'true',NO_COLOR:'true',CARGO_BUILD_JOBS:'8',RUST_TEST_THREADS:'1',REGEN_PROTO:'0',CARGO_INCREMENTAL:'1',CARGO_TARGET_DIR:g.target}});
+                {cwd:g.workbench,windowsHide:true,stdio:['ignore',fd,fd],env:{...process.env,RUSTC_WRAPPER:'',CARGO_NET_OFFLINE:process.env.CARGO_NET_OFFLINE||'true',NO_COLOR:'true',CARGO_BUILD_JOBS:'8',RUST_TEST_THREADS:'1',REGEN_PROTO:'0',...environment,CARGO_TARGET_DIR:g.target}});
             }finally{fs.closeSync(fd);}
             const resources=json(resourcesFile);assert.equal(result.status,0,log);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);assert.equal(resources.processors,8);assert.equal(resources.jobCommitLimitBytes,8589934592);assert.equal(resources.affinityMask,'0xFF00');assert.equal(resources.laneMutex,'Local\\SessionViewerCourseImageJob');check();
-            const r={label,args,commandFile,log,logSha256:sha(log),resourcesFile,resourcesSha256:sha(resourcesFile),resources};commands.push(r);return r;
+            const r={label,args,environment,commandFile,log,logSha256:sha(log),resourcesFile,resourcesSha256:sha(resourcesFile),resources};commands.push(r);return r;
         };
         if(fs.existsSync(path.join(g.workbench,'examples/sample.rs'))){const sample=path.join(g.workbench,'sample.pb');if(fs.existsSync(sample))fs.unlinkSync(sample);execute('sample',['cargo','run','--example','sample','--locked','--target',nativeTarget(),'-j8']);assert(fs.statSync(sample).size>0);fs.copyFileSync(sample,path.join(p.folder,'sample.pb'));}
         const wasmCommand=execute('wasm',['cargo','build','--lib','--locked','--target','wasm32-unknown-unknown','-j8','-vv','--message-format=json-render-diagnostics']);
@@ -136,7 +137,7 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
             compilerCacheTransition,
             synchronization:{previous:previous?{id:previous.id,receipt:previous.completedReceipt,sha256:previous.completedReceiptSha256}:null,copiedChangedFiles:synced,removedOwnedStaleFiles:removed},commands,compilerArtifact:artifacts[0],retainedArtifacts,bindgen,
             wasm:{path:retained,sha256:wasmSha256,compilerReportedPath:wasm},bundle:Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),canonicalBehaviorExecuted:false,
-            scope:'Actual Cargo invocation for this checkpoint with stable package/path and debug CARGO_INCREMENTAL=1. Complete source, one raw WASM and one bundle retained until compact publication retirement; compiler JSON and exact artifact hashes preserved without duplicate compiler-artifact copies. No GPU image or canonical callback acceptance.'};
+            scope:'Actual Cargo invocation for this checkpoint with stable package/path; native sample CARGO_INCREMENTAL=0, WASM CARGO_INCREMENTAL=1. Per-command environment records the applied setting. Complete source, one raw WASM and one bundle retained until compact publication retirement; compiler JSON and exact artifact hashes preserved without duplicate compiler-artifact copies. No GPU image or canonical callback acceptance.'};
         const methodFile=path.join(p.folder,'built.json');assert(!fs.existsSync(methodFile));write(methodFile,JSON.stringify(method,null,2)+'\n');
         const built={...p,status:'BUILT_NOT_CAPTURED',commands,wasm:method.wasm,bundle:method.bundle,imageBuild:{path:methodFile,sha256:sha(methodFile)}};sourceCheck(built);write(p.preparedFile,JSON.stringify(built,null,2)+'\n');
         write(stateFile,JSON.stringify({groupKey:g.key,id,ownedFiles:Object.keys(desired),ownedInputs:manifest(g.workbench),completedReceipt:methodFile,completedReceiptSha256:sha(methodFile)},null,2)+'\n');fs.unlinkSync(pendingFile);return built;
