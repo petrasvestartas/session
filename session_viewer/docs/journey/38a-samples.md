@@ -122,6 +122,16 @@ Copy this supplied file:
 
 </details>
 
+### 4. `src/math_quality.rs`
+
+Define finite refinement, projection and allocation limits without changing the original mathematical sources.
+
+Create this file with the complete contents below.
+
+```rust
+--8<-- "journey/code/38a-samples-math-display-3.rs"
+```
+
 ## Run and check
 
 In your project:

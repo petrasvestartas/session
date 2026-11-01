@@ -40,6 +40,32 @@ After that block, type:
 --8<-- "journey/code/56a-shared-02.rs" skip=20
 ```
 
+### 3. `src/math_cad.rs`
+
+Add bounded CAD source validation and boundary preparation while preserving original topology and owner identity.
+
+Create this file with the complete contents below.
+
+```rust
+--8<-- "journey/code/56a-shared-math-display-29.rs"
+```
+
+### 4. `Cargo.toml`
+
+Enable the existing viewer-display kernel feature used by bounded CAD display preparation.
+
+Replace this exact existing code:
+
+```toml
+session_rust = { path = "../../../session_rust", default-features = false }
+```
+
+with the replacement below.
+
+```toml
+--8<-- "journey/code/56a-shared-math-display-30.toml"
+```
+
 ## Run and check
 
 In your project:
@@ -60,11 +86,11 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The blue parametric roof and black domain boundaries remain visible.
 
-![Native renderer output for mesh incident faces with shared boundary constraints.](../screenshots/journey/55g-surface.png)
+![Native renderer output for mesh incident faces with shared boundary constraints.](../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-This reference image is shared with [9.1.8 · Draw and pick the original parametric roof](55g-surface.md). It does not demonstrate a new feature by itself.
+This reference image is shared with [9.1.9 · Read original edge-use samples](55za-read-original-edge-use-samples.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>

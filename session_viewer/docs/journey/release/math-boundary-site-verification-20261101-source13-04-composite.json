@@ -1,0 +1,1503 @@
+{
+  "status": "PASS_COMPOSITE_READER_STATIC_VERIFICATION_UTF8_FIXED",
+  "recordedUtc": "2026-11-01T14:12:04.407282+00:00",
+  "scope": "Primary tutorial reader static content, illustrations and links. No GPU/WASM runtime, new render acceptance, kernel qualification or canonical two-CPU resource claim. Completed components of the failed earlier run are reused only through unchanged input/body hashes; that earlier run remains failed.",
+  "build": {
+    "path": ".codex/viewer-quality-20261028/docs-source13-build-04-result.json",
+    "sha256": "d45f605fa93544f5d88146ff0ca32536825c019b2f5060496c901d6b14114a61"
+  },
+  "resource": {
+    "guard": "existing separate image lane",
+    "processors": 8,
+    "affinityMask": "0xFF00",
+    "jobCommitLimitBytes": 8589934592,
+    "peakJobCommitBytes": 413958144,
+    "elapsedSeconds": 83.493,
+    "exitCode": 0
+  },
+  "browserVersion": "156.0.8078.79",
+  "readerOwnership": {
+    "chapters": 22,
+    "pages": 111,
+    "inlineSvgOccurrences": 172,
+    "imageOccurrences": 79,
+    "crossChapterGroups": 0,
+    "localLinksVerified": 6014,
+    "externalLinksNotFetched": 2
+  },
+  "chapterDomIllustrations": {
+    "status": "PASS_22_CHAPTER_DOM_ILLUSTRATIONS_MATCH_COMPILED_OWNERSHIP",
+    "chapterRoutes": 22,
+    "crossChapterGroups": 0
+  },
+  "chapterRoutes": [
+    {
+      "slug": "journey/consolidation/01-canvas",
+      "chapter": 1,
+      "heading": "1.1 \u00b7 Rust and the first GPU frame",
+      "svgCount": 3,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-01-canvas-BUcADHYK.json",
+        "sha256": "3b21230a7e2e1a02a6d39485314542ea5c1b921f4e5a1ead4d0fb5ecccca7177",
+        "url": "/docs/assets/course-journey-consolidation-01-canvas-BUcADHYK.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/05-vertices",
+      "chapter": 2,
+      "heading": "2.1 \u00b7 Buffers that describe a shared mesh",
+      "svgCount": 2,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-05-vertices-B6t0-LbV.json",
+        "sha256": "d1b19033cdfd86765e64c93a709180210d1b8fd3da91912df9e8747ccc9ef3bb",
+        "url": "/docs/assets/course-journey-consolidation-05-vertices-B6t0-LbV.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/17-solid",
+      "chapter": 3,
+      "heading": "3.1 \u00b7 Kernel geometry and a single editor owner",
+      "svgCount": 3,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-17-solid-CgzeTLU6.json",
+        "sha256": "bbac62b7ca4b0b400db728d1e645fcfb87fe145d850a4a38a000b56009c658c9",
+        "url": "/docs/assets/course-journey-consolidation-17-solid-CgzeTLU6.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/33-owner",
+      "chapter": 4,
+      "heading": "4.1 \u00b7 Browser callbacks with a real lifetime",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-33-owner-CIiUFw7h.json",
+        "sha256": "8823e463c439f011603b291be76ba77d6f6173a04f1d366d1c061d3e8bd92dbd",
+        "url": "/docs/assets/course-journey-consolidation-33-owner-CIiUFw7h.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/35-stroke",
+      "chapter": 5,
+      "heading": "5.1 \u00b7 Original lines and a screen-space stroke lane",
+      "svgCount": 2,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-35-stroke-Djt78cIC.json",
+        "sha256": "f9710d60dbc62bf9809eeddab858d3a0d9c7eeaef9706198de3f265a709e43d2",
+        "url": "/docs/assets/course-journey-consolidation-35-stroke-Djt78cIC.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/42-window",
+      "chapter": 6,
+      "heading": "6.1 \u00b7 A bounded integer picking pass",
+      "svgCount": 4,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-42-window-CB7YAhFh.json",
+        "sha256": "1e51952e2d7de6e4fbb8c10aabed950db4f6ec2bcbef87679baef8700d7bf790",
+        "url": "/docs/assets/course-journey-consolidation-42-window-CB7YAhFh.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/46-tool-panel",
+      "chapter": 7,
+      "heading": "7.1 \u00b7 Active tools own their command input",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-46-tool-panel-Ck_RgcPd.json",
+        "sha256": "12a7846322929c303d348efe7961b0f3f505a675b4854f52f6f9da6835305a6d",
+        "url": "/docs/assets/course-journey-consolidation-46-tool-panel-Ck_RgcPd.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/52-tree",
+      "chapter": 8,
+      "heading": "8.1 \u00b7 Nested original sources and exact parent edits",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-52-tree-CXH9Vfr7.json",
+        "sha256": "3e5ed51be091d48a4a4862f8a1b4f4897027ec4770372e53106a72045654f623",
+        "url": "/docs/assets/course-journey-consolidation-52-tree-CXH9Vfr7.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/55-validation",
+      "chapter": 9,
+      "heading": "9.1 \u00b7 Original surfaces, analytic normals and trim boundaries",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-55-validation-ybcvYzPA.json",
+        "sha256": "53cdba725b4b737e308171a2658c82149c8707e6516a5c998b2de50aa9e40008",
+        "url": "/docs/assets/course-journey-consolidation-55-validation-ybcvYzPA.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/60-fonts",
+      "chapter": 10,
+      "heading": "10.1 \u00b7 Explicit fonts and source label placement",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-60-fonts-DRdsm4X1.json",
+        "sha256": "e6307dc28ea7922465f035d27d3a28d837cb6d72841beb209d07d6cc2a7fb849",
+        "url": "/docs/assets/course-journey-consolidation-60-fonts-DRdsm4X1.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/63-radius",
+      "chapter": 11,
+      "heading": "11.1 \u00b7 Coverage-based screen-space outlines",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-63-radius-CnqvxW7a.json",
+        "sha256": "600fa781a2855c221e8f42d8431b951100b7412bf9171ed8419d366cd127e582",
+        "url": "/docs/assets/course-journey-consolidation-63-radius-CnqvxW7a.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/66-read-scene-manifests",
+      "chapter": 12,
+      "heading": "12.1 \u00b7 Complete viewer files and published scene sources",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-66-read-scene-manifests-8aTcq4lV.json",
+        "sha256": "ef6ad6669f624d47fc6f91e1ff035295c7060640155bd542d56bbea72f142d5f",
+        "url": "/docs/assets/course-journey-consolidation-66-read-scene-manifests-8aTcq4lV.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/69-validate-original-definition-references",
+      "chapter": 13,
+      "heading": "13.1 \u00b7 Shared original definitions and independently placed instances",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-69-validate-original-definition-references-BQsqrv2B.json",
+        "sha256": "3a94a5bef42d78d8621d7e81b6be50e45ec9ee662f865d672112b17682770319",
+        "url": "/docs/assets/course-journey-consolidation-69-validate-original-definition-references-BQsqrv2B.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/71-read-original-sheet-entity-metadata",
+      "chapter": 14,
+      "heading": "14.1 \u00b7 Original drawings, entity queries and construction frames",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-71-read-original-sheet-entity-metadata-CCxwA4hA.json",
+        "sha256": "e5687da3a279618fa30a113f6d6738b206eff34d486f15f6dc0d021b84c38aa6",
+        "url": "/docs/assets/course-journey-consolidation-71-read-original-sheet-entity-metadata-CCxwA4hA.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms",
+      "chapter": 15,
+      "heading": "15.1 \u00b7 Original transforms, part edits and solid recipes",
+      "svgCount": 2,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-77-copy-current-transformation-and-source-edit-algorithms-VC95W-Mc.json",
+        "sha256": "786daa92a86ae0417bcddeec3148cc19ec0bbfc8b5e0d076f341ea2565b0b501",
+        "url": "/docs/assets/course-journey-consolidation-77-copy-current-transformation-and-source-edit-algorithms-VC95W-Mc.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/81-project-originals-through-the-current-plane-algorithms",
+      "chapter": 16,
+      "heading": "16.1 \u00b7 Projection, extension and stable edit targets",
+      "svgCount": 2,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-81-project-originals-through-the-current-plane-algorithms-BScH75eL.json",
+        "sha256": "4305e4ae858561ace9fabfc8306b12b3bd2686c27340c488c8e1c604bb1c7a88",
+        "url": "/docs/assets/course-journey-consolidation-81-project-originals-through-the-current-plane-algorithms-BScH75eL.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/86-copy-finite-tile-allocation-rules",
+      "chapter": 17,
+      "heading": "17.1 \u00b7 Bounded projected triangles and tile lists",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-86-copy-finite-tile-allocation-rules-pXqbDOpH.json",
+        "sha256": "3b2587275d4c979e2723033c743b5649a6ab1c3b59fef9ab83c386bb54f56709",
+        "url": "/docs/assets/course-journey-consolidation-86-copy-finite-tile-allocation-rules-pXqbDOpH.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/89-copy-density-scaled-depth-reduction",
+      "chapter": 18,
+      "heading": "18.1 \u00b7 A retained depth and radius pyramid",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-89-copy-density-scaled-depth-reduction-Z-iJAf46.json",
+        "sha256": "fd9069f9fde26fb2161ab4f89898171e5449629934d9fda68ffca1f6a3a79d48",
+        "url": "/docs/assets/course-journey-consolidation-89-copy-density-scaled-depth-reduction-Z-iJAf46.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes",
+      "chapter": 19,
+      "heading": "19.1 \u00b7 Complete source metadata and the actual command contract",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-96-retain-non-drawing-originals-and-validate-raw-planes-DmsYzoJJ.json",
+        "sha256": "0f1090ecbc4740f3f0f8574b078bc615f0f549085bc340891e11e77f058379af",
+        "url": "/docs/assets/course-journey-consolidation-96-retain-non-drawing-originals-and-validate-raw-planes-DmsYzoJJ.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/96zh-bind-the-shared-geometry-as-storage",
+      "chapter": 20,
+      "heading": "20.1 \u00b7 Shared surface geometry and finite visibility addresses",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-96zh-bind-the-shared-geometry-as-storage-CQLg7rU8.json",
+        "sha256": "e5c420a8ae568273486f01b1e2934da5b6b1a4c7a81109465b38c3484e42867d",
+        "url": "/docs/assets/course-journey-consolidation-96zh-bind-the-shared-geometry-as-storage-CQLg7rU8.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "chapter": 21,
+      "heading": "21.1 \u00b7 Units and one precise render origin",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-96zzzzy-prepare-unit-aware-anchored-camera-space-fX7n58iz.json",
+        "sha256": "1aea6ad42eb4fdb45256729c7d0435d69a143e3b7ea716bfe25b87fee7081794",
+        "url": "/docs/assets/course-journey-consolidation-96zzzzy-prepare-unit-aware-anchored-camera-space-fX7n58iz.json"
+      },
+      "errors": []
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+      "chapter": 22,
+      "heading": "22.1 \u00b7 Original surface colours and lighting controls",
+      "svgCount": 1,
+      "asset": {
+        "path": "session/session_viewer/target/docs/vue/assets/course-journey-consolidation-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-CvcSH2c-.json",
+        "sha256": "72cae7df3217eb7804979bfdace34f2de20e792b652b6cd3529e95e422bafa76",
+        "url": "/docs/assets/course-journey-consolidation-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-CvcSH2c-.json"
+      },
+      "errors": []
+    }
+  ],
+  "criticalReaderChecks": 6,
+  "completedReaderLoads": 28,
+  "publishedCanonicalPngsHttpAndChromeVerified": 22,
+  "acceptedSourceProofsVerified": 46,
+  "acceptedLogicalProofRowsWithPublishedCanonicals": 31,
+  "sourceOnlyAcceptedProofRowsNotPublished": 15,
+  "acceptedSourceProofs": [
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41f-input-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/41f-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/41f-input-browser.png",
+        "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000000-71cbaa873aac.json",
+        "sha256": "9ea0b13405b0b35d0b359967037956c959e5d781cf71133287f6ab1e3b74f2d8"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41f-input.png",
+      "canonicalSourcePath": "docs/screenshots/journey/42k-input.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/42k-input.png",
+        "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000001-618cbc4930c1.json",
+        "sha256": "bd7613cdf4d36f0fcf1a20521fa38b11f16b478c27180986e2611c1e10178f36"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/51zf-handles.png",
+      "canonicalSourcePath": "docs/screenshots/journey/51zf-handles.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/51zf-handles.png",
+        "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000002-6b7cb7dba7db.json",
+        "sha256": "f55e5e9c24c28e72ef23a405e7f030341355cc41360f7750f2e2c99708381dee"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/54p-navigation.png",
+      "canonicalSourcePath": "docs/screenshots/journey/54p-navigation.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/54p-navigation.png",
+        "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000003-36a154379607.json",
+        "sha256": "524deb0c1c9f43b097526208e0be88f71655489f27e53c99fb7bcc33a29822f6"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/59f-cad.png",
+      "canonicalSourcePath": "docs/screenshots/journey/59f-cad.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/59f-cad.png",
+        "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000004-a64f72223098.json",
+        "sha256": "fa8de26364443c11511b8751fe436555cb2f417e1fcfed86b560ff43d08bad74"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/62o-labels-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/62o-labels-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/62o-labels-browser.png",
+        "sha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000005-acca558319bd.json",
+        "sha256": "c60bf7656e59d8ff6d9baaab49c04298ae79c88257109667f56ec79605b11dc5"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/62o-labels.png",
+      "canonicalSourcePath": "docs/screenshots/journey/62o-labels.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/62o-labels.png",
+        "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000006-62bc49710585.json",
+        "sha256": "3db2a3cbed87d654797e3c5f446774163b395bd8daeb6de077ddee2544be7da5"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+        "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000007-c8320a5ff6b5.json",
+        "sha256": "e67a72827153087276287a25c6f58935135394180c1fa59245b576d17e424b0b"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+      "canonicalSourcePath": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+        "sha256": "7c1c670edda4ac5778567f370c83a65b4bd35134b67788692b43d23c6783c0a0"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000008-7c1c670edda4.json",
+        "sha256": "b53509df7c9b651ede3f10cb2d01d73602bb0ea82457d6883bf38cd92b736f8d"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "canonicalSourcePath": "docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+        "sha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000009-ada90df919c9.json",
+        "sha256": "e3df6ba930a90eb7f822883501360bf4f603c459c1be5b69e388b2bb3a3ac2a9"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+        "sha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-375077abe537-000000-154b3e32a7c7.json",
+        "sha256": "279267085cdfa45f20e59165f00af0e6a59eadb3228de934dcca47c941e355be"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/80d-exercise-networks-corner-retries-and-exact-original-archives-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/80d-exercise-networks-corner-retries-and-exact-original-archives-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/80d-exercise-networks-corner-retries-and-exact-original-archives-browser.png",
+        "sha256": "66ec637f9710ebe759bc65aa7de0732729d8212e625de6ba78547e8368418e5a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-375077abe537-000001-66ec637f9710.json",
+        "sha256": "75411e5af9c949581387ea633b734e2c3e1cc75e2d324548cfd820c7dd350dbc"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/85ay-exercise-current-original-commands-together-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/85ay-exercise-current-original-commands-together-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/85ay-exercise-current-original-commands-together-browser.png",
+        "sha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-375077abe537-000002-ff75097852eb.json",
+        "sha256": "ca85658a67a54524ea99fd97db4777b6102c7ea0b81ad9a7c487ae12e9848bd0"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/80za-read-original-projection-planes.png",
+      "canonicalSourcePath": "docs/screenshots/journey/80za-read-original-projection-planes.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/80za-read-original-projection-planes.png",
+        "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-3b7e7ab40ba6-000000-d6dc0acb2df7.json",
+        "sha256": "be732168529822e2363d1a7e6f3cd334a5c18869dfb0a7adf3415c57d65ef175"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41a-placement-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/40b-indices-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/40b-indices-browser.png",
+        "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000000-92fdfa1b7918.json",
+        "sha256": "7e3dcb3e0b1371b4d7446254bc10623960d6b8f94537826d0b2502edb5133a92"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41b-drawing-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/40b-indices-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/40b-indices-browser.png",
+        "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000001-92fdfa1b7918.json",
+        "sha256": "d6a99226be8708fcd990e3677d1dc167d54629dfc701309df54e48c3b824768d"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41c-view-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/41c-view-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/41c-view-browser.png",
+        "sha256": "8cdeee6212b6d270033fa2a18a2e32fb7fac7e03ece01755bb9f026b9b03941c"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000002-8cdeee6212b6.json",
+        "sha256": "e74a822d4938a953fc9bcf2bd86df27be4c40b254226104b96371b0fced77c5b"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41ca-input-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/41ca-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/41ca-input-browser.png",
+        "sha256": "e3700c99fbe0f03211613c5e98056f3a00cec8539fbb6271fcbc9029062a6070"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000003-e3700c99fbe0.json",
+        "sha256": "2f0e661759a2389f1c0272b6c7e9353a6b46031a555f54f5791d59687d061270"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41d-grid-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/41ca-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/41ca-input-browser.png",
+        "sha256": "e3700c99fbe0f03211613c5e98056f3a00cec8539fbb6271fcbc9029062a6070"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000004-e3700c99fbe0.json",
+        "sha256": "39f0633466e4d92bbc7a21782d54e495f3bc63a87f3e48f841b516e1cebab1d1"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41e-drawing-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/41ca-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/41ca-input-browser.png",
+        "sha256": "e3700c99fbe0f03211613c5e98056f3a00cec8539fbb6271fcbc9029062a6070"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-4c10e4e32e5f-000005-e3700c99fbe0.json",
+        "sha256": "b33bdef3a30cbb2ca2afea656559c0bb159e994928bce0c0b76e2e6bf581f3a7"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming-browser.png",
+        "sha256": "9a2fa0f4ac7a20bcc0752bc4450904f70b6df829831ebe8c55958b9843e00ef8"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-654318acb70a-000000-9a2fa0f4ac7a.json",
+        "sha256": "94cc2737e38ebbb5af480323ea720f1dfa5e2da1e12d1fe5a62b2a9fbfb7ad70"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings-browser.png",
+        "sha256": "4b5576c626f2d49584d52115dacccbd976e718869c01354b8e97c295434265d6"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-917a140a3b72-000000-4b5576c626f2.json",
+        "sha256": "34a5a4c6bc6086c9aa4f7fff0dba26df9eff8c80c34b09f1234d897d2cfbe42b"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/65c-cloud-point-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/65c-cloud-point-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/65c-cloud-point-browser.png",
+        "sha256": "863c692015c0225bd1ddaf5f6d410ece64187d85d3ae3e9b174de34517c10555"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-92f3f50776f9-000000-863c692015c0.json",
+        "sha256": "cc0f5f012e82862479261ed0bdb3850ec53d3b35e4e79b33efb7e712aa24c6d8"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/38a-samples-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38a-samples-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38a-samples-browser.png",
+        "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000000-d5d6395bc04f.json",
+        "sha256": "4ed4996212f15074e660e7340d5086b3469ee16be6a7e9c99fd093ae0d83cb10"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/38b-source-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38a-samples-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38a-samples-browser.png",
+        "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000001-d5d6395bc04f.json",
+        "sha256": "bb6b2922058952906b2d9d87c8fe686eca57d96f11cc3e5d56ad88eaf0698b34"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/38c-controls-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38a-samples-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38a-samples-browser.png",
+        "sha256": "d5d6395bc04f947a8e22ba28ba78d88316004c44490ca41e0f5694c11686c8d7"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000002-d5d6395bc04f.json",
+        "sha256": "4758b6bce4ccc1e5dfb7e953286d1a1dc751e52d642c152e7aae5f949e8cf220"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/38d-input-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38d-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38d-input-browser.png",
+        "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000003-eab4aad534e5.json",
+        "sha256": "2bc5425cc06781aba3f1ef2409888fcd1d334574e2b8d8f596cc08cb9b2139fa"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/39-visible-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38d-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38d-input-browser.png",
+        "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000004-eab4aad534e5.json",
+        "sha256": "2678e24e220f4d23fa99246608dcbddc648edf93b82f4f7299c8ea2195525f68"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/39a-depth-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38d-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38d-input-browser.png",
+        "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000005-eab4aad534e5.json",
+        "sha256": "4f4631f6e888b5087399a002b202004137ae8452915802675c9a7edd2261d7da"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/40-colour-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/38d-input-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38d-input-browser.png",
+        "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000006-eab4aad534e5.json",
+        "sha256": "7565116b578d798ed8de89ad3ca3e8da05a5a05ffe2bc2732f5e7b972d180728"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/40a-input-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/40b-indices-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/40b-indices-browser.png",
+        "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000007-92fdfa1b7918.json",
+        "sha256": "80e83971502cd9eee144d68d9b2db750d7bd3ba304853d5b2eadf170ba386a79"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/40b-indices-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/40b-indices-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/40b-indices-browser.png",
+        "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000008-92fdfa1b7918.json",
+        "sha256": "0c16995340e50f57f7a34f927f01d11134c7f8241719b7e679ae3b507e6481a0"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/41-normals-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/40b-indices-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/40b-indices-browser.png",
+        "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000009-92fdfa1b7918.json",
+        "sha256": "753ed60c462bd126331bac35c5872d605b2671d3a1f2bcaceef09d05b4efb26d"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/66bd-walk-json-records-within-a-depth-limit-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/66bd-walk-json-records-within-a-depth-limit-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/66bd-walk-json-records-within-a-depth-limit-browser.png",
+        "sha256": "9294da0936e95efb60c6ce4180250b89f9cce9a35322d30ecb7fdc93190f1f78"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-bead922bfe8c-000000-9294da0936e9.json",
+        "sha256": "9244a0d4c01f2e1ab182016fb8a656fee370d16e46fd39a58ca414951885a4ba"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png",
+        "sha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-bead922bfe8c-000001-f29b36e90c38.json",
+        "sha256": "eb459b33ea2bad148dca94c5131434e87d57da0738c2ff2dfbf1c75f99f45a9d"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/current-native-dome.png",
+      "canonicalSourcePath": "docs/screenshots/journey/current-native-dome.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/current-native-dome.png",
+        "sha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-dome.json",
+        "sha256": "3b07f3d082c762ba02171d93b8f56a03f919b6aa2ca885e9e76966aad602c6b1"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/current-native-floor-output.png",
+      "canonicalSourcePath": "docs/screenshots/journey/current-native-floor-output.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/current-native-floor-output.png",
+        "sha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-floor-output.json",
+        "sha256": "c1f3e763fa989080f712c410e6ef73d32ab03fce74f61f2074eaa1e661d1bc04"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+        "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-cap-render-scale2-browser88ad-02-6f63dba1bccb.json",
+        "sha256": "d6d03624539790d54f53cdf27fca23476fcd7a36165d77b91f14369609b7e756"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
+        "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-cap-render-scale2-browser96zza-01-ae0d5a4fcfac.json",
+        "sha256": "fbfa6f96dbd8dc290a1b0330185e18ae53899b637a400ed95342b1b235b403a8"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png",
+      "canonicalSourcePath": "docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-cap-render-scale2-native88ad-01-3b94ceefea16.json",
+        "sha256": "f6c571be5e47d44b9d8370f1fe6f97ef55cd8e736787d482e442f00e39c92fc7"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+      "canonicalSourcePath": "docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-cap-render-scale2-native89h-01-3b94ceefea16.json",
+        "sha256": "813de330b98a139c221c3dcb4f956afd0d58147f0318cb64f795dc5b8c1b5602"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+        "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-browser94c-04-d510a8435bc9.json",
+        "sha256": "1bc71fac52350527828daea80bd0a691f452f7f37d1d0a50bff8f8d85886432a"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+        "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-browser95f-02-d510a8435bc9.json",
+        "sha256": "e97a855384fbd83846780f5b95e78a823e37fc2a951123ca427028feb4aa682f"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+      "canonicalSourcePath": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+        "sha256": "2b28f4471c75e648dbc64c8675a2997f75c8d5d3be627ced1d5a864ad0f6ecb2"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-browser96h-02-2b28f4471c75.json",
+        "sha256": "29f7cce3316b21bdb36c95d97c5478b8aaeb06a12b95d84f13c1e9344c0c18c3"
+      },
+      "classification": "SOURCE_ONLY_ACCEPTED_UNREFERENCED_NOT_PUBLISHED"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png",
+      "canonicalSourcePath": "docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png",
+        "sha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-native92o-01-a3e266d8d28a.json",
+        "sha256": "df69712d5291508b3f3b5a74a244b49af75fd1280c81c166237fb2ecbdb601be"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    },
+    {
+      "declaredSourcePath": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+      "canonicalSourcePath": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+        "sha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-native96zzzzx-01-97d25b00467d.json",
+        "sha256": "ac04ce8e535a481b3523bd3a943acc7899478748e84f62eaf929fa288002b041"
+      },
+      "classification": "PUBLISHED_ACCEPTED_PNG"
+    }
+  ],
+  "publishedImages": [
+    {
+      "id": "41f-input",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/41f-input-browser.png",
+        "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000000-71cbaa873aac.json",
+        "sha256": "9ea0b13405b0b35d0b359967037956c959e5d781cf71133287f6ab1e3b74f2d8"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input-browser.png?v=71cbaa873aac",
+      "status": 200,
+      "sha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "chromeStatus": 200,
+      "chromeBodySha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "41f-input",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/42k-input.png",
+        "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000001-618cbc4930c1.json",
+        "sha256": "bd7613cdf4d36f0fcf1a20521fa38b11f16b478c27180986e2611c1e10178f36"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/42k-input.png?v=618cbc4930c1",
+      "status": 200,
+      "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "chromeStatus": 200,
+      "chromeBodySha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "51zf-handles",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/51zf-handles.png",
+        "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000002-6b7cb7dba7db.json",
+        "sha256": "f55e5e9c24c28e72ef23a405e7f030341355cc41360f7750f2e2c99708381dee"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/51zf-handles.png?v=6b7cb7dba7db",
+      "status": 200,
+      "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "chromeStatus": 200,
+      "chromeBodySha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "54p-navigation",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/54p-navigation.png",
+        "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000003-36a154379607.json",
+        "sha256": "524deb0c1c9f43b097526208e0be88f71655489f27e53c99fb7bcc33a29822f6"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png?v=36a154379607",
+      "status": 200,
+      "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+      "chromeStatus": 200,
+      "chromeBodySha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "59f-cad",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/59f-cad.png",
+        "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000004-a64f72223098.json",
+        "sha256": "fa8de26364443c11511b8751fe436555cb2f417e1fcfed86b560ff43d08bad74"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=a64f72223098",
+      "status": 200,
+      "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+      "chromeStatus": 200,
+      "chromeBodySha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "62o-labels",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/62o-labels-browser.png",
+        "sha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000005-acca558319bd.json",
+        "sha256": "c60bf7656e59d8ff6d9baaab49c04298ae79c88257109667f56ec79605b11dc5"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels-browser.png?v=acca558319bd",
+      "status": 200,
+      "sha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
+      "chromeStatus": 200,
+      "chromeBodySha256": "acca558319bda235978d205838ccac2e9409442c21bcd874ac9c527379fb4b21",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "62o-labels",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/62o-labels.png",
+        "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000006-62bc49710585.json",
+        "sha256": "3db2a3cbed87d654797e3c5f446774163b395bd8daeb6de077ddee2544be7da5"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png?v=62bc49710585",
+      "status": 200,
+      "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+      "chromeStatus": 200,
+      "chromeBodySha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "68ac-connect-current-pages-to-the-browser-renderer",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+        "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000007-c8320a5ff6b5.json",
+        "sha256": "e67a72827153087276287a25c6f58935135394180c1fa59245b576d17e424b0b"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=c8320a5ff6b5",
+      "status": 200,
+      "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "chromeStatus": 200,
+      "chromeBodySha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "width": 2200,
+      "height": 1600
+    },
+    {
+      "id": "70za-read-original-sheet-metadata-records",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+        "sha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000009-ada90df919c9.json",
+        "sha256": "e3df6ba930a90eb7f822883501360bf4f603c459c1be5b69e388b2bb3a3ac2a9"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png?v=ada90df919c9",
+      "status": 200,
+      "sha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "chromeStatus": 200,
+      "chromeBodySha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "76d-exercise-exact-curves-and-rational-control-edits",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+        "sha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-375077abe537-000000-154b3e32a7c7.json",
+        "sha256": "279267085cdfa45f20e59165f00af0e6a59eadb3228de934dcca47c941e355be"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png?v=154b3e32a7c7",
+      "status": 200,
+      "sha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+      "chromeStatus": 200,
+      "chromeBodySha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "85ay-exercise-current-original-commands-together",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/85ay-exercise-current-original-commands-together-browser.png",
+        "sha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-375077abe537-000002-ff75097852eb.json",
+        "sha256": "ca85658a67a54524ea99fd97db4777b6102c7ea0b81ad9a7c487ae12e9848bd0"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/85ay-exercise-current-original-commands-together-browser.png?v=ff75097852eb",
+      "status": 200,
+      "sha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181",
+      "chromeStatus": 200,
+      "chromeBodySha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "80za-read-original-projection-planes",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/80za-read-original-projection-planes.png",
+        "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-3b7e7ab40ba6-000000-d6dc0acb2df7.json",
+        "sha256": "be732168529822e2363d1a7e6f3cd334a5c18869dfb0a7adf3415c57d65ef175"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png?v=d6dc0acb2df7",
+      "status": 200,
+      "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "chromeStatus": 200,
+      "chromeBodySha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "41-normals",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/40b-indices-browser.png",
+        "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000009-92fdfa1b7918.json",
+        "sha256": "753ed60c462bd126331bac35c5872d605b2671d3a1f2bcaceef09d05b4efb26d"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/40b-indices-browser.png?v=92fdfa1b7918",
+      "status": 200,
+      "sha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "chromeStatus": 200,
+      "chromeBodySha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "40-colour",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/38d-input-browser.png",
+        "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-97619e3e9312-000006-eab4aad534e5.json",
+        "sha256": "7565116b578d798ed8de89ad3ca3e8da05a5a05ffe2bc2732f5e7b972d180728"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/38d-input-browser.png?v=eab4aad534e5",
+      "status": 200,
+      "sha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "chromeStatus": 200,
+      "chromeBodySha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "70d-exercise-rotated-and-mirrored-original-references",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png",
+        "sha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-bead922bfe8c-000001-f29b36e90c38.json",
+        "sha256": "eb459b33ea2bad148dca94c5131434e87d57da0738c2ff2dfbf1c75f99f45a9d"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png?v=f29b36e90c38",
+      "status": 200,
+      "sha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1",
+      "chromeStatus": 200,
+      "chromeBodySha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "current-native-dome",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/current-native-dome.png",
+        "sha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-dome.json",
+        "sha256": "3b07f3d082c762ba02171d93b8f56a03f919b6aa2ca885e9e76966aad602c6b1"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-dome.png?v=603bab6866d3",
+      "status": 200,
+      "sha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161",
+      "chromeStatus": 200,
+      "chromeBodySha256": "603bab6866d351df7960a24650c06dc69df686378c644b34ea520593b2757161",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "current-native-floor-output",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/current-native-floor-output.png",
+        "sha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-native-current-native-floor-output.json",
+        "sha256": "c1f3e763fa989080f712c410e6ef73d32ab03fce74f61f2074eaa1e661d1bc04"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/current-native-floor-output.png?v=772faf17c54d",
+      "status": 200,
+      "sha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701",
+      "chromeStatus": 200,
+      "chromeBodySha256": "772faf17c54d833ab8f313fbbe0a5bdeb18abc0af2849149cc57435ff4302701",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "88ad-exercise-original-sections-bores-and-ink",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png",
+        "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-cap-render-scale2-browser88ad-02-6f63dba1bccb.json",
+        "sha256": "d6d03624539790d54f53cdf27fca23476fcd7a36165d77b91f14369609b7e756"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png?v=6f63dba1bccb",
+      "status": 200,
+      "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "chromeStatus": 200,
+      "chromeBodySha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "89h-exercise-actual-depth-levels-and-cache-release",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-cap-render-scale2-native89h-01-3b94ceefea16.json",
+        "sha256": "813de330b98a139c221c3dcb4f956afd0d58147f0318cb64f795dc5b8c1b5602"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png?v=3b94ceefea16",
+      "status": 200,
+      "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "chromeStatus": 200,
+      "chromeBodySha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "lane": "browser",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+        "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-browser95f-02-d510a8435bc9.json",
+        "sha256": "e97a855384fbd83846780f5b95e78a823e37fc2a951123ca427028feb4aa682f"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png?v=d510a8435bc9",
+      "status": 200,
+      "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "chromeStatus": 200,
+      "chromeBodySha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "width": 1800,
+      "height": 1520
+    },
+    {
+      "id": "92o-prove-element-recipes-source-history-and-archives",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png",
+        "sha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-native92o-01-a3e266d8d28a.json",
+        "sha256": "df69712d5291508b3f3b5a74a244b49af75fd1280c81c166237fb2ecbdb601be"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png?v=a3e266d8d28a",
+      "status": 200,
+      "sha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+      "chromeStatus": 200,
+      "chromeBodySha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+      "width": 1280,
+      "height": 960
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "lane": "native",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+        "sha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-native96zzzzx-01-97d25b00467d.json",
+        "sha256": "ac04ce8e535a481b3523bd3a943acc7899478748e84f62eaf929fa288002b041"
+      },
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png?v=97d25b00467d",
+      "status": 200,
+      "sha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85",
+      "chromeStatus": 200,
+      "chromeBodySha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85",
+      "width": 1280,
+      "height": 960
+    }
+  ],
+  "originalNine": [
+    {
+      "path": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+        "sha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-source13-outline-scale2-native96zzzzx-01-97d25b00467d.json",
+        "sha256": "ac04ce8e535a481b3523bd3a943acc7899478748e84f62eaf929fa288002b041"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png?v=97d25b00467d",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/80za-read-original-projection-planes.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/80za-read-original-projection-planes.png",
+        "sha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-3b7e7ab40ba6-000000-d6dc0acb2df7.json",
+        "sha256": "be732168529822e2363d1a7e6f3cd334a5c18869dfb0a7adf3415c57d65ef175"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png?v=d6dc0acb2df7",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png",
+        "sha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000009-ada90df919c9.json",
+        "sha256": "e3df6ba930a90eb7f822883501360bf4f603c459c1be5b69e388b2bb3a3ac2a9"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png?v=ada90df919c9",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+        "sha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000007-c8320a5ff6b5.json",
+        "sha256": "e67a72827153087276287a25c6f58935135394180c1fa59245b576d17e424b0b"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=c8320a5ff6b5",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/62o-labels.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/62o-labels.png",
+        "sha256": "62bc497105855a35b3548ed0c37781d724a98c048f3cdcbacb666b62e4a961a5"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000006-62bc49710585.json",
+        "sha256": "3db2a3cbed87d654797e3c5f446774163b395bd8daeb6de077ddee2544be7da5"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/62o-labels.png?v=62bc49710585",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/59f-cad.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/59f-cad.png",
+        "sha256": "a64f72223098ea7b354a962c1b799c7f02dbd52df4b5c6254d71371ad5c0c90e"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000004-a64f72223098.json",
+        "sha256": "fa8de26364443c11511b8751fe436555cb2f417e1fcfed86b560ff43d08bad74"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/59f-cad.png?v=a64f72223098",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/54p-navigation.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/54p-navigation.png",
+        "sha256": "36a1543796075e6f92e3028b87d7d3657116f3d40d109a2716c468d4c82dac9b"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000003-36a154379607.json",
+        "sha256": "524deb0c1c9f43b097526208e0be88f71655489f27e53c99fb7bcc33a29822f6"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/54p-navigation.png?v=36a154379607",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/51zf-handles.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/51zf-handles.png",
+      "status": 200,
+      "classification": "EXACT_DECLARED_URL_PNG_VERIFIED",
+      "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/51zf-handles.png",
+        "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000002-6b7cb7dba7db.json",
+        "sha256": "f55e5e9c24c28e72ef23a405e7f030341355cc41360f7750f2e2c99708381dee"
+      },
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/51zf-handles.png?v=6b7cb7dba7db",
+      "canonicalChromeDecoded": true
+    },
+    {
+      "path": "docs/screenshots/journey/41f-input.png",
+      "declaredUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/41f-input.png",
+      "status": 200,
+      "classification": "SPA_HTML_200_FALLBACK_NOT_A_PNG",
+      "bodySha256": "92db9187b4774e9b1f87781a4a199a7674b63c105e60a43f62b9196e7107e55a",
+      "declaredSourcePath": "docs/screenshots/journey/41f-input.png",
+      "canonicalSourcePath": "docs/screenshots/journey/42k-input.png",
+      "source": {
+        "path": "session/session_viewer/docs/screenshots/journey/42k-input.png",
+        "sha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753"
+      },
+      "proof": {
+        "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261029-source13-batch-000001-618cbc4930c1.json",
+        "sha256": "bd7613cdf4d36f0fcf1a20521fa38b11f16b478c27180986e2611c1e10178f36"
+      },
+      "canonicalPublished": true,
+      "canonicalUrl": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/42k-input.png?v=618cbc4930c1",
+      "canonicalChromeDecoded": true
+    }
+  ],
+  "removedPathsAndUrlsVerified": 329,
+  "removedUrlsHtml200FallbackNotPng": 329,
+  "removedUrlsHttp404": 0,
+  "failedPriorRun": {
+    "status": "FAIL_REBUILT_DOCS_SITE_QA",
+    "sha256": "11aa0eee0e8fa4a270c96eaef4d0dc7c0f2b72eca1e7602ad56cb85659b47ff7",
+    "reason": "Python Windows text-stdin decoded Node UTF8 SVG labels as cp1252; actual UI image content was unchanged.",
+    "reusedComponents": {
+      "criticalReaderChecks": 6,
+      "completedReaderLoads": 28,
+      "acceptedSourceProofs": 46,
+      "publishedCanonicalPngChromeDecodes": 22,
+      "originalNineUrlClassifications": 9,
+      "removedUrlClassifications": 329,
+      "note": "Completed component evidence from immutable failed04r4; no new image/HTTP/decode claim for these components."
+    }
+  },
+  "utf8TransportCorrection": "Read JSON stdin bytes explicitly; preserve exact Unicode text and every existing SVG comparison assertion.",
+  "privateVerification": {
+    "path": ".codex/viewer-quality-20261028/rebuilt-source13-site-qa04r5-proposal/docs-source13-site-04r6.json",
+    "sha256": "3895cc8197a1d717a4964c7f56cc2592c8e628b09f5f070ce4422b55d4a6e162"
+  }
+}

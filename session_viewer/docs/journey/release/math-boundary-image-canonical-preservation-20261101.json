@@ -1,0 +1,57 @@
+{
+  "status": "PASS_FOUR_RENAMES_ORIGINAL_LOGICAL_IDENTITIES_PRESERVED",
+  "recordedUtc": "2026-11-01T14:20:13.612946+00:00",
+  "scope": "Four retained baselines received immutable SHA-suffixed names before their logical checkpoint filenames can be recaptured. No image bytes or authored Markdown were changed.",
+  "manifestBeforeSha256": "7564fd582c4dcc965ab9f5480662dbfa69e2be9618cc9b8194dbac841ef48017",
+  "manifestAfterSha256": "762831d2cae7636abd8fe5f004b88080cd1f605123a1fb85a74890682535f98c",
+  "renames": [
+    {
+      "from": "96q-prove-imported-feature-ownership-and-roundtrips-browser.png",
+      "to": "96q-prove-imported-feature-ownership-and-roundtrips-browser-9e08aab68457.png",
+      "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
+      "dependentAliases": [
+        "96r-preserve-exact-command-completions-browser.png",
+        "96t-select-and-highlight-original-feature-owners-browser.png"
+      ]
+    },
+    {
+      "from": "96zh-bind-the-shared-geometry-as-storage-browser.png",
+      "to": "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "dependentAliases": [
+        "96zi-read-source-vertices-through-one-shader-helper-browser.png",
+        "96zj-activate-shared-vertex-pulling-for-color-browser.png",
+        "96zk-assign-frame-triangle-ranges-browser.png",
+        "96zl-own-the-integer-primitive-image-browser.png"
+      ]
+    },
+    {
+      "from": "96zm-write-triangle-addresses-beside-color-browser.png",
+      "to": "96zm-write-triangle-addresses-beside-color-browser-ddba4d2288f7.png",
+      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+      "dependentAliases": [
+        "96zs-write-first-pick-primitives-from-shared-geometry-browser.png",
+        "96zz-separate-hidden-ink-color-from-pick-ownership-browser.png"
+      ]
+    },
+    {
+      "from": "96zzc-share-section-addresses-with-outlines-and-ambient-browser.png",
+      "to": "96zzc-share-section-addresses-with-outlines-and-ambient-browser-0816e418db8c.png",
+      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+      "dependentAliases": [
+        "96zzd-pack-surface-position-normal-and-color-browser.png"
+      ]
+    }
+  ],
+  "addedAliases": 4,
+  "retargetedAliases": 9,
+  "physicalPngs": 524,
+  "uniquePngs": 524,
+  "originalLogicalImageHashesPreserved": 2145,
+  "aliases": 1625,
+  "acceptedImageProofsPreserved": 46,
+  "primaryReaderPagesUnchanged": 111,
+  "measuredLessonPinsUnchanged": 7,
+  "maintainedSourceFilesUnchanged": 477,
+  "testsPassed": 7
+}

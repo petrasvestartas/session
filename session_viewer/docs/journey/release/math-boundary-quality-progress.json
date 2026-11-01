@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T11:53:48.707035+00:00",
+  "updatedUtc": "2026-11-01T14:20:13.619218+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -1123,7 +1123,7 @@
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
-      "status": "BUILD02_SIX_READERS_25_PUBLISHED_PNGS_ORIGINAL_NINE_AND_329_REMOVALS_PASS; REMAINING_IMAGES_AND_FINAL_PUBLICATION_PENDING"
+      "status": "BUILD04_111_READER_OWNERSHIP_22_CHAPTER_DOM_6_CRITICAL_READERS_22_CANONICAL_PNGS_AND_329_REMOVALS_VERIFIED; REMAINING_CAPTURE_ENTRIES_PENDING"
     }
   ],
   "readerCodeSynchronization": {
@@ -1135,83 +1135,24 @@
     "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
-    "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-    "sha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+    "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+    "sha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
     "browser": "156.0.8078.79",
-    "publishedImagesVerified": 25,
-    "rebuiltWebsiteCodePages": "BUILD02_SIX_SOURCE_BOUND_READERS_PASS_INCLUDING_59_RETAINED_BYTES_AND_ACCOUNT",
-    "newSource13ImagesAwaitingChromeDecode": 1,
-    "staticImageReferences": {
-      "status": "ALL_READER_IMAGES_PRESENT",
-      "pages": 267,
-      "images": 1763,
-      "missing": 0,
-      "browserAcceptance": false
-    },
-    "rebuiltSite": {
+    "publishedCanonicalImagesVerified": 22,
+    "acceptedSourceProofsAtQa": 46,
+    "acceptedLogicalProofsWithPublishedCanonicals": 31,
+    "sourceOnlyAcceptedProofsNotPublished": 15,
+    "currentAcceptedOutsideQaScope": 0,
+    "sourceAndCompiledPrimaryReaders": 111,
+    "chapterRoutesVerified": 22,
+    "criticalReaderChecks": 6,
+    "crossChapterSharedIllustrations": 0,
+    "localReaderLinksVerified": 6014,
+    "noGpuOrWasmRuntimeAcceptanceClaim": true,
+    "priorVerification": {
       "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
       "sha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "pagesVerified": 6,
-      "servedAssetsVerified": 12,
-      "publishedPngsHttpShaAndChromeDecodeVerified": 25,
-      "acceptedSourceOnlyNotPublishedOrServed": 20,
-      "originalNineExactPublishedPngsVerified": 9,
-      "removedSourceAndBuildPathsVerifiedAbsent": 329,
-      "removedUrlsHtmlFallbackNotPng": 329,
-      "removedUrlsHttp404": 0
-    },
-    "currentRequiredScope": {
-      "acceptedSourceProofsAtQa": 45,
-      "currentPublishedHttpAndChromeVerified": 25,
-      "currentSourceOnlyHashVerifiedNotPublishedOrServed": 20,
-      "currentAcceptedOutsideQaScope": 1,
-      "historicalDecodeMatchesCurrentAccepted": 31,
-      "historicalDecodeScope": "Older decode receipts only; no current served claim for those31 historical matches.",
-      "freshHttpChecksPerformed": true,
-      "freshHttpScope": "PUBLISHED_ACCEPTED_SUBSET_ONLY",
-      "qaFinishedUtc": "2026-11-01T11:15:38.710Z",
-      "metadataUpdaterPerformedNetworkOrBrowserChecks": false
-    },
-    "latestCapImageServingHistorical": {
-      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png?v=6f63dba1bccb",
-      "status": 200,
-      "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
-      "bytes": 26939,
-      "copiedPreview": {
-        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink-browser.png",
-        "sha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
-        "bytes": 26939
-      },
-      "verification": "HTTP_BYTES_ONLY",
-      "chromeDecodePerformed": false
-    },
-    "latestNativeCapImageServingHistorical": [
-      {
-        "id": "88ad-exercise-original-sections-bores-and-ink",
-        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png?v=3b94ceefea16",
-        "status": 200,
-        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
-        "bytes": 18325,
-        "verification": "HTTP_BYTES_ONLY",
-        "chromeDecodePerformed": false
-      },
-      {
-        "id": "89h-exercise-actual-depth-levels-and-cache-release",
-        "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png?v=3b94ceefea16",
-        "status": 200,
-        "sha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
-        "bytes": 18325,
-        "verification": "HTTP_BYTES_ONLY",
-        "chromeDecodePerformed": false
-      }
-    ],
-    "latestSelectedLateCapImageServingHistorical": {
-      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png?v=ae0d5a4fcfac",
-      "status": 200,
-      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
-      "bytes": 39355,
-      "verification": "HTTP_BYTES_ONLY",
-      "chromeDecodePerformed": false
+      "scope": "Historical build02 snapshot retained by its immutable receipt."
     }
   },
   "unusedImageCleanup": {
@@ -1220,5 +1161,20 @@
     "removed": 329,
     "bytes": 6705494,
     "remainingProtectedInJourneyFolder": 2145
+  },
+  "imageDeduplication": {
+    "receipt": "docs/journey/release/math-boundary-physical-image-dedup-20261101.json",
+    "physicalPngFiles": 524,
+    "exactDuplicateGroups": 0,
+    "removedDuplicatePngFiles": 1621,
+    "logicalAliasEntries": 1625,
+    "canonicalPreservationReceipt": "docs/journey/release/math-boundary-image-canonical-preservation-20261101.json"
+  },
+  "legacyCheckpointSynchronization": {
+    "receipt": "docs/journey/release/math-boundary-standalone-source-sync-20261101.json",
+    "missingIncludesAdded": 13,
+    "includeOrderChecksPassed": 1361,
+    "supportedImageReferenceCorrections": 5,
+    "historicalImageDisagreementsPending": 6
   }
 }

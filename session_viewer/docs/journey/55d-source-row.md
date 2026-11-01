@@ -764,6 +764,16 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/55d-source-row-05.rs"
 ```
 
+### 4. `src/math_view.rs`
+
+Extend the presentation cache to original NURBS surface owners and account for retained grids, boundaries and display meshes.
+
+After the preceding edits, replace lines 17–132 of `src/math_view.rs` with the complete block below. Keep the text before and after this range unchanged.
+
+```rust
+--8<-- "journey/code/55d-source-row-math-display-26.rs"
+```
+
 ## Run and check
 
 In your project:

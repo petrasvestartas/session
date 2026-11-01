@@ -1,0 +1,85 @@
+{
+  "status": "APPLIED_13_MISSING_INCLUDES_AND_FIVE_SUPPORTED_IMAGE_REFERENCES",
+  "recordedUtc": "2026-11-01T14:20:13.618201+00:00",
+  "changedPages": [
+    {
+      "path": "session_viewer/docs/journey/38a-samples.md",
+      "before": "4393867b5843da7bee68c53c03260078282be846ef98c4a6553ed9b42dfb6b82",
+      "after": "acc15fbc241dc6be0462fd4e77db411a5d57da74d17193502396134204ef11b2"
+    },
+    {
+      "path": "session_viewer/docs/journey/38b-source.md",
+      "before": "f830af39d01f643408249fd9819cc44298ffe9320d96c86f19648b6bfeba94f9",
+      "after": "5a5e85786bc3ba46119a8d8170307e47bfe98eb8131768e1f9b4d6e9c335833e"
+    },
+    {
+      "path": "session_viewer/docs/journey/44k-selection.md",
+      "before": "89278cc22282166f0057c064574ee31b684e463125ef016adba010653acd8590",
+      "after": "4f03ff6d386e144606c54d791d393778c93edf1092f5cad80eea60e0467131ca"
+    },
+    {
+      "path": "session_viewer/docs/journey/48c-commit.md",
+      "before": "cca5ea8db8c642954e2c9db259860d36461d6b3a5c129f97d4c175dcea395df5",
+      "after": "ea7fe8480c50680f3f454d6dd533027f52d76468669e23c906e1337f33990fc2"
+    },
+    {
+      "path": "session_viewer/docs/journey/51u-selection.md",
+      "before": "40f6c9662f686ee29dcb5042ad1eb9568a6ce8fa016fb20a6f02bdcaace0cc15",
+      "after": "71b94d4a25223867ea53c1ef5d1fd4a416deec1cde1c5979b1f0bd1aef86798c"
+    },
+    {
+      "path": "session_viewer/docs/journey/55d-source-row.md",
+      "before": "11c9e3e6895614c0722c81e8e2afccf5999f25eaa948de76082729b39b76ed02",
+      "after": "93b4392caab179e35ee34430fd46cd7e891feb7ca5fa3cae7452acd3384e0320"
+    },
+    {
+      "path": "session_viewer/docs/journey/56a-shared.md",
+      "before": "a7d0eb48b91b5a0df80110eebc1147be9984d973b4b0282fbb726b083a6f3ec6",
+      "after": "705ec55c06c796a3666a93cdb8406a699e3b1bb9da35af8de23776d441ee47a8"
+    },
+    {
+      "path": "session_viewer/docs/journey/59c-source-row.md",
+      "before": "2703deaf721c05feb8dadf54e4c831a19289b8d520f22de1abfaeddeb30b2701",
+      "after": "b664e7305aa6505025a6107efd1760e3e7b7700fd3ee634920cfd7705d29de31"
+    },
+    {
+      "path": "session_viewer/docs/journey/96zzzzzzzq-draw-original-cad-wire-curves.md",
+      "before": "f57a1ae96ef031a23717feb33abf6fc9b84f4fba9257b52285dda08d25dd97e4",
+      "after": "55d079312d7e9ae9a8d6d8d47f5e72072acb2ff2e47c640124887ecf8f8ac8b4"
+    },
+    {
+      "path": "session_viewer/docs/journey/59a-face-data.md",
+      "before": "ea524690bf3156278181947b251a3db9c04f7569f13ed273c56056fc2b6508ae",
+      "after": "754ab00c495cd6ac4401da332606e94761d780f501b7a9bcc2e3e0aa9e9f771e"
+    },
+    {
+      "path": "session_viewer/docs/journey/63a-coverage.md",
+      "before": "b68b653e64f76ec79a733cc10e84e46fe8715a01d95b90a5b3166333e3761ecc",
+      "after": "a1690fa366e0cf54e9232326bbc7b4bc4fbf6ae45ef675daabea3560c9922329"
+    },
+    {
+      "path": "session_viewer/docs/journey/90-copy-maintained-original-contact-radius.md",
+      "before": "4154643b24483b1f734f3267598982f4763cc833d5e9e959d5fd03a6679e9f20",
+      "after": "b896b59f8036988a0210acb5023edf43aa65ea2fe7f7055b9971567c3dd7bc90"
+    },
+    {
+      "path": "session_viewer/docs/journey/90d-copy-current-horizon-and-bilateral-recipes.md",
+      "before": "10cabbc56ccb89bb0a6ac94c72f0763db7f07bdd259e9c51a2e1ed5992c6b608",
+      "after": "719d128ea94afd764437a5ee630a189c40a7ef8186d454930296e9d928df4a05"
+    }
+  ],
+  "missingIncludesAdded": 13,
+  "includeOrderChecksPassed": 1361,
+  "sourceEditsReplayed": 1361,
+  "supportedImageReferenceCorrections": 5,
+  "remainingHistoricalImageDisagreements": 6,
+  "unresolvedImageIds": [
+    "58za-match-original-face-edge-directions",
+    "63b-resources",
+    "71a-bound-original-entity-records-before-reading",
+    "81b-capture-eligible-original-identity-and-placement",
+    "90b-adapt-the-earlier-forward-camera",
+    "90f-write-original-surface-contact-properties"
+  ],
+  "scope": "Missing source instructions and five proven stale legacy image references only; existing author text, code and warnings preserved. Six remaining historical frame disagreements remain pending. Primary reader111, maintained source477, course edits and declared image parents are unchanged."
+}

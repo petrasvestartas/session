@@ -723,6 +723,16 @@ After that block, type:
 --8<-- "journey/code/48c-commit-06.rs" skip=37
 ```
 
+### 4. `src/browser.rs`
+
+Invalidate mathematical presentation while a drawing draft is active; refine the committed scene otherwise.
+
+After the preceding edits, replace lines 126–395 of `src/browser.rs` with the complete block below. Keep the text before and after this range unchanged.
+
+```rust
+--8<-- "journey/code/48c-commit-math-display-13.rs"
+```
+
 ## Run and check
 
 In your project:

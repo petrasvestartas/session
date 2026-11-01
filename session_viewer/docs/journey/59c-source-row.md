@@ -771,6 +771,16 @@ Edit the existing block to match this code; keep unchanged lines:
 --8<-- "journey/code/59c-source-row-05.rs"
 ```
 
+### 4. `src/math_view.rs`
+
+Extend the presentation cache to original CAD owners, including measured retained edge, sample and display-mesh storage.
+
+After the preceding edits, replace lines 18–162 of `src/math_view.rs` with the complete block below. Keep the text before and after this range unchanged.
+
+```rust
+--8<-- "journey/code/59c-source-row-math-display-31.rs"
+```
+
 ## Run and check
 
 In your project:

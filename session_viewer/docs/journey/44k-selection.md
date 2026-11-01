@@ -752,6 +752,16 @@ After that block, type:
 --8<-- "journey/code/44k-selection-09.rs" skip=39
 ```
 
+### 5. `src/browser.rs`
+
+Refresh using whole-object selection and restore highlight state after a mathematical display upload.
+
+After the preceding edits, replace lines 177–469 of `src/browser.rs` with the complete block below. Keep the text before and after this range unchanged.
+
+```rust
+--8<-- "journey/code/44k-selection-math-display-9.rs"
+```
+
 ## Run and check
 
 In your project:

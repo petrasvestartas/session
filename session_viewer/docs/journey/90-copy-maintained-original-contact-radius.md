@@ -66,11 +66,11 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 The original section color is unchanged; supplied readback checks inspect all six actual depth/radius levels.
 
-![Native renderer output for derive original contact radius.](../screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png)
+![Native renderer output for derive original contact radius.](../screenshots/journey/89-copy-density-scaled-depth-reduction.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-This reference image is shared with [17.3.32 · Exercise original sections bores and ink](88ad-exercise-original-sections-bores-and-ink.md). It does not demonstrate a new feature by itself.
+This reference image is shared with [18.1.1 · Reduce depth and radius at a bounded display resolution](89-copy-density-scaled-depth-reduction.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>

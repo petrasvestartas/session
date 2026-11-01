@@ -745,6 +745,16 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
+### 2. `src/browser.rs`
+
+Keep both drawing drafts and gizmo edits out of mathematical refinement while their temporary display scene is active.
+
+After the preceding edits, replace lines 126–423 of `src/browser.rs` with the complete block below. Keep the text before and after this range unchanged.
+
+```rust
+--8<-- "journey/code/51u-selection-math-display-15.rs"
+```
+
 ## Run and check
 
 In your project:

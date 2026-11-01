@@ -46566,6 +46566,22 @@ Sample the full depth and radius pyramid, use a coarser occupancy level, and pas
 --8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-exact-production-06-current_inventory.json"
 ```
 
+### 421. `src/inventory_tests.rs`
+
+Count the three maintained mathematical display modules in the existing viewer source inventory assertion.
+
+Replace this exact existing code:
+
+```rust
+assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),312);
+```
+
+with the replacement below.
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-current-display-viewer-count.rs"
+```
+
 ## Run and check
 
 Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:

@@ -56,11 +56,11 @@ The contour and composition entries are written, with the original geometry pict
 
 The blue CAD bore and selected original scene label remain visible.
 
-![Native renderer output for convolve solid coverage into external contour ink.](../screenshots/journey/62o-labels.png)
+![Native renderer output for convolve solid coverage into external contour ink.](../screenshots/journey/63-radius.png)
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-This reference image is shared with [10.3.37 · Create pick move and delete the original scene labels](62o-labels.md). It does not demonstrate a new feature by itself.
+This reference image is shared with [11.1.1 · Measure outline width in CSS pixels](63-radius.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>

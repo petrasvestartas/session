@@ -842,6 +842,46 @@ Copy this supplied file:
 
 </details>
 
+### 6. `src/math_view.rs`
+
+Add the curve presentation cache: retain original owners, measure committed display storage, and schedule bounded refinement.
+
+Create this file with the complete contents below.
+
+```rust
+--8<-- "journey/code/38b-source-math-display-4.rs"
+```
+
+### 7. `src/lib.rs`
+
+Register the mathematical presentation cache beside the quality module.
+
+After the preceding edits, replace the complete file with the contents below.
+
+```rust
+--8<-- "journey/code/38b-source-math-display-5.rs"
+```
+
+### 8. `src/scene.rs`
+
+Expose stable row IDs and mutable display paths to the presentation cache.
+
+After the preceding edits, replace the complete file with the contents below.
+
+```rust
+--8<-- "journey/code/38b-source-math-display-6.rs"
+```
+
+### 9. `src/browser.rs`
+
+Refresh mathematical display before drawing, route uploads through the cache, and schedule pending refinement through the viewer-math event.
+
+After the preceding edits, replace lines 99–425 of `src/browser.rs` with the complete block below. Keep the text before and after this range unchanged.
+
+```rust
+--8<-- "journey/code/38b-source-math-display-7.rs"
+```
+
 ## Run and check
 
 In your project:
