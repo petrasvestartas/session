@@ -43,7 +43,7 @@ const observe = `await page.context().addInitScript(() => {
     };
 });`;
 
-function highDensity(density: number, early: boolean) {
+function highDensity(density: number, early: boolean, profile: any = null) {
     return `
             const behaviorFile = path.join(output, id + '-behavior-dpr1.png');
             await page.screenshot({path: behaviorFile, fullPage: true});
@@ -99,6 +99,11 @@ function highDensity(density: number, early: boolean) {
                 presentationStatus: await page.locator('#status').textContent(),
                 recipe: '${early ? 'Fresh high-DPI startup and documented browser_actions only; original full callback verified at DPR1.' : 'Same post-callback scene; high-DPI resize only.'}',
                 behaviorImage: {path: behaviorFile, sha256: hash(fs.readFileSync(behaviorFile))}};
+            ${profile ? `const {applyBrowserScale} = await import(${JSON.stringify(new URL('./image-render-scale.ts', import.meta.url).href)});
+            densityRecord.renderScale = await applyBrowserScale(page, ${JSON.stringify(profile)}, options =>
+                require(${JSON.stringify(path.join(docs, 'journey/checks/browser/adaptive-gpu-reuse.cjs'))}).snapshot(page, options));
+            assert.deepEqual(errors, []);
+            assert.deepEqual(await page.evaluate(() => window.__presentationGpuErrors), []);` : ''}
             fs.writeFileSync(path.join(output, id + '-presentation.json'), JSON.stringify(densityRecord, null, 2));
 `;
 }
@@ -119,7 +124,7 @@ export function prepareBrowser(id: string, density = 2) {
     assert.equal(original.split(pageBoundary).length, 2);
     assert.equal(original.split(imageBoundary).length, 2);
     const early = course().steps.findIndex(step => step.id === id) < course().steps.findIndex(step => step.id === '20-resize');
-    const insert = highDensity(density, early);
+    const insert = highDensity(density, early, source.imageProfile.browser);
     const presentationImage = `            const physicalCapture = await densitySession.send('Page.captureScreenshot', {format: 'png', fromSurface: true, captureBeyondViewport: false});
             fs.writeFileSync(path.join(output, file), Buffer.from(physicalCapture.data, 'base64'));`;
     const adapted = original.replace(pageBoundary, pageBoundary + '\n        ' + observe)

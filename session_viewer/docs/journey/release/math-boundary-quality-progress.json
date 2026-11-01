@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-10-30T04:45:55.205394+00:00",
+  "updatedUtc": "2026-11-01T09:50:14.941217+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -113,17 +113,27 @@
       ],
       "selectedLateReceipt": "docs/journey/release/math-boundary-cap-ssaa-20261030-selected-late.json",
       "selectedLateSha256": "284759a81a12fe3edce824590e7b7f1588f9bd8aaf54aebab03b1636728b1a25"
+    },
+    "historicalCacheAdmission": {
+      "status": "PASS_FOUR_REGRESSIONS_AND_BROWSER94C_GPU_VISUAL_PUBLICATION_RETIREMENT",
+      "receipt": "docs/journey/release/math-boundary-historical-cache-admission-20261101-runtime.json",
+      "sha256": "278b4edb4d952c586c0b54819a0fa0310345e008b4d6008f983a21754a397f9b",
+      "maintainedSourcesUnchanged": 477,
+      "scope": "One historical browser image recipe; no full-callback or all-profile claim."
     }
   },
   "images": {
-    "inventoryTotal": 1763,
-    "explicitlyUnchanged": 429,
-    "affected": 1334,
-    "newPublishedReviewed": 48,
-    "remainingAffected": 1286,
-    "acceptedForFinalSource": 43,
-    "remainingFinalSourceAcceptance": 1291,
-    "qualificationNote": "11 source12 publications retain their original receipts; source13 acceptances are separately counted. Each accepted image matches its current published hash and either direct original-resolution review or explicitly recorded SHA256 identity to such a reviewed PNG. Lesson execution and semantic checks remain independently bound."
+    "inventoryTotal": 1752,
+    "explicitlyUnchanged": 426,
+    "affected": 1326,
+    "newPublishedReviewed": 47,
+    "remainingAffected": 1279,
+    "acceptedForFinalSource": 42,
+    "remainingFinalSourceAcceptance": 1284,
+    "qualificationNote": "42 currently required images match freeze13 and their explicit root review. Two earlier accepted illustrations and six pending targets were removed as unused, not accepted again. Five still-current historical publications lack the target source binding and remain separately scoped.",
+    "removedUnusedImages": 329,
+    "removedUnusedAffected": 8,
+    "retiredUnusedSource13Acceptances": 2
   },
   "published": [
     {
@@ -257,7 +267,10 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": true
+      "servedChromeVerified": true,
+      "liveRequired": false,
+      "retiredAsUnused": true,
+      "removalReceipt": "docs/journey/release/math-boundary-unused-images-20261101.json"
     },
     {
       "id": "current-native-dome",
@@ -281,7 +294,10 @@
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
-      "servedChromeVerified": true
+      "servedChromeVerified": true,
+      "liveRequired": false,
+      "retiredAsUnused": true,
+      "removalReceipt": "docs/journey/release/math-boundary-unused-images-20261101.json"
     },
     {
       "id": "current-native-floor-output",
@@ -762,6 +778,19 @@
       "rootVisuallyReviewed": true,
       "httpSha256Verified": true,
       "servedChromeVerified": false
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-source13-outline-scale2-browser94c-04-d510a8435bc9.json",
+      "receiptSha256": "1bc71fac52350527828daea80bd0a691f452f7f37d1d0a50bff8f8d85886432a",
+      "image": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "imageSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "liveRequired": true
     }
   ],
   "stages": [
@@ -771,19 +800,19 @@
     },
     {
       "stage": "Historical tutorial adapters",
-      "status": "SOURCE_AND_LIVE_READER_CODE_COMPLETE_124_PINS_VERIFIED"
+      "status": "HISTORICAL_CACHE_SUCCESSOR_124_PINS_8_FINGERPRINTS_AND_EXACT_READER_FENCE_VERIFIED"
     },
     {
       "stage": "Capture qualification",
-      "status": "SOURCE13_FOCUSED_RUNTIME_AND_43_IMAGES_PASS; NETWORK_FRAME_RUNTIME_PASS; FULL71_CALLBACK_IMAGE_PROFILE_PASS; THREE_SSAA_REPRESENTATIVE_FAMILIES_PASS_BULK_REFRESH_PENDING"
+      "status": "84_TOOLING_CHECKS_4_CACHE_REGRESSIONS_AND_BROWSER94C_QUALITY_PASS; OTHER_PROFILE_REPRESENTATIVES_PENDING"
     },
     {
       "stage": "Image regeneration",
-      "status": "43_OF_1334_FINAL_SOURCE_IMAGES_ACCEPTED; 48_TOTAL_PUBLISHED_REVIEWED"
+      "status": "42_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1284_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
-      "status": "PRIOR_SITE_BUILD_PASS; TWO_FINAL_PROSE_CHANGES_REBUILD_AND_REMAINING_IMAGES_PENDING"
+      "status": "FINAL_SITE_REBUILD_CURRENT_IMAGE_HTTP_DECODE_AND_PUBLICATION_PENDING"
     }
   ],
   "readerCodeSynchronization": {
@@ -799,7 +828,7 @@
     "sha256": "aee1119148c0e09bccb8673661c9694f1a3be0b733ba90cf9dd9ebe5bbc75167",
     "browser": "156.0.8078.74",
     "publishedImagesVerified": 39,
-    "rebuiltWebsiteCodePages": "PRIOR_BUILD_AND_FIVE_READERS_PASS; TWO_FINAL_PROSE_CHANGES_NOT_REBUILT",
+    "rebuiltWebsiteCodePages": "REBUILD_PENDING_LATEST_READER_FENCE_AND_UNUSED_ASSET_REMOVAL",
     "newSource13ImagesAwaitingChromeDecode": 10,
     "staticImageReferences": {
       "status": "ALL_READER_IMAGES_PRESENT",
@@ -854,6 +883,19 @@
       "bytes": 39355,
       "verification": "HTTP_BYTES_ONLY",
       "chromeDecodePerformed": false
+    },
+    "currentRequiredScope": {
+      "recordedChromeHttpDecodeMatchesCurrentAccepted": 31,
+      "currentAcceptedWithoutMatchingDecodeRecord": 11,
+      "freshHttpChecksPerformed": false,
+      "note": "Only exact matching immutable200/PNG decode receipts count here. No blanket44-image HTTP claim; this updater performs no network request."
     }
+  },
+  "unusedImageCleanup": {
+    "receipt": "docs/journey/release/math-boundary-unused-images-20261101.json",
+    "sha256": "98edf096385f4a28d9cb6c80ef5d7f2db5c8d8d9a69027a95bc9f2f916a1269d",
+    "removed": 329,
+    "bytes": 6705494,
+    "remainingProtectedInJourneyFolder": 2145
   }
 }

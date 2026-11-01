@@ -68,7 +68,8 @@ function checkAdapterBridge(record: any) {
     if (record.renderScaleBridge) {
         const bridge = record.renderScaleBridge, before = read(bridge.before.path);
         assert.equal(hash(before), bridge.before.sha256);
-        const generated = nativeScaleBridge(before, record.source.imageProfile.native, [record.width, record.height], record.density);
+        const step = course().steps.find(step => step.id === record.source.checkpoint); assert(step?.frame);
+        const generated = nativeScaleBridge(before, record.source.imageProfile.native, [record.width, record.height], record.density, read(path.join(docs, step.frame)));
         const {code, ...proof} = generated;
         assert.deepEqual(json(bridge.record.path), proof);
         assert.equal(digest(bridge.record.path), bridge.record.sha256);
@@ -230,7 +231,8 @@ export function prepare(id: string, density = 2) {
     assert.equal(code.split('    verify_pixels(&pixels);').length, 2, 'Canonical readback validation boundary changed');
     code = code.replace('// COURSE_DRAW', draw).replace('    verify_pixels(&pixels);',
         '    assert_eq!(pixels.len(), WIDTH as usize * HEIGHT as usize * 4);');
-    const scale = source.imageProfile.native ? nativeScaleBridge(code, source.imageProfile.native, [width, height], density) : null;
+    if (source.imageProfile.native) assert(step.frame, 'Native image scaling requires an exact source-bound fixture');
+    const scale = source.imageProfile.native ? nativeScaleBridge(code, source.imageProfile.native, [width, height], density, read(path.join(docs, step.frame!))) : null;
     const scaleBefore = code;
     if (scale) code = scale.code;
     const bridge = source.nativeAdapter ? adapterDriverBridge(code, source.nativeAdapter) : null;

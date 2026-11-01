@@ -1,3 +1,4 @@
+import {applyBrowserScale} from './image-render-scale.ts';
 import {adapterMetadataPath, adapterMetadata} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -77,6 +78,11 @@ export function prepareScene(id: string, browserPreparation: string, baselineFil
     const callback = path.join(docs, step.browser_check!);
     const original = read(callback);
     const extraPins: string[] = [];
+    if (source.imageProfile.browser) {
+        assert.equal(source.imageProfile.browser.scene, 'comparison');
+        assert.equal(recipe.kind, 'retained-four-brep');
+        extraPins.push(...source.imageProfile.browser.files.map((file: any) => file.path));
+    }
     let fixture: any = null;
     if (recipe.kind === 'retained-four-brep') {
         assert(original.includes("fetch('assets/pb/course-comparison.pb')"));
@@ -227,13 +233,13 @@ async function worker(preparedFile: string, base: string) {
             await Promise.all((window as any).__sceneDevices.map((device: any) => device.queue.onSubmittedWorkDone()));
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         });
-        const state = await page.evaluate(() => {
+        const readState = () => page.evaluate(() => {
             const c = document.querySelector('canvas') as HTMLCanvasElement, w = window as any;
             return {attributes: Object.fromEntries([...c.attributes].filter(a => a.name.startsWith('data-')).map(a => [a.name, a.value])),
                 canvas: {width: c.width, height: c.height, rect: {x: c.getBoundingClientRect().x, y: c.getBoundingClientRect().y, width: c.getBoundingClientRect().width, height: c.getBoundingClientRect().height}},
                 status: document.querySelector('#status')?.textContent, adapters: w.__sceneAdapters, gpuErrors: w.__sceneErrors};
         });
-        write(path.join(prepared.directory, 'actual-scene.json'), JSON.stringify(state, null, 2) + '\n');
+        let state = await readState();
         const semantic = semanticState(state.attributes);
         assert.equal(state.status, prepared.terminalStatus);
         assert.deepEqual(state.canvas.rect, {x: 0, y: 0, ...prepared.viewport});
@@ -276,6 +282,15 @@ async function worker(preparedFile: string, base: string) {
             assert.deepEqual(semantic, semanticState(baseline.attributes || baseline.state?.attributes));
             assert.equal(state.status, baseline.status || baseline.state?.status);
         }
+        const renderScale = await applyBrowserScale(page, prepared.source.imageProfile.browser, options =>
+            createRequire(path.join(docs, 'capture_journey.cjs'))('./journey/checks/browser/adaptive-gpu-reuse.cjs').snapshot(page, options));
+        if (renderScale) {
+            state = await readState();
+            assert.deepEqual(semanticState(state.attributes), semantic);
+            assert.equal(state.status, prepared.terminalStatus);
+            assert.deepEqual(state.gpuErrors, []); assert.deepEqual(errors, []);
+        }
+        write(path.join(prepared.directory, 'actual-scene.json'), JSON.stringify(state, null, 2) + '\n');
         const image = path.join(prepared.directory, 'presentation.png');
         assert(!fs.existsSync(image)); await page.screenshot({path: image, scale: 'device', fullPage: false});
         const bytes = fs.readFileSync(image);
@@ -291,14 +306,14 @@ async function worker(preparedFile: string, base: string) {
         if (prepared.recipe.kind === 'selected-original-cloud') assert(yellow > 10, 'Actual selected cloud control markers must be visible');
         validate(prepared);
         write(path.join(prepared.directory, 'scene.json'), JSON.stringify({status: 'PRESENTATION_ONLY_AWAITING_ROOT_VISUAL_REVIEW', source: prepared.source,
-            canonicalBehaviorExecuted: false, recipe: prepared.recipe, semantic, state, url: page.url(), visiblePixels: {ink, yellow}, baselineCompared: !!prepared.baseline,
+            canonicalBehaviorExecuted: false, recipe: prepared.recipe, semantic, state, renderScale, url: page.url(), visiblePixels: {ink, yellow}, baselineCompared: !!prepared.baseline,
             declaredMetadataStatus: prepared.declaredMetadataStatus, terminalMatchesMetadata: state.status === prepared.declaredMetadataStatus,
             publication: 'Not published. Root scene/image review is required; old canonical behavior proofs remain separately source-bound.',
             baselineScope: 'Source identity/GUIDs of synthetic clouds are not compared across fresh contexts; point/node/model/size and selection counts are compared. Retained BRep source GUIDs are compared.',
             image: {path: image, sha256: sha(image), width: 1800, height: 1520}, browser: browser.version()}, null, 2) + '\n');
     } catch (error) {
         await page.screenshot({path: path.join(prepared.directory, 'failure.png')}).catch(() => {});
-        write(path.join(prepared.directory, 'failure.json'), JSON.stringify({error: String((error as Error).stack || error), errors}, null, 2)); throw error;
+        write(path.join(prepared.directory, 'failure.json'), JSON.stringify({error: String((error as Error).stack || error), errors, imageRenderScaleFailure: (error as any)?.imageRenderScaleFailure || null}, null, 2)); throw error;
     } finally { await browser.close(); }
 }
 

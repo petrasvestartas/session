@@ -1,0 +1,198 @@
+{
+  "status": "PRIVATE_HISTORICAL_CACHE_ADMISSION_SUCCESSOR_SOURCE_ONLY_NOT_APPLIED",
+  "recordedUtc": "2026-11-01T09:05:55.985Z",
+  "predecessor": "stage-c-source13-lifecycle-successor.json",
+  "predecessorLineage": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-promotion.json",
+      "sha256": "4bf6e9d22f51a4f4caf58d2d592adeb562747929d7bb11fdca1de0cbd86f2815",
+      "bytes": 28415
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-cad-successor.json",
+      "sha256": "9e49938aebf651e4dbcb8e675d29419f3e90bf05bcec5be5b2c2953748a7d80b",
+      "bytes": 2558
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-inventory-successor.json",
+      "sha256": "3123889ebb1c0410dd2b7b8c9a5b9651bdd0bb8628020a1efc70661f14571cad",
+      "bytes": 86849
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-id-successor.json",
+      "sha256": "d4887a2bd5b3c1383e7666b1a9c044e2d67612f98ff14020815fccb460be1f56",
+      "bytes": 2572
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-native-frame-successor.json",
+      "sha256": "dcb9b172d3e32b2abf1b17009c682abd99936be532fd1fe966ab2d3ae9d602b5",
+      "bytes": 89099
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-source12-inventory-successor.json",
+      "sha256": "3d6dd552408bff3b27bee95319d320cf07efba77a1c3802f30ff7f01cc93f73a",
+      "bytes": 4505
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-source13-silhouette-successor.json",
+      "sha256": "14308164c0d10eb9d24c2a802b0a738f456f9a102bfae8e20ead20af1bd85efe",
+      "bytes": 7002
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\tutorial-adapter-work\\stage-c-source13-lifecycle-successor.json",
+      "sha256": "bc4035070517f915201434c42825153233e3c5fcb725eccd345c3db434c9a6af",
+      "bytes": 8329
+    }
+  ],
+  "pins": [
+    {
+      "path": "journey/code/38b-source-math-display-4.rs",
+      "before": "e80097ad4d3461f8aeae3e9421c7f65fb9e5580d655f5ff1b23d719ad8578513",
+      "after": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed"
+    }
+  ],
+  "priorUniquePins": 124,
+  "checked": [
+    {
+      "id": "38b-source",
+      "fingerprint": "1f47399a440ecb67b764b044fe2bd4f0db60046a630faa7f8f1a9de11353ce23"
+    },
+    {
+      "id": "55g-surface",
+      "fingerprint": "1fe664f5ad4855976382a99a421b5c3ea1fd2fc9f20664197f9a8f73a0aa4f71"
+    },
+    {
+      "id": "59f-cad",
+      "fingerprint": "7d4eb158ab64ab96238b7797e31e7c7064d3811e3732692e4cd6e34579977d63"
+    },
+    {
+      "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "fingerprint": "4c3e855d1a98ee566b87e00c0516b91a642681295a18511fbc2d21f02f10bc2b"
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "fingerprint": "ec2b8b08c88ae5016ff709389f4cdde6cb0a0bf8b11dab0478bbda6ea1aba9d7"
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "fingerprint": "9c3f93d8b66e07b26ae117bb38e421902b8dcf7751c31448466ed8a5f7d7da2b"
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "fingerprint": "3883ec78ce8bffd8e58847bfa8ec9510042088d4e680f6dedb2646dd09d0efdc"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "fingerprint": "205a83ae61f1fe9a282275a5d1984ce2814d19193b919dc9286da6c0c7af4cfe"
+    }
+  ],
+  "previousChecked": [
+    {
+      "id": "38b-source",
+      "fingerprint": "f5131e7f9c9241c4c6d8bedb96c3d3fdff3720a37b2a67a6cf54f92bc6215b8d"
+    },
+    {
+      "id": "55g-surface",
+      "fingerprint": "38f80a7406ac9c902f24a6e49ddebb17aca9655401beef06671822310faf2235"
+    },
+    {
+      "id": "59f-cad",
+      "fingerprint": "723f47ce5e63033ce3522cd9b932fc4074c452c4ae8ead199da9bd158b0d48ba"
+    },
+    {
+      "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "fingerprint": "12b51a90a6b177b6560bbf7bb1d32e95d57e68d4f433943d8877e0049c02214c"
+    },
+    {
+      "id": "94c-prove-the-original-comparison-and-inspect-differences",
+      "fingerprint": "e9980bd8a65d239a7ef4d3a6400c41c35b2edfbf263a058cbcd74ad885f87a49"
+    },
+    {
+      "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "fingerprint": "5723ad473f6dd791fc44b04c9e6a8cb0620e8218f8b729f402a55c912b2de340"
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "fingerprint": "1dfaefb087d7449d22540594bfb0d97b2650316370f4b080d937786a139b3982"
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "fingerprint": "86ec191132bd009d5a93050633eb6b9f720d5162001d61d7600ba28b409e44fe"
+    }
+  ],
+  "affectedSteps": 1151,
+  "firstAffected": "38b-source",
+  "lastAffected": "97-finish-with-the-maintained-browser-runtime",
+  "candidate": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-proposal-01\\38b-source-math-display-4.rs",
+    "sha256": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed",
+    "bytes": 10915
+  },
+  "baseSnippet": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\base\\38b-source-math-display-4.rs",
+    "sha256": "e80097ad4d3461f8aeae3e9421c7f65fb9e5580d655f5ff1b23d719ad8578513",
+    "bytes": 10887
+  },
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "41affedf8a5bceb0f505ced7ffea79945b1ffbce553e0a54d496c6d7fc0b151a",
+    "bytes": 11328902
+  },
+  "book": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\book.json",
+    "sha256": "392b9ff86eb234ab70660f04bf8bf53b26b7c7e691954242b89b3e8627d6995f",
+    "bytes": 119619
+  },
+  "reader": {
+    "path": "journey/consolidation/38-layout.md",
+    "before": "9e0e63060ca7b7a99886d965ce2a54ace92b06aed58abc315369de0a3e715659",
+    "after": "46762d07c5d15460df9b046158702253129c33faaa5121bd82d08e16a8d8ddba",
+    "base": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\base\\38-layout.md",
+      "sha256": "9e0e63060ca7b7a99886d965ce2a54ace92b06aed58abc315369de0a3e715659",
+      "bytes": 154442
+    },
+    "candidate": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\proposed\\38-layout.md",
+      "sha256": "46762d07c5d15460df9b046158702253129c33faaa5121bd82d08e16a8d8ddba",
+      "bytes": 154470
+    },
+    "start": 53484,
+    "beforeEnd": 64371,
+    "afterEnd": 64399,
+    "prefixSha256": "60b0647cc319c8a6bc4fa78a9396c24ce2582935c0c0deed00dbd2efc4fc3d71",
+    "suffixSha256": "5e96cd97ef06d4a05662fbb8ea302e68747a8e879a3b3be8dc033e5e978e2f45",
+    "crlfBefore": 0,
+    "crlfAfter": 0,
+    "nonFenceBytesUnchanged": true
+  },
+  "freeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "bytes": 100146,
+    "filesVerified": 477,
+    "newFreeze14": false
+  },
+  "extractionHashes": {
+    "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+    "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
+  },
+  "provenanceSha256": "0a060f80f6229eb02e39e71a38fbceb209a53254ac2e4b7aaf46b18fe5b88135",
+  "courseBeforeLocatorChanges": 0,
+  "scope": "Historical admission correction only. Prior pin/reader/build/capture/publication/retirement proofs remain immutable. No maintained-source14, compiler, GPU or pixel acceptance follows from this source replay. Root regression qualification is required before apply. Root CPU real-cache regression gate is now required and pinned; no actual GPU acceptance is asserted.",
+  "actualFailureConfirmation": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\94c03-confirmed-cache-limit.json",
+    "sha256": "7a984c471378f9e0a75b8b7860395ba79487d8c6320851b1eef763a47f406ac4",
+    "bytes": 1362
+  },
+  "algorithmPacket": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-proposal-01\\manifest.json",
+    "sha256": "7afae1d9d9bfefbfb1d9b445335189280047120dcbc9b7d738df2767f83be29b",
+    "bytes": 1413
+  },
+  "regressions": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-proposal-01\\regressions-01.json",
+    "sha256": "a9ae236bf56026cabac332c140b9c37603c7827ce216056dffd72613f06a88d8",
+    "bytes": 3324
+  }
+}

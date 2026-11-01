@@ -1,0 +1,1680 @@
+{
+  "status": "COMPLETED_UNUSED_IMAGE_REMOVAL",
+  "recordedUtc": "2026-11-01T09:50:14.941217+00:00",
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\unused-journey-images-deleted-02.json",
+    "sha256": "9aaff354d3b4b9f7e85447f80c74d1b6af751ce1ea15ff80a26ea480f47f0276"
+  },
+  "plan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\unused-journey-images-deletion-plan-02.json",
+    "sha256": "0e9bd55ce34335ae7a38ac3a12fcf306dc58284bcc6782c9d53d67a515478140"
+  },
+  "removedImages": 329,
+  "removedBytes": 6705494,
+  "protectedImagesUnchanged": 2145,
+  "scopeChange": {
+    "before": {
+      "affected": 1334,
+      "unchanged": 429,
+      "total": 1763
+    },
+    "after": {
+      "affected": 1326,
+      "unchanged": 426,
+      "total": 1752
+    },
+    "removedAffected": 8,
+    "removedUnchanged": 3,
+    "removedPendingTargets": 6,
+    "retiredPreviouslyAcceptedUnusedIllustrations": 2,
+    "removalIsNotAcceptance": true
+  },
+  "files": [
+    {
+      "path": "docs/screenshots/journey/04-input.png",
+      "sha256": "4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc",
+      "bytes": 10112
+    },
+    {
+      "path": "docs/screenshots/journey/83zc-match-original-face-edge-directions.png",
+      "sha256": "1efeb34f22f39a0db673a5f3fbca88990f635f08ae63104bf7527065e06784fe",
+      "bytes": 23351
+    },
+    {
+      "path": "docs/screenshots/journey/83zd-orient-original-solid-face-groups.png",
+      "sha256": "1efeb34f22f39a0db673a5f3fbca88990f635f08ae63104bf7527065e06784fe",
+      "bytes": 23351
+    },
+    {
+      "path": "docs/screenshots/journey/96zza-read-section-plane-slopes-from-reserved-addresses.png",
+      "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+      "bytes": 50645
+    },
+    {
+      "path": "docs/screenshots/journey/96zzb-write-section-addresses-beside-color.png",
+      "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+      "bytes": 50645
+    },
+    {
+      "path": "docs/screenshots/journey/96zzc-write-section-addresses-before-the-first-pick.png",
+      "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420",
+      "bytes": 50645
+    },
+    {
+      "path": "docs/screenshots/journey/97-finish-with-the-maintained-browser-runtime-browser-dpr2.png",
+      "sha256": "35bf6cf08920342aa4591768e1998fa421faa15600c5899ddc7c003188904b21",
+      "bytes": 182420
+    },
+    {
+      "path": "docs/screenshots/journey/command-dock-preview-completion.png",
+      "sha256": "648f7649bf0810d4936d1b8a0db6e4ff0cb83c0e7b964655e6d03cd0c245cd70",
+      "bytes": 28944
+    },
+    {
+      "path": "docs/screenshots/journey/command-dock-preview-history.png",
+      "sha256": "588f91b8b33b0703416bb2bd8e61f2f50869f90082bd507e4f06087b455886b1",
+      "bytes": 43588
+    },
+    {
+      "path": "docs/screenshots/journey/current-native-comparison.png",
+      "sha256": "24437f0b44e1f4839de8ff55684f0cd1e6bda0e442d32b6dbc5f559147795c3f",
+      "bytes": 108569
+    },
+    {
+      "path": "docs/screenshots/journey/current-native-floor-input.png",
+      "sha256": "8afdff4d62d0dcf95365d0ed1b6ddffbfc5a0de81b34de50bcb8eb12dcceeb04",
+      "bytes": 193350
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzy-prepare-unit-aware-anchored-camera-space-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzy-prepare-unit-aware-anchored-camera-space.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzz-prepare-precise-anchor-relative-object-records-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzz-prepare-precise-anchor-relative-object-records.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzza-prepare-anchor-relative-original-ink-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzza-prepare-anchor-relative-original-ink.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzb-prepare-shared-origin-frame-inputs-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzb-prepare-shared-origin-frame-inputs.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzc-prepare-cloud-and-sheet-frame-placements-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzc-prepare-cloud-and-sheet-frame-placements.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzd-prepare-local-temporary-overlays-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzd-prepare-local-temporary-overlays.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzze-preserve-local-precision-before-source-placement-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzze-preserve-local-precision-before-source-placement.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzf-prepare-precise-construction-grid-origins-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzf-prepare-precise-construction-grid-origins.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzg-initialize-object-records-in-the-local-frame-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzg-initialize-object-records-in-the-local-frame.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzh-prepare-anchor-relative-original-highlights-browser.png",
+      "sha256": "c036ce4d9096bc9c8bde3674c650a1deef2a4d6404b6d2b53b0f876e27299ac6",
+      "bytes": 38688
+    },
+    {
+      "path": "docs/screenshots/journey/history/2026-10-15-units/96zzzzzh-prepare-anchor-relative-original-highlights.png",
+      "sha256": "402ecb37eb292ad5e6a0f6de6797b220cdfe6d79b6f6b71b35b713c95530ceb9",
+      "bytes": 21293
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/automatic-dpr1.png",
+      "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+      "bytes": 6276
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/automatic-dpr2.png",
+      "sha256": "25d74fc3d025d0e34dd18938db04169b60366d8c4d41612c4b44b9167e71217d",
+      "bytes": 13848
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/forced-four-dpr1.png",
+      "sha256": "ed26a17b29261946bc4e663fe2a6aaac3e0504fecc5614ffb23b3d69dc561a66",
+      "bytes": 6276
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/forced-four-dpr2.png",
+      "sha256": "d1f1540266f582dbb8594b29cfe58a3a1305785c221c296f6f1a46fdaa0ee65f",
+      "bytes": 14166
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality/recovered-forced-four.png",
+      "sha256": "cdd1bfb10a8931617648557a7743f876408c0520fbc6f0871253b5d6b1fcb154",
+      "bytes": 18814
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/active-controls-1-dpr1.png",
+      "sha256": "c4ff22705cb323f051c0e548454cbbec1506ffa75b2509a820b2f7daeb6bf558",
+      "bytes": 16332
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/active-controls-1-dpr2.png",
+      "sha256": "68c1677e68120b147013aa716fbd0b8a2992e3a2d78f505463c194f6c9727d09",
+      "bytes": 27623
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/active-controls-4-dpr1.png",
+      "sha256": "f4b7004927d7307e17246bab8306cbe2ff986a01d037ba62cbf0a4025329e31f",
+      "bytes": 18191
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/active-controls-4-dpr2.png",
+      "sha256": "e5730b9cef05b419f50e7f4e0fe1ec181099cb54080fec6a3fca4e83490c821d",
+      "bytes": 31252
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-all-1-dpr1.png",
+      "sha256": "225e7bb4c51a712eb30b35c715d0ed83581ed50b27dbdecd31d930a2e7a20403",
+      "bytes": 22661
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-all-1-dpr2.png",
+      "sha256": "e3b0f5d42e496682011220f924e69b729e513556508da727b11cf834837b02e7",
+      "bytes": 40038
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-all-4-dpr1.png",
+      "sha256": "5df3ba29fb2e8acb1dfbd86ce527ada78c20bdfc947993739214a4aed30e8410",
+      "bytes": 25095
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-all-4-dpr2.png",
+      "sha256": "76f7448ecb2fdd30c1f2971ba38121ff28d149161835b023f11cfc4a52abed92",
+      "bytes": 45401
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-edges-1-dpr1.png",
+      "sha256": "4d14ee4caf154761a6454ef2a6304c27742cbb3474d1476b8e4414c9444bb7e9",
+      "bytes": 17048
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-edges-1-dpr2.png",
+      "sha256": "419c84cf436d6e4866bb895be87ce2ecdddf13ccb6c4279c8e01d3e2868bea9d",
+      "bytes": 28071
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-edges-4-dpr1.png",
+      "sha256": "030a59f313f3e3d20cfeb6d18c9cae52ebb452fdc50a87fff762ffba08e24139",
+      "bytes": 19299
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-edges-4-dpr2.png",
+      "sha256": "4b569844545a531ed9aa9eb8035b6a327674307be5be40fc1594ca6b7e3e9fe2",
+      "bytes": 31992
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-lines-1-dpr1.png",
+      "sha256": "a0efc93be0f7233655c604348ff0bbb323cc1bc82df87a5cfaac3ecf29430b74",
+      "bytes": 20125
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-lines-1-dpr2.png",
+      "sha256": "e1993e39511efdc6ae8a1134d9f4b9d9f5b6744111e1aab02567b113d9c5be79",
+      "bytes": 35391
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-lines-4-dpr1.png",
+      "sha256": "c6ccc5fd6315ee23d7e2151b37c8a8a0dd13d6538799fac4f71cc41cf6cd88ee",
+      "bytes": 22158
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-lines-4-dpr2.png",
+      "sha256": "124ddf84bdba4cbfae43f1027c30c698e756e183ab3234c43c38f7d07568e9b0",
+      "bytes": 40218
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-points-1-dpr1.png",
+      "sha256": "e860e592685d69454c3d295d7f3b7ad7635da4dbab05695aacb9aabbc85e9e2e",
+      "bytes": 21032
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-points-1-dpr2.png",
+      "sha256": "95dd29a334ec30f8293b023e7da60fb20679e6bf1636b45a25a8e0949b90fe38",
+      "bytes": 36454
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-points-4-dpr1.png",
+      "sha256": "f1bfc9af777827312fbbeb453139955ddd1f1f7eaf5a040608bdc1aced2254fb",
+      "bytes": 23433
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/families-no-points-4-dpr2.png",
+      "sha256": "9364b5882f70ace00fee6d47c85f66acc19d296c17ba981f249e38f84c491cb2",
+      "bytes": 41665
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/selected-line-cleared-dpr1.png",
+      "sha256": "881c1d4c7b8d94ff1c68311f068de6c96adfc92d8af6dfc342c4c322bb2ca1c0",
+      "bytes": 16580
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/selected-line-cleared-dpr2.png",
+      "sha256": "95606c21b00eedb72e79eda19723e840449d2f138222bab40ebbb3136b20cbab",
+      "bytes": 41965
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/selected-line-hidden-dpr1.png",
+      "sha256": "22f176ee352349c0477046222073abb0752d34406a337b406a6e94afc71b08f7",
+      "bytes": 19523
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/selected-line-hidden-dpr2.png",
+      "sha256": "7df389c078a261dca89229e5fa27bfa2b685cafbd59e5cb53e78aa00d7a884a6",
+      "bytes": 48323
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/selected-line-on-dpr1.png",
+      "sha256": "a35826cc75db69095438fcdf3d1f8a10912590551f23652668710b8cb907b241",
+      "bytes": 19620
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/selected-line-on-dpr2.png",
+      "sha256": "249a0e666b92c5027bcba655e3a4af81c57673629b72d730616f515197aca95b",
+      "bytes": 48634
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/startup-default-dpr1.png",
+      "sha256": "7fe883972a18a228e02b98197fa70f177bf2d71f79ed747cb58b3744a6d3b0ed",
+      "bytes": 44010
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/startup-default-dpr2.png",
+      "sha256": "25916ea5b63219b52861df717fc2eae6acaa938aa0837afd196eae7e4751e03f",
+      "bytes": 123419
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/startup-recovered-dpr1.png",
+      "sha256": "973dc572834f183df4ffff9207e07f9d62b54e7a4739d6ea40bc6b763cd92f2d",
+      "bytes": 43748
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/startup-recovered-dpr2.png",
+      "sha256": "50b75b7d402d7cabf69d80909297da62ac276080ad0c78431ea56f7ebec85463",
+      "bytes": 68240
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/startup-url-dpr1.png",
+      "sha256": "973dc572834f183df4ffff9207e07f9d62b54e7a4739d6ea40bc6b763cd92f2d",
+      "bytes": 43748
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzp-apply-semantic-view-controls-presentation/startup-url-dpr2.png",
+      "sha256": "053587e16b255ca777286d48950867d6f21c93c4e549b2c2d58a1492c86e28f9",
+      "bytes": 123047
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-baseline-97d-bore-course-dpr1-msaa1.png",
+      "sha256": "d982cf86a0df5f465df7767e56a7943a3925ea7ad1b9bc31ccdc21e3b4b548c3",
+      "bytes": 1997
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-baseline-97d-hole-face-course-dpr1-msaa1.png",
+      "sha256": "e9f68c55c6a059f6fda24a4c4d1eeaa45c139e218dfe9f57b7035874096b094c",
+      "bytes": 1693
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-baseline-97d-mixed-course-dpr1-msaa1.png",
+      "sha256": "8ae955a62b60d4a164e09e1e7a7a154a7aca8f129b01242bf77a4cbfc94b3b20",
+      "bytes": 3132
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-baseline-97d-surface-course-dpr1-msaa1.png",
+      "sha256": "dced9bf880a507b9ebaf6b0d1f86d8b6e53a1cf805f5545d6c39b71da2e99cab",
+      "bytes": 1364
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-baseline-97d-wire-course-dpr1-msaa1.png",
+      "sha256": "299fc0517d83ab1c68c5c52b3ce58a907b8204738b7ee8ec2ea086e213da1c78",
+      "bytes": 1905
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-wire-selected-native-course.png",
+      "sha256": "cbd8a42deec2ab54a68342f1b0cfd04eae9753b169ef1d78d4bfe9e33fecc074",
+      "bytes": 1461
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-cad-wire-selected-native-production.png",
+      "sha256": "cbd8a42deec2ab54a68342f1b0cfd04eae9753b169ef1d78d4bfe9e33fecc074",
+      "bytes": 1461
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-all-dpr1.png",
+      "sha256": "82ec5b8b5a2b5c58e7b2ff7f6bc35d89c9ff7bc79f3326731643d0d7679b6cfc",
+      "bytes": 11796
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-all-dpr2.png",
+      "sha256": "36617ed84731101586a87e0c1e925f9063bfad50ac554f6ec9bae697770433e3",
+      "bytes": 25564
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-edges-dpr1.png",
+      "sha256": "638f94f7669fb9cfe5bfa6633eca7fb9baacb194905d94e3aa22cba5e5798114",
+      "bytes": 7709
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-edges-dpr2.png",
+      "sha256": "4b001a3cbf6e393d6c1dd35dda5b8cb8c0a46b42fb49da1d86326f48260251e7",
+      "bytes": 16545
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-lines-dpr1.png",
+      "sha256": "81dcfc3bae1fec032e9017f91b16d6391a2de0fa2464603d6749773ffce369ba",
+      "bytes": 8390
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-no-lines-dpr2.png",
+      "sha256": "3ee97f322824c232e657d1d33ff8efff8cf9638be0ef6a49fbe5e21e352aa02d",
+      "bytes": 19256
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-selected-dpr1.png",
+      "sha256": "fea43e83b129621b95fa7f46de92a383af90d053abc5d20a6fc88c80e080e8b3",
+      "bytes": 10536
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/mixed-selected-dpr2.png",
+      "sha256": "2de74721bef169443d489a16fca0389bc357e3c07fd3e3eaed64ea98be9195b9",
+      "bytes": 22998
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-all-dpr1.png",
+      "sha256": "c6fd0c025f5ab1e6f829771681fd3475fcdd98332c7cd4153ef971d2700e22c1",
+      "bytes": 8037
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-all-dpr2.png",
+      "sha256": "9797620bd69d06039379d1dd31b68c7799c8cf22685ca4ff3d6a4433fa889a00",
+      "bytes": 18410
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-edges-dpr1.png",
+      "sha256": "2ac11a2a771d9ed214989f58ca22a2d003ff6d1fa3db884c7e7033cba6ffaa8c",
+      "bytes": 6839
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-edges-dpr2.png",
+      "sha256": "7b241589221e255a4103502fe09f1588d52b84684a1a63d8b4d179814b683f8b",
+      "bytes": 15437
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-lines-dpr1.png",
+      "sha256": "34a80c39608f6c156dd0eb2ae4e4bb22b431072f333f4e8335406849e9d938cd",
+      "bytes": 4785
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-no-lines-dpr2.png",
+      "sha256": "5c146a077d0503524dde7e7ac480afdbf929182b8224ae936456bd4acc505b0c",
+      "bytes": 12224
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-selected-dpr1.png",
+      "sha256": "2fc2adfe58991c9f00d232f29ed1c38ea3be1e2dd5e64da21c52908ffa8b5cc0",
+      "bytes": 9395
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire/wire-selected-dpr2.png",
+      "sha256": "a9bb425ffc2dff2e146f944e8c5bafa8bea27fd6e754a07af85845885a93914e",
+      "bytes": 21053
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-contact-shading-dpr1.png",
+      "sha256": "4d4d5794fb8af84ba09dbe5dfe7ca6bc67d537209438323549e1832e7513bdb4",
+      "bytes": 6911
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-contact-shading-dpr2.png",
+      "sha256": "6b4797fd4f46e156c4455f3d9649dcc786d2eea8b25cb510baa65c54dc16dc3a",
+      "bytes": 15391
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png",
+      "sha256": "77b56124211c0df0733b1a73858939006867ed77a4d40801e18957cef3679789",
+      "bytes": 1327
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png",
+      "sha256": "690def5cef5e7aeaf7191fb929b4dc396915f14bac3c05e27d564158ffddd4cd",
+      "bytes": 1256
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-native-1x.png",
+      "sha256": "fd9783559d047c743ec1433b71b9c23508f96df7dca37931fcdfe05ac33de4ca",
+      "bytes": 2721
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-matrix-selected-native-4x.png",
+      "sha256": "96e3066ef205fa19d4e1a452b16e817d68e4ef06d82ec8cb64d4418768a16bf6",
+      "bytes": 3438
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-selected-native-4x.png",
+      "sha256": "8ff6a830dafa55259f632eea5e96f93dd0e229c08dcbd8f1a293ce0ba0ed54dd",
+      "bytes": 1200
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-mesh-unselected-native-4x.png",
+      "sha256": "3261a0976e3dace0a83007a6ad8dbcbcc9a2144ec44bf2fd63f7348bca9be0b8",
+      "bytes": 1366
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-native-4x.png",
+      "sha256": "e954bf5e0c609989aef2791a4535dafeb3fca551bc6d251ebab494cb7179c16a",
+      "bytes": 5426
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-plane-placed-selected-native-4x.png",
+      "sha256": "a94ed210bbdb0dd07a7d18e36a990a7f7a9aba03cc73e531815019371534f400",
+      "bytes": 28345
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-selected-native-4x.png",
+      "sha256": "493f4b6839fba245bf41526f02f570e7353db17146510aa0c0076dc4623d524a",
+      "bytes": 869
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-point-unselected-native-4x.png",
+      "sha256": "38bb2d39b672c08e04c207175def4e691edd1184d29d31001dd8931ff524797f",
+      "bytes": 907
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-480-dpr1.png",
+      "sha256": "5e15478fb6d569373549b6c478636d7477838d95cacd9d95fc1fbf78b4d5ec25",
+      "bytes": 7026
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-480-dpr2.png",
+      "sha256": "9e407ba70d3f37c4eb499a8236c1e8dfc8ece2547b03b41d43858ac185edab5a",
+      "bytes": 15792
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-620-dpr1.png",
+      "sha256": "332b69aa73c30dc3217d0c7fc212b4478ac915b586428951d0192cc6e7d2a822",
+      "bytes": 7649
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-resize-620-dpr2.png",
+      "sha256": "9f3c8a10a49a0625498732e8ad402587a65a998a4d2e7cd19fad7f951e4e7f3a",
+      "bytes": 17399
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-shared-originals-dpr1.png",
+      "sha256": "d273e9dc5369802b2364d3d2aa04619d185fa704dee86b30f14fb4862527ac3d",
+      "bytes": 5906
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-shared-originals-dpr2.png",
+      "sha256": "9355fa231fb2a445f38e45bfaa690de172ee43e290026c9561e6655ca7dff72e",
+      "bytes": 13733
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-selected-dpr1.png",
+      "sha256": "52952630885ee9ce0ea54d143eec43b9411ba9f6a04e78ba7dea6a4a635734cf",
+      "bytes": 18380
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-selected-dpr2.png",
+      "sha256": "abc1a87fe731b3b5ac8871c1d73c2d01f124d851c682ef03516235d45c7afb05",
+      "bytes": 46229
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr1.png",
+      "sha256": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+      "bytes": 12531
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-title-only-dpr2.png",
+      "sha256": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+      "bytes": 35113
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-unselected-dpr1.png",
+      "sha256": "b8eca78a1fad41f475c42f2a4d1bf357b78c45f275ba35f1d85d4d1d122b83bc",
+      "bytes": 16856
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-97d-unselected-dpr2.png",
+      "sha256": "5cb26b8ac86fa624130966bad48914588e7783b57a23a32ea16492da4eb27dd4",
+      "bytes": 43719
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-selected-dpr1.png",
+      "sha256": "5dd85d5c5373a554fbb35dac94921ee51a4aedd2fdc642796a2e4d93b9b9e125",
+      "bytes": 20566
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-selected-dpr2.png",
+      "sha256": "17bd2b0c63f0a6acaaad7f2167f29071f970092eb7914161d9b6b19fa9356b13",
+      "bytes": 49166
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-title-only-dpr1.png",
+      "sha256": "6ebd672a4387cade7bc10d2d54012d612cd5940a679c29a65f8139e6f70d6634",
+      "bytes": 14686
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-title-only-dpr2.png",
+      "sha256": "d34ade55b170a2611df65a8c7b32c4cc449f7057bfa05a3a43494232d445803f",
+      "bytes": 38455
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-unselected-dpr1.png",
+      "sha256": "3bb21ab9a72189992b1bcc518d07e3ff7a49008ca175fce4c521d31583a530f6",
+      "bytes": 19017
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-browser-unselected-dpr2.png",
+      "sha256": "1354354fb195692f2a23837edb4952e0feb6d6cabd44c128a9b74241b4c7ba84",
+      "bytes": 46931
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-selected-course-dpr2-msaa4.png",
+      "sha256": "e7b6321a615ea277b940dfdbf1f5c42aa2abc84556790e8a2b65108c4ea974d1",
+      "bytes": 5215
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-selected-production-dpr2-msaa4.png",
+      "sha256": "e7b6321a615ea277b940dfdbf1f5c42aa2abc84556790e8a2b65108c4ea974d1",
+      "bytes": 5215
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-course-dpr2-msaa4.png",
+      "sha256": "712ff6021015d894b43790b996eb611b0692aab91b68d210d522668a423d3ddb",
+      "bytes": 5200
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-matrix-paired-unselected-production-dpr2-msaa4.png",
+      "sha256": "712ff6021015d894b43790b996eb611b0692aab91b68d210d522668a423d3ddb",
+      "bytes": 5200
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-covered-selected-course.png",
+      "sha256": "d7e6dad823c74dfc91570762234af68e65f4861f122a9b644ac69c8ab90b0d99",
+      "bytes": 2401
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-covered-selected-production.png",
+      "sha256": "d7e6dad823c74dfc91570762234af68e65f4861f122a9b644ac69c8ab90b0d99",
+      "bytes": 2401
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-course.png",
+      "sha256": "86961df9860320927a93946ac29e9dc7ca794dbcdc90da35631d4ce25b36f15e",
+      "bytes": 2372
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-covered-unselected-production.png",
+      "sha256": "86961df9860320927a93946ac29e9dc7ca794dbcdc90da35631d4ce25b36f15e",
+      "bytes": 2372
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-original-selected-course.png",
+      "sha256": "69b30b84bb8c1dbed5f2abc98e9fc1d158d1ba055378301a0631ab1771550f0c",
+      "bytes": 4646
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-original-selected-production.png",
+      "sha256": "69b30b84bb8c1dbed5f2abc98e9fc1d158d1ba055378301a0631ab1771550f0c",
+      "bytes": 4646
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-original-unselected-course.png",
+      "sha256": "038d402344584268e8c2b6629a253c2dd089ca2d3d15956d0c5a5a35c22e0dd9",
+      "bytes": 4544
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-original-unselected-production.png",
+      "sha256": "038d402344584268e8c2b6629a253c2dd089ca2d3d15956d0c5a5a35c22e0dd9",
+      "bytes": 4544
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-print-selected-course.png",
+      "sha256": "69b30b84bb8c1dbed5f2abc98e9fc1d158d1ba055378301a0631ab1771550f0c",
+      "bytes": 4646
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-print-selected-production.png",
+      "sha256": "69b30b84bb8c1dbed5f2abc98e9fc1d158d1ba055378301a0631ab1771550f0c",
+      "bytes": 4646
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-print-unselected-course.png",
+      "sha256": "038d402344584268e8c2b6629a253c2dd089ca2d3d15956d0c5a5a35c22e0dd9",
+      "bytes": 4544
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-plane-print-unselected-production.png",
+      "sha256": "038d402344584268e8c2b6629a253c2dd089ca2d3d15956d0c5a5a35c22e0dd9",
+      "bytes": 4544
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-reload-grid-97d-course-route.png",
+      "sha256": "4fe9c44e0ee9b9360a551568b9bfa49bfa48db6f7526a95a9dcd400216d7ca7d",
+      "bytes": 39806
+    },
+    {
+      "path": "docs/screenshots/journey/review/96zzzzzzzq-reload-grid-97d-maintained-route.png",
+      "sha256": "8140ce6684c5f590e957b642966484810c157bd99fab9c82c9ed60fd7ec8a4e0",
+      "bytes": 38272
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-contact-shading-dpr1.png",
+      "sha256": "f181d8dc1c91e938bc020cb7268b188d41cf38540683bc804dba70d5cbb282af",
+      "bytes": 7023
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-instances-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "6497c16ff512584b50d8be637197eea53b55cbf0a6e5c20b6fe4527d42692d90",
+      "bytes": 1629
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-instances-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "98edfb362dad2a20b7e64dd835a8a46cd7ac7d7711c67e294f99ada5579c2d90",
+      "bytes": 3145
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-instances-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "6497c16ff512584b50d8be637197eea53b55cbf0a6e5c20b6fe4527d42692d90",
+      "bytes": 1629
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-instances-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "98edfb362dad2a20b7e64dd835a8a46cd7ac7d7711c67e294f99ada5579c2d90",
+      "bytes": 3145
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-ordinary-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "ef40026a8e0924a48face2c3e14490b8e174c6e4a5b8ed812f6dbe13e4b8c654",
+      "bytes": 1999
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-ordinary-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "6fe5c0982e484bf4f661acde5307011346ca49aeebaccdaeaf3d5182e2f94d38",
+      "bytes": 3749
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-ordinary-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "d377c8166323ed67f7e8ca8e5853d5bc3173f130fe7a6c20021262a60ba75866",
+      "bytes": 1919
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-ordinary-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "9cb385b132808fcf8d07ea2984e2b2ca6bed59e4e5842c154c72dbd9fe399041",
+      "bytes": 3920
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-contacts-shared-originals-dpr1.png",
+      "sha256": "6ec2e9198b1d9154f94fcc849899594c02a666c6036f207e1128feceb7251309",
+      "bytes": 6126
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-authored-normal-dpr1.png",
+      "sha256": "e951f75c49c509fbbfbdd9330bb373c680c5c52bb78825cc8fc00b34337c149a",
+      "bytes": 3803
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-authored-normal-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "aa4669e3a8ce8ce694c45ae4f329fcd5527a86f02e7a8ae8d8094849e48b1499",
+      "bytes": 904
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-authored-normal-perspective-native-2026-10-16.png",
+      "sha256": "44314da977b3f0f3851e023c45c87e2502ba43dd59224ef363dce03f73c79866",
+      "bytes": 1001
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-authored-normal-top-native-2026-10-16.png",
+      "sha256": "bcb09cadca2cf172bc6f49664dc8be6c24d26dee38b37f881a955081b0183642",
+      "bytes": 1025
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-released-original-inputs-native-2026-10-16.png",
+      "sha256": "12e91fee8ab32fc4c85dff000177863fa36e63a421663c747bbd0451e1ebf9f0",
+      "bytes": 913
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-shared-contact-radii-native-2026-10-16.png",
+      "sha256": "09897714d12862071c48e55e95870e8370f635c206d72bbc056cb2fafc5f6e7b",
+      "bytes": 1060
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-inputs-shared-radii-dpr1.png",
+      "sha256": "d93780e2e074b657342e18c64072e47ba26edf597a9124877a1e3750e7afe5d3",
+      "bytes": 3691
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-authored-point-dpr1.png",
+      "sha256": "743797d6f34b1edb3259afdcd319f89fd9ce2bb6e2ed0e4766f2cee056d5c1da",
+      "bytes": 26300
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-independent-widget-dpr1.png",
+      "sha256": "886429e03548da543ffa4c0d66ebf19b88784414b2b021eb1f31b3a6cb770804",
+      "bytes": 18747
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-point-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "dcaaf05ee4fc30c52d69434958da6e2f8b0984fb1017568677c6ab8c160bf5be",
+      "bytes": 5723
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-point-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "a0b4aa973f9ce961b4d126008f9a6cf541651e101f8e232958abeed9a96172b3",
+      "bytes": 13452
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-point-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "4054dcc60e96cda9c281fcdc3f0fd66ea2417d9d79ae57969a9ba405b13575bf",
+      "bytes": 6667
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-point-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "65ac53a918879f2e8fd3b6b87ad6c1fa77d18257fcec64c0fd2b210f90cca0c1",
+      "bytes": 15255
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-widget-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "937787df923cbeef26a4b60176e28859a751ec7035b9440096663d518d86641c",
+      "bytes": 10561
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-widget-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "34dffea4ef3ff7ff359782dab5348ad63eea46f9fc3c9f4ed23e348b0eb8b943",
+      "bytes": 24740
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-widget-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "2fb2cb2b97dc67f589cf848de48eaccf09495788298ef8b01b00940d188bc4a9",
+      "bytes": 9985
+    },
+    {
+      "path": "docs/screenshots/journey/review/ambient-order-widget-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "6f7f2b9a9e2697696efffbe19dbce04f550a6b33e5828e9dd1dec6bac402bb21",
+      "bytes": 23046
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-extent-dpr1.png",
+      "sha256": "a9bdb144b0c6881e2f43e045cf1cd3608c84fbedbc0ae4eeb2d3cfebb18aa3b1",
+      "bytes": 7051
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-extent-dpr2.png",
+      "sha256": "48870a41f5b4c6dbdbd9fc701970eb3cd1328a0452624a873e8d3672f257a4b8",
+      "bytes": 19699
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-extent-moved-dpr1.png",
+      "sha256": "094e6c2bae564a74f090a593a03db06dd35fc82fbaf5de135ebe30cbba4a30c8",
+      "bytes": 7069
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-extent-moved-dpr2.png",
+      "sha256": "26867d98fd1fda39a4504a61042dc011e713dc13c57e307949c9fee30fa40200",
+      "bytes": 19726
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-orthographic-dpr1.png",
+      "sha256": "749d486ef9cc79ac28446c4b1d7f21b430113537b84078f5797e8363daccd4d0",
+      "bytes": 7015
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-orthographic-dpr2.png",
+      "sha256": "3fbda36a2830ebb15179d3bf9ef6778dedccdf12d797ed4f6f40480924800e0a",
+      "bytes": 19651
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-orthographic-dpr3.png",
+      "sha256": "af40b7c0ce8ec32590685899eb447e8b6a77fc5a81a37af9e82b0852ae97180f",
+      "bytes": 38364
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-perspective-dpr1.png",
+      "sha256": "73ca40a20b7df3c65a950e29d73fd9fd615439dd9d7b2eeddc20c5f920dc3a58",
+      "bytes": 7014
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-perspective-dpr2.png",
+      "sha256": "96e45ffe643262ac83cf107465e6f4092aca097bb6dc21d1469ebd6370bd4004",
+      "bytes": 19649
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-perspective-dpr3.png",
+      "sha256": "4b23bc5fd1d8b40ff1ab88cceede971daee8df52e471a15c3e69bb5c6dc758fc",
+      "bytes": 38364
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-wheel-dpr1.png",
+      "sha256": "8a31be2c81c0397da4402fd7e700bab26ea13fa56ac54b30fbf0a36cdb51d541",
+      "bytes": 17990
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-wheel-dpr2.png",
+      "sha256": "6492e972feed100b491f828ccd66ce30c2db3383133eca447663f229e15724ca",
+      "bytes": 47569
+    },
+    {
+      "path": "docs/screenshots/journey/review/camera-navigation-wheel-dpr3.png",
+      "sha256": "17c2bb303316a6ec19b579192a45b32f64cc070027aa4af3fc4d06c06dbf42de",
+      "bytes": 104737
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-final-steep-dpr1.png",
+      "sha256": "6a63df3acf570955d10c2ce3d6e452f0f6080f730d7e61276a91b28a24c04957",
+      "bytes": 10762
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-final-steep-dpr2.png",
+      "sha256": "502558fbb17bbc791e9a499d79336483ea3662b65569c89edfff798e478e2a98",
+      "bytes": 27726
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-steep-60-dpr1.png",
+      "sha256": "a6000e5046b0906052fa0b8bfc90fba031af945ab3e7616124724af0bb25fdb4",
+      "bytes": 9521
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-steep-60-dpr2.png",
+      "sha256": "44e15b31b41b82b0c7320a31953cfe78cac39fb3987e24caabbf8c400918bb40",
+      "bytes": 23011
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-steep-75-dpr1.png",
+      "sha256": "6a63df3acf570955d10c2ce3d6e452f0f6080f730d7e61276a91b28a24c04957",
+      "bytes": 10762
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-steep-75-dpr2.png",
+      "sha256": "502558fbb17bbc791e9a499d79336483ea3662b65569c89edfff798e478e2a98",
+      "bytes": 27726
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-steep-85-dpr1.png",
+      "sha256": "777ee2e876890d7f61a1c37a7a481a5bc6a6532a453c3348b4d2b4cdaf37db26",
+      "bytes": 8672
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-boundary-steep-85-dpr2.png",
+      "sha256": "23c46b11226e95c9f244278487bd0266e85656865f7631adbed20868255586b0",
+      "bytes": 21921
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-fill-originals-isometric-dpr1.png",
+      "sha256": "2496cc3a9265785409eff2aa400389af73bd12212b0b3fef1ea00f446ce4c99c",
+      "bytes": 20561
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-fill-originals-isometric-dpr2.png",
+      "sha256": "07f2b049f9e31ca8537311d3c1c4e1c199fc912a524f29d9348ba50d50ebdbea",
+      "bytes": 52870
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-fill-originals-top-dpr1.png",
+      "sha256": "5836c58c045837cfb3941f3e8d7c28632bc492ffd8fc49dd272b2faf2d5c17dc",
+      "bytes": 5651
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-fill-originals-top-dpr2.png",
+      "sha256": "f63b933cd29f999a08ec3201f9783834e57f359dbab63f631f38140786de1a99",
+      "bytes": 14566
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-fill-selected-isometric-dpr1.png",
+      "sha256": "5169741a41270193571df20d51b66e8945038144c199e5b61dcb35733a80461f",
+      "bytes": 21985
+    },
+    {
+      "path": "docs/screenshots/journey/review/contact-fill-selected-isometric-dpr2.png",
+      "sha256": "b527cab9c6533edc0cd2974b30cdbd69af468513c94bf2d62b4a28b4f78848d8",
+      "bytes": 48485
+    },
+    {
+      "path": "docs/screenshots/journey/review/ink-metadata-originals-isometric-dpr1.png",
+      "sha256": "9c8abafd17d106108c70fc36016e9661687ba9727a981c239cb2fc036e15e3da",
+      "bytes": 21350
+    },
+    {
+      "path": "docs/screenshots/journey/review/ink-metadata-originals-isometric-dpr2.png",
+      "sha256": "dcad3bfd29582b0bf29ff0951e461df132e33b782af2355a2e3d9399ecd5c397",
+      "bytes": 54981
+    },
+    {
+      "path": "docs/screenshots/journey/review/ink-metadata-originals-top-dpr1.png",
+      "sha256": "d4f240d9fd553dcfa2ed9444cc39564d162cb2f1708b80a5d6cd24033fdf017f",
+      "bytes": 29680
+    },
+    {
+      "path": "docs/screenshots/journey/review/ink-metadata-originals-top-dpr2.png",
+      "sha256": "db0816e291d120412b33951d3a3fbf3561f653f5328dbd293643d4d343dbf2c9",
+      "bytes": 70924
+    },
+    {
+      "path": "docs/screenshots/journey/review/ink-metadata-selected-isometric-dpr1.png",
+      "sha256": "9c1cc6e06f2a24fb00a2e8c580fa81989a440726231201f2e6eefef648aa8f98",
+      "bytes": 30457
+    },
+    {
+      "path": "docs/screenshots/journey/review/ink-metadata-selected-isometric-dpr2.png",
+      "sha256": "52cba6d9aa2d17985b3c6b23741c952250df420c3537a657902ff9e083a1e752",
+      "bytes": 80115
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-dense-dpr1-native-2026-10-16.png",
+      "sha256": "83f9e7c32ba39a33a72486b6beba946a916d61dc9205a273bd7ca75c5c68abe5",
+      "bytes": 12010
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-dense-dpr1-readable-native-2026-10-16.png",
+      "sha256": "3698ce10dad6a4ff656fc2b9675ffdebc528bca7b3ae085d631eeed2d97867a6",
+      "bytes": 87139
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-dense-dpr2-native-2026-10-16.png",
+      "sha256": "797d310ddf5131ec970e05bebe5b708087422c55c7b8f582bc575f0794376d87",
+      "bytes": 12174
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-dense-dpr2-readable-native-2026-10-16.png",
+      "sha256": "477b1ca229220a0346eb3bdfd82f2322d9fec5a8765eedaa2b4a274d38c473b8",
+      "bytes": 84884
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-dense-perspective-native-2026-10-16.png",
+      "sha256": "96c4a3de78e643e9766b533d3bff3de76f36f75b29e8990e78eeecf4921ed899",
+      "bytes": 12176
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-dense-perspective-readable-native-2026-10-16.png",
+      "sha256": "b8f10ab7edfb2cdab564080ce6ad4dfe1cae077ebfa3b6c35115137a3bc373c8",
+      "bytes": 84883
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-explicit-point-controls-dpr1.png",
+      "sha256": "595377a73e648c839e94e5a255d0aa99e864f557c3236a92b0233c441a76e959",
+      "bytes": 3394
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-explicit-point-controls-dpr2.png",
+      "sha256": "5216bc7578e9dcdbc026a11379c9911d129efa0d313da9f804b42562cbdecb4b",
+      "bytes": 7182
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-explicit-point-controls-native-2026-10-16.png",
+      "sha256": "43d8efd67e6064a8182a5660af5b033658d90926d60e5f78f601bd0bbfd1ece2",
+      "bytes": 2448
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-hidden-rear-border-native-2026-10-16.png",
+      "sha256": "70c556523c5b8f40dc15f780d396b839a6c280971c3bb661863db44581cff2ce",
+      "bytes": 1047
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-readable-crowding-dpr1.png",
+      "sha256": "1a5d4e445ff5e4cbd5c199c43cf09b98c3906ed3914f7ae755b5e95f4814c7e1",
+      "bytes": 7206
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-readable-crowding-dpr2.png",
+      "sha256": "b297370fc3a76dd6299d54762496df8351702749294cf917cb2ccbca3f27ee71",
+      "bytes": 11346
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-shared-spacing-dpr1.png",
+      "sha256": "13828bf759958d4699232008378d966875db449104875a62737d93aa329edadd",
+      "bytes": 9107
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-shared-spacing-dpr2.png",
+      "sha256": "d15de94403ecb67100e6974bb5934c848ce472b2dc307c9ff6576b5e47afda88",
+      "bytes": 22593
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-density-shared-spacing-native-2026-10-16.png",
+      "sha256": "8c3ef570c0134496d9ff329d5991613fbef6b1e117061522ff5409e8159d8104",
+      "bytes": 12565
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-authored-dpr1.png",
+      "sha256": "fce7de8fc2b198aad26be52b072e4a1f712d0b865d0618ae8e54e4bf725b2887",
+      "bytes": 70108
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-authored-dpr2.png",
+      "sha256": "cf2ba551019ef3e1ff13c75d13c45a8f433198e0cd9458de5b569165f540b938",
+      "bytes": 194083
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-authored-native-2026-10-16.png",
+      "sha256": "412280af9bfd8fa4551d3c7ef32a621603595e7ae7f436114447d1b53f93d700",
+      "bytes": 29118
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-coplanar-center-dpr1.png",
+      "sha256": "7307713289acb766d800ead0db045bd5a04ea15dc888d1d754361ddb9f25cdcc",
+      "bytes": 6495
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-coplanar-center-dpr2.png",
+      "sha256": "d03eefebef9cb1d5e3de81ed901e511955f004577aef1134fbcf0677188a4017",
+      "bytes": 15920
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-coplanar-center-native-2026-10-16.png",
+      "sha256": "a5b02e437bbe80e6f104863b74d489761fb728a010829a250b1749525f7d2177",
+      "bytes": 1346
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-default-native-2026-10-16.png",
+      "sha256": "b142e8e4428442a0e1537a6c8016c45593a878152d5e89e45e2a1003c3bf55b8",
+      "bytes": 1143
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-eligible-edge-native-2026-10-16.png",
+      "sha256": "1a09fd1cfbc8a5904ba3477429564ed7f7633b31d7b89ef156e94107ae67dce3",
+      "bytes": 1509
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-ignored-native-2026-10-16.png",
+      "sha256": "b142e8e4428442a0e1537a6c8016c45593a878152d5e89e45e2a1003c3bf55b8",
+      "bytes": 1143
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-no-dots-native-2026-10-16.png",
+      "sha256": "b80df106f4f51cf79049f29eed0c0479080b9ef471d708c914f0a71cc16ea3fc",
+      "bytes": 1353
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-rebased-default-native-2026-10-16.png",
+      "sha256": "753cc5614a568312fbf97eacf45026adecb6dbf48c39f2a480556aa2283c65f1",
+      "bytes": 1204
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-shared-markers-dpr1.png",
+      "sha256": "a928c36abc8580b3200c57f8a8bc75414e6a00aae8999aeaec8e492d57c12d0b",
+      "bytes": 6872
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-shared-markers-dpr2.png",
+      "sha256": "ee876beeaff9583fd7817a5ae2bab5576060d980b85b06193c4e6c2521d72cc6",
+      "bytes": 16469
+    },
+    {
+      "path": "docs/screenshots/journey/review/mesh-markers-shared-markers-native-2026-10-16.png",
+      "sha256": "1f9db792379b5950efb42c8707d3a0f1261928d1d6c684e8837ecd94433048a3",
+      "bytes": 1548
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-dense-dpr1-native-2026-10-16.png",
+      "sha256": "ff1fba9ec67c7610b7367eaf08f1fcb7e7a4e062684f24a9a34fb872c528120c",
+      "bytes": 10245
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-dense-dpr1-readable-native-2026-10-16.png",
+      "sha256": "129ee458946c259b5fea19187c1111836a3caff6fa3872fdb3393ea41fc9a19c",
+      "bytes": 67330
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-dense-dpr2-native-2026-10-16.png",
+      "sha256": "cfc0c12ce78b0184a852e3f5f0cf4a2cede699df77cd9a3dfa471d4fcf2e0f5a",
+      "bytes": 10423
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-dense-perspective-native-2026-10-16.png",
+      "sha256": "957d8beb79fcf68eb861415923111eb88769df480f59f1ca189dabaa763bd05b",
+      "bytes": 10422
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-dense-perspective-readable-native-2026-10-16.png",
+      "sha256": "0b31e45bfd0f91752a68afc8467ead0373b95c38107374d26ed6a6aee400349e",
+      "bytes": 66078
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-explicit-point-controls-native-2026-10-16.png",
+      "sha256": "761de7b28e2b82693fed023bd7b8a1fdb48a65793205aa8fd31ba979641fe0f3",
+      "bytes": 2228
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-hidden-rear-border-native-2026-10-16.png",
+      "sha256": "ef5fa43aa0d56390df9c13d75a2cdc34e45cec2b1adbb7a59d6694c3d1aa5cd1",
+      "bytes": 1357
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-q-shared-spacing-native-2026-10-16.png",
+      "sha256": "9c0caca84c4799b881ab2fa5673890ed4877675ca68cf15757c082bdb816278d",
+      "bytes": 9401
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-r-authored-normal-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "28c9b43a368794dd7fe9e0b598e5901f986f61ceb98167d71dae68558db25655",
+      "bytes": 1192
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-r-authored-normal-perspective-native-2026-10-16.png",
+      "sha256": "206073897a0d900d8383e6d5813d09dbf0eb88ce3a64f65c299413d33a711124",
+      "bytes": 1238
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-r-authored-normal-top-dpr1-native-2026-10-16.png",
+      "sha256": "d5e065c0a62cdf372d0df6677a6b427e4f5099ce75b8a79cc143e0c30591d963",
+      "bytes": 1234
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-r-authored-normal-top-native-2026-10-16.png",
+      "sha256": "3094c8ac674b20d9f311e7201febd7ee8dc30368721ecffbadd07f40ceff19c2",
+      "bytes": 1311
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-r-released-original-inputs-native-2026-10-16.png",
+      "sha256": "d5e065c0a62cdf372d0df6677a6b427e4f5099ce75b8a79cc143e0c30591d963",
+      "bytes": 1234
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-r-shared-contact-radii-native-2026-10-16.png",
+      "sha256": "cce4fa8cedddd6a0a16d0930fdbc6af000e88e8957791dacd620312531b2b64f",
+      "bytes": 1187
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-point-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "58d397b1df6d04112e55bafb279adc99d9c150e35e25c47341e4350fafa5576b",
+      "bytes": 6058
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-point-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "9b3760def8965bf8c70ee46319d443207b5146f8f773eed5faa72c99a18eb669",
+      "bytes": 14283
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-point-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "68b0bb62813ea9e794c091600cf467e63a4a21f0b78b55efec8762f53cf7e68c",
+      "bytes": 7167
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-point-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "8d260a652037cb8a281fe7042c4ee0ba6251e6c392236935b3568539c80dd0ed",
+      "bytes": 16607
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-widget-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "e8a3843e0ec49f91ebe34d944bfd9a68c7f6f2e16a85c94f4cb546e396e8c04c",
+      "bytes": 9446
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-widget-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "b895ebafebd3d4fb51f8cd9b79f33ae28bd5a5547ee059971ac6048fecd4e6d2",
+      "bytes": 22388
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-widget-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "5ac720414aa4d5ea912065152802e7e527a2aaac89018f2b2f16ca4d407516ae",
+      "bytes": 9216
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-s-widget-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "d46abf2f2f14dfd5d2175a64e574d4aafe695dae2e2a0356133e2e27a0f09781",
+      "bytes": 22444
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-instances-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "6e40dab7cb18e46dfc5b01163cbbb3bd35c291d38eb80362f0e08f00148c961c",
+      "bytes": 1547
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-instances-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "1c5e6d4c04bfdada68667d00dadc8acce1d5e523fdc20ecd0ee732db66c59f10",
+      "bytes": 3740
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-instances-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "6e40dab7cb18e46dfc5b01163cbbb3bd35c291d38eb80362f0e08f00148c961c",
+      "bytes": 1547
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-instances-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "1c5e6d4c04bfdada68667d00dadc8acce1d5e523fdc20ecd0ee732db66c59f10",
+      "bytes": 3740
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-ordinary-orthographic-dpr1-native-2026-10-16.png",
+      "sha256": "6a02fbcd372f27acc15ea2dc3e7084f2f13cbf7744e9c36656c45eff035f0836",
+      "bytes": 2239
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-ordinary-orthographic-dpr2-native-2026-10-16.png",
+      "sha256": "a82e2f43b724424a213c2a245e44cab697d0b2c7d889a93042aa9b49ce48c967",
+      "bytes": 4712
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-ordinary-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "413959f4378abdfa3ff4537892f6ded17a4e0dc8178a85f387c6bb8a36944cc2",
+      "bytes": 2171
+    },
+    {
+      "path": "docs/screenshots/journey/review/physical-centres-t-ordinary-perspective-dpr2-native-2026-10-16.png",
+      "sha256": "04743074c1a34095cecf1693ab82907e61f47a487d5697f49d28d625328f9817",
+      "bytes": 4901
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-brep-round-corners-dpr1.png",
+      "sha256": "ad71d238102f619beb670ba130eb42920d9342f169c21b9a2cc48c42d9ddbaef",
+      "bytes": 6494
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-brep-round-corners-dpr2.png",
+      "sha256": "2220dbd6d24feea65f4b9bb8c822f3acfc5c722b61bd342cd7d017b2167e3148",
+      "bytes": 15871
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-brep-round-corners-native-2026-10-15.png",
+      "sha256": "d501a8b7ec29532da6d94fd926198f0d970fdd57dd36f06f89636febc78e43c6",
+      "bytes": 1324
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-end-on-original-dpr1.png",
+      "sha256": "901d9b697fcef103056149491ad016fc1f12ece65e9f089cc4c95d0c3ca6158d",
+      "bytes": 4885
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-end-on-original-dpr2.png",
+      "sha256": "b4c4e6b3f17d4860c26b39249abb8f63ab586087758b223d023fb8b1d7a5119a",
+      "bytes": 12299
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-end-on-original-native-2026-10-15.png",
+      "sha256": "c5a0947f6a45d816cf8b78171aae55160acf0682f7dbc36341a1f57c1bfae219",
+      "bytes": 830
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-mesh-round-corners-dpr1.png",
+      "sha256": "4d1c76d85cbbd77b93860b1f23caae33a2cd0d734b407a40abcb56b9e462bf98",
+      "bytes": 6295
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-mesh-round-corners-dpr2.png",
+      "sha256": "7a2211f3e44c4c9f25ef5791f915edb072cbba61e98a55af91de865904b00a09",
+      "bytes": 15456
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-mesh-round-corners-native-2026-10-15.png",
+      "sha256": "44f56623cda4388e7ce8e1a2bf49ad742e25224c9268954798feb14c65996c62",
+      "bytes": 1337
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-original-free-ends-dpr1.png",
+      "sha256": "3b04fd17fa0531872f0b8d6e93f0a0e1fa48baba331f6189f40e0e0bbd3d9299",
+      "bytes": 4919
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-original-free-ends-dpr2.png",
+      "sha256": "f8e8834e3b0a332afc03e0d0add172803bd01208cc98596035d106848c04e4b5",
+      "bytes": 12341
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-shared-mirrored-round-corners-native-2026-10-15.png",
+      "sha256": "1bd422bdc69a726c6d682e386b59b5faf5c65f414d0d6c971fc870441d74f8f4",
+      "bytes": 1425
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-shared-round-corners-dpr1.png",
+      "sha256": "020cfef8834938e69b3c95ccc7d49605a5df4a86cdad4d44a25a4d514cb4faa9",
+      "bytes": 6823
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-shared-round-corners-dpr2.png",
+      "sha256": "ca04dbca1bb3e15008f4cbfbbe4690407d5aa23997fc7617fc3c066f2c09f71c",
+      "bytes": 16535
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-surface-round-corners-dpr1.png",
+      "sha256": "499322d40f4f69b43127404f6449a4c96790bbf31cb5204a7b49ea3678d88f87",
+      "bytes": 8328
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-surface-round-corners-dpr2.png",
+      "sha256": "821359093cacef908a550a11d153aadf015a9937e93d4190950bb67b51643868",
+      "bytes": 18009
+    },
+    {
+      "path": "docs/screenshots/journey/review/round-caps-surface-round-corners-native-2026-10-15.png",
+      "sha256": "18235cdf3f1584df268a31bd543f301a4f86cd3569c961894d88349d1bc726aa",
+      "bytes": 2878
+    },
+    {
+      "path": "docs/screenshots/journey/review/shared-view-originals-dpr1.png",
+      "sha256": "a65f80c178e337d7fb8c74200802a0426fdebd7653d1d575ea4c5a93c04b628c",
+      "bytes": 18949
+    },
+    {
+      "path": "docs/screenshots/journey/review/shared-view-originals-dpr2.png",
+      "sha256": "1350a22ac2d878237b4dc7e561de174a6f2ca4d87070d2240bfe33c3695513a3",
+      "bytes": 49505
+    },
+    {
+      "path": "docs/screenshots/journey/review/shared-view-selected-dpr1.png",
+      "sha256": "3e61c8601eb9523e4c90e9dee9958e72692b6a64174875f990a6de31c4aaf5b4",
+      "bytes": 23964
+    },
+    {
+      "path": "docs/screenshots/journey/review/shared-view-selected-dpr2.png",
+      "sha256": "e8104edd07137da57100928d039e402ca3a1b24a746994ccca36ea69cce80f57",
+      "bytes": 59537
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-brep-source-face-dpr1.png",
+      "sha256": "6818d0f212708a51feffe4029b83047a54ad4e05a37afce79d2afbc744692f01",
+      "bytes": 8557
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-brep-source-face-dpr2.png",
+      "sha256": "7e4696ca10c9edd937abcb9bc10414d33783a482c5e02bf0441ee23e4d1df53f",
+      "bytes": 20667
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-isometric-left-face-dpr1.png",
+      "sha256": "c8041e79cdcf43f40c2534f4e0816c374f97e19926a04b4129e9290d1f928752",
+      "bytes": 27132
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-isometric-left-face-dpr2.png",
+      "sha256": "494cb87a4677e9bfa523bcf64711b979b704b5c211761f65d6ca0a755d73b848",
+      "bytes": 67694
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-overhang-no-face-dpr1.png",
+      "sha256": "e50a8aac45ed57072c1b42dd5f0e7f8e649ed3c2a95970c74d51ecf1c18da573",
+      "bytes": 5811
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-overhang-no-face-dpr2.png",
+      "sha256": "6bb4de0d8a45b1ec5cfd2e8b31fa8b2123eb11841bd3886cfe6d9af9b77f2834",
+      "bytes": 14696
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-overhang-original-parent-dpr1.png",
+      "sha256": "04385faa0494e8a5257c442945959537005c88c66ac5a2d3869e84819ef120c8",
+      "bytes": 8912
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-overhang-original-parent-dpr2.png",
+      "sha256": "1f9fa37108b540919f7c7332a35bcb84755eb98212dfca59da75bffbc0fcb231",
+      "bytes": 21257
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-sparse-native-left-face-2026-10-15.png",
+      "sha256": "ebf9a61418d16dbf0ff947dd3115823be663e4f4f1461bd4dedc8c7671815536",
+      "bytes": 1283
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-sparse-native-original-2026-10-15.png",
+      "sha256": "6182468dbe0784272b58609586fdbdbeac8dd464e8b0901ec66f378a9f48ed92",
+      "bytes": 1263
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-top-left-face-dpr1.png",
+      "sha256": "1a7eddc666b454d667784d395e2d6177aa21da1304a66a48c4a7d5443db07a6e",
+      "bytes": 8710
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-top-left-face-dpr2.png",
+      "sha256": "d71f1b15b1a198afa405abbe52357aa56516a52ec5a79414a7639fb7827f9822",
+      "bytes": 20813
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-top-right-face-dpr1.png",
+      "sha256": "d885c1d603cae827e6ddd3c67681ed4590c46d59c7fcbf4a70aff423a5b34761",
+      "bytes": 8829
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-faces-top-right-face-dpr2.png",
+      "sha256": "c6e2c0334c07597544c999d9ea0ffdff420d25c28f702bf9021c23a964d183e9",
+      "bytes": 21061
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-brep-wide-dpr1.png",
+      "sha256": "5733c295bfbb3274a828d01c162151eae2907c8d572eb86e0bd632ce8778d121",
+      "bytes": 6291
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-brep-wide-dpr2.png",
+      "sha256": "859278122ac542b4d728bd56c93a9a25e6bcc9e9f002715dabd3edb5a38be1c9",
+      "bytes": 15527
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-brep-wide-native-2026-10-15.png",
+      "sha256": "bc06b304fe1bf0b4ca6216702d9033b1a6cd367ae45505c6a7896b362e65092e",
+      "bytes": 1191
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-mesh-wide-dpr1.png",
+      "sha256": "c5d3cbaed0765be1fb91880f1bffe5d3e855753c469517265d3be814a0323d07",
+      "bytes": 6230
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-mesh-wide-dpr2.png",
+      "sha256": "0fcdbe7e1acde022f160d2f0e100569983723a26470012c4a1013d8d01b7cf43",
+      "bytes": 15428
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-mesh-wide-native-2026-10-15.png",
+      "sha256": "9b24d8ed6961aa55c50a353f36521c42d6fddf198945d06226920e56557a42fc",
+      "bytes": 1218
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-mesh-zero-native-2026-10-15.png",
+      "sha256": "0d8c24667fcc466580b5ff9acbe8eb8388b32dd9f0a8335a330b8fdc6b00b4ee",
+      "bytes": 1404
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-printed-fill-dpr1.png",
+      "sha256": "6b8c5b9a2d6e4e354e3a2f332d4c50ec841fbf8954846996b0c71b6bab03d850",
+      "bytes": 6114
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-printed-fill-dpr2.png",
+      "sha256": "bb23b8c2984845fba1536f940dfb3baa2b98115a58b65308b6fdf25beb6576a1",
+      "bytes": 15296
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-shared-pens-dpr1.png",
+      "sha256": "1c457cb661ca35d1bf3a4c462da415d7cb0bb14807a37ff00a60c161ddce80aa",
+      "bytes": 6425
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-shared-pens-dpr2.png",
+      "sha256": "c3e915aaf923260024924ac071fdbecbcd8ba853855ebca73d8dfb967966cd36",
+      "bytes": 15519
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-shared-placed-pens-native-2026-10-15.png",
+      "sha256": "071dac97467ea869bc3948c0db0d8ae32e308f33d01220d0b6cdd8ee8708cc47",
+      "bytes": 1170
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-sparse-ink-dpr1.png",
+      "sha256": "0c08aa1f8b72f0409afa623a0943a5d0594235fae041b96ab910916756e25456",
+      "bytes": 6239
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-sparse-ink-dpr2.png",
+      "sha256": "9c2667c49bac625932c6f75e10b06a6c4e4ccd595561dc0533fc62c3b2ddf96c",
+      "bytes": 15290
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-sparse-pens-native-2026-10-15.png",
+      "sha256": "d7d262db71212788031998d3bc3dd53dee0d82047d7401d9d39f570c86e2921f",
+      "bytes": 1255
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-surface-wide-dpr1.png",
+      "sha256": "ee25ce6d1142a6b7f68c795b6743fc7358662585ecba212115a6813fe55675b3",
+      "bytes": 6131
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-surface-wide-dpr2.png",
+      "sha256": "b18ecdabb5572561eff67f5798a50901cacfd4c9ca9160ec9eec7e92ad14922d",
+      "bytes": 15185
+    },
+    {
+      "path": "docs/screenshots/journey/review/source-pens-surface-wide-native-2026-10-15.png",
+      "sha256": "9b24d8ed6961aa55c50a353f36521c42d6fddf198945d06226920e56557a42fc",
+      "bytes": 1218
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-backfaces-dpr1.png",
+      "sha256": "7d137c40bfa759283f2c0ceec2bbdcec20825e396e564f2217c215a0501fe0b2",
+      "bytes": 5504
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-backfaces-dpr2.png",
+      "sha256": "28d5543286728aaf163977edeb4d2a0451ef02fa3f938faddb7dc2152027eea4",
+      "bytes": 14365
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-before-headlight-1324.png",
+      "sha256": "15e20537c6a0d7534a7d9573a9e41b0e0b6228359b766fb336ecbc9128acc0b9",
+      "bytes": 16565
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-flat-dpr1.png",
+      "sha256": "478ff898be716ae8bbf832a2301b6ea554d12aa93885a54f565c37643cada44d",
+      "bytes": 16007
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-flat-dpr2.png",
+      "sha256": "78d4bc728cc8b1c78857e6dd7b9af90948edcb21360bedc98fa393044f09976a",
+      "bytes": 42051
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-headlight-dpr1.png",
+      "sha256": "573799e827cba0b7353c230dbf80a1fcb465527893040289dba28a17905ca434",
+      "bytes": 15905
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-headlight-dpr2.png",
+      "sha256": "c97082c5106c94952aa2ef24f53376cb37ccf1fe166d8fd219ed46bafea57965",
+      "bytes": 41864
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-maintained-native-backfaces-2026-10-15.png",
+      "sha256": "c8f689df5a9263558b9eac5047b66c5698140208845e09aec642f6ac07af1087",
+      "bytes": 1187
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-maintained-native-flat-2026-10-15.png",
+      "sha256": "c8f689df5a9263558b9eac5047b66c5698140208845e09aec642f6ac07af1087",
+      "bytes": 1187
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-controls-maintained-native-headlight-2026-10-15.png",
+      "sha256": "2c62833fc6e14bc33e0e3c7e3602c8e8b7773ed44cf9cad0d9210d907d21041e",
+      "bytes": 7466
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-arctic-dpr1.png",
+      "sha256": "182e99eb22ba71ce63ce7911dc108998986a0ae9ec7d4bf995c1f35bf8f05d60",
+      "bytes": 21512
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-arctic-dpr2.png",
+      "sha256": "75552945b5b5e9921bbd8311d7ff404d10bda521e46ef0a2ff83637b12a93e64",
+      "bytes": 51756
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-flat-dpr1.png",
+      "sha256": "eb6ed129da227bb94d116fb44fc938b9c43373e7bfa41d11dae8de3dd8a4590f",
+      "bytes": 20242
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-flat-dpr2.png",
+      "sha256": "ffabd9ce709a3e98166335a5c304b779805f05c158f3995be18747f1f3d842b7",
+      "bytes": 52760
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-wide-dpr1.png",
+      "sha256": "249450d5f172b6c3ea59414167240630f0ae1ae6fa1b1cfdca798db9765aa66f",
+      "bytes": 5499
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-wide-dpr2.png",
+      "sha256": "169e5cd1dbc18405a2708f947079ad54f111aeab6c188a3af939babfa1a78311",
+      "bytes": 14412
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-wide-selected-dpr1.png",
+      "sha256": "5689b853f6289820d34c0df9507af60c7d4273fe6c298c516053dc7fd39fb27d",
+      "bytes": 8261
+    },
+    {
+      "path": "docs/screenshots/journey/review/surface-lighting-wide-selected-dpr2.png",
+      "sha256": "0bf6180b418bcf2b6626256f12a3075337d411dfa922c6b0d818a97ebf58ee67",
+      "bytes": 20141
+    }
+  ],
+  "scope": "User-requested unused PNG removal after current Markdown, gallery/generator, verification and cross-workspace reference checks. Current source, runtime baselines, Vue/Gemini edits and original JSON proofs remain unchanged. Old image receipts retain their original historical scope."
+}

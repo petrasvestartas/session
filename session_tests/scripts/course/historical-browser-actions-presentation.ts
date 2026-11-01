@@ -1,3 +1,4 @@
+import {applyBrowserScale} from './image-render-scale.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -37,6 +38,11 @@ export function prepareHistoricalScene(id: string, buildFile: string) {
     const bundle = Object.fromEntries(filesIn(dist).map(file => [path.relative(dist, file).split(path.sep).join('/'), sha(file)])); assert.deepEqual(bundle, built.bundle);
     const inputs = [buildFile, path.join(docs,'capture_journey.cjs'), path.join(docs,'journey/course.json'), ...(recipe.callback?[path.join(docs,recipe.callback)]:[]),
         ...['private-browser-host.ts','parallel-image-browser-host.ts','parallel-image-guard.ps1'].map(name=>fileURLToPath(new URL('./'+name, import.meta.url)))];
+    if (built.source.imageProfile.browser) {
+        assert.equal(built.source.imageProfile.browser.scene, 'arctic-demo');
+        assert.deepEqual(recipe.actions, [{command: 'Arctic On'}]);
+        inputs.push(...built.source.imageProfile.browser.files.map((file: any) => file.path));
+    }
     for(const action of recipe.actions)if(action.file){
         const file=path.resolve(built.workspace,'target','course-'+id,action.file);
         assert(file.startsWith(path.resolve(built.workspace,'target','course-'+id)+path.sep));
@@ -92,6 +98,11 @@ async function worker(prepared: any) {
             scope:camera?'Actual finite16-value camera export read from this source.':'This source exposes no camera matrix readback; exact declared navigation commands and visible output are retained without claiming internal camera equality.'};
         const status=await page.locator('#status').textContent();assert(!/^(Cannot|Error|Invalid|Failed|Unknown|Unsupported)/.test(status));
         await (new Function('page','assert','return(async()=>{'+validateGpu+'})()'))(page,assert);assert.deepEqual(errors,[]);
+        const renderScale = await applyBrowserScale(page, prepared.source.imageProfile.browser, async () => { throw Error('Historical authored-mesh profile must not invoke mathematical refinement'); });
+        if (renderScale) {
+            assert.equal(await page.locator('#status').textContent(), status);
+            await (new Function('page','assert','return(async()=>{'+validateGpu+'})()'))(page,assert); assert.deepEqual(errors,[]);
+        }
         const drawingSha256=await helpers.exports.drawing(page),file=path.join(prepared.folder,prepared.id+'-dpr2.png');
         const bytes=await page.screenshot({path:file,scale:'device'});const viewport=page.viewportSize();assert.equal(bytes.readUInt32BE(16),viewport.width*2);assert.equal(bytes.readUInt32BE(20),viewport.height*2);
         const {PNG}=require('pngjs'),pixels=PNG.sync.read(bytes);let visiblePixels=0;
@@ -99,7 +110,7 @@ async function worker(prepared: any) {
         assert(visiblePixels>20,'Actual geometry must be visibly nonempty above the dock');semantic.visiblePixels=visiblePixels;
         assert.equal(await helpers.exports.drawing(page),drawingSha256,'Passive screenshot preserves the actual scene');
         write(path.join(prepared.folder,'worker-result.json'),JSON.stringify({status:'PRESENTATION_ONLY_AWAITING_ROOT_VISUAL_REVIEW',source:prepared.source,recipe:prepared.recipe,
-            canonicalBehaviorExecuted:false,originalCallbackExecuted:false,declaredActionsExecuted:true,canonicalTerminalStateClaimed:false,helperSha256:prepared.helperSha256,semantic,statusText:status,errors,drawingSha256,
+            canonicalBehaviorExecuted:false,originalCallbackExecuted:false,declaredActionsExecuted:true,canonicalTerminalStateClaimed:false,helperSha256:prepared.helperSha256,semantic,statusText:status,errors,drawingSha256,renderScale,
             image:{path:file,sha256:hash(bytes),width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)}},null,2)+'\n');
     } finally {await browser.close();}
 }

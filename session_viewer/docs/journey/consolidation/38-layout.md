@@ -1555,7 +1555,7 @@ impl Presentation {
             if attempted {pending=true;continue;}
             attempted=true;
             let reserve=request.source.reserve();
-            if self.bytes.saturating_add(reserve)>quality::SCENE_BYTES {
+            if (self.bytes-self.entries[index].bytes).saturating_add(reserve)>quality::SCENE_BYTES {
                 let error="Presentation cache reached its finite byte budget";
                 self.entries[index].rejected=Some(requested);self.entries[index].error=Some(error);self.limited=Some(error);continue;
             }

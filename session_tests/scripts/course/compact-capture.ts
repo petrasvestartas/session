@@ -90,7 +90,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
     assert(route !== 'maintained' || (lane === 'browser' && id === '97-finish-with-the-maintained-browser-runtime'), 'Maintained route requires the final browser checkpoint');
     assert(lane !== 'browser' || id !== '97-finish-with-the-maintained-browser-runtime' || route === 'maintained', 'Final browser checkpoint requires its maintained assertions');
     const captureImageProfile = imageProfile(id, lane, undefined, docs);
-    if (lane === 'browser' && captureImageProfile) assert.equal(route, id.startsWith('88ad-') ? 'exported' : 'main-page', 'Cap image profile requires its exact image recipe');
+    if (lane === 'browser' && captureImageProfile) assert.equal(route, captureImageProfile.route || (id.startsWith('88ad-') ? 'exported' : 'main-page'), 'Image profile requires its exact image recipe');
     fs.mkdirSync(root, {recursive: true});
     const adapterProfile = lane === 'native' ? nativeAdapterProfile() : null;
     const inputs = [...sourceEvidence(id), ...(captureImageProfile?.files.map(file => file.path) || []), ...(adapterProfile ? [adapterProfile.metadata.path, adapterProfile.enumerator.path] : [])], sourceBefore = observeExecution(inputs);

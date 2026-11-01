@@ -542,5 +542,2984 @@
         "sha256": "2e447e8d14e4be533d1337b70d300a0df242ff98038e74f306b9096732334afe"
       }
     ]
+  },
+  {
+    "id": "94c-prove-the-original-comparison-and-inspect-differences",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+    "scene": "comparison",
+    "route": "generic",
+    "pins": [
+      {
+        "path": "journey/checks/browser/comparison.cjs",
+        "sha256": "080e6c832b6994f4fe51e3f506c8fe4356fa941be93fce5bfd65d92b2a835ca6"
+      },
+      {
+        "path": "../assets/pb/course-comparison.pb",
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+      }
+    ]
+  },
+  {
+    "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports-browser.png",
+    "scene": "comparison",
+    "route": "exported",
+    "pins": [
+      {
+        "path": "journey/checks/browser/performance.cjs",
+        "sha256": "884df20926a81fe78b5c22f8aba22fe12b4043ae65d85e25d3d313fcb46d0d1a"
+      },
+      {
+        "path": "../assets/pb/course-comparison.pb",
+        "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "91i-prove-actual-outlines-and-original-ownership",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/91i-prove-actual-outlines-and-original-ownership.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "91zza-write-original-beam-column-and-plate-builders",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/91zza-write-original-beam-column-and-plate-builders.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92-link-current-wood-element-builders",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92-link-current-wood-element-builders.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92a-retain-current-positive-lengths-and-six-builders",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92a-retain-current-positive-lengths-and-six-builders.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92b-own-original-element-geometry",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92b-own-original-element-geometry.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92c-read-current-element-command-defaults",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92c-read-current-element-command-defaults.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92d-build-typed-elements-from-ordered-world-picks",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92d-build-typed-elements-from-ordered-world-picks.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92e-capture-original-picks-while-the-tool-runs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92e-capture-original-picks-while-the-tool-runs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92f-teach-named-and-bare-element-values",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92f-teach-named-and-bare-element-values.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92g-make-element-input-batches-atomic",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92g-make-element-input-batches-atomic.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92h-attach-readonly-element-attributes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92h-attach-readonly-element-attributes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92i-adopt-elements-and-consume-sources-once",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92i-adopt-elements-and-consume-sources-once.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92j-save-and-open-original-element-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92j-save-and-open-original-element-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92k-own-independent-element-tool-state",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92k-own-independent-element-tool-state.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92l-commit-one-element-creation-and-retry-errors",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92l-commit-one-element-creation-and-retry-errors.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92m-route-current-element-commands-and-feature-visibility",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92m-route-current-element-commands-and-feature-visibility.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "92n-pick-elements-through-the-real-command-dock",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92n-pick-elements-through-the-real-command-dock.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/91-outlines.rs",
+        "sha256": "74bb1a788ab40e36ae175c6a08a613f3c96eb0d626266754b9383915595166b7"
+      }
+    ]
+  },
+  {
+    "id": "93h-prove-actual-glass-x-ray-and-source-ownership",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93h-prove-actual-glass-x-ray-and-source-ownership.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/93-opacity.rs",
+        "sha256": "09b74116000922d47f492275662309680d404b14c76a6ff760f9b4df46d3b644"
+      }
+    ]
+  },
+  {
+    "id": "94-declare-the-rendering-comparison-contract",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/94-declare-the-rendering-comparison-contract.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/93-opacity.rs",
+        "sha256": "09b74116000922d47f492275662309680d404b14c76a6ff760f9b4df46d3b644"
+      }
+    ]
+  },
+  {
+    "id": "94a-link-the-maintained-native-rendering-reference",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/94a-link-the-maintained-native-rendering-reference.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/93-opacity.rs",
+        "sha256": "09b74116000922d47f492275662309680d404b14c76a6ff760f9b4df46d3b644"
+      }
+    ]
+  },
+  {
+    "id": "94b-read-actual-maintained-frames-without-source-mutation",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/94b-read-actual-maintained-frames-without-source-mutation.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/93-opacity.rs",
+        "sha256": "09b74116000922d47f492275662309680d404b14c76a6ff760f9b4df46d3b644"
+      }
+    ]
+  },
+  {
+    "id": "94c-prove-the-original-comparison-and-inspect-differences",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95-record-comparable-large-scene-conditions",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95-record-comparable-large-scene-conditions.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95a-measure-warmed-frame-times-and-the-slow-tail",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95a-measure-warmed-frame-times-and-the-slow-tail.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95b-reject-incomparable-before-and-after-runs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95b-reject-incomparable-before-and-after-runs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95c-witness-immutable-tree-inputs-across-camera-frames",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95c-witness-immutable-tree-inputs-across-camera-frames.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95d-reuse-layer-rows-while-rotating-and-zooming",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95d-reuse-layer-rows-while-rotating-and-zooming.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95e-borrow-graph-edges-and-index-their-labels",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95e-borrow-graph-edges-and-index-their-labels.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96-retain-non-drawing-originals-and-validate-raw-planes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96-retain-non-drawing-originals-and-validate-raw-planes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96a-merge-unused-definitions-with-displayed-instances",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96a-merge-unused-definitions-with-displayed-instances.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96b-preserve-component-and-interaction-metadata-in-archives",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96b-preserve-component-and-interaction-metadata-in-archives.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96c-keep-current-element-and-frame-definition-families",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96c-keep-current-element-and-frame-definition-families.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96d-observe-the-real-current-registry-and-parser",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96d-observe-the-real-current-registry-and-parser.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96e-verify-the-complete-declared-current-source-closure",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96e-verify-the-complete-declared-current-source-closure.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96f-report-retained-original-metadata-in-the-real-viewer",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96f-report-retained-original-metadata-in-the-real-viewer.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96g-prove-exact-metadata-and-definition-round-trips",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96g-prove-exact-metadata-and-definition-round-trips.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96h-prove-current-source-grammar-and-explicit-differences",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96i-separate-own-and-hosted-element-features",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96i-separate-own-and-hosted-element-features.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96j-group-features-by-original-interaction",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96j-group-features-by-original-interaction.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96k-separate-derived-rows-from-editable-elements",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96k-separate-derived-rows-from-editable-elements.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96l-attach-a-bounded-derived-feature-tree",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96l-attach-a-bounded-derived-feature-tree.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96m-project-original-feature-outlines",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96m-project-original-feature-outlines.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96n-connect-imported-interaction-hierarchies",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96n-connect-imported-interaction-hierarchies.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96o-reuse-projections-for-created-elements",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96o-reuse-projections-for-created-elements.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96p-build-an-imported-interaction-specimen",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96p-build-an-imported-interaction-specimen.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96q-prove-imported-feature-ownership-and-roundtrips",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96q-prove-imported-feature-ownership-and-roundtrips.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96r-preserve-exact-command-completions",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96r-preserve-exact-command-completions.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96s-resolve-feature-rows-to-original-element-owners",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96s-resolve-feature-rows-to-original-element-owners.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96t-select-and-highlight-original-feature-owners",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96t-select-and-highlight-original-feature-owners.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96u-fit-original-box-corners-to-the-free-canvas",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96v-project-definition-and-per-instance-features",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96v-project-definition-and-per-instance-features.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96w-detach-copied-original-source-identity",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96w-detach-copied-original-source-identity.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96x-regenerate-display-for-copied-feature-owners",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96x-regenerate-display-for-copied-feature-owners.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96y-address-feature-pixels-to-original-cad-owners",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96z-preserve-source-feature-visibility-and-pixel-styles",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96z-preserve-source-feature-visibility-and-pixel-styles.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96za-address-original-controls-with-family-keys",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96za-address-original-controls-with-family-keys.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zb-draw-and-pick-original-cad-control-points",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zb-draw-and-pick-original-cad-control-points.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zc-share-the-current-control-point-style",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zc-share-the-current-control-point-style.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zd-reuse-world-controls-for-their-display-nets",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zd-reuse-world-controls-for-their-display-nets.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96ze-scope-controls-to-the-selected-original",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96ze-scope-controls-to-the-selected-original.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zf-edit-original-controls-through-the-source-preview",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zf-edit-original-controls-through-the-source-preview.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zg-rebuild-an-edited-element-without-replacing-its-owner",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zg-rebuild-an-edited-element-without-replacing-its-owner.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zh-bind-the-shared-geometry-as-storage",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zi-read-source-vertices-through-one-shader-helper",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zi-read-source-vertices-through-one-shader-helper.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zj-activate-shared-vertex-pulling-for-color",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zj-activate-shared-vertex-pulling-for-color.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zk-assign-frame-triangle-ranges",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zk-assign-frame-triangle-ranges.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zl-own-the-integer-primitive-image",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zl-own-the-integer-primitive-image.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zm-write-triangle-addresses-beside-color",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zm-write-triangle-addresses-beside-color.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zn-bind-visible-triangle-addresses-for-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zn-bind-visible-triangle-addresses-for-ink.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zo-describe-ink-depth-and-surface-slack",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zo-describe-ink-depth-and-surface-slack.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zp-fit-a-neighboring-surface-along-the-stroke",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zp-fit-a-neighboring-surface-along-the-stroke.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zq-own-a-cropped-primitive-image-for-picks",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zq-own-a-cropped-primitive-image-for-picks.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zr-share-crop-and-clipping-bindings-for-pulled-picks",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zr-share-crop-and-clipping-bindings-for-pulled-picks.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zs-write-first-pick-primitives-from-shared-geometry",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zs-write-first-pick-primitives-from-shared-geometry.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zt-fit-surface-depth-beneath-a-point-disc",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zt-fit-surface-depth-beneath-a-point-disc.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zu-test-the-disc-center-against-a-surface",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zu-test-the-disc-center-against-a-surface.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zv-carry-the-rasterized-triangle-gradient-to-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zv-carry-the-rasterized-triangle-gradient-to-ink.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zw-connect-surface-fitted-point-visibility",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zw-connect-surface-fitted-point-visibility.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zx-test-the-rasterized-neighbors-at-the-stroke-source",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zx-test-the-rasterized-neighbors-at-the-stroke-source.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zz-separate-hidden-ink-color-from-pick-ownership",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zza-connect-section-primitive-images",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zza-connect-section-primitive-images.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzb-read-section-visibility-from-one-image",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzb-read-section-visibility-from-one-image.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzd-pack-surface-position-normal-and-color",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzd-pack-surface-position-normal-and-color.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zze-retain-rgba-in-prepared-displays",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zze-retain-rgba-in-prepared-displays.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzf-start-with-current-browser-display-defaults",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzf-start-with-current-browser-display-defaults.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzg-grow-buffers-without-losing-rows",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzg-grow-buffers-without-losing-rows.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzh-prepare-shared-compact-mesh-ranges",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzh-prepare-shared-compact-mesh-ranges.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzi-upload-compact-ranges-to-shared-gpu-storage",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzi-upload-compact-ranges-to-shared-gpu-storage.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzj-share-the-object-record-layout",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzj-share-the-object-record-layout.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzk-borrow-the-current-arena-buffers",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzk-borrow-the-current-arena-buffers.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzl-read-shared-ranges-through-object-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzl-read-shared-ranges-through-object-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzm-connect-the-renderer-to-one-mesh-arena",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzm-connect-the-renderer-to-one-mesh-arena.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzn-describe-eight-byte-draw-slots",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzn-describe-eight-byte-draw-slots.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzo-read-instance-properties-through-draw-slots",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzo-read-instance-properties-through-draw-slots.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzp-classify-contact-fill-shading",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzp-classify-contact-fill-shading.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzq-open-files-through-one-measured-session-reader",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzq-open-files-through-one-measured-session-reader.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzr-route-current-close-and-opacity-commands",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzr-route-current-close-and-opacity-commands.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzs-reuse-full-source-preparation-for-editor-and-reload",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzs-reuse-full-source-preparation-for-editor-and-reload.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzt-share-the-current-selection-yellow",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzt-share-the-current-selection-yellow.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzu-separate-primitive-addresses-from-selection",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzu-separate-primitive-addresses-from-selection.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzv-bind-the-own-row-slot-for-ordinary-surfaces",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzv-bind-the-own-row-slot-for-ordinary-surfaces.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzw-reload-scenes-through-the-existing-publication-owner",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzw-reload-scenes-through-the-existing-publication-owner.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzx-update-only-changed-slot-runs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzx-update-only-changed-slot-runs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzy-share-one-slot-buffer-across-surface-draws",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzy-share-one-slot-buffer-across-surface-draws.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzz-prepare-the-integer-primitive-slot-texture",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzz-prepare-the-integer-primitive-slot-texture.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzza-describe-slot-and-triangle-runs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzza-describe-slot-and-triangle-runs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzb-read-slot-runs-and-lookup-texels",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzb-read-slot-runs-and-lookup-texels.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzc-reuse-and-merge-free-slot-ranges",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzc-reuse-and-merge-free-slot-ranges.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzd-follow-arena-growth-with-slot-headroom",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzd-follow-arena-growth-with-slot-headroom.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzze-report-only-changed-instance-slots",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzze-report-only-changed-instance-slots.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzf-project-triangles-at-their-physical-addresses",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzf-project-triangles-at-their-physical-addresses.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzg-clear-the-current-arctic-background",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzg-clear-the-current-arctic-background.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/96zzzg-arctic-background.rs",
+        "sha256": "62e921c042d418a9f488f77f2d93b690f1b50da0a1dbb4aeeede19f92fcecede"
+      }
+    ]
+  },
+  {
+    "id": "96zzzh-share-changed-record-runs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzh-share-changed-record-runs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/96zzzg-arctic-background.rs",
+        "sha256": "62e921c042d418a9f488f77f2d93b690f1b50da0a1dbb4aeeede19f92fcecede"
+      }
+    ]
+  },
+  {
+    "id": "96zzzi-prepare-one-shared-object-record-table",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzi-prepare-one-shared-object-record-table.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/96zzzg-arctic-background.rs",
+        "sha256": "62e921c042d418a9f488f77f2d93b690f1b50da0a1dbb4aeeede19f92fcecede"
+      }
+    ]
+  },
+  {
+    "id": "96zzzj-share-instance-object-records-across-definitions",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzj-share-instance-object-records-across-definitions.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzk-reuse-checked-curve-control-coordinates",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzk-reuse-checked-curve-control-coordinates.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzl-publish-allocator-texels-through-the-integer-table",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzl-publish-allocator-texels-through-the-integer-table.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzm-resolve-physical-triangles-with-integer-slots",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzm-resolve-physical-triangles-with-integer-slots.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzn-batch-shared-geometry-with-original-ownership",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzn-batch-shared-geometry-with-original-ownership.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzo-shrink-record-ranges-without-rewriting-live-prefixes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzo-shrink-record-ranges-without-rewriting-live-prefixes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzp-share-opaque-ordinary-surface-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzp-share-opaque-ordinary-surface-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzq-blend-ordinary-surface-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzq-blend-ordinary-surface-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzr-share-transparent-instance-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzr-share-transparent-instance-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzs-allocate-stable-object-record-rows",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzs-allocate-stable-object-record-rows.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzt-retain-live-surface-record-rows",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzt-retain-live-surface-record-rows.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzu-prepare-shared-record-pick-consumers",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzu-prepare-shared-record-pick-consumers.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzv-pick-originals-through-shared-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzv-pick-originals-through-shared-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzw-read-source-faces-through-shared-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzw-read-source-faces-through-shared-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzx-pack-existing-ambient-radius-in-object-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzx-pack-existing-ambient-radius-in-object-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzy-read-ambient-properties-through-shared-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzy-read-ambient-properties-through-shared-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzz-share-the-object-record-shader-schema",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzz-share-the-object-record-shader-schema.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzza-prepare-shared-record-triangle-projection",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzza-prepare-shared-record-triangle-projection.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzb-project-triangles-through-shared-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzb-project-triangles-through-shared-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzc-prepare-shared-record-cap-counting",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzc-prepare-shared-record-cap-counting.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzd-prepare-cap-plane-and-arena-bindings",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzd-prepare-cap-plane-and-arena-bindings.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzze-count-cap-color-through-shared-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzze-count-cap-color-through-shared-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzf-prepare-shared-record-cap-picks",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzf-prepare-shared-record-cap-picks.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzg-own-shared-record-cap-pick-resources",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzg-own-shared-record-cap-pick-resources.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzh-pick-caps-through-shared-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzh-pick-caps-through-shared-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzi-adapt-incremental-slots-to-pulled-draws.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzj-prepare-exact-arena-slot-definitions",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzj-prepare-exact-arena-slot-definitions.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzk-retain-live-allocator-member-runs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzk-retain-live-allocator-member-runs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzl-prepare-one-plan-for-draw-slots-and-lookup",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzl-prepare-one-plan-for-draw-slots-and-lookup.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzm-prepare-one-owner-for-live-address-updates",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzm-prepare-one-owner-for-live-address-updates.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzn-adopt-retained-gpu-slots-and-physical-bases",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzn-adopt-retained-gpu-slots-and-physical-bases.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzo-separate-projection-rows-and-arena-offsets",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzo-separate-projection-rows-and-arena-offsets.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzp-prepare-lookup-selected-triangle-projection",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzp-prepare-lookup-selected-triangle-projection.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzq-prepare-the-lookup-projection-pipeline",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzq-prepare-the-lookup-projection-pipeline.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzr-own-current-lookup-projection-bindings",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzr-own-current-lookup-projection-bindings.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzs-project-live-triangles-through-the-lookup",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzs-project-live-triangles-through-the-lookup.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzt-plan-reusable-arena-spans",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzt-plan-reusable-arena-spans.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzu-reuse-retired-arena-record-ranges",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzu-reuse-retired-arena-record-ranges.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzv-upload-reused-arena-spans-in-place",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzv-upload-reused-arena-spans-in-place.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzw-reclaim-ranges-after-the-last-gpu-lease",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzw-reclaim-ranges-after-the-last-gpu-lease.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzy-prepare-unit-aware-anchored-camera-space.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzz-prepare-precise-anchor-relative-object-records",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzz-prepare-precise-anchor-relative-object-records.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzza-prepare-anchor-relative-original-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzza-prepare-anchor-relative-original-ink.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzb-prepare-shared-origin-frame-inputs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzb-prepare-shared-origin-frame-inputs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzc-prepare-cloud-and-sheet-frame-placements",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzc-prepare-cloud-and-sheet-frame-placements.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzd-prepare-local-temporary-overlays",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzd-prepare-local-temporary-overlays.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzze-preserve-local-precision-before-source-placement",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzze-preserve-local-precision-before-source-placement.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzf-prepare-precise-construction-grid-origins",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzf-prepare-precise-construction-grid-origins.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzg-initialize-object-records-in-the-local-frame",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzg-initialize-object-records-in-the-local-frame.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzh-prepare-anchor-relative-original-highlights",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzh-prepare-anchor-relative-original-highlights.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzi-share-one-camera-and-measurement-unit",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzi-share-one-camera-and-measurement-unit.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzj-project-cpu-queries-around-the-precise-target.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzk-prepare-precise-text-selection-polygons",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzk-prepare-precise-text-selection-polygons.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzl-connect-precise-rectangle-selection-queries",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzl-connect-precise-rectangle-selection-queries.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzm-finish-precise-lasso-and-handle-queries",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzm-finish-precise-lasso-and-handle-queries.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzn-stamp-asynchronous-picks-with-the-origin",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzn-stamp-asynchronous-picks-with-the-origin.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzo-retry-rebased-picks-with-the-latest-cursor",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzo-retry-rebased-picks-with-the-latest-cursor.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzp-share-derived-inputs-for-origin-refresh",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzp-share-derived-inputs-for-origin-refresh.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzq-prepare-one-shared-render-origin",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzq-prepare-one-shared-render-origin.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzs-adopt-the-shared-origin-in-the-browser",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzs-adopt-the-shared-origin-in-the-browser.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzt-share-depth-endpoints-and-comparisons",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzt-share-depth-endpoints-and-comparisons.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzu-share-homogeneous-near-plane-ink-clipping",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzu-share-homogeneous-near-plane-ink-clipping.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzz-use-reversed-depth-across-the-frame",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzz-use-reversed-depth-across-the-frame.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzza-match-physical-camera-defaults-and-limits",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzza-match-physical-camera-defaults-and-limits.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzb-omit-unused-background-pick-pipelines",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzb-omit-unused-background-pick-pipelines.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzc-draw-the-construction-grid-as-physical-lines",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzd-build-viewing-rays-without-matrix-inversion",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzd-build-viewing-rays-without-matrix-inversion.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzze-grow-camera-depth-from-cached-world-bounds",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzze-grow-camera-depth-from-cached-world-bounds.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzf-match-wheel-input-and-framed-projection",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzf-match-wheel-input-and-framed-projection.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzh-connect-headlight-and-backface-controls",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzh-connect-headlight-and-backface-controls.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzi-share-one-frame-across-color-and-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzi-share-one-frame-across-color-and-ink.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzj-fill-original-contact-polygons",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzj-fill-original-contact-polygons.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzk-broadcast-ordinary-ink-metadata",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzk-broadcast-ordinary-ink-metadata.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzl-layer-original-contact-boundaries",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzl-layer-original-contact-boundaries.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzm-query-original-faces-under-contact-overlays",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzm-query-original-faces-under-contact-overlays.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzn-respect-original-boundary-pens",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzn-respect-original-boundary-pens.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzo-close-original-boundary-joins",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzo-close-original-boundary-joins.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzp-draw-default-mesh-vertex-dots",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzp-draw-default-mesh-vertex-dots.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzq-taper-crowded-original-mesh-vertices",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzq-taper-crowded-original-mesh-vertices.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzr-share-geometric-ambient-inputs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzr-share-geometric-ambient-inputs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzs-shade-surfaces-before-drawing-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzs-shade-surfaces-before-drawing-ink.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzt-keep-contact-ambient-inputs-on-originals",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzt-keep-contact-ambient-inputs-on-originals.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzu-keep-depth-and-address-samples-separate",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzu-keep-depth-and-address-samples-separate.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzv-reuse-coherent-frame-targets",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzv-reuse-coherent-frame-targets.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzw-match-resolve-base-and-view-formats",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzw-match-resolve-base-and-view-formats.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzx-reuse-count-specific-surface-pipelines",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzx-reuse-count-specific-surface-pipelines.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzy-generate-ink-for-physical-samples",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzy-generate-ink-for-physical-samples.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzz-cache-ink-pipelines-with-independent-queries",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzz-cache-ink-pipelines-with-independent-queries.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzza-retarget-existing-overlay-lanes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzza-retarget-existing-overlay-lanes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzb-read-section-crossings-at-each-sample",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzb-read-section-crossings-at-each-sample.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzc-compose-cloud-depth-with-physical-addresses",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzc-compose-cloud-depth-with-physical-addresses.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzca-cache-cloud-and-sheet-samples",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzca-cache-cloud-and-sheet-samples.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzd-retarget-cached-text",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzd-retarget-cached-text.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzze-cache-outline-section-recipes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzze-cache-outline-section-recipes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzf-resolve-float-outline-coverage",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzf-resolve-float-outline-coverage.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzg-retarget-original-ambient-properties",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzg-retarget-original-ambient-properties.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzh-share-ambient-shader-recipes",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzh-share-ambient-shader-recipes.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzi-correct-ambient-at-physical-samples",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzi-correct-ambient-at-physical-samples.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzj-cache-physical-depth-pyramid-inputs.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzk-retarget-the-complete-colour-frame",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzk-retarget-the-complete-colour-frame.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzl-choose-bounded-frame-quality",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzm-retain-visible-instance-ranges",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzm-retain-visible-instance-ranges.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzn-prepare-original-ink-families",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzn-prepare-original-ink-families.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzo-show-original-ink-families",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzo-show-original-ink-families.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzp-apply-semantic-view-controls",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzp-apply-semantic-view-controls.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/96zzzzzzzq-draw-original-cad-wire-curves.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "97-finish-with-the-maintained-browser-runtime",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/97-finish-with-the-maintained-browser-runtime.png",
+    "scene": "comparison",
+    "pins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ]
+  },
+  {
+    "id": "96h-prove-current-source-grammar-and-explicit-differences",
+    "lane": "browser",
+    "destination": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
+    "scene": "comparison",
+    "route": "fallback",
+    "pins": [
+      {
+        "path": "journey/checks/browser/inventory.cjs",
+        "sha256": "ab53fa70e4404f7f11224ebe41898473a080a739e78dafe43576f74ed34089d5"
+      },
+      {
+        "path": "journey/checks/browser/performance.cjs",
+        "sha256": "884df20926a81fe78b5c22f8aba22fe12b4043ae65d85e25d3d313fcb46d0d1a"
+      },
+      {
+        "path": "../assets/pb/course-metadata.pb",
+        "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+      }
+    ]
+  },
+  {
+    "id": "92o-prove-element-recipes-source-history-and-archives",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93-classify-original-solids-independently-of-clipping",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93-classify-original-solids-independently-of-clipping.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93a-own-opacity-in-the-existing-surface-frame",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93a-own-opacity-in-the-existing-surface-frame.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93b-blend-closed-faces-and-retain-opaque-open-surfaces",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93b-blend-closed-faces-and-retain-opaque-open-surfaces.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93c-exclude-x-ray-faces-from-original-picks-and-masks",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93c-exclude-x-ray-faces-from-original-picks-and-masks.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93d-carry-opacity-into-finite-original-ink",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93d-carry-opacity-into-finite-original-ink.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93e-fade-hidden-ink-without-showing-clipped-geometry",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93e-fade-hidden-ink-without-showing-clipped-geometry.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93f-invalidate-presentation-and-preserve-cached-geometry",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93f-invalidate-presentation-and-preserve-cached-geometry.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "93g-connect-strict-opacity-presentation-commands",
+    "lane": "native",
+    "destination": "docs/screenshots/journey/93g-connect-strict-opacity-presentation-commands.png",
+    "scene": "element-solids",
+    "pins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ]
+  },
+  {
+    "id": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+    "lane": "browser",
+    "route": "exported",
+    "scene": "surface-network",
+    "destination": "docs/screenshots/journey/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/surface-lighting.cjs",
+        "sha256": "53901a06a80b4ad6310059a5bf53acac5b632c23311d35bf2dc46343a910fd12"
+      },
+      {
+        "path": "journey/checks/browser/surface-lighting-original.json",
+        "sha256": "576689ca4f3fdb7c44444c1c9050fe14619e605869fa357036bc03f4c12e05c8"
+      }
+    ]
+  },
+  {
+    "id": "96zzzg-clear-the-current-arctic-background",
+    "lane": "browser",
+    "route": "historical",
+    "scene": "arctic-demo",
+    "destination": "docs/screenshots/journey/96zzzg-clear-the-current-arctic-background-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/arctic-background.cjs",
+        "sha256": "29959cded0f310012f59d9ecc174677f1a63277b643079cc1ab4814a055b959c"
+      },
+      {
+        "path": "journey/code/38b-source-math-display-6.rs",
+        "sha256": "dca1fdecec73ae3c4e5d1c6e7bcbecf38141d812ace5e28e6054013d23b8156b"
+      },
+      {
+        "path": "journey/code/42a-id-08.rs",
+        "sha256": "8ee34197ae37b9b5e9bc769bc84584b03f55fbd5267b5e05509bf68a3bf43287"
+      },
+      {
+        "path": "journey/code/92k-own-independent-element-tool-state-02.rs",
+        "sha256": "5088c30b7f575fd8018b07595602ac6b18d94d6a720b41e9f7e8180dc3a94a71"
+      }
+    ]
+  },
+  {
+    "id": "96zzzh-share-changed-record-runs",
+    "lane": "browser",
+    "route": "historical",
+    "scene": "arctic-demo",
+    "destination": "docs/screenshots/journey/96zzzh-share-changed-record-runs-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/arctic-background.cjs",
+        "sha256": "29959cded0f310012f59d9ecc174677f1a63277b643079cc1ab4814a055b959c"
+      },
+      {
+        "path": "journey/code/38b-source-math-display-6.rs",
+        "sha256": "dca1fdecec73ae3c4e5d1c6e7bcbecf38141d812ace5e28e6054013d23b8156b"
+      },
+      {
+        "path": "journey/code/42a-id-08.rs",
+        "sha256": "8ee34197ae37b9b5e9bc769bc84584b03f55fbd5267b5e05509bf68a3bf43287"
+      },
+      {
+        "path": "journey/code/92k-own-independent-element-tool-state-02.rs",
+        "sha256": "5088c30b7f575fd8018b07595602ac6b18d94d6a720b41e9f7e8180dc3a94a71"
+      }
+    ]
+  },
+  {
+    "id": "96zzzi-prepare-one-shared-object-record-table",
+    "lane": "browser",
+    "route": "historical",
+    "scene": "arctic-demo",
+    "destination": "docs/screenshots/journey/96zzzi-prepare-one-shared-object-record-table-browser.png",
+    "pins": [
+      {
+        "path": "journey/checks/browser/arctic-background.cjs",
+        "sha256": "29959cded0f310012f59d9ecc174677f1a63277b643079cc1ab4814a055b959c"
+      },
+      {
+        "path": "journey/code/38b-source-math-display-6.rs",
+        "sha256": "dca1fdecec73ae3c4e5d1c6e7bcbecf38141d812ace5e28e6054013d23b8156b"
+      },
+      {
+        "path": "journey/code/42a-id-08.rs",
+        "sha256": "8ee34197ae37b9b5e9bc769bc84584b03f55fbd5267b5e05509bf68a3bf43287"
+      },
+      {
+        "path": "journey/code/92k-own-independent-element-tool-state-02.rs",
+        "sha256": "5088c30b7f575fd8018b07595602ac6b18d94d6a720b41e9f7e8180dc3a94a71"
+      }
+    ]
   }
 ]

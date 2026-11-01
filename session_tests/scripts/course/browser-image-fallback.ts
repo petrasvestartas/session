@@ -103,7 +103,7 @@ export async function captureFallback(id: string) {
     const record={status:'IMAGE_PROFILE_CALLBACK_PASSED_AWAITING_ROOT_VISUAL_REVIEW',id,folder,source:built.source,bundle:built.bundle,
         canonicalBehaviorExecuted:true,canonicalValidationProfile:false,
         scope:'Unchanged original callback assertions ran at DPR1 under image-only8CPU8GiB resources, followed by original DPR2 presentation. This is not original2CPU canonical-validation acceptance.',
-        profile,built:config.built,worker:profile.worker,adapted:profile.adapted,presentation,host:hosted,resources:hosted.resources,
+        profile,built:config.built,worker:profile.worker,adapted:profile.adapted,presentation,renderScale:presentation.renderScale,host:hosted,resources:hosted.resources,
         image:{path:imageFile,sha256:hash(bytes),width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)}};
     write(file,JSON.stringify(record,null,2)+'\n');return record;
 }

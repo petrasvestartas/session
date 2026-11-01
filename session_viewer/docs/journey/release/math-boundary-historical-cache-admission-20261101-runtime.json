@@ -1,0 +1,189 @@
+{
+  "status": "BROWSER94C_HISTORICAL_CACHE_REPLACEMENT_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "recordedUtc": "2026-11-01T09:26:30.277730+00:00",
+  "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
+  "lane": "browser",
+  "rootProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-outline-scale2-browser94c-04-d510a8435bc9.json",
+    "sha256": "1bc71fac52350527828daea80bd0a691f452f7f37d1d0a50bff8f8d85886432a",
+    "bytes": 7936
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+    "sha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+    "bytes": 94288
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-94c-prove-the-original-comparison-and-inspect-differences-12fe908d9d9f75bd9217\\capture.json.gz",
+    "sha256": "89b758dfd41a1403ac3511910ffc3fb0c1d344420305418e91a7a29b69d41afd",
+    "bytes": 354057
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser94c-04-qualification.json",
+    "sha256": "b966a3922fbf1bf3e12e6066f7f064f425a95ae3516a6030e743a5b594ca5b2f",
+    "bytes": 13812
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser94c-04-execution.json",
+    "sha256": "445427db391964a24930673c7bad611e2f3cf50873adaef0db073fe36b0bb071",
+    "bytes": 2475
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-browser94c-04-publication.json",
+    "sha256": "ac48282e6870249dca60e7aa0bf134a02e536ed0243ee539cfc87f1b8d89c649",
+    "bytes": 6242
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-94c-prove-the-original-comparison-and-inspect-differences-12fe908d9d9f75bd9217\\publication.json",
+    "sha256": "bbbe38ccf5bc3e93e22ff25ae1e9d6733bf1264e745510c4b05208db60942ce5",
+    "bytes": 906
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-94c-prove-the-original-comparison-and-inspect-differences-12fe908d9d9f75bd9217\\retirement.json.gz",
+    "sha256": "0974ac0528cff1e7c9b954d9b6facf7cdaaf975f033fb3030bda04e30ac67ea3",
+    "bytes": 137707
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-94c-prove-the-original-comparison-and-inspect-differences-12fe908d9d9f75bd9217\\retired.json",
+    "sha256": "e976f8fc937ed7cf66306e2d2676c939111804fb58668f070032c0720d55f7ef",
+    "bytes": 360
+  },
+  "actualCaptureResult": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\image-lane-scenes\\94c-prove-the-original-comparison-and-inspect-differences-102a24cd80909f14147d\\result.json",
+    "sha256": "12fe908d9d9f75bd9217d2a29b02a247d33eae7b8a8ea2db7d5a823397caa872",
+    "bytes": 66855
+  },
+  "historicalCorrection": {
+    "source": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\code\\38b-source-math-display-4.rs",
+      "sha256": "dfd98d1a5d1f775d72e4c362488f61e8bb2f3ea49371a6476bd9c510f6cc75ed",
+      "bytes": 10915
+    },
+    "reader": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\consolidation\\38-layout.md",
+      "sha256": "46762d07c5d15460df9b046158702253129c33faaa5121bd82d08e16a8d8ddba",
+      "bytes": 154470
+    },
+    "successor": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\historical-cache-admission-successor.json",
+      "sha256": "a6e74c9a7a756ec2bd5e0174995e3ab05839e62a82448a98ebc63adbb2566a6a",
+      "bytes": 9246
+    },
+    "apply": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-publication-proposal\\apply-execution-01.json",
+      "sha256": "3c1d25c0dc75e1b06c4858b38f968d32faa62603480df48920f2e354bdbad9ed",
+      "bytes": 2101
+    },
+    "cpuRegressions": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\historical-cache-admission-proposal-01\\regressions-01.json",
+      "sha256": "a9ae236bf56026cabac332c140b9c37603c7827ce216056dffd72613f06a88d8",
+      "bytes": 3324
+    },
+    "priorActualFailure": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\94c03-confirmed-cache-limit.json",
+      "sha256": "7a984c471378f9e0a75b8b7860395ba79487d8c6320851b1eef763a47f406ac4",
+      "bytes": 1362
+    },
+    "rule": "Exclude the same retained entry reservation from prospective retained admission; preserve old display until successful replacement. Retained64MiB/transient32MiB constants unchanged.",
+    "eightSourceFingerprintsRefreshed": true,
+    "courseLocatorsChanged": 0,
+    "extractionHashesUnchanged": {
+      "production_mesh_ink.rs": "db22d1eed1cc6fd41ea81df3ea4a313ae668faed9ac385fa4690f697e30c29e4",
+      "production_brep_ink.rs": "0c75ad03ee9f62213b825477772db2b30af5a6244d1752de70b3e57431a9640e"
+    }
+  },
+  "actualGpuEvidence": {
+    "sourceFingerprint": "ec2b8b08c88ae5016ff709389f4cdde6cb0a0bf8b11dab0478bbda6ea1aba9d7",
+    "cpuCadOwners": 4,
+    "liveGpuRows": 4,
+    "qualities": [
+      [
+        4,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ],
+      [
+        5,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ],
+      [
+        6,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ],
+      [
+        7,
+        0.17677669529663687,
+        0.17677669529663687,
+        false
+      ]
+    ],
+    "retainedReservationBytes": 67108864,
+    "generations": 11,
+    "pending": false,
+    "limited": null,
+    "stats": [
+      17,
+      17,
+      0,
+      0
+    ],
+    "usage": [
+      4,
+      43536,
+      4,
+      640
+    ],
+    "gpuErrors": [],
+    "sourceCameraSelectionOwnershipClippingCssUnchanged": true,
+    "sameCameraFullGpuReuse": "PASS_SOURCE_PINNED_SNAPSHOT_AND_ROOT_ATTESTATION",
+    "renderScale": 2,
+    "internal": [
+      3600,
+      3040
+    ],
+    "internalDensity": 4,
+    "output": [
+      1800,
+      1520
+    ],
+    "externalDpr": 2,
+    "shaderSamples": 1,
+    "presentation": "canvas-compositor"
+  },
+  "resourceProfile": {
+    "processors": 8,
+    "jobCommitLimitBytes": 8589934592,
+    "peakJobCommitBytes": 1218707456,
+    "elapsedSeconds": 8.899,
+    "exitCode": 0,
+    "canonicalResourceProfile": false
+  },
+  "chromeExecutableReadLease": {
+    "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "sharing": "FILE_SHARE_READ",
+    "released": true,
+    "sha256": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d",
+    "bytes": 4466840,
+    "sha256After": "3375c0e426a9c54cfe9184f7977bc7a08d553fe07862a0a2bc141711089cd15d"
+  },
+  "maintainedSource": {
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "matchedFiles": 477,
+    "changedFiles": 0,
+    "newFreeze14": false
+  },
+  "scope": "One authored generic browser94c IMAGE recipe on actual GPU. Root reviewed the exact original-resolution1800x1520PNG; publication and retirement complete. Full canonical callback, canonical resource/pixel validation, native92/94c and broader image/cohort acceptance are not claimed. Previous failed attempts and all old immutable receipts retain their scope. No preview HTTP or new Chrome-decode check is claimed by this receipt."
+}
