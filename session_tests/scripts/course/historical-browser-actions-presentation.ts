@@ -60,12 +60,12 @@ export function prepareHistoricalScene(id: string, buildFile: string) {
     write(preparedFile,JSON.stringify(prepared,null,2)+'\n');check(prepared);return prepared;
 }
 
-export async function waitHistoricalStartup(page: any, prepared: any, errors: string[], startupEvents: any) {
+export async function observeHistoricalOperation(page: any, prepared: any, errors: string[], startupEvents: any,
+    phase: 'startup' | 'file-import', operation: () => Promise<any>, input?: {path: string; sha256: string}) {
     try {
-        await page.goto(process.env.VIEWER_URL);
-        await page.waitForFunction(()=>{const w=window as any;return w.__presentationDevices?.length>0&&!/^Waiting/.test(document.querySelector('#status')?.textContent||'Waiting');});
+        await operation();
     } catch (error) {
-        const file = path.join(prepared.folder, 'startup-failure.json');
+        const file = path.join(prepared.folder, phase + '-failure.json');
         let timer: ReturnType<typeof setTimeout> | undefined;
         try {
             let snapshot: any;
@@ -87,15 +87,22 @@ export async function waitHistoricalStartup(page: any, prepared: any, errors: st
                 ]);
             } catch (readError) { snapshot = {readError: String(readError)}; }
             finally { if (timer) clearTimeout(timer); }
-            write(file, JSON.stringify({status: 'FAILED_INITIAL_READINESS_NO_CAPTURE', id: prepared.id,
+            write(file, JSON.stringify({status: phase === 'startup' ? 'FAILED_INITIAL_READINESS_NO_CAPTURE' : 'FAILED_FILE_IMPORT_NO_CAPTURE', id: prepared.id, phase, input,
                 recordedUtc: new Date().toISOString(), originalError: error instanceof Error ? {name: error.name, message: error.message, stack: error.stack} : String(error),
                 pageErrors: errors, ...startupEvents, snapshot}, null, 2) + '\n');
-            console.error('Historical browser startup failure evidence: ' + file);
+            console.error('Historical browser ' + phase + ' failure evidence: ' + file);
         } catch (diagnosticError) {
-            try { console.error('Could not record historical browser startup failure evidence at ' + file + ': ' + String(diagnosticError)); } catch {}
+            try { console.error('Could not record historical browser ' + phase + ' failure evidence at ' + file + ': ' + String(diagnosticError)); } catch {}
         }
         throw error;
     }
+}
+
+export async function waitHistoricalStartup(page: any, prepared: any, errors: string[], startupEvents: any) {
+    return observeHistoricalOperation(page, prepared, errors, startupEvents, 'startup', async () => {
+        await page.goto(process.env.VIEWER_URL);
+        await page.waitForFunction(()=>{const w=window as any;return w.__presentationDevices?.length>0&&!/^Waiting/.test(document.querySelector('#status')?.textContent||'Waiting');});
+    });
 }
 
 async function worker(prepared: any) {
@@ -118,7 +125,7 @@ async function worker(prepared: any) {
         await page.waitForFunction(()=>{const c=document.querySelector('canvas')!,r=c.getBoundingClientRect();return devicePixelRatio===2&&c.width===Math.round(r.width*2)&&c.height===Math.round(r.height*2);});
         for(const action of prepared.recipe.actions) {
             if(action.command)await command(action.command);
-            else if(action.file){const file=path.join(prepared.workspace,'target','course-'+prepared.id,action.file);assert(fs.existsSync(file));const chooser=page.waitForEvent('filechooser');await command('Open');await(await chooser).setFiles(file);await page.waitForFunction(()=>/^(File imported|Document replaced)/.test(document.querySelector('#status')!.textContent!));if(action.fit)await command('Fit');}
+            else if(action.file){const file=path.join(prepared.workspace,'target','course-'+prepared.id,action.file);assert(fs.existsSync(file));const chooser=page.waitForEvent('filechooser');await command('Open');await(await chooser).setFiles(file);await observeHistoricalOperation(page, prepared, errors, startupEvents, 'file-import', () => page.waitForFunction(()=>/^(File imported|Document replaced)/.test(document.querySelector('#status')!.textContent!)), {path:file,sha256:prepared.pins[file]});if(action.fit)await command('Fit');}
             else if(action.viewport)await page.setViewportSize({width:action.viewport[0],height:action.viewport[1]});
             else if(action.wheel!==undefined){await page.locator('canvas').hover();await page.mouse.wheel(0,action.wheel);}
             else if(action.key){const b=await page.locator('canvas').boundingBox();await page.mouse.click(b.x+8,b.y+8);await page.keyboard.press(action.key);}

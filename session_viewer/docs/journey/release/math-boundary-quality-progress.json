@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T14:20:13.619218+00:00",
+  "updatedUtc": "2026-11-01T16:04:16.757964+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build02 QA03 verifies25 currently published PNGs by HTTP/body SHA and Chrome decode;20 accepted assets are source-only and unserved. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build04 composite QA records22 canonical PNG HTTP/body SHA and Chrome decodes, covering31 current logical acceptances;15 are source-only and1 are outside that QA scope. This metadata update performs no fresh HTTP or browser checks. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -139,7 +139,7 @@
       "maintainedSourcesUnchanged": 477,
       "freshHttpVerified": true,
       "freshServedChromeVerified": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json"
     },
     "nativeElement92o": {
       "status": "NATIVE92O_ELEMENT_MEASURED_RETENTION02_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
@@ -162,18 +162,18 @@
       "maintainedSourcesUnchanged": 477,
       "freshHttpVerified": true,
       "freshServedChromeVerified": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json"
     }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 51,
-    "remainingAffected": 1275,
-    "acceptedForFinalSource": 46,
-    "remainingFinalSourceAcceptance": 1280,
-    "qualificationNote": "46 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
+    "newPublishedReviewed": 52,
+    "remainingAffected": 1274,
+    "acceptedForFinalSource": 47,
+    "remainingFinalSourceAcceptance": 1279,
+    "qualificationNote": "47 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
     "removedUnusedImages": 329,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2
@@ -190,8 +190,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -205,9 +205,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "68ac-connect-current-pages-to-the-browser-renderer",
@@ -220,9 +220,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "38b-source",
@@ -287,9 +287,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "62o-labels",
@@ -302,9 +302,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "88ad-exercise-original-sections-bores-and-ink",
@@ -360,9 +360,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "current-native-floor-input",
@@ -392,9 +392,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "41f-input",
@@ -408,9 +408,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "41f-input",
@@ -424,9 +424,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "51zf-handles",
@@ -440,9 +440,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "54p-navigation",
@@ -456,9 +456,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "59f-cad",
@@ -472,9 +472,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "62o-labels",
@@ -488,9 +488,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "68ac-connect-current-pages-to-the-browser-renderer",
@@ -504,9 +504,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "62o-labels",
@@ -520,9 +520,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "68ac-connect-current-pages-to-the-browser-renderer",
@@ -536,8 +536,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -552,9 +552,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "80za-read-original-projection-planes",
@@ -568,9 +568,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
@@ -584,8 +584,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -600,8 +600,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -616,8 +616,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -632,8 +632,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -648,9 +648,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "39-visible",
@@ -661,12 +661,12 @@
       "imageSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "39a-depth",
@@ -680,9 +680,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "40-colour",
@@ -693,12 +693,12 @@
       "imageSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "40a-input",
@@ -709,12 +709,12 @@
       "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "40b-indices",
@@ -728,9 +728,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "41-normals",
@@ -741,12 +741,12 @@
       "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "41a-placement",
@@ -757,12 +757,12 @@
       "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "41b-drawing",
@@ -773,12 +773,12 @@
       "imageSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "41c-view",
@@ -792,8 +792,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -808,8 +808,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -824,8 +824,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -840,8 +840,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -856,8 +856,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": true,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -872,8 +872,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -888,9 +888,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "76d-exercise-exact-curves-and-rational-control-edits",
@@ -904,9 +904,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
@@ -920,8 +920,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -936,9 +936,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "71aj-exercise-complete-and-ranged-original-drawings",
@@ -952,8 +952,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -968,9 +968,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "88ad-exercise-original-sections-bores-and-ink",
@@ -984,9 +984,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "89h-exercise-actual-depth-levels-and-cache-release",
@@ -1000,9 +1000,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "96zza-connect-section-primitive-images",
@@ -1016,8 +1016,8 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
       "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
     },
     {
@@ -1033,9 +1033,9 @@
       "servedChromeVerified": true,
       "liveRequired": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
@@ -1050,9 +1050,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "92o-prove-element-recipes-source-history-and-archives",
@@ -1067,9 +1067,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
@@ -1084,9 +1084,9 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "currentSiteReceiptSha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "currentSitePublication": "PUBLISHED_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
+      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
     },
     {
       "id": "96h-prove-current-source-grammar-and-explicit-differences",
@@ -1095,6 +1095,23 @@
       "receiptSha256": "29f7cce3316b21bdb36c95d97c5478b8aaeb06a12b95d84f13c1e9344c0c18c3",
       "image": "docs/screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences-browser.png",
       "imageSha256": "2b28f4471c75e648dbc64c8675a2997f75c8d5d3be627ced1d5a864ad0f6ecb2",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED",
+      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
+      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c"
+    },
+    {
+      "id": "96q-prove-imported-feature-ownership-and-roundtrips",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-source13-browser96q-existing-build-owned-06-6573d0207ada.json",
+      "receiptSha256": "130af0bf0e77513fd56dcf231d18b6fdc184c2b84b5630661901879891ffc57f",
+      "image": "docs/screenshots/journey/96q-prove-imported-feature-ownership-and-roundtrips-browser.png",
+      "imageSha256": "6573d0207adaab55e426a8728f01caee77ea02a4a0c6ed93a8f4b0dc1b0c5c2c",
       "sourceFreeze": "source-freeze-13.json",
       "rootVisuallyReviewed": true,
       "liveRequired": true,
@@ -1119,7 +1136,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "46_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1280_REMAIN"
+      "status": "47_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1279_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -1142,13 +1159,15 @@
     "acceptedSourceProofsAtQa": 46,
     "acceptedLogicalProofsWithPublishedCanonicals": 31,
     "sourceOnlyAcceptedProofsNotPublished": 15,
-    "currentAcceptedOutsideQaScope": 0,
+    "currentAcceptedOutsideQaScope": 1,
     "sourceAndCompiledPrimaryReaders": 111,
     "chapterRoutesVerified": 22,
     "criticalReaderChecks": 6,
     "crossChapterSharedIllustrations": 0,
     "localReaderLinksVerified": 6014,
     "noGpuOrWasmRuntimeAcceptanceClaim": true,
+    "metadataUpdaterPerformedNetworkOrBrowserChecks": false,
+    "verificationRecordedUtc": "2026-11-01T14:12:04.407282+00:00",
     "priorVerification": {
       "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
       "sha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",

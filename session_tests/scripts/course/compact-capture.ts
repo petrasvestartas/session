@@ -53,6 +53,11 @@ async function browserCapture(id: string, route: string, built: any) {
         const module = await import('./owned-file-browser-fallback.ts');
         return (await module.captureOwnedFileFallback(id, file)).record;
     }
+    if (route === 'historical') {
+        const module = await import('./owned-file-action-browser-recipes.ts');
+        const prepared = await module.prepareOwnedActionScene('historical', id, file);
+        return (await module.runOwnedActionScene('historical', path.join(prepared.folder, 'prepared.json'))).record;
+    }
     if (route === 'source-status') {
         const module = await import('./source-startup-status-browser-presentation-v2.ts');
         return (await module.captureSourceStartupStatus(id, file)).file;
@@ -70,7 +75,6 @@ async function browserCapture(id: string, route: string, built: any) {
     const recipes: Record<string, [string, string, string, string, string]> = {
         additional: ['additional-browser-image-recipes.ts', 'prepareAdditionalScene', 'runAdditionalScene', 'prepared.json', 'capture.json'],
         exported: ['exported-browser-image-recipes.ts', 'prepareExportedScene', 'runExportedScene', 'prepared.json', 'capture.json'],
-        historical: ['historical-browser-actions-presentation.ts', 'prepareHistoricalScene', 'runHistoricalScene', 'prepared.json', 'capture.json'],
         terminal: ['terminal-browser-image-recipes-v2.ts', 'prepareTerminalScene', 'runTerminalScene', 'prepared.json', 'terminal-capture.json'],
         'child-context': ['child-context-browser-image-recipes.ts', 'prepareChildContextScene', 'runChildContextScene', 'child-context-prepared.json', 'child-context-capture.json'],
         'early-default': ['early-default-browser-presentation.ts', 'prepareEarlyDefaultScene', 'runEarlyDefaultScene', 'prepared.json', 'early-default-capture.json'],
@@ -136,6 +140,13 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             if (record.host?.log) ownedRoots.push(path.dirname(record.host.log));
             execution = record.executionIntegrity || record.host?.executionIntegrity;
             evidence = [built.imageBuild.path, built.preparedFile];
+            if (record.ownedActionSourceBridge) {
+                const reference = record.ownedActionSourceBridge;
+                assert.equal(fileReference(reference.path).sha256, reference.sha256);
+                const bridge = json(reference.path);
+                assert.equal(fileReference(bridge.adapted.path).sha256, bridge.adapted.sha256);
+                evidence.push(reference.path, bridge.adapted.path);
+            }
             buildFile = built.imageBuild.path;
         }
         sourceIntegrity = finishExecution(sourceBefore);

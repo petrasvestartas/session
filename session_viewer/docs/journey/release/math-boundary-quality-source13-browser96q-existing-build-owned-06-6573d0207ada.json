@@ -1,0 +1,88 @@
+{
+  "id": "96q-prove-imported-feature-ownership-and-roundtrips",
+  "lane": "browser",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Pinned06 runner actual before/finally checks and successful outer source postflight; hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-browser96q-existing-build-owned-06-execution.json",
+      "sha256": "0eebe02622971c2813b30390bb12a2b84cc0ff4288bdc29a06179291d916ab7a",
+      "bytes": 2495
+    }
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this exact original1800x1520 PNG: a large gray rectangle, a small gray cube and a connecting black line, with clean hard boundaries and no internal triangulation wires. This is the actual checkpoint ownership fixture, not a new reader illustration. The original declared historical actions, import wait, GPU/DPR and image assertions passed through the exact owned-file byte transport. No inherited full callback, new compilation, fresh HTTP verification or physical kernel acceptance is claimed.",
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "6573d0207adaab55e426a8728f01caee77ea02a4a0c6ed93a8f4b0dc1b0c5c2c"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96q-prove-imported-feature-ownership-and-roundtrips-5503c37260f11cd1c634\\capture.json.gz",
+    "sha256": "9dc173b92eccda7c4f4f2dde51d4dd750326d6dc80e503f8db40bbe9bd91de50",
+    "bytes": 242381
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-browser96q-existing-build-owned-06-diagnostic.json",
+    "sha256": "dfebda79c50d9b244b8a444d9c0aec0bff57c13998d0078254039d5a4d9b3098",
+    "bytes": 4411
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-browser96q-existing-build-owned-06-execution.json",
+    "sha256": "0eebe02622971c2813b30390bb12a2b84cc0ff4288bdc29a06179291d916ab7a",
+    "bytes": 2495
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96q-prove-imported-feature-ownership-and-roundtrips-browser.png",
+    "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
+    "bytes": 21289
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96q-prove-imported-feature-ownership-and-roundtrips-browser-9e08aab68457.png",
+    "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
+    "bytes": 21289
+  },
+  "imageAliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "762831d2cae7636abd8fe5f004b88080cd1f605123a1fb85a74890682535f98c",
+    "bytes": 342765
+  },
+  "canonicalBehaviorExecuted": false,
+  "originalCallbackExecuted": false,
+  "declaredActionsExecuted": true,
+  "compileExecuted": false,
+  "scope": "Source-bound actual historical image recipe; reuse of its exact existing compiler artifact. No acceptance of unexecuted canonical callbacks. Existing immutable alias baseline retained without manifest changes.",
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-01T16:04:01.815Z",
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96q-prove-imported-feature-ownership-and-roundtrips-browser.png",
+    "sha256": "6573d0207adaab55e426a8728f01caee77ea02a4a0c6ed93a8f4b0dc1b0c5c2c",
+    "bytes": 21249
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-browser96q-existing-build-owned-06-publication.json",
+    "sha256": "6d118c31b976abab8ebdad1621086d8370bde52028f7adb09149a66eb418c7d0",
+    "bytes": 4224
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96q-prove-imported-feature-ownership-and-roundtrips-5503c37260f11cd1c634\\publication.json",
+    "sha256": "241839701a00559ff5f221ca5e1f8e0fcfc01d5df9f4061c571236c8b4d4918e",
+    "bytes": 900
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96q-prove-imported-feature-ownership-and-roundtrips-5503c37260f11cd1c634\\retirement.json.gz",
+    "sha256": "4d4025e57fdc6c113a1a6f71e3dae69a91f215046af6a8117998aa9cd4d4806a",
+    "bytes": 84401
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96q-prove-imported-feature-ownership-and-roundtrips-5503c37260f11cd1c634\\retired.json",
+    "sha256": "e0607aa4714c96e81ad80712a6c8178473a8e62bc22aeb421dcde2ab935d1a17",
+    "bytes": 353
+  }
+}
