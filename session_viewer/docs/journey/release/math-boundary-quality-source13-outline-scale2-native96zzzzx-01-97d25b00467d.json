@@ -1,0 +1,125 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-01T10:58:22.450Z",
+  "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+  "lane": "native",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Actual pinned warm-runner frozen-source preflight and postflight; current hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native96zzzzx-01-execution.json",
+      "sha256": "54c3e3a7680125afee12e0f1fe60b300f078d5bb9be70df9839a59b143d1f93a",
+      "bytes": 2298
+    },
+    "runnerInputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\run_warm_course_checkpoint.py",
+        "sha256": "85535ffae9c5a729e3da9ca783ea0447573d17e0ff53ed6b1102013507665c46"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\windows_read_lease.py",
+        "sha256": "43ad54a76624b9527636b1202c4dc8f7f760af1d8d7bc3481d5b68fab5a6d3dd"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native96zzzzx-01-command.json",
+        "sha256": "645484ecdebca40d3307952318d1bc7e21b5781e82dc846d5366ec7b89ba03b5"
+      }
+    ]
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this exact1280x960 native image using the original-detail image tool. The circular cap and supporting cylinder have smooth contours and thin mathematical face boundaries. The shaded four-CAD comparison fixture has no internal triangulation wires, and the plate and support retain clean corners. ActualNVIDIA native rendering used the existing source-pinned94-comparison fixture, internal2560x1920 with GPU linear-sRGB presentation to1280x960. Its original bounded mathematical drain and fresh global-outline draw assertion passed. No per-owner diagnostic rows were added for this comparison; the seven-owner Element assertion is separate. Fixed640x480 canonical pixel assertions were not executed by the existing IMAGE path. The measured-retention02 successor, application and regression gate are pinned in the qualification, and all477 maintained source files remained unchanged. This is the exact native filename in the user's original ninth URL, not its browser counterpart.",
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-96zzzzx-retire-empty-arena-ranges-after-tail-trimming-1270502bdba4fe109afc\\capture.json.gz",
+    "sha256": "05709bb0f9dfed99332cbc177ea9c4e7c31feb2c73b63f9df05fe3197b5d67ec",
+    "bytes": 275070
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native96zzzzx-01-qualification.json",
+    "sha256": "cb7dcf681a154e6fe24f6d3305ba9c3cb94a5995fe526937298306de6bb3379b",
+    "bytes": 10495
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native96zzzzx-01-execution.json",
+    "sha256": "54c3e3a7680125afee12e0f1fe60b300f078d5bb9be70df9839a59b143d1f93a",
+    "bytes": 2298
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native96zzzzx-01-publication.json",
+    "sha256": "da89ab3196424477987ced76292614e9cd5c073dba6c88d496ca94da558207c6",
+    "bytes": 5974
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-96zzzzx-retire-empty-arena-ranges-after-tail-trimming-1270502bdba4fe109afc\\publication.json",
+    "sha256": "e556cc30080eb96b19bb93858f113f3524c9ff35e2473284968bf8ffabd1bc8e",
+    "bytes": 892
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-96zzzzx-retire-empty-arena-ranges-after-tail-trimming-1270502bdba4fe109afc\\retirement.json.gz",
+    "sha256": "10d3e16883c053bf93f66fc15529fd1288c36d9df89f155a5322a469c092f384",
+    "bytes": 66815
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-96zzzzx-retire-empty-arena-ranges-after-tail-trimming-1270502bdba4fe109afc\\retired.json",
+    "sha256": "d0672b6320a247132003ebb07448159f4d2974916ffb5e1ecda18a7bd0f663be",
+    "bytes": 354
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+    "sha256": "97d25b00467d7066b57f548290e2239d11129fdd5cd52d23cc6ad51370905a85",
+    "bytes": 56176
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+    "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
+    "bytes": 50675
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\outline-prior-png-33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414.png",
+    "sha256": "33692b20bbdd38393f5f2f84a3e345e8a6480ac240f26271277f476f67afb414",
+    "bytes": 50675
+  },
+  "renderScale": {
+    "renderScale": 2,
+    "lane": "native",
+    "scene": "comparison",
+    "recipePins": [
+      {
+        "path": "journey/checks/94-comparison.rs",
+        "sha256": "8a2d9f5903ffd4f52bb2ed8d750716a24c5ce6288a364052da055e0b415a6714"
+      }
+    ],
+    "samples": 1,
+    "presentation": "linear-srgb-gpu",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "7944aabc515499799136dc3872dbdbab5f1812d638113a1fd76e15bb9298ce33"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "98cb76d3dea6be78e8a9ebcaf5730e197f3c683d71c048a272485519055598d1"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      }
+    ]
+  },
+  "canonicalBehaviorExecuted": false,
+  "scope": "Standalone source13 image-profile qualification. Root directly viewed this exact original-resolution PNG. The canonicalBehaviorExecuted field distinguishes actual full callback execution from an original image recipe; no canonical resource-profile, historical interactive MSAA, or physical geometry acceptance claim."
+}
