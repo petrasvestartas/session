@@ -1,0 +1,218 @@
+{
+  "status": "NATIVE92O_ELEMENT_MEASURED_RETENTION02_GPU_QUALIFIED_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "recordedUtc": "2026-11-01T10:40:23.825902+00:00",
+  "checkpoint": "92o-prove-element-recipes-source-history-and-archives",
+  "lane": "native",
+  "rootProof": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-source13-outline-scale2-native92o-01-a3e266d8d28a.json",
+    "sha256": "df69712d5291508b3f3b5a74a244b49af75fd1280c81c166237fb2ecbdb601be",
+    "bytes": 7661
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\92o-prove-element-recipes-source-history-and-archives.png",
+    "sha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+    "bytes": 67435
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\capture.json.gz",
+    "sha256": "d09dcd6c591fdb6a353e4515b9373c6464de1893bac4798fc743e309677f33e2",
+    "bytes": 202556
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-qualification.json",
+    "sha256": "00f0b4bef6dc2247fc6f5b2726b5e049f30d9c14ff23d74697dffd19cf2f2865",
+    "bytes": 11383
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-execution.json",
+    "sha256": "add5db611d189869217a7536e839266d8f3e6189369f2f5615024ac60eb8d8ce",
+    "bytes": 2286
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-publication.json",
+    "sha256": "6be2c3e7019d8d84f4b7f1547680abf8f9b966563bea7b0e75d2b39cce95b9e0",
+    "bytes": 5984
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\publication.json",
+    "sha256": "9279fbc206cd9bc538846b3c0e3c2f4db3249a24182b658c2c0f8af40392ba45",
+    "bytes": 888
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\retirement.json.gz",
+    "sha256": "9dbe9994afc39b0f9f00da7a88b681cc115355ce8b449f6e9a8d694444aacd74",
+    "bytes": 59352
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\retired.json",
+    "sha256": "680c8d572049a29f3c24bd09f83d4a0b5d5ebb1284fce9b5eed337ab8b2ae812",
+    "bytes": 354
+  },
+  "sourceSuccessor": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-measured-retention-20261101-source.json",
+    "sha256": "fb82c78697e521d93e94473dffd16f6dee487e6a1ea551214005ddd09a599e1d",
+    "bytes": 17902
+  },
+  "cpuRegressionGate": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention-proposal-02\\regressions-01.json",
+    "sha256": "1613015a3f764c19837d2d9b04eb90f06ae9330158d60a77e9df55d033a4b3f8",
+    "bytes": 5353
+  },
+  "apply": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measured-retention02-publication-proposal\\apply-execution-01.json",
+    "sha256": "48191463563d27b968052687e7c0be1ec735f93e051f537f6bc3e76f2b7dbe9f",
+    "bytes": 5093
+  },
+  "actualGpuEvidence": {
+    "actualCaptureResult": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\92o-prove-element-recipes-source-history-and-archives-5af3a585931e6d51efc2\\result.json",
+      "sha256": "bbf2065928be3e4c13b45b399a9fd42530235ef8caf1226b92e3e62374fef7a8",
+      "bytes": 625387
+    },
+    "qualityLog": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-checks\\incremental-92o-prove-element-recipes-source-history-and-archives-5af3a585931e6d51-execute.log",
+      "sha256": "8a682c46dafa1af21de5fa72da223330186e692cb0c79fc752f98d8b01b0241f"
+    },
+    "visibleCadOwners": [
+      1,
+      6,
+      11,
+      15,
+      19,
+      23,
+      27
+    ],
+    "qualities": [
+      [
+        1,
+        0.08838834764831845,
+        0.08838834764831845,
+        false
+      ],
+      [
+        6,
+        0.125,
+        0.125,
+        false
+      ],
+      [
+        11,
+        0.125,
+        0.125,
+        false
+      ],
+      [
+        15,
+        0.1767766952966369,
+        0.1767766952966369,
+        false
+      ],
+      [
+        19,
+        0.1767766952966369,
+        0.1767766952966369,
+        false
+      ],
+      [
+        23,
+        0.25,
+        0.25,
+        false
+      ],
+      [
+        27,
+        0.08838834764831845,
+        0.08838834764831845,
+        false
+      ]
+    ],
+    "measuredRetainedPayloadBytes": 51088,
+    "generations": 7,
+    "limited": null,
+    "boundedQualityDrain": "PASS_UNCHANGED_IMAGE_PATH",
+    "originalAmbientAndGlobalOutlineDrawAssertions": "PASS",
+    "canonical640x480VerifyPixelsExecuted": false,
+    "renderScaleReceipt": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-native\\92o-prove-element-recipes-source-history-and-archives-5af3a585931e6d51efc2\\runtime\\frame-render-scale.json",
+      "sha256": "d3de8d71ed791b3bc5318814dd6f98048311237c310b7f5b07a801f127013b91",
+      "value": {
+        "renderScale": 2,
+        "internal": [
+          2560,
+          1920
+        ],
+        "output": [
+          1280,
+          960
+        ],
+        "density": 4,
+        "format": "Rgba8UnormSrgb",
+        "filter": "linear",
+        "samples": 1
+      }
+    },
+    "renderScaleStoredBlob": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\blobs\\d3de8d71ed791b3bc5318814dd6f98048311237c310b7f5b07a801f127013b91.gz",
+      "sha256": "49f2e4b648a37744fba513b8599e287c7743e11db0c173cc6202b5b58f99472a",
+      "bytes": 133
+    },
+    "renderScale": 2,
+    "internal": [
+      2560,
+      1920
+    ],
+    "output": [
+      1280,
+      960
+    ],
+    "internalDensity": 4,
+    "presentation": "linear-srgb-gpu",
+    "shaderSamples": 1
+  },
+  "imageObserver": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+    "sha256": "7944aabc515499799136dc3872dbdbab5f1812d638113a1fd76e15bb9298ce33",
+    "bytes": 22791
+  },
+  "unchangedCanonicalFixture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\92-elements.rs",
+    "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951",
+    "bytes": 2944
+  },
+  "focusedToolTests": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native92o-quality-focused-tests-01.json",
+    "sha256": "d8bada930107b40087cb85ca286e2d81af26a0ba398d6f47a090fe9f841731bf",
+    "bytes": 886
+  },
+  "focusedTestsPassed": 22,
+  "resourceProfile": {
+    "processors": 8,
+    "jobCommitLimitBytes": 8589934592,
+    "peakJobCommitBytes": 634482688,
+    "elapsedSeconds": 9.567,
+    "exitCode": 0
+  },
+  "maintainedSource": {
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "filesMatched": 477,
+    "newFreeze14": false
+  },
+  "canonicalBehaviorExecuted": false,
+  "freshHttpVerified": false,
+  "freshServedChromeVerified": false,
+  "acceptance": {
+    "source13RequiredAccepted": 44,
+    "source13RequiredRemaining": 1282,
+    "affected": 1326,
+    "explicitlyUnchanged": 426
+  },
+  "scope": "One native Element IMAGE representative with seven original owners and finite positive requested=accepted qualities. Root reviewed the exact original1280x960PNG; actual GPU-filtered2560x1920 rendering, publication and retirement complete. Original ambient/global-outline draw checks executed; canonical fixed640x480 verify_pixels did not run. No broader physical geometry, remaining-image or canonical resource/pixel acceptance is claimed. Prior source/runtime proofs remain immutable; fresh HTTP/Chrome checks are pending."
+}

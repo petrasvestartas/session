@@ -1,0 +1,125 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-01T10:37:54.638Z",
+  "id": "92o-prove-element-recipes-source-history-and-archives",
+  "lane": "native",
+  "sourceFreeze": "source-freeze-13.json",
+  "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+  "sourceFreezeCoverage": {
+    "matchedFiles": 477,
+    "basis": "Actual pinned warm-runner frozen-source preflight and postflight; current hashes rechecked before publication",
+    "freeze": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "bytes": 100146
+    },
+    "execution": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-execution.json",
+      "sha256": "add5db611d189869217a7536e839266d8f3e6189369f2f5615024ac60eb8d8ce",
+      "bytes": 2286
+    },
+    "runnerInputs": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\run_warm_course_checkpoint.py",
+        "sha256": "85535ffae9c5a729e3da9ca783ea0447573d17e0ff53ed6b1102013507665c46"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\windows_read_lease.py",
+        "sha256": "43ad54a76624b9527636b1202c4dc8f7f760af1d8d7bc3481d5b68fab5a6d3dd"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-command.json",
+        "sha256": "d5d9654dcaf7104d692f18f10ef73e1c208ecb497a27744bbadecf34c6150202"
+      }
+    ]
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this exact1280x960 native Element image with the original-detail image tool. Two beams, four columns and one plate have clean exterior outlines and thin mathematical face boundaries; shaded faces show no internal triangulation wires. Ambient contact shading is retained. ActualNVIDIA capture rendered internally2560x1920 and resolved onGPU to1280x960. The unchanged bounded drain plus IMAGE-only observer verified seven unique visible CAD owners1,6,11,15,19,23,27, exactly seven finite positive requested=accepted qualities, no per-row error or cache limit, seven generations and51088 retained bytes. Original ambient/global-outline draw assertions executed; fixed640x480 canonical pixel assertions were not executed by the existing IMAGE path. The measured-retention02 source/application/nine-test gate and actual hashed native quality log are bound in the qualification; all477 maintained source files and the canonical92-elements fixture remained unchanged. This qualifies this representative only.",
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b"
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\capture.json.gz",
+    "sha256": "d09dcd6c591fdb6a353e4515b9373c6464de1893bac4798fc743e309677f33e2",
+    "bytes": 202556
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-qualification.json",
+    "sha256": "00f0b4bef6dc2247fc6f5b2726b5e049f30d9c14ff23d74697dffd19cf2f2865",
+    "bytes": 11383
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-execution.json",
+    "sha256": "add5db611d189869217a7536e839266d8f3e6189369f2f5615024ac60eb8d8ce",
+    "bytes": 2286
+  },
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-outline-scale2-native92o-01-publication.json",
+    "sha256": "6be2c3e7019d8d84f4b7f1547680abf8f9b966563bea7b0e75d2b39cce95b9e0",
+    "bytes": 5984
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\publication.json",
+    "sha256": "9279fbc206cd9bc538846b3c0e3c2f4db3249a24182b658c2c0f8af40392ba45",
+    "bytes": 888
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\retirement.json.gz",
+    "sha256": "9dbe9994afc39b0f9f00da7a88b681cc115355ce8b449f6e9a8d694444aacd74",
+    "bytes": 59352
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-92o-prove-element-recipes-source-history-and-archives-bbf2065928be3e4c13b4\\retired.json",
+    "sha256": "680c8d572049a29f3c24bd09f83d4a0b5d5ebb1284fce9b5eed337ab8b2ae812",
+    "bytes": 354
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\92o-prove-element-recipes-source-history-and-archives.png",
+    "sha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+    "bytes": 67435
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\92o-prove-element-recipes-source-history-and-archives.png",
+    "sha256": "f53b9ab6d1ad2bf66ffc7aac78e659ffb6f76448844705fc650a71b01add7d5d",
+    "bytes": 66111
+  },
+  "previousImageArchive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\outline-prior-png-f53b9ab6d1ad2bf66ffc7aac78e659ffb6f76448844705fc650a71b01add7d5d.png",
+    "sha256": "f53b9ab6d1ad2bf66ffc7aac78e659ffb6f76448844705fc650a71b01add7d5d",
+    "bytes": 66111
+  },
+  "renderScale": {
+    "renderScale": 2,
+    "lane": "native",
+    "scene": "element-solids",
+    "recipePins": [
+      {
+        "path": "journey/checks/92-elements.rs",
+        "sha256": "314fd5d5d0b38bab279e0d39e87523d967c159b9978b4e92ab076216f4521951"
+      }
+    ],
+    "samples": 1,
+    "presentation": "linear-srgb-gpu",
+    "files": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale.ts",
+        "sha256": "7944aabc515499799136dc3872dbdbab5f1812d638113a1fd76e15bb9298ce33"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-render-scale-scope.json",
+        "sha256": "98cb76d3dea6be78e8a9ebcaf5730e197f3c683d71c048a272485519055598d1"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.rs",
+        "sha256": "90368fec5751eebcd94960f2b966cbc27416594647c92fac2e61c633fdb23fdb"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-filtered-present.wgsl",
+        "sha256": "3c356679db03282d7cd8966ce597f07f31d4c00b8119eb00aa874303268047f8"
+      }
+    ]
+  },
+  "canonicalBehaviorExecuted": false,
+  "scope": "Standalone source13 image-profile qualification. Root directly viewed this exact original-resolution PNG. The canonicalBehaviorExecuted field distinguishes actual full callback execution from an original image recipe; no canonical resource-profile, historical interactive MSAA, or physical geometry acceptance claim."
+}

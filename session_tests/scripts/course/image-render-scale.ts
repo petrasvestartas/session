@@ -60,6 +60,11 @@ export function nativeScaleBridge(code: string, profile: any, output: number[], 
             after: 'usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,'},
         {before: readback, after: '    let texture = course_filtered_present(&renderer, &texture, format);\n' + readback.replace(/\bWIDTH\b/g, 'OUTPUT_WIDTH').replace(/\bHEIGHT\b/g, 'OUTPUT_HEIGHT') + present},
     ];
+    if (profile.scene === 'element-solids') {
+        const drain = "    math_quality.drain_matrix(&mut renderer,&math_source,&camera.uniform(),[WIDTH,HEIGHT],None).expect(\"Native mathematical display must meet the requested physical-pixel quality before capture\");";
+        assert.equal(fixture.split(drain).length - 1, 1, 'Exact original element quality drain');
+        changes.push({before: drain, after: drain + "\n    let mut owners:Vec<u32>=math_source.objects().iter().filter(|row|row.cad.is_some()).map(|row|{assert!(math_source.visible(row.id));row.id.value()}).collect();\n    owners.sort_unstable();assert_eq!(owners.len(),7);assert!(owners.windows(2).all(|pair|pair[0]!=pair[1]));\n    let mut qualities=math_quality.qualities();qualities.sort_by_key(|row|row.0);\n    assert_eq!(qualities.iter().map(|row|row.0).collect::<Vec<_>>(),owners);\n    assert_eq!(math_quality.limited,None);\n    for (_,requested,accepted,error) in &qualities {assert!(!error);let requested=requested.expect(\"Finite requested element quality\");let accepted=accepted.expect(\"Finite accepted element quality\");assert!(requested.is_finite()&&requested>0.&&accepted.is_finite()&&accepted>0.);assert_eq!(requested,accepted);}\n    eprintln!(\"COURSE_NATIVE_MATH_QUALITY {}\",serde_json::json!({\"owners\":owners,\"qualities\":qualities,\"limited\":math_quality.limited,\"bytes\":math_quality.bytes,\"generations\":math_quality.generations,\"internal\":[WIDTH,HEIGHT],\"renderScale\":2}));"});
+    }
     return {...transform(code, changes), profile, output, internal, density: density * 2, externalDpr: density,
         shaderSha256: hash(shader), constructorAdaptedBeforeMathRefinement: true,
         drawAndPixelAssertionsPreserved: true};
