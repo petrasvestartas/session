@@ -347,6 +347,32 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
+### 6. `src/browser.rs`
+
+Restore derived feature highlights after each mathematical-display upload. Apply this change to both `math_view.uploaded` blocks: the block followed by `canvas.set_attribute("data-math-display", ...)` and the block followed by `pointer_canvas.set_attribute("data-math-display", ...)`.
+
+**Locate this existing block in both places:**
+
+```rust
+if math_view.uploaded {
+    let view = math_view.scene(editor.display_scene());
+    let _ = renderer.set_highlight(&view, editor.selection());
+    let _ = renderer.select_objects(&view, &editor.selected_objects());
+}
+```
+
+Edit both blocks to match this code; keep unchanged lines:
+
+```rust
+if math_view.uploaded {
+    let view = math_view.scene(editor.display_scene());
+    let _ = renderer.set_highlight(&view, editor.selection());
+    let _ = renderer.select_objects(&view, &editor.highlighted_objects());
+}
+```
+
+`highlighted_objects()` includes the visible derived paths owned by selected Elements. `selected_objects()` remains the editing selection. Restoring only that editing list after the upload would remove the feature highlight while leaving its original owner selected.
+
 ## Run and check
 
 In your project:

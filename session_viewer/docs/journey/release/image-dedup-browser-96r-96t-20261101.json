@@ -1,0 +1,28 @@
+{
+  "status": "TWO_NEW_IDENTICAL_CAPTURES_DEDUPLICATED",
+  "removedPhysicalCopies": [
+    "96r-preserve-exact-command-completions-browser.png",
+    "96t-select-and-highlight-original-feature-owners-browser.png"
+  ],
+  "canonical": "96q-prove-imported-feature-ownership-and-roundtrips-browser-6573d0207ada.png",
+  "sha256": "6573d0207adaab55e426a8728f01caee77ea02a4a0c6ed93a8f4b0dc1b0c5c2c",
+  "previousAliases": {
+    "96r-preserve-exact-command-completions-browser.png": {
+      "canonical": "96q-prove-imported-feature-ownership-and-roundtrips-browser-9e08aab68457.png",
+      "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193"
+    },
+    "96t-select-and-highlight-original-feature-owners-browser.png": {
+      "canonical": "96q-prove-imported-feature-ownership-and-roundtrips-browser-9e08aab68457.png",
+      "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193"
+    }
+  },
+  "previousBaselineBytesRetained": true,
+  "aliasManifestSha256": "0a40019183db336ce76273757211351264a7d7cacdae8a019dc0dd5740d4ff5b",
+  "physicalUniquePngsIncludingSubfolders": 525,
+  "previous96qAlias": {
+    "canonical": "96q-prove-imported-feature-ownership-and-roundtrips-browser-9e08aab68457.png",
+    "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193"
+  },
+  "renamedCanonicalFrom": "96q-prove-imported-feature-ownership-and-roundtrips-browser.png",
+  "canonicalIsPhysicalWithoutAliasEntry": true
+}

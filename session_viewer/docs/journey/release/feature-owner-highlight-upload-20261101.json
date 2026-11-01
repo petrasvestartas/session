@@ -1,0 +1,66 @@
+{
+  "status": "APPLIED_TUTORIAL_SOURCE_AND_MATCHING_READERS_RUNTIME_ACCEPTANCE_PENDING",
+  "trigger": "96u unchanged feature-owner-selection callback: selected original24 with3 originals, but highlight bytes remained0.",
+  "change": "After mathematical scene uploads, restore highlighted_objects including derived feature paths, preserving selected_objects as the editing selection. Introduced at96t and propagated through later browser replacement snippets.",
+  "files": [
+    {
+      "path": "journey/code/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-06.rs",
+      "before": "36d2d64cc95479ca417522dbdf7d124afbcdc3c9a228c7c4ad6bc0e362ed5ad0",
+      "after": "3f13c7c261deb39780aaf308876405c98c8a846b010f509ce6265a0e442fecee"
+    },
+    {
+      "path": "journey/code/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes-08.rs",
+      "before": "aab414aa48fc2f313cf3fed0bd84080569d99cbdc5b600a53f62c912928fb15c",
+      "after": "c58c20a0557398515242eb817917155189b8343e32d28a3e5c4b7f05560b0eee"
+    },
+    {
+      "path": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-present.rs",
+      "before": "6e3661022ec423533ccde0b0bf2696851b5dcedcd57eb0427d024f460d2f5564",
+      "after": "9ae912561fa9ba1283ece7db3f9a63b0880f7fdaf9c5d4103a4cf79e507e9364"
+    },
+    {
+      "path": "journey/code/96t-select-and-highlight-original-feature-owners-10.rs",
+      "before": null,
+      "after": "74264b3d2ab59865b48a02f4f812f084cf06472482d3c5a5a81986a95c95fcfc"
+    },
+    {
+      "path": "journey/code/96t-select-and-highlight-original-feature-owners-11.rs",
+      "before": null,
+      "after": "6f2a1ed7c387c70dfed63d96f248ffb58a5bdff631920cf20f99a67fa82e1937"
+    },
+    {
+      "path": "journey/course.json",
+      "before": "2a6825488481370a8fc4ab13fedbe8188f0765e49f3de8b9c14b8954b41d40d3",
+      "after": "42692f9f43b6d0c3c11cf71115fe9369449c1185ae88595e1c68395334ed7540"
+    },
+    {
+      "path": "journey/96t-select-and-highlight-original-feature-owners.md",
+      "before": "866d78d10d005f397f1a929571207a6644d6ad6c4d38575f52178f1714d296d2",
+      "after": "b3efe5266e11057c067d09e50b281c66d28608a530ab31f27902d022e5377aa8"
+    },
+    {
+      "path": "journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md",
+      "before": "c31b830161904eba477973d86043fe142bc41d7090951e0cfe59ec891801492b",
+      "after": "52af886a665a1375d7f44d26f2ac4731ceb0e6f72e697b798a114e49f2839926"
+    },
+    {
+      "path": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md",
+      "before": "4e3ab0a684a5d370afa2a55a96ad64014e51ce6026f27f3a4f7511493209d835",
+      "after": "2619fd871fddb0be3969b03e9136719275f1c7ffc8d151a702962aa94f57525c"
+    },
+    {
+      "path": "journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+      "before": "df88781caf6d3984eb3a9e27960ed02cf83b436e81f05c6085dcb0fb630009f7",
+      "after": "5572895b997334537bd2b13d0d2e8b35171fcc07868a3b172e4c2c9ee19646e4"
+    }
+  ],
+  "sourceReplay": {
+    "steps": 1361,
+    "production477Unchanged": true,
+    "receiptSha256": "2d2181ffe03419e289ed9f31656ba401ecf2b15be142bb3e51c00b2c5b7c0e72"
+  },
+  "browserCallbacksUnchanged": 227,
+  "runtimeAcceptance": "PENDING_UNCHANGED_96U_CALLBACK",
+  "websiteRebuiltAfterCorrection": false,
+  "preserved": "Maintained renderer, Vue styles/structure, existing reader markup, all browser behavior assertions and other agents work."
+}

@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T16:04:16.757964+00:00",
+  "updatedUtc": "2026-11-01T16:37:27.013360+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -22,7 +22,7 @@
       "36e-input": "PASS_EXACT_PNG_BYTES_AND_RGBA"
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
-    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build04 composite QA records22 canonical PNG HTTP/body SHA and Chrome decodes, covering31 current logical acceptances;15 are source-only and1 are outside that QA scope. This metadata update performs no fresh HTTP or browser checks. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
+    "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build04 composite QA records22 canonical PNG HTTP/body SHA and Chrome decodes, covering31 current logical acceptances;15 are source-only and3 are outside that QA scope. This metadata update performs no fresh HTTP or browser checks. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
     "previousRuntimeSourceFreeze": "source-freeze-12.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
@@ -163,17 +163,23 @@
       "freshHttpVerified": true,
       "freshServedChromeVerified": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json"
+    },
+    "featureOwnerHighlightCorrection": {
+      "receipt": "docs/journey/release/feature-owner-highlight-upload-20261101.json",
+      "sha256": "c54409f6e417e04d1890b99e37424dc7828c16f29475bdca43592318f45c49a2",
+      "sourceReplayCheckpoints": 1361,
+      "runtimeAcceptance": "PENDING_UNCHANGED_96U_CALLBACK"
     }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 52,
-    "remainingAffected": 1274,
-    "acceptedForFinalSource": 47,
-    "remainingFinalSourceAcceptance": 1279,
-    "qualificationNote": "47 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
+    "newPublishedReviewed": 54,
+    "remainingAffected": 1272,
+    "acceptedForFinalSource": 49,
+    "remainingFinalSourceAcceptance": 1277,
+    "qualificationNote": "49 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
     "removedUnusedImages": 329,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2
@@ -1119,6 +1125,36 @@
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
       "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96r-preserve-exact-command-completions",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4161e9b3b249-000000-6573d0207ada.json",
+      "receiptSha256": "d62adc00a9744a828d7c91da501d3acc23bbb228ecfe1127f8e7b30cc117a5af",
+      "image": "docs/screenshots/journey/96r-preserve-exact-command-completions-browser.png",
+      "imageSha256": "6573d0207adaab55e426a8728f01caee77ea02a4a0c6ed93a8f4b0dc1b0c5c2c",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96t-select-and-highlight-original-feature-owners",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261029-source13-batch-4161e9b3b249-000001-6573d0207ada.json",
+      "receiptSha256": "72e34d6103470cbb0e62997e1ead74c7e513b5c30f4bda1575b030c73d00b967",
+      "image": "docs/screenshots/journey/96t-select-and-highlight-original-feature-owners-browser.png",
+      "imageSha256": "6573d0207adaab55e426a8728f01caee77ea02a4a0c6ed93a8f4b0dc1b0c5c2c",
+      "sourceFreeze": "source-freeze-13.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
     }
   ],
   "stages": [
@@ -1136,7 +1172,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "47_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1279_REMAIN"
+      "status": "49_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1277_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -1159,7 +1195,7 @@
     "acceptedSourceProofsAtQa": 46,
     "acceptedLogicalProofsWithPublishedCanonicals": 31,
     "sourceOnlyAcceptedProofsNotPublished": 15,
-    "currentAcceptedOutsideQaScope": 1,
+    "currentAcceptedOutsideQaScope": 3,
     "sourceAndCompiledPrimaryReaders": 111,
     "chapterRoutesVerified": 22,
     "criticalReaderChecks": 6,
@@ -1187,7 +1223,13 @@
     "exactDuplicateGroups": 0,
     "removedDuplicatePngFiles": 1621,
     "logicalAliasEntries": 1625,
-    "canonicalPreservationReceipt": "docs/journey/release/math-boundary-image-canonical-preservation-20261101.json"
+    "canonicalPreservationReceipt": "docs/journey/release/math-boundary-image-canonical-preservation-20261101.json",
+    "latestFollowup": {
+      "receipt": "docs/journey/release/image-dedup-browser-96r-96t-20261101.json",
+      "sha256": "d1babb7d892c957498e3b63830f747b26fef89fb15e97dc1355253c460f7f50b",
+      "physicalUniquePngsIncludingSubfolders": 525,
+      "aliasManifestSha256": "0a40019183db336ce76273757211351264a7d7cacdae8a019dc0dd5740d4ff5b"
+    }
   },
   "legacyCheckpointSynchronization": {
     "receipt": "docs/journey/release/math-boundary-standalone-source-sync-20261101.json",
