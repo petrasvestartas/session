@@ -1,0 +1,54 @@
+{
+  "status": "ORIGINAL_96V_CALLBACK_PASSED_IMAGE_PROFILE_ROOT_REVIEWED_PUBLISHED_RETIRED",
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-20261029-source13-batch-3a4663d797f4-000000-8a5cabaaeb9e.json",
+    "sha256": "4554ea7c385272e127fdb6f2d1245c29c012da1467b428a53118a3c587c61400"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source13-browser96v-cached-assetstage-01-execution.json",
+    "sha256": "a544760562ed003d0f53bad83d34cfa7b768e05c5fe81200bfef2c68bdbb235b"
+  },
+  "compiledCaseReuse": {
+    "compiledPrepared": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96v-project-definition-and-per-instance-features-4a03e5ac07bbdc3ad93f\\prepared.json",
+      "sha256": "26639ff1aaf83c58161a2db9e9a88b928e8177c1962fc94eaf37ea011e498cef"
+    },
+    "compiledBuild": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96v-project-definition-and-per-instance-features-4a03e5ac07bbdc3ad93f\\built.json",
+      "sha256": "f9804837bbd49ae9c1a0d4b410f4cf064984bd9f34d993f00cc331680a7dff93"
+    },
+    "compiledCaseAttempt": "f31b1752bb75c7a3d153-0-9ecd1e56-1738-46e9-b52d-f4b0f05d058e",
+    "runner": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\96v-cached-single-retry-proposal-01\\runner.mjs",
+      "sha256": "7f7453d5b3e5aa269e7bbf611eeab6d921d7e934e4c509852c1efaf7bf4b23b7"
+    },
+    "plan": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\96v-cached-single-retry-proposal-01\\retry-plan.json",
+      "sha256": "07c91555b8080c3accab8540e00559cb926f16bd50e5a405d139c895ffa8da82"
+    },
+    "scope": "Reuses completed compiled case; new original callback execution and ledger, not a fresh compilation",
+    "journalAttempt": "3a4663d797f4659dcdd2-0-b3a530e5-0f5a-408c-bb08-760eeee45b8a",
+    "outerLabel": "source13-browser96v-cached-assetstage-01"
+  },
+  "captureLedger": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96v-project-definition-and-per-instance-features-814d2505c4c81c8280cb\\capture.json.gz",
+    "sha256": "f862bbde6ea85215a32b5b7f9d6806fd109080bebf0551bb59f0586069b50a18",
+    "bytes": 361880
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96v-project-definition-and-per-instance-features-browser.png",
+    "sha256": "8a5cabaaeb9ef9812a3aa3458501da5ab96626bbc1c2abc8ad1156172cf5c391",
+    "bytes": 93218
+  },
+  "canonicalBehaviorExecuted": true,
+  "canonicalValidationProfile": false,
+  "fixtureStaging": {
+    "helper": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\owned-file-browser-fallback.ts",
+      "sha256": "446e752f7fb71c52a9d38bd688442869b1bd5874ef8990d653642276e6b4da25"
+    },
+    "scope": "Declared assets/pb fixtures copied from native materialization to browser workspace, hash-pinned before and after callback."
+  },
+  "compilation": "Reuses completed compiled96v case; this retry executes the unchanged original callback without claiming fresh compilation.",
+  "maintainedSourceFilesUnchanged": 477
+}
