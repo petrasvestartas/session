@@ -51,6 +51,8 @@
 
 ## <a id="checkpoint-53-flags"></a>1. Separate layer presentation from sources
 
+The `Layers On`, `Layers Off` and `Layers All` commands control the panel and its expanded rows. Use the row visibility controls, `Hide` or `Show` to change object visibility. Closing the panel preserves the scene's visibility state.
+
 ### 1. `src/view_flags.rs`
 
 Create the file and type:

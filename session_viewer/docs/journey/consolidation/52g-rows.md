@@ -317,6 +317,8 @@ pub fn draw(
 
 ## <a id="checkpoint-52j-input"></a>4. Connect tree controls before canvas picking
 
+`Layers On` opens the panel, `Layers Off` closes it, and `Layers All` opens it with every branch expanded. The maintained viewer also accepts `Layers` alone to toggle the panel. This course implementation registers the three explicit forms, so use those while following its code.
+
 ### 1. `src/panel.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
