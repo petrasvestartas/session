@@ -373,6 +373,21 @@ if math_view.uploaded {
 
 `highlighted_objects()` includes the visible derived paths owned by selected Elements. `selected_objects()` remains the editing selection. Restoring only that editing list after the upload would remove the feature highlight while leaving its original owner selected.
 
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/96t-select-and-highlight-original-feature-owners-10.rs"
+```
+
+```text
+--8<-- "journey/code/96t-select-and-highlight-original-feature-owners-11.rs"
+```
+
+</details>
+
 ## Run and check
 
 In your project:

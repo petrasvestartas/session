@@ -1285,5 +1285,9 @@
   "cacheMaintenance": {
     "receipt": "docs/journey/release/viewer-cache-compaction-20261101.json",
     "sha256": "6d752e18a53659dbcc29e914c4cd44f4ec61ae764304d1e7fccf9d872ecc2e6e"
+  },
+  "structureVerification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\course-structure-20261104.json",
+    "sha256": "e435b1ed98b93aab68d90a64e79753fa8237161b2da8bb7a95fd842d03f2dc34"
   }
 }

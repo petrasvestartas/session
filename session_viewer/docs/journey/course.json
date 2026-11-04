@@ -25158,7 +25158,7 @@
           "why": "Compile the one original face-orientation owner."
         }
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "55zc-follow-original-constrained-trim-labels"
     },
     {
       "id": "59-orientation",
@@ -28369,7 +28369,7 @@
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
       "lock": "journey/release/Cargo-text.lock",
-      "image_same_as": "62o-labels"
+      "image_same_as": "63-radius"
     },
     {
       "id": "63c-pipelines",
@@ -37987,7 +37987,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/70-nested-placements.rs",
-      "image_same_as": "70za-read-original-sheet-metadata-records"
+      "image_same_as": "70d-exercise-rotated-and-mirrored-original-references"
     },
     {
       "id": "71b-give-metadata-reads-their-own-cancellation-signal",
@@ -48897,7 +48897,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/80-network.rs",
-      "image_same_as": "80za-read-original-projection-planes"
+      "image_same_as": "80d-exercise-networks-corner-retries-and-exact-original-archives"
     },
     {
       "id": "81c-replace-an-original-without-replacing-its-row",
@@ -62876,7 +62876,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/89-pyramid.rs",
-      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
+      "image_same_as": "89-copy-density-scaled-depth-reduction"
     },
     {
       "id": "90c-gather-weak-original-ambient-properties",
@@ -63508,7 +63508,7 @@
       ],
       "lock": "journey/release/Cargo-publish.lock",
       "frame": "journey/checks/89-pyramid.rs",
-      "image_same_as": "88ad-exercise-original-sections-bores-and-ink"
+      "image_same_as": "89-copy-density-scaled-depth-reduction"
     },
     {
       "id": "90g-build-the-depth-equal-original-property-pass",

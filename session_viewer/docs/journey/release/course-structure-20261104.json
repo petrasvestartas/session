@@ -1,0 +1,25 @@
+{
+  "status": "ACTUAL_COURSE_STRUCTURE_AND_REFERENCE_CHECK_PASS",
+  "recordedUtc": "2026-11-04T21:27:32.977522+00:00",
+  "command": "node --import ./scripts/typescript.mjs scripts/course.ts structure",
+  "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests",
+  "exitCode": 0,
+  "output": [
+    "1361 lesson checkpoints; 310 viewer source files accounted for.",
+    "43 reference checkpoints match all displayed edits and 351 final files."
+  ],
+  "course": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\course.json",
+    "sha256": "35f4411255e6d002f66156c191e450522e623ecfbca2736bdf76b3714a2dafc3"
+  },
+  "legacyPatchReferences": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\96t-select-and-highlight-original-feature-owners.md",
+    "sha256": "3a910b94de58d667b10853278859f6e204261529b13ab51c24f9bf5742e56ff6"
+  },
+  "changes": [
+    "Six stale image_same_as fields corrected to existing byte-identical earlier parents.",
+    "Two existing code-patch includes added to the legacy96t optional reference list."
+  ],
+  "sourceCodeProseVueAndPrimaryPageEdits": false,
+  "runtimeImageAcceptanceClaim": false
+}
