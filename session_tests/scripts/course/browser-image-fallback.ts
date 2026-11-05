@@ -1,3 +1,4 @@
+import {imageCourseManifestInputs} from './capture-storage.ts';
 import {adapterMetadataPath, adapterMetadata, observeExecution, finishExecution, bundleInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,7 +57,7 @@ async function host(workspace: string, folder: string, worker: string, config: a
     const arguments_=['--require',fileURLToPath(new URL('./warp-browser-timeout.cjs',import.meta.url)),'--import',pathToFileURL(loader).href,worker,...workerArguments];
     write(commandFile,JSON.stringify({executable:process.execPath,arguments:arguments_})+'\n');
     const log=path.join(folder,'image-browser.log'),descriptor=fs.openSync(log,'wx'),resourcesFile=path.join(folder,'image-resources.json');
-    const beforeExecution = observeExecution([...bundleInputs(workspace, config.id), process.execPath, loader, worker, chrome, metadataFile, configFile]);
+    const beforeExecution = observeExecution([...imageCourseManifestInputs(workspace), ...bundleInputs(workspace, config.id), process.execPath, loader, worker, chrome, metadataFile, configFile]);
     try{
         const args=['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','2400',
             '-WorkingDirectory',workspace,'-ManifestPath',resourcesFile,'-CommandFile',commandFile];

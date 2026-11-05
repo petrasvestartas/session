@@ -8,25 +8,25 @@ import {buildBrowser} from './browser-presentation.ts';
 import {bindings} from './presentation.ts';
 import {docs, hash, json, read, viewer, write} from './model.ts';
 import {observeGpu, privateBrowserHost, validateGpu} from './private-browser-host.ts';
-import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
+import {fileReference, observeExecution, finishExecution, adaptImageCourseRead, imageCourseManifestPath, imageCourseManifestInputs} from './capture-storage.ts';
 
 const id = '97-finish-with-the-maintained-browser-runtime';
 const sha = (file: string) => hash(fs.readFileSync(file));
 const script = fileURLToPath(import.meta.url), originalFile = path.join(docs, 'capture_current.cjs');
 
-export function maintainedClone() {
-    const original = read(originalFile), start = '            const page = await context.newPage();';
+export function maintainedClone(workspace?: string) {
+    const canonical = read(originalFile), original = workspace ? adaptImageCourseRead(canonical, workspace) : canonical, start = '            const page = await context.newPage();';
     const image = '                const image = PNG.sync.read(bytes);';
     assert.equal(original.split(start).length, 2); assert.equal(original.split(image).length, 2);
     const extra = validateGpu + `\nfs.writeFileSync(path.join(output,'actual-gpu-dpr'+density+'.json'),JSON.stringify(actualGpu,null,2));`;
     const adapted = original.replace(start, start + '\n' + observeGpu).replace(image, image + '\n' + extra);
     assert.equal(adapted.replace(start + '\n' + observeGpu, start).replace(image + '\n' + extra, image), original);
     new vm.Script(adapted);
-    return {original, adapted, originalSha256: hash(original), adaptedSha256: hash(adapted)};
+    return {original: canonical, adapted, originalSha256: hash(canonical), adaptedSha256: hash(adapted)};
 }
 
 export async function runMaintainedPresentation(preparedFile?: string) {
-    const built = preparedFile ? json(preparedFile) : buildBrowser(id, 2), clone = maintainedClone(), source = bindings(id);
+    const built = preparedFile ? json(preparedFile) : buildBrowser(id, 2), clone = maintainedClone(built.workspace), source = bindings(id);
     assert.equal(built.id, id); assert.deepEqual(built.source, source);
     if (preparedFile) {
         assert.equal(built.status, 'BUILT_NOT_CAPTURED');
@@ -61,10 +61,11 @@ export async function runMaintainedPresentation(preparedFile?: string) {
     const results = path.join(workspace, 'target/course-checks/results.json');
     write(results, JSON.stringify({[id]: {source: source.files, commands}}, null, 2));
     const adapted = path.join(folder, 'capture-adapted.cjs'); write(adapted, clone.adapted);
-    const before = observeExecution([originalFile, adapted, results, path.join(workspace, 'docs/journey/course.json'),
+    const sharedInputs=imageCourseManifestInputs(workspace);for(const file of sharedInputs)assert.equal(sha(file),built.pins[file],'Prepared shared course input changed');
+    const before = observeExecution([originalFile, adapted, results, imageCourseManifestPath(workspace), ...sharedInputs,
         path.join(workspace, 'docs/journey/checks/browser/final.cjs'), path.join(workspace, 'docs/journey/checks/fingerprint.cjs')]);
     const host = await privateBrowserHost(workspace, folder, script, {id, originalFile, adapted, adaptedSha256: clone.adaptedSha256});
-    const driver = finishExecution(before);
+    const driver = finishExecution(before);for(const file of sharedInputs)assert.equal(sha(file),built.pins[file]);
     for (const phase of ['before', 'after'] as const) host.executionIntegrity[phase].files.push(...driver[phase].files);
     assert.deepEqual(bindings(id), source);
     const outputs = path.join(workspace, 'docs/screenshots/journey');

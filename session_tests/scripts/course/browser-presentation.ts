@@ -1,5 +1,5 @@
 import {adapterMetadataPath, adapterMetadata} from './capture-storage.ts';
-import {cargoTarget} from './capture-storage.ts';
+import {cargoTarget, imageCourseSnapshot, stageImageCourseManifest, adaptImageCourseRead, imageCourseManifestInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -12,9 +12,10 @@ import {nativeTarget, runCommand} from './verify.ts';
 
 const sha = (file: string) => hash(fs.readFileSync(file));
 const rootFor = (id: string, density: number) => {
-    const key = hash(JSON.stringify({source: bindings(id), density, attempt: process.env.COURSE_CAPTURE_ATTEMPT || null, helper: sha(fileURLToPath(import.meta.url)), capture: sha(capture)}));
+    const key = hash(JSON.stringify({source: bindings(id), density, sharedCourseManifest: imageCourseSnapshot()?.sha256 || null, manifestHelper: sha(fileURLToPath(new URL('./capture-storage.ts', import.meta.url))), attempt: process.env.COURSE_CAPTURE_ATTEMPT || null, helper: sha(fileURLToPath(import.meta.url)), capture: sha(capture)}));
     return path.join(viewer, 'target/course-presentation', `browser-${id}-${key.slice(0, 16)}-dpr${density}`);
 };
+export const browserPreparationFile = (id: string, density = 2) => path.join(rootFor(id, density), 'prepared.json');
 const capture = path.join(docs, 'capture_journey.cjs');
 
 function bindgenFor(lock: string) {
@@ -118,7 +119,7 @@ export function prepareBrowser(id: string, density = 2) {
         if (id === '01-canvas') materialize(expected(id), native, lockFor(id), assetsFor(id));
         else prepare(id, density);
     }
-    const source = bindings(id), original = read(capture);
+    const source = bindings(id), sharedCourseManifest = stageImageCourseManifest(workspace), canonicalCapture = read(capture), original = adaptImageCourseRead(canonicalCapture, workspace);
     const pageBoundary = '        page = await browser.newPage({viewport: {width: 900, height: 760}, deviceScaleFactor: 1});';
     const imageBoundary = '            await page.screenshot({path: path.join(output, file), fullPage: true});';
     assert.equal(original.split(pageBoundary).length, 2);
@@ -137,7 +138,7 @@ const filename=${JSON.stringify(capture)}, runner=new Module(filename,module); r
 runner.paths=Module._nodeModulePaths(path.dirname(filename)); process.argv=[process.argv[0],filename,${JSON.stringify(id)}];
 runner._compile(source,filename);\n`;
     write(path.join(folder, 'capture-adapted.cjs'), adapted); write(worker, bootstrap);
-    write(path.join(workspace, 'docs/journey/course.json'), read(path.join(docs, 'journey/course.json')));
+
     fs.cpSync(path.join(docs, 'journey/checks'), path.join(workspace, 'docs/journey/checks'), {recursive: true});
     fs.mkdirSync(path.join(workspace, 'docs/screenshots/journey'), {recursive: true});
     const prior = ['03-triangle-browser.png', '03a-panel-browser.png', '03b-memory-browser.png'];
@@ -146,10 +147,10 @@ runner._compile(source,filename);\n`;
         if (fs.existsSync(source)) fs.copyFileSync(source, path.join(workspace, 'docs/screenshots/journey', file));
     }
     write(path.join(workspace, 'target/course-checks/results.json'), JSON.stringify({[id]: {source: source.files}}));
-    const pins = Object.fromEntries([capture, fileURLToPath(import.meta.url), ...filesIn(path.join(docs, 'journey/checks'))].map(file => [file, sha(file)]));
-    const record = {status: 'PREPARED_NOT_BUILT', id, density, folder, workspace, native, source, pins,
+    const pins = Object.fromEntries([capture, fileURLToPath(import.meta.url), fileURLToPath(new URL('./capture-storage.ts', import.meta.url)), ...imageCourseManifestInputs(workspace), ...filesIn(path.join(docs, 'journey/checks'))].map(file => [file, sha(file)]));
+    const record = {status: 'PREPARED_NOT_BUILT', id, density, folder, workspace, native, source, pins, sharedCourseManifest,
         worker, workerSha256: sha(worker), adapted: path.join(folder, 'capture-adapted.cjs'), adaptedSha256: hash(adapted),
-        assertionPreservation: 'Two additive insertions only: GPU observer before navigation and high-DPI presentation after every original callback/status assertion.',
+        assertionPreservation: 'One reversible course-read transport substitution when explicitly opted in; all assertions unchanged. Two additive insertions only: GPU observer before navigation and high-DPI presentation after every original callback/status assertion.',
         behaviorDpr: 1, imageDpr: density, buildProfile: 'debug; no optimized/release claim'};
     write(path.join(folder, 'prepared.json'), JSON.stringify(record, null, 2) + '\n');
     return record;

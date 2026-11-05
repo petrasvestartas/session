@@ -1,0 +1,113 @@
+{
+  "status": "SOURCE_AND_PREPARATION_TESTS_PASS_FULL_BROWSER_QUALIFICATION_PENDING",
+  "mode": "Opt-in COURSE_IMAGE_SHARED_MANIFEST=1; complete immutable course bytes shared across browser capture workspaces.",
+  "tests": {
+    "status": "PRIVATE_SHARED_FULL_COURSE_CAS_TESTS_PASS_NO_BUILD_GPU_CAPTURE_APPLICATION",
+    "tests": 9,
+    "syntaxCheckedToolFiles": 14,
+    "fullBytes": true,
+    "actualFullCourseSteps": 1361,
+    "defaultLocalUnchanged": true,
+    "effectivePath": true,
+    "actualReadHashMismatchRejected": true,
+    "beforeAfterInputMutationRejected": true,
+    "exclusiveCasNeverOverwritten": true,
+    "canonicalDriversUnchanged": 2,
+    "callbackFilesUnchanged": 227,
+    "declaredPbStagingWrapperUnchanged": true,
+    "proposalSha256": "60f71d4e0797362235d6434dca7d7967f2c15f1e9e7691838094baac025f5cb6"
+  },
+  "actualPreparationRegression": {
+    "status": "PRIVATE_ACTUAL_PREPARATION_BASELINE_IDENTITY_PASS_NO_BUILD",
+    "proposalSha256": "60f71d4e0797362235d6434dca7d7967f2c15f1e9e7691838094baac025f5cb6",
+    "cases": [
+      {
+        "mode": "DEFAULT_LOCAL",
+        "status": "ACTUAL_PREPARATION_FUNCTIONS_PASS",
+        "baselineExists": true,
+        "baselineDerivedFromReturnedFolder": true,
+        "cachedPreparationReused": true,
+        "nativeBuildExecuted": false,
+        "scope": "Actual candidate prepareBrowser/prepareIncrementalImageBrowser functions; isolated real filesystem and explicit deterministic source/tool-version fixtures. No production filesystem hooks."
+      },
+      {
+        "mode": "CAS_OPT_IN",
+        "status": "ACTUAL_PREPARATION_FUNCTIONS_PASS",
+        "baselineExists": true,
+        "baselineDerivedFromReturnedFolder": true,
+        "cachedPreparationReused": true,
+        "nativeBuildExecuted": false,
+        "scope": "Actual candidate prepareBrowser/prepareIncrementalImageBrowser functions; isolated real filesystem and explicit deterministic source/tool-version fixtures. No production filesystem hooks."
+      }
+    ]
+  },
+  "changedFiles": [
+    {
+      "path": "session/session_tests/scripts/course/capture-storage.ts",
+      "sha256": "5e10c23ecd7a7b4e10e2ff63069309e2b3da2c340e9355a0e79c539d3872c9fb"
+    },
+    {
+      "path": "session/session_tests/scripts/course/browser-presentation.ts",
+      "sha256": "a3d22b4ec11e29af0afc946226e6e1cb2353b9d6e8b382a7e05b85d3ffea6e13"
+    },
+    {
+      "path": "session/session_tests/scripts/course/incremental-browser-image-build.ts",
+      "sha256": "82bb223f7c231a0a19128d53161762ea083cda685a03643ef34e89e39b729a61"
+    },
+    {
+      "path": "session/session_tests/scripts/course/historical-browser-actions-presentation.ts",
+      "sha256": "b45b483036ba3b8ff22fe6807b7b00f0c63e83ead2b187fe2b71304aa9f015dc"
+    },
+    {
+      "path": "session/session_tests/scripts/course/additional-browser-image-recipes.ts",
+      "sha256": "e51241cb0d2bf656e792e6da380da8b678368142c096e6b980572948bc2af0a4"
+    },
+    {
+      "path": "session/session_tests/scripts/course/exported-browser-image-recipes.ts",
+      "sha256": "1c50ce1f1bfaced1c74ec447648be0fb57075303ce63c06939e1322a56342380"
+    },
+    {
+      "path": "session/session_tests/scripts/course/browser-streaming-presentation.ts",
+      "sha256": "6c4c453bf3c072002c17a2a7283059c52a894e29c210173bb1be9347d383b98a"
+    },
+    {
+      "path": "session/session_tests/scripts/course/supplemental-presentation.ts",
+      "sha256": "d57ec129949dcec6de8f8c011d20efa1149cf9c6c2f62ca8ffdca336e804e955"
+    },
+    {
+      "path": "session/session_tests/scripts/course/private-browser-host.ts",
+      "sha256": "3ba0c5edd776dc080d9e1c83a19f7c1c2f1993a7c7fb27e201f42b399909f4de"
+    },
+    {
+      "path": "session/session_tests/scripts/course/parallel-image-browser-host.ts",
+      "sha256": "80c61b5d8087f14b737cf34fe25a0dc6fe276b1c35eb9a0ed90ed7e09fd50409"
+    },
+    {
+      "path": "session/session_tests/scripts/course/browser-image-fallback.ts",
+      "sha256": "0cc9741f377faabd9d005595ac77f2be45aeb158cf774bd9e5991661e1795dbe"
+    },
+    {
+      "path": "session/session_tests/scripts/course/maintained-browser-presentation.ts",
+      "sha256": "451295cc02bb17c484a15a22ed24923aa8cab638c41e6db2417e329233571c00"
+    },
+    {
+      "path": "session/session_tests/scripts/course/compact-capture.ts",
+      "sha256": "c14b1e00d391fc24541073e757751322f8e8bc9110f4be1ff722e19b4d7a5d4c"
+    },
+    {
+      "path": "session/session_tests/scripts/course/compact-capture-batch.ts",
+      "sha256": "cc2b91cc21e7d0018b3a1d8fa5b4ff9f623afd4fda6b0bbe2d5e934168199e6f"
+    }
+  ],
+  "originalCallbacksUnchanged": 227,
+  "canonicalDriversUnchanged": 2,
+  "sourceTestEvidence": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\shared-full-course-manifest-proposal-01\\test-result.json",
+    "sha256": "59cdf421b815c18f2cc1cdd4435f0cd883f37c84383705cf30994a3e0b4f9565"
+  },
+  "preparationEvidence": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\shared-full-course-manifest-proposal-01\\preparation-test-result.json",
+    "sha256": "bb9d42f3e8c7e87789a694cce8e765351b12e8a3ac2d28054b309e585eb809e0"
+  },
+  "gpuRuntimeQualification": "Pending storage headroom and a fresh dependency-bound browser capture; no screenshot acceptance claimed."
+}

@@ -1,3 +1,4 @@
+import {adaptImageCourseRead} from './capture-storage.ts';
 import {applyBrowserScale} from './image-render-scale.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -116,7 +117,7 @@ async function worker(prepared: any) {
         page.on('requestfailed', (request: any) => startupEvents.requestFailures.push({url: request.url(), method: request.method(), failure: request.failure()}));
         page.on('response', (response: any) => { if (response.status() >= 400) startupEvents.httpErrors.push({url: response.url(), status: response.status()}); });
         await (new Function('page','return(async()=>{'+observeGpu+'})()'))(page);
-        const capture=path.join(docs,'capture_journey.cjs'),original=read(capture),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
+        const capture=path.join(docs,'capture_journey.cjs'),original=adaptImageCourseRead(read(capture),prepared.workspace),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
         const helpers=new Module(capture);helpers.filename=capture;helpers.paths=Module._nodeModulePaths(path.dirname(capture));
         const previous=process.argv;
         try{process.argv=[previous[0],capture,prepared.id];helpers._compile(original.split(boundary)[0]+'\nmodule.exports={command,drawing};',capture);}finally{process.argv=previous;}

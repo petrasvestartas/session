@@ -1,12 +1,12 @@
 import {browserScaleBridge} from './image-render-scale.ts';
-import {cargoTarget, compilerTools, checkWorkbenchOwnership, workbenchPath} from './capture-storage.ts';
+import {cargoTarget, compilerTools, checkWorkbenchOwnership, workbenchPath, imageCourseSnapshot, stageImageCourseManifest, imageCourseManifestInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {isDeepStrictEqual} from 'node:util';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {prepareBrowser} from './browser-presentation.ts';
+import {prepareBrowser, browserPreparationFile} from './browser-presentation.ts';
 import {bindings} from './presentation.ts';
 import {exactBindgen} from './exact-bindgen.ts';
 import {assetsFor, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write} from './model.ts';
@@ -46,23 +46,22 @@ function sourceCheck(p:any){
 
 export function prepareIncrementalImageBrowser(id:string,density=2){
     assert.equal(density,2);
-    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy,toolFiles:compilerTools(),tools:tools()};
+    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,sharedCourseManifest:imageCourseSnapshot()?.sha256||null,manifestHelper:sha(fileURLToPath(new URL('./capture-storage.ts',import.meta.url))),attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy,toolFiles:compilerTools(),tools:tools()};
     const folder=path.join(root,'cases',id+'-'+hash(JSON.stringify(identity)).slice(0,20)),preparedFile=path.join(folder,'prepared.json');
     if(fs.existsSync(preparedFile)){const p=json(preparedFile);sourceCheck(p);return p;}
-    const baselineKey=hash(JSON.stringify({source,density,attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helper:sha(original),capture:sha(capture)}));
-    const baselineFile=path.join(viewer,'target/course-presentation',`browser-${id}-${baselineKey.slice(0,16)}-dpr${density}`,'prepared.json');
-    const base=fs.existsSync(baselineFile)?json(baselineFile):prepareBrowser(id,density);assert.deepEqual(base.source,source);
+    const lookup=browserPreparationFile(id,density),base=fs.existsSync(lookup)?json(lookup):prepareBrowser(id,density);
+    const baselineFile=path.join(base.folder,'prepared.json');assert.equal(baselineFile,lookup);assert.deepEqual(base.source,source);
     const native=path.join(folder,'canonical-source');materialize(expected(id),native,lockFor(id),assetsFor(id));
     const renderScaleBridge = source.imageProfile.browser ? browserScaleBridge(read(path.join(native, 'src/browser.rs')), source.imageProfile.browser) : null;
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
     const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,policy,helperSha256:sha(self),guardSha256:sha(guard)};
     const groupKey='compact-browser-v1',group=path.join(viewer,'target/course-ib',groupKey),workbench=path.join(group,'workspace'),target=cargoTarget();
     const workspace=path.join(folder,'workspace'),dist=path.join(workspace,'target/course-checks',id,'dist');
-    write(path.join(workspace,'docs/journey/course.json'),read(path.join(docs,'journey/course.json')));
+    const sharedCourseManifest=stageImageCourseManifest(workspace);assert.deepEqual(sharedCourseManifest,base.sharedCourseManifest||null);
     fs.cpSync(path.join(docs,'journey/checks'),path.join(workspace,'docs/journey/checks'),{recursive:true});
     fs.mkdirSync(path.join(workspace,'docs/screenshots/journey'),{recursive:true});
     write(path.join(workspace,'target/course-checks/results.json'),JSON.stringify({[id]:{source:source.files}}));
-    const pins={...base.pins,[self]:sha(self),[guard]:sha(guard),[fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url))]:sha(fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url)))};
+    const pins={...base.pins,...Object.fromEntries(imageCourseManifestInputs(workspace).map(file=>[file,sha(file)])), [self]:sha(self),[guard]:sha(guard),[fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url))]:sha(fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url)))};
     const dependencyPaths:any[]=[];let table=false;
     const rebased=canonicalCargo.split('\n').map(line=>{
         if(/^\s*\[/.test(line))table=/(?:^|\.)(?:dependencies|dev-dependencies|build-dependencies)(?:\.|\])/.test(line.trim().slice(1))||/^\s*\[(?:patch\.|replace\])/.test(line);
@@ -75,7 +74,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     assert.equal(lock.split('name = "'+old+'"').length,2);
     const overlayCargo=rebased.replace('name = "'+old+'"','name = "'+packageName+'"').replace('[lib]','[lib]\nname = "viewer_journey"');
     const overlayLock=lock.replace('name = "'+old+'"','name = "'+packageName+'"');
-    const p={...base,...identity,status:'PREPARED_INCREMENTAL_IMAGE_BUILD_NOT_EXECUTED',id,density,folder,preparedFile,workspace,dist,native,pins,
+    const p={...base,...identity,status:'PREPARED_INCREMENTAL_IMAGE_BUILD_NOT_EXECUTED',id,density,folder,preparedFile,workspace,dist,native,pins,sharedCourseManifest,
         baseline:{path:baselineFile,sha256:sha(baselineFile),sourceOnlyReused:true,priorBuiltStatus:base.status},canonicalFiles,
         group:{key:groupKey,identity:groupIdentity,folder:group,workbench,target,package:packageName,library:'viewer_journey'},
         overlay:{renderScaleBridge,cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},

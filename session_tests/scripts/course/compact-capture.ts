@@ -1,3 +1,4 @@
+import {imageCourseSnapshot, imageCourseManifestInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ const self = fileURLToPath(import.meta.url);
 const root = path.join(viewer, 'target/course-compact');
 const laneLock = path.join(root, 'active.lock');
 
-function sourceEvidence(id: string) {
+function sourceEvidence(id: string, lane: string) {
     const step = course().steps.find(step => step.id === id)!;
     const manifest = withExpectedSequence(() => expected(id)['Cargo.toml']);
     const files = [...filesIn(path.dirname(self)).filter(file => /\.(ts|cjs|ps1)$/.test(file)),
@@ -28,6 +29,7 @@ function sourceEvidence(id: string) {
         files.push(...filesIn(path.join(directory, 'src')));
         for (const name of ['Cargo.toml', 'Cargo.lock', 'build.rs']) if (fs.existsSync(path.join(directory, name))) files.push(path.join(directory, name));
     }
+    const shared=lane==='browser'?imageCourseSnapshot():null;if(shared)files.push(shared.path);
     return [...new Set(files)];
 }
 
@@ -97,7 +99,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
     if (lane === 'browser' && captureImageProfile) assert.equal(route, captureImageProfile.route || (id.startsWith('88ad-') ? 'exported' : 'main-page'), 'Image profile requires its exact image recipe');
     fs.mkdirSync(root, {recursive: true});
     const adapterProfile = lane === 'native' ? nativeAdapterProfile() : null;
-    const inputs = [...sourceEvidence(id), ...(captureImageProfile?.files.map(file => file.path) || []), ...(adapterProfile ? [adapterProfile.metadata.path, adapterProfile.enumerator.path] : [])], sourceBefore = observeExecution(inputs);
+    const inputs = [...sourceEvidence(id, lane), ...(captureImageProfile?.files.map(file => file.path) || []), ...(adapterProfile ? [adapterProfile.metadata.path, adapterProfile.enumerator.path] : [])], sourceBefore = observeExecution(inputs);
     const descriptor = fs.openSync(laneLock, 'wx');
     fs.writeFileSync(descriptor, JSON.stringify({pid: process.pid, lane, id})); fs.closeSync(descriptor);
     let file: string, buildFile: string | undefined, ownedRoots: string[], transientRoots: string[], execution: any, evidence: string[];
@@ -132,14 +134,18 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             const built = withExpectedSequence(() => module.buildIncrementalImageBrowser(id, 2, {
                 beforeIdentityChange: (previous, prepared) => cleanCompilerTransition({previous, prepared, captures: priorCaptures, viewer}),
             }));
+            const sharedBefore=observeExecution(imageCourseManifestInputs(built.workspace));
+            for(const input of sharedBefore.files)assert.equal(built.pins[input.path],input.sha256,'Prepared shared course input changed');
             file = await browserCapture(id, route, built);
+            const sharedIntegrity=finishExecution(sharedBefore);
             const record = json(file), baseline = json(built.baseline.path);
             ownedRoots = [built.folder, path.dirname(file), path.dirname(built.baseline.path), baseline.native];
             transientRoots = [built.native, built.workspace, baseline.native, baseline.workspace];
             if (record.folder) ownedRoots.push(record.folder);
             if (record.host?.log) ownedRoots.push(path.dirname(record.host.log));
             execution = record.executionIntegrity || record.host?.executionIntegrity;
-            evidence = [built.imageBuild.path, built.preparedFile];
+            for(const phase of ['before','after'] as const)execution[phase].files.push(...sharedIntegrity[phase].files);
+            evidence = [built.imageBuild.path, built.preparedFile, ...imageCourseManifestInputs(built.workspace)];
             if (record.ownedActionSourceBridge) {
                 const reference = record.ownedActionSourceBridge;
                 assert.equal(fileReference(reference.path).sha256, reference.sha256);

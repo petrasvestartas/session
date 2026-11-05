@@ -1,3 +1,4 @@
+import {adaptImageCourseRead} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -41,7 +42,7 @@ async function worker(configFile: string) {
     const prepared = json(configFile); check(prepared);
     const require = createRequire(path.join(docs, 'capture_journey.cjs'));
     const {chromium} = require('playwright');
-    const captureFile = path.join(docs, 'capture_journey.cjs'), original = read(captureFile), boundary = original.indexOf('\nasync function capture()');
+    const captureFile = path.join(docs, 'capture_journey.cjs'), original = adaptImageCourseRead(read(captureFile),prepared.workspace), boundary = original.indexOf('\nasync function capture()');
     assert(boundary > 0);
     const args = process.argv; process.argv = [args[0], captureFile, id];
     let helpers: any;

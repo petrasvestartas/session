@@ -1,3 +1,4 @@
+import {adaptImageCourseRead} from './capture-storage.ts';
 import {applyBrowserScale} from './image-render-scale.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -85,7 +86,7 @@ async function worker(p:any){
     try{
         const context=await browser.newContext({viewport:p.viewport,deviceScaleFactor:2,acceptDownloads:true}),page=await context.newPage(),errors:string[]=[];
         page.on('pageerror',(e:any)=>errors.push(e.message));await(new Function('page','return(async()=>{'+observeGpu+'})()'))(page);
-        const capture=path.join(p.privateDocs,'capture_journey.cjs'),text=read(capture),boundary='\nasync function capture()';assert.equal(text.split(boundary).length,2);
+        const capture=path.join(p.privateDocs,'capture_journey.cjs'),text=adaptImageCourseRead(read(capture),p.workspace),boundary='\nasync function capture()';assert.equal(text.split(boundary).length,2);
         const helper=new Module(capture);helper.filename=capture;helper.paths=Module._nodeModulePaths(path.dirname(path.join(docs,'capture_journey.cjs')));
         const argv=process.argv;try{process.argv=[argv[0],capture,p.id];helper._compile(text.split(boundary)[0]+'\nmodule.exports={command,drawing};',capture);}finally{process.argv=argv;}
         const helpers={...helper.exports,step:course().steps.find(s=>s.id===p.id)},command=(line:string)=>helpers.command(page,line);

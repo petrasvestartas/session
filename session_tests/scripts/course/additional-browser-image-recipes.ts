@@ -1,3 +1,4 @@
+import {adaptImageCourseRead} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -76,7 +77,7 @@ async function worker(prepared: any) {
         const context = await browser.newContext({viewport:prepared.viewport,deviceScaleFactor:prepared.density,acceptDownloads:true});
         const page=await context.newPage(),errors:string[]=[];page.on('pageerror',(e:any)=>errors.push(e.message));
         await (new Function('page','return(async()=>{'+observeGpu+'})()'))(page);
-        const capture=path.join(docs,'capture_journey.cjs'),original=read(capture),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
+        const capture=path.join(docs,'capture_journey.cjs'),original=adaptImageCourseRead(read(capture),prepared.workspace),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
         const helpers=new Module(capture);helpers.filename=capture;helpers.paths=Module._nodeModulePaths(path.dirname(capture));
         const previous=process.argv;
         try{process.argv=[previous[0],capture,prepared.id];helpers._compile(original.split(boundary)[0]+'\nmodule.exports={command,drawing};',capture);}finally{process.argv=previous;}

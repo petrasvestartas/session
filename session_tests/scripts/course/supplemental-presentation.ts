@@ -1,3 +1,4 @@
+import {adaptImageCourseRead} from './capture-storage.ts';
 import {cargoTarget, fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -257,7 +258,7 @@ async function worker(config:any) {
             }
         } else {
             await (new Function('page','return (async()=>{'+observeGpu+'})()'))(page);
-            const original=read(config.originalCapture),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
+            const original=adaptImageCourseRead(read(config.originalCapture),process.cwd()),boundary='\nasync function capture()';assert.equal(original.split(boundary).length,2);
             const helpers=new Module(config.originalCapture);helpers.filename=config.originalCapture;helpers.paths=Module._nodeModulePaths(path.dirname(config.originalCapture));
             const previous=process.argv;try{process.argv=[previous[0],config.originalCapture,config.id];helpers._compile(original.split(boundary)[0]+'\nmodule.exports={command,drawing,focusCommand};',config.originalCapture);}finally{process.argv=previous;}
             const {command,drawing,focusCommand}=helpers.exports;

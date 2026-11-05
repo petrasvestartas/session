@@ -1,3 +1,4 @@
+import {imageCourseManifestInputs} from './capture-storage.ts';
 import {adapterMetadataPath, adapterMetadata, observeExecution, finishExecution, bundleInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -29,7 +30,7 @@ export async function privateBrowserHost(workspace: string, folder: string, work
     const configFile = path.join(folder, 'config.json'); write(configFile, JSON.stringify(config, null, 2) + '\n');
     const log = path.join(folder, 'browser.log'), descriptor = fs.openSync(log, 'wx');
     const loader = fileURLToPath(new URL('../typescript.mjs', import.meta.url));
-    const beforeExecution = observeExecution([...bundleInputs(workspace, config.id), process.execPath, loader, worker, chrome, adapterMetadataPath(), configFile]);
+    const beforeExecution = observeExecution([...imageCourseManifestInputs(workspace), ...bundleInputs(workspace, config.id), process.execPath, loader, worker, chrome, adapterMetadataPath(), configFile]);
     try {
         const args = [path.resolve(viewer, '../session_tests/scripts/run-guarded.cjs'), '-MemoryLimitMiB', '6144', '-TimeoutSeconds', '2400',
             '-WorkingDirectory', workspace, '-ManifestPath', path.join(folder, 'resources.json'), process.execPath,
