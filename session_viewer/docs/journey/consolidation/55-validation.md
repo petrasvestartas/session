@@ -684,6 +684,10 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Refine the shaded surface grid and its four mathematical borders together. The triangle indices fill the face; the border list supplies the visible line segments. Internal triangulation edges stay out of that list. Retain the original surface so a later camera change can prepare a finer presentation without changing its document row.
 
+The face and its borders share the same refined u and v parameter arrays: each border indexes the corresponding outer row of surface samples. Those positions come from evaluating the original NURBS surface, while the GPU fills triangles and draws straight boundary chords between samples. The interior probes guide refinement; they are an error heuristic, not a guaranteed bound for every NURBS surface.
+
+Analytic surface normals support smooth shading here. In the later BRep renderer, triangle normals are also retained for facing tests and apparent silhouettes on curved faces. That silhouette pass selects where adjacent facets face opposite sides of the view; it does not draw every internal triangle edge. BRep boundary-stroke positions instead come from their own edge curves. Valid display-triangle parameters align their chord intervals with the shaded faces; those triangles do not supply the stroke coordinates.
+
 **Locate this existing block:**
 
 ```rust

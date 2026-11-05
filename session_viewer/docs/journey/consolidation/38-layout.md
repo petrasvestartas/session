@@ -818,6 +818,8 @@ fn straight_and_periodic_curves_keep_required_endpoints_and_knots() {
 
 A curve keeps its exact NURBS source and a separate sampled display. Refine the non-empty knot spans until the chords meet the requested physical-pixel tolerance. Work and vertex limits bound preparation; a budget limit keeps the previous complete display. Zoom changes presentation quality without adding an editor or Undo operation.
 
+The sample endpoints come from evaluating the NURBS curve at retained parameter values; the GPU joins those points with straight chords. Exact source coordinates therefore do not make the rendered line an analytic curve. Zooming in can require more segments to keep the chords small on screen. If preparation reaches a work or memory limit, report the unmet request and retain the last complete display rather than presenting a partial candidate as a successful refinement.
+
 Create the file and type:
 
 ```rust

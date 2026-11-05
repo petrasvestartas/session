@@ -1289,5 +1289,43 @@
   "structureVerification": {
     "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\course-structure-20261104.json",
     "sha256": "e435b1ed98b93aab68d90a64e79753fa8237161b2da8bb7a95fd842d03f2dc34"
+  },
+  "tutorialContentUpdate": {
+    "recordedUtc": "2026-11-05T17:45:35.933686+00:00",
+    "status": "CONTENT_REVIEW_AND_STRUCTURE_PASS_SITE_REBUILD_PENDING",
+    "readers": [
+      {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "sha256": "aa6b74c6bfd987e4b218ca9f0466264a48e9c82ae5d5cf967ac8d1ce4f2a8a92"
+      },
+      {
+        "path": "docs/journey/consolidation/55-validation.md",
+        "sha256": "61b5178234ae9e1029b67b6cee3b08ba061ef95710e2a223ca3048ab95cadb3d"
+      },
+      {
+        "path": "docs/journey/consolidation/65-originals.md",
+        "sha256": "02bf80a8aec213e653266b3f7361c69d131d2b34cf748d437a47274acabb8008"
+      }
+    ],
+    "topics": [
+      "Exact NURBS samples, GPU chords, screen tolerance and finite refinement budgets.",
+      "Shaded face triangles without internal wires; shared face/border schedules; exact curve positions and retained triangle-normal silhouettes.",
+      "Resident original-point IDs versus paged nonresident queries, cancellation and source revisions."
+    ],
+    "preserved": [
+      "Existing prose",
+      "Headings",
+      "Code fences",
+      "SVGs",
+      "Images",
+      "Vue layout and styles"
+    ],
+    "structureChecks": {
+      "lessonCheckpoints": 1361,
+      "viewerFiles": 310,
+      "referenceCheckpoints": 43,
+      "referenceFinalFiles": 351
+    },
+    "freshBrowserOrGpuAcceptance": false
   }
 }

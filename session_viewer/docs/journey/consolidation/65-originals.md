@@ -789,6 +789,12 @@ fn f10_controls_only_when_the_canvas_owns_the_key() {
 
 With `Controls Off` and `Select None`, the same `Example Cloud` shows its stored RGB colors without the yellow selection overlay. These 1,681 points form a synthetic wave sampled on a 41 by 41 grid; this small color fixture does not represent a dense photographic scan.
 
+Display LOD and point identity serve different purposes. A coarse octree subset bounds the displayed splats; a storage address is resolved back to an original point ID. The resident exercise below preserves all 32 ID bits and uses the source position and instance transform in f64. Its coarse-display test checks a point outside the first 64 displayed points by exposing all 2,000,064 resident originals in control mode, then checks that leaving control mode restores the coarse display and reuses the existing upload.
+
+For nonresident streamed clouds, the [maintained browser query](../../../src/state/cloud_query.rs) follows a separate path. It reads eligible source-coordinate ranges in [pages of at most 65,536 points](../../../src/app/cloud_query.rs), filters candidates near the click, submits them to GPU picking, and reads the winner's original ID and source position. Missing or incomplete octree coverage falls back to scanning the source ranges. These query pages do not replace the bounded display LOD. The resident tests below do not implement or establish parity with this paged path.
+
+The maintained query captures the cloud's parent row, source URL, placement-aware camera matrix, viewport and click. A new pick or `touch()` cancels the pending query; camera spin cancels it too. Source replies must carry the current query ID and arrive while its cancellation flag is unset. Source range reads also [reject a changed ETag when a revision is available](../../../src/app/fetch.rs), so this check depends on the source supplying that revision.
+
 ![Unselected RGB colors on the original 1,681-point synthetic cloud](../release/cloud65c-unselected-rgb.png)
 
 ### 1. `src/cloud_pick_tests.rs`
