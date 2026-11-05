@@ -2,29 +2,29 @@ use crate::State;
 use crate::app::command::tool::elements::{Param, Recipe, create, is_curve, picked_loops, start};
 use crate::app::command::{Action, Spec};
 use session_rust::Polyline;
-use wood::BeamVariable;
+use wood::EdgeVariableElement;
 
-const USAGE: &str = "Element Beam Variable · Example: pick closed polylines of one point count in station order, then Element Beam Variable";
+const USAGE: &str = "Element Edge Variable · Example: pick closed polylines of one point count in station order, then Element Edge Variable";
 
 pub const SPEC: Spec = Spec {
     arity: Some(0),
     ..Spec::new(
-        &["Element Beam Variable"],
-        "Element Beam Variable: pick closed sections in station order · Enter creates the beam, its axis from the first section's centre to the last's · on a selection it creates at once",
+        &["Element Edge Variable"],
+        "Element Edge Variable: pick closed sections in station order · Enter creates the edge, its axis from the first section's centre to the last's · on a selection it creates at once",
         parse,
     )
 };
 
 /// No arguments.
 fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
-    Ok(Box::new(ElementBeamVariable {
+    Ok(Box::new(ElementEdgeVariable {
         params: Vec::new(),
         typed: true,
     }))
 }
 
 /// One variable beam through sections of one point count, in order.
-fn build(sections: Vec<Polyline>) -> Result<BeamVariable, String> {
+fn build(sections: Vec<Polyline>) -> Result<EdgeVariableElement, String> {
     if sections.len() < 2 {
         return Err(format!("Pick at least two closed sections · {USAGE}"));
     }
@@ -36,12 +36,12 @@ fn build(sections: Vec<Polyline>) -> Result<BeamVariable, String> {
         return Err(format!("Every section needs one point count · {USAGE}"));
     }
 
-    Ok(BeamVariable::through(sections, "beam_variable"))
+    Ok(EdgeVariableElement::through(sections, "edge_variable"))
 }
 
 /// What the command picks and makes.
 static RECIPE: Recipe = Recipe {
-    name: "Element Beam Variable",
+    name: "Element Edge Variable",
     picks: "closed sections in station order",
     fits: is_curve,
     options: &[("Create", ""), ("Cancel", "Escape")],
@@ -50,16 +50,16 @@ static RECIPE: Recipe = Recipe {
 
 /// The elements from the picks, in pick order.
 fn make(state: &mut State, _values: &[f64]) -> Result<String, String> {
-    create(state, vec![build(picked_loops(state))?], "Beam Variable")
+    create(state, vec![build(picked_loops(state))?], "Edge Variable")
 }
 
 #[derive(Debug)]
-struct ElementBeamVariable {
+struct ElementEdgeVariable {
     params: Vec<Param>, // the values, typed or default
     typed: bool,        // typed values with a fitting selection make the elements at once
 }
 
-impl Action for ElementBeamVariable {
+impl Action for ElementEdgeVariable {
     /// Make the elements, or ask for picks and values.
     fn run(&self, state: &mut State) -> Result<String, String> {
         start(state, &RECIPE, self.params.clone(), self.typed)
@@ -74,9 +74,8 @@ mod tests {
     use wood::WoodElement;
 
     #[test]
-    fn element_beam_variable_lofts_through_its_stations() {
-        // the longest name wins: this is not Element Beam with the word Variable
-        assert!(parse_line("Element Beam Variable").is_ok());
+    fn element_edge_variable_lofts_through_its_stations() {
+        assert!(parse_line("Element Edge Variable").is_ok());
         let beam = build(vec![
             square(100.0, 0.0),
             square(100.0, 500.0),

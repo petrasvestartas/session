@@ -162,7 +162,7 @@ pub struct Param {
 /// What an Element command picks and how it makes its elements.
 #[derive(Debug)]
 pub struct Recipe {
-    pub name: &'static str,          // the command, e.g. Element Plate
+    pub name: &'static str,          // the command, e.g. Element Face Planar
     pub picks: &'static str,         // what to click, e.g. closed polylines
     pub fits: fn(&Geometry) -> bool, // what a click may pick
     pub options: &'static [(&'static str, &'static str)], // the buttons under the command line
@@ -419,7 +419,7 @@ pub mod tests {
     use super::*;
     use crate::app::scene::Scene;
     use session_rust::Point;
-    use wood::Plate;
+    use wood::FacePlanarElement;
 
     /// A closed square of side at z.
     pub fn square(side: f64, z: f64) -> Polyline {
@@ -439,7 +439,7 @@ pub mod tests {
     }
 
     static BEAM: Recipe = Recipe {
-        name: "Element Beam",
+        name: "Element Edge Straight",
         picks: "lines",
         fits: is_curve,
         options: &[],
@@ -498,7 +498,7 @@ pub mod tests {
     fn a_beam_takes_its_axis_curve_and_undo_returns_it() {
         use crate::app::scene::FileDoc;
         use session_rust::{Session, Xform};
-        use wood::Beam;
+        use wood::EdgeStraightElement;
         use wood::geometry::profile_rectangle;
 
         let axis = Polyline::new(vec![
@@ -519,9 +519,14 @@ pub mod tests {
             .find(|&row| matches!(scene.geometry(row), Some(Geometry::Polyline(_))))
             .unwrap();
         let picked = scene.identity_of(line).unwrap();
-        let beam = Beam::from_profile(&axis, profile_rectangle(120.0, 200.0), "beam");
+        let beam = EdgeStraightElement::from_profile(
+            &axis,
+            profile_rectangle(120.0, 200.0),
+            Vec::new(),
+            "beam",
+        );
         let made = scene
-            .create_with_attributes(items(&[beam]), "Element Beam", &[line])
+            .create_with_attributes(items(&[beam]), "Element Edge Straight", &[line])
             .unwrap();
         scene.sync();
 
@@ -554,8 +559,12 @@ pub mod tests {
         let mut scene = Scene::new();
         let made = scene
             .create_with_attributes(
-                items(&[Plate::from_outline(&square(600.0, 0.0), 40.0, "plate")]),
-                "Element Plate",
+                items(&[FacePlanarElement::from_outline(
+                    &square(600.0, 0.0),
+                    40.0,
+                    "plate",
+                )]),
+                "Element Face Planar",
                 &[],
             )
             .unwrap();
@@ -568,7 +577,7 @@ pub mod tests {
         let (doc, guid) = scene.identity_of(plane).unwrap();
 
         assert!(
-            matches!(scene.geometry(element), Some(Geometry::Element(e)) if e.element_type == "Plate")
+            matches!(scene.geometry(element), Some(Geometry::Element(e)) if e.element_type == "FacePlanarElement")
         );
         assert_eq!(
             scene.parent_of(doc, &guid).unwrap().borrow().name,

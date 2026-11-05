@@ -48,12 +48,11 @@ verbs! {
     arrowhead,               // register:arrowhead
     attributes,              // register:attributes
     interactions,            // register:interactions
-    element_plate,           // register:element_plate
-    element_beam,            // register:element_beam
-    element_column,          // register:element_column
-    element_block,           // register:element_block
-    element_beam_variable,   // register:element_beam_variable
-    element_support,         // register:element_support
+    element_face_planar,     // register:element_face_planar
+    element_edge_straight,   // register:element_edge_straight
+    element_node_block,      // register:element_node_block
+    element_edge_variable,   // register:element_edge_variable
+    element_node_support,    // register:element_node_support
     snap,                    // register:snap
     grid_snap,               // register:grid_snap
     construction_plane,      // register:construction_plane
