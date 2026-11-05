@@ -274,3 +274,35 @@ test('live shared manifest corruption fails ledger verification', () => {
         assert.throws(() => verifyCaptureLedger(receipt.path), /Live artifact was replaced/);
     } finally {f.cleanup();}
 });
+
+test('a valid superseding publication alias is not mistaken for corrupt immutable capture evidence', t => {
+    const f = fixture(), root = path.join(docs, 'screenshots/journey');
+    const original = path.join(root, '__publication-old.png'), canonical = path.join(root, '__publication-current.png');
+    const manifest = path.join(root, 'image-aliases.json'), replacement = path.join(f.root, 'replacement.png');
+    fs.writeFileSync(replacement, 'new reviewed pixels');
+    let removed = false, target = f.image, aliasHash = fileReference(f.image).sha256;
+    const read = fs.readFileSync.bind(fs), exists = fs.existsSync.bind(fs), realpath = fs.realpathSync.bind(fs);
+    const stat = fs.statSync.bind(fs), lstat = fs.lstatSync.bind(fs);
+    t.mock.method(fs, 'existsSync', (file: any) => file === original ? !removed : file === canonical || file === manifest ? true : exists(file));
+    t.mock.method(fs, 'readFileSync', (file: any, ...args: any[]) => file === manifest
+        ? JSON.stringify({version: 1, aliases: {'__publication-old.png': {canonical: '__publication-current.png', sha256: aliasHash}}})
+        : (read as any)(file === canonical ? target : file === original ? f.image : file, ...args));
+    t.mock.method(fs, 'realpathSync', (file: any, ...args: any[]) => file === canonical || file === root ? file : (realpath as any)(file, ...args));
+    t.mock.method(fs, 'statSync', (file: any, ...args: any[]) => (stat as any)(file === canonical ? target : file === original ? f.image : file, ...args));
+    t.mock.method(fs, 'lstatSync', (file: any, ...args: any[]) => (lstat as any)(file === canonical ? target : file, ...args));
+    try {
+        retirePublishedCapture(f.receipt, original, f.publication);
+        const proofs = [f.receipt, ...['publication.json', 'retirement.json.gz', 'retired.json'].map(name => path.join(f.directory, name))];
+        const before = proofs.map(fileReference);
+        removed = true;
+        assert.equal(verifyCaptureLedger(f.receipt).currentPublication, true);
+        target = replacement; aliasHash = fileReference(replacement).sha256;
+        assert.equal(verifyCaptureLedger(f.receipt).currentPublication, false);
+        assert.deepEqual(proofs.map(fileReference), before);
+        aliasHash = hash('corrupt manifest');
+        assert.throws(() => verifyCaptureLedger(f.receipt), /hash mismatch/);
+        aliasHash = fileReference(replacement).sha256;
+        fs.writeFileSync(f.image, 'corrupt original captured pixels');
+        assert.throws(() => verifyCaptureLedger(f.receipt));
+    } finally { t.mock.restoreAll(); f.cleanup(); }
+});

@@ -1,0 +1,46 @@
+{
+  "status": "APPLIED_SOURCE_VALIDATION_PASS",
+  "recordedUtc": "2026-11-05T23:13:18.445926+00:00",
+  "scope": "Capture bookkeeping only. A legitimate newer image alias reports currentPublication:false for the old image; immutable captured pixels, execution and evidence remain hash-checked.",
+  "files": [
+    {
+      "path": "session/session_tests/scripts/course/capture-ledger.test.ts",
+      "beforeSha256": "0b7f3a9ac0e494f2f5729c8cca612923f2995f40fab3feacc5ec69b8d0067c7b",
+      "afterSha256": "cb537d049467976ab6d421e931b40b140fe773719391c2a3eeae0d3ff167143b"
+    },
+    {
+      "path": "session/session_tests/scripts/course/capture-ledger.ts",
+      "beforeSha256": "b3c1ec900066a4ad775c3080d572582bed910c8e44ad0bcf94f20eec543aae87",
+      "afterSha256": "00310b5811e95ba850924d6610542fb10ab4f77ce49321f242653a24c91ccf45"
+    }
+  ],
+  "privateProposalManifestSha256": "3d5a3e41702786645a8f4cde7ca108fd4f3cee10074939795fd274362c077964",
+  "baselineControl": {
+    "existingTestsPassed": 21,
+    "newSupersessionRegression": "FAILS_ON_ORIGINAL"
+  },
+  "candidateTestsPassed": 22,
+  "liveVerification": {
+    "workingDirectory": "session/session_tests",
+    "command": [
+      "node",
+      "--import",
+      "./scripts/typescript.mjs",
+      "--test",
+      "scripts/course/capture-ledger.test.ts"
+    ],
+    "exitCode": 0,
+    "testsPassed": 22,
+    "observation": "Root executed the live command and observed all22 tests passing."
+  },
+  "guardsRetained": [
+    "Current alias validates its own pixel hash and safe path.",
+    "Corrupt original captured pixels remain rejected.",
+    "Corrupt current alias remains rejected.",
+    "All immutable capture and retirement proof bytes remain unchanged."
+  ],
+  "aliasesModified": false,
+  "viewerRuntimeOrKernelChanged": false,
+  "browserExecuted": false,
+  "newImageAcceptances": 0
+}

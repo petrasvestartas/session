@@ -176,7 +176,7 @@ export function verifyCaptureLedger(file: string) {
         assert.equal(/\.png$/i.test(item.path) ? imageReference(item.path, item.sha256).sha256 : digest(item.path), item.sha256);
     const imageRoot = path.join(docs, 'screenshots/journey') + path.sep;
     const destination = !fs.existsSync(published.destination.path) && path.resolve(published.destination.path).startsWith(imageRoot)
-        ? resolveJourneyImage(published.destination.path, receipt.image.sha256) : published.destination.path;
+        ? resolveJourneyImage(published.destination.path) : published.destination.path;
     return {status: completed ? 'PUBLISHED_BINARY_RETIRED' : 'RETIREMENT_INCOMPLETE', receipt, publication: published, retirement: retired,
         currentPublication: fs.existsSync(destination) && digest(destination) === receipt.image.sha256,
         execution: completed

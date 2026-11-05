@@ -214,7 +214,18 @@
       "historicalSupersessionRequired": "96zza-connect-section-primitive-images",
       "imageSha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
       "finding": "Historical single-sample section coverage thresholds and neighbour expansion leave visible raster steps after compositor reduction. No triangulation-wire overlay identified; adaptive CAD quality accepted without a limit.",
-      "acceptanceBoundary": "The two new captures passed their recorded behavior checks but have no Root visual acceptance. Historical receipts retain their original scope; their byte-identical border is flagged for quality supersession."
+      "acceptanceBoundary": "The two new captures passed their recorded behavior checks but have no Root visual acceptance. Historical receipts retain their original scope; their byte-identical border is flagged for quality supersession.",
+      "presentationComparison": {
+        "status": "RUNTIME_PASS_VISUAL_REJECTED_PRIVATE_BINARIES_RETIRED",
+        "imageSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+        "evidence": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\browser-linear-present-proposal-01\\root-visual-rejection-and-private-retirement.json",
+          "sha256": "134d8b1165bed8443469292159f6abcf16c2b0356097fa5faef67dbb08e5bdab"
+        },
+        "finding": "Linear-sRGB presentation changed fractional edge colors but preserved all 5824 fully black annulus pixel positions. The binary cap outline remains rough.",
+        "acceptancesAdded": 0,
+        "publicImageOrAliasChanged": false
+      }
     }
   },
   "images": {
