@@ -4754,48 +4754,48 @@
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zh-bind-the-shared-geometry-as-storage-browser.png": {
-      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
-      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367"
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
     },
     "96zh-bind-the-shared-geometry-as-storage.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zi-read-source-vertices-through-one-shader-helper-browser.png": {
-      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
-      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367"
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
     },
     "96zi-read-source-vertices-through-one-shader-helper.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zj-activate-shared-vertex-pulling-for-color-browser.png": {
-      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
-      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367"
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
     },
     "96zj-activate-shared-vertex-pulling-for-color.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zk-assign-frame-triangle-ranges-browser.png": {
-      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
-      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367"
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
     },
     "96zk-assign-frame-triangle-ranges.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zl-own-the-integer-primitive-image-browser.png": {
-      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
-      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367"
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
     },
     "96zl-own-the-integer-primitive-image.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zm-write-triangle-addresses-beside-color-browser.png": {
-      "canonical": "96zm-write-triangle-addresses-beside-color-browser-ddba4d2288f7.png",
-      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b"
+      "canonical": "96zm-write-triangle-addresses-beside-color-browser-a0bac87aa570.png",
+      "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
     },
     "96zm-write-triangle-addresses-beside-color.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
@@ -4822,8 +4822,8 @@
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zs-write-first-pick-primitives-from-shared-geometry-browser.png": {
-      "canonical": "96zm-write-triangle-addresses-beside-color-browser-ddba4d2288f7.png",
-      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b"
+      "canonical": "96zm-write-triangle-addresses-beside-color-browser-a0bac87aa570.png",
+      "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
     },
     "96zs-write-first-pick-primitives-from-shared-geometry.png": {
       "canonical": "96u-fit-original-box-corners-to-the-free-canvas.png",
@@ -4850,12 +4850,16 @@
       "sha256": "020e396819c8ea0511bf348d15523172ae0e355a559de8a9b84dbb6f39e9f4ef"
     },
     "96zz-separate-hidden-ink-color-from-pick-ownership-browser.png": {
-      "canonical": "96zm-write-triangle-addresses-beside-color-browser-ddba4d2288f7.png",
-      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b"
+      "canonical": "96zm-write-triangle-addresses-beside-color-browser-a0bac87aa570.png",
+      "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
     },
     "96zz-separate-hidden-ink-color-from-pick-ownership.png": {
       "canonical": "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
       "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420"
+    },
+    "96zza-connect-section-primitive-images-browser.png": {
+      "canonical": "96zza-connect-section-primitive-images-browser-ae0d5a4fcfac.png",
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103"
     },
     "96zza-connect-section-primitive-images.png": {
       "canonical": "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
@@ -4866,16 +4870,16 @@
       "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420"
     },
     "96zzc-share-section-addresses-with-outlines-and-ambient-browser.png": {
-      "canonical": "96zzc-share-section-addresses-with-outlines-and-ambient-browser-0816e418db8c.png",
-      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb"
+      "canonical": "96zza-connect-section-primitive-images-browser-ae0d5a4fcfac.png",
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103"
     },
     "96zzc-share-section-addresses-with-outlines-and-ambient.png": {
       "canonical": "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
       "sha256": "a39b4049153ece425486cb9d97a58f58d7937f33d0234be3ce5c9eb8c24d7420"
     },
     "96zzd-pack-surface-position-normal-and-color-browser.png": {
-      "canonical": "96zzc-share-section-addresses-with-outlines-and-ambient-browser-0816e418db8c.png",
-      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb"
+      "canonical": "96zza-connect-section-primitive-images-browser-ae0d5a4fcfac.png",
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103"
     },
     "96zze-retain-rgba-in-prepared-displays.png": {
       "canonical": "96zzd-pack-surface-position-normal-and-color.png",

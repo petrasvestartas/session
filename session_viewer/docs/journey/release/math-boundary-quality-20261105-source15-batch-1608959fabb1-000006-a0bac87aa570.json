@@ -1,0 +1,64 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-05T22:44:30.042714+00:00",
+  "id": "96zs-write-first-pick-primitives-from-shared-geometry",
+  "lane": "browser",
+  "batchIndex": 6,
+  "generation": "1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65",
+  "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root reviewed these exact PNG bytes at original resolution in the canonical receipt. SHA256 identity verified for this image; its own source, execution, semantic checks, publication and retirement remain independently bound above.",
+  "sourceFreeze": "source-freeze-15-compat.json",
+  "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\manifest.json",
+    "sha256": "98412c47f54cc811af30f53592b9bb13a76014eeb7dcf0c3a50778e8876822cd",
+    "bytes": 4047549
+  },
+  "historicalAcceptanceScope": "The51 earlierfreeze13 captures retain their original dependency scope and are not relabeled as freeze15 validation.",
+  "manifestFreezeCoverage": {
+    "matchedFiles": 473,
+    "identicalDuplicateReferences": 0,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\publications\\000006.json",
+    "sha256": "34775624c242be7cbc0f5da9ba6e42610d8512075b4bc955271c3765fc2f2da6",
+    "bytes": 1882
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zs-write-first-pick-primitives-from-shared-geometry-9e09a03f5f1aace75a3d\\capture.json.gz",
+    "sha256": "af91b3835412ec1a4b5dcc48a6abc1e5c178f0c7ebcc6ab9dfee0f57f95fa862",
+    "bytes": 391506
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\events\\000028-72429a0af04313e77cd3ccfa0ff69c6e4c06b5d9ccfbd92a24afbeea58b1f4f3.json",
+    "sha256": "72429a0af04313e77cd3ccfa0ff69c6e4c06b5d9ccfbd92a24afbeea58b1f4f3",
+    "bytes": 279
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zs-write-first-pick-primitives-from-shared-geometry-browser.png",
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+    "bytes": 20093
+  },
+  "previousImage": null,
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96zs-write-first-pick-primitives-from-shared-geometry-browser.png",
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+    "bytes": 20093
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zs-write-first-pick-primitives-from-shared-geometry-browser.png?v=a0bac87aa570",
+    "status": 200,
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
+  },
+  "rootReviewBasis": {
+    "mode": "EXACT_PNG_BYTES_PRIOR_REVIEW",
+    "canonicalReview": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-20261105-source15-batch-1608959fabb1-000005-a0bac87aa570.json",
+      "sha256": "0e833a913a0b35bc49611ba184fee18e623352eeddb0f2871f293a218d3f4461",
+      "bytes": 3669
+    },
+    "imageSha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
+  }
+}

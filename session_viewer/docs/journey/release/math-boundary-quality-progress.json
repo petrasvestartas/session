@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-05T21:28:44.686136+00:00",
+  "updatedUtc": "2026-11-05T22:51:17.776841+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -199,33 +199,50 @@
       "renderingPipelineChangedFiles": 0,
       "removedLiveWoodPins": 11,
       "addedSuppliedPins": 13,
-      "acceptedImages": 1,
+      "acceptedImages": 9,
       "status": "ACTUAL_CURRENT_DEPENDENCY_IMAGES_ROOT_REVIEWED",
       "historicalFreeze13AcceptedImages": 51,
       "historicalScope": "Prior renderer13 runtime/test proofs remain as recorded; not rerun under freeze15 dependencies."
     },
-    "historicalRenderer13FrozenFiles": 477
+    "historicalRenderer13FrozenFiles": 477,
+    "sectionBorderQualityReview": {
+      "status": "TWO_NEW_CAPTURES_WITHHELD_PENDING_CONTROLLED_GPU_PRESENTATION_COMPARISON",
+      "withheldIds": [
+        "96zzc-share-section-addresses-with-outlines-and-ambient",
+        "96zzd-pack-surface-position-normal-and-color"
+      ],
+      "historicalSupersessionRequired": "96zza-connect-section-primitive-images",
+      "imageSha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+      "finding": "Historical single-sample section coverage thresholds and neighbour expansion leave visible raster steps after compositor reduction. No triangulation-wire overlay identified; adaptive CAD quality accepted without a limit.",
+      "acceptanceBoundary": "The two new captures passed their recorded behavior checks but have no Root visual acceptance. Historical receipts retain their original scope; their byte-identical border is flagged for quality supersession."
+    }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 57,
-    "remainingAffected": 1269,
-    "acceptedForFinalSource": 1,
-    "remainingFinalSourceAcceptance": 1325,
-    "qualificationNote": "1 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 52 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
+    "newPublishedReviewed": 65,
+    "remainingAffected": 1261,
+    "acceptedForFinalSource": 9,
+    "remainingFinalSourceAcceptance": 1317,
+    "qualificationNote": "9 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 60 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 52,
-    "remainingPlannedImageAcceptances": 1274,
-    "physicalJourneyPngs": 524,
-    "uniqueJourneyPngs": 524,
+    "acceptedAcrossRendererLineage": 60,
+    "remainingPlannedImageAcceptances": 1266,
+    "physicalJourneyPngs": 526,
+    "uniqueJourneyPngs": 526,
     "latestUnusedRetirement": {
       "receipt": "docs/journey/release/unused-image-retirement-20261105.json",
       "sha256": "5c3f134271621c72fb6e89b6b1642cc88effd445f40c351080986cb32d4ef5cd"
+    },
+    "latestExactDuplicateCleanup": {
+      "receipt": "docs/journey/release/postbatch-image-dedup-20261105.json",
+      "sha256": "95873aae700bedaca5c23fc5774203d509d71b948e7aab345f52e9bb6359c693",
+      "removedCopies": 8,
+      "removedBytes": 272616
     }
   },
   "published": [
@@ -1244,6 +1261,126 @@
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
       "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zh-bind-the-shared-geometry-as-storage",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000000-f12ebbd81738.json",
+      "receiptSha256": "00cab4f29406990bbc948d2bd5672cd7f3e4897ed6aaf823af7bacb578337ae5",
+      "image": "docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage-browser.png",
+      "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zi-read-source-vertices-through-one-shader-helper",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000001-f12ebbd81738.json",
+      "receiptSha256": "1e63dbd627fe112019b8e76f1dfba9ab05be4afb2b1ecfb94f3bb61f07bb4e8b",
+      "image": "docs/screenshots/journey/96zi-read-source-vertices-through-one-shader-helper-browser.png",
+      "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zj-activate-shared-vertex-pulling-for-color",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000002-f12ebbd81738.json",
+      "receiptSha256": "111ca7dfd4956bd60d601281d98f75ae9c62bddfe693a9fa985fbcbd90ba7d9c",
+      "image": "docs/screenshots/journey/96zj-activate-shared-vertex-pulling-for-color-browser.png",
+      "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zk-assign-frame-triangle-ranges",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000003-f12ebbd81738.json",
+      "receiptSha256": "c700c0964d342b239a0cab688a2a8ba8df3d653a719d06d9b0995758d6a3caa2",
+      "image": "docs/screenshots/journey/96zk-assign-frame-triangle-ranges-browser.png",
+      "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zl-own-the-integer-primitive-image",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000004-f12ebbd81738.json",
+      "receiptSha256": "e9f29f129d13e429fd8122aeee2ae52c6ab0d039136acebcd47a48ec6dfcd0d9",
+      "image": "docs/screenshots/journey/96zl-own-the-integer-primitive-image-browser.png",
+      "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zm-write-triangle-addresses-beside-color",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000005-a0bac87aa570.json",
+      "receiptSha256": "0e833a913a0b35bc49611ba184fee18e623352eeddb0f2871f293a218d3f4461",
+      "image": "docs/screenshots/journey/96zm-write-triangle-addresses-beside-color-browser.png",
+      "imageSha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zs-write-first-pick-primitives-from-shared-geometry",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000006-a0bac87aa570.json",
+      "receiptSha256": "14cb8a1a9a920cdcb08e9972c339973883a90a8f5248380e094143f0441503b4",
+      "image": "docs/screenshots/journey/96zs-write-first-pick-primitives-from-shared-geometry-browser.png",
+      "imageSha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-1608959fabb1-000007-a0bac87aa570.json",
+      "receiptSha256": "d52cfc940518f3b72266f12734678570f214912eb7091259d84a96a83d97abaf",
+      "image": "docs/screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership-browser.png",
+      "imageSha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
     }
   ],
   "stages": [
@@ -1261,7 +1398,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "52_RENDERER_LINEAGE_DESTINATIONS_ACCEPTED;1_CURRENT_FREEZE15_DEPENDENCY_QUALIFIED;51_HISTORICAL_FREEZE13;1274_PLAN_REMAIN"
+      "status": "60_RENDERER_LINEAGE_DESTINATIONS_ACCEPTED;9_CURRENT_FREEZE15_DEPENDENCY_QUALIFIED;51_HISTORICAL_FREEZE13;1266_PLAN_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",

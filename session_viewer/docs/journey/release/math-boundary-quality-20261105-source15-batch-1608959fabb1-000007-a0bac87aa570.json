@@ -1,0 +1,64 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-05T22:44:30.069772+00:00",
+  "id": "96zz-separate-hidden-ink-color-from-pick-ownership",
+  "lane": "browser",
+  "batchIndex": 7,
+  "generation": "1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65",
+  "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root reviewed these exact PNG bytes at original resolution in the canonical receipt. SHA256 identity verified for this image; its own source, execution, semantic checks, publication and retirement remain independently bound above.",
+  "sourceFreeze": "source-freeze-15-compat.json",
+  "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\manifest.json",
+    "sha256": "98412c47f54cc811af30f53592b9bb13a76014eeb7dcf0c3a50778e8876822cd",
+    "bytes": 4047549
+  },
+  "historicalAcceptanceScope": "The51 earlierfreeze13 captures retain their original dependency scope and are not relabeled as freeze15 validation.",
+  "manifestFreezeCoverage": {
+    "matchedFiles": 473,
+    "identicalDuplicateReferences": 0,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\publications\\000007.json",
+    "sha256": "81801de1e590b4cad37b25f432eba4d4b63743cef3af7597721905f0b9bc1d18",
+    "bytes": 1864
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zz-separate-hidden-ink-color-from-pick-ownership-e5b1d7e3a195de79fb1a\\capture.json.gz",
+    "sha256": "691caa1a1810b6cd49883c89439aac366ef909ad041ac3a6867fba0786592652",
+    "bytes": 390943
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\events\\000032-39acda9f39e9b2a0d9fa562181fb2472e6f207cd35e889782bcaced33bb21719.json",
+    "sha256": "39acda9f39e9b2a0d9fa562181fb2472e6f207cd35e889782bcaced33bb21719",
+    "bytes": 279
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zz-separate-hidden-ink-color-from-pick-ownership-browser.png",
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+    "bytes": 20093
+  },
+  "previousImage": null,
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96zz-separate-hidden-ink-color-from-pick-ownership-browser.png",
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+    "bytes": 20093
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership-browser.png?v=a0bac87aa570",
+    "status": 200,
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
+  },
+  "rootReviewBasis": {
+    "mode": "EXACT_PNG_BYTES_PRIOR_REVIEW",
+    "canonicalReview": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-20261105-source15-batch-1608959fabb1-000005-a0bac87aa570.json",
+      "sha256": "0e833a913a0b35bc49611ba184fee18e623352eeddb0f2871f293a218d3f4461",
+      "bytes": 3669
+    },
+    "imageSha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
+  }
+}

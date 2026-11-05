@@ -1,0 +1,64 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-05T22:29:24.977124+00:00",
+  "id": "96zj-activate-shared-vertex-pulling-for-color",
+  "lane": "browser",
+  "batchIndex": 2,
+  "generation": "1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65",
+  "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root reviewed these exact PNG bytes at original resolution in the canonical receipt. SHA256 identity verified for this image; its own source, execution, semantic checks, publication and retirement remain independently bound above.",
+  "sourceFreeze": "source-freeze-15-compat.json",
+  "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\manifest.json",
+    "sha256": "98412c47f54cc811af30f53592b9bb13a76014eeb7dcf0c3a50778e8876822cd",
+    "bytes": 4047549
+  },
+  "historicalAcceptanceScope": "The51 earlierfreeze13 captures retain their original dependency scope and are not relabeled as freeze15 validation.",
+  "manifestFreezeCoverage": {
+    "matchedFiles": 473,
+    "identicalDuplicateReferences": 0,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\publications\\000002.json",
+    "sha256": "288462a02c2a6e47abd94bd3b787625ec5696ec43ceee28a91d2d3389e7ce0e6",
+    "bytes": 1893
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zj-activate-shared-vertex-pulling-for-color-03a211ec46325555a1c2\\capture.json.gz",
+    "sha256": "3670127b8a095393b0891a7552d4e0927f6f8921e1dfee6a67082c1c3dbdbd2c",
+    "bytes": 364744
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\events\\000012-dad51fb5fabd3772d2d81477eb27d4258c3329b4fa85374e898cabd799883028.json",
+    "sha256": "dad51fb5fabd3772d2d81477eb27d4258c3329b4fa85374e898cabd799883028",
+    "bytes": 279
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zj-activate-shared-vertex-pulling-for-color-browser.png",
+    "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+    "bytes": 38430
+  },
+  "previousImage": null,
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96zj-activate-shared-vertex-pulling-for-color-browser.png",
+    "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+    "bytes": 38430
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zj-activate-shared-vertex-pulling-for-color-browser.png?v=f12ebbd81738",
+    "status": 200,
+    "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
+  },
+  "rootReviewBasis": {
+    "mode": "EXACT_PNG_BYTES_PRIOR_REVIEW",
+    "canonicalReview": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\math-boundary-quality-20261105-source15-batch-1608959fabb1-000000-f12ebbd81738.json",
+      "sha256": "00cab4f29406990bbc948d2bd5672cd7f3e4897ed6aaf823af7bacb578337ae5",
+      "bytes": 3659
+    },
+    "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
+  }
+}

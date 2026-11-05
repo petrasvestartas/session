@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "status": "PASS_EXACT_BYTE_POSTBATCH_IMAGE_DEDUPLICATION",
+  "recordedUtc": "2026-11-05T22:50:22.833761+00:00",
+  "scope": "8 byte-identical physical copies removed; all unique image pixels, original logical image byte identities and pinned consumer/release files preserved. No new image acceptance.",
+  "applyReceipt": {
+    "path": ".codex/viewer-quality-20261028/postbatch-image-dedup-20261105-01/apply-execution.json",
+    "sha256": "5ea3c9ca2730ec675cd2366fb445a50dcf7cbe8b2f1332e6c0e4099d76386280"
+  },
+  "proposal": {
+    "path": ".codex/viewer-quality-20261028/postbatch-image-dedup-20261105-01/proposal.json",
+    "sha256": "1107efdb7fdcd042d731fa7e03274e942b06d6c57a34cbb8bee42ef58d5df84b"
+  },
+  "consumerClosure": {
+    "path": ".codex/viewer-quality-20261028/postbatch-image-dedup-20261105-01/consumer-closure.json",
+    "sha256": "22679d1481bb647c476caf1f5839924541a68aaf384b631c97402229f41ef6e2"
+  },
+  "aliasManifest": {
+    "path": "docs/screenshots/journey/image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae",
+    "entries": 1626
+  },
+  "counts": {
+    "physicalBefore": 534,
+    "physicalAfter": 526,
+    "uniqueBefore": 526,
+    "uniqueAfter": 526,
+    "removedDuplicatePhysicalCopies": 8,
+    "removedDuplicateBytes": 272616,
+    "retainedCanonicalRenames": 3,
+    "logicalBefore": 2149,
+    "logicalByteIdentitiesPreserved": 2149,
+    "logicalAfter": 2152,
+    "authoredMarkdownPagesWithJourneyImages": 1528,
+    "authoredMarkdownImageReferences": 1751,
+    "missingBefore": 0,
+    "missingAfter": 0,
+    "crossChapterSharedPrimaryIllustrationsBefore": 0,
+    "crossChapterSharedPrimaryIllustrationsAfter": 0,
+    "immutableReleaseFilesPinned": 447,
+    "referenceInputs": 1807
+  },
+  "renames": [
+    {
+      "from": "96zh-bind-the-shared-geometry-as-storage-browser.png",
+      "to": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "bytes": 38430
+    },
+    {
+      "from": "96zm-write-triangle-addresses-beside-color-browser.png",
+      "to": "96zm-write-triangle-addresses-beside-color-browser-a0bac87aa570.png",
+      "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+      "bytes": 20093
+    },
+    {
+      "from": "96zza-connect-section-primitive-images-browser.png",
+      "to": "96zza-connect-section-primitive-images-browser-ae0d5a4fcfac.png",
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+      "bytes": 39355
+    }
+  ],
+  "removedDuplicateCopies": [
+    {
+      "path": "96zi-read-source-vertices-through-one-shader-helper-browser.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "bytes": 38430,
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png"
+    },
+    {
+      "path": "96zj-activate-shared-vertex-pulling-for-color-browser.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "bytes": 38430,
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png"
+    },
+    {
+      "path": "96zk-assign-frame-triangle-ranges-browser.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "bytes": 38430,
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png"
+    },
+    {
+      "path": "96zl-own-the-integer-primitive-image-browser.png",
+      "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+      "bytes": 38430,
+      "canonical": "96zh-bind-the-shared-geometry-as-storage-browser-f12ebbd81738.png"
+    },
+    {
+      "path": "96zs-write-first-pick-primitives-from-shared-geometry-browser.png",
+      "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+      "bytes": 20093,
+      "canonical": "96zm-write-triangle-addresses-beside-color-browser-a0bac87aa570.png"
+    },
+    {
+      "path": "96zz-separate-hidden-ink-color-from-pick-ownership-browser.png",
+      "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+      "bytes": 20093,
+      "canonical": "96zm-write-triangle-addresses-beside-color-browser-a0bac87aa570.png"
+    },
+    {
+      "path": "96zzc-share-section-addresses-with-outlines-and-ambient-browser.png",
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+      "bytes": 39355,
+      "canonical": "96zza-connect-section-primitive-images-browser-ae0d5a4fcfac.png"
+    },
+    {
+      "path": "96zzd-pack-surface-position-normal-and-color-browser.png",
+      "sha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
+      "bytes": 39355,
+      "canonical": "96zza-connect-section-primitive-images-browser-ae0d5a4fcfac.png"
+    }
+  ],
+  "retainedUniqueHistoricalBaselines": [
+    "96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
+    "96zm-write-triangle-addresses-beside-color-browser-ddba4d2288f7.png",
+    "96zzc-share-section-addresses-with-outlines-and-ambient-browser-0816e418db8c.png"
+  ],
+  "allOriginalLogicalImageHashesPreserved": true,
+  "allPinnedConsumerAndReleaseBytesUnchanged": true,
+  "runtimeAcceptanceAdded": 0,
+  "limits": "Dedupe does not qualify withheld96zzc/96zzd captures, supersede historical96zza acceptance or alter tutorial progress."
+}

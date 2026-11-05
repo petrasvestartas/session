@@ -1,0 +1,59 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-05T22:26:28.671754+00:00",
+  "id": "96zh-bind-the-shared-geometry-as-storage",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65",
+  "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-15-compat.json",
+  "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\manifest.json",
+    "sha256": "98412c47f54cc811af30f53592b9bb13a76014eeb7dcf0c3a50778e8876822cd",
+    "bytes": 4047549
+  },
+  "historicalAcceptanceScope": "The51 earlierfreeze13 captures retain their original dependency scope and are not relabeled as freeze15 validation.",
+  "manifestFreezeCoverage": {
+    "matchedFiles": 473,
+    "identicalDuplicateReferences": 0,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\publications\\000000.json",
+    "sha256": "6e52cc1ed6232face5121dcf9162824d0dad55fc6af06b39e1323601d08aa82b",
+    "bytes": 1863
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zh-bind-the-shared-geometry-as-storage-175bb1fda139334ec7a3\\capture.json.gz",
+    "sha256": "47464d2fef370068fbac7ee0edcbae7c75b6fe61505ad5ef0e326592869093b8",
+    "bytes": 365571
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\events\\000004-a5d3def4e54e5fb693535fe4f4964b2d3f235f93955844caad9a74e025df785c.json",
+    "sha256": "a5d3def4e54e5fb693535fe4f4964b2d3f235f93955844caad9a74e025df785c",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zh-bind-the-shared-geometry-as-storage-browser.png",
+    "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+    "bytes": 38430
+  },
+  "previousImage": null,
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96zh-bind-the-shared-geometry-as-storage-browser.png",
+    "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e",
+    "bytes": 38430
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage-browser.png?v=f12ebbd81738",
+    "status": 200,
+    "sha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "f12ebbd81738690233a5dd6f37c9c9571f0a636320c3742b0857dce62375243e"
+  }
+}

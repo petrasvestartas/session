@@ -1,0 +1,59 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-05T22:44:30.021924+00:00",
+  "id": "96zm-write-triangle-addresses-beside-color",
+  "lane": "browser",
+  "batchIndex": 5,
+  "generation": "1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65",
+  "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-15-compat.json",
+  "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\manifest.json",
+    "sha256": "98412c47f54cc811af30f53592b9bb13a76014eeb7dcf0c3a50778e8876822cd",
+    "bytes": 4047549
+  },
+  "historicalAcceptanceScope": "The51 earlierfreeze13 captures retain their original dependency scope and are not relabeled as freeze15 validation.",
+  "manifestFreezeCoverage": {
+    "matchedFiles": 473,
+    "identicalDuplicateReferences": 0,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\publications\\000005.json",
+    "sha256": "3b3e40d31c95a459f59eb52c169733cfd7553d311a57061d2c4bcb98436096d0",
+    "bytes": 1816
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96zm-write-triangle-addresses-beside-color-711e57f6205d6369136e\\capture.json.gz",
+    "sha256": "7bab8caa9cb7185ddf773f3881c5dc92490862aeb27742f7048dce44904a86da",
+    "bytes": 390148
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\1608959fabb1e33da6a443b4e3d88f2eccba6519f868ee4ed8150ec7b31cfe65\\events\\000024-25c23b27472118576ec952407a97e63fdf44f6c8c7cf9e788f5cf345bcd1f2b7.json",
+    "sha256": "25c23b27472118576ec952407a97e63fdf44f6c8c7cf9e788f5cf345bcd1f2b7",
+    "bytes": 279
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zm-write-triangle-addresses-beside-color-browser.png",
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+    "bytes": 20093
+  },
+  "previousImage": null,
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96zm-write-triangle-addresses-beside-color-browser.png",
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0",
+    "bytes": 20093
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96zm-write-triangle-addresses-beside-color-browser.png?v=a0bac87aa570",
+    "status": 200,
+    "sha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "a0bac87aa5707e415a7015a26a41c49393319bee7b45137839d0a6265f8527f0"
+  }
+}
