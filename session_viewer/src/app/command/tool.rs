@@ -2,11 +2,10 @@ use crate::State;
 use session_rust::{Plane, Point, Xform};
 pub mod cut; // register:cut
 pub mod choices;
-pub mod elements;
 pub mod gather; // register:gather
 mod options; // register:gather
 pub mod shape; // register:shape
-pub mod surfacing; // register:surfacing // register:elements
+pub mod surfacing; // register:surfacing
 
 /// What a tool wants after a point or a word.
 #[derive(Debug, PartialEq)]
