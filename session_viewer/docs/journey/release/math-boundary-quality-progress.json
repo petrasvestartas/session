@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-05T21:06:15.013046+00:00",
+  "updatedUtc": "2026-11-05T21:28:44.686136+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -215,12 +215,18 @@
     "acceptedForFinalSource": 1,
     "remainingFinalSourceAcceptance": 1325,
     "qualificationNote": "1 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 52 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
-    "removedUnusedImages": 329,
+    "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 52,
-    "remainingPlannedImageAcceptances": 1274
+    "remainingPlannedImageAcceptances": 1274,
+    "physicalJourneyPngs": 524,
+    "uniqueJourneyPngs": 524,
+    "latestUnusedRetirement": {
+      "receipt": "docs/journey/release/unused-image-retirement-20261105.json",
+      "sha256": "5c3f134271621c72fb6e89b6b1642cc88effd445f40c351080986cb32d4ef5cd"
+    }
   },
   "published": [
     {
@@ -1392,5 +1398,13 @@
       "validatorChanges": 0
     },
     "newImageAcceptances": 0
+  },
+  "componentCoverageReview": {
+    "receipt": "docs/journey/release/viewer-component-coverage-20261105.json",
+    "sha256": "9a579f24f787e6eaa8fbb095b56cb008b817299c59a90ce5144c46dd053438bb",
+    "reviewedOwners": 119,
+    "namedPartialMappings": 92,
+    "explicitBoundaryDispositions": 27,
+    "wholeModuleParityClaims": 0
   }
 }

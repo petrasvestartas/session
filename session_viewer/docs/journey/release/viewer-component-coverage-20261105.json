@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "status": "SOURCE_COMPONENT_REVIEW_COMPLETE_WITH_EXPLICIT_TEACHING_BOUNDARIES",
+  "recordedUtc": "2026-11-05T21:31:47.930803+00:00",
+  "scope": "All119 previously unlinked source-owner rows received a review disposition. This is a source/reader review, not a claim that the handwritten course reimplements every maintained module or diagnostic, and it adds no runtime acceptance.",
+  "chapters": 22,
+  "primaryReaders": 111,
+  "currentViewerInventory": "docs/journey/current-viewer-2026-11-05.json",
+  "viewerSourcePathsAccountedFor": 303,
+  "reviewedOwnerRows": 119,
+  "positiveNamedComponentOrTestContractMappings": 92,
+  "wholeModuleParityClaims": 0,
+  "boundaryCounts": {
+    "maintainedFeaturePaths": 4,
+    "internalPolicies": 4,
+    "maintainedDiagnostics": 12,
+    "reclassifiedInternalOrDiagnosticDetails": 7
+  },
+  "boundaries": [
+    {
+      "production": "src/app/agent.rs",
+      "disposition": "maintained_feature_path"
+    },
+    {
+      "production": "src/app/ui/phone.rs",
+      "disposition": "maintained_feature_path"
+    },
+    {
+      "production": "src/app/cloud_query.rs",
+      "disposition": "maintained_feature_path"
+    },
+    {
+      "production": "src/app/gesture/control.rs",
+      "disposition": "maintained_feature_path"
+    },
+    {
+      "production": "src/app/scene_sync/compaction.rs",
+      "disposition": "internal_policy_boundary"
+    },
+    {
+      "production": "src/app/scene_sync/notes.rs",
+      "disposition": "internal_policy_boundary"
+    },
+    {
+      "production": "src/app/scene_sync/tombs.rs",
+      "disposition": "internal_policy_boundary"
+    },
+    {
+      "production": "src/engine/gpu/upload_padding.rs",
+      "disposition": "internal_policy_boundary"
+    },
+    {
+      "production": "src/app/scene_sync/split_tests.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/app/scene_sync/testing.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/app/scene_sync/tests.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/engine/gpu/splat/cloud_witness/lod.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/engine/gpu/splat/cloud_witness.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/engine/gpu/timing.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/selftest/lifecycle.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/selftest/oracle.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/selftest/profile.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/selftest/stroke_witness.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/selftest.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/text_quality.rs",
+      "disposition": "maintained_diagnostic"
+    },
+    {
+      "production": "src/app/decode.rs",
+      "disposition": "reclassified_without_named_mapping"
+    },
+    {
+      "production": "src/app/inspection/source_memory.rs",
+      "disposition": "reclassified_without_named_mapping"
+    },
+    {
+      "production": "src/app/inspection.rs",
+      "disposition": "reclassified_without_named_mapping"
+    },
+    {
+      "production": "src/app/knobs.rs",
+      "disposition": "reclassified_without_named_mapping"
+    },
+    {
+      "production": "src/app/walk/bounds.rs",
+      "disposition": "reclassified_without_named_mapping"
+    },
+    {
+      "production": "src/engine/gpu/ambient_warm.rs",
+      "disposition": "reclassified_without_named_mapping"
+    },
+    {
+      "production": "src/engine/gpu/hull.rs",
+      "disposition": "reclassified_without_named_mapping"
+    }
+  ],
+  "addedReaderExplanations": [
+    {
+      "path": "session_viewer/docs/journey/consolidation/50-placements.md",
+      "sha256Utf8Lf": "583f6d49616e1a4af95e49e668962769a9a1b39c2a445ec760eeab02ce915382",
+      "existingHeadingsFencesSvgImagesPreserved": true
+    },
+    {
+      "path": "session_viewer/docs/journey/consolidation/62-source.md",
+      "sha256Utf8Lf": "3f11c8fb13372a4686d84b9ae921223a0aece16da7ddef9655ba43a8d5d5a011",
+      "existingHeadingsFencesSvgImagesPreserved": true
+    },
+    {
+      "path": "session_viewer/docs/journey/consolidation/85-copy-current-original-command-recipes.md",
+      "sha256Utf8Lf": "6bed093cae8d15d822abe631a3bce5697e10bc312e021c327b6d34e48151615e",
+      "existingHeadingsFencesSvgImagesPreserved": true
+    },
+    {
+      "path": "session_viewer/docs/journey/consolidation/96za-address-original-controls-with-family-keys.md",
+      "sha256Utf8Lf": "88c2d82dc7977152d75cf3ebcb829411ba6e444078303bf1597973f9ce16a6c6",
+      "existingHeadingsFencesSvgImagesPreserved": true
+    },
+    {
+      "path": "session_viewer/docs/journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md",
+      "sha256Utf8Lf": "5fdafd8072a1a72bfbe655506a00aaff54e0c2b8430ef92c98b145d78e1eb8a1",
+      "existingHeadingsFencesSvgImagesPreserved": true
+    }
+  ],
+  "content": "Existing late chapters now explain maintained graph-endpoint selection, phone/IME routing, selected-control dragging, history notes, compaction, weak GPU tombs, preview padding and the text-quality comparison fixture. Paged nonresident cloud picking remains explicitly distinguished from the resident lesson in65-originals. Existing code examples and chapter/website structures are preserved.",
+  "reviewReports": [
+    {
+      "path": ".codex/private/viewer-coverage-20261101/provenance119-pass5.json",
+      "sha256": "fa7be6d28846dc46e06d1bcd654dc956830d96b5b9fe38f9cb57361c6d128bb3"
+    },
+    {
+      "path": ".codex/private/viewer-coverage-20261101/provenance-internal20-review-20261105.json",
+      "sha256": "ce9a08cc126cf97bf4eb90d381790849df5f3597e7403c4aa7ddfc96814dc2c8"
+    },
+    {
+      "path": ".codex/private/viewer-coverage-20261101/provenance119-diagnostics19-20261105.json",
+      "sha256": "7d189ea306cdffedfd2ddadebe66df83528472829361bfd03156469444de77d9"
+    }
+  ],
+  "freshRuntimeCasesAdded": 0,
+  "captureProgress": {
+    "acceptedRendererLineage": 52,
+    "historicalSource13": 51,
+    "currentCompatibleSource15": 1,
+    "remainingPlannedImageAcceptances": 1274
+  },
+  "siteBuild": "Latest prose still awaits a post-compatibility build and browser check; compiler slots are held by another agent."
+}

@@ -4842,6 +4842,10 @@ fn controls_scope_and_escape_preserve_original_ownership_and_history() {
 
 ## <a id="checkpoint-96zf-edit-original-controls-through-the-source-preview"></a>6. Edit controls through the source preview
 
+The maintained viewer also lets you drag a control point directly: enter Controls, select a dot, then press and drag that selected dot. [`GESTURES`](../../../src/app/gesture/mod.rs) offers the press to [`control::GESTURE`](../../../src/app/gesture/control.rs) before the gumball, object drag or selection rectangle. [`begin_control_drag`](../../../src/state/edit.rs) checks the selected dot within the CSS grab radius, captures a preview and fixes a camera-facing plane through the original point.
+
+While the pointer moves, `control_target` finds the point on that plane, or a nearby snap target when snapping is enabled. `drag_control` converts the world point into the owner’s local coordinates for the preview. On a drag release, `end_control_drag` commits the source control and refreshes its control markers; a refused edit restores the source render. A click without a drag and `cancel_gesture` restore the preview instead of committing it. The source-preview code typed here supplies the reversible edit; the direct pointer routing is provided by the maintained runtime used by the [handoff](../97-finish-with-the-maintained-browser-runtime.md).
+
 ### 1. `src/source_part.rs`
 
 Resolve every supported original through the shared source owner. Remove the replaced private source resolver import. Translate the family key without inventing a mesh control index.

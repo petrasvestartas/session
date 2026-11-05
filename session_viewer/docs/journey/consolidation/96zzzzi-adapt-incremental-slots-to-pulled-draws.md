@@ -491,6 +491,8 @@ pub struct Lane {
 
 Keep enough integer headroom for retained runs, growth and free intervals before invoking the existing allocator. Supply small, empty, reserved-arena and overflowing-instance budget checks without allocating large GPU buffers.
 
+The integer headroom checked here prevents address overflow. The maintained Viewer also reserves physical [spare preview rows](../../../src/engine/gpu/upload_padding.rs): roughly half the new row count, rounded up, with index allocations rounded to whole triangles. These spare rows are hidden through sink ownership, degenerate triangles and zero-radius segments. [Allocation bookkeeping](../../../src/app/scene_sync/allocation.rs) counts the spare storage separately from live rows. That preview-growth policy is additional to this lesson’s integer-range checks.
+
 **Locate this existing block:**
 
 ```rust
@@ -4021,6 +4023,8 @@ mod tests {
 
 Keep free vertex and index spans under the existing arena record owner. Validate both ranges and rebased addresses before taking spans. Retire the old source mapping and trim only a free tail; surviving addresses remain fixed. Reset free-span metadata with the existing logical arena reset.
 
+The maintained Viewer has separate [compaction policies](../../../src/app/scene_sync/compaction.rs). Editable-lane compaction becomes due when dead rows occupy at least 16 MiB and dead plus tomb-held bytes are at least the live bytes. Cloud compaction requires at least two million dead points and at least as many dead as live points. Idle kernel purging advances in bounded steps and waits while a session is shared. Rebuilding editable lanes requests any released sources first, then walks documents again in load order while preserving object identities. The span-reuse code below does not implement these thresholds or the full rewalk.
+
 **Locate this existing block:**
 
 ```rust
@@ -4548,6 +4552,8 @@ fn actual_gpu_arena_reuses_ranges_preserves_bindings_and_counts_exact_writes() {
 ### 1. `src/mesh_arena.rs`
 
 Use weak range tokens independently of CPU source ownership. Keep weak range leases under the existing arena owner. Begin without live range leases. Acquire one shared range token and retire only expired GPU leases; synchronize logical GPU lengths after free-tail trimming. Reset lease metadata with the existing explicit arena reset.
+
+This lesson releases a range after its last GPU lease, even when CPU history still owns the original. The maintained Viewer additionally supports [GPU tomb reuse](../../../src/app/scene_sync/tombs.rs): a deleted object can keep its rows for Undo through a weak reference to the kernel’s history tomb. Reuse checks the original object identity, placement and feature settings. Unreachable tombs are released; oldest entries are released when retained tomb storage exceeds its configured cap, which defaults to 256 MiB. The weak reference does not keep history alive. This bounded retention policy differs from the lesson’s last-GPU-lease rule.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 

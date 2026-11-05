@@ -3757,6 +3757,8 @@ pub struct Renderer {
 
 ## <a id="checkpoint-85aa-expose-graph-links-and-the-lasso-overlay"></a>28. Expose graph links and the lasso overlay
 
+In the maintained viewer, open Graph and click an edge row to select its two endpoint objects. [`graph::show`](../../../src/app/ui/graph.rs) emits the row key `pair/<from>/<to>`; [`State::panel_action`](../../../src/state/panel.rs) parses that key and calls `select_rows(rows, false)`. This replaces the selection with the eligible endpoints, excluding hidden or unselectable rows, and updates their highlight and gumball. It changes selection without editing the graph or adding a document-history step. The table typed below exposes graph data as label cells; the endpoint-selection action belongs to the maintained runtime used by the [handoff](../97-finish-with-the-maintained-browser-runtime.md).
+
 ### 1. `src/tree_panel.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -7123,6 +7125,10 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-85aw-refresh-command-panels-source-loading-and-cached-previews"></a>50. Refresh command panels source loading and cached previews
+
+The maintained viewer also connects this dock to a phone keyboard through [`CommandAgent::new`](../../../src/app/agent.rs). A tap on a text field focuses the hidden `command-agent` input during the browser gesture. Its input listener sends the whole current text as `AgentEvent::Text`; [`Ui::agent` and `type_into`](../../../src/app/ui/phone.rs) route it to an open layer-name or number field before the command line. Text routed to the command line updates the shared command-dock model’s `agent_edit` state. When no other edit field is open and the command line is closed, the router returns newly typed characters to the viewport shortcuts.
+
+For an IME, `compositionstart` and `compositionend` update the composing flag. When synchronizing command-line text, `follow_field` skips updates during composition or while an inline completion suffix is present. Closing the last field lowers the keyboard when the command line has not taken it. These listener and phone-field modules are supplied by the [maintained-runtime handoff](../97-finish-with-the-maintained-browser-runtime.md); the handwritten course supplies the shared dock and its pointer ownership. The linked listener bridge and phone-field router complete the maintained phone path.
 
 ### 1. `src/browser.rs`
 

@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "status": "RETIRED_UNUSED_SUPERSEDED_IMAGE_WITH_VERIFIED_LOSSLESS_LOCAL_ARCHIVE",
+  "recordedUtc": "2026-11-05T21:28:44.675059+00:00",
+  "originalImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96q-prove-imported-feature-ownership-and-roundtrips-browser-9e08aab68457.png",
+    "sha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193",
+    "bytes": 21289
+  },
+  "archive": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\retired-unused-image-20261105-01\\9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193.png.gz",
+    "sha256": "ae3d0b6ffeac4ea5b7627ab423fadf5052e6d241849f80aa9bd811c631c6a322",
+    "bytes": 10031,
+    "rawSha256": "9e08aab68457f534762d75c85ef060ea854417523fadce9365621480eca42193"
+  },
+  "restore": "Decompress archive bytes to originalImage.path only if the historical image is needed. Current tutorial aliases and accepted images do not depend on this superseded image.",
+  "referenceAudit": {
+    "path": ".codex/viewer-quality-20261028/unused-journey-images-audit-20261105-03.json.gz",
+    "sha256": "e902269b379c7445c85d038be0aa47185a9b828a4187b2c4e0b5bd4a3c31d562"
+  },
+  "review": "Only three historical release metadata references; no current Markdown, functional alias, accepted image, progress or next-ten dependency. Existing historical JSON bytes are preserved.",
+  "sourceImageRemoved": true,
+  "matchingPreviewImageRemoved": false,
+  "physicalPngCountBefore": 525,
+  "physicalPngCountAfter": 524,
+  "newRuntimeAcceptance": 0,
+  "remainingImageUsage": {
+    "currentMarkdownImages": 386,
+    "activeCheckpointAliasTargets": 23,
+    "currentRendererOrReviewManifestImages": 115,
+    "unresolved": 0,
+    "total": 524
+  }
+}

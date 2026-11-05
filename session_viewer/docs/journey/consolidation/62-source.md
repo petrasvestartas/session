@@ -4441,6 +4441,8 @@ pub mod text_fonts;
 
 ## <a id="checkpoint-62n-diagnostics"></a>36. Show current text sources metrics and preparation errors
 
+For an optional font and glyph check, inspect the [maintained text-quality page source](../../../assets/text-quality.html). It compares the viewer's WebGPU text with browser text using the bundled fonts, offers font-line and object-nameplate specimens, overlays baselines, glyph origins and raster bounds, and downloads its report and glyph diagnostics as `text-quality.json`. Its loader reads the built viewer's adjacent `index.html` to find the viewer module. This separate maintained-renderer fixture complements the scene-label exercise and its source, resource and preparation-error diagnostics; the lesson does not recreate the comparison page.
+
 ### 1. `src/browser.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.

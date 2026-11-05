@@ -109,6 +109,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-50a-preview"></a>2. Keep temporary placements outside the document
 
+The maintained Viewer connects committed edits to rendering through [history notes](../../../src/app/scene_sync/notes.rs). Kernel operations identify changes to geometry, placement, presence or a subtree; Undo visits the transaction in reverse order. Scene synchronization merges these notes by document and object before updating display rows. This lesson keeps the same distinction between a temporary preview and one committed history edit, but its scene-based preview does not implement that per-operation invalidation stream.
+
 ### 1. `src/edit_preview.rs`
 
 Create the file and type:
