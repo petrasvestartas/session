@@ -1,11 +1,11 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-01T19:08:00.872745+00:00",
+  "updatedUtc": "2026-11-05T21:06:15.013046+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-13.json",
-    "frozenFiles": 477,
+    "maintainedSourceFreeze": "source-freeze-15-compat.json",
+    "frozenFiles": 473,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
@@ -23,7 +23,7 @@
     },
     "sourceReview": "PASS: paired triangle-normal silhouettes restored; exact boundary curves and internal-wire suppression preserved.",
     "runtimeAcceptance": "SOURCE13: six focused silhouette/boundary/replay tests PASS; four immutable NVIDIA Vulkan illustrations rendered and personally reviewed. Bulk historical native/browser qualification continues. Full71aj original callback assertions PASS in the8CPU/8GiB image profile; strict source/Chrome integrity, root review, publication and retirement complete. Browser88ad image-profile GPU supersampling is root-reviewed, published and retired; native88ad and89h image-profile GPU qualification, root review, publication and retirement also PASS; selected late-browser96zza image-profile qualification, root review, publication and retirement also PASS. All three representative families are qualified; remaining images and all48 checkpoints are not thereby accepted. Canonical native verify_pixels was not executed. Measured-retention02 nine real-cache CPU regressions and actual exported browser95f IMAGE recipe PASS; four requested/accepted qualities match with251440 retained payload bytes, root review/publication/retirement complete. Build04 composite QA records22 canonical PNG HTTP/body SHA and Chrome decodes, covering31 current logical acceptances;15 are source-only and5 are outside that QA scope. This metadata update performs no fresh HTTP or browser checks. Remaining image qualification continues. Native92o Element IMAGE qualification PASS: seven original owners, seven finite positive requested=accepted qualities,51088 retained bytes, no limit; original ambient/global-outline draw assertions, root review/publication/retirement complete. Canonical640x480 verify_pixels was not executed.",
-    "previousRuntimeSourceFreeze": "source-freeze-12.json",
+    "previousRuntimeSourceFreeze": "source-freeze-13.json",
     "source13FocusedTests": 6,
     "source13ReviewedIllustrations": 4,
     "source13SelftestSha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638",
@@ -183,20 +183,44 @@
       "status": "PASS_ORIGINAL_96V_CALLBACK_IMAGE_PROFILE",
       "receipt": "docs/journey/release/declared-pb-fixture-runtime-96v-20261101.json",
       "sha256": "ae4406849a5d423b9f8288b5045a9fe91a0134e76235d4d63bad7ced8b6ba28d"
-    }
+    },
+    "currentDependencyQualification": {
+      "freeze": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+        "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+      },
+      "delta": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\96y-source15-single-proposal-06\\freeze15-delta.json",
+        "sha256": "636490df362541ca0f98c500d453a4b2acbf95ba168a5f0ef5c7d9517f2d6aa2"
+      },
+      "sourceFiles": 473,
+      "productionInputCount": 460,
+      "suppliedHistoricalWoodInputCount": 13,
+      "renderingPipelineChangedFiles": 0,
+      "removedLiveWoodPins": 11,
+      "addedSuppliedPins": 13,
+      "acceptedImages": 1,
+      "status": "ACTUAL_CURRENT_DEPENDENCY_IMAGES_ROOT_REVIEWED",
+      "historicalFreeze13AcceptedImages": 51,
+      "historicalScope": "Prior renderer13 runtime/test proofs remain as recorded; not rerun under freeze15 dependencies."
+    },
+    "historicalRenderer13FrozenFiles": 477
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 56,
-    "remainingAffected": 1270,
-    "acceptedForFinalSource": 51,
-    "remainingFinalSourceAcceptance": 1275,
-    "qualificationNote": "51 currently required images match freeze13 and their explicit root review. Unused-image deletions and retired liveRequired=false acceptances remain excluded; immutable old proofs retain their scope. Lesson execution and semantic checks remain independently bound; fresh HTTP/Chrome checks are separately tracked.",
+    "newPublishedReviewed": 57,
+    "remainingAffected": 1269,
+    "acceptedForFinalSource": 1,
+    "remainingFinalSourceAcceptance": 1325,
+    "qualificationNote": "1 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 52 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
     "removedUnusedImages": 329,
     "removedUnusedAffected": 8,
-    "retiredUnusedSource13Acceptances": 2
+    "retiredUnusedSource13Acceptances": 2,
+    "acceptedHistoricalFreeze13": 51,
+    "acceptedAcrossRendererLineage": 52,
+    "remainingPlannedImageAcceptances": 1274
   },
   "published": [
     {
@@ -1199,6 +1223,21 @@
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
       "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "96y-address-feature-pixels-to-original-cad-owners",
+      "lane": "browser",
+      "receipt": "docs/journey/release/math-boundary-quality-20261105-source15-batch-7b836f108dfc-000000-2c8c63c603b7.json",
+      "receiptSha256": "2314c853b692b4ea12958f157400731286300103824876f8cfacbf534a21c86f",
+      "image": "docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners-browser.png",
+      "imageSha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "rootVisuallyReviewed": true,
+      "liveRequired": true,
+      "httpSha256Verified": true,
+      "servedChromeVerified": false,
+      "historicalChromeDecodeMatch": false,
+      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
     }
   ],
   "stages": [
@@ -1216,7 +1255,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "51_OF_1326_REQUIRED_SOURCE13_IMAGES_ACCEPTED;1275_REMAIN"
+      "status": "52_RENDERER_LINEAGE_DESTINATIONS_ACCEPTED;1_CURRENT_FREEZE15_DEPENDENCY_QUALIFIED;51_HISTORICAL_FREEZE13;1274_PLAN_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",

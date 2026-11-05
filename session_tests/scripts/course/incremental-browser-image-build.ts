@@ -9,11 +9,13 @@ import {fileURLToPath} from 'node:url';
 import {prepareBrowser, browserPreparationFile} from './browser-presentation.ts';
 import {bindings} from './presentation.ts';
 import {exactBindgen} from './exact-bindgen.ts';
-import {assetsFor, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write} from './model.ts';
+import {assetsFor, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write, materializedContent} from './model.ts';
 import {nativeTarget} from './verify.ts';
+import {imageBuildMode, nativeSamplePhase} from './image-low-disk.ts';
 
 const self=fileURLToPath(import.meta.url), original=fileURLToPath(new URL('./browser-presentation.ts',import.meta.url));
 const guard=fileURLToPath(new URL('./parallel-image-guard.ps1',import.meta.url));
+const modeHelper=fileURLToPath(new URL('./image-low-disk.ts',import.meta.url));
 const sha=(file:string)=>hash(fs.readFileSync(file));
 const root=path.join(viewer,'target/course-presentation/incremental-browser-builds');
 const policy={purpose:'Image-only stable incremental compiler experiment; no canonical callback acceptance',processors:8,memoryMiB:8192,jobs:8,affinityMask:'0xFF00',timeoutSeconds:1800,profile:'debug',incremental:{nativeSample:'0',wasm:'1'}};
@@ -34,10 +36,10 @@ export function copyTrunkFiles(native:string,dist:string){
 function tools(){return Object.fromEntries(['rustc','cargo'].map(exe=>{const r=spawnSync(exe,['-Vv'],{encoding:'utf8',windowsHide:true});assert.equal(r.status,0);return[exe,r.stdout];}));}
 function sourceCheck(p:any){
     assert.equal(p.helperSha256,sha(self));assert.deepEqual(p.source,bindings(p.id));
+    assert.deepEqual(p.buildMode,imageBuildMode());assert.deepEqual(p.group.identity.buildMode,p.buildMode);
     for(const[f,digest]of Object.entries(p.pins))assert.equal(sha(f),digest,f);
     assert.deepEqual(manifest(p.native),p.canonicalFiles);
-    const kernel=path.relative(p.native,path.resolve(viewer,'../session_rust')).replaceAll('\\','/');
-    for(const[name,text]of Object.entries(expected(p.id)))assert.equal(read(path.join(p.native,name)),name==='Cargo.toml'?text.replaceAll('../../../session_rust',kernel):text,name);
+    for(const[name,text]of Object.entries(expected(p.id)))assert.equal(read(path.join(p.native,name)),materializedContent(name,text,p.native),name);
     assert.equal(sha(path.join(p.native,'Cargo.lock')),sha(lockFor(p.id)));
     for(const name of assetsFor(p.id))assert.equal(sha(path.join(p.native,name)),sha(path.join(viewer,name)),name);
     assert.deepEqual(p.overlay.renderScaleBridge, p.source.imageProfile.browser ? browserScaleBridge(read(path.join(p.native, 'src/browser.rs')), p.source.imageProfile.browser) : null);
@@ -46,7 +48,8 @@ function sourceCheck(p:any){
 
 export function prepareIncrementalImageBrowser(id:string,density=2){
     assert.equal(density,2);
-    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,sharedCourseManifest:imageCourseSnapshot()?.sha256||null,manifestHelper:sha(fileURLToPath(new URL('./capture-storage.ts',import.meta.url))),attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy,toolFiles:compilerTools(),tools:tools()};
+    const buildMode=imageBuildMode(), buildPolicy={...policy,incremental:{nativeSample:buildMode.nativeIncremental,wasm:buildMode.wasmIncremental}};
+    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,buildMode,modeHelperSha256:sha(modeHelper),sharedCourseManifest:imageCourseSnapshot()?.sha256||null,manifestHelper:sha(fileURLToPath(new URL('./capture-storage.ts',import.meta.url))),attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy:buildPolicy,toolFiles:compilerTools(),tools:tools()};
     const folder=path.join(root,'cases',id+'-'+hash(JSON.stringify(identity)).slice(0,20)),preparedFile=path.join(folder,'prepared.json');
     if(fs.existsSync(preparedFile)){const p=json(preparedFile);sourceCheck(p);return p;}
     const lookup=browserPreparationFile(id,density),base=fs.existsSync(lookup)?json(lookup):prepareBrowser(id,density);
@@ -54,14 +57,14 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const native=path.join(folder,'canonical-source');materialize(expected(id),native,lockFor(id),assetsFor(id));
     const renderScaleBridge = source.imageProfile.browser ? browserScaleBridge(read(path.join(native, 'src/browser.rs')), source.imageProfile.browser) : null;
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
-    const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,policy,helperSha256:sha(self),guardSha256:sha(guard)};
+    const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,buildMode,modeHelperSha256:identity.modeHelperSha256,policy:buildPolicy,helperSha256:sha(self),guardSha256:sha(guard)};
     const groupKey='compact-browser-v1',group=path.join(viewer,'target/course-ib',groupKey),workbench=path.join(group,'workspace'),target=cargoTarget();
     const workspace=path.join(folder,'workspace'),dist=path.join(workspace,'target/course-checks',id,'dist');
     const sharedCourseManifest=stageImageCourseManifest(workspace);assert.deepEqual(sharedCourseManifest,base.sharedCourseManifest||null);
     fs.cpSync(path.join(docs,'journey/checks'),path.join(workspace,'docs/journey/checks'),{recursive:true});
     fs.mkdirSync(path.join(workspace,'docs/screenshots/journey'),{recursive:true});
     write(path.join(workspace,'target/course-checks/results.json'),JSON.stringify({[id]:{source:source.files}}));
-    const pins={...base.pins,...Object.fromEntries(imageCourseManifestInputs(workspace).map(file=>[file,sha(file)])), [self]:sha(self),[guard]:sha(guard),[fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url))]:sha(fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url)))};
+    const pins={...base.pins,...Object.fromEntries(imageCourseManifestInputs(workspace).map(file=>[file,sha(file)])), [self]:sha(self),[modeHelper]:sha(modeHelper),[guard]:sha(guard),[fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url))]:sha(fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url)))};
     const dependencyPaths:any[]=[];let table=false;
     const rebased=canonicalCargo.split('\n').map(line=>{
         if(/^\s*\[/.test(line))table=/(?:^|\.)(?:dependencies|dev-dependencies|build-dependencies)(?:\.|\])/.test(line.trim().slice(1))||/^\s*\[(?:patch\.|replace\])/.test(line);
@@ -109,7 +112,7 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
         const check=()=>{sourceCheck(p);for(const[file,digest]of Object.entries(desired))assert.equal(sha(path.join(g.workbench,file)),digest,file);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);};
         const commands:any[]=[];
         const execute=(label:string,args:string[])=>{
-            const environment={CARGO_INCREMENTAL:label==='sample'?'0':'1'};
+            const environment={CARGO_INCREMENTAL:label==='sample'?'0':p.buildMode.wasmIncremental};
             check();const prefix=path.join(p.folder,label),commandFile=prefix+'.command.json',log=prefix+'.log',resourcesFile=prefix+'.resources.json';assert(!fs.existsSync(log),'Preserve old attempt: '+log);
             write(commandFile,JSON.stringify({executable:args[0],arguments:args.slice(1)})+'\n');const fd=fs.openSync(log,'wx');let result;
             try{result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','1800','-WorkingDirectory',g.workbench,'-ManifestPath',resourcesFile,'-CommandFile',commandFile],
@@ -118,7 +121,7 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
             const resources=json(resourcesFile);assert.equal(result.status,0,log);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);assert.equal(resources.processors,8);assert.equal(resources.jobCommitLimitBytes,8589934592);assert.equal(resources.affinityMask,'0xFF00');assert.equal(resources.laneMutex,'Local\\SessionViewerCourseImageJob');check();
             const r={label,args,environment,commandFile,log,logSha256:sha(log),resourcesFile,resourcesSha256:sha(resourcesFile),resources};commands.push(r);return r;
         };
-        if(fs.existsSync(path.join(g.workbench,'examples/sample.rs'))){const sample=path.join(g.workbench,'sample.pb');if(fs.existsSync(sample))fs.unlinkSync(sample);execute('sample',['cargo','run','--example','sample','--locked','--target',nativeTarget(),'-j8']);assert(fs.statSync(sample).size>0);fs.copyFileSync(sample,path.join(p.folder,'sample.pb'));}
+        const nativeCacheRetirement=nativeSamplePhase(viewer,p,nativeTarget,check,execute);
         const wasmCommand=execute('wasm',['cargo','build','--lib','--locked','--target','wasm32-unknown-unknown','-j8','-vv','--message-format=json-render-diagnostics']);
         const artifacts=read(wasmCommand.log).split(/\r?\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}}).filter(r=>r.reason==='compiler-artifact'&&r.target?.name==='viewer_journey'&&path.resolve(r.manifest_path)===path.join(g.workbench,'Cargo.toml'));
         assert.equal(artifacts.length,1,'Actual own source-bound Cargo WASM artifact required');
@@ -132,11 +135,11 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
         const sceneSource=path.join(p.workspace,'target','course-'+id);fs.cpSync(p.native,sceneSource,{recursive:true});if(fs.existsSync(path.join(p.folder,'sample.pb')))fs.copyFileSync(path.join(p.folder,'sample.pb'),path.join(sceneSource,'sample.pb'));
         const retainedArtifacts=artifacts[0].filenames.map((file:string)=>({originalPath:file,sha256:sha(file)}));
         check();assert.equal(sha(retained),wasmSha256);
-        const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),policy,toolFiles:p.toolFiles,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,compiledInputs:desired,
-            compilerCacheTransition,
+        const method={status:'BUILT_IMAGE_ONLY_SOURCE_BOUND',helperSha256:sha(self),buildMode:p.buildMode,policy:p.policy,toolFiles:p.toolFiles,group:g,source:p.source,overlay:p.overlay,canonicalFiles:p.canonicalFiles,compiledInputs:desired,
+            compilerCacheTransition,nativeCacheRetirement,
             synchronization:{previous:previous?{id:previous.id,receipt:previous.completedReceipt,sha256:previous.completedReceiptSha256}:null,copiedChangedFiles:synced,removedOwnedStaleFiles:removed},commands,compilerArtifact:artifacts[0],retainedArtifacts,bindgen,
             wasm:{path:retained,sha256:wasmSha256,compilerReportedPath:wasm},bundle:Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),canonicalBehaviorExecuted:false,
-            scope:'Actual Cargo invocation for this checkpoint with stable package/path; native sample CARGO_INCREMENTAL=0, WASM CARGO_INCREMENTAL=1. Per-command environment records the applied setting. Complete source, one raw WASM and one bundle retained until compact publication retirement; compiler JSON and exact artifact hashes preserved without duplicate compiler-artifact copies. No GPU image or canonical callback acceptance.'};
+            scope:'Actual Cargo invocation for this checkpoint with stable package/path; native sample CARGO_INCREMENTAL=0, WASM CARGO_INCREMENTAL='+p.buildMode.wasmIncremental+'. Per-command environment records the applied setting. Complete source, one raw WASM and one bundle retained until compact publication retirement; compiler JSON and exact artifact hashes preserved without duplicate compiler-artifact copies. No GPU image or canonical callback acceptance.'};
         const methodFile=path.join(p.folder,'built.json');assert(!fs.existsSync(methodFile));write(methodFile,JSON.stringify(method,null,2)+'\n');
         const built={...p,status:'BUILT_NOT_CAPTURED',commands,wasm:method.wasm,bundle:method.bundle,imageBuild:{path:methodFile,sha256:sha(methodFile)}};sourceCheck(built);write(p.preparedFile,JSON.stringify(built,null,2)+'\n');
         write(stateFile,JSON.stringify({groupKey:g.key,id,ownedFiles:Object.keys(desired),ownedInputs:manifest(g.workbench),completedReceipt:methodFile,completedReceiptSha256:sha(methodFile)},null,2)+'\n');fs.unlinkSync(pendingFile);return built;

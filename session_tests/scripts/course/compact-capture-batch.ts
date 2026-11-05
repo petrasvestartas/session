@@ -70,7 +70,7 @@ export function readBatchQueue(file: string, runtime: Runtime = production): Que
 function sourceGeneration(queue: Queue) {
     const steps = course().steps, ids = new Set(steps.map(step => step.id));
     for (const row of queue.entries) assert(ids.has(row.id), 'Unknown checkpoint: ' + row.id);
-    const roots = [path.dirname(script), path.join(docs, 'journey/code'), path.join(docs, 'journey/checks'),
+    const roots = [path.dirname(script), path.join(docs, 'journey/code'), path.join(docs, 'journey/checks'), path.join(docs, 'journey/supplied'),
         path.join(viewer, 'examples'), path.join(viewer, '.cargo'),
         ...[viewer, path.resolve(viewer, '../session_rust'), path.resolve(viewer, '../../wood/rust')].flatMap(root => ['src', 'assets'].map(name => path.join(root, name)))].filter(fs.existsSync);
     const directories = roots.map(root => ({root, names: filesIn(root).sort()}));
@@ -101,7 +101,7 @@ function sourceGeneration(queue: Queue) {
     for (const match of (process.env.NODE_OPTIONS || '').matchAll(/(?:--require|-r)(?:=|\s+)(?:"([^"]+)"|'([^']+)'|(\S+))/g)) inputs.push(path.resolve(match[1] || match[2] || match[3]));
     const nativeDevelopment = nativeDevelopmentProfile();
     const environment = Object.fromEntries(['RUSTFLAGS', 'CARGO_ENCODED_RUSTFLAGS', 'CARGO_INCREMENTAL', 'COURSE_CAPTURE_PROCESSORS', 'VIEWER_DXC_PATH',
-        'VIEWER_BROWSER_EXECUTABLE', 'COURSE_ADAPTER_METADATA', 'COURSE_NATIVE_ADAPTER', 'COURSE_IMAGE_RENDER_SCALE', 'COURSE_IMAGE_SHARED_MANIFEST', 'NODE_OPTIONS', ...Object.keys(nativeDevelopment)].map(name => [name, process.env[name] || null]));
+        'VIEWER_BROWSER_EXECUTABLE', 'COURSE_ADAPTER_METADATA', 'COURSE_NATIVE_ADAPTER', 'COURSE_IMAGE_RENDER_SCALE', 'COURSE_IMAGE_SHARED_MANIFEST', 'COURSE_IMAGE_LOW_DISK', 'NODE_OPTIONS', ...Object.keys(nativeDevelopment)].map(name => [name, process.env[name] || null]));
     return {files: [...new Set(inputs)].sort().map(fileReference), directories,
         profile: {environment, nativeDevelopment, nativeAdapter, target: cargoTarget(), compiler: compilerTools(), node: fileReference(process.execPath)}};
 }

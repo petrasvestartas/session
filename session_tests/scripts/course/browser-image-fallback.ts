@@ -8,7 +8,7 @@ import {spawn} from 'node:child_process';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {buildImageBrowser} from './image-browser-build.ts';
 import {bindings} from './presentation.ts';
-import {assetsFor, expected, hash, json, read, viewer, withExpectedSequence, write} from './model.ts';
+import {assetsFor, expected, hash, json, read, viewer, withExpectedSequence, write, materializedContent} from './model.ts';
 
 const self = fileURLToPath(import.meta.url);
 const guard = fileURLToPath(new URL('./parallel-image-guard.ps1', import.meta.url));
@@ -20,9 +20,8 @@ function check(prepared: any) {
     for (const [file,digest] of Object.entries(prepared.pins)) assert.equal(sha(file),digest,file);
     assert.equal(sha(prepared.worker),prepared.workerSha256);
     assert.equal(sha(prepared.adapted),prepared.adaptedSha256);
-    const kernel = path.relative(prepared.native,path.resolve(viewer,'../session_rust')).split(path.sep).join('/');
     for (const [name,text] of Object.entries(withExpectedSequence(() => expected(prepared.id))))
-        assert.equal(read(path.join(prepared.native,name)), name==='Cargo.toml'?text.replaceAll('../../../session_rust',kernel):text,name);
+        assert.equal(read(path.join(prepared.native,name)), materializedContent(name,text,prepared.native),name);
     for (const name of assetsFor(prepared.id)) assert.equal(sha(path.join(prepared.native,name)),sha(path.join(viewer,name)),name);
     for (const [name,digest] of Object.entries(prepared.bundle)) assert.equal(sha(path.join(prepared.workspace,'target/course-checks',prepared.id,'dist',name)),digest,name);
 }
@@ -84,7 +83,7 @@ export async function captureFallback(id: string) {
     const built = withExpectedSequence(() => buildImageBrowser(id,2)); check(built);
     const profile = {purpose:'Image generation with unchanged original callback assertions',canonicalBehaviorExecuted:true,canonicalValidationProfile:false,
         processors:8,memoryMiB:8192,affinityMask:'0xFF00',helper:reference(self),guard:reference(guard),worker:reference(built.worker),adapted:reference(built.adapted)};
-    const key=hash(JSON.stringify({source:built.source,bundle:built.bundle,profile})).slice(0,20);
+    const key=hash(JSON.stringify({source:built.source,bundle:built.bundle,profile,attempt:process.env.COURSE_CAPTURE_ATTEMPT||null})).slice(0,20);
     const folder=path.join(viewer,'target/course-presentation/image-fallback',id+'-'+key),file=path.join(folder,'capture.json');
     if(fs.existsSync(file)) {
         const prior=json(file);assert.deepEqual(prior.source,built.source);assert.equal(sha(prior.image.path),prior.image.sha256);

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {spawn, spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {bindings, captureDirectory, prepare} from './presentation.ts';
-import {assetsFor, course, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write, resolveJourneyImage} from './model.ts';
+import {assetsFor, course, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write, resolveJourneyImage, materializedContent} from './model.ts';
 import {nativeTarget, runCommand} from './verify.ts';
 
 const sha = (file: string) => hash(fs.readFileSync(file));
@@ -161,9 +161,8 @@ function check(prepared: any) {
     for (const [file, digest] of Object.entries(prepared.pins)) assert.equal(sha(file), digest, file);
     assert.equal(sha(prepared.worker), prepared.workerSha256);
     assert.equal(sha(prepared.adapted), prepared.adaptedSha256);
-    const kernel = path.relative(prepared.native, path.resolve(viewer, '../session_rust')).split(path.sep).join('/');
     for (const [name, text] of Object.entries(expected(prepared.id))) {
-        assert.equal(read(path.join(prepared.native, name)), name === 'Cargo.toml' ? text.replaceAll('../../../session_rust', kernel) : text, name);
+        assert.equal(read(path.join(prepared.native, name)), materializedContent(name, text, prepared.native), name);
     }
     for (const name of assetsFor(prepared.id)) assert.equal(sha(path.join(prepared.native, name)), sha(path.join(viewer, name)), name);
     if (prepared.bundle) for (const [name, digest] of Object.entries(prepared.bundle))

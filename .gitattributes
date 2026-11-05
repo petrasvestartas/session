@@ -5,6 +5,9 @@
 session_viewer/** text=auto eol=lf
 session_tests/** text=auto eol=lf
 
+# Preserve the supplied snapshot bytes and their provenance hashes.
+session_viewer/docs/journey/supplied/wood-2026-10-29/** -text
+
 # Exclude third-party libraries from GitHub language detection
 session_cpp/src/catch/** linguist-vendored
 session_cpp/src/fmt/** linguist-vendored

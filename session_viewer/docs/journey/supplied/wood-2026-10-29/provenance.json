@@ -1,0 +1,122 @@
+{
+  "scope": "Historical course-supplied Wood constructors; maintained Viewer does not depend on this crate. No algorithm adapters or renamed substitutes.",
+  "origin": {
+    "sourceFreeze": ".codex/viewer-quality-20261028/source-freeze-13.json",
+    "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+    "recordedUtc": "2026-10-29T10:30:45.150579+00:00"
+  },
+  "files": [
+    {
+      "path": "build.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\build.rs",
+      "originSha256": "ec3d00c94d498d488ffd3fe6b52dda54629f0da71a2b0483ef32dd220cae7c7d",
+      "bytes": 2247,
+      "sha256": "ec3d00c94d498d488ffd3fe6b52dda54629f0da71a2b0483ef32dd220cae7c7d",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/ec3d00c94d498d488ffd3fe6b52dda54629f0da71a2b0483ef32dd220cae7c7d.gz"
+    },
+    {
+      "path": "Cargo.toml",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\Cargo.toml",
+      "originSha256": "e6ced7498ccab38cf7ed95be700306c525443911d3ed039d1d618605cc69bc24",
+      "bytes": 840,
+      "sha256": "0734aedeec9b514881b65876f3127f58a5a2c9b8cefa5b6dba82ddaab27a5836",
+      "changes": [
+        "Relocated session_rust dependency path only."
+      ],
+      "blob": "session/session_viewer/target/course-compact/blobs/e6ced7498ccab38cf7ed95be700306c525443911d3ed039d1d618605cc69bc24.gz"
+    },
+    {
+      "path": "src/beam.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\beam.rs",
+      "originSha256": "451ef9653b0bb90b754845769f3deb3c72496e5e3841dde0e25f9ac381287458",
+      "bytes": 7288,
+      "sha256": "451ef9653b0bb90b754845769f3deb3c72496e5e3841dde0e25f9ac381287458",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/451ef9653b0bb90b754845769f3deb3c72496e5e3841dde0e25f9ac381287458.gz"
+    },
+    {
+      "path": "src/beam_variable.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\beam_variable.rs",
+      "originSha256": "5d8b976c730f76b4356d055471874550a38dea19ca84314644efba46bd750de9",
+      "bytes": 6200,
+      "sha256": "5d8b976c730f76b4356d055471874550a38dea19ca84314644efba46bd750de9",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/5d8b976c730f76b4356d055471874550a38dea19ca84314644efba46bd750de9.gz"
+    },
+    {
+      "path": "src/block.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\block.rs",
+      "originSha256": "8dd29d58c5e927aad613a6d036111d9277ac3877a921cf5b86bf85541b7c9c57",
+      "bytes": 3929,
+      "sha256": "8dd29d58c5e927aad613a6d036111d9277ac3877a921cf5b86bf85541b7c9c57",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/8dd29d58c5e927aad613a6d036111d9277ac3877a921cf5b86bf85541b7c9c57.gz"
+    },
+    {
+      "path": "src/column.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\column.rs",
+      "originSha256": "a1f0c6d22bbc411b67d7d89ab3764430092c171e77926a4fb6de8ed6e09d3f97",
+      "bytes": 6663,
+      "sha256": "a1f0c6d22bbc411b67d7d89ab3764430092c171e77926a4fb6de8ed6e09d3f97",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/a1f0c6d22bbc411b67d7d89ab3764430092c171e77926a4fb6de8ed6e09d3f97.gz"
+    },
+    {
+      "path": "src/element.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\element.rs",
+      "originSha256": "dd09f4947abcccabf76b7bd7f42c879bcb5a30092f130907509e32d02a1ac10f",
+      "bytes": 2814,
+      "sha256": "dd09f4947abcccabf76b7bd7f42c879bcb5a30092f130907509e32d02a1ac10f",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/dd09f4947abcccabf76b7bd7f42c879bcb5a30092f130907509e32d02a1ac10f.gz"
+    },
+    {
+      "path": "src/geometry.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\geometry.rs",
+      "originSha256": "3aec20dfe9c7513f1ce4fd4d60148c0a45161cd5f6e6d993dbc39068bf9d0356",
+      "bytes": 24353,
+      "sha256": "3aec20dfe9c7513f1ce4fd4d60148c0a45161cd5f6e6d993dbc39068bf9d0356",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/3aec20dfe9c7513f1ce4fd4d60148c0a45161cd5f6e6d993dbc39068bf9d0356.gz"
+    },
+    {
+      "path": "src/lib.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\lib.rs",
+      "originSha256": "b8ea5bb6fe8cb2da708a1e11f282afb2efe564e6a6b8c3794af19522690b733b",
+      "bytes": 393,
+      "sha256": "b8ea5bb6fe8cb2da708a1e11f282afb2efe564e6a6b8c3794af19522690b733b",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/b8ea5bb6fe8cb2da708a1e11f282afb2efe564e6a6b8c3794af19522690b733b.gz"
+    },
+    {
+      "path": "src/plate.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\plate.rs",
+      "originSha256": "f33f275e12deedbbe2f6c0079fe7b052d3a4f0b3487289259171ff6ad4f62874",
+      "bytes": 4013,
+      "sha256": "f33f275e12deedbbe2f6c0079fe7b052d3a4f0b3487289259171ff6ad4f62874",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/f33f275e12deedbbe2f6c0079fe7b052d3a4f0b3487289259171ff6ad4f62874.gz"
+    },
+    {
+      "path": "src/proto/wood_proto.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\proto\\wood_proto.rs",
+      "originSha256": "ae7367198c7f8fe9cfc05e08a90818e18b6a2e340ad3daf90e279b0ca417d870",
+      "bytes": 27399,
+      "sha256": "ae7367198c7f8fe9cfc05e08a90818e18b6a2e340ad3daf90e279b0ca417d870",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/ae7367198c7f8fe9cfc05e08a90818e18b6a2e340ad3daf90e279b0ca417d870.gz"
+    },
+    {
+      "path": "src/support.rs",
+      "originPath": "C:\\pc\\3_code\\code_rust\\wood_research\\wood\\rust\\src\\support.rs",
+      "originSha256": "181510ea9bd71f6fec6c4cd4511ea5a8689664b88a3846931c9deca7041aacd2",
+      "bytes": 12575,
+      "sha256": "181510ea9bd71f6fec6c4cd4511ea5a8689664b88a3846931c9deca7041aacd2",
+      "changes": [],
+      "blob": "session/session_viewer/target/course-compact/blobs/181510ea9bd71f6fec6c4cd4511ea5a8689664b88a3846931c9deca7041aacd2.gz"
+    }
+  ],
+  "transformations": "Only Cargo.toml session_rust path is relocated; all eleven remaining files are byte-identical to recorded source. Generated proto is supplied unchanged; build regeneration remains disabled by the course commands.",
+  "currentCompileAcceptance": false
+}

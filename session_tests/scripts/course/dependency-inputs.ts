@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {filesIn, hash, fingerprint, viewer} from './model.ts';
+import {filesIn, hash, fingerprint, viewer, woodDependency} from './model.ts';
 
 export function dependencyInputs(manifest: string, root = viewer) {
     const roots: [string, string][] = [];
-    if (/^wood\s*=/m.test(manifest) || /^current_viewer\s*=/m.test(manifest)) {
-        roots.push(['wood', path.resolve(root, '../../wood/rust')]);
-    }
+    const wood = woodDependency(manifest, root);
+    if (wood) roots.push(['wood', wood]);
+    else if (/^current_viewer\s*=/m.test(manifest)) roots.push(['wood', path.resolve(root, '../../wood/rust')]);
     if (/^current_viewer\s*=/m.test(manifest)) roots.push(['viewer', root]);
     const inputs: Record<string, string> = {};
     for (const [name, directory] of roots) {

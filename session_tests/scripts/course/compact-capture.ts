@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
-import {course, docs, expected, filesIn, json, viewer, withExpectedSequence} from './model.ts';
+import {course, docs, expected, filesIn, json, viewer, withExpectedSequence, woodDependency} from './model.ts';
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture, ledgerReceiptFile} from './capture-ledger.ts';
 import {imageProfile} from './image-render-scale.ts';
@@ -23,7 +23,9 @@ function sourceEvidence(id: string, lane: string) {
     for (const relative of [step.frame, step.browser_check]) if (relative) files.push(path.join(docs, relative));
     if (id === '97-finish-with-the-maintained-browser-runtime') files.push(path.join(docs, 'capture_current.cjs'));
     const roots = manifest.includes('session_rust') ? [path.resolve(viewer, '../session_rust')] : [];
-    if (/^wood\s*=/m.test(manifest) || /^current_viewer\s*=/m.test(manifest)) roots.push(path.resolve(viewer, '../../wood/rust'));
+    const wood = woodDependency(manifest);
+    if (wood) roots.push(wood);
+    if (/^current_viewer\s*=/m.test(manifest)) roots.push(path.resolve(viewer, '../../wood/rust'));
     if (/^current_viewer\s*=/m.test(manifest)) roots.push(viewer);
     for (const directory of roots) {
         files.push(...filesIn(path.join(directory, 'src')));
@@ -103,7 +105,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
     const descriptor = fs.openSync(laneLock, 'wx');
     fs.writeFileSync(descriptor, JSON.stringify({pid: process.pid, lane, id})); fs.closeSync(descriptor);
     let file: string, buildFile: string | undefined, ownedRoots: string[], transientRoots: string[], execution: any, evidence: string[];
-    let sourceIntegrity: any;
+    let sourceIntegrity: any, sharedCourseIntegrity: any;
     const pendingFile = path.join(root, lane + '-pending.json');
     let ownsPending = false;
     try {
@@ -144,7 +146,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             if (record.folder) ownedRoots.push(record.folder);
             if (record.host?.log) ownedRoots.push(path.dirname(record.host.log));
             execution = record.executionIntegrity || record.host?.executionIntegrity;
-            for(const phase of ['before','after'] as const)execution[phase].files.push(...sharedIntegrity[phase].files);
+            if(sharedBefore.files.length)sharedCourseIntegrity={...sharedIntegrity,prepared:fileReference(built.preparedFile)};
             evidence = [built.imageBuild.path, built.preparedFile, ...imageCourseManifestInputs(built.workspace)];
             if (record.ownedActionSourceBridge) {
                 const reference = record.ownedActionSourceBridge;
@@ -165,7 +167,7 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
             assert(relative.startsWith('course-presentation' + path.sep) || /^course-presentation-[^\\/]+$/.test(relative), 'Only generated capture directories are retired');
         }
         const receipt = sealCapture({directory: path.join(root, `${lane}-${id}-${fileReference(file!).sha256.slice(0, 20)}`),
-            ownedRoots: ownedRoots!, transientRoots: transientRoots!, capture: file!, build: buildFile, evidence: [...evidence!, ...inputs], image, execution, sourceIntegrity,
+            ownedRoots: ownedRoots!, transientRoots: transientRoots!, capture: file!, build: buildFile, evidence: [...evidence!, ...inputs], image, execution, sourceIntegrity, sharedCourseIntegrity,
             activeLock: laneLock,
             locks: [laneLock, path.join(viewer, 'target/course-presentation/incremental-native-running.lock'), path.join(viewer, 'target/course-ib/compact-browser-v1/workbench.lock')]});
         fs.unlinkSync(pendingFile); ownsPending = false;

@@ -33,7 +33,7 @@ export function stageDeclaredPbAssets(built:any){
 export async function captureOwnedFileFallback(id:string,builtFile:string){
  builtFile=path.resolve(builtFile);const built=json(builtFile);assert.equal(built.id,id);
  const declaredPbAssets=stageDeclaredPbAssets(built),assetPins=Object.fromEntries(declaredPbAssets.flatMap(row=>[row.source,row.destination]).map(item=>[item.path,item.sha256]));
- const identity={declaredPbAssets,helper:ref(self),fallback:ref(original),transport:ref(transport),actualBuild:ref(builtFile),originalWorker:ref(built.worker)},key=hash(JSON.stringify(identity)).slice(0,20),folder=path.join(viewer,'target/course-presentation/owned-file-fallback',id+'-'+key);
+ const identity={declaredPbAssets,attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helper:ref(self),fallback:ref(original),transport:ref(transport),actualBuild:ref(builtFile),originalWorker:ref(built.worker)},key=hash(JSON.stringify(identity)).slice(0,20),folder=path.join(viewer,'target/course-presentation/owned-file-fallback',id+'-'+key);
  const worker=path.join(folder,'worker.cjs'),receipt=path.join(folder,'transport.jsonl');
  const workerSource="const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');const sha=f=>crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');\n"+
  'assert.equal(sha('+JSON.stringify(transport)+'),'+JSON.stringify(sha(transport))+');assert.equal(sha('+JSON.stringify(built.worker)+'),'+JSON.stringify(sha(built.worker))+');\n'+

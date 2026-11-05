@@ -92086,7 +92086,7 @@
       "edits": [
         {
           "path": "Cargo.toml",
-          "before": "\n[dependencies]\nwood = { path = \"../../../../wood/rust\" }\nwasm-bindgen = \"=0.2.128\"\n",
+          "before": "\n[dependencies]\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\n",
           "snippet": "journey/code/97-finish-with-the-maintained-browser-runtime-01.toml",
           "why": "Use one maintained viewer dependency for native reference and browser startup."
         },

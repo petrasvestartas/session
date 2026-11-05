@@ -201,3 +201,76 @@ test('aliased PNG reads preserve immutable ledger references and repeat retireme
         assert.equal(verifyCaptureLedger(receipt).currentPublication, true);
     } finally { t.mock.restoreAll(); f.cleanup(); }
 });
+
+function sharedBrowserFixture() {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ledger-shared-course-')), owned = path.join(root, 'owned');
+    const workspace = path.join(owned, 'workspace'), dist = path.join(workspace, 'target/course-checks/fixture/dist');
+    fs.mkdirSync(dist, {recursive: true});
+    const put = (file: string, value: unknown) => {fs.mkdirSync(path.dirname(file), {recursive: true}); fs.writeFileSync(file, typeof value === 'string' ? value : JSON.stringify(value)); return fileReference(file);};
+    const content = '{"title":"Original full course","steps":[]}', course = put(path.join(root, 'shared', hash(content), 'course.json'), content);
+    const pointer = put(path.join(workspace, 'docs/journey/course-manifest-input.json'), course);
+    const before = observeExecution([pointer.path, course.path]);
+    const wasm = put(path.join(owned, 'raw.wasm'), 'compiled wasm'), bundleFile = put(path.join(dist, 'viewer.wasm'), 'compiled wasm');
+    const image = put(path.join(owned, 'image.png'), 'actual fixture image');
+    const execution = finishExecution(observeExecution([bundleFile.path]));
+    const commands = ['wasm', 'bindgen'].map(label => {
+        const args = label === 'wasm' ? ['cargo', 'build'] : ['bindgen.exe', 'compiler/viewer.wasm'];
+        const resources = {exitCode: 0, timedOut: false};
+        const resource = put(path.join(owned, label + '.resources.json'), resources), log = put(path.join(owned, label + '.log'), label);
+        const command = put(path.join(owned, label + '.command.json'), {executable: args[0], arguments: args.slice(1)});
+        return {label, args, resources, resourcesFile: resource.path, resourcesSha256: resource.sha256, log: log.path, logSha256: log.sha256, commandFile: command.path};
+    });
+    const bundle = {'viewer.wasm': bundleFile.sha256}, source = {files: 'source-bound fixture'};
+    const build = put(path.join(owned, 'built.json'), {source, bundle, group: {workbench: path.join(root, 'workbench')},
+        compilerArtifact: {manifest_path: path.join(root, 'workbench/Cargo.toml'), filenames: ['compiler/viewer.wasm']},
+        wasm: {...wasm, compilerReportedPath: 'compiler/viewer.wasm'}, commands, bindgen: {executable: 'bindgen.exe', sha256: hash('bindgen')}});
+    const preparedFile = path.join(owned, 'prepared.json');
+    const prepared = {workspace, source, bundle, imageBuild: {path: build.path, sha256: build.sha256}, sharedCourseManifest: course,
+        pins: {[pointer.path]: pointer.sha256, [course.path]: course.sha256}};
+    put(preparedFile, prepared);
+    const capture = put(path.join(owned, 'capture-result.json'), {id: 'fixture', image, bundle, source, executionIntegrity: execution,
+        served: {'fixture/dist/viewer.wasm': bundleFile.sha256}, resources: {exitCode: 0}});
+    const sharedCourseIntegrity = {...finishExecution(before), prepared: fileReference(preparedFile)};
+    const options = {directory: path.join(root, 'proof/case'), ownedRoots: [owned], transientRoots: [workspace], capture: capture.path,
+        build: build.path, evidence: [preparedFile, pointer.path, course.path], image: image.path, execution, sharedCourseIntegrity};
+    return {root, owned, workspace, course, pointer, prepared, preparedFile, capture, options,
+        updatePrepared() {put(preparedFile, prepared); options.sharedCourseIntegrity.prepared = fileReference(preparedFile);},
+        cleanup() {fs.rmSync(root, {recursive: true});}};
+}
+
+test('shared course observations seal separately while raw browser execution stays identical, and verify after retirement', () => {
+    const f = sharedBrowserFixture();
+    try {
+        const original = fs.readFileSync(f.capture.path), receipt = sealCapture(f.options);
+        assert.deepEqual(fs.readFileSync(f.capture.path), original);
+        const verified = verifyCaptureLedger(receipt.path);
+        assert.deepEqual(verified.receipt.execution, JSON.parse(original.toString()).executionIntegrity);
+        assert.equal(verified.receipt.sharedCourseIntegrity.after.files.length, 2);
+        const publication = path.join(f.root, 'published.json'); fs.writeFileSync(publication, '{}');
+        retirePublishedCapture(receipt.path, f.options.image, publication);
+        fs.unlinkSync(f.course.path);
+        assert.equal(verifyCaptureLedger(receipt.path).status, 'PUBLISHED_BINARY_RETIRED');
+    } finally {f.cleanup();}
+});
+
+for (const mode of ['missing-input', 'wrong-prepared-pin', 'wrong-build', 'raw-execution-changed', 'observation-too-late'] as const)
+    test('shared course ledger rejects ' + mode, () => {
+        const f = sharedBrowserFixture();
+        try {
+            const shared = f.options.sharedCourseIntegrity;
+            if (mode === 'missing-input') {shared.before.files.pop(); shared.after.files.pop();}
+            if (mode === 'wrong-prepared-pin') {f.prepared.pins[f.course.path] = hash('wrong course'); f.updatePrepared();}
+            if (mode === 'wrong-build') {f.prepared.imageBuild.sha256 = hash('other build'); f.updatePrepared();}
+            if (mode === 'raw-execution-changed') f.options.execution.before.at = '2000-01-01T00:00:00.000Z';
+            if (mode === 'observation-too-late') shared.before.at = '2999-01-01T00:00:00.000Z';
+            assert.throws(() => sealCapture(f.options));
+        } finally {f.cleanup();}
+    });
+
+test('live shared manifest corruption fails ledger verification', () => {
+    const f = sharedBrowserFixture();
+    try {
+        const receipt = sealCapture(f.options); fs.writeFileSync(f.course.path, 'replaced input');
+        assert.throws(() => verifyCaptureLedger(receipt.path), /Live artifact was replaced/);
+    } finally {f.cleanup();}
+});

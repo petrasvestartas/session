@@ -4,7 +4,9 @@
 
 **Typing: 1–1 minutes.** [Estimate](typing-load.md).
 
-Link current Wood element builders.
+Link the supplied historical Wood element builders.
+
+The six constructors in this section use the supplied historical Wood crate at `docs/journey/supplied/wood-2026-10-29`. Its twelve files come from the recorded 29 October source freeze; only the kernel dependency path is relocated. This preserves `Column`, the original payload classes and the existing tests. The maintained viewer uses the current source and no longer exposes these Wood construction commands.
 
 ## Type
 

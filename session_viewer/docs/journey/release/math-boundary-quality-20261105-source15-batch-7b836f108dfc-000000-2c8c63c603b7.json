@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-05T21:06:08.011967+00:00",
+  "id": "96y-address-feature-pixels-to-original-cad-owners",
+  "lane": "browser",
+  "batchIndex": 0,
+  "generation": "7b836f108dfc9295e6970a2dca67f2970820dad8a6498515a386a744b34cdb1c",
+  "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed and accepted this exact original-resolution image at the captured framing before authorizing this receipt.",
+  "sourceFreeze": "source-freeze-15-compat.json",
+  "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+  "manifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\7b836f108dfc9295e6970a2dca67f2970820dad8a6498515a386a744b34cdb1c\\manifest.json",
+    "sha256": "e6f9cc0336701cdd46022d4d70fab4fe9bbf66f10b5cecc83800572b84694859",
+    "bytes": 4048112
+  },
+  "historicalAcceptanceScope": "The51 earlierfreeze13 captures retain their original dependency scope and are not relabeled as freeze15 validation.",
+  "manifestFreezeCoverage": {
+    "matchedFiles": 473,
+    "identicalDuplicateReferences": 0,
+    "conflictingDuplicateReferences": 0
+  },
+  "batchPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\7b836f108dfc9295e6970a2dca67f2970820dad8a6498515a386a744b34cdb1c\\publications\\000000.json",
+    "sha256": "269bc0cff61900a285b498aa921f6f1cfff711cdff4a2297253cd14c93ce7937",
+    "bytes": 2191
+  },
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-96y-address-feature-pixels-to-original-cad-owners-50ec6e1e35ebd41117b3\\capture.json.gz",
+    "sha256": "ebc22626725db25d2f328764abe6373e1e34d742600f04a037dd6dfa8aa76384",
+    "bytes": 364850
+  },
+  "retiredEvent": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact-batches\\7b836f108dfc9295e6970a2dca67f2970820dad8a6498515a386a744b34cdb1c\\events\\000004-acc183ad0b036ead16823cc9f5b7fffcfb52f6f30b614a73c19cf16c783ebdaa.json",
+    "sha256": "acc183ad0b036ead16823cc9f5b7fffcfb52f6f30b614a73c19cf16c783ebdaa",
+    "bytes": 278
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96y-address-feature-pixels-to-original-cad-owners-browser.png",
+    "sha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281",
+    "bytes": 37247
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96y-address-feature-pixels-to-original-cad-owners-browser.png",
+    "sha256": "2d933e47e210fbbd0450fc728510f0123fb1c7417bc27a39c60b89a33f1027f9",
+    "bytes": 37239
+  },
+  "preview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\docs\\vue\\course\\docs\\screenshots\\journey\\96y-address-feature-pixels-to-original-cad-owners-browser.png",
+    "sha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281",
+    "bytes": 37247
+  },
+  "http": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners-browser.png?v=2c8c63c603b7",
+    "status": 200,
+    "sha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281"
+  },
+  "rootReviewBasis": {
+    "mode": "PERSONAL_ORIGINAL_RESOLUTION_REVIEW",
+    "imageSha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281"
+  }
+}

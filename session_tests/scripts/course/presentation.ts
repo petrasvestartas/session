@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
-import {assetsFor, course, docs, expected, filesIn, fingerprint, hash, json, lockFor, materialize, read, reference, viewer, write, resolveJourneyImage} from './model.ts';
+import {assetsFor, course, docs, expected, filesIn, fingerprint, hash, json, lockFor, materialize, read, reference, viewer, write, resolveJourneyImage, materializedContent} from './model.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
 import {nativeTarget, runCommand} from './verify.ts';
 import {png, ppm} from './png.ts';
@@ -86,9 +86,8 @@ function checkAdapterBridge(record: any) {
 }
 
 function checkMaterialized(id: string, directory: string) {
-    const kernel = path.relative(directory, path.resolve(viewer, '../session_rust')).split(path.sep).join('/');
     for (const [name, text] of Object.entries(expected(id))) {
-        const wanted = name === 'Cargo.toml' ? text.replaceAll('../../../session_rust', kernel) : text;
+        const wanted = materializedContent(name, text, directory);
         assert.equal(read(path.join(directory, name)), wanted, `Materialized checkpoint changed: ${name}`);
     }
     assert.equal(digest(path.join(directory, 'Cargo.lock')), digest(lockFor(id)));

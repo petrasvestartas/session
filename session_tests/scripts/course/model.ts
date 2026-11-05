@@ -210,12 +210,26 @@ export function compare(files: Files, target: string): string[] {
     return failures;
 }
 
+export function woodDependency(manifest: string, root = viewer) {
+    const dependency = manifest.match(/^wood\s*=\s*\{[^}\n]*path\s*=\s*"([^"]+)"/m);
+    return dependency ? path.resolve(root, 'workspace/journey', dependency[1]) : null;
+}
+
+export function materializedContent(name: string, text: string, destination: string) {
+    if (name !== 'Cargo.toml') return text;
+    const kernel = path.relative(destination, path.join(viewer, '../session_rust')).split(path.sep).join('/');
+    const wood = woodDependency(text);
+    let content = text.replaceAll('../../../session_rust', kernel);
+    if (wood) content = content.replace(/(^wood\s*=\s*\{[^}\n]*path\s*=\s*")[^"]+"/m,
+        (_, prefix) => prefix + path.relative(destination, wood).split(path.sep).join('/') + '"');
+    return content;
+}
+
 export function materialize(files: Files, destination: string, lock: string, assets: string[] = []) {
     fs.mkdirSync(path.dirname(destination), {recursive: true});
     fs.mkdirSync(destination, {recursive: false});
-    const kernel = path.relative(destination, path.join(viewer, '../session_rust')).split(path.sep).join('/');
     for (const [name, text] of Object.entries(files)) {
-        write(path.join(destination, name), name === 'Cargo.toml' ? text.replaceAll('../../../session_rust', kernel) : text);
+        write(path.join(destination, name), materializedContent(name, text, destination));
     }
     fs.copyFileSync(lock, path.join(destination, 'Cargo.lock'));
     installAssets(assets, destination);

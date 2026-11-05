@@ -40,13 +40,17 @@ function owned(root: string, file: string) {
     return file;
 }
 
-export function sealCapture(options: {directory: string; ownedRoots: string[]; transientRoots?: string[]; capture: string; build?: string; evidence: string[]; image: string; execution: any; sourceIntegrity?: any; locks?: string[]; activeLock?: string}) {
+export function sealCapture(options: {directory: string; ownedRoots: string[]; transientRoots?: string[]; capture: string; build?: string; evidence: string[]; image: string; execution: any; sourceIntegrity?: any; sharedCourseIntegrity?: any; locks?: string[]; activeLock?: string}) {
     const {directory, execution} = options;
     assert(!ledgerReceiptFile(directory, 'capture'), 'Capture receipt already exists');
     assert(execution?.before?.files?.length && execution.after?.files?.length, 'Actual before/after execution observations are required');
     assert.deepEqual(execution.before.files, execution.after.files);
     assert(Date.parse(execution.after.at) >= Date.parse(execution.before.at));
     for (const file of execution.after.files) assert.equal(digest(file.path), file.sha256);
+    if (options.sharedCourseIntegrity) {
+        assert.deepEqual(options.sharedCourseIntegrity.before.files, options.sharedCourseIntegrity.after.files);
+        for (const file of options.sharedCourseIntegrity.after.files) assert.equal(digest(file.path), file.sha256);
+    }
     for (const lock of options.locks || []) {
         if (lock === options.activeLock) assert.equal(json(lock).pid, process.pid, 'Only the sealing process may hold its lane lock');
         else assert(!fs.existsSync(lock), 'Capture process is still active');
@@ -69,7 +73,7 @@ export function sealCapture(options: {directory: string; ownedRoots: string[]; t
     }
     const receipt = {schema: 1, status: 'CAPTURED_NOT_PUBLISHED', capture: fileReference(options.capture), image: fileReference(options.image),
         build: options.build ? fileReference(options.build) : null,
-        execution, sourceIntegrity: options.sourceIntegrity, evidence, blobs, candidates, locks: options.locks || [], scope: 'Immutable execution evidence; fresh build required for re-execution after retirement.'};
+        execution, sourceIntegrity: options.sourceIntegrity, sharedCourseIntegrity: options.sharedCourseIntegrity, evidence, blobs, candidates, locks: options.locks || [], scope: 'Immutable execution evidence; fresh build required for re-execution after retirement.'};
     const reference = exclusive(path.join(directory, 'capture.json.gz'), receipt);
     verifyCaptureLedger(reference.path);
     return reference;
@@ -91,6 +95,7 @@ export function verifyCaptureLedger(file: string) {
     const capture = JSON.parse(gunzipSync(fs.readFileSync(path.join(receipt.blobs, receipt.capture.sha256 + '.gz'))).toString('utf8'));
     assert.equal(capture.image.sha256, receipt.image.sha256);
     assert.deepEqual(capture.executionIntegrity || capture.host?.executionIntegrity, receipt.execution);
+    assert(!receipt.sharedCourseIntegrity || capture.bundle, 'Shared course observations require a browser build');
     if (capture.executable) {
         assert(receipt.execution.after.files.some((item: any) => item.path === capture.executable.path && item.sha256 === capture.executable.sha256));
         assert(receipt.evidence.some((item: any) => item.path === capture.compilerArtifact.path && item.sha256 === capture.compilerArtifact.sha256));
@@ -107,6 +112,30 @@ export function verifyCaptureLedger(file: string) {
         };
         const build = JSON.parse(archived(receipt.build.path, receipt.build.sha256));
         assert.deepEqual(build.source, capture.source); assert.deepEqual(build.bundle, capture.bundle);
+        if (receipt.sharedCourseIntegrity) {
+            const shared = receipt.sharedCourseIntegrity;
+            assert.deepEqual(shared.before.files, shared.after.files);
+            assert(Date.parse(shared.before.at) <= Date.parse(receipt.execution.before.at));
+            assert(Date.parse(shared.after.at) >= Date.parse(receipt.execution.after.at));
+            const prepared = JSON.parse(archived(shared.prepared.path, shared.prepared.sha256));
+            assert.equal(prepared.imageBuild.path, receipt.build.path); assert.equal(prepared.imageBuild.sha256, receipt.build.sha256);
+            assert.deepEqual(prepared.source, build.source); assert.deepEqual(prepared.bundle, build.bundle);
+            assert(path.isAbsolute(prepared.workspace));
+            const pointer = path.join(prepared.workspace, 'docs/journey/course-manifest-input.json');
+            const input = JSON.parse(archived(pointer, prepared.pins[pointer]));
+            assert.deepEqual(input, prepared.sharedCourseManifest);
+            assert(path.isAbsolute(input.path) && /^[a-f0-9]{64}$/.test(input.sha256));
+            assert.equal(path.basename(input.path), 'course.json');
+            assert.equal(path.basename(path.dirname(input.path)), input.sha256);
+            const expected = [pointer, input.path].sort().map(file => {
+                const digest = prepared.pins[file]; assert(/^[a-f0-9]{64}$/.test(digest));
+                const bytes = Buffer.from(archived(file, digest), 'utf8');
+                return {path: file, sha256: digest, bytes: bytes.length};
+            });
+            assert.deepEqual(shared.after.files, expected);
+            assert.equal(prepared.pins[input.path], input.sha256);
+            assert.equal(Buffer.byteLength(archived(input.path, input.sha256)), input.bytes);
+        }
         assert.equal(path.resolve(build.compilerArtifact.manifest_path), path.join(build.group.workbench, 'Cargo.toml'));
         assert(build.compilerArtifact.filenames.includes(build.wasm.compilerReportedPath));
         assert(receipt.candidates.some((item: any) => item.path === build.wasm.path && item.sha256 === build.wasm.sha256));
@@ -129,7 +158,8 @@ export function verifyCaptureLedger(file: string) {
     assert.equal(imageReference(receipt.image.path, receipt.image.sha256).sha256, receipt.image.sha256);
     const retiredFile = ledgerReceiptFile(directory, 'retirement');
     if (!retiredFile) {
-        for (const item of receipt.execution.after.files) assert.equal(digest(item.path), item.sha256, 'Live artifact was replaced');
+        for (const item of [...receipt.execution.after.files, ...(receipt.sharedCourseIntegrity?.after.files || [])])
+            assert.equal(digest(item.path), item.sha256, 'Live artifact was replaced');
         return {status: 'CAPTURED_BINARY_AVAILABLE', receipt};
     }
     const retired = json(retiredFile), publishedFile = path.join(directory, 'publication.json'), published = json(publishedFile);

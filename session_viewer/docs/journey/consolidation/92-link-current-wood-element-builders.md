@@ -43,6 +43,8 @@
 </svg>
 </div>
 
+The six constructors in this section use the supplied historical Wood crate at `docs/journey/supplied/wood-2026-10-29`. Its twelve files come from the recorded 29 October source freeze; only the kernel dependency path is relocated. This preserves `Column`, the original payload classes and the existing tests. The maintained viewer uses the current source and no longer exposes these Wood construction commands.
+
 ## <a id="checkpoint-92-link-current-wood-element-builders"></a>1. Link current Wood element builders
 
 ### 1. `Cargo.toml`
@@ -58,7 +60,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
 [dependencies]
-wood = { path = "../../../../wood/rust" }
+wood = { path = "../../docs/journey/supplied/wood-2026-10-29" }
 wasm-bindgen = "=0.2.128"
 ```
 

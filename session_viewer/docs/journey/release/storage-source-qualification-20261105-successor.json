@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "status": "PASS_SOURCE_STORAGE_SUCCESSOR_AND_ONE_FRESH_SOURCE15_IMAGE_QUALIFICATION",
+  "recordedUtc": "2026-11-05T21:09:02.659897+00:00",
+  "scope": "Viewer tutorial source/tooling, generated-storage maintenance and one source15 image-profile qualification. No kernel-algorithm, canonical-full-callback or final post-compatibility site qualification claim.",
+  "priorImmutablePrecompatStorageSiteSnapshot": {
+    "path": ".codex/viewer-quality-20261028/storage-site-release-proof-20261105-proposal-01/storage-and-static-site-20261105-precompat.json",
+    "sha256": "16fb7652fff335a78f528928ba1f7d72394e0600b12147634d601a526d8d39ce",
+    "bytes": 23025
+  },
+  "sourceValidation": {
+    "lowDisk": {
+      "applied": {
+        "path": ".codex/viewer-quality-20261028/image-low-disk-proposal-01/apply-execution.json",
+        "sha256": "58a370f3778237aff6dfea7d45bf46e7fa2ba64df2c5697be8c95d08bdb37cf7",
+        "bytes": 452
+      },
+      "focusedTests": {
+        "receipt": {
+          "path": ".codex/viewer-quality-20261028/image-low-disk-proposal-01/test-result.json",
+          "sha256": "e19b1e36388ef7fc648b68954841ce6d66d1e3013f84ec4796f564b7bce9159a",
+          "bytes": 2759
+        },
+        "passed": 15,
+        "failed": 0
+      },
+      "default": {
+        "nativeIncremental": "0",
+        "wasmIncremental": "1"
+      },
+      "optIn": {
+        "lowDisk": true,
+        "nativeIncremental": "0",
+        "wasmIncremental": "0"
+      },
+      "nativeRetirement": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96y-address-feature-pixels-to-original-cad-owners-6f7d02a2b728040c5d9d\\native-sample-cache-retirement.json",
+        "sha256": "3917056fea0baf4094c7262850ee6f693e2148d5b38349c1694d8464d7aa8add"
+      },
+      "policy": "Only four local Native packages retired after successful sample generation/copy validation; third-party libraries retained."
+    },
+    "historicalWoodCompatibility": {
+      "receipt": {
+        "path": ".codex/private/viewer-coverage-20261101/wood-course-compatibility-after-low-disk/live-applied-source-checks.json",
+        "sha256": "bdb33618742dde6abf5217829c206cefed38d0bdb13137fc64877a09eaddefc5",
+        "bytes": 1193
+      },
+      "appliedExistingFiles": 16,
+      "suppliedFiles": 13,
+      "syntaxFiles": 12,
+      "sourceRegressionTestsPassed": 2,
+      "structure": {
+        "lessonCheckpoints": 1361,
+        "viewerSourceFiles": 303,
+        "referenceCheckpoints": 43,
+        "referenceFinalFiles": 351
+      },
+      "dependencyFreeze": {
+        "path": ".codex/viewer-quality-20261028/source-freeze-15-compat.json",
+        "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+        "bytes": 105052
+      },
+      "productionInputs": 460,
+      "suppliedHistoricalInputs": 13,
+      "renderingPipelineChangedFiles": 0,
+      "boundary": "Original teaching constructors use the explicitly supplied historical Wood API; current session_rust remains shared. Live Wood changes are not overwritten or falsely claimed API-compatible."
+    },
+    "casLedgerIntegrity": {
+      "applied": {
+        "path": ".codex/viewer-quality-20261028/cas-ledger-integrity-proposal-01/apply-execution.json",
+        "sha256": "d030efd6afc6512d42fe3233b222643cf53a0eceb33725aac48f4efe308212eb",
+        "bytes": 2041
+      },
+      "focusedTestsPassed": 21,
+      "failed": 0,
+      "scope": "Parent shared-CAS integrity is separate from untouched callback execution before/after data; archived prepared pointers remain validated."
+    },
+    "runtimeAttemptKeys": {
+      "files": [
+        {
+          "path": "session/session_tests/scripts/course/browser-image-fallback.ts",
+          "sha256": "a88631f591d6b9e9cb2c4ecd0ddda0eddd3f9b5a37312874f4f4e527b81cabd9",
+          "bytes": 9917
+        },
+        {
+          "path": "session/session_tests/scripts/course/owned-file-browser-fallback.ts",
+          "sha256": "91ab0690c48ecbd9f90765ec5127d4000c0e0da26926966fc2ca18aefbbd5584",
+          "bytes": 6876
+        }
+      ],
+      "qualification": "Attempt identity is included in both fallback keys; fresh06 succeeded after05 correctly rejected cached04 callback data."
+    }
+  },
+  "storageSuccessor": {
+    "additionalOperation": {
+      "path": ".codex/viewer-quality-20261028/96y04-failed-ledger-recovery-proposal-01/execution.json",
+      "sha256": "b78a96d320c2c613faa4e65bc969b7979b5b409c7ab4181e1ce2c582d8495e54",
+      "bytes": 3598
+    },
+    "additionalRegenerableArchiveBytesRetired": 89952364,
+    "retiredCacheArchives": [
+      {
+        "path": "session/session_viewer/target/course-cache-archives/blobs/8916c8155abb2cc1920a3b9af2fc18f7c49fba585a95ba54b239422507d061a6.gz",
+        "sha256": "8832ab5e0c7751c13e017d44f563a802393dfd1ad66b7d766259a98c89d9f52c",
+        "bytes": 44976185,
+        "rawCacheSha256": "8916c8155abb2cc1920a3b9af2fc18f7c49fba585a95ba54b239422507d061a6"
+      },
+      {
+        "path": "session/session_viewer/target/course-cache-archives/blobs/8c328b91788c94d00c3a8720f19ee604345359c849e0d30083eae725fbebf3b8.gz",
+        "sha256": "0b73f4263c416a42f78fdca5b719eda98840d228b53cb1e66af3357d830b585d",
+        "bytes": 44976179,
+        "rawCacheSha256": "8c328b91788c94d00c3a8720f19ee604345359c849e0d30083eae725fbebf3b8"
+      }
+    ],
+    "restorationImpact": "These two obsolete compiler incremental dependency-graph gzip payloads were intentionally retired as regenerable cache. Retain their old manifests and rebuild compiler state instead of restoring these two old cache blobs. No source, dataset, floor evidence, failed callback record, current kernel library or compiled96y bundle was deleted by this operation.",
+    "oldArchiveManifest": {
+      "path": ".codex/viewer-quality-20261028/materialized-source-archive-proposal-01/kernel-manifest.json",
+      "sha256": "1cbdf06b292fd633c4caedb9f5ae218f6c1c59ab2396ad3b443241611bf02349",
+      "bytes": 246140
+    },
+    "protectedCriticalFilesVerifiedUnchanged": 33,
+    "viewerNetGeneratedBytesRecoveredIncludingPriorOperations": 1806187313,
+    "combinedNetIncludingSeparateGeometryEvidenceArchive": 1932680500,
+    "latestRootObservedStorage": {
+      "generatedBytes": 8195816599,
+      "totalBytes": 17027077750,
+      "generatedLimitBytes": 8589934592,
+      "totalLimitBytes": 21474836480,
+      "quarterGiBReserveAvailable": true,
+      "basis": "Root-reported post-publication point-in-time scan; later foreign work/builds may change usage."
+    }
+  },
+  "failedAttemptsPreserved": {
+    "04": {
+      "terminal": {
+        "path": ".codex/viewer-quality-20261028/source15-browser96y-low-disk-04-execution.json",
+        "sha256": "21a98bc8903894edf05f747ce59570249ffd72567ce93a33bfb7fe4ed60526c0",
+        "bytes": 2466
+      },
+      "recovery": {
+        "path": ".codex/viewer-quality-20261028/96y04-failed-ledger-recovery-proposal-01/execution.json",
+        "sha256": "b78a96d320c2c613faa4e65bc969b7979b5b409c7ab4181e1ce2c582d8495e54",
+        "bytes": 3598
+      },
+      "classification": "Compilation and callback produced data, but CAS ledger verification failed. No acceptance.",
+      "originalVisual": {
+        "path": "session/session_viewer/target/course-compact/failed-attempt-evidence/96y-source15-04-897ab398ed5321a7cb3d/callback04-original-2c8c63c603b7.png",
+        "sha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281",
+        "bytes": 37247
+      }
+    },
+    "05": {
+      "terminal": {
+        "path": ".codex/viewer-quality-20261028/source15-browser96y-low-disk-05-execution.json",
+        "sha256": "84212ab5cc2d97bbe2af14db993333fe8fdeeb134ffb73ce273f50c080bf0925",
+        "bytes": 2466
+      },
+      "recovery": {
+        "path": ".codex/viewer-quality-20261028/96y05-freshness-failure-recovery-proposal-01/execution.json",
+        "sha256": "a15d7dc5b1637b974471f76c383c92bf50b9332c907ebbe4652204ef9e99dba4",
+        "bytes": 1402
+      },
+      "classification": "Returned cached callback04; freshness assertion correctly rejected it. No fresh05 callback or acceptance claimed."
+    }
+  },
+  "qualifiedRuntime06": {
+    "publication": {
+      "path": "session/session_viewer/docs/journey/release/math-boundary-quality-20261105-source15-batch-7b836f108dfc-000000-2c8c63c603b7.json",
+      "sha256": "2314c853b692b4ea12958f157400731286300103824876f8cfacbf534a21c86f",
+      "bytes": 3978
+    },
+    "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+    "rootPersonallyViewedOriginalResolution": true,
+    "scope": "Source15 current-dependency source/content-qualified lesson image (renderer13 rendering pipeline unchanged; Wood constructor commands removed) at the captured framing. Root personally viewed and accepted this original-resolution PNG. This receipt does not claim canonical full callback execution or broader geometry validity.",
+    "terminal": {
+      "path": ".codex/viewer-quality-20261028/source15-browser96y-low-disk-06-execution.json",
+      "sha256": "1c8c5425d57569466cf37dc5b01a716b1a3020cdc7c11c638ab783ed60615699",
+      "bytes": 2466
+    },
+    "sourceFreezeFilesUnchanged": 473,
+    "compileReuse": {
+      "receipt": {
+        "path": ".codex/viewer-quality-20261028/96y-source15-single-proposal-06/reuse-execution.json",
+        "sha256": "2d78565202986a007e31a25d38e2996ec74f7d3b670740b30f7e146c45322cd4",
+        "bytes": 1618
+      },
+      "compileAttempt": "897ab398ed5321a7cb3d-0-08b37109-01a9-4e3e-8efa-82e7cee36b86",
+      "callbackAttempt": "7b836f108dfc9295e697-0-4bb74515-5be3-491d-bec3-d7f899f7fbd6",
+      "build": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\96y-address-feature-pixels-to-original-cad-owners-6f7d02a2b728040c5d9d\\built.json",
+        "sha256": "6c51687b41e4e043820e8f8634ca341d523916f804325347f91b8bf9b0db26b8"
+      },
+      "rawWasmSha256": "8962eaba086a6953264bcc47949474a13e534adfc70a76eeebc9b83f96512150",
+      "newCompileDuring06": false
+    },
+    "captureLedger": {
+      "path": "session/session_viewer/target/course-compact/browser-96y-address-feature-pixels-to-original-cad-owners-50ec6e1e35ebd41117b3/capture.json.gz",
+      "sha256": "ebc22626725db25d2f328764abe6373e1e34d742600f04a037dd6dfa8aa76384",
+      "bytes": 364850
+    },
+    "retirement": {
+      "path": "session/session_viewer/target/course-compact/browser-96y-address-feature-pixels-to-original-cad-owners-50ec6e1e35ebd41117b3/retired.json",
+      "sha256": "b6d5573a69fe4d635a156c27762d2415cf9bc5c38c2e783beb18e6e910131300",
+      "bytes": 352
+    },
+    "image": {
+      "path": "session/session_viewer/docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners-browser.png",
+      "sha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281",
+      "bytes": 37247
+    },
+    "http": {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/96y-address-feature-pixels-to-original-cad-owners-browser.png?v=2c8c63c603b7",
+      "status": 200,
+      "sha256": "2c8c63c603b76b15196dd231dbaf3111491daac683aa46f8c804874b481a7281"
+    },
+    "canonicalFullCallbackExecutionClaimed": false
+  },
+  "progress": {
+    "receipt": {
+      "path": "session/session_viewer/docs/journey/release/math-boundary-quality-progress.json",
+      "sha256": "28e2706d5d940a3e26f9ac014d798e7b83839ebe45f0cec6e369d5f41cff5e4e",
+      "bytes": 79865
+    },
+    "historicalSource13Accepted": 51,
+    "currentCompatibleSource15Accepted": 1,
+    "acceptedRendererLineageTotal": 52,
+    "remainingPlannedImageAcceptances": 1274,
+    "physicalJourneyPngs": 525,
+    "uniqueJourneyPngs": 525,
+    "duplicatePhysicalPngs": 0
+  },
+  "next": "Ten successor browser cases are prepared. Do not launch until the compiler/build slot owner is resolved; preserve foreign Claude and geometry work.",
+  "snapshotGitBytePolicy": {
+    "path": "session/.gitattributes",
+    "sha256": "9ab67f652cefcce5f63b628353e5c0660105b66226ee674e16fef590e0febd6b",
+    "scope": "Only the supplied historical snapshot disables Git newline conversion, preserving its exact provenance hashes on Windows and Linux."
+  }
+}

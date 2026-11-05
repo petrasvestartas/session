@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {bindings} from './presentation.ts';
 import {verifyIncremental} from './incremental-native-presentation.ts';
-import {assetsFor, expected, filesIn, hash, lockFor, viewer, withExpectedSequence, resolveJourneyImage} from './model.ts';
+import {assetsFor, expected, filesIn, hash, lockFor, viewer, withExpectedSequence, resolveJourneyImage, materializedContent} from './model.ts';
 
 const script = fileURLToPath(import.meta.url);
 const absolute = (file: string) => path.isAbsolute(file) ? file : path.resolve(viewer, file);
@@ -57,9 +57,8 @@ function verifyCapture(id: string, source: {path: string; sha256: string}, densi
     assert.equal(record.density, density);
     if (record.executable && record.inputs) verifyIncremental(absolute(source.path));
     else {
-        const kernel = path.relative(record.directory, path.resolve(viewer, '../session_rust')).split(path.sep).join('/');
         for (const [name, text] of Object.entries(expected(id))) {
-            const wanted = name === 'Cargo.toml' ? text.replaceAll('../../../session_rust', kernel) : text;
+            const wanted = materializedContent(name, text, record.directory);
             assert.equal(fs.readFileSync(path.join(record.directory, name), 'utf8'), wanted, name);
         }
         assert.equal(sha(path.join(record.directory, 'Cargo.lock')), sha(lockFor(id)));

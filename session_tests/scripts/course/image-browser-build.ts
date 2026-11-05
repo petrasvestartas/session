@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {prepareBrowser} from './browser-presentation.ts';
 import {bindings} from './presentation.ts';
 import {exactBindgen} from './exact-bindgen.ts';
-import {assetsFor, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write} from './model.ts';
+import {assetsFor, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write, materializedContent} from './model.ts';
 import {nativeTarget} from './verify.ts';
 
 const self = fileURLToPath(import.meta.url);
@@ -23,9 +23,8 @@ function validate(record: any) {
     for (const [file, digest] of Object.entries(record.pins)) assert.equal(sha(file), digest, file);
     assert.equal(sha(record.worker), record.workerSha256);
     assert.equal(sha(record.adapted), record.adaptedSha256);
-    const kernel = path.relative(record.native, path.resolve(viewer, '../session_rust')).split(path.sep).join('/');
     for (const [name, text] of Object.entries(expected(record.id)))
-        assert.equal(read(path.join(record.native, name)), name === 'Cargo.toml' ? text.replaceAll('../../../session_rust', kernel) : text, name);
+        assert.equal(read(path.join(record.native, name)), materializedContent(name, text, record.native), name);
     assert.equal(sha(path.join(record.native, 'Cargo.lock')), sha(lockFor(record.id)));
     for (const name of assetsFor(record.id)) assert.equal(sha(path.join(record.native, name)), sha(path.join(viewer, name)), name);
     if (record.bundle) {
