@@ -2378,7 +2378,6 @@ dependencies = [
  "web-sys",
  "wgpu",
  "winit",
- "wood",
 ]
 
 [[package]]

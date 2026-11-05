@@ -1,10 +1,10 @@
 # Current command grammar
 
-This table was obtained by executing the maintained registry at `2f96b35d225015cfcb9bfe5e8ec66565ef99aa28`: 86 registered names, 117 static options and 15 aliases.
+Registered names, static option counts and aliases were checked against the maintained [registry source](../../src/app/command/verbs/mod.rs) at `66ff54224`: 80 registered names, 117 static options and 15 aliases. The bare-form messages retain the historical parser observations at `2f96b35d225015cfcb9bfe5e8ec66565ef99aa28`; this source audit does not claim a new parser execution.
 
-[Exact parser observations](current-command-registry.json). Parsing constructs an action; it does not prove that it succeeds on a particular selection. [Current behavior and exercises](current-viewer.md) covers the October 9 changes.
+[Historical parser observations](current-command-registry.json). That snapshot includes the retired Wood constructor commands. Parsing constructs an action; it does not prove that it succeeds on a particular selection. [Behavior and exercises](current-viewer.md) records the earlier October 9 checkpoint.
 
-| Command | Bare form | Static options | Aliases |
+| Command | Bare form (historical snapshot) | Static options | Aliases |
 | --- | --- | ---: | --- |
 | View | Choose a View direction or display setting | 29 |  |
 | Report | Parses | 0 |  |
@@ -37,12 +37,6 @@ This table was obtained by executing the maintained registry at `2f96b35d225015c
 | Arrowhead | wrong number of arguments for Arrowhead | 4 |  |
 | Element Attributes | Parses | 2 |  |
 | Element Interactions | Parses | 2 |  |
-| Element Plate | Parses | 0 |  |
-| Element Beam | Parses | 0 |  |
-| Element Column | Parses | 0 |  |
-| Element Block | Parses | 0 |  |
-| Element Beam Variable | Parses | 0 |  |
-| Element Support | Parses | 0 |  |
 | Snap | Parses | 7 |  |
 | Grid Snap | Parses | 2 |  |
 | Construction Plane | Parses | 5 |  |
@@ -92,5 +86,7 @@ This table was obtained by executing the maintained registry at `2f96b35d225015c
 | Volume | Parses | 0 |  |
 | Add Group | Parses | 0 |  |
 | Add Edge | Parses | 0 |  |
+
+The maintained viewer no longer registers the Wood-specific Element construction commands from earlier teaching checkpoints. Those construction examples remain historical course content. Kernel Element viewing remains supported, including the registered `Element Attributes` and `Element Interactions` controls.
 
 `Close` completes an active Polyline or Curve; it does not clear the document. `View Grid Off` is absent: use the supported `?nogrid=1` startup setting. `Element Attributes` starts Off and `Element Interactions` starts On; both accept bare toggle or On/Off. Historical teaching-only forms are listed in [rendering differences](rendering-differences.md).

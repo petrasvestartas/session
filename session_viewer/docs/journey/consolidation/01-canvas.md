@@ -676,6 +676,15 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsVal
 
 ## Build & Run
 
+The shell blocks below and in later lessons use POSIX environment-variable prefixes. In Windows PowerShell, set the variables in your terminal first:
+
+```powershell
+$env:CARGO_BUILD_JOBS = '1'
+$env:REGEN_PROTO = '0'
+```
+
+Then run the same `cargo`, `trunk` and `npm` commands without prefixes such as `CARGO_BUILD_JOBS=1` or `REGEN_PROTO=0`. These settings apply to programs started from this terminal; they do not edit your project. Keep `trunk serve` running in one terminal, and use another terminal opened at `session_viewer` for the lesson's `check` and `save` commands. Each new PowerShell terminal needs its own environment settings before building.
+
 ```sh
 cd workspace/journey
 cargo build --lib --locked --target wasm32-unknown-unknown -j1

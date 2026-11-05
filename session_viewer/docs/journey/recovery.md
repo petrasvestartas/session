@@ -2,6 +2,8 @@
 
 A typing mistake should be a small investigation. Stop the development server before restoring files, so it does not rebuild a half-restored project. Run these commands from `session_viewer`.
 
+On Windows, the `npm` commands on this page also work in PowerShell. For the environment-variable prefixes used in lesson build commands, follow the [PowerShell instructions in the first lesson](consolidation/01-canvas.md). Keep the development server stopped throughout a restore; restart it only after the files are complete.
+
 ## Save your own progress
 
 ```sh

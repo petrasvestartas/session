@@ -1327,5 +1327,31 @@
       "referenceFinalFiles": 351
     },
     "freshBrowserOrGpuAcceptance": false
+  },
+  "platformAndCurrentSourceUpdate": {
+    "recordedUtc": "2026-11-05T20:12:56.388241+00:00",
+    "status": "SOURCE_STRUCTURE_AND_REFERENCE_CHECKS_PASS_RUNTIME_PENDING",
+    "productionInventory": {
+      "path": "docs/journey/current-viewer-2026-11-05.json",
+      "sha256": "59e58e19df3495fdb096c252173226f99afeb14c869b345877ef4471e3abb040",
+      "currentSourceFiles": 303,
+      "explicitRetirements": 7
+    },
+    "commandReference": {
+      "registeredNames": 80,
+      "staticOptions": 117,
+      "aliases": 15,
+      "method": "Source audit; parser-message snapshot explicitly historical."
+    },
+    "teachingLockChange": "Only obsolete session_viewer-to-wood dependency edge removed; tutorial Wood dependency and all registry versions/checksums retained.",
+    "windowsInstructions": "First lesson and recovery explain PowerShell environment syntax.",
+    "timingScope": "Browser frame samples distinguished from maintained GPU timestamp spans.",
+    "validation": {
+      "lessonCheckpoints": 1361,
+      "referenceCheckpoints": 43,
+      "referenceFiles": 351,
+      "validatorChanges": 0
+    },
+    "newImageAcceptances": 0
   }
 }

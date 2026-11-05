@@ -4,6 +4,8 @@
 
 Connect the current viewer, its complete browser shell and one original local scene together. The browser now runs the maintained camera, commands, input and rendering code; the earlier teaching implementation remains available in previous checkpoints.
 
+Use the [maintained command grammar](current-command-grammar.md) for this comparison. Wood-specific Element construction tools from earlier chapters are historical teaching examples and are absent from the maintained viewer registry. Loaded kernel Elements and their `Element Attributes` and `Element Interactions` controls remain supported.
+
 ## Type
 
 Continue from [Draw original CAD wire curves](96zzzzzzzq-draw-original-cad-wire-curves.md). [Save or recover your work](recovery.md).

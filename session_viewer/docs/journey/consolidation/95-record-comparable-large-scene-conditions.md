@@ -81,6 +81,8 @@ pub mod finite_project_source;
 
 ## <a id="checkpoint-95a-measure-warmed-frame-times-and-the-slow-tail"></a>2. Measure warmed frame times and the slow tail
 
+The maintained native ambient benchmark has a separate `PassTimer` in [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs). It requires timestamp-query support and reports median GPU spans between named passes. The code in this section summarizes supplied frame-time samples; collecting those GPU timestamps remains in the maintained benchmark. Record whether a timing series measures browser frame intervals or GPU pass spans when comparing results.
+
 ### 1. `src/bench_samples.rs`
 
 Create the file and type:
