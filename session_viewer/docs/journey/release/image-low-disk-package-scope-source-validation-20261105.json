@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "status": "SOURCE_TESTS_PASS_EARLY_CHAPTER_RUNTIME_PENDING",
+  "recordedUtc": "2026-11-05T22:08:24.046167+00:00",
+  "scope": "Tutorial image-build cache maintenance only. A pinned Cargo.lock selects declared members of the existing four-local-package whitelist after successful locked sample generation. This changes no renderer, lesson behavior assertion, Vue style or default build mode.",
+  "implementation": [
+    {
+      "path": "session/session_tests/scripts/course/image-low-disk.ts",
+      "sha256": "9d3203bfb8cc7561d045a2d4dedfaffef2bc1ea06aac3019f649f432475de7f4"
+    },
+    {
+      "path": "session/session_tests/scripts/course/image-low-disk.test.ts",
+      "sha256": "6fa6cdd782f45b2c543e4ee90a4124585303adf20eee6f4e2a086db1fd10e78d"
+    }
+  ],
+  "sourceTests": {
+    "command": "node --import ./session/session_tests/scripts/typescript.mjs --test ./session/session_tests/scripts/course/image-low-disk.test.ts",
+    "passed": 21,
+    "failed": 0,
+    "liveAppliedFilesExecuted": true,
+    "privateCandidateReceipt": {
+      "path": ".codex/viewer-quality-20261028/image-low-disk-package-scope-proposal-02/test-result.json",
+      "sha256": "ac004103dcc6f247bac952fd2df30616cf643fee03e055f08d356098ab09455a",
+      "tests": 21,
+      "exitCode": 0
+    },
+    "originalHelperRegression": {
+      "path": ".codex/viewer-quality-20261028/image-low-disk-package-scope-proposal-02/baseline-test-result.json",
+      "sha256": "c9a968a831bd5188592139548632ba400fddbda1bb76ec5323b652b7683db214",
+      "expectedFailure": "Fake Cargo rejects absent package: wood"
+    }
+  },
+  "packagePolicy": {
+    "whitelist": [
+      "image_incremental",
+      "session_rust",
+      "wood",
+      "session_viewer"
+    ],
+    "lockVersions": [
+      3,
+      4
+    ],
+    "required": "Unique local image_incremental root",
+    "optionalAbsentPackages": "Skipped and recorded; ambiguous or registry-owned matching names fail before cleanup.",
+    "earlyTopicPackageSelection": [
+      "image_incremental",
+      "session_rust"
+    ],
+    "earlyTopicSkipped": [
+      "wood",
+      "session_viewer"
+    ]
+  },
+  "preservedGuards": [
+    "Validated fixture copied before retirement",
+    "Hash-bound source, tool, manifest and lock",
+    "Only shared Native debug output paths",
+    "No redirected ancestors or symlink traversal",
+    "Two matching Cargo deletion plans before each clean",
+    "Durable cleanup intent and failure blocks WASM",
+    "Default flag0 behavior unchanged"
+  ],
+  "reviewedProposal": {
+    "path": ".codex\\viewer-quality-20261028\\image-low-disk-package-scope-proposal-02\\manifest.json",
+    "sha256": "ef8c00e3100329f04f289d74a4e1b2d15c12fe8e43c604f350b8216779b5a0fa"
+  },
+  "actualEarlyGraphQualification": "Pending guarded build and original browser callbacks. No fresh GPU or canonical-validation acceptance claimed."
+}

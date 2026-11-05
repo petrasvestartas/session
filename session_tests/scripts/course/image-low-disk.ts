@@ -39,6 +39,22 @@ export function nativeSamplePhase(viewer: string, p: any, target: () => string, 
     const manifestHash = hash(manifest), lockHash = hash(lock);
     assert.equal(manifestHash, p.overlay.cargoSha256);
     assert.equal(lockHash, p.overlay.lockSha256);
+    // The successful --locked sample run validated this pinned Cargo lockfile.
+    const blocks = io.readFileSync(lock, 'utf8').split(/^\[\[package\]\]\r?$/m);
+    assert(blocks.length > 1 && /^version = [34]\r?$/m.test(blocks[0]), 'Expected a Cargo lockfile with package declarations');
+    const declared = blocks.slice(1).map(block => {
+        const names = [...block.matchAll(/^name = "([A-Za-z0-9_-]+)"\r?$/gm)];
+        assert.equal(names.length, 1, 'Cargo lock package must have exactly one name');
+        assert(/^version = "[^"\r\n]+"\r?$/m.test(block), 'Cargo lock package must have a version');
+        return {name: names[0][1], local: !/^source\s*=/m.test(block)};
+    });
+    const selected = packages.filter(name => declared.some(entry => entry.name === name));
+    assert(selected.includes('image_incremental'), 'Cargo lock must declare the image_incremental root');
+    for (const name of selected) {
+        const entries = declared.filter(entry => entry.name === name);
+        assert(entries.length === 1 && entries[0].local, 'Native cleanup requires one local package: ' + name);
+    }
+    const skippedPackages = packages.filter(name => !selected.includes(name));
     const safe = (file: string) => {
         file = path.resolve(file);
         let existing = file;
@@ -80,7 +96,7 @@ export function nativeSamplePhase(viewer: string, p: any, target: () => string, 
         assert(!result.error, String(result.error)); assert.equal(result.status, 0, String(result.stderr));
         unchanged(); return command;
     };
-    const plans = packages.map(name => {
+    const plans = selected.map(name => {
         const args = ['clean', '--locked', '--offline', '--manifest-path', manifest, '--profile', 'dev', '--target-dir', native, '--package', name];
         const dryRun = run([...args, '--dry-run', '--verbose']);
         return {package: name, args, paths: [...new Set(validate(dryRun.stdout))].sort(), dryRun};
@@ -88,7 +104,7 @@ export function nativeSamplePhase(viewer: string, p: any, target: () => string, 
     const reportFile = path.join(p.folder, 'native-sample-cache-retirement.json');
     const report: any = {status: 'CLEANING_NATIVE_LOCAL_OUTPUTS_AFTER_VALIDATED_SAMPLE_COPY', mode: p.buildMode,
         sample: {path: sample, copied, sha256: sampleHash}, manifest: {path: manifest, sha256: manifestHash},
-        lock: {path: lock, sha256: lockHash}, allowed, plans, attempts, commands: []};
+        lock: {path: lock, sha256: lockHash}, skippedPackages, allowed, plans, attempts, commands: []};
     const fd = io.openSync(reportFile, 'wx');
     const persist = () => {
         const bytes = Buffer.from(JSON.stringify(report, null, 2) + '\n');

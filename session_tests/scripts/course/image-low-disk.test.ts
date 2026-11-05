@@ -12,7 +12,7 @@ const sha = (bytes: string | Buffer) => createHash('sha256').update(bytes).diges
 const here = path.dirname(fileURLToPath(import.meta.url));
 const packages = ['image_incremental', 'session_rust', 'wood', 'session_viewer'];
 
-function fixture(lowDisk = true) {
+function fixture(lowDisk = true, declaredPackages = packages) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'course-low-disk-')), viewer = path.join(root, 'viewer');
     const workbench = path.join(viewer, 'target/course-ib/compact-browser-v1/workspace');
     const cache = path.join(viewer, 'target/course-cargo'), host = 'x86_64-pc-windows-msvc';
@@ -20,7 +20,8 @@ function fixture(lowDisk = true) {
     const put = (file: string, text: string) => { fs.mkdirSync(path.dirname(file), {recursive: true}); fs.writeFileSync(file, text); };
     put(path.join(workbench, 'examples/sample.rs'), 'fixture generator');
     put(path.join(workbench, 'src/lib.rs'), 'fixture source');
-    put(path.join(workbench, 'Cargo.toml'), 'fresh manifest'); put(path.join(workbench, 'Cargo.lock'), 'fresh lock');
+    const lock = 'version = 4\n' + declaredPackages.map(name => '\n[[package]]\nname = "' + name + '"\nversion = "0.1.0"\n').join('');
+    put(path.join(workbench, 'Cargo.toml'), 'fresh manifest'); put(path.join(workbench, 'Cargo.lock'), lock);
     fs.mkdirSync(folder, {recursive: true});
     const cargo = path.join(root, 'cargo.exe'); put(cargo, 'pinned cargo');
     for (const name of packages) put(path.join(native, 'debug/deps', name + '.rlib'), 'local ' + name);
@@ -31,7 +32,7 @@ function fixture(lowDisk = true) {
     const events: string[] = [], calls: any[] = [];
     const controls = {sampleFails: false, copyFails: false, corruptCopy: false, cleanFails: false, output: null as string | null, changeLock: false, redirected: false};
     const p = {folder, buildMode: imageBuildMode({COURSE_IMAGE_LOW_DISK: lowDisk ? '1' : '0'}), group: {workbench, target: cache}, tools: {rustc: 'rustc fixture\nhost: ' + host + '\n'},
-        overlay: {cargoSha256: sha('fresh manifest'), lockSha256: sha('fresh lock')}, toolFiles: {cargo: {path: cargo, sha256: sha('pinned cargo')}}};
+        overlay: {cargoSha256: sha('fresh manifest'), lockSha256: sha(lock)}, toolFiles: {cargo: {path: cargo, sha256: sha('pinned cargo')}}};
     const io: any = {...fs, copyFileSync(source: string, target: string) {
         events.push('copy'); if (controls.copyFails) throw Error('copy failed');
         fs.copyFileSync(source, target); if (controls.corruptCopy) fs.writeFileSync(target, 'corrupt fixture');
@@ -40,6 +41,7 @@ function fixture(lowDisk = true) {
         const name = args[args.indexOf('--package') + 1], dry = args.includes('--dry-run');
         calls.push({executable, args, options, dry}); events.push((dry ? 'dry ' : 'clean ') + name);
         assert.equal(executable, cargo); assert(packages.includes(name)); assert(args.includes('--locked') && args.includes('--offline'));
+        assert(declaredPackages.includes(name), 'Fake Cargo rejects absent package: ' + name);
         assert.equal(args[args.indexOf('--manifest-path') + 1], path.join(workbench, 'Cargo.toml'));
         assert.equal(args[args.indexOf('--target-dir') + 1], native); assert.equal(options.shell, false);
         assert.equal(fs.readFileSync(path.join(folder, 'sample.pb'), 'utf8'), 'generated fixture');
@@ -77,6 +79,7 @@ test('validated fixture copy precedes only four bounded Native cleans and the WA
         assert(f.events.indexOf('copy') < f.events.indexOf('clean image_incremental')); assert.equal(f.events.at(-1), 'wasm');
         const report = JSON.parse(fs.readFileSync(result.path, 'utf8'));
         assert.equal(report.status, 'NATIVE_LOCAL_OUTPUTS_RETIRED_SAMPLE_AND_SOURCE_UNCHANGED');
+        assert.deepEqual(report.skippedPackages, []);
         assert.equal(report.commands.length, 4); assert.equal(report.attempts.length, 12); assert.equal(sha(fs.readFileSync(result.path)), result.sha256);
         assert.equal(report.sample.sha256, sha('generated fixture')); f.unchanged();
     } finally { f.cleanup(); }
@@ -160,4 +163,35 @@ test('actual case/group and batch environment expressions bind the low-disk mode
     });
     assert(identities[0].every((value, index) => value !== identities[1][index]));
     assert(source.indexOf('nativeSamplePhase(viewer,p,nativeTarget,check,execute)') < source.indexOf("const wasmCommand=execute('wasm'"));
+});
+
+
+test('early two-package graph never asks Cargo to clean absent optional packages', () => {
+    const f = fixture(true, ['image_incremental', 'session_rust']);
+    try {
+        const result = f.pipeline(); assert(result);
+        const names = f.calls.map(call => call.args[call.args.indexOf('--package') + 1]);
+        assert.deepEqual(names, ['image_incremental', 'session_rust', 'image_incremental', 'image_incremental', 'session_rust', 'session_rust']);
+        const report = JSON.parse(fs.readFileSync(result.path, 'utf8'));
+        assert.deepEqual(report.skippedPackages, ['wood', 'session_viewer']);
+        assert.deepEqual(report.commands.map((call: any) => call.arguments.at(-1)), ['image_incremental', 'session_rust']);
+        for (const name of ['wood', 'session_viewer']) assert.equal(fs.readFileSync(path.join(f.native, 'debug/deps', name + '.rlib'), 'utf8'), 'local ' + name);
+        assert.equal(f.events.at(-1), 'wasm'); f.unchanged();
+    } finally { f.cleanup(); }
+});
+
+for (const lock of [
+    'invalid lock',
+    'version = 4\n[[package]]\nversion = "0.1.0"\n',
+    'version = 4\n[[package]]\nname = "session_rust"\nversion = "0.1.0"\n',
+    'version = 4\n[[package]]\nname = "image_incremental"\nversion = "0.1.0"\nsource = "registry+fixture"\n',
+    'version = 4\n[[package]]\nname = "image_incremental"\nversion = "0.1.0"\n[[package]]\nname = "image_incremental"\nversion = "0.2.0"\n',
+]) test('invalid or ambiguous pinned package declarations prevent all native cleanup: ' + JSON.stringify(lock), () => {
+    const f = fixture();
+    try {
+        fs.writeFileSync(path.join(f.workbench, 'Cargo.lock'), lock);
+        f.p.overlay.lockSha256 = sha(lock);
+        assert.throws(f.pipeline, /Cargo lock|local package/);
+        assert.equal(f.calls.length, 0); assert(!f.events.includes('wasm')); f.unchanged();
+    } finally { f.cleanup(); }
 });
