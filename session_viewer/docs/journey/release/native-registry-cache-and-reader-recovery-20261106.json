@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "status": "LIVE_SOURCE_TESTS_PASS_MANUAL_RECOVERY_RECORDED_RUNTIME_QUALIFICATION_PENDING",
+  "recordedUtc": "2026-11-06T00:29:57.204873+00:00",
+  "scope": "Viewer tutorial cache orchestration and reader-image preparation only; no kernel, rendering algorithm, callback assertion, Vue or geometry change.",
+  "implementation": [
+    {
+      "path": "session/session_tests/scripts/course/image-low-disk.ts",
+      "sha256": "6388bd103100043280adb3bed66f41f8abcf865aed76c8d99a0b5282a110e8ed"
+    },
+    {
+      "path": "session/session_tests/scripts/course/image-low-disk.test.ts",
+      "sha256": "8bd582185713c533f9debf581e114b3a7c415c2188278c2cea7a83490a9daaa5"
+    }
+  ],
+  "application": {
+    "path": ".codex/viewer-quality-20261028/native-registry-after-sample-proposal-01/apply-execution.json",
+    "sha256": "2661aab6a4a79b8d177cd5719044106091b77a022dd80961519f8e0afdc84b95"
+  },
+  "liveTests": {
+    "command": [
+      "node",
+      "--import",
+      "./session/session_tests/scripts/typescript.mjs",
+      "--test",
+      "./session/session_tests/scripts/course/image-low-disk.test.ts"
+    ],
+    "passed": 34,
+    "failed": 0,
+    "exitCode": 0,
+    "log": {
+      "path": ".codex/viewer-quality-20261028/native-registry-publication-proposal-20261106/live-tests.log",
+      "sha256": "bbc9629b6bb3a47ea9bcf27f982b438250e1059ab5e601cf9049edcb1b1d8f65"
+    },
+    "receipt": {
+      "path": ".codex/viewer-quality-20261028/native-registry-publication-proposal-20261106/live-tests.json",
+      "sha256": "a98a2241e5dbb6016eea3d39b86d00b157a929fd6ebfda5ff9209c6992a65cfb"
+    },
+    "syntaxFilesPassed": 2,
+    "realCacheRetirementExecutedByTheseTests": false
+  },
+  "automaticPolicy": {
+    "mode": "COURSE_IMAGE_LOW_DISK=1 only",
+    "closure": "Successful Native sample Cargo JSON, including fresh and cached compiler artifacts and exact own sample",
+    "eligible": "Only proved obsolete registry .rlib/.rmeta/.d variants in the recorded-host debug/deps directory",
+    "kept": "Current registry closure, shared host proc macros, WASM, binaries, fingerprints and source; original local-package cleanup scope unchanged",
+    "guards": "Pinned log/sample/manifest/lock/Cargo, active workbench ownership, exact file preimages, path/link checks and current closure verification",
+    "defaultModeChanged": false,
+    "actualRuntimeQualification": "PENDING"
+  },
+  "topic07": {
+    "checkpoint": "59f-cad",
+    "status": "NATIVE_SAMPLE_PASS_WASM_STORAGE_GUARD_STOP_NO_IMAGE_ACCEPTANCE",
+    "execution": {
+      "path": ".codex/viewer-quality-20261028/reader-illustration-59f-cad-topic07-cad-01-execution.json",
+      "sha256": "1a0707e0070166df079a7f3f52f7b01a139bed974951e1fda9d4dadd5b9306ad"
+    },
+    "log": {
+      "path": ".codex/viewer-quality-20261028/reader-illustration-59f-cad-topic07-cad-01.log",
+      "sha256": "479cc6f91aa31f737fd4edf013d458306b086c447776385ba3fc520126314269"
+    },
+    "outerExitCode": 2,
+    "unchangedLibraryInputs": 473,
+    "nativeSample": {
+      "path": "session/session_viewer/target/course-presentation/incremental-browser-builds/cases/59f-cad-3506a62efe251c4d9a37/sample.resources.json",
+      "sha256": "4e2f498add99e7c1670d8287610206cb8b42002a95aa0578ee1ddfc7bc39ef17"
+    },
+    "nativeLocalRetirement": {
+      "path": "session/session_viewer/target/course-presentation/incremental-browser-builds/cases/59f-cad-3506a62efe251c4d9a37/native-sample-cache-retirement.json",
+      "sha256": "4ebd87e5292efeacd85ceb475cecaf8b316541a518fac9f8d20ec2843e68684f"
+    },
+    "nativeLocalCleanupMessages": [
+      "Removed 17 files, 20.6MiB total",
+      "Removed 13 files, 77.9MiB total"
+    ],
+    "finalGeneratedBytes": 8601098904,
+    "generatedLimitBytes": 8589934592,
+    "acceptancesAdded": 0
+  },
+  "manualRecovery": {
+    "executions": [
+      {
+        "evidence": {
+          "path": ".codex/viewer-quality-20261028/previous-native-cohort-20261106-01/execution.json",
+          "sha256": "6c3d6a0ac9ca174afdb7da2158e6f5155ec49f261b3ad6207a617375a0bd8234"
+        },
+        "status": "PASS_EXACT_PREVIOUS_NATIVE_VARIANTS_RETIRED",
+        "files": 63,
+        "recoveredLogicalBytes": 216959112,
+        "protectedFilesUnchanged": 1651,
+        "new59fVariantsKept": true,
+        "wasmAndForeignCppUntouched": true
+      },
+      {
+        "evidence": {
+          "path": ".codex/viewer-quality-20261028/previous-native-not59f-lock-20261106-01/execution.json",
+          "sha256": "b7efa4b4c4be619e75427b9828a028573bd39ecff4b49a1afb1ad68cb63e3af5"
+        },
+        "status": "PASS_EXACT_PREVIOUS_NATIVE_VARIANTS_RETIRED",
+        "files": 117,
+        "recoveredLogicalBytes": 184008848,
+        "protectedFilesUnchanged": 1651,
+        "new59fVariantsKept": true,
+        "wasmAndForeignCppUntouched": true
+      }
+    ],
+    "filesRetired": 180,
+    "logicalBytesRecovered": 400967960,
+    "workbench": {
+      "path": ".codex/viewer-quality-20261028/failed59f-workbench-recovery-20261106-01/final-verification-after-uri-fix.json",
+      "sha256": "c705a290f63b09eaec0fd757c64f08f4cb412ba38e29b2c195a3888cf76487f0"
+    },
+    "restoredPredecessorInputs": 590,
+    "scope": "Actual Root-operated recovery receipts; not a claim that the new automatic helper has run."
+  },
+  "denseCloudFixture": {
+    "status": "INDEPENDENT_DESCRIPTOR_DECODE_PASS_GPU_PENDING",
+    "fixture": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-cloud-dense\\source-01\\synthetic-dense-bunny.pb",
+      "sha256": "9cd395b1b97754b991f7473a867087497d0bf8e13a5aef2cc31afdd786d97207",
+      "bytes": 6055916
+    },
+    "evidence": {
+      "path": ".codex/viewer-quality-20261028/cloud-dense-coverage-proposal-02/actual-fixture-descriptor-decode-20261106.json",
+      "sha256": "0071e4e377c9a2a8d12e6407ab7c96d6143e1673a69f04cec0971cc9c0af81ce"
+    },
+    "points": 196608,
+    "xyzScalars": 589824,
+    "rgbaScalars": 786432,
+    "allCoordinatesFinite": true,
+    "allColorsU8": true,
+    "provenance": "Mesh-derived synthetic RGB fixture; not a scanned dataset.",
+    "runtimeRendered": false,
+    "visualAcceptance": false
+  },
+  "qualityBoundaries": {
+    "linearSrgbCapComparison": "Runtime passed but visually rejected; zero acceptance; original rough public bytes unchanged.",
+    "coherentCapFourSample": "Private source/parser checks only; Rust/WGSL/GPU/visual qualification pending.",
+    "denseCloudFourSample": "Private source proposal; runtime and visual qualification pending.",
+    "freshHttpOrChromeVerificationPerformed": false
+  },
+  "countsChanged": false
+}

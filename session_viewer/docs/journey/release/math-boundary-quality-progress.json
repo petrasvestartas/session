@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-05T22:51:17.776841+00:00",
+  "updatedUtc": "2026-11-06T00:29:57.204873+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -206,7 +206,7 @@
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
-      "status": "TWO_NEW_CAPTURES_WITHHELD_PENDING_CONTROLLED_GPU_PRESENTATION_COMPARISON",
+      "status": "WITHHELD_PENDING_COHERENT_CAP_COVERAGE_RUNTIME_QUALIFICATION",
       "withheldIds": [
         "96zzc-share-section-addresses-with-outlines-and-ambient",
         "96zzd-pack-surface-position-normal-and-color"
@@ -226,6 +226,26 @@
         "acceptancesAdded": 0,
         "publicImageOrAliasChanged": false
       }
+    },
+    "nativeRegistryCacheRetirement": {
+      "receipt": "docs/journey/release/native-registry-cache-and-reader-recovery-20261106.json",
+      "sha256": "419b3bb380abda60bac6ad61e211d15e0b90ef80b71dac65c6d79547fdc2de46",
+      "status": "34_LIVE_FOCUSED_TESTS_PASS_AUTOMATIC_RUNTIME_PENDING",
+      "defaultModeChanged": false
+    },
+    "readerIllustrationTopic07": {
+      "receipt": "docs/journey/release/native-registry-cache-and-reader-recovery-20261106.json",
+      "sha256": "419b3bb380abda60bac6ad61e211d15e0b90ef80b71dac65c6d79547fdc2de46",
+      "status": "NATIVE_SAMPLE_PASS_WASM_STORAGE_GUARD_STOP_NO_IMAGE_ACCEPTANCE",
+      "acceptancesAdded": 0
+    },
+    "denseCloudFixture": {
+      "receipt": "docs/journey/release/native-registry-cache-and-reader-recovery-20261106.json",
+      "sha256": "419b3bb380abda60bac6ad61e211d15e0b90ef80b71dac65c6d79547fdc2de46",
+      "status": "INDEPENDENT_DESCRIPTOR_DECODE_PASS_GPU_PENDING",
+      "points": 196608,
+      "meshDerivedSyntheticRgb": true,
+      "runtimeRendered": false
     }
   },
   "images": {
@@ -1477,7 +1497,14 @@
   },
   "cacheMaintenance": {
     "receipt": "docs/journey/release/viewer-cache-compaction-20261101.json",
-    "sha256": "6d752e18a53659dbcc29e914c4cd44f4ec61ae764304d1e7fccf9d872ecc2e6e"
+    "sha256": "6d752e18a53659dbcc29e914c4cd44f4ec61ae764304d1e7fccf9d872ecc2e6e",
+    "latestNativeRegistryRecovery": {
+      "receipt": "docs/journey/release/native-registry-cache-and-reader-recovery-20261106.json",
+      "sha256": "419b3bb380abda60bac6ad61e211d15e0b90ef80b71dac65c6d79547fdc2de46",
+      "logicalBytesRecovered": 400967960,
+      "filesRetired": 180,
+      "newAutomaticPolicyRuntimeQualified": false
+    }
   },
   "structureVerification": {
     "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\course-structure-20261104.json",
