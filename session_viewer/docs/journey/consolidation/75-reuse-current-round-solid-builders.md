@@ -1663,7 +1663,7 @@ pub mod freeform_parabola;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 14.5 (75zf-build-original-parabola-previews-and-sources)](../../screenshots/journey/75zf-build-original-parabola-previews-and-sources.png)
+![Round-solid reference: cylinder, cone, sphere and torus](../../screenshots/journey/75zf-build-original-parabola-previews-and-sources-3d314869e456.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.5

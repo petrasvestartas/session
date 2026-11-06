@@ -1,0 +1,123 @@
+{
+  "status": "PASS_ACTUAL_SITE_BUILD_AND_BROWSER_QA",
+  "recordedUtc": "2026-11-06T08:12:24.232742+00:00",
+  "scope": "Static tutorial text, source links, published image bytes and browser decoding only; no new GPU/canonical callback acceptance. Existing Vue/CSS/Gemini layout unchanged.",
+  "build": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\resources.json",
+    "sha256": "a6ba092cff591245ffdddfeb32ad1931dfada2ad310ad9a4336bbf0de2b7ae61"
+  },
+  "browserQa": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\browser-check06.json",
+    "sha256": "82c488722b19f7507f0483af95717356aac65499158868ca8c311017c2c30d68"
+  },
+  "browserResources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\browser-resources06-qa2.json",
+    "sha256": "41eab9ee50d0ec0e049ec0af01b48e8959f74544cfe5b345064c3b378fdb975a"
+  },
+  "qaExecution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\qa-recovery2-execution.json",
+    "sha256": "23dde78bd8fb540e842c1651ff09fedc82cee31b3f6f0207cad9c1801717ccab"
+  },
+  "previewRestart": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\preview-restarted.json",
+    "sha256": "3007829acad0e4f523ca19778e14a2fbe4943629f40c0a6d54c52033fb88ceaf"
+  },
+  "sourcePlan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\plan.json",
+    "sha256": "90cb1d1118909c9555cf986c1208d5fc610505fb9f7e5a339029eedc76d6fbf3"
+  },
+  "browser": "157.0.8103.38",
+  "counts": {
+    "pages": 38,
+    "chapterRoutes": 22,
+    "sourceReaderPins": 111,
+    "plaintextSourcePairs": 13,
+    "otherRustSourcePreviews": 63,
+    "decodedImageOccurrences": 26,
+    "freshReplacementFigures": 4,
+    "denseRgbFigures": 1,
+    "generatorDownloads": 1,
+    "errors": 0
+  },
+  "buildResources": {
+    "seconds": 46.503,
+    "peakBytes": 1404014592,
+    "processors": 2,
+    "memoryLimitBytes": 2147483648
+  },
+  "browserResourceUse": {
+    "seconds": 28.201,
+    "peakBytes": 746418176,
+    "processors": 2,
+    "memoryLimitBytes": 2147483648
+  },
+  "priorRunnerFailures": {
+    "buildOuterWrapperExitCode": 1,
+    "buildChildExitCode": 0,
+    "reason": "PowerShell native stderr warning handling; successful build reused without rebuilding.",
+    "qa1ExitCode": 125,
+    "qa1BrowserStarted": false,
+    "reasonQa1": "Original private wrapper used HeavyJob mutex; QA2 uses applied separate ImageLane guard.",
+    "qa1Preserved": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\site-rebuild-20261106-06\\qa-recovery-execution.json",
+      "sha256": "ab9e80164b29c907aafaf9d57e6500eadd8ea3494d9ea9334b4813c78464ca92"
+    }
+  },
+  "latestFigures": [
+    {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/55zc-follow-original-constrained-trim-labels-2336125cd76e.png?v=2336125cd76e",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 9.1 (55zc-follow-original-constrained-trim-labels)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels-2336125cd76e.png",
+      "sourceSha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e",
+      "builtSha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e",
+      "servedSha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e",
+      "reader": "55-validation"
+    },
+    {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/91i-prove-actual-outlines-and-original-ownership-3873fae5b8c7.png?v=3873fae5b8c7",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 18.3 (91i-prove-actual-outlines-and-original-ownership)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\91i-prove-actual-outlines-and-original-ownership-3873fae5b8c7.png",
+      "sourceSha256": "3873fae5b8c7b1a7d048d658593c48c90a3a8e55bab4f35d5cffd0b134447ced",
+      "builtSha256": "3873fae5b8c7b1a7d048d658593c48c90a3a8e55bab4f35d5cffd0b134447ced",
+      "servedSha256": "3873fae5b8c7b1a7d048d658593c48c90a3a8e55bab4f35d5cffd0b134447ced",
+      "reader": "91-include-visible-section-coverage"
+    },
+    {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/74zb-build-original-cones-and-spheres-a8b7dfe56c56.png?v=a8b7dfe56c56",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 14.4 (74zb-build-original-cones-and-spheres)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\74zb-build-original-cones-and-spheres-a8b7dfe56c56.png",
+      "sourceSha256": "a8b7dfe56c569454e89665e282f769e41cfb7e926cf3cc9bfee4ca672b526db3",
+      "builtSha256": "a8b7dfe56c569454e89665e282f769e41cfb7e926cf3cc9bfee4ca672b526db3",
+      "servedSha256": "a8b7dfe56c569454e89665e282f769e41cfb7e926cf3cc9bfee4ca672b526db3",
+      "reader": "74-copy-current-solid-geometry-and-question-definitions"
+    },
+    {
+      "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/75zf-build-original-parabola-previews-and-sources-3d314869e456.png?v=3d314869e456",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Round-solid reference: cylinder, cone, sphere and torus",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\75zf-build-original-parabola-previews-and-sources-3d314869e456.png",
+      "sourceSha256": "3d314869e4567f172cb9935eef1d5ab29b9c3da51b16f01cfd7921797256fa9a",
+      "builtSha256": "3d314869e4567f172cb9935eef1d5ab29b9c3da51b16f01cfd7921797256fa9a",
+      "servedSha256": "3d314869e4567f172cb9935eef1d5ab29b9c3da51b16f01cfd7921797256fa9a",
+      "reader": "75-reuse-current-round-solid-builders"
+    }
+  ],
+  "denseIllustration": {
+    "url": "http://127.0.0.1:8788/docs/course/docs/screenshots/journey/65c-dense-original-rgb.png?v=91a3a8e052da",
+    "width": 1280,
+    "height": 960,
+    "alt": "Dense synthetic RGB point cloud with 196,608 mesh-derived samples",
+    "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65c-dense-original-rgb.png",
+    "sourceSha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31",
+    "builtSha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31",
+    "servedSha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31"
+  },
+  "canonicalBehaviorOrWasmExecuted": false
+}

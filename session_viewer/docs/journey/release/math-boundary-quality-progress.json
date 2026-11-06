@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-06T07:48:48.303089+00:00",
+  "updatedUtc": "2026-11-06T08:12:24.232742+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -199,7 +199,7 @@
       "renderingPipelineChangedFiles": 0,
       "removedLiveWoodPins": 11,
       "addedSuppliedPins": 13,
-      "acceptedImages": 9,
+      "acceptedImages": 13,
       "status": "ACTUAL_CURRENT_DEPENDENCY_IMAGES_ROOT_REVIEWED",
       "historicalFreeze13AcceptedImages": 51,
       "historicalScope": "Prior renderer13 runtime/test proofs remain as recorded; not rerun under freeze15 dependencies."
@@ -252,19 +252,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 67,
-    "remainingAffected": 1259,
-    "acceptedForFinalSource": 11,
-    "remainingFinalSourceAcceptance": 1315,
-    "qualificationNote": "11 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 62 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
+    "newPublishedReviewed": 69,
+    "remainingAffected": 1257,
+    "acceptedForFinalSource": 13,
+    "remainingFinalSourceAcceptance": 1313,
+    "qualificationNote": "13 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 64 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 62,
-    "remainingPlannedImageAcceptances": 1264,
-    "physicalJourneyPngs": 526,
-    "uniqueJourneyPngs": 526,
+    "acceptedAcrossRendererLineage": 64,
+    "remainingPlannedImageAcceptances": 1262,
+    "physicalJourneyPngs": 528,
+    "uniqueJourneyPngs": 528,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
       "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
@@ -321,17 +321,53 @@
       "normalLedgerRetirement": true,
       "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
     },
-    "reviewedFigureCountScope": "62renderer-lineage destinations plus4maintained-renderer controlfigures and1dense-cloud supplemental figure. Visible42-update plan trackedseparately."
+    "reviewedFigureCountScope": "64 renderer-lineage destinations plus 4 maintained-renderer control figures and 1 dense-cloud supplemental figure. Visible 42-update plan tracked separately.",
+    "native74Dpr4Image": {
+      "receipt": "docs/journey/release/math-boundary-quality-source15-native74-dpr4-a8b7dfe56c56.json",
+      "sha256": "6701239d01ac7da7190187be22309e7badfb4baa793ed3aa700def9dde8b914f",
+      "imageSha256": "a8b7dfe56c569454e89665e282f769e41cfb7e926cf3cc9bfee4ca672b526db3",
+      "actualFixture": [
+        "Box",
+        "Pyramid",
+        "BlockWithHole"
+      ],
+      "rawPhysicalPixels": [
+        2560,
+        1920
+      ],
+      "normalLedgerRetirement": true,
+      "scope": "Onlyactual74fixture;notaseparatecones/spheresorothercheckpointacceptance."
+    },
+    "native75Dpr4Image": {
+      "receipt": "docs/journey/release/math-boundary-quality-source15-native75-dpr4-3d314869e456.json",
+      "sha256": "fd8368cbfb902a099fefc3423990bfed668b6409f3e4b1aa4aef67349e524201",
+      "imageSha256": "3d314869e4567f172cb9935eef1d5ab29b9c3da51b16f01cfd7921797256fa9a",
+      "actualFixture": [
+        "Cylinder",
+        "Cone",
+        "Sphere",
+        "Torus"
+      ],
+      "rawPhysicalPixels": [
+        2560,
+        1920
+      ],
+      "rootOriginalPixelReview": true,
+      "normalLedgerRetirement": true,
+      "scope": "Actual round-solid fixture only; no parabola-preview or later-checkpoint acceptance. Global apparent contours are introduced later."
+    }
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 39,
+    "pending": 37,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 3,
-    "native55Published": 1
+    "published": 5,
+    "native55Published": 1,
+    "native74Published": 1,
+    "native75Published": 1
   },
   "published": [
     {
@@ -1486,7 +1522,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "60_RENDERER_LINEAGE_DESTINATIONS_ACCEPTED;9_CURRENT_FREEZE15_DEPENDENCY_QUALIFIED;51_HISTORICAL_FREEZE13;1266_PLAN_REMAIN"
+      "status": "64_RENDERER_LINEAGE_DESTINATIONS_ACCEPTED;13_CURRENT_FREEZE15_DEPENDENCY_QUALIFIED;51_HISTORICAL_FREEZE13;1262_PLAN_REMAIN;5_OF42_VISIBLE_UPDATES_DONE"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
@@ -1502,27 +1538,21 @@
     "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
-    "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
-    "sha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-    "browser": "156.0.8078.79",
-    "publishedCanonicalImagesVerified": 22,
-    "acceptedSourceProofsAtQa": 46,
-    "acceptedLogicalProofsWithPublishedCanonicals": 31,
-    "sourceOnlyAcceptedProofsNotPublished": 15,
-    "currentAcceptedOutsideQaScope": 5,
-    "sourceAndCompiledPrimaryReaders": 111,
-    "chapterRoutesVerified": 22,
-    "criticalReaderChecks": 6,
-    "crossChapterSharedIllustrations": 0,
-    "localReaderLinksVerified": 6014,
+    "receipt": "docs/journey/release/viewer-site-20261106-06.json",
+    "sha256": "2d4294f43d47934763656b6b212be95ad072ccd17fa21965700969f1a0db9376",
+    "browser": "157.0.8103.38",
+    "pages": 38,
+    "chapterRoutes": 22,
+    "sourceReaderPins": 111,
+    "plaintextSourcePairs": 13,
+    "otherRustSourcePreviews": 63,
+    "decodedImageOccurrences": 26,
+    "freshReplacementFigures": 4,
+    "denseRgbFigures": 1,
+    "generatorDownloads": 1,
+    "errors": 0,
     "noGpuOrWasmRuntimeAcceptanceClaim": true,
-    "metadataUpdaterPerformedNetworkOrBrowserChecks": false,
-    "verificationRecordedUtc": "2026-11-01T15:12:04.407282+01:00",
-    "priorVerification": {
-      "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
-      "sha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
-      "scope": "Historical build02 snapshot retained by its immutable receipt."
-    }
+    "verificationRecordedUtc": "2026-11-06T08:12:24.232742+00:00"
   },
   "unusedImageCleanup": {
     "receipt": "docs/journey/release/math-boundary-unused-images-20261101.json",

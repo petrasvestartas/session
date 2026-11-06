@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-06T08:02:19.263Z",
+  "id": "75zf-build-original-parabola-previews-and-sources",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-75zf-build-original-parabola-previews-and-sources-8a8146c7ae8990aef08b\\capture.json.gz",
+    "sha256": "ccee1900195637ad7ecf6173ac5e3a304056992323c6d4e45fc27c11d0a196f6",
+    "bytes": 151073
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-slot-proposal-01\\case75\\capture-result.json",
+    "sha256": "a38f35cb74f18b861103293bcac50c8b12cb9d469ee6acf21a7b34b26a34e1b1"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-20261106-3d7d26da-75-execution.json",
+    "sha256": "ad0f386bb7554128e4d7ab2683b25e3cc97213ad190e44265aa1faab686245c8"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-slot-proposal-01\\case75\\bounded-terminal.json",
+    "sha256": "69a0e931da558c77fc045bb9e644418876329abea1559ced862855d7c607a92c"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+    "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 473,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\75zf-build-original-parabola-previews-and-sources-3d314869e456.png",
+    "sha256": "3d314869e4567f172cb9935eef1d5ab29b9c3da51b16f01cfd7921797256fa9a"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\75zf-build-original-parabola-previews-and-sources.png",
+    "sha256": "43f29863a1c06b6789bd217f981d059358247504efb5276a03cf094e948759b8"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected original2560x1920 rawDPR4. ActualCylinder/Cone/Sphere/Torus fixture has smooth curved boundaries and shaded surfaces with no internaltrianglewire overlay. Visible topological seam/boundary intervals followthecurves; hiddenintervalsremainoccluded. Unselectedglobalapparentcontoursarenotpromisedatthisstage. Thisdoesnotvisuallytestparabola previewdespitecheckpointname. NoCPUresampling; physicalsize/densitybeforerefinement. OneexactNativeIMAGEcaptureonly; nocanonical640pixel/browsercallbackorothercheckpointacceptance.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. Ten historical aliases and their original pixels remain unchanged. This exact75fixture contains cylinder, cone, sphere and torus; no parabola-preview or later-checkpoint acceptance. Global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-slot-proposal-01\\case75\\publication.json",
+    "sha256": "895fa969c000fdfb99692c5ff132173f86b013e8a0501f637609aa1e10ebd8b3"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-75zf-build-original-parabola-previews-and-sources-8a8146c7ae8990aef08b\\publication.json",
+    "sha256": "e444d8fd63910a95af9042adb5ca6dd253f6862316821e00af065b94108a3340"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-75zf-build-original-parabola-previews-and-sources-8a8146c7ae8990aef08b\\retirement.json.gz",
+    "sha256": "2d827f20686d266961f23002a65d2d4cdf470b7c99b2c6d4d3aab96c05e5e0a9"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-75zf-build-original-parabola-previews-and-sources-8a8146c7ae8990aef08b\\retired.json",
+    "sha256": "b98f7e12cfd03061601147b4a5d78a86c75731737bbcad8107b0964b2b1a2395"
+  }
+}

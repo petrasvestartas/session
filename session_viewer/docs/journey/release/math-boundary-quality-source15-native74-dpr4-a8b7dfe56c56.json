@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-06T07:55:19.044Z",
+  "id": "74zb-build-original-cones-and-spheres",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-74zb-build-original-cones-and-spheres-c704f7cfe3853d38945e\\capture.json.gz",
+    "sha256": "19166dd0d4ed23ad9b401455fd0ef469806751fe6374795251b0a30db512de14",
+    "bytes": 147620
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-slot-proposal-01\\case74\\capture-result.json",
+    "sha256": "efc83d328d32a0df47123d1342876493c2a9255eb5d1b500ede4fbc853e2f6db"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-20261106-3d7d26da-74-execution.json",
+    "sha256": "172b749f49264d8fcaca06115cb595447b3db14965b0c0f3e6a9f09e1ae9b475"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-slot-proposal-01\\case74\\bounded-terminal.json",
+    "sha256": "dc06f37f41210f339a378f17513c65ffce237e6bd8603f33a420d3c5721dc452"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+    "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 473,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\74zb-build-original-cones-and-spheres-a8b7dfe56c56.png",
+    "sha256": "a8b7dfe56c569454e89665e282f769e41cfb7e926cf3cc9bfee4ca672b526db3"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\74zb-build-original-cones-and-spheres.png",
+    "sha256": "6a513859b63e0b7075cec83d4bf524fe3e15006722215ffa2954feba797d0e22"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected original2560x1920 rawDPR4. Actualfixture contains Box/Pyramid/BlockWithHole, notconesandspheres. Straight topological edges and circular hole boundary are clean; shaded faces have nointernaltriangulationdiagonals. Holewalltopologicalseamedgeisnotatriangulationwire. Physicalviewport/densitybeforemathrefinement, noCPUresample. ThisoneNativeIMAGEfigureonly; no latercheckpoint/codeacceptance orcanonical640/browsercallbackclaim.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. Six historical aliases and their original pixels remain unchanged. This exact74fixture contains a box, pyramid and block with hole; no separate cones/spheres or later-checkpoint acceptance.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native74-75-slot-proposal-01\\case74\\publication.json",
+    "sha256": "f8e08dac3edb946c481cf4ea25bb0eb3b14f5001ded403edfd9ca9b110e3f2cf"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-74zb-build-original-cones-and-spheres-c704f7cfe3853d38945e\\publication.json",
+    "sha256": "75bb6c4954ffe58139dbfd145a6700edea97d325c6e0e226b346cf130c34f442"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-74zb-build-original-cones-and-spheres-c704f7cfe3853d38945e\\retirement.json.gz",
+    "sha256": "848070042fe8d663b066a0b0286ac82e0ffad0a35b5219e7dd923fa55950722c"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-74zb-build-original-cones-and-spheres-c704f7cfe3853d38945e\\retired.json",
+    "sha256": "6db222d101c55e05b9f55bb37b14d2e6ac7ce026ac67fca1d3c0bfb5b246e1a2"
+  }
+}

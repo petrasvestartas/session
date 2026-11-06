@@ -2636,7 +2636,7 @@ pub mod round_sphere;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 14.4 (74zb-build-original-cones-and-spheres)](../../screenshots/journey/74zb-build-original-cones-and-spheres.png)
+![Recorded visual output for Lesson 14.4 (74zb-build-original-cones-and-spheres)](../../screenshots/journey/74zb-build-original-cones-and-spheres-a8b7dfe56c56.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.4
