@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "status": "RETIRED_THREE_NON_DISPLAY_BASELINES_WITH_LOSSLESS_PROOF_ARCHIVES",
+  "recordedUtc": "2026-11-06T06:58:28.013975+01:00",
+  "referenceAudit": {
+    "path": ".codex/private/viewer-coverage-20261101/three-proof-only-png-relocation-audit-20261106.json",
+    "sha256": "5475a1b0fe3a762f722cb9158715c535be4adee99862f3e12331cd28b5d539ec"
+  },
+  "scope": "No current lesson, image alias or executable consumer uses these physical filenames. Immutable historical receipts remain unchanged. No rendering acceptance added.",
+  "restore": "Decompress each archive to its original relative path if an old manual proof replay needs it; no automatic resolver was added.",
+  "physicalPngsBefore": 527,
+  "physicalPngsAfter": 524,
+  "images": [
+    {
+      "original": "docs/screenshots/journey/96zh-bind-the-shared-geometry-as-storage-browser-d987911641e7.png",
+      "sha256": "d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367",
+      "bytes": 38475,
+      "archive": "docs/journey/release/retired-image-baselines/d987911641e7f2681ecb25dec8278cb13fd5b6c97b37ae36e3f9a8881111b367.png.gz",
+      "archiveSha256": "92eec0223a7fa5071a2c36f8aa7d84af0092285bbede380bff60e40be0915fcc",
+      "archiveBytes": 27393
+    },
+    {
+      "original": "docs/screenshots/journey/96zm-write-triangle-addresses-beside-color-browser-ddba4d2288f7.png",
+      "sha256": "ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b",
+      "bytes": 20138,
+      "archive": "docs/journey/release/retired-image-baselines/ddba4d2288f7ca5d2b311e6a17880225593ae44660375dd5c52f5ccbe796b16b.png.gz",
+      "archiveSha256": "c3df580da7183d69c748343d38bb3640ecb40edab037bcc4488f16c2acb18f7d",
+      "archiveBytes": 8932
+    },
+    {
+      "original": "docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-browser-0816e418db8c.png",
+      "sha256": "0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb",
+      "bytes": 30909,
+      "archive": "docs/journey/release/retired-image-baselines/0816e418db8c729361d223a8fb322c4174c803724d42be7882ef828a908651eb.png.gz",
+      "archiveSha256": "2a1b46c6311747fd35f1e27969fda6e143d65e78cab792e249ff64f5adcc3cb1",
+      "archiveBytes": 21861
+    }
+  ],
+  "topLevelPngsBefore": 298,
+  "topLevelPngsAfter": 295,
+  "countScope": "Physical counts include journey subfolders; top-level counts separately recorded."
+}

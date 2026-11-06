@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-06T00:29:57.204873+00:00",
+  "updatedUtc": "2026-11-06T06:04:52.9993171Z",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -263,8 +263,8 @@
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 60,
     "remainingPlannedImageAcceptances": 1266,
-    "physicalJourneyPngs": 527,
-    "uniqueJourneyPngs": 527,
+    "physicalJourneyPngs": 524,
+    "uniqueJourneyPngs": 524,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
       "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
@@ -286,6 +286,15 @@
       "sha256": "95873aae700bedaca5c23fc5774203d509d71b948e7aab345f52e9bb6359c693",
       "removedCopies": 8,
       "removedBytes": 272616
+    },
+    "proofOnlyBaselineRetirement": {
+      "historicalProofsLosslesslyPreserved": true,
+      "rawBytes": 89522,
+      "newImageAcceptances": 0,
+      "archiveBytes": 58186,
+      "receipt": "docs/journey/release/proof-only-image-retirement-20261106.json",
+      "removedFromJourney": 3,
+      "sha256": "051262ebddc975faa386e96812976e4ff1df9c24c51a45eb35fc32979caa703a"
     }
   },
   "visibleWorkPlan": {
@@ -1479,7 +1488,7 @@
     "localReaderLinksVerified": 6014,
     "noGpuOrWasmRuntimeAcceptanceClaim": true,
     "metadataUpdaterPerformedNetworkOrBrowserChecks": false,
-    "verificationRecordedUtc": "2026-11-01T14:12:04.407282+00:00",
+    "verificationRecordedUtc": "2026-11-01T15:12:04.407282+01:00",
     "priorVerification": {
       "receipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-03.json",
       "sha256": "58dade8751d2c6bd1026c0aa51439077808bf179c1285caae883fdd500005ec8",
@@ -1530,7 +1539,7 @@
     "sha256": "e435b1ed98b93aab68d90a64e79753fa8237161b2da8bb7a95fd842d03f2dc34"
   },
   "tutorialContentUpdate": {
-    "recordedUtc": "2026-11-05T17:45:35.933686+00:00",
+    "recordedUtc": "2026-11-05T18:45:35.933686+01:00",
     "status": "CONTENT_REVIEW_AND_STRUCTURE_PASS_SITE_REBUILD_PENDING",
     "readers": [
       {
@@ -1568,7 +1577,7 @@
     "freshBrowserOrGpuAcceptance": false
   },
   "platformAndCurrentSourceUpdate": {
-    "recordedUtc": "2026-11-05T20:12:56.388241+00:00",
+    "recordedUtc": "2026-11-05T21:12:56.388241+01:00",
     "status": "SOURCE_STRUCTURE_AND_REFERENCE_CHECKS_PASS_RUNTIME_PENDING",
     "productionInventory": {
       "path": "docs/journey/current-viewer-2026-11-05.json",
@@ -1600,5 +1609,16 @@
     "namedPartialMappings": 92,
     "explicitBoundaryDispositions": 27,
     "wholeModuleParityClaims": 0
+  },
+  "chapterImageDistinctness": {
+    "scope": "Primary book readers grouped by actual22chapters; samechapter section reuse retained.",
+    "status": "PASS_22_CHAPTERS_NO_CROSS_CHAPTER_IMAGE_REUSE",
+    "imageReferences": 79,
+    "crossChapterSharedPixelGroups": 0,
+    "distinctPixels": 67,
+    "primaryReaders": 111,
+    "missingPrimaryImages": 0,
+    "chapterGroups": 22,
+    "withinSameChapterRepeatedGroups": 8
   }
 }
