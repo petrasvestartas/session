@@ -292,7 +292,7 @@ mod cad_trim_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 9.3 (57a-trims)](../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
+![Surface reference from Lesson 9.1](../../screenshots/journey/55zc-follow-original-constrained-trim-labels-2336125cd76e.png)
 
 ```sh
 cd workspace/journey

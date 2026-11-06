@@ -7959,7 +7959,7 @@ pub mod source_mesh_topology;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 18.3 (91i-prove-actual-outlines-and-original-ownership)](../../screenshots/journey/91i-prove-actual-outlines-and-original-ownership.png)
+![Recorded visual output for Lesson 18.3 (91i-prove-actual-outlines-and-original-ownership)](../../screenshots/journey/91i-prove-actual-outlines-and-original-ownership-3873fae5b8c7.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.3

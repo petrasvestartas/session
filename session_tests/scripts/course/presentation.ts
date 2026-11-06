@@ -64,7 +64,59 @@ export function verifyNativeAdapter(directory: string, profile: ReturnType<typeo
     return {...receipt, adapter};
 }
 
+export function nativeCaptureDensity(lane: string, density = 2) {
+    assert([2, 3, 4].includes(density), 'Native image density must be 2, 3 or 4');
+    assert(lane === 'native' || density === 2, 'Explicit image density requires the native lane');
+    return density;
+}
+
+export function nativeDensityBridge(code: string, density: number, fixture: string, resize: string, renderer: string) {
+    nativeCaptureDensity('native', density);
+    if (density !== 4) return null;
+    assert(fixture && code.endsWith(fixture), 'Exact canonical fixture must remain the driver suffix');
+    const dimensions = code.match(/const WIDTH: u32 = (\d+);\nconst HEIGHT: u32 = (\d+);/);
+    assert(dimensions, 'Native physical dimensions missing');
+    const physical = dimensions.slice(1).map(Number);
+    assert(physical.every(n => n > 0 && n <= 4096), 'Native physical dimensions exceed the capture limit');
+    assert(typeof renderer === 'string' && /pub fn set_density\(&mut self, density: f32\)/.test(renderer), 'Assembled Renderer must expose set_density(f32)');
+    const signature = renderer.match(/pub fn resize\([^)]*\)/)?.[0];
+    const supportedResize = signature?.includes('width: u32, height: u32') ? '    renderer.resize(WIDTH, HEIGHT);\n'
+        : signature?.includes('size: crate::viewport::Viewport') ? '    renderer.resize(viewer_journey::viewport::Viewport { width: WIDTH, height: HEIGHT });\n' : null;
+    assert(supportedResize, 'Assembled Renderer must expose a supported physical resize');
+    assert.equal(resize, supportedResize, 'Chosen resize must match the assembled Renderer signature');
+    assert.equal(code.split(resize).length, 2, 'Exact outer resize boundary changed');
+    const constructors = [...fixture.matchAll(/let mut renderer=Renderer::new\(device,queue,format,&(?:editor\.scene|e\.scene|math_source)\);/g)];
+    assert.equal(constructors.length, 1, 'One source-bound mathematical renderer constructor required');
+    assert(fixture.includes('fn draw(') && fixture.includes('fn verify_pixels('), 'Canonical draw and pixel assertion tails required');
+    const before = constructors[0][0], constructor = fixture.indexOf(before), drain = fixture.indexOf('math_quality.drain_matrix(');
+    assert(drain > constructor + before.length, 'Renderer construction must precede mathematical refinement');
+    assert.equal(fixture.split('math_quality.drain_matrix(').length, 2, 'One mathematical refinement boundary required');
+    assert(fixture.slice(drain).split(';')[0].includes('[WIDTH,HEIGHT]'), 'Mathematical refinement must use the physical target');
+    assert(!fixture.slice(constructor + before.length, drain).includes('renderer.resize('), 'Unexpected pre-refinement resize');
+    assert.equal(code.split(before).length, 2, 'Exact renderer constructor boundary changed');
+    const after = before + `\n    renderer.set_density(${density}.0);\n` + resize.trimEnd();
+    const transformed = code.replace(before, after);
+    assert.equal(transformed.replace(after, before), code, 'Native density bridge must reverse exactly');
+    assert.equal(transformed.slice(transformed.indexOf('fn draw(')), code.slice(code.indexOf('fn draw(')), 'Draw and canonical pixel assertions must remain unchanged');
+    return {code: transformed, density, physical, rendererSha256: hash(renderer), beforeSha256: hash(code), afterSha256: hash(transformed), reversedSha256: hash(code),
+        changes: [{before, after, needleCount: 1}], constructorAdaptedBeforeMath: true, drawAndPixelAssertionsPreserved: true};
+}
+
 function checkAdapterBridge(record: any) {
+    if (record.nativeDensityBridge) {
+        const bridge = record.nativeDensityBridge, before = read(bridge.before.path);
+        assert.equal(hash(before), bridge.before.sha256);
+        const step = course().steps.find(step => step.id === record.source.checkpoint); assert(step?.frame);
+        assert(!record.renderScaleBridge, 'Raw native density must not use a filtered image bridge');
+        const resize = record.rendererResize.includes('width: u32, height: u32')
+            ? '    renderer.resize(WIDTH, HEIGHT);\n'
+            : '    renderer.resize(viewer_journey::viewport::Viewport { width: WIDTH, height: HEIGHT });\n';
+        const generated = nativeDensityBridge(before, record.density, read(path.join(docs, step.frame)), resize, expected(record.source.checkpoint)['src/renderer.rs']); assert(generated);
+        const {code, ...proof} = generated;
+        assert.deepEqual(json(bridge.record.path), proof); assert.equal(digest(bridge.record.path), bridge.record.sha256);
+        assert.equal(code, read(record.adapterBridge?.before.path || path.join(viewer, record.driver.path)));
+    }
+
     if (record.renderScaleBridge) {
         const bridge = record.renderScaleBridge, before = read(bridge.before.path);
         assert.equal(hash(before), bridge.before.sha256);
@@ -198,7 +250,7 @@ function retained(record: any) {
 }
 
 export function prepare(id: string, density = 2) {
-    assert([2, 3].includes(density), 'Presentation density must be 2 or 3');
+    nativeCaptureDensity('native', density);
     assert(id !== '01-canvas', 'The canvas-only checkpoint needs a browser capture');
     const {checkpoint, source, key, directory} = captureDirectory(id, density);
     const step = course().steps.find(step => step.id === checkpoint);
@@ -234,11 +286,22 @@ export function prepare(id: string, density = 2) {
     code = code.replace('// COURSE_DRAW', draw).replace('    verify_pixels(&pixels);',
         '    assert_eq!(pixels.len(), WIDTH as usize * HEIGHT as usize * 4);');
     if (source.imageProfile.native) assert(step.frame, 'Native image scaling requires an exact source-bound fixture');
+    assert(density !== 4 || !source.imageProfile.native, 'Raw DPR4 requires renderScale1, without a filtered image profile');
     const scale = source.imageProfile.native ? nativeScaleBridge(code, source.imageProfile.native, [width, height], density, read(path.join(docs, step.frame!))) : null;
     const scaleBefore = code;
     if (scale) code = scale.code;
+    const densityBefore = code;
+    const physical = density === 4 ? nativeDensityBridge(code, density, read(path.join(docs, step.frame!)), resizeCall, renderer) : null;
+    if (physical) code = physical.code;
     const bridge = source.nativeAdapter ? adapterDriverBridge(code, source.nativeAdapter) : null;
     materialize(files, directory, lockFor(checkpoint), assetsFor(checkpoint));
+    let densityBridge = null;
+    if (physical) {
+        const before = path.join(directory, 'native-density-before.rs'), proof = path.join(directory, 'native-density-bridge.json');
+        const {code: _code, ...record} = physical;
+        write(before, densityBefore); write(proof, JSON.stringify(record, null, 2) + '\n');
+        densityBridge = {before: fileReference(before), record: fileReference(proof)};
+    }
     let renderScaleBridge = null;
     if (scale) {
         const before = path.join(directory, 'render-scale-before.rs'), proof = path.join(directory, 'render-scale-bridge.json');
@@ -256,8 +319,9 @@ export function prepare(id: string, density = 2) {
     write(driver, code);
     const record = {status: 'PREPARED_NOT_EXECUTED', key, source, directory, density, width, height,
         rendererResize: resizeSignature, rendererDensity: scaling, driver: {path: relative(driver), sha256: digest(driver)}, adapterBridge, renderScaleBridge,
-        fixtureFunctionsPreserved: !scale && (step.frame ? code.endsWith(read(path.join(docs, step.frame))) : true),
-        generatedConstructorAdaptedBeforeMath: Boolean(scale), generatedDrawAndPixelAssertionsPreserved: scale ? scale.drawAndPixelAssertionsPreserved : true,
+        ...(densityBridge ? {nativeDensityBridge: densityBridge} : {}),
+        fixtureFunctionsPreserved: !scale && !physical && (step.frame ? code.endsWith(read(path.join(docs, step.frame))) : true),
+        generatedConstructorAdaptedBeforeMath: Boolean(scale || physical), generatedDrawAndPixelAssertionsPreserved: scale ? scale.drawAndPixelAssertionsPreserved : physical ? physical.drawAndPixelAssertionsPreserved : true,
         canonicalPixelAssertions: 'Preserved unchanged in original fixture; fixed-resolution verification remains separate from this presentation capture.'};
     write(path.join(directory, 'presentation.json'), JSON.stringify(record, null, 2) + '\n');
     return record;

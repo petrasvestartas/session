@@ -138,7 +138,7 @@ async function worker(p:any){
         await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
         const canvas=page.locator('canvas'),camera=JSON.parse(await canvas.getAttribute('data-camera-matrix'));assert.equal(camera.length,16);assert(camera.every(Number.isFinite));
         const size=await canvas.evaluate((c:any)=>{const r=c.getBoundingClientRect();return {width:c.width,height:c.height,cssWidth:r.width,cssHeight:r.height,dpr:devicePixelRatio};});
-        assert.equal(size.dpr,2);assert.equal(size.width,Math.round(size.cssWidth*2)*(renderScale?2:1));assert.equal(size.height,Math.round(size.cssHeight*2)*(renderScale?2:1));
+        assert.equal(size.dpr,2);assert.equal(size.width,Math.round(size.cssWidth*2)*(renderScale&&renderScale.presentation!=='linear-srgb-gpu'?2:1));assert.equal(size.height,Math.round(size.cssHeight*2)*(renderScale&&renderScale.presentation!=='linear-srgb-gpu'?2:1));
         await(new Function('page','assert','return(async()=>{'+validateGpu+'})()'))(page,assert);assert.deepEqual(errors,[]);
         const drawing=await helpers.drawing(page),file=path.join(p.folder,p.id+'-dpr2.png'),bytes=await page.screenshot({path:file,scale:'device'});
         assert.equal(bytes.readUInt32BE(16),p.viewport.width*2);assert.equal(bytes.readUInt32BE(20),p.viewport.height*2);assert.equal(await helpers.drawing(page),drawing);

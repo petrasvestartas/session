@@ -7,7 +7,7 @@ import {course, docs, expected, filesIn, json, viewer, withExpectedSequence, woo
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture, ledgerReceiptFile} from './capture-ledger.ts';
 import {imageProfile} from './image-render-scale.ts';
-import {nativeAdapterProfile} from './presentation.ts';
+import {nativeAdapterProfile, nativeCaptureDensity} from './presentation.ts';
 import {cleanCompilerTransition} from './compiler-cache.ts';
 
 const self = fileURLToPath(import.meta.url);
@@ -91,8 +91,11 @@ async function browserCapture(id: string, route: string, built: any) {
     return path.join(p.folder, result);
 }
 
-export async function captureCompact(lane: string, id: string, route = 'generic') {
+export async function captureCompact(lane: string, id: string, route = 'generic', nativeDensity = 2,
+    options: {compiledRecord?: string; drawMemoryMiB?: number} = {}) {
+    nativeCaptureDensity(lane, nativeDensity);
     assert(['native', 'browser'].includes(lane));
+    assert(lane === 'native' || (!options.compiledRecord && options.drawMemoryMiB === undefined), 'Compiled draw options require the native lane');
     assert(course().steps.some(step => step.id === id), 'Unknown checkpoint');
     assert(route !== 'measurement' || (lane === 'browser' && id === '85ay-exercise-current-original-commands-together'), 'Measurement route requires the 85ay browser checkpoint');
     assert(route !== 'maintained' || (lane === 'browser' && id === '97-finish-with-the-maintained-browser-runtime'), 'Maintained route requires the final browser checkpoint');
@@ -124,11 +127,23 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
         ownsPending = true;
         if (lane === 'native') {
             const module = await import('./incremental-native-presentation.ts');
-            const record = withExpectedSequence(() => module.runIncremental(id));
+            if (options.compiledRecord) {
+                const compiled = json(options.compiledRecord);
+                assert.equal(compiled.id, id); assert.equal(compiled.density, nativeDensity);
+            }
+            const record = withExpectedSequence(() => options.compiledRecord
+                ? module.resumeCompiledNative(options.compiledRecord, options.drawMemoryMiB)
+                : module.runIncremental(id, nativeDensity, options.drawMemoryMiB));
+            assert.equal(record.density, nativeDensity);
             file = record.recordFile; ownedRoots = [record.folder, record.snapshotDirectory]; execution = record.executionIntegrity;
             transientRoots = [record.snapshotDirectory, path.join(record.folder, 'runtime')];
-            const prefix = record.compile.log.replace(/-build\.log$/, '');
-            evidence = ['-build.log', '-build.command.json', '-build.resources.json', '-execute.log', '-execute.command.json', '-execute.resources.json'].map(suffix => prefix + suffix);
+            evidence = [record.compile.log, record.execute.log].flatMap(log => [log, log.replace(/\.log$/, '.command.json'), log.replace(/\.log$/, '.resources.json')]);
+            if (record.compiledOrigin) {
+                const origin = json(record.compiledOrigin.path);
+                ownedRoots.push(origin.folder); transientRoots.push(path.join(origin.folder, 'runtime'));
+                evidence.push(record.compiledOrigin.path, record.compiledOrigin.helper.path, ...record.compiledOrigin.evidence.map((item: any) => item.path));
+            }
+            if (record.nativeDensityBridge) evidence.push(record.nativeDensityBridge.record.path, record.nativeDensityBridge.before.path);
             if (record.renderScaleReceipt) evidence.push(record.renderScaleReceipt.path, record.renderScaleBridge.record.path, record.renderScaleBridge.before.path);
             if (record.adapterReceipt) evidence.push(record.adapterReceipt.path, record.adapterBridge.record.path, record.adapterBridge.before.path);
         } else {
@@ -181,10 +196,11 @@ export async function captureCompact(lane: string, id: string, route = 'generic'
 
 if (process.argv[1] && path.resolve(process.argv[1]) === self) {
     const [mode, ...args] = process.argv.slice(2);
-    const result = mode === 'capture' ? await captureCompact(args[0], args[1], args[2])
+    const result = mode === 'capture' ? await captureCompact(args[0], args[1], args[2], args[3] === undefined ? 2 : Number(args[3]))
+        : mode === 'resume-native' ? await captureCompact('native', args[0], 'generic', args[2] === undefined ? 2 : Number(args[2]), {compiledRecord: path.resolve(args[1]), drawMemoryMiB: 2048})
         : mode === 'select' ? selectAffected(args)
         : mode === 'verify' ? verifyCaptureLedger(path.resolve(args[0]))
         : mode === 'retire' ? retirePublishedCapture(path.resolve(args[0]), path.resolve(args[1]), path.resolve(args[2])) : null;
-    assert(result, 'capture native|browser ID [RECIPE] | select ID... | verify RECEIPT | retire RECEIPT PUBLISHED_PNG PUBLICATION_EVIDENCE');
+    assert(result, 'capture native|browser ID [RECIPE] [NATIVE_DENSITY] | resume-native ID COMPILED_RECORD [NATIVE_DENSITY] | select ID... | verify RECEIPT | retire RECEIPT PUBLISHED_PNG PUBLICATION_EVIDENCE');
     console.log(JSON.stringify(result, null, 2));
 }

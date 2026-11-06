@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-06T07:46:25.967Z",
+  "id": "55zc-follow-original-constrained-trim-labels",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zc-follow-original-constrained-trim-labels-66bec192171544975381\\capture.json.gz",
+    "sha256": "986b88fe8267a376f6383cedb6c7a9f29ac7f56fc018b6bb6d7586f10440d63b",
+    "bytes": 109016
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native55-74-slot-proposal-01\\case55\\capture-result.json",
+    "sha256": "9cdad9403c6b5b910f645f228d1133758313d5469c4841f54e62b5411620c049"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native55-74-20261106-52e93864-55-execution.json",
+    "sha256": "9a4f82a8d21a91c07a3d2ec1905b07a6c913f93a97e063eb55f82776343b31c9"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native55-74-slot-proposal-01\\case55\\bounded-terminal.json",
+    "sha256": "f609dc7dd7ec7111e2fe441211e1a72e6ddfe0226d68004bd1133b024ccd0b10"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+    "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 473,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels.png",
+    "sha256": "56f6f5a4bf1ac72b0a8d31a78e80b8b4b71881310dca4530ea0dcfcc7a3a3915"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected the original2560x1920 rawDPR4 roof image. Smooth shaded surface, visible topological domain boundaries and no internal triangulation wires. The central far-boundary interval is correctly occluded by the roof bulge; apparent silhouettes are intentionally introduced in63f/63g/63h, not this55stage. This first surface image does not itself demonstrate curved isocurves. Physicalviewport/density were applied before mathematical refinement. NoCPUfilter/resample, canonical640 pixel orbrowsercallback claim. First child completed successfully; second batch case74 was not run.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. Thirty historical aliases and their original pixels remain unchanged. Reader sections55/56/57/58 may reference this exact55source image without any new source-checkpoint acceptance.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native55-74-slot-proposal-01\\case55\\publication.json",
+    "sha256": "4b739fd848fdb959388995891067e97c63ca6b1acd3e9ed13f44a8529c5402ee"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zc-follow-original-constrained-trim-labels-66bec192171544975381\\publication.json",
+    "sha256": "13274e0cace723b51976c6193b36a78295602427dc9ce42402410fa957277114"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zc-follow-original-constrained-trim-labels-66bec192171544975381\\retirement.json.gz",
+    "sha256": "cccf7b426c64000771093e95a0a52fe6ea2c0c0a6d4304ebb9b47e329c873e30"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55zc-follow-original-constrained-trim-labels-66bec192171544975381\\retired.json",
+    "sha256": "3e76f24b3eda366e6b7def4ac8c989e2e743deed9bd380173aedb0ae7e195d76"
+  }
+}

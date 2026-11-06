@@ -2,6 +2,7 @@ param(
     [int]$TimeoutSeconds = 600,
     [ValidateSet(2, 8)] [int]$ProcessorCount = 2,
     [ValidateRange(256, 65536)] [int]$MemoryLimitMiB = 2048,
+    [switch]$ImageLane,
     [string]$ManifestPath = (Join-Path (Get-Location) 'guarded-job.json'),
     [string]$WorkingDirectory = (Get-Location).Path,
     [string]$CommandFile,
@@ -20,6 +21,13 @@ if ($TimeoutSeconds -lt 1 -or $TimeoutSeconds -gt 2147483) { throw 'TimeoutSecon
 $program = (Get-Command $Executable -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $directory = (Resolve-Path -LiteralPath $WorkingDirectory).Path
 $manifest = [IO.Path]::GetFullPath($ManifestPath)
+
+if ($env:COURSE_CAPTURE_MIN_FREE_MIB) {
+    $minimumFreeMiB = [long]::Parse($env:COURSE_CAPTURE_MIN_FREE_MIB)
+    if ($minimumFreeMiB -lt $MemoryLimitMiB + 1024) { throw 'Capture admission requires the job limit plus at least 1 GiB free.' }
+    $availableMiB = [math]::Floor((Get-CimInstance Win32_OperatingSystem -ErrorAction Stop).FreePhysicalMemory / 1024)
+    if ($availableMiB -lt $minimumFreeMiB) { throw "Capture admission requires $minimumFreeMiB MiB available; found $availableMiB MiB." }
+}
 
 Add-Type -TypeDefinition @'
 using System;
@@ -100,17 +108,17 @@ public static class GuardedJob {
         s.Append('\\', slashes * 2); s.Append('"');
         return s.ToString();
     }
-    public static Result Run(string executable, string[] args, string directory, int seconds, ulong memoryBytes, int processorCount) {
-        using (Mutex gate = new Mutex(false, "Local\\SessionViewerCourseHeavyJob")) {
+    public static Result Run(string executable, string[] args, string directory, int seconds, ulong memoryBytes, int processorCount, bool imageLane) {
+        using (Mutex gate = new Mutex(false, imageLane ? "Local\\SessionViewerCourseImageJob" : "Local\\SessionViewerCourseHeavyJob")) {
             bool owned = false;
             try {
                 try { owned = gate.WaitOne(0); } catch (AbandonedMutexException) { owned = true; }
                 if (!owned) throw new InvalidOperationException("Another guarded heavy job is running.");
-                return RunOwned(executable, args, directory, seconds, memoryBytes, processorCount);
+                return RunOwned(executable, args, directory, seconds, memoryBytes, processorCount, imageLane);
             } finally { if (owned) gate.ReleaseMutex(); }
         }
     }
-    static Result RunOwned(string executable, string[] args, string directory, int seconds, ulong memoryBytes, int processorCount) {
+    static Result RunOwned(string executable, string[] args, string directory, int seconds, ulong memoryBytes, int processorCount, bool imageLane) {
         IntPtr job = IntPtr.Zero;
         PROCESS_INFORMATION process = new PROCESS_INFORMATION();
         bool assigned = false;
@@ -119,11 +127,12 @@ public static class GuardedJob {
         try {
             ulong allowed = unchecked((ulong)Process.GetCurrentProcess().ProcessorAffinity.ToInt64());
             ulong chosen = 0;
-            for (int bit = 0; bit < IntPtr.Size * 8 && result.processors < processorCount; bit++) {
+            for (int bit = imageLane ? 8 : 0; bit < (imageLane ? 16 : IntPtr.Size * 8) && result.processors < processorCount; bit++) {
                 ulong flag = 1UL << bit;
                 if ((allowed & flag) != 0) { chosen |= flag; result.processors++; }
             }
             if (chosen == 0) throw new InvalidOperationException("No allowed processors.");
+            if (imageLane && result.processors != processorCount) throw new InvalidOperationException("Requested image lane processors8..15 are unavailable.");
             result.affinityMask = chosen;
             job = CreateJobObject(IntPtr.Zero, null);
             Check(job != IntPtr.Zero);
@@ -206,8 +215,10 @@ $record = [ordered]@{
     output = 'Inherited stdout and stderr; redirect the runner to capture a log.'
 }
 $exitCode = 125
+if ($ImageLane) { $record.laneMutex = 'Local\SessionViewerCourseImageJob'; $record.affinityOffset = 8 }
+if ($env:COURSE_CAPTURE_MIN_FREE_MIB) { $record.minimumAvailableMemoryMiB = $minimumFreeMiB; $record.availableMemoryMiBBeforeLaunch = $availableMiB }
 try {
-    $result = [GuardedJob]::Run($program, $ArgumentList, $directory, $TimeoutSeconds, $record.jobCommitLimitBytes, $ProcessorCount)
+    $result = [GuardedJob]::Run($program, $ArgumentList, $directory, $TimeoutSeconds, $record.jobCommitLimitBytes, $ProcessorCount, $ImageLane.IsPresent)
     $record.exitCode = $result.exitCode
     $record.timedOut = $result.timedOut
     $record.elapsedSeconds = [Math]::Round($result.elapsedSeconds, 3)

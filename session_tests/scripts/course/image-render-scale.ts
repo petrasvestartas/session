@@ -1,3 +1,4 @@
+import {capImageMode, capImageDevices, capImageReuse} from './image-cap-msaa4.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -12,10 +13,17 @@ const scope = JSON.parse(read('image-render-scale-scope.json'));
 export function imageProfile(id: string, lane: string, requested = process.env.COURSE_IMAGE_RENDER_SCALE || '1', docsRoot = fileURLToPath(new URL('../../../session_viewer/docs/', import.meta.url))) {
     assert(['1', '2'].includes(requested), 'Image render scale must be exactly 1 or 2');
     const row = scope.find((row: any) => row.id === id && row.lane === lane);
-    if (requested === '1' || !row) return null;
+    const capImage = capImageMode(id, lane, requested, process.env.COURSE_IMAGE_BROWSER_PRESENT || 'canvas-compositor');
+    if (requested === '1' || !row) { assert(!capImage); return null; }
     for (const pin of row.pins) assert.equal(hash(fs.readFileSync(path.join(docsRoot, pin.path))), pin.sha256, 'Image fixture changed: ' + pin.path);
+    const browserPresent = process.env.COURSE_IMAGE_BROWSER_PRESENT || 'canvas-compositor';
+    assert(['canvas-compositor', 'linear-srgb-gpu'].includes(browserPresent));
+    const gpuPresent = lane === 'browser' && browserPresent === 'linear-srgb-gpu';
+    if (gpuPresent) assert(['96zza-connect-section-primitive-images', '96zzc-share-section-addresses-with-outlines-and-ambient', '96zzd-pack-surface-position-normal-and-color'].includes(id), 'GPU presentation comparison scope');
     const files = ['image-render-scale.ts', 'image-render-scale-scope.json', 'image-filtered-present.rs', 'image-filtered-present.wgsl'];
-    return {renderScale: 2, lane, ...(row.scene ? {scene: row.scene} : {}), ...(row.route ? {route: row.route} : {}), recipePins: row.pins, samples: 1, presentation: lane === 'native' ? 'linear-srgb-gpu' : 'canvas-compositor',
+    if (gpuPresent) files.push('image-browser-filtered-present.rs');
+    if (capImage) files.push('image-cap-msaa4.ts', 'image-cap-msaa4.json');
+    return {renderScale: 2, lane, ...(row.scene ? {scene: row.scene} : {}), ...(row.route ? {route: row.route} : {}), recipePins: row.pins, samples: capImage ? 4 : 1, ...(capImage ? {capSamples: 4, querySamples: 1} : {}), presentation: lane === 'native' || gpuPresent ? 'linear-srgb-gpu' : 'canvas-compositor',
         files: [...files.map(name => ({path: path.join(root, name), sha256: hash(fs.readFileSync(path.join(root, name)))})),
             ...(['comparison', 'surface-network'].includes(row.scene) && lane === 'browser' ? [{path: path.join(docsRoot, 'journey/checks/browser/adaptive-gpu-reuse.cjs'),
                 sha256: hash(fs.readFileSync(path.join(docsRoot, 'journey/checks/browser/adaptive-gpu-reuse.cjs')))}] : [])]};
@@ -98,16 +106,34 @@ export function browserScaleBridge(code: string, profile: any) {
 }
 
 `;
-    return {...transform(code, [
+    const changes = [
         ...initialChanges,
         {before: resize, after: resize + '\n    let density = density * course_image_scale(window);'},
         {before: '    editor.camera.aspect = size.aspect();', after: '    editor.camera.aspect = size.aspect();\n' +
             '    canvas.set_attribute("data-image-render-profile", &format!("{{\\"renderScale\\":{},\\"density\\":{},\\"internal\\":[{},{}]}}", course_image_scale(window), density, config.width, config.height)).expect("Image profile diagnostics");'},
         {before: 'fn resize(', after: helper + 'fn resize('},
-    ]), profile, initialization, activation: 'Only after the unchanged image recipe; window DPR and CSS remain unchanged'};
+    ];
+    if (profile.presentation === 'linear-srgb-gpu') {
+        let present = read('image-browser-filtered-present.rs');
+        if (profile.capSamples === 4) {
+            const needle = '    let window = web_sys::window().expect("Image presentation window");';
+            assert.equal(present.split(needle).length, 2);
+            present = present.replace(needle, needle + '\n    if crate::renderer::course_image::enabled() { renderer.course_image_present(output, output_view, background, transform, normals, COURSE_PRESENT_SHADER); return; }');
+        }
+        changes.push(
+            {before: '        canvas.set_width(size.width);\n        canvas.set_height(size.height);',
+                after: '        let scale = course_image_scale(window) as u32;\n        assert_eq!(size.width % scale, 0); assert_eq!(size.height % scale, 0);\n        canvas.set_width(size.width / scale);\n        canvas.set_height(size.height / scale);'},
+            {before: '        surface.configure(&renderer.device, config);',
+                after: '        let mut output = config.clone();\n        output.width = canvas.width(); output.height = canvas.height();\n        surface.configure(&renderer.device, &output);'},
+            {before: '    renderer.draw_mode(&view, background, transform, normals);',
+                after: '    course_image_draw(renderer, &frame.texture, &view, background, transform, normals);'},
+            {before: 'fn present(', after: `const COURSE_PRESENT_SHADER: &str = r#"${read('image-filtered-present.wgsl')}"#;\n` + present + '\nfn present('},
+        );
+    }
+    return {...transform(code, changes), profile, initialization, activation: 'Only after the unchanged image recipe; window DPR and CSS remain unchanged'};
 }
 
-export function validateBrowserScale(before: any, after: any, scale: number) {
+export function validateBrowserScale(before: any, after: any, scale: number, presentation = 'canvas-compositor') {
     assert.equal(scale, 2);
     assert.deepEqual(after.css, before.css); assert.equal(after.dpr, before.dpr);
     assert.deepEqual(after.camera, before.camera); assert.deepEqual(after.sources, before.sources);
@@ -117,6 +143,14 @@ export function validateBrowserScale(before: any, after: any, scale: number) {
     assert.deepEqual(after.rendererProfile, {renderScale: scale, density: before.dpr * scale, internal: after.internal});
     assert.deepEqual(after.internal, before.internal.map((n: number) => n * scale), 'Reject clamping, recovery fallback, or stale resize');
     assert.deepEqual(before.internal, before.css.map((n: number) => Math.round(n * before.dpr)));
+    if (presentation === 'linear-srgb-gpu') {
+        assert.deepEqual(before.output, before.internal);
+        assert.deepEqual(after.output, before.output, 'GPU output stays at the original physical size');
+        const proof = after.gpuPresent;
+        assert(['Rgba8UnormSrgb', 'Bgra8UnormSrgb'].includes(proof?.format));
+        assert.deepEqual(proof, {presentation, filter: 'linear', format: proof.format, samples: 1,
+            internal: after.internal, output: after.output, panel: 'output-resolution'});
+    }
 }
 
 export function capSnapshotOptions(frame: any) {
@@ -213,11 +247,16 @@ export async function settleOrdinaryImage(page: any, readState: () => Promise<an
 
 export async function applyBrowserScale(page: any, profile: any, settle: (options: ReturnType<typeof capSnapshotOptions>) => Promise<any>) {
     if (!profile) return null;
-    const state = () => {
+    const gpuPresent = profile.presentation === 'linear-srgb-gpu';
+    const capImage = profile.capSamples === 4;
+    if (capImage) assert.equal(await capImageDevices(page), 1);
+    const state = (gpuPresent: boolean) => {
         const canvas = document.querySelector('canvas')!, rect = canvas.getBoundingClientRect();
         const value = (name: string) => JSON.parse(canvas.getAttribute(name)!);
         const clipping = value('data-clipping');
-        return {css: [rect.width, rect.height], internal: [canvas.width, canvas.height], dpr: devicePixelRatio,
+        const rendererProfile = value('data-image-render-profile');
+        return {css: [rect.width, rect.height], internal: gpuPresent ? rendererProfile.internal : [canvas.width, canvas.height], dpr: devicePixelRatio,
+            ...(gpuPresent ? {output: [canvas.width, canvas.height], gpuPresent: value('data-image-gpu-present')} : {}),
             requestedScale: (window as any).__courseImageRenderScale || 1, camera: value('data-camera-matrix'),
             sources: ['data-cads', 'data-surfaces', 'data-object-count', 'data-view-flags', 'data-drawing-originals', 'data-source-metadata'].map(value), selected: value('data-selected-ids'),
             ownership: {instances: value('data-instances'), curves: value('data-curve-originals'), residency: value('data-source-residency'),
@@ -226,15 +265,16 @@ export async function applyBrowserScale(page: any, profile: any, settle: (option
                 appearance: Object.fromEntries(['opacity', 'outlines', 'arctic'].filter(key => Object.hasOwn(clipping, key)).map(key => [key, clipping[key]]))},
             rendererProfile: value('data-image-render-profile')};
     };
-    const before = await page.evaluate(state); assert.equal(before.requestedScale, 1);
+    const before = await page.evaluate(state, gpuPresent); assert.equal(before.requestedScale, 1);
     assert(!profile.scene || ['caps', 'comparison', 'surface-network', 'arctic-demo'].includes(profile.scene), 'Unknown image scene contract');
     const ordinary = profile.scene === 'arctic-demo', surface = profile.scene === 'surface-network';
     if (ordinary) ordinaryImageOwners(before);
     const options = ordinary ? null : surface ? surfaceSnapshotOptions(before) : profile.scene === 'comparison' ? comparisonSnapshotOptions(before) : capSnapshotOptions(before);
-    await page.evaluate(() => { (window as any).__courseImageRenderScale = 2; window.dispatchEvent(new Event('resize')); });
+    if (capImage) { assert.equal(before.clipping.appearance.outlines, false); assert.equal(before.clipping.appearance.opacity, 1); }
+    await page.evaluate((capImage: boolean) => { if (capImage) (window as any).__courseImageCapSamples = 4; (window as any).__courseImageRenderScale = 2; window.dispatchEvent(new Event('resize')); }, capImage);
     let settled: any;
     try {
-        settled = ordinary ? await settleOrdinaryImage(page, () => page.evaluate(state)) : await settle(options!);
+        settled = ordinary ? await settleOrdinaryImage(page, () => page.evaluate(state, gpuPresent)) : await settle(options!);
     }
     catch (error) {
         let finalState;
@@ -262,7 +302,7 @@ export async function applyBrowserScale(page: any, profile: any, settle: (option
         assert.deepEqual(settled.quality.qualities.map((row: any) => row[0]).sort((a: number, b: number) => a - b),
             before.sources[surface ? 1 : 0].map((owner: any) => owner.id).sort((a: number, b: number) => a - b), 'Every accepted mathematical quality belongs to the original CAD or surface owners');
     }
-    const after = await page.evaluate(state); validateBrowserScale(before, after, 2);
+    const after = await page.evaluate(state, gpuPresent); validateBrowserScale(before, after, 2, profile.presentation);
     if (ordinary) ordinaryImageOwners(after);
     else if (surface) surfaceSnapshotOptions(after);
     else if (profile.scene === 'comparison') comparisonSnapshotOptions(after);
@@ -270,7 +310,9 @@ export async function applyBrowserScale(page: any, profile: any, settle: (option
         assert.equal(after.clipping.caps, 1); assert.deepEqual(after.clipping.usage, [1, 1, 1]);
         assert.equal(after.clipping.rows.length, 1); assert.equal(after.clipping.error, null); assert.equal(after.clipping.cap_error, null);
     }
-    return {profile, before, after, settled, canonicalBehaviorRenderScale: 1, presentation: 'canvas-compositor'};
+    const capCoverage = capImage ? await capImageReuse(page, after, settled, () => settle(options!)) : null;
+    if (capImage) assert.deepEqual(await page.evaluate(state, gpuPresent), after, 'Final image source, camera, selection and clipping stay fixed across resource reuse');
+    return {profile, before, after, settled, ...(capImage ? {capCoverage} : {}), canonicalBehaviorRenderScale: 1, presentation: profile.presentation};
 }
 
 export function verifyNativeScale(directory: string, bridge: any) {

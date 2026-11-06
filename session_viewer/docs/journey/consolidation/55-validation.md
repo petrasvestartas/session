@@ -1960,7 +1960,7 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 9.1 (55zc-follow-original-constrained-trim-labels)](../../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
+![Recorded visual output for Lesson 9.1 (55zc-follow-original-constrained-trim-labels)](../../screenshots/journey/55zc-follow-original-constrained-trim-labels-2336125cd76e.png)
 
 ```sh
 cd workspace/journey

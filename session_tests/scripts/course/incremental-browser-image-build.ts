@@ -1,4 +1,5 @@
 import {browserScaleBridge} from './image-render-scale.ts';
+import {capImageBridge} from './image-cap-msaa4.ts';
 import {cargoTarget, compilerTools, checkWorkbenchOwnership, workbenchPath, imageCourseSnapshot, stageImageCourseManifest, imageCourseManifestInputs} from './capture-storage.ts';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -43,6 +44,7 @@ function sourceCheck(p:any){
     assert.equal(sha(path.join(p.native,'Cargo.lock')),sha(lockFor(p.id)));
     for(const name of assetsFor(p.id))assert.equal(sha(path.join(p.native,name)),sha(path.join(viewer,name)),name);
     assert.deepEqual(p.overlay.renderScaleBridge, p.source.imageProfile.browser ? browserScaleBridge(read(path.join(p.native, 'src/browser.rs')), p.source.imageProfile.browser) : null);
+    assert.deepEqual(p.overlay.capImageBridge || null, capImageBridge(p.native, p.source.imageProfile.browser));
     if(p.bundle)assert.deepEqual(Object.fromEntries(filesIn(p.dist).map(f=>[path.relative(p.dist,f).replaceAll('\\','/'),sha(f)])),p.bundle);
 }
 
@@ -56,6 +58,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const baselineFile=path.join(base.folder,'prepared.json');assert.equal(baselineFile,lookup);assert.deepEqual(base.source,source);
     const native=path.join(folder,'canonical-source');materialize(expected(id),native,lockFor(id),assetsFor(id));
     const renderScaleBridge = source.imageProfile.browser ? browserScaleBridge(read(path.join(native, 'src/browser.rs')), source.imageProfile.browser) : null;
+    const capBridge = capImageBridge(native, source.imageProfile.browser);
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
     const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,buildMode,modeHelperSha256:identity.modeHelperSha256,policy:buildPolicy,helperSha256:sha(self),guardSha256:sha(guard)};
     const groupKey='compact-browser-v1',group=path.join(viewer,'target/course-ib',groupKey),workbench=path.join(group,'workspace'),target=cargoTarget();
@@ -80,7 +83,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const p={...base,...identity,status:'PREPARED_INCREMENTAL_IMAGE_BUILD_NOT_EXECUTED',id,density,folder,preparedFile,workspace,dist,native,pins,sharedCourseManifest,
         baseline:{path:baselineFile,sha256:sha(baselineFile),sourceOnlyReused:true,priorBuiltStatus:base.status},canonicalFiles,
         group:{key:groupKey,identity:groupIdentity,folder:group,workbench,target,package:packageName,library:'viewer_journey'},
-        overlay:{renderScaleBridge,cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},
+        overlay:{renderScaleBridge,...(capBridge ? {capImageBridge:capBridge} : {}),cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},
         canonicalNativeUnchanged:{path:base.native,files:manifest(base.native)},canonicalBehaviorExecuted:false};
     delete p.bundle;delete p.commands;delete p.imageBuild;delete p.image;
     write(preparedFile,JSON.stringify(p,null,2)+'\n');sourceCheck(p);return p;
@@ -103,11 +106,11 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
         if(previous&&options.beforeIdentityChange&&!isDeepStrictEqual(json(previous.completedReceipt).group.identity,g.identity))
             compilerCacheTransition=options.beforeIdentityChange(previous,p);
         write(pendingFile,JSON.stringify({id,preparedFile:p.preparedFile,previousReceipt:previous?.completedReceipt||null},null,2)+'\n');
-        const desired={...p.canonicalFiles,'Cargo.toml':p.overlay.cargoSha256,'Cargo.lock':p.overlay.lockSha256,...(p.overlay.renderScaleBridge ? {'src/browser.rs':p.overlay.renderScaleBridge.afterSha256} : {})},synced:string[]=[],removed:string[]=[];
+        const desired={...p.canonicalFiles,...Object.fromEntries(Object.entries(p.overlay.capImageBridge?.files||{}).map(([name,row]:[string,any])=>[name,row.afterSha256])),'Cargo.toml':p.overlay.cargoSha256,'Cargo.lock':p.overlay.lockSha256,...(p.overlay.renderScaleBridge ? {'src/browser.rs':p.overlay.renderScaleBridge.afterSha256} : {})},synced:string[]=[],removed:string[]=[];
         for(const file of Object.keys(previous?.ownedInputs||{}))if(!(file in desired)){const target=workbenchPath(g.workbench,file);fs.unlinkSync(target);removed.push(file);}
         for(const[file,digest]of Object.entries(desired)){
             const target=workbenchPath(g.workbench,file);if(fs.existsSync(target)&&sha(target)===digest)continue;
-            if(file==='src/browser.rs'&&p.overlay.renderScaleBridge)write(target,p.overlay.renderScaleBridge.code);else if(file==='Cargo.toml')write(target,p.overlay.cargo);else if(file==='Cargo.lock')write(target,p.overlay.lock);else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(p.native,file),target);}synced.push(file);
+            if(p.overlay.capImageBridge?.files[file])write(target,p.overlay.capImageBridge.files[file].code);else if(file==='src/browser.rs'&&p.overlay.renderScaleBridge)write(target,p.overlay.renderScaleBridge.code);else if(file==='Cargo.toml')write(target,p.overlay.cargo);else if(file==='Cargo.lock')write(target,p.overlay.lock);else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join(p.native,file),target);}synced.push(file);
         }
         const check=()=>{sourceCheck(p);for(const[file,digest]of Object.entries(desired))assert.equal(sha(path.join(g.workbench,file)),digest,file);assert.deepEqual(manifest(p.canonicalNativeUnchanged.path),p.canonicalNativeUnchanged.files);};
         const commands:any[]=[];

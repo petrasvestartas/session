@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-06T06:04:52.9993171Z",
+  "updatedUtc": "2026-11-06T07:48:48.303089+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -252,19 +252,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 65,
-    "remainingAffected": 1261,
-    "acceptedForFinalSource": 9,
-    "remainingFinalSourceAcceptance": 1317,
-    "qualificationNote": "9 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 60 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
+    "newPublishedReviewed": 67,
+    "remainingAffected": 1259,
+    "acceptedForFinalSource": 11,
+    "remainingFinalSourceAcceptance": 1315,
+    "qualificationNote": "11 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 62 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 60,
-    "remainingPlannedImageAcceptances": 1266,
-    "physicalJourneyPngs": 524,
-    "uniqueJourneyPngs": 524,
+    "acceptedAcrossRendererLineage": 62,
+    "remainingPlannedImageAcceptances": 1264,
+    "physicalJourneyPngs": 526,
+    "uniqueJourneyPngs": 526,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
       "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
@@ -295,14 +295,43 @@
       "receipt": "docs/journey/release/proof-only-image-retirement-20261106.json",
       "removedFromJourney": 3,
       "sha256": "051262ebddc975faa386e96812976e4ff1df9c24c51a45eb35fc32979caa703a"
-    }
+    },
+    "native91Image": {
+      "receipt": "docs/journey/release/math-boundary-quality-source15-native91i-3873fae5b8c7.json",
+      "sha256": "6f9c697cb49f9a78d22f651ba63e759f99f25a48c5ae9ef3ef0e11c6e00b6c35",
+      "imageSha256": "3873fae5b8c7b1a7d048d658593c48c90a3a8e55bab4f35d5cffd0b134447ced",
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "compileMemoryMiB": 6144,
+      "executionMemoryMiB": 2048,
+      "actualExecutionPeakBytes": 608817152,
+      "rootOriginalPixelReview": true,
+      "normalLedgerRetirement": true,
+      "canonical640PixelsOrBrowserCallbacksExecuted": false
+    },
+    "native55Dpr4Image": {
+      "receipt": "docs/journey/release/math-boundary-quality-source15-native55-dpr4-2336125cd76e.json",
+      "sha256": "82eb2d0ba49b3c4d4afaefab6f83846df9873b812e7b2dece0161947590ee6dc",
+      "imageSha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e",
+      "rawPhysicalPixels": [
+        2560,
+        1920
+      ],
+      "sourceOwner": "55zc-follow-original-constrained-trim-labels",
+      "rootOriginalPixelReview": true,
+      "normalLedgerRetirement": true,
+      "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
+    },
+    "reviewedFigureCountScope": "62renderer-lineage destinations plus4maintained-renderer controlfigures and1dense-cloud supplemental figure. Visible42-update plan trackedseparately."
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 41,
+    "pending": 39,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
-    "historicalAcceptanceCountsUnchanged": true
+    "historicalAcceptanceCountsUnchanged": true,
+    "native91Published": 1,
+    "published": 3,
+    "native55Published": 1
   },
   "published": [
     {
@@ -1620,5 +1649,12 @@
     "missingPrimaryImages": 0,
     "chapterGroups": 22,
     "withinSameChapterRepeatedGroups": 8
+  },
+  "toolingCheckpoint": {
+    "nativeCompiledDrawResume": "ACTUAL_GPU_PASS_WITH_NORMAL_LEDGER_RETIREMENT",
+    "nativeDpr4Sizing": "FIRST_ACTUAL55_RAW_DPR4_PASS",
+    "guardAdmission": "FIVE_REAL_WINDOWS_JOB_CHECKS_PASS",
+    "capMsaa4": "OPT_IN_SOURCE_AND_FOUR_WGSL_MODULE_CHECKS_PASS_ACTUAL_RUST_PIPELINE_AND_IMAGE_QUALIFICATION_PENDING",
+    "capMsaa4RuntimeAccepted": false
   }
 }

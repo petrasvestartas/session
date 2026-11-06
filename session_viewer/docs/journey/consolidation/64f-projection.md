@@ -54,6 +54,8 @@
 
 ## <a id="checkpoint-64f-projection"></a>1. Measure point spacing in the current projection
 
+Pixel density sets the physical raster resolution; source density describes how tightly the points sample a surface. Point diameter controls the screen area covered by each splat. Enlarging splats can cover gaps while hiding small color details; it adds no source samples. LOD selects finer resident octree ranges as their projected spacing grows, whereas small clouds draw all resident points. Compare the same camera and physical viewport when judging these settings. The dense RGB illustration in the next lesson uses mesh-derived samples and procedural colors, so it is not evidence of photographic scan detail.
+
 
 
 ### 1. `src/cloud_lod.rs`

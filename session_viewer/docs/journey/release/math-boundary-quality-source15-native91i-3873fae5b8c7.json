@@ -1,0 +1,59 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-06T07:28:09.815Z",
+  "id": "91i-prove-actual-outlines-and-original-ownership",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-91i-prove-actual-outlines-and-original-ownership-2fe3d908702f250c563e\\capture.json.gz",
+    "sha256": "37f6d8c5c91344939fca329f82f5000d1bb100bc29bb55e90b0245c1c69c8363",
+    "bytes": 255260
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\visible-native91i-first-proposal-05\\capture-result.json",
+    "sha256": "bfd2692510919e7e8e2853766493483d4af96876beb6299491fdc0655f7716e1"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\visible-native91i-retry05-20261106-execution.json",
+    "sha256": "e97dacbeccb277ed63629a8e535de8b426f79c185b7c047f4aaeea7901d263ca"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+    "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 473,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\91i-prove-actual-outlines-and-original-ownership-3873fae5b8c7.png",
+    "sha256": "3873fae5b8c7b1a7d048d658593c48c90a3a8e55bab4f35d5cffd0b134447ced"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\91i-prove-actual-outlines-and-original-ownership.png",
+    "sha256": "ca9861006705236ce67de1331c084ca102bf874e4b49315b7fc8f973e3e6ef0f"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected the original1280x960 PNG. The four blue BRep solids retain their original composition, shaded faces remain uninterrupted by triangulation wires, and the circular boundary plus straight outlines have cleaner antialiased edges than the oldca986100 image. NativeNVIDIA DX12 rendered2560x1920 and GPUfiltered to1280x960; no CPU resampling. Actual draw exited0 with608817152B peak under2GiB. This approves this one image; no canonical640 pixel/browser callback or other lesson acceptance.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. Sixteen historical aliases and their original pixels remain unchanged.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native91i-publication-preparation-05\\publication.json",
+    "sha256": "3c34debe075f740cc79046da41cead8fc92454cb4ad11cc0ab2bc7bf670abfe6"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-91i-prove-actual-outlines-and-original-ownership-2fe3d908702f250c563e\\publication.json",
+    "sha256": "f54866a8bb9c87a9191b3b691c9e0adf3dc0a530b939ad709c3b3403131e579d"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-91i-prove-actual-outlines-and-original-ownership-2fe3d908702f250c563e\\retirement.json.gz",
+    "sha256": "2ae2cf812105096fb19ef6a942bfcf839e9f98771e3a2b5fa780ac5130045502"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-91i-prove-actual-outlines-and-original-ownership-2fe3d908702f250c563e\\retired.json",
+    "sha256": "8a17bf3723218c197ff52742882ea4ae9b8681723556456a7a8a6680a9e57716"
+  }
+}
