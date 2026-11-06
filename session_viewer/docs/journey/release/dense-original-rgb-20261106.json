@@ -1,0 +1,116 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED_DENSE_SUPPLEMENTAL_ILLUSTRATION",
+  "publishedUtc": "2026-11-06T04:22:17.697841+00:00",
+  "reader": {
+    "path": "session/session_viewer/docs/journey/consolidation/65-originals.md",
+    "checkpoint": "65c-cloud-point",
+    "beforeSha256": "02bf80a8aec213e653266b3f7361c69d131d2b34cf748d437a47274acabb8008",
+    "afterSha256": "ae443763644bb9c93893247015e159eddc34968b5a46d73294b17407c0619789"
+  },
+  "image": {
+    "path": "session/session_viewer/docs/screenshots/journey/65c-dense-original-rgb.png",
+    "sha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31",
+    "bytes": 196096
+  },
+  "rootReview": {
+    "personallyViewedOriginalResolution": true,
+    "acceptedImageSha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31",
+    "width": 1280,
+    "height": 960
+  },
+  "fixture": {
+    "path": "session/session_viewer/target/course-cloud-dense/source-01/synthetic-dense-bunny.pb",
+    "sha256": "9cd395b1b97754b991f7473a867087497d0bf8e13a5aef2cc31afdd786d97207",
+    "bytes": 6055916,
+    "points": 196608,
+    "kind": "PointCloud",
+    "origin": "Deterministic samples of bundled bunny mesh; procedural RGB, not photographic scan",
+    "committed": false
+  },
+  "renderer": {
+    "sourceGeneration": 13,
+    "executable": {
+      "path": "session/session_viewer/target/course-runtime/selftest.exe",
+      "sha256": "b7de5554d0deb6a3110ee8544d6cd97d995001c24a35deec14d44c1c61a3e638",
+      "bytes": 12804608
+    },
+    "historicalBuild": {
+      "path": ".codex/viewer-quality-20261028/source13-selftest-artifact-01.json",
+      "sha256": "4e6ac58af8c621a007b888420b6d903a5b7fef25b01cd2d2dbe1323ce4a5f0a5",
+      "bytes": 624
+    },
+    "buildExecution": {
+      "path": ".codex/viewer-quality-20261028/source13-selftest-01-execution.json",
+      "sha256": "cf1d08f9c9d1243cd3125ccd1c1e894cdde6e4b41742a0245b072c09bb230a18",
+      "bytes": 1670
+    },
+    "sourceFreeze": {
+      "name": "source-freeze-13.json",
+      "sha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f"
+    },
+    "currentSource15DependenciesQualified": false
+  },
+  "capture": {
+    "receipt": {
+      "path": "session/session_viewer/target/course-cloud-dense/source13-preview-01/capture.json",
+      "sha256": "47ce95dc42082c43c0f9c80ab2fa12c1814a2b381ff411addcd7a867d1bdefde",
+      "bytes": 3353
+    },
+    "command": {
+      "path": "session/session_viewer/target/course-cloud-dense/source13-preview-01/command.json",
+      "sha256": "89bb161ef9e9a4602df0223d4c3bcefc5d1d2a369970dc57689b505d6b6c5bb5",
+      "bytes": 424
+    },
+    "log": {
+      "path": "session/session_viewer/target/course-cloud-dense/source13-preview-01/render.log",
+      "sha256": "856c0ec6c8ce7208564235e56bd99339bf257db048bbfa60f9392fac0d092731",
+      "bytes": 1727
+    },
+    "resources": {
+      "path": "session/session_viewer/target/course-cloud-dense/source13-preview-01/resources.json",
+      "sha256": "970b2e9e4f9be6e69f7a34ab537e9416caa0fe88421cc3ae17577dddb688423d",
+      "bytes": 1413
+    },
+    "rawImage": {
+      "path": "session/session_viewer/target/course-cloud-dense/source13-preview-01/dense-bunny.ppm",
+      "sha256": "4ad6f9f1ff53b2e0680f74330f40ea047ef207b5d3492bf0aa1aadcc06a27ff7",
+      "bytes": 3686416
+    },
+    "exitCode": 0,
+    "resourceSummary": {
+      "processors": 2,
+      "jobCommitLimitBytes": 2147483648,
+      "peakJobCommitBytes": 386322432,
+      "elapsedSeconds": 1.74,
+      "timeoutSeconds": 120,
+      "zeroSwapEnforced": false
+    },
+    "losslessEncodingVerified": true
+  },
+  "canonicalBehaviorExecuted": false,
+  "cloudAntialiasingPatchExecuted": false,
+  "newCurrent15Qualification": false,
+  "warnings": [
+    "Source13 supplemental native rendering, not current15 dependency qualification or a canonical tutorial callback run.",
+    "VIEWER_MSAA=4 is a capture setting; it does not establish execution of the proposed cloud antialiasing patch.",
+    "Synthetic mesh-derived RGB samples are rendered as a PointCloud; this is not a photographic scan or a Potree-equivalence claim.",
+    "Windows Job Objects limit total job commit; no separate zero-swap quota was enforced."
+  ],
+  "preserved": {
+    "originalExampleCloudPoints": 1681,
+    "originalDisplayCoarsePoints": 64,
+    "originalResidentPointCount": 2000064,
+    "allExistingProseExceptImageReference": true,
+    "allHeadingsCodeFencesSvg": true,
+    "aliasManifestUntouched": true,
+    "vueCssUntouched": true,
+    "otherPreviewImagesPublished": false
+  },
+  "verification": {
+    "newPngFiles": 1,
+    "newImageReferencedOnceInReader": true,
+    "identicalPublishedPngBefore": 0,
+    "imagePathResolves": true,
+    "runtimeOrGpuRerunDuringPublication": false
+  }
+}

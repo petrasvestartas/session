@@ -795,7 +795,9 @@ For nonresident streamed clouds, the [maintained browser query](../../../src/sta
 
 The maintained query captures the cloud's parent row, source URL, placement-aware camera matrix, viewport and click. A new pick or `touch()` cancels the pending query; camera spin cancels it too. Source replies must carry the current query ID and arrive while its cancellation flag is unset. Source range reads also [reject a changed ETag when a revision is available](../../../src/app/fetch.rs), so this check depends on the source supplying that revision.
 
-![Unselected RGB colors on the original 1,681-point synthetic cloud](../release/cloud65c-unselected-rgb.png)
+![Dense synthetic RGB point cloud with 196,608 mesh-derived samples](../../screenshots/journey/65c-dense-original-rgb.png)
+
+This supplemental illustration shows 196,608 points sampled from the bundled bunny mesh and stored as a `PointCloud`, with procedural RGB colors. It is synthetic, not a photographic scan. The original 1,681-point fixture and all picking, identity and LOD assertions below remain unchanged.
 
 ### 1. `src/cloud_pick_tests.rs`
 

@@ -263,8 +263,20 @@
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 60,
     "remainingPlannedImageAcceptances": 1266,
-    "physicalJourneyPngs": 526,
-    "uniqueJourneyPngs": 526,
+    "physicalJourneyPngs": 527,
+    "uniqueJourneyPngs": 527,
+    "denseRgbIllustration": {
+      "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
+      "sha256": "1051a23dd5a3020b4ee68e5097f684fa67599915d0e05b4a77df60a4f21c3964",
+      "acceptedSupplementalFigures": 1,
+      "points": 196608,
+      "scope": "Source13 maintained renderer; synthetic mesh-derived RGB PointCloud supplemental illustration.",
+      "canonicalBehaviorExecuted": false,
+      "cloudAntialiasingPatchExecuted": false,
+      "currentSource15Qualified": false,
+      "rootPersonallyViewed": true,
+      "imageSha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31"
+    },
     "latestUnusedRetirement": {
       "receipt": "docs/journey/release/unused-image-retirement-20261105.json",
       "sha256": "5c3f134271621c72fb6e89b6b1642cc88effd445f40c351080986cb32d4ef5cd"
@@ -275,6 +287,13 @@
       "removedCopies": 8,
       "removedBytes": 272616
     }
+  },
+  "visibleWorkPlan": {
+    "planned": 42,
+    "densePublished": 1,
+    "pending": 41,
+    "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
+    "historicalAcceptanceCountsUnchanged": true
   },
   "published": [
     {
