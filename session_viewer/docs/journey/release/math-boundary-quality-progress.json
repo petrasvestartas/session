@@ -267,7 +267,7 @@
     "uniqueJourneyPngs": 527,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
-      "sha256": "1051a23dd5a3020b4ee68e5097f684fa67599915d0e05b4a77df60a4f21c3964",
+      "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
       "acceptedSupplementalFigures": 1,
       "points": 196608,
       "scope": "Source13 maintained renderer; synthetic mesh-derived RGB PointCloud supplemental illustration.",

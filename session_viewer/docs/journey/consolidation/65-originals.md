@@ -797,7 +797,7 @@ The maintained query captures the cloud's parent row, source URL, placement-awar
 
 ![Dense synthetic RGB point cloud with 196,608 mesh-derived samples](../../screenshots/journey/65c-dense-original-rgb.png)
 
-This supplemental illustration shows 196,608 points sampled from the bundled bunny mesh and stored as a `PointCloud`, with procedural RGB colors. It is synthetic, not a photographic scan. The original 1,681-point fixture and all picking, identity and LOD assertions below remain unchanged.
+This supplemental illustration shows 196,608 points sampled from the bundled bunny mesh and stored as a `PointCloud`, with procedural RGB colors. It is synthetic, not a photographic scan. The original 1,681-point fixture and all picking, identity and LOD assertions below remain unchanged. Recreate this supplemental fixture with the [portable generator](../fixtures/dense_rgb_cloud.py): `python docs/journey/fixtures/dense_rgb_cloud.py --output target/synthetic-dense-bunny.pb` (run from the session_viewer folder; Python standard library only).
 
 ### 1. `src/cloud_pick_tests.rs`
 

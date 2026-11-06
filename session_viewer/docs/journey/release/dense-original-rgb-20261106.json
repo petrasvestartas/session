@@ -5,7 +5,7 @@
     "path": "session/session_viewer/docs/journey/consolidation/65-originals.md",
     "checkpoint": "65c-cloud-point",
     "beforeSha256": "02bf80a8aec213e653266b3f7361c69d131d2b34cf748d437a47274acabb8008",
-    "afterSha256": "ae443763644bb9c93893247015e159eddc34968b5a46d73294b17407c0619789"
+    "afterSha256": "e8dfada88aa51b44abac79bc3a42d12840c706b8aab2354f29826d6c54de7c76"
   },
   "image": {
     "path": "session/session_viewer/docs/screenshots/journey/65c-dense-original-rgb.png",
@@ -112,5 +112,34 @@
     "identicalPublishedPngBefore": 0,
     "imagePathResolves": true,
     "runtimeOrGpuRerunDuringPublication": false
+  },
+  "dataGenerationSource": {
+    "path": "session/session_viewer/docs/journey/fixtures/dense_rgb_cloud.py",
+    "sha256": "72827841b66691f9914eb2cb1542778ea0a954ecf8639aa58fd5a00cd0561c91",
+    "bytes": 4802,
+    "dependencies": "Python standard library only",
+    "input": {
+      "path": "session/session_data/bunny.obj",
+      "sha256": "f545d83b0d6845fff8b0cea5ed6c1fc049f5855eb1910cf628878d9655454c3e",
+      "bytes": 205915
+    },
+    "commandWorkingDirectory": "session/session_viewer",
+    "command": "python docs/journey/fixtures/dense_rgb_cloud.py --output target/synthetic-dense-bunny.pb",
+    "overwritePolicy": "Exclusive creation; existing output files are refused",
+    "inMemoryReproduction": {
+      "status": "PASS_PUBLIC_LF_GENERATOR_IN_MEMORY",
+      "points": 196608,
+      "bytes": 6055916,
+      "sha256": "9cd395b1b97754b991f7473a867087497d0bf8e13a5aef2cc31afdd786d97207",
+      "bulkOutputsWritten": 0,
+      "usedPublicLfGeneratorAndDefaultMesh": true,
+      "runtime": "Windows Python stdlib; Linux execution not claimed",
+      "storageGuardReserveGiB": 0.05,
+      "privateVerification": {
+        "path": ".codex/viewer-quality-20261028/dense-rgb-public-generator-proposal-01/verification-live.json",
+        "sha256": "ae2f7858a9043f8235dd225ad6f999e3f7cb2d81ecb876842a10fed291d72ead",
+        "bytes": 515
+      }
+    }
   }
 }
