@@ -12,6 +12,7 @@ import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
 import { readingBook } from '../src/courseBook';
 import { svgHtml } from './svg';
+import { registerLinkedAsset } from './course-source-assets';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SESSION = path.resolve(HERE, '../..');
@@ -266,7 +267,7 @@ export default function coursePlugin(): Plugin {
     const toc: Page['toc'] = [];
     const dir = path.dirname(file);
 
-    const rewrite = (href: string): { url: string; external: boolean } => {
+    const rewrite = (href: string, label?: string): { url: string; external: boolean } => {
       if (/^[a-z][a-z0-9+.-]*:|^\/\//i.test(href)) return { url: href, external: true };
       if (href.startsWith('#/')) return { url: href, external: false };
       if (href.startsWith('#')) {
@@ -282,8 +283,7 @@ export default function coursePlugin(): Plugin {
       }
       if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
         if (abs.startsWith(VIEWER + path.sep)) {
-          const key = posix(path.relative(VIEWER, abs));
-          assets.set(key, abs);
+          const key = registerLinkedAsset(assets, posix(path.relative(VIEWER, abs)), abs, label);
           const revision = createHash('sha256').update(fs.readFileSync(abs)).digest('hex').slice(0, 12);
           return { url: `${base}course/${key}?v=${revision}`, external: false };
         }
@@ -311,10 +311,11 @@ export default function coursePlugin(): Plugin {
           return `<div class="code"><button class="copy" type="button" aria-label="Copy code">Copy</button><pre><code>${highlight(body, l)}</code></pre></div>\n`;
         },
         link(this: any, { href, title, tokens }: Tokens.Link) {
-          const r = rewrite(href);
+          const inner = this.parser.parseInline(tokens);
+          const r = rewrite(href, stripTags(inner));
           const t = title ? ` title="${esc(title)}"` : '';
           const ext = r.external ? ' target="_blank" rel="noopener"' : '';
-          return `<a href="${esc(r.url)}"${t}${ext}>${this.parser.parseInline(tokens)}</a>`;
+          return `<a href="${esc(r.url)}"${t}${ext}>${inner}</a>`;
         },
         image(this: any, { href, title, tokens }: Tokens.Image) {
           const r = rewrite(href);
@@ -528,12 +529,13 @@ function fetchPage(url) {
     },
     configureServer(server: ViteDevServer) {
       const prefix = `${base}course/`;
-      const types: Record<string, string> = { '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif' };
+      const types: Record<string, string> = { '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.txt': 'text/plain; charset=utf-8' };
       server.middlewares.use((req, res, next) => {
         const url = decodeURI((req.url || '').split('?')[0]);
-        const abs = url.startsWith(prefix) && assets.get(url.slice(prefix.length));
+        const key = url.startsWith(prefix) ? url.slice(prefix.length) : '';
+        const abs = assets.get(key);
         if (!abs) return next();
-        res.setHeader('Content-Type', types[path.extname(abs)] || 'application/octet-stream');
+        res.setHeader('Content-Type', types[path.extname(key)] || 'application/octet-stream');
         fs.createReadStream(abs).pipe(res);
       });
       // Watch only the files the pages read: the lesson folders hold thousands more (and targets).
