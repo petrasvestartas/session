@@ -67,7 +67,11 @@ impl Gpu {
 
     /// Draws of the backdrop: background and grid.
     pub(super) fn backdrop_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        let mut draws = self.backdrop.draw_background(pass, b);
+        let mut draws = if self.view.dark {
+            0
+        } else {
+            self.backdrop.draw_background(pass, b)
+        };
 
         draws += self.grid_list(pass, b); // register:camera
         draws

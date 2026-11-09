@@ -58,6 +58,33 @@ pub enum Msg {
     SavedScene(Box<app::scene::Scene>), // a saved session loaded; register:commands
     Hydrated(Box<app::scene::Hydrated>), // a released document's objects are back; register:editing
     Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
+    BeginPresentation(app::presentation::Presentation, String),
+    Stage(Box<app::stage::Loaded>), // a stage deck with its fonts
+    PresentationPart {
+        generation: u64,
+        topic: usize,
+        index: usize,
+        doc: Option<FileDoc>,
+        texts: Vec<app::manifest::TextItem>,
+        last: bool,
+    },
+    PresentationError {
+        generation: u64,
+        message: String,
+    },
+    PresentationNext,
+    PresentationPrevious,
+    PresentationNamed {
+        name: Option<String>,
+        pin: bool,
+    },
+}
+
+/// TeX labels use the same named highlighting as GPU picks.
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn presentation_named(name: Option<String>, pin: bool) {
+    app::loader::post(Msg::PresentationNamed { name, pin });
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -185,7 +212,27 @@ impl ApplicationHandler<Msg> for App {
             Msg::File(doc, source) => state.append(doc, source),
             Msg::Hydrated(back) => state.hydrated(*back), // register:editing
             Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
-            Msg::Texts(texts) => state.set_texts(texts),  // register:scene_text
+            Msg::BeginPresentation(deck, base) => state.begin_presentation(deck, base),
+            Msg::Stage(loaded) => {
+                state.stage = Some(Box::new(app::stage::StageApp::new(*loaded, engine::performance::now_ms())));
+                state.request_frame();
+            }
+            Msg::PresentationPart {
+                generation,
+                topic,
+                index,
+                doc,
+                texts,
+                last,
+            } => state.presentation_part(generation, topic, index, doc, texts, last),
+            Msg::PresentationError {
+                generation,
+                message,
+            } => state.presentation_error(generation, message),
+            Msg::PresentationNext => state.presentation_next(),
+            Msg::PresentationPrevious => state.presentation_previous(),
+            Msg::PresentationNamed { name, pin } => state.presentation_named(name, pin),
+            Msg::Texts(texts) => state.set_texts(texts), // register:scene_text
             Msg::StreamedCloud(init) => start_stream(state, init), // register:stream
             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to), // register:stream
             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch), // register:cloud_query
@@ -212,7 +259,11 @@ impl ApplicationHandler<Msg> for App {
             return;
         }
 
-        let taken = self.panels_take(&event); // the panels get the event first; register:egui
+        let taken = if self.state.as_ref().is_some_and(|s| s.presenting() || s.stage.is_some()) {
+            false
+        } else {
+            self.panels_take(&event) // the panels get the event first; register:egui
+        };
         let Some(state) = &mut self.state else { return };
 
         // true when the scene must be drawn again
@@ -243,8 +294,12 @@ impl ApplicationHandler<Msg> for App {
                 if held {
                     state.needs_frame = true;
                 } else {
-                    // panels lay out, then the scene draws; register:egui
-                    let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state)); // register:egui
+                    // panels lay out, then the scene draws; a deck has only its two DOM arrows
+                    let repaint = if state.stage.is_some() {
+                        self.ui.as_mut().is_some_and(|ui| ui.stage_frame(state))
+                    } else {
+                        !state.presenting() && self.ui.as_mut().is_some_and(|ui| ui.frame(state)) // register:egui
+                    };
                     state.render();
                     repaint_if(state, repaint); // register:egui
                     // Include UI uploads and pick work in the same completion fence.
@@ -258,11 +313,43 @@ impl ApplicationHandler<Msg> for App {
             }
             WindowEvent::Resized(_) => true,
             WindowEvent::KeyboardInput { event, .. } => {
-                // first press only, and only while the canvas has focus
-                viewer_focused()
-                    && event.state == ElementState::Pressed
-                    && !event.repeat
-                    && self.input.key(state, event.logical_key.as_ref())
+                if !viewer_focused() || event.state != ElementState::Pressed {
+                    false
+                } else if let Some(stage) = state.stage.as_mut() {
+                    stage.key(event.logical_key.as_ref(), engine::performance::now_ms())
+                } else if event.repeat {
+                    false
+                } else if state.presenting() {
+                    use winit::keyboard::{Key, NamedKey};
+                    match event.logical_key.as_ref() {
+                        Key::Named(NamedKey::ArrowRight) => state.presentation_next(),
+                        Key::Named(NamedKey::ArrowLeft) => state.presentation_previous(),
+                        Key::Named(NamedKey::Escape) => state.presentation_escape(),
+                        _ => return,
+                    }
+                    true
+                } else {
+                    self.input.key(state, event.logical_key.as_ref())
+                }
+            }
+            other if state.stage.is_some() => {
+                let scale = state.window.scale_factor();
+                let now = engine::performance::now_ms();
+                state.stage.as_mut().is_some_and(|s| s.pointer(&other, scale, now))
+            }
+            other if state.presenting() => {
+                let presentation = state.presentation_input(&other);
+                if matches!(
+                    other,
+                    WindowEvent::MouseInput {
+                        button: winit::event::MouseButton::Left,
+                        ..
+                    }
+                ) {
+                    presentation
+                } else {
+                    self.input.mouse(state, &other) || presentation
+                }
             }
             other => self.input.mouse(state, &other),
         };
@@ -355,9 +442,9 @@ impl App {
             .map(|face| &*Box::leak(face.into_boxed_slice()))
             .collect();
 
-        if let Ok(faces) = <[&'static [u8]; 3]>::try_from(faces) {
-            state.use_fonts(faces); // register:scene_text
-            self.panel_fonts(faces); // register:egui
+        if faces.len() == 6 {
+            state.use_fonts(&faces); // register:scene_text
+            self.panel_fonts([faces[0], faces[4], faces[5]]); // register:egui
         }
     }
 }
@@ -418,6 +505,11 @@ fn start_sheet(state: &mut State, init: Box<SheetInit>) {
 impl App {
     /// The egui panels and their GPU painter.
     fn adopt_panels(&mut self, state: &mut State) {
+        if app::route::presentation_route().is_some() {
+            self.ui = None;
+            state.gpu.ui = None;
+            return;
+        }
         self.ui = Some(app::ui::Ui::new(&state.window, state.logical_size()[0]));
         state.gpu.ui = Some(engine::gpu::ui::Ui::new(
             &state.gpu.ctx,

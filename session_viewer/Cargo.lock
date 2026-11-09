@@ -2305,6 +2305,7 @@ dependencies = [
  "serde_json",
  "serde_yaml_ng",
  "session_rust",
+ "swash",
  "toml",
  "ttf-parser",
  "wasm-bindgen",

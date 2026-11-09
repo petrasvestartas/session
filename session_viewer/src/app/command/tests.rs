@@ -176,7 +176,10 @@ fn creation_verbs_parse_options_and_answers() {
     );
     assert_eq!(
         parsed("nurbscurvearc 3 points 0,0,0 10,0,0 5,5,0"),
-        Ok(r#"Start { shape: Nurbs Curve Arc, option: 1, words: ["0,0,0", "10,0,0", "5,5,0"] }"#.into())
+        Ok(
+            r#"Start { shape: Nurbs Curve Arc, option: 1, words: ["0,0,0", "10,0,0", "5,5,0"] }"#
+                .into()
+        )
     );
     assert_eq!(
         parsed("sphere"),
@@ -394,7 +397,10 @@ fn partial_entries_accept_commands_then_options() {
     assert_eq!(browse("la")[0], "Layers");
     assert_eq!(browse("la").len(), completions("").len());
     assert_eq!(browse("forgot"), completions(""));
-    assert_eq!(browse("Layers o"), vec!["Layers On", "Layers Off", "Layers All"]);
+    assert_eq!(
+        browse("Layers o"),
+        vec!["Layers On", "Layers Off", "Layers All"]
+    );
 }
 
 /// A several-word name parses with or without its spaces, in any case.
@@ -470,7 +476,10 @@ fn several_word_names_complete() {
 #[test]
 fn discovery_and_layer_options_are_case_insensitive() {
     assert_eq!(completions("la"), vec!["Layers"]);
-    assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off", "Layers All"]);
+    assert_eq!(
+        completions("Layers "),
+        vec!["Layers On", "Layers Off", "Layers All"]
+    );
     assert!(completions("").contains(&"Controls"));
     assert_eq!(parsed("Layers OFF"), Ok("Layers(Some(false))".into()));
     assert_eq!(
@@ -489,14 +498,51 @@ fn discovery_and_layer_options_are_case_insensitive() {
 
 #[test]
 fn view_commands_replace_viewport_shortcuts() {
-    for name in ["Top", "Side", "Front", "Back", "Left", "Right", "Bottom", "Isometric", "Isometric Back", "Reset", "Perspective", "Orthographic", "Show Edges", "Hide Edges", "Show Lines", "Hide Lines", "Show Points", "Hide Points", "Outline", "Lighting", "Backfaces", "Xray", "Names", "Hide Selected", "Show All"] {
+    for name in [
+        "Top",
+        "Side",
+        "Front",
+        "Back",
+        "Left",
+        "Right",
+        "Bottom",
+        "Isometric",
+        "Isometric Back",
+        "Reset",
+        "Perspective",
+        "Orthographic",
+        "Show Edges",
+        "Hide Edges",
+        "Show Lines",
+        "Hide Lines",
+        "Show Points",
+        "Hide Points",
+        "Outline",
+        "Lighting",
+        "Backfaces",
+        "Xray",
+        "Names",
+        "Hide Selected",
+        "Show All",
+    ] {
         assert!(parse(&format!("View {name}")).is_ok(), "{name}");
     }
     assert_eq!(parsed("view top"), Ok("Camera(Top)".into()));
     assert_eq!(parsed("View Side"), parsed("View Right"));
-    assert_eq!(parsed("View Outline Off"), Ok("Show(Outline, Some(false))".into()));
+    assert_eq!(
+        parsed("View Outline Off"),
+        Ok("Show(Outline, Some(false))".into())
+    );
     assert!(completions("View ").contains(&"View Show Edges"));
-    for line in ["View", "View Top extra", "View Outline maybe", "View Point Size 0", "View Point Size NaN", "View Plane Size 0", "View Plane Size -5"] {
+    for line in [
+        "View",
+        "View Top extra",
+        "View Outline maybe",
+        "View Point Size 0",
+        "View Point Size NaN",
+        "View Plane Size 0",
+        "View Plane Size -5",
+    ] {
         assert!(parse(line).is_err(), "{line}");
     }
     assert!(parse("View Point Size 1.5").is_ok());
@@ -508,7 +554,10 @@ fn repeat_restarts_tools_without_reusing_coordinates() {
     assert_eq!(repeat("m 10,0,0"), Some("Move".into()));
     assert_eq!(repeat("Rotate 0,0,0 90"), Some("Rotate".into()));
     assert_eq!(repeat("Line 0,0,0 10,0,0"), Some("Line".into()));
-    assert_eq!(repeat("Polyline Rectangle 0,0,0 10,10,0"), Some("Polyline Rectangle".into()));
+    assert_eq!(
+        repeat("Polyline Rectangle 0,0,0 10,10,0"),
+        Some("Polyline Rectangle".into())
+    );
     assert_eq!(repeat("View Top"), Some("View Top".into()));
     assert_eq!(repeat("Opacity 0.95"), Some("Opacity 0.95".into()));
     for line in ["", "0,0,0", "@0,10,0", "5", "Close", "Escape", "unknown"] {

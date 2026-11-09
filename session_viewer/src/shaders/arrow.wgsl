@@ -1,6 +1,6 @@
 // An arrow's corners and ink: what the vector and plane lanes share; each adds its rows and its vertex entry.
 
-// One vector: a shaft from `start` to `end` with an arrowhead at either end, 48 bytes; matches VectorRow in Rust.
+// One vector: a shaft from `start` to `end` with an arrowhead at either end, 64 bytes; matches VectorRow in Rust.
 struct VectorRow {
     start: vec3<f32>, // start point, object space
     radius: f32, // 0 = pen; > 0 world mm; < 0 pen multiplier
@@ -9,7 +9,10 @@ struct VectorRow {
     color: u32, // packed rgba
     head: f32, // arrowhead length in pens; 0 = HEAD_PENS
     heads: u32, // HEAD_END | HEAD_START | HEAD_ONLY
-    pad: u32, // to 48 bytes
+    pad: u32,
+    start_trim: f32, // visible point radius at the start
+    end_trim: f32, // visible point radius at the end
+    reserved: vec2<u32>,
 };
 
 // VectorRow.heads bits.
@@ -17,9 +20,9 @@ const HEAD_END: u32 = 1u; // a head whose tip is `end`
 const HEAD_START: u32 = 2u; // a head whose tip is `start`
 const HEAD_ONLY: u32 = 4u; // no shaft: `start` only aims the heads
 // Default arrowhead length, in pen widths.
-const HEAD_PENS: f32 = 10.0;
+const HEAD_PENS: f32 = 12.0;
 // Half the arrowhead's base width over its length.
-const HEAD_ASPECT: f32 = 0.4;
+const HEAD_ASPECT: f32 = 0.55;
 // Share of the vector the heads may take together.
 const HEAD_SHARE: f32 = 0.6;
 // Half a pixel's diagonal: how far a pixel reaches from its center.
@@ -54,9 +57,9 @@ fn half_width_px(radius: f32, w: f32) -> f32 {
     return line.thickness * 0.5;
 }
 
-// Arrowhead length in px: `pens` pen widths, six shaft half widths at least, `most` at most.
+// Arrowhead length in px: `pens` pen widths, seven shaft half widths at least, `most` at most.
 fn head_px(pens: f32, hw: f32, most: f32) -> f32 {
-    return min(max(pens * line.thickness, hw * 6.0), most);
+    return min(max(pens * line.thickness, hw * 7.0), most);
 }
 
 // How far the shaft runs under a head past its base: a pixel's reach at least, so the seam has no gap.
@@ -84,8 +87,10 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
         return dead_vertex();
     }
 
-    let c0 = mvp * vec4<f32>(place(v.instance_id, v.start), 1.0);
-    let c1 = mvp * vec4<f32>(place(v.instance_id, v.end), 1.0);
+    let camera = view_mvp(v.instance_id);
+    let c0 = camera * vec4<f32>(place(v.instance_id, v.start), 1.0);
+    let revealed_end = mix(v.start, v.end, inst.effect.x);
+    let c1 = camera * vec4<f32>(place(v.instance_id, revealed_end), 1.0);
 
     // clip to the near plane before dividing by w
     let f0 = c0.z - c0.w;
@@ -98,13 +103,21 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
     let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
 
-    // both ends in screen pixels
+    // Both ends in screen pixels. Move the complete vector to visible point boundaries.
     let vp = vec2<f32>(line.vp_w, line.vp_h);
-    let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
-    let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
+    var s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
+    var s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
     let d = s1 - s0;
-    let len = length(d);
+    var len = length(d);
     let dir = select(vec2<f32>(1.0, 0.0), d / len, len > 1e-6);
+    let trim0 = select(0.0, half_width_px(v.start_trim, e0.w) + FILTER_REACH, v.start_trim != 0.0);
+    let trim1 = select(0.0, half_width_px(v.end_trim, e1.w) + FILTER_REACH, v.end_trim != 0.0);
+    if (len <= trim0 + trim1 + 2.0) {
+        return dead_vertex();
+    }
+    s0 += dir * trim0;
+    s1 -= dir * trim1;
+    len -= trim0 + trim1;
     let n = vec2<f32>(-dir.y, dir.x);
 
     // a selected shaft is at least a full pen wide
@@ -119,8 +132,9 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     let at_start = (v.heads & HEAD_START) != 0u && f0 <= 0.0;
     let most = select(len * HEAD_SHARE / select(1.0, 2.0, at_end && at_start), 3.0e38, only);
     let pens = select(HEAD_PENS, v.head, v.head > 0.0);
-    let head1 = select(0.0, head_px(pens, hw1, most), at_end);
-    let head0 = select(0.0, head_px(pens, hw0, most), at_start);
+    let head_scale = select(1.0, inst.effect.z, inst.effect.z > 0.0 && inst.effect.z < 1.0);
+    let head1 = select(0.0, head_scale * head_px(pens, hw1, most), at_end);
+    let head0 = select(0.0, head_scale * head_px(pens, hw0, most), at_start);
     let half1 = head1 * HEAD_ASPECT;
     let half0 = head0 * HEAD_ASPECT;
 
@@ -177,6 +191,10 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     var o: VsOut;
     o.pos = vec4<f32>((p / vp - 0.5) * 2.0, depth, 1.0);
     var color = edge_color(unpack4x8unorm(v.color), inst);
+    if ((inst.flags & 65536u) != 0u) {
+        let along = clamp(dot(p - s0, d) / max(dot(d, d), 1e-6), 0.0, 1.0);
+        color = mix(color, inst.end_color, along);
+    }
 
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
@@ -294,6 +312,9 @@ fn axis_cut(in: VsOut) -> bool {
 @fragment
 // Color: the arrow, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
+    if (spatial_clipped(in.inst_id, in.pos.xy)) {
+        discard;
+    }
     let covered = coverage(in);
 
     // no coverage: no depth reads
@@ -315,7 +336,7 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 @fragment
 // Pick id: object row + 1 and a marker tag.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 

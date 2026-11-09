@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-06T08:27:30.854Z",
+  "id": "77zzo-revolve-original-profiles-around-an-axis",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-77zzo-revolve-original-profiles-around-an-axis-5809493d8599fee5ea69\\capture.json.gz",
+    "sha256": "441bda28d0d9e61217ebb1996b374c049533d66cc3af68252b5526aa8833f239",
+    "bytes": 156109
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native77-79-slot-proposal-03\\case77\\capture-result.json",
+    "sha256": "b3bbd98e43856aded44139d4b925359abe2827bfc87428a62fb97562d2f48e9a"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native77-79-counter-20261106-aeb879c9-77-execution.json",
+    "sha256": "5fe5bed32476710831a5f10e45481602b3e6d43eef9255fd1766a4b07dac1507"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native77-79-slot-proposal-03\\case77\\bounded-terminal.json",
+    "sha256": "09e681a691afc44e4876014e2452145fffef3fba926c0cd94cbcc86a52db3cbe"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+    "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 473,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\77zzo-revolve-original-profiles-around-an-axis-6622df059111.png",
+    "sha256": "6622df059111c72b86a39dae15db057018f8984fd93378d1760860c83de65d20"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\77zzo-revolve-original-profiles-around-an-axis.png",
+    "sha256": "b7d226d9f018f980fadaf04f97ca7688b9590cde71e917be7214a852c193dfe3"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected original 2560x1920 raw DPR4 PNG. Three independently placed and transformed shaded BRep boxes have clean intended boundary edges, no internal triangulation wires, distinct placement and complete framing. This fixture demonstrates shared original geometry under transforms, not revolution. Initial shared upload assertion and no-upload-during-draw assertion passed after the counter-stage correction. Only this Native IMAGE fixture is accepted; canonical 640-pixel checks and browser callbacks were not executed.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 28 historical aliases and their original pixels remain unchanged. Three independently transformed placements sharing one original BRep box and one geometry upload; not a revolution screenshot. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native77-79-slot-proposal-03\\case77\\publication.json",
+    "sha256": "9c6367ad71d70eb41a9867307c9df7b502cb335d9063b412ed77f167f137d4a1"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-77zzo-revolve-original-profiles-around-an-axis-5809493d8599fee5ea69\\publication.json",
+    "sha256": "0b80103b48a397313b7ff6d3747c45b09149c4abc68aadc53a41a12238aadf61"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-77zzo-revolve-original-profiles-around-an-axis-5809493d8599fee5ea69\\retirement.json.gz",
+    "sha256": "39df6f8b3be273adcc47790a7780a379d8210f1104660ad7e72b1e50c4ad2483"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-77zzo-revolve-original-profiles-around-an-axis-5809493d8599fee5ea69\\retired.json",
+    "sha256": "8c8c9b87deec1939ec813c7c90f8391188f0035d681aa5c8c7db8691cf92769e"
+  }
+}

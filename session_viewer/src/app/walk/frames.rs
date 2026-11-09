@@ -125,7 +125,7 @@ mod gpu_tests {
     use crate::app::scene::{FileDoc, Scene};
     use crate::camera::{Camera, View};
     use crate::engine::gpu::{FrameInput, Gpu};
-    use session_rust::{AABB, Mesh, Plane, Point, Session, Vector, Xform};
+    use session_rust::{AABB, Arrowhead, Line, Mesh, Plane, Point, Session, Vector, Xform};
     use std::rc::Rc;
     use std::time::Instant;
 
@@ -253,6 +253,33 @@ mod gpu_tests {
             narrow * 10 < wide * 6 && narrow * 10 > wide * 4,
             "a half size grid: {narrow} of {wide} columns"
         );
+    }
+
+    #[test]
+    fn authored_line_widths_reach_the_pixels() {
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(256, 256)) else {
+            eprintln!("no GPU adapter; skipped");
+            return;
+        };
+        gpu.view.show_grid = false;
+        for (width, expected) in [(1.0, 1), (3.0, 3), (15.0, 15)] {
+            let mut line = Line::new(-50.0, 0.0, 0.0, 50.0, 0.0, 0.0);
+            line.width = width;
+            line.arrowhead = Arrowhead::NONE;
+            let mut session = Session::new("width");
+            session.add_line(line, None);
+            let pixels = top_view(session, &mut gpu);
+            let actual = (0..256)
+                .filter(|y| {
+                    let pixel = &pixels[(y * 256 + 128) * 4..];
+                    grey(pixel[0].into(), pixel[1].into(), pixel[2].into())
+                })
+                .count();
+            assert!(
+                actual.abs_diff(expected) <= 2,
+                "width {width}: expected {expected} px, got {actual}"
+            );
+        }
     }
 
     /// 20 000 planes: GPU bytes, walk, upload and frame time.

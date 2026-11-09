@@ -225,7 +225,9 @@ impl State {
         coords::set_plane(plane); // typed points are measured in it
         let shown = self.facing();
         if self.grid_plane().matrix64() != shown.matrix64() {
-            self.gpu.backdrop.set_grid_frame(&self.gpu.ctx, shown.matrix64());
+            self.gpu
+                .backdrop
+                .set_grid_frame(&self.gpu.ctx, shown.matrix64());
             self.features.view_grid = Some(shown);
             let o = shown.origin();
             self.camera.grid = (shown != CPlane::Xy).then_some([o[0], o[1], o[2]]);
@@ -332,7 +334,14 @@ impl State {
                 let p = coords::parse_world(word)
                     .and_then(|(typed, world)| {
                         let (x, y) = CPlane::Xy.axes();
-                        let last = self.features.draft.as_ref()?.plane_points.as_ref()?.last().cloned();
+                        let last = self
+                            .features
+                            .draft
+                            .as_ref()?
+                            .plane_points
+                            .as_ref()?
+                            .last()
+                            .cloned();
                         coords::place(typed, world, &x, &y, last.as_ref(), None)
                     })
                     .ok_or("Use x,y,z or @dx,dy,dz for the plane's points")?;
@@ -356,7 +365,7 @@ impl State {
             });
             // in the fixed construction plane's coordinates, world after `w` or in View mode
             let p = coords::place(typed, world, &x, &y, points.last(), along.as_ref())
-            .ok_or("This coordinate needs a previous point or a cursor direction")?;
+                .ok_or("This coordinate needs a previous point or a cursor direction")?;
             if (0..3).any(|i| !p[i].is_finite() || p[i].abs() > 1e12) {
                 return Err("Coordinates must be finite and within ±1e12".into());
             }
@@ -441,8 +450,11 @@ impl State {
 
         // a 3 Point plane picked mid-draw
         if let Some(points) = &draft.plane_points {
-            let what = ["Plane origin", "Point on the plane's x axis", "Point on the plane's y side"]
-                [points.len().min(2)];
+            let what = [
+                "Plane origin",
+                "Point on the plane's x axis",
+                "Point on the plane's y side",
+            ][points.len().min(2)];
             return format!("{what} · click or type {} · Esc cancels", coords::hint());
         }
 
@@ -590,9 +602,7 @@ impl State {
         // off every object, Grid Snap rounds the plane point to the grid
         let grid = self.features.snap.grid && hit.is_none() && free.is_some();
         let free = match grid {
-            true => {
-                free.map(|p| snap::on_grid(&p, draft.plane, self.features.snap.grid_step))
-            }
+            true => free.map(|p| snap::on_grid(&p, draft.plane, self.features.snap.grid_step)),
             false => free,
         };
         draft.snapped = hit
@@ -712,7 +722,8 @@ impl State {
             && draft.plane_points.is_none()
             && draft.verb != crate::app::command::verbs::construction_plane::NAME
         {
-            let planes = ["XY", "XZ", "YZ", "3 Point"].map(|word| (word.to_string(), word.to_string()));
+            let planes =
+                ["XY", "XZ", "YZ", "3 Point"].map(|word| (word.to_string(), word.to_string()));
             buttons.splice(0..0, planes);
         }
 
@@ -812,15 +823,25 @@ mod tests {
         draft.land_on(tilted);
         assert_eq!(draft.plane, tilted);
         let (x, _) = tilted.axes();
-        assert!((draft.frame.x_axis()[0] - x[0]).abs() < 1e-12 && (draft.frame.x_axis()[2] - x[2]).abs() < 1e-12);
+        assert!(
+            (draft.frame.x_axis()[0] - x[0]).abs() < 1e-12
+                && (draft.frame.x_axis()[2] - x[2]).abs() < 1e-12
+        );
         // a ray straight down lands on the tilted plane, z rising with x
         let hit = draft
             .plane
-            .hit(&draft.plane.origin(), &Point::new(500.0, 200.0, 9000.0), &Vector::new(0.0, 0.0, -1.0))
+            .hit(
+                &draft.plane.origin(),
+                &Point::new(500.0, 200.0, 9000.0),
+                &Vector::new(0.0, 0.0, -1.0),
+            )
             .unwrap();
         assert!((hit[2] - 500.0).abs() < 1e-9);
         // a rectangle on it keeps its corners on the plane
-        let corners = [tilted.world([0.0, 0.0, 0.0]), tilted.world([300.0, 200.0, 0.0])];
+        let corners = [
+            tilted.world([0.0, 0.0, 0.0]),
+            tilted.world([300.0, 200.0, 0.0]),
+        ];
         let rectangle = construction_points("rectangle", tilted, 6, &corners).unwrap();
         assert_eq!(rectangle.len(), 5);
         for p in &rectangle {

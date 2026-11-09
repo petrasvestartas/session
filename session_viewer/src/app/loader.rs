@@ -94,7 +94,12 @@ fn clear_scene() {
 }
 
 /// Send one message to the event loop; false when it is gone.
-pub(super) fn post(msg: Msg) -> bool {
+/// Hand a loaded stage deck to the event loop.
+pub(crate) fn post_stage(loaded: super::stage::Loaded) {
+    post(Msg::Stage(Box::new(loaded)));
+}
+
+pub(crate) fn post(msg: Msg) -> bool {
     PROXY.with_borrow(|proxy| {
         proxy
             .as_ref()
@@ -132,12 +137,22 @@ fn sheet_budget_spend(n: u32) {
     SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
 }
 
+#[path = "presentation_loader.rs"]
+mod presentation;
+pub use presentation::spawn_presentation;
+
 /// Start the viewer, load the first scene, then keep polling.
 pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
-    let mut live = LiveSource::from_query();
+    let presentation = super::route::presentation_route();
+    let staging = super::stage::route().is_some();
+    let mut live = if presentation.is_some() || staging {
+        None
+    } else {
+        LiveSource::from_query()
+    };
     // without a live source the manifest downloads while the GPU starts
-    let route = scene_route().filter(|_| live.is_none());
+    let route = scene_route().filter(|_| live.is_none() && presentation.is_none() && !staging);
     let early = route.as_ref().map(prefetch);
     let mut state = match State::new(window, Scene::new()).await {
         Ok(state) => state,
@@ -155,6 +170,16 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     state.gpu.prewarm_initial();
     crate::engine::performance::mark("state ready");
     let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+
+    if let Some(route) = presentation {
+        presentation::open_presentation(route).await;
+        return;
+    }
+
+    if let Some(url) = super::stage::route() {
+        super::stage::open(url).await;
+        return;
+    }
 
     let mut loaded = false;
 
@@ -248,7 +273,8 @@ fn stale_load(generation: u64) -> bool {
 /// True when the prefetched manifest asks to be watched live.
 async fn manifest_is_live(promise: &js_sys::Promise) -> bool {
     match wasm_bindgen_futures::JsFuture::from(promise.clone()).await {
-        Ok(bytes) => Manifest::parse(&js_sys::Uint8Array::new(&bytes).to_vec()).is_ok_and(|manifest| manifest.live),
+        Ok(bytes) => Manifest::parse(&js_sys::Uint8Array::new(&bytes).to_vec())
+            .is_ok_and(|manifest| manifest.live),
         Err(_) => false,
     }
 }
@@ -446,7 +472,10 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             return;
         }
 
-        if session.lookup.is_empty() && session.instance_lookup.is_empty() && !crate::app::walk::matrix::holds_matrix(&session) {
+        if session.lookup.is_empty()
+            && session.instance_lookup.is_empty()
+            && !crate::app::walk::matrix::holds_matrix(&session)
+        {
             log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
             failed = true;
             continue;

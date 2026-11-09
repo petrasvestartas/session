@@ -1,4 +1,6 @@
-use super::buffers::{GpuCtx, ROWS, bind_group, resource_group, replace_buffer, uniform_buffer, zeroed_buffer};
+use super::buffers::{
+    GpuCtx, ROWS, bind_group, replace_buffer, resource_group, uniform_buffer, zeroed_buffer,
+};
 use super::frame::Binds;
 use super::targets::{Attachment, TextureSpec};
 use crate::engine::pipelines::bindings::{buffer_entry, texture_entry};
@@ -461,14 +463,19 @@ impl TriangleTiles {
         });
 
         if stale {
-            let group = resource_group(ctx, &self.pipes.project_layout, "triangle.project.bindings", [
-                (0, input.geometry[0].as_entire_binding()),
-                (1, input.geometry[1].as_entire_binding()),
-                (2, input.geometry[2].as_entire_binding()),
-                (3, self.projected.as_entire_binding()),
-                (4, self.live_count.as_entire_binding()),
-                (5, wgpu::BindingResource::TextureView(input.table)),
-            ]);
+            let group = resource_group(
+                ctx,
+                &self.pipes.project_layout,
+                "triangle.project.bindings",
+                [
+                    (0, input.geometry[0].as_entire_binding()),
+                    (1, input.geometry[1].as_entire_binding()),
+                    (2, input.geometry[2].as_entire_binding()),
+                    (3, self.projected.as_entire_binding()),
+                    (4, self.live_count.as_entire_binding()),
+                    (5, wgpu::BindingResource::TextureView(input.table)),
+                ],
+            );
             self.project_group = Some((
                 group,
                 input.geometry.map(|buffer| buffer.clone()),
@@ -1076,32 +1083,62 @@ mod tests {
         for _ in 0..48 {
             let first = upload.arena.verts.len() as u32;
             for position in [[-0.99, -0.99, 0.5], [0.99, -0.99, 0.5], [0.0, 0.99, 0.5]] {
-                upload.arena.verts.push(RenderVertex { position, normal: [0.0, 0.0, 1.0], color: [0.5; 4] });
+                upload.arena.verts.push(RenderVertex {
+                    position,
+                    normal: [0.0, 0.0, 1.0],
+                    color: [0.5; 4],
+                });
                 upload.arena.vids.push(0);
             }
             upload.arena.idx.extend([first, first + 1, first + 2]);
         }
         upload.seg.ribbons.push(CylinderSegment {
-            p0: [-0.5, 0.0, 0.6], radius: 0.0, p1: [0.5, 0.0, 0.6],
-            instance_id: 0, color: 0xff00_0000, facing: 0,
+            p0: [-0.5, 0.0, 0.6],
+            radius: 0.0,
+            p1: [0.5, 0.0, 0.6],
+            instance_id: 0,
+            color: 0xff00_0000,
+            facing: 0,
         });
         gpu.set_scene(&upload);
-        let input = FrameInput { view_proj: Xform::identity(), clear: wgpu::Color::WHITE, now_ms: 0.0 };
+        let input = FrameInput {
+            view_proj: Xform::identity(),
+            clear: wgpu::Color::WHITE,
+            now_ms: 0.0,
+        };
         gpu.render_offscreen(&input);
         let initial = gpu.arena.tiles.pool_words;
         let first = first_record(&gpu);
-        assert!(u64::from(first[1]) > gpu.arena.tiles.pool_capacity(gpu.arena.tiles.layout.unwrap()),
-            "fixture must overflow the initial reference pool");
-        assert!(gpu.visibility_pending(), "a resting view must schedule report consumption");
+        assert!(
+            u64::from(first[1])
+                > gpu
+                    .arena
+                    .tiles
+                    .pool_capacity(gpu.arena.tiles.layout.unwrap()),
+            "fixture must overflow the initial reference pool"
+        );
+        assert!(
+            gpu.visibility_pending(),
+            "a resting view must schedule report consumption"
+        );
         let mut extra = 0;
         while gpu.visibility_pending() {
-            assert!(extra < 4, "capacity recovery must return to demand-driven rendering");
+            assert!(
+                extra < 4,
+                "capacity recovery must return to demand-driven rendering"
+            );
             gpu.render_offscreen(&input);
             extra += 1;
         }
         assert!(gpu.arena.tiles.pool_words > initial);
         let complete = first_record(&gpu);
-        assert!(u64::from(complete[1]) <= gpu.arena.tiles.pool_capacity(gpu.arena.tiles.layout.unwrap()));
+        assert!(
+            u64::from(complete[1])
+                <= gpu
+                    .arena
+                    .tiles
+                    .pool_capacity(gpu.arena.tiles.layout.unwrap())
+        );
         assert!(!gpu.visibility_pending());
         gpu.arena.tiles.invalidate();
         gpu.render_offscreen(&input);
@@ -1109,7 +1146,10 @@ mod tests {
         gpu.view.show_lines = false;
         gpu.view.show_mesh_edges = false;
         gpu.render_offscreen(&input);
-        assert!(!gpu.visibility_pending(), "released tables cannot keep an idle view awake");
+        assert!(
+            !gpu.visibility_pending(),
+            "released tables cannot keep an idle view awake"
+        );
     }
 
     /// The first tile record, read back.

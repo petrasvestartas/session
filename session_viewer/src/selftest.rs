@@ -114,7 +114,9 @@ fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
     }
     // VIEWER_TARGET=x,y,z aims the camera at a scene point, mm
     if let Ok(value) = std::env::var("VIEWER_TARGET") {
-        let mut it = value.split(',').filter_map(|v| v.trim().parse::<f64>().ok());
+        let mut it = value
+            .split(',')
+            .filter_map(|v| v.trim().parse::<f64>().ok());
         let units = camera.unit.to_meters();
         let target = [
             it.next().unwrap_or(0.0) * units,
@@ -272,6 +274,7 @@ fn bench_labels(gpu: &Gpu, mixed: bool) -> Vec<TextLabel> {
         font_size: 14.0,
         line_height: 20.0,
         color: [0, 0, 0, 255],
+        outline: 0.0,
         placement,
         clip: None,
     };
@@ -354,13 +357,18 @@ pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Res
     f.flush()
 }
 
-fn drain_refinement(rows: usize, mut step: impl FnMut() -> (bool, bool)) -> Result<usize, &'static str> {
+fn drain_refinement(
+    rows: usize,
+    mut step: impl FnMut() -> (bool, bool),
+) -> Result<usize, &'static str> {
     let mut changed = 0;
     // Each step consumes at least one row; a replacement can add one hidden sink row.
     for _ in 0..rows.saturating_add(1) {
         let (pending, updated) = step();
         changed += usize::from(updated);
-        if !pending { return Ok(changed); }
+        if !pending {
+            return Ok(changed);
+        }
     }
     Err("capture display refinement did not settle within its row budget")
 }
@@ -373,9 +381,13 @@ fn refine_capture(scene: &mut Scene, gpu: &mut Gpu, camera: &Camera) {
         println!("display refinement: {changed} row or shared-batch replacements");
     }
     let (sources, charged, accepted, limited) = scene.display_counters();
-    println!("display quality: retained_source_bytes={sources} charged_lane_bytes={charged} accepted_rows={accepted} limited_rows={limited}");
+    println!(
+        "display quality: retained_source_bytes={sources} charged_lane_bytes={charged} accepted_rows={accepted} limited_rows={limited}"
+    );
     for (row, actual, requested, reason) in scene.display_quality_sample(16) {
-        println!("display row {row}: accepted_tolerance={actual:?} unmet_requested_tolerance={requested:?} state={reason}");
+        println!(
+            "display row {row}: accepted_tolerance={actual:?} unmet_requested_tolerance={requested:?} state={reason}"
+        );
     }
 }
 
@@ -386,14 +398,23 @@ mod refinement_tests {
     #[test]
     fn counts_the_final_replacement_and_stops_when_settled() {
         let mut steps = [(true, true), (false, true)].into_iter();
-        assert_eq!(drain_refinement(2, || steps.next().expect("unexpected extra step")), Ok(2));
+        assert_eq!(
+            drain_refinement(2, || steps.next().expect("unexpected extra step")),
+            Ok(2)
+        );
         assert_eq!(drain_refinement(0, || (false, false)), Ok(0));
     }
 
     #[test]
     fn nonsettling_capture_fails_instead_of_looping_or_claiming_ready() {
         let mut calls = 0;
-        assert!(drain_refinement(3, || { calls += 1; (true, false) }).is_err());
+        assert!(
+            drain_refinement(3, || {
+                calls += 1;
+                (true, false)
+            })
+            .is_err()
+        );
         assert_eq!(calls, 4);
     }
 }

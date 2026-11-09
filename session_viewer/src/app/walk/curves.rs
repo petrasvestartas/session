@@ -3,13 +3,35 @@ use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 use crate::engine::gpu::lane::LaneRows;
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::vectors::{VectorRow, VectorRows};
-use crate::engine::gpu::{CylinderSegment, Instance};
+use crate::engine::gpu::{CylinderSegment, Instance, Upload};
 use session_rust::AABB;
-use session_rust::{Arrowhead, Line, NurbsCurve, Polyline};
+use session_rust::{Arrowhead, Line, NurbsCurve, Polyline, Session};
+
+fn dash_pair(pattern: &[f64]) -> [f32; 2] {
+    let mut lengths = pattern
+        .iter()
+        .filter(|length| length.is_finite() && **length > 0.0);
+    let Some(on) = lengths.next() else {
+        return [0.0; 2];
+    };
+    let off = lengths.next().unwrap_or(on);
+    if lengths.next().is_some() {
+        log::warn!("dash patterns currently use their first on/off pair");
+    }
+    [*on as f32, *off as f32]
+}
 
 /// One segment per pair of neighbours; grows `bounds`.
-pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut AABB) {
+pub(super) fn push_polyline(
+    seg: &mut SegRows,
+    pts: &[[f32; 3]],
+    pen: &Pen,
+    bounds: &mut AABB,
+    pattern: &[f64],
+) {
     let first = seg.ribbons.len() as u32;
+    let dash = dash_pair(pattern);
+    let mut offset = 0.0;
     seg.ribbons.reserve(pts.len().saturating_sub(1));
 
     for w in pts.windows(2) {
@@ -18,6 +40,10 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
             continue;
         }
         bounds.union_with_point(w[0][0] as f64, w[0][1] as f64, w[0][2] as f64);
+        let length = ((w[1][0] - w[0][0]).powi(2)
+            + (w[1][1] - w[0][1]).powi(2)
+            + (w[1][2] - w[0][2]).powi(2))
+        .sqrt();
         seg.ribbons.push(CylinderSegment {
             p0: w[0],
             radius: pen.radius,
@@ -26,6 +52,8 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
             color: pen.color,
             facing: FACING_UNKNOWN, // no face orientation
         });
+        seg.ribbon_dashes.push([dash[0], dash[1], offset]);
+        offset += length;
     }
 
     seg.ribbon_chains.push(first..seg.ribbons.len() as u32); // one joined stroke
@@ -46,11 +74,19 @@ fn head_row(segment: &CylinderSegment) -> VectorRow {
         head: 0.0,
         heads: VectorRow::HEAD_END | VectorRow::HEAD_ONLY,
         pad: 0,
+        start_trim: 0.0,
+        end_trim: 0.0,
+        reserved: [0; 2],
     }
 }
 
 /// Heads on the ribbons from `first` on: a vector row per headed end, that end marked so the ribbon stops under it; the row flags.
-pub(super) fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: Arrowhead) -> u32 {
+pub(super) fn push_heads(
+    seg: &mut SegRows,
+    lanes: &mut LaneRows,
+    first: usize,
+    arrowhead: Arrowhead,
+) -> u32 {
     let (start, end) = match arrowhead {
         Arrowhead::NONE => return 0,
         Arrowhead::START => (true, false),
@@ -103,6 +139,8 @@ pub fn walk_line(seg: &mut SegRows, lanes: &mut LaneRows, l: &Line, row: u32) ->
         color: pack_rgba(l.linecolor.to_f32()),
         facing: FACING_UNKNOWN, // no face orientation
     });
+    let dash = dash_pair(&l.dash);
+    seg.ribbon_dashes.push([dash[0], dash[1], 0.0]);
     Row {
         flags: push_heads(seg, lanes, first, l.arrowhead),
         ..Row::thin(bounds)
@@ -124,7 +162,7 @@ pub fn walk_polyline(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Polyline, row
     };
     let mut bounds = AABB::empty();
     let first = seg.ribbons.len();
-    push_polyline(seg, &pts, &pen, &mut bounds);
+    push_polyline(seg, &pts, &pen, &mut bounds, &pl.dash);
     Row {
         flags: push_heads(seg, lanes, first, pl.arrowhead),
         ..Row::thin(bounds)
@@ -204,10 +242,24 @@ pub fn walk_nurbscurve(seg: &mut SegRows, lanes: &mut LaneRows, c: &NurbsCurve, 
     walk_nurbscurve_quality(seg, lanes, c, row, Default::default())
 }
 
-pub fn walk_nurbscurve_quality(seg: &mut SegRows, lanes: &mut LaneRows, c: &NurbsCurve, row: u32, quality: super::display::Quality) -> Row {
+pub fn walk_nurbscurve_quality(
+    seg: &mut SegRows,
+    lanes: &mut LaneRows,
+    c: &NurbsCurve,
+    row: u32,
+    quality: super::display::Quality,
+) -> Row {
     let sampled = super::display::sample(c, quality, super::display::CURVE_SEGMENTS);
-    if sampled.limited { log::debug!("Curve display refinement reached its finite budget"); }
-    let pts: Vec<_> = sampled.parameters.into_iter().map(|t| { let p = c.point_at(t); [p[0], p[1], p[2]] })
+    if sampled.limited {
+        log::debug!("Curve display refinement reached its finite budget");
+    }
+    let pts: Vec<_> = sampled
+        .parameters
+        .into_iter()
+        .map(|t| {
+            let p = c.point_at(t);
+            [p[0], p[1], p[2]]
+        })
         .into_iter()
         .map(render_position)
         .collect();
@@ -223,11 +275,53 @@ pub fn walk_nurbscurve_quality(seg: &mut SegRows, lanes: &mut LaneRows, c: &Nurb
     };
     let mut bounds = AABB::empty();
     let first = seg.ribbons.len();
-    push_polyline(seg, &pts, &pen, &mut bounds);
+    push_polyline(seg, &pts, &pen, &mut bounds, &[]);
     Row {
         flags: push_heads(seg, lanes, first, c.arrowhead),
         ..Row::thin(bounds)
     }
+}
+
+/// Give arrows and strokes the display radii of visible kernel points at their endpoints.
+pub fn endpoint_clearance(up: &mut Upload, session: &Session) {
+    let radius = |position: [f32; 3]| {
+        session.objects.points.iter().find_map(|point| {
+            if !point.is_visible {
+                return None;
+            }
+            let distance = ((point[0] as f32 - position[0]).powi(2)
+                + (point[1] as f32 - position[1]).powi(2)
+                + (point[2] as f32 - position[2]).powi(2))
+            .sqrt();
+            if distance > 1.0e-5 {
+                return None;
+            }
+            let radius = encode_width(point.width);
+            Some(if radius == 0.0 { -3.0 } else { radius })
+        })
+    };
+    let rows = up.lanes.get_mut::<VectorRows>();
+    for row in &mut rows.rows {
+        row.start_trim = radius(row.start).unwrap_or(0.0);
+        row.end_trim = radius(row.end).unwrap_or(0.0);
+    }
+    let mut trims: Vec<[f32; 2]> = up
+        .seg
+        .ribbons
+        .iter()
+        .map(|segment| {
+            [
+                radius(segment.p0).unwrap_or(0.0),
+                radius(segment.p1).unwrap_or(0.0),
+            ]
+        })
+        .collect();
+    for chain in &up.seg.ribbon_chains {
+        for index in chain.start + 1..chain.end.saturating_sub(1) {
+            trims[index as usize] = [0.0; 2];
+        }
+    }
+    up.seg.ribbon_trims = trims;
 }
 
 #[cfg(test)]
@@ -341,6 +435,26 @@ mod tests {
             seg.ribbon_heads,
             vec![(seg.ribbons.len() as u32 - 1, VectorRow::HEAD_END)]
         );
+    }
+
+    #[test]
+    fn dash_patterns_keep_cumulative_polyline_offsets() {
+        let mut pl = Polyline::new(vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(3.0, 0.0, 0.0),
+            Point::new(3.0, 4.0, 0.0),
+        ]);
+        pl.dash = vec![0.5, 0.25];
+        let (seg, _) = walked(|seg, lanes| {
+            walk_polyline(seg, lanes, &pl, 0);
+        });
+        assert_eq!(seg.ribbon_dashes, vec![[0.5, 0.25, 0.0], [0.5, 0.25, 3.0]]);
+        let mut line = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+        line.dash = vec![2.0];
+        let (seg, _) = walked(|seg, lanes| {
+            walk_line(seg, lanes, &line, 0);
+        });
+        assert_eq!(seg.ribbon_dashes, vec![[2.0, 2.0, 0.0]]);
     }
 
     #[test]

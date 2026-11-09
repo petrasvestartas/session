@@ -1,6 +1,6 @@
+use crate::State;
 pub use crate::command_dock::Control;
 use crate::command_dock::record;
-use crate::State;
 use std::cell::Cell;
 use theme::{BUNDLED, fonts, visuals};
 use winit::window::Window;
@@ -181,7 +181,8 @@ impl Ui {
     /// Lay out and draw the panels; true when the frame must be redrawn.
     pub fn frame(&mut self, state: &mut State) -> bool {
         // the page's ?cmd= lines, as if typed, once the scene is on screen (or never will be): a link or a screenshot opens the viewer in that state
-        let ready = state.gpu.performance.geometry_shown() || state.gpu.performance.frames > STARTUP_FRAMES;
+        let ready =
+            state.gpu.performance.geometry_shown() || state.gpu.performance.frames > STARTUP_FRAMES;
 
         // one line a frame, so a panel a line opens is laid out before the next line, such as Fit, reads it
         if ready && let Some(commands) = self.startup.take() {
@@ -244,11 +245,15 @@ impl Ui {
             // Focus before the field handles this batch, so the first typed character survives; a shortcut letter such as F stays on the canvas.
             if !keys_taken()
                 && !state.number_box_open()
-                && root.input(|input| input.events.iter().any(|event| match event {
-                    egui::Event::Text(text) => !text.is_empty() && crate::app::keys::letter(text).is_none(),
-                    egui::Event::Paste(text) => !text.is_empty(),
-                    _ => false,
-                }))
+                && root.input(|input| {
+                    input.events.iter().any(|event| match event {
+                        egui::Event::Text(text) => {
+                            !text.is_empty() && crate::app::keys::letter(text).is_none()
+                        }
+                        egui::Event::Paste(text) => !text.is_empty(),
+                        _ => false,
+                    })
+                })
             {
                 command_line::STATE.with_borrow_mut(|model| {
                     model.command_open = true;
@@ -304,9 +309,18 @@ impl Ui {
         output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
 
         // the part of the canvas the layer panel and the command dock leave free: the view centres there
-        let right = layers::STATE.with_borrow(|model| model.panel_left).map_or(logical[0], f64::from);
-        let bottom = command_line::STATE.with_borrow(|model| model.dock_top).map_or(logical[1], f64::from);
-        state.view_frame = [0.0, 0.0, (right / logical[0].max(1.0)).clamp(0.2, 1.0), (bottom / logical[1].max(1.0)).clamp(0.2, 1.0)];
+        let right = layers::STATE
+            .with_borrow(|model| model.panel_left)
+            .map_or(logical[0], f64::from);
+        let bottom = command_line::STATE
+            .with_borrow(|model| model.dock_top)
+            .map_or(logical[1], f64::from);
+        state.view_frame = [
+            0.0,
+            0.0,
+            (right / logical[0].max(1.0)).clamp(0.2, 1.0),
+            (bottom / logical[1].max(1.0)).clamp(0.2, 1.0),
+        ];
         state.camera.frame = state.view_frame;
 
         if let Some(ui) = state.gpu.ui.as_mut() {
@@ -319,6 +333,42 @@ impl Ui {
         }
 
         repaint
+    }
+
+    /// Paint a stage deck over the whole canvas instead of the panels; true while it animates.
+    pub fn stage_frame(&mut self, state: &mut State) -> bool {
+        let mut input = self.input.take_egui_input(&state.window);
+        input.events.clear();
+        let logical = state.logical_size();
+        let screen = egui::Rect::from_min_size(
+            egui::Pos2::ZERO,
+            egui::vec2(logical[0] as f32, logical[1] as f32),
+        );
+        input.screen_rect = Some(screen);
+        let ppp = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
+        let now = crate::engine::performance::now_ms();
+        let mut more = false;
+        let Some(stage) = state.stage.as_mut() else {
+            return false;
+        };
+        let mut output = self.context.run_ui(input, &mut |root: &mut egui::Ui| {
+            let painter = root.painter().with_clip_rect(screen);
+            more = stage.paint(&painter, screen, ppp, now);
+        });
+        self.input
+            .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
+        output.pixels_per_point = ppp;
+        if let Some(ui) = state.gpu.ui.as_mut() {
+            ui.prepare(
+                &state.gpu.ctx,
+                &self.context,
+                output,
+                [state.gpu.config.width, state.gpu.config.height],
+            );
+        }
+        state.redraw_once();
+        state.needs_frame |= more;
+        more
     }
 
     /// Write the panel state onto the canvas for browser tests.

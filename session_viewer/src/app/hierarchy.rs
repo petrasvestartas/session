@@ -37,9 +37,9 @@ pub struct Node {
 /// The features of one element a panel line stands for: an interaction, one of its pieces, or one of the element's own.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pick {
-    pub row: u32,            // the element's row
+    pub row: u32,             // the element's row
     pub features: Vec<usize>, // indices into its features
-    pub interactions: bool,  // drawn while Element Interactions is on, else while Element Attributes is
+    pub interactions: bool, // drawn while Element Interactions is on, else while Element Attributes is
 }
 
 /// The tree panel's flattened nodes.
@@ -411,7 +411,14 @@ impl Hierarchy {
             let element = row.filter(|&r| matches!(scene.geometry(r), Some(Geometry::Element(_))));
 
             for child in children.into_iter().rev() {
-                stack.push((child, depth + 1, None, inside || object, element, path.clone()));
+                stack.push((
+                    child,
+                    depth + 1,
+                    None,
+                    inside || object,
+                    element,
+                    path.clone(),
+                ));
             }
         }
 
@@ -527,7 +534,13 @@ impl Hierarchy {
     }
 
     /// Closing node `index`: an element's `attributes` group lists the element's own features, and an element ends with its `interactions` group, a line per interaction it hosts holding a line per feature that interaction drew.
-    fn feature_lines(&mut self, scene: &Scene, index: usize, host: Option<u32>, lookup: &Lookup) -> bool {
+    fn feature_lines(
+        &mut self,
+        scene: &Scene,
+        index: usize,
+        host: Option<u32>,
+        lookup: &Lookup,
+    ) -> bool {
         let (doc, depth, name) = {
             let node = &self.nodes[index];
             (node.doc, node.depth, node.name.clone())
@@ -550,16 +563,23 @@ impl Hierarchy {
         let session = &scene.docs[doc].session;
 
         // no `attributes` group of its own: one made for its own features
-        let grouped = session
-            .tree
-            .get_node_by_name(&name)
-            .is_some_and(|node| node.borrow().children().iter().any(|c| c.borrow().name == "attributes"));
+        let grouped = session.tree.get_node_by_name(&name).is_some_and(|node| {
+            node.borrow()
+                .children()
+                .iter()
+                .any(|c| c.borrow().name == "attributes")
+        });
 
         if !grouped && !crate::app::interactions::own(element).is_empty() {
             let group = self.nodes.len();
 
-            if !self.push("attributes", depth + 1, doc, format!("{name}/attributes"), false)
-                || !self.own_lines(element, row, depth + 2, doc)
+            if !self.push(
+                "attributes",
+                depth + 1,
+                doc,
+                format!("{name}/attributes"),
+                false,
+            ) || !self.own_lines(element, row, depth + 2, doc)
             {
                 return false;
             }
@@ -580,20 +600,35 @@ impl Hierarchy {
 
         let group = self.nodes.len();
 
-        if !self.push("interactions", depth + 1, doc, format!("{name}/interactions"), false) {
+        if !self.push(
+            "interactions",
+            depth + 1,
+            doc,
+            format!("{name}/interactions"),
+            false,
+        ) {
             return false;
         }
 
         self.nodes[group].pick = Some(Pick {
             row,
-            features: hosted.iter().flat_map(|h| h.features.iter().copied()).collect(),
+            features: hosted
+                .iter()
+                .flat_map(|h| h.features.iter().copied())
+                .collect(),
             interactions: true,
         });
 
         for (at, interaction) in hosted.iter().enumerate() {
             let line = self.nodes.len();
 
-            if !self.push(&interaction.label, depth + 2, doc, format!("{name}/interactions/{at}"), false) {
+            if !self.push(
+                &interaction.label,
+                depth + 2,
+                doc,
+                format!("{name}/interactions/{at}"),
+                false,
+            ) {
                 return false;
             }
 
@@ -608,11 +643,21 @@ impl Hierarchy {
                 let piece = self.nodes.len();
                 let label = crate::app::interactions::feature_label(&element.features()[i]);
 
-                if !self.push(&label, depth + 3, doc, format!("{name}/interactions/{at}/{i}"), false) {
+                if !self.push(
+                    &label,
+                    depth + 3,
+                    doc,
+                    format!("{name}/interactions/{at}/{i}"),
+                    false,
+                ) {
                     return false;
                 }
 
-                self.nodes[piece].pick = Some(Pick { row, features: vec![i], interactions: true });
+                self.nodes[piece].pick = Some(Pick {
+                    row,
+                    features: vec![i],
+                    interactions: true,
+                });
                 self.finish(piece);
             }
 
@@ -624,16 +669,32 @@ impl Hierarchy {
     }
 
     /// A line per feature the element carries of its own, an axis or a section, at `depth`.
-    fn own_lines(&mut self, element: &session_rust::Element, row: u32, depth: usize, doc: usize) -> bool {
+    fn own_lines(
+        &mut self,
+        element: &session_rust::Element,
+        row: u32,
+        depth: usize,
+        doc: usize,
+    ) -> bool {
         for i in crate::app::interactions::own(element) {
             let line = self.nodes.len();
             let label = crate::app::interactions::feature_label(&element.features()[i]);
 
-            if !self.push(&label, depth, doc, format!("{}/own/{i}", element.guid()), false) {
+            if !self.push(
+                &label,
+                depth,
+                doc,
+                format!("{}/own/{i}", element.guid()),
+                false,
+            ) {
                 return false;
             }
 
-            self.nodes[line].pick = Some(Pick { row, features: vec![i], interactions: false });
+            self.nodes[line].pick = Some(Pick {
+                row,
+                features: vec![i],
+                interactions: false,
+            });
             self.finish(line);
         }
 
@@ -737,7 +798,10 @@ mod tests {
         let rows = index.targets(parent);
         let inner = index.targets(child);
         let alone = *rows.iter().find(|row| !inner.contains(row)).unwrap();
-        let other = *rows.iter().find(|row| !inner.contains(row) && **row != alone).unwrap();
+        let other = *rows
+            .iter()
+            .find(|row| !inner.contains(row) && **row != alone)
+            .unwrap();
 
         // the child switched off, one object hidden by itself, then the parent off and on
         let hide = index.lamp_off(&scene, child);
@@ -752,7 +816,10 @@ mod tests {
         assert!(index.lamp_is_off(child) && !index.lamp_is_off(parent));
         assert!(inner.iter().all(|row| hidden(&scene, *row)) && hidden(&scene, alone));
         let held = index.held();
-        assert!(Hierarchy::hidden_itself(&scene, &held, alone) && !Hierarchy::hidden_itself(&scene, &held, inner[0]));
+        assert!(
+            Hierarchy::hidden_itself(&scene, &held, alone)
+                && !Hierarchy::hidden_itself(&scene, &held, inner[0])
+        );
 
         // the parent off, then the child: on again, the parent leaves the child's objects to the child
         let show = index.lamp_on(&scene, child);
@@ -809,10 +876,22 @@ mod tests {
         });
         let mut index = Hierarchy::default();
         index.rebuild(&scene);
-        let state = |scene: &Scene| (0..scene.row_count() as u32).map(|row| hidden(scene, row)).collect::<Vec<_>>();
+        let state = |scene: &Scene| {
+            (0..scene.row_count() as u32)
+                .map(|row| hidden(scene, row))
+                .collect::<Vec<_>>()
+        };
         let loaded = state(&scene);
-        let connector = index.nodes.iter().position(|node| node.label == "connector").unwrap();
-        let dowel = index.nodes.iter().position(|node| node.label == "dowel").unwrap();
+        let connector = index
+            .nodes
+            .iter()
+            .position(|node| node.label == "connector")
+            .unwrap();
+        let dowel = index
+            .nodes
+            .iter()
+            .position(|node| node.label == "dowel")
+            .unwrap();
         let dowel = index.targets(dowel)[0];
 
         // the connector off and on: the dowel written hidden stays hidden
@@ -827,12 +906,19 @@ mod tests {
         assert_eq!(state(&scene), loaded);
 
         // one of two `joints` groups off: the other keeps its lamp on
-        let joints: Vec<usize> = (0..index.nodes.len()).filter(|&i| index.nodes[i].name == "joints").collect();
+        let joints: Vec<usize> = (0..index.nodes.len())
+            .filter(|&i| index.nodes[i].name == "joints")
+            .collect();
         let hide = index.lamp_off(&scene, joints[0]);
         apply(&mut scene, &hide, true);
         index.rebuild(&scene);
         assert!(index.lamp_is_off(joints[0]) && !index.lamp_is_off(joints[1]));
-        assert!(index.targets(joints[1]).iter().all(|row| !hidden(&scene, *row)));
+        assert!(
+            index
+                .targets(joints[1])
+                .iter()
+                .all(|row| !hidden(&scene, *row))
+        );
     }
 
     /// A full row table refuses the graph.
@@ -960,8 +1046,10 @@ mod tests {
         use session_rust::element::{Element, ElementFeature};
         let mut session = Session::new("site");
         let walls = session.add_group("walls");
-        let line = session_rust::Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
-        let contact = session_rust::InteractionUnknown::new("InteractionContactFace", &[], "seam_wedge_0");
+        let line =
+            session_rust::Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
+        let contact =
+            session_rust::InteractionUnknown::new("InteractionContactFace", &[], "seam_wedge_0");
         let mut touch = ElementFeature::new("contact", 0, vec![line.clone()], "side_side");
         touch.set_guid(session_rust::Interaction::guid(&contact).to_string());
         let mut beam = Element::new("beam");
@@ -970,8 +1058,16 @@ mod tests {
         beam.add_feature(touch);
         let mut bare = Element::new("bare");
         bare.set_geometry(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        let beam = session.add_element(beam, Some(&walls)).borrow().name.clone();
-        let bare = session.add_element(bare, Some(&walls)).borrow().name.clone();
+        let beam = session
+            .add_element(beam, Some(&walls))
+            .borrow()
+            .name
+            .clone();
+        let bare = session
+            .add_element(bare, Some(&walls))
+            .borrow()
+            .name
+            .clone();
         session.graph.add_edge(&bare, &beam, "");
         let edge = session.graph.edges[&bare][&beam].guid().to_string();
         session.interactions.insert(edge, vec![Box::new(contact)]);
@@ -989,7 +1085,16 @@ mod tests {
         let lines: Vec<(&str, usize, Vec<usize>, bool)> = index
             .nodes
             .iter()
-            .filter_map(|node| node.pick.as_ref().map(|pick| (node.label.as_str(), node.depth, pick.features.clone(), pick.interactions)))
+            .filter_map(|node| {
+                node.pick.as_ref().map(|pick| {
+                    (
+                        node.label.as_str(),
+                        node.depth,
+                        pick.features.clone(),
+                        pick.interactions,
+                    )
+                })
+            })
             .collect();
         assert_eq!(
             lines,
@@ -1002,9 +1107,22 @@ mod tests {
             ],
             "the bare element lists nothing"
         );
-        assert!(index.nodes.iter().filter_map(|node| node.pick.as_ref()).all(|pick| pick.row == row));
-        let group = index.nodes.iter().position(|node| node.label == "interactions").unwrap();
-        assert!(index.targets(group).is_empty(), "feature lines hold no rows");
+        assert!(
+            index
+                .nodes
+                .iter()
+                .filter_map(|node| node.pick.as_ref())
+                .all(|pick| pick.row == row)
+        );
+        let group = index
+            .nodes
+            .iter()
+            .position(|node| node.label == "interactions")
+            .unwrap();
+        assert!(
+            index.targets(group).is_empty(),
+            "feature lines hold no rows"
+        );
     }
 
     /// Past the node limit only layers get lines, and they still hold their objects.

@@ -43,8 +43,7 @@ fn selected_cad_edges_do_not_paint_over_the_black_silhouette() {
                     let mut camera = Camera::new();
                     camera.fit(&gpu.bounds, 1.0);
                     camera.orbit(orbit.0, orbit.1);
-                    let rebase =
-                        gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
+                    let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
                     let input = FrameInput {
                         view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
                         clear: wgpu::Color::WHITE,
@@ -57,8 +56,7 @@ fn selected_cad_edges_do_not_paint_over_the_black_silhouette() {
                     let edged = gpu.render_offscreen(&input);
                     let mut coverage = 0_u32;
 
-                    for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4))
-                    {
+                    for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4)) {
                         let lo = *plain[..3].iter().min().unwrap();
                         let hi = *plain[..3].iter().max().unwrap();
 
@@ -100,24 +98,42 @@ fn curved_and_flat_outlines_keep_the_same_width_when_edges_are_shown() {
         gpu.reset();
         let mut source = Session::new("outline width");
         match shape {
-            0 => { source.add_brep(BRep::create_cylinder(100.0, 300.0), None); }
-            1 => { source.add_brep(BRep::create_box(200.0, 200.0, 300.0), None); }
-            _ => { source.add_mesh(Mesh::create_box(200.0, 200.0, 300.0), None); }
+            0 => {
+                source.add_brep(BRep::create_cylinder(100.0, 300.0), None);
+            }
+            1 => {
+                source.add_brep(BRep::create_box(200.0, 200.0, 300.0), None);
+            }
+            _ => {
+                source.add_mesh(Mesh::create_box(200.0, 200.0, 300.0), None);
+            }
         }
         let mut scene = Scene::new();
-        scene.add_file(FileDoc { name: "solid".into(), session: Rc::new(source), place: Xform::identity(), point_px: 0.0, display_only: false });
+        scene.add_file(FileDoc {
+            name: "solid".into(),
+            session: Rc::new(source),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
         scene.upload_to(&mut gpu);
         for samples in [1, 4] {
             for dpr in [1.0, 2.0] {
-                gpu.logical_size = [320.0/dpr; 2];
+                gpu.logical_size = [320.0 / dpr; 2];
                 gpu.view.msaa_forced = Some(samples);
                 gpu.resize(320, 320);
                 let mut camera = Camera::new();
                 camera.fit(&gpu.bounds, 1.0);
                 for orbit in [(0.0, 0.0), (80.0, -25.0)] {
                     camera.orbit(orbit.0, orbit.1);
-                    let anchor = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0).anchor;
-                    let input = FrameInput { view_proj: camera.view_proj_anchored(1.0, &anchor), clear: wgpu::Color::WHITE, now_ms: 0.0 };
+                    let anchor = gpu
+                        .rebase_anchor(&camera.origin(), camera.distance_world(), 0.0)
+                        .anchor;
+                    let input = FrameInput {
+                        view_proj: camera.view_proj_anchored(1.0, &anchor),
+                        clear: wgpu::Color::WHITE,
+                        now_ms: 0.0,
+                    };
                     gpu.view.thickness_px = 1.0;
                     gpu.view.show_mesh_edges = false;
                     let thin = gpu.render_offscreen(&input);
@@ -130,23 +146,46 @@ fn curved_and_flat_outlines_keep_the_same_width_when_edges_are_shown() {
                     for ((a, b), id) in thin.chunks_exact(4).zip(thick.chunks_exact(4)).zip(&ids) {
                         if *id == [0, 0] && a[..3].iter().all(|c| *c < 8) {
                             border += 1;
-                            assert!(b[..3].iter().all(|c| *c < 12), "A surface outline must remain black");
+                            assert!(
+                                b[..3].iter().all(|c| *c < 12),
+                                "A surface outline must remain black"
+                            );
                         }
                     }
-                    assert!(border > 80, "A curved or flat silhouette needs a continuous outline: {border}");
+                    assert!(
+                        border > 80,
+                        "A curved or flat silhouette needs a continuous outline: {border}"
+                    );
                     let mut rows = 0;
                     let mut outlined = 0;
                     for y in 0..320 {
-                        let row = &ids[y*320..(y+1)*320];
-                        if let (Some(left), Some(right)) = (row.iter().position(|id| *id != [0,0]), row.iter().rposition(|id| *id != [0,0])) {
-                            if right-left < 10 { continue; }
+                        let row = &ids[y * 320..(y + 1) * 320];
+                        if let (Some(left), Some(right)) = (
+                            row.iter().position(|id| *id != [0, 0]),
+                            row.iter().rposition(|id| *id != [0, 0]),
+                        ) {
+                            if right - left < 10 {
+                                continue;
+                            }
                             rows += 1;
-                            let dark_near = |x: usize| (x.saturating_sub(5)..(x+6).min(320)).any(|x| thin[(y*320+x)*4..(y*320+x)*4+3].iter().all(|c| *c < 180));
+                            let dark_near = |x: usize| {
+                                (x.saturating_sub(5)..(x + 6).min(320)).any(|x| {
+                                    thin[(y * 320 + x) * 4..(y * 320 + x) * 4 + 3]
+                                        .iter()
+                                        .all(|c| *c < 180)
+                                })
+                            };
                             outlined += usize::from(dark_near(left) && dark_near(right));
                         }
                     }
-                    assert!(rows > 80 && outlined*100 >= rows*95, "Curved and flat boundaries remain continuous: {outlined}/{rows}");
-                    assert!(coverage == outline_alpha(&gpu), "Edge pens must not change the actual GPU outline width");
+                    assert!(
+                        rows > 80 && outlined * 100 >= rows * 95,
+                        "Curved and flat boundaries remain continuous: {outlined}/{rows}"
+                    );
+                    assert!(
+                        coverage == outline_alpha(&gpu),
+                        "Edge pens must not change the actual GPU outline width"
+                    );
                 }
             }
         }
@@ -156,23 +195,47 @@ fn curved_and_flat_outlines_keep_the_same_width_when_edges_are_shown() {
 fn outline_alpha(gpu: &Gpu) -> Vec<u8> {
     let alpha = gpu.pass::<super::Outline>().solid.alpha.as_ref().unwrap();
     let (width, height) = alpha.size;
-    let pitch = width.div_ceil(256)*256;
+    let pitch = width.div_ceil(256) * 256;
     let buffer = gpu.ctx.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("outline test readback"), size: u64::from(pitch)*u64::from(height),
-        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ, mapped_at_creation: false,
+        label: Some("outline test readback"),
+        size: u64::from(pitch) * u64::from(height),
+        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+        mapped_at_creation: false,
     });
     let mut encoder = gpu.ctx.device.create_command_encoder(&Default::default());
     encoder.copy_texture_to_buffer(
-        wgpu::TexelCopyTextureInfo { texture: alpha.texture.texture(), mip_level: 0, origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
-        wgpu::TexelCopyBufferInfo { buffer: &buffer, layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(pitch), rows_per_image: Some(height) } },
-        wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+        wgpu::TexelCopyTextureInfo {
+            texture: alpha.texture.texture(),
+            mip_level: 0,
+            origin: wgpu::Origin3d::ZERO,
+            aspect: wgpu::TextureAspect::All,
+        },
+        wgpu::TexelCopyBufferInfo {
+            buffer: &buffer,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(pitch),
+                rows_per_image: Some(height),
+            },
+        },
+        wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        },
     );
     gpu.ctx.queue.submit([encoder.finish()]);
     let slice = buffer.slice(..);
     slice.map_async(wgpu::MapMode::Read, |_| {});
-    gpu.ctx.device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
+    gpu.ctx
+        .device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .unwrap();
     let bytes = slice.get_mapped_range();
-    bytes.chunks_exact(pitch as usize).flat_map(|row| row[..width as usize].iter().copied()).collect()
+    bytes
+        .chunks_exact(pitch as usize)
+        .flat_map(|row| row[..width as usize].iter().copied())
+        .collect()
 }
 
 #[test]
@@ -287,8 +350,17 @@ fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
         let hidden = gpu.render_offscreen(&input);
         gpu.set_selected(0, true);
         let selected_hidden = gpu.render_offscreen(&input);
-        let changed: Vec<_> = hidden.chunks_exact(4).zip(selected_hidden.chunks_exact(4)).enumerate().filter(|(_, (a,b))| a != b).take(8).collect();
-        assert!(hidden == selected_hidden, "An occluded selection changes no pixels; samples={samples}, first changes {changed:?}");
+        let changed: Vec<_> = hidden
+            .chunks_exact(4)
+            .zip(selected_hidden.chunks_exact(4))
+            .enumerate()
+            .filter(|(_, (a, b))| a != b)
+            .take(8)
+            .collect();
+        assert!(
+            hidden == selected_hidden,
+            "An occluded selection changes no pixels; samples={samples}, first changes {changed:?}"
+        );
         gpu.set_hidden(1, true);
         let selected = gpu.render_offscreen(&input);
         // with only the selected mask the picture is the same

@@ -1,8 +1,8 @@
-use super::Upload;
 use super::super::faces::FaceSource;
 use super::super::glyphs::GlyphPoint;
 use super::super::patch::Counts;
 use super::super::segments::CylinderSegment;
+use super::Upload;
 
 impl Upload {
     /// Append hidden spare rows for a growing preview and return their counts.

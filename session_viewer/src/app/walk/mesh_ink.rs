@@ -133,7 +133,9 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
         ink.seg
             .pipe_ids
             .push(if cx.smooth { u32::MAX } else { i as u32 }); // edge id for picking
-        ink.seg.pipe_sags.push(if silhouette { SILHOUETTE_SAG } else { 0.0 });
+        ink.seg
+            .pipe_sags
+            .push(if silhouette { SILHOUETTE_SAG } else { 0.0 });
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
             radius: encode_width(width_at(w, i)),
@@ -286,11 +288,11 @@ fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
 
 #[cfg(test)]
 mod tests {
-    use crate::engine::gpu::segments::is_silhouette;
     use super::*;
     use crate::app::walk::WalkCx;
     use crate::app::walk::mesh::{MeshCx, MeshOpts, walk_mesh};
     use crate::engine::gpu::arena::ArenaRows;
+    use crate::engine::gpu::segments::is_silhouette;
     use session_rust::Point;
 
     /// How many pipes one mesh pushes when walked under `opts`.
@@ -304,7 +306,7 @@ mod tests {
             glyph: &mut glyphs,
         };
         let cx = WalkCx {
-                quality: Default::default(),
+            quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: 0,
@@ -312,7 +314,11 @@ mod tests {
             attributes: false,
         };
         walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
-        let silhouettes = segments.pipe_sags.iter().filter(|sag| is_silhouette(**sag)).count();
+        let silhouettes = segments
+            .pipe_sags
+            .iter()
+            .filter(|sag| is_silhouette(**sag))
+            .count();
         (segments.pipes.len() - silhouettes, silhouettes)
     }
 
@@ -364,7 +370,7 @@ mod tests {
             glyph: &mut glyphs,
         };
         let cx = WalkCx {
-                quality: Default::default(),
+            quality: Default::default(),
             vert_base: 50,
             cloud_px: 0.0,
             row: 7,

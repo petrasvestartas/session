@@ -37,8 +37,8 @@ pub struct Input {
     last_cursor: (f64, f64),                 // last pointer position in pixels
     left_down: Option<(f64, f64)>,           // where the left button went down
     left_down_ms: f64,                       // when it went down
-    plain: bool,             // that press may still start a tool by dragging
-    dragged: bool,           // that press, or the editing finger, left its slop
+    plain: bool,                             // that press may still start a tool by dragging
+    dragged: bool,                           // that press, or the editing finger, left its slop
     drag_far: bool,          // that plain press went far enough, or was held, to drag
     touch: Touches,          // camera finger gestures
     touch_edit: Option<u64>, // finger running a tool
@@ -109,7 +109,8 @@ impl Input {
                     self.right_dragged = false;
                     return false;
                 }
-                let click = self.right_down.take().is_some() && !self.right_dragged && !self.panning;
+                let click =
+                    self.right_down.take().is_some() && !self.right_dragged && !self.panning;
                 if !click {
                     return false;
                 }
@@ -187,8 +188,10 @@ impl Input {
                     let dy = ((at.1 - from.1) / device_pixel_ratio()) as f32;
 
                     if self.panning || self.ctrl {
-                        state.camera.pan(dx, dy);
-                    } else {
+                        if !state.pan_presentation_spatial(dx, dy) {
+                            state.camera.pan(dx, dy);
+                        }
+                    } else if !state.orbit_presentation_spatial(dx, dy) {
                         state.camera.orbit(dx, dy);
                     }
                 }
@@ -207,8 +210,13 @@ impl Input {
                 if amount == 0.0 {
                     return false;
                 }
-                state.gpu.performance.wheel(crate::engine::performance::now_ms());
-                state.camera.zoom_at(amount, self.last_cursor, viewport);
+                state
+                    .gpu
+                    .performance
+                    .wheel(crate::engine::performance::now_ms());
+                if !state.zoom_presentation_spatial(amount, self.last_cursor, viewport) {
+                    state.camera.zoom_at(amount, self.last_cursor, viewport);
+                }
                 true
             }
             WindowEvent::ModifiersChanged(mods) => {

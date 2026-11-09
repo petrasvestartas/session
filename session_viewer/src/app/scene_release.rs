@@ -288,11 +288,18 @@ impl Scene {
             }
             let guid = self.order[row].as_ref();
             let present = if self.instancing.is_instance(row as u32) {
-                session.instance_lookup.get(guid)
-                    .filter(|instance| self.instancing.shared_definition(row as u32)
-                        .is_none_or(|original| original == instance.definition_guid))
+                session
+                    .instance_lookup
+                    .get(guid)
+                    .filter(|instance| {
+                        self.instancing
+                            .shared_definition(row as u32)
+                            .is_none_or(|original| original == instance.definition_guid)
+                    })
                     .and_then(|instance| session.definition_lookup.get(&instance.definition_guid))
-                    .is_some_and(|definition| Some(Shape::of(definition)) == released.shapes[row - first])
+                    .is_some_and(|definition| {
+                        Some(Shape::of(definition)) == released.shapes[row - first]
+                    })
             } else {
                 session.lookup.contains_key(guid)
             };
@@ -409,14 +416,18 @@ mod editing_tests {
             let geometry = if shared {
                 Geometry::BRep(Rc::new(BRep::create_box(1., 2., 3.)))
             } else {
-                Geometry::NurbsCurve(Rc::new(NurbsCurve::create(false, 1, &[
-                    Point::new(0., 0., 0.), Point::new(1., 0., 0.),
-                ])))
+                Geometry::NurbsCurve(Rc::new(NurbsCurve::create(
+                    false,
+                    1,
+                    &[Point::new(0., 0., 0.), Point::new(1., 0., 0.)],
+                )))
             };
             let definition = source.add_definition(geometry);
             let mut instance = InstanceRef::new(&definition, Xform::identity());
             instance.set_guid("released-instance".into());
-            source.add_instance(instance, Xform::identity(), None).unwrap();
+            source
+                .add_instance(instance, Xform::identity(), None)
+                .unwrap();
             let bytes = source.pb_dumps();
             let back = || Session::pb_loads(&bytes).unwrap();
             let mut scene = scene(source);
@@ -428,19 +439,33 @@ mod editing_tests {
             assert!(scene.hydrate(0, token + 1, back()).is_err());
             let mut missing_instance = back();
             missing_instance.instance_lookup.remove("released-instance");
-            missing_instance.lookup.insert("released-instance".into(), Geometry::Point(Rc::new(Point::new(0., 0., 0.))));
+            missing_instance.lookup.insert(
+                "released-instance".into(),
+                Geometry::Point(Rc::new(Point::new(0., 0., 0.))),
+            );
             assert!(scene.hydrate(0, token, missing_instance).is_err());
             let mut missing_definition = back();
             missing_definition.definition_lookup.remove(&definition);
             assert!(scene.hydrate(0, token, missing_definition).is_err());
             let mut changed_type = back();
-            changed_type.definition_lookup.insert(definition.clone(), Geometry::Point(Rc::new(Point::new(0., 0., 0.))));
+            changed_type.definition_lookup.insert(
+                definition.clone(),
+                Geometry::Point(Rc::new(Point::new(0., 0., 0.))),
+            );
             assert!(scene.hydrate(0, token, changed_type).is_err());
             if shared {
                 let mut changed_reference = back();
                 let original = changed_reference.definition_lookup[&definition].clone();
-                changed_reference.definition_lookup.insert("other-definition".into(), original);
-                Rc::make_mut(changed_reference.instance_lookup.get_mut("released-instance").unwrap()).definition_guid = "other-definition".into();
+                changed_reference
+                    .definition_lookup
+                    .insert("other-definition".into(), original);
+                Rc::make_mut(
+                    changed_reference
+                        .instance_lookup
+                        .get_mut("released-instance")
+                        .unwrap(),
+                )
+                .definition_guid = "other-definition".into();
                 assert!(scene.hydrate(0, token, changed_reference).is_err());
             }
             assert!(scene.has_released());

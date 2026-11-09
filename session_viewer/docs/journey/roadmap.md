@@ -1,8 +1,18 @@
-**Visual-quality correction complete (26 October):** All **1,762** original-inventory tutorial image assets are reviewed and published, including all 99 current reader/reference figures. Early exact BRep boundaries, adaptive NURBS borders and high-density captures are corrected; the complete site build, image hashes and desktop/phone visual checks pass. [Completion review](release/final1762-image-quality-completion-review.json). The private floor-output recovery remains unpromoted: 66 of 153 strict member checks pass and 87 fail, so image completion does not establish model-wide geometry validity. Earlier notes below retain their recorded scope.
+**Current image-quality follow-up (6 November): in progress.** The dated completion records below describe earlier source versions. The current correction pass has **6 of 42 visible image updates complete; 36 remain**.
 
-**Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
+- [x] Publish and review the dense RGB example and replacement figures 55, 74, 75, 77 and 91.
+- [x] Check the rebuilt site: 38 pages across all 22 chapters, 13 source-preview pairs and 26 decoded images; no browser errors. [Website check](release/viewer-site-20261106-06.json).
+- [x] Remove unused image copies; the journey folder currently contains 529 PNGs with 529 distinct byte hashes.
+- [ ] Replace 28 remaining main figures, one measurement image, four topic illustrations and three section-cap images.
+- [ ] Finish source-bound image validation and the final website check. The separate historical validation inventory is not the 42-figure list. [Detailed recorded progress](release/math-boundary-quality-progress.json).
 
-**Documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](release/docs-final-brep-visible-review.json).
+Image folder: `session_viewer/docs/screenshots/journey`. Mathematical faces show shading and their intended boundary curves, without internal triangulation wires. Visibility and apparent contours follow each lesson's implemented stage. Kernel Boolean, intersection, offset and floor algorithms belong to the separate geometry task.
+
+**Historical visual-quality completion (26 October):** All **1,762** original-inventory tutorial image assets are reviewed and published, including all 99 current reader/reference figures. Early exact BRep boundaries, adaptive NURBS borders and high-density captures are corrected; the complete site build, image hashes and desktop/phone visual checks pass. [Completion review](release/final1762-image-quality-completion-review.json). The private floor-output recovery remains unpromoted: 66 of 153 strict member checks pass and 87 fail, so image completion does not establish model-wide geometry validity. Earlier notes below retain their recorded scope.
+
+**Historical final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
+
+**Historical documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](release/docs-final-brep-visible-review.json).
 
 ## Progress: eight stages
 

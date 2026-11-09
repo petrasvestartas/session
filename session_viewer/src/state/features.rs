@@ -30,9 +30,9 @@ pub(crate) struct Features {
     pub(crate) snap: Snapping,        // register:snap
     pub(crate) construction_plane: Option<crate::app::cplane::CPlane>, // fixed construction plane, None follows the view; register:construction_plane
     pub(crate) view_grid: Option<crate::app::cplane::CPlane>, // displayed world plane; None is the initial XY grid; register:construction_plane
-    pub(crate) mark: Option<Mark>,    // register:measure
-    pub(super) hierarchy: Hierarchy,  // register:hierarchy
-    pub(super) pending_split: Option<splitting::Pending>, // register:split
+    pub(crate) mark: Option<Mark>,                            // register:measure
+    pub(super) hierarchy: Hierarchy,                          // register:hierarchy
+    pub(super) pending_split: Option<splitting::Pending>,     // register:split
 }
 
 /// Feature work on every frame, before the pick answers are applied.

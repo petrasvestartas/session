@@ -296,4 +296,3 @@ pub fn pipelines(ctx: &GpuCtx, target: Target) -> SsaoPipelines {
         composite_layout,
     }
 }
-

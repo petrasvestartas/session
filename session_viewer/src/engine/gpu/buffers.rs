@@ -309,9 +309,12 @@ pub fn bind_group<const N: usize>(
     label: &str,
     buffers: &[&wgpu::Buffer; N],
 ) -> wgpu::BindGroup {
-    resource_group(ctx, layout, label, std::array::from_fn::<_, N, _>(|i| {
-        (i as u32, buffers[i].as_entire_binding())
-    }))
+    resource_group(
+        ctx,
+        layout,
+        label,
+        std::array::from_fn::<_, N, _>(|i| (i as u32, buffers[i].as_entire_binding())),
+    )
 }
 
 /// Bind explicit shader slots without allocating a temporary entry list.

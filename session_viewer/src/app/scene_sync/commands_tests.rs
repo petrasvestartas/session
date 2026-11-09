@@ -316,7 +316,11 @@ fn removing_a_parent_draws_children_like_a_rewalk() {
     let count = scene.object_count();
     assert!(scene.delete_row(element));
     check(&mut scene);
-    assert_eq!(scene.object_count(), count - 2, "the element goes with its attribute");
+    assert_eq!(
+        scene.object_count(),
+        count - 2,
+        "the element goes with its attribute"
+    );
     assert!(scene.delete_row(parent));
     check(&mut scene);
     assert!(scene.undo());
@@ -568,7 +572,10 @@ fn a_move_carries_what_hangs_under_the_row() {
     for row in rows.into_iter().filter(|&row| row != element) {
         let (owner, guid) = scene.identity_of(row).unwrap();
         assert_eq!(owner, doc);
-        assert_eq!(scene.parent_of(owner, &guid).unwrap().borrow().name, "attributes");
+        assert_eq!(
+            scene.parent_of(owner, &guid).unwrap().borrow().name,
+            "attributes"
+        );
     }
 }
 
@@ -581,22 +588,48 @@ fn an_element_copies_and_deletes_with_its_attributes() {
     let under = |scene: &Scene, row: u32| scene.with_descendants(&[row]).len() - 1;
     assert_eq!(under(&scene, element), 1);
 
-    let copies = scene.copy_rows(&[element], &Xform::translation(0.0, 50.0, 0.0)).unwrap();
+    let copies = scene
+        .copy_rows(&[element], &Xform::translation(0.0, 50.0, 0.0))
+        .unwrap();
     check(&mut scene);
     let copy = scene.row_of(doc, &copies[0].1).unwrap();
-    let attribute = *scene.with_descendants(&[copy]).iter().find(|&&row| row != copy).unwrap();
-    assert!(scene.hidden.contains(&scene.identity_of(attribute).unwrap()), "hidden while Element Attributes is off");
+    let attribute = *scene
+        .with_descendants(&[copy])
+        .iter()
+        .find(|&&row| row != copy)
+        .unwrap();
+    assert!(
+        scene
+            .hidden
+            .contains(&scene.identity_of(attribute).unwrap()),
+        "hidden while Element Attributes is off"
+    );
 
     scene.attributes = true;
     scene.rewalk_cpu(); // as Element Attributes On does
-    let shown = scene.copy_rows(&[element], &Xform::translation(0.0, 90.0, 0.0)).unwrap();
+    let shown = scene
+        .copy_rows(&[element], &Xform::translation(0.0, 90.0, 0.0))
+        .unwrap();
     check(&mut scene);
     let row = scene.row_of(doc, &shown[0].1).unwrap();
-    let attribute = *scene.with_descendants(&[row]).iter().find(|&&r| r != row).unwrap();
-    assert!(!scene.hidden.contains(&scene.identity_of(attribute).unwrap()), "shown while Element Attributes is on");
+    let attribute = *scene
+        .with_descendants(&[row])
+        .iter()
+        .find(|&&r| r != row)
+        .unwrap();
+    assert!(
+        !scene
+            .hidden
+            .contains(&scene.identity_of(attribute).unwrap()),
+        "shown while Element Attributes is on"
+    );
 
     let before = scene.object_count();
-    assert_eq!(scene.delete_rows(&[copy]), 2, "the element and its attribute");
+    assert_eq!(
+        scene.delete_rows(&[copy]),
+        2,
+        "the element and its attribute"
+    );
     check(&mut scene);
     assert_eq!(scene.object_count(), before - 2);
 }

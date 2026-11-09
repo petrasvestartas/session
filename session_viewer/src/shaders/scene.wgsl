@@ -2,7 +2,7 @@
 @group(1) @binding(0) var<uniform> line: LineUniform; // pen and view settings
 @group(1) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
 
-// One object row, 96 bytes; matches Instance in Rust.
+// One object row, 128 bytes; matches Instance in Rust.
 struct Instance {
     model: mat4x4<f32>, // rotation and scale; translation is separate
     color: vec4<f32>, // rgba tint
@@ -10,12 +10,14 @@ struct Instance {
     ao_radius: f32, // SSAO contact radius, world units
     spacing: f32, // vertex spacing, world units
     edge_color: u32, // packed edge color
+    effect: vec4<f32>, // line reveal, point scale, first and last packed matrix cells
+    end_color: vec4<f32>, // gradient end color
 };
 
 @group(2) @binding(0) var<storage, read> instances: array<Instance>; // one row per object
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>; // position per object, minus the scene origin
 
-// Pen and view settings, 80 bytes; matches LineUniform in Rust.
+// Pen and view settings, 160 bytes; matches LineUniform in Rust.
 struct LineUniform {
     thickness: f32, // pen width, px
     proj_y: f32, // perspective scale factor
@@ -33,7 +35,26 @@ struct LineUniform {
     frame: vec2<f32>, // canvas size, px
     opacity: f32, // alpha of mesh faces
     plane_size: f32, // half side of every plane's grid, scene units
+    spatial_mvp: mat4x4<f32>, // projection for presentation objects in the 3D region
+    spatial: vec4<f32>, // right edge of the 3D region, its ortho height, enabled, reserved
 };
+
+const FLAG_SPATIAL: u32 = 262144u;
+
+fn view_mvp(id: u32) -> mat4x4<f32> {
+    if (line.spatial.z > 0.5 && (instances[id].flags & FLAG_SPATIAL) != 0u) {
+        return line.spatial_mvp;
+    }
+    return mvp;
+}
+
+fn spatial_clipped(id: u32, pixel: vec2<f32>) -> bool {
+    return line.spatial.z > 0.5 && (instances[id].flags & FLAG_SPATIAL) != 0u && pixel.x + line.origin.x >= line.spatial.x;
+}
+
+fn non_pickable(id: u32) -> bool {
+    return (instances[id].flags & 524288u) != 0u;
+}
 
 // Object flag bits; match Instance::FLAG_* in Rust.
 const FLAG_SELECTED: u32 = 1u; // selected: drawn tinted

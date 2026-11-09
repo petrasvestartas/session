@@ -15,11 +15,13 @@ pub mod objects;
 pub mod slots; // register:slots
 
 pub mod lane; // register:lane
+pub mod matrices; // register:matrices
 #[cfg(target_arch = "wasm32")]
 mod pacing;
 pub mod pass; // register:pass
 pub(crate) mod patch; // register:patch
 pub mod pick; // register:pick
+pub mod planes; // register:planes
 pub mod present; // register:present
 pub mod render; // register:render
 pub mod segments; // register:segments
@@ -34,8 +36,6 @@ mod triangle_tiles; // register:triangle_tiles
 pub mod ui; // register:ui
 pub mod upload; // register:upload
 pub mod vectors; // register:vectors
-pub mod planes; // register:planes
-pub mod matrices; // register:matrices
 pub mod view; // register:view
 mod widget; // register:widget
 mod widget_mesh; // register:widget_mesh
@@ -61,7 +61,7 @@ use splat::Splat; // register:clouds
 use targets::Targets;
 
 pub use cloud::{CloudDraw, LodNode, NO_NORMALS}; // register:clouds
-pub use frame::FrameInput;
+pub use frame::{FrameInput, SpatialView};
 pub use glyphs::GlyphPoint; // register:markers
 pub use instance::Instance;
 pub use objects::{ObjectRow, Rebase};
@@ -79,23 +79,24 @@ pub struct Gpu {
     pub config: wgpu::SurfaceConfiguration,      // canvas size and format
     pub layouts: Layouts,                        // shared bind group layouts
     pub frame: FrameUniforms,                    // per-frame uniform buffers
-    pub targets: Targets,                        // depth and color textures
-    pub view: View,                              // display settings
-    pub objects: InstanceTable,                  // one row per object
-    pub backdrop: BackdropLane,                  // background and grid
-    pub arena: ArenaLane,                        // meshes; register:meshes
-    pub segments: SegmentLane,                   // lines; register:strokes
-    pub glyphs: GlyphLane,                       // markers and dots; register:markers
-    pub controls: GlyphLane,                     // control point dots; register:shell
-    pub control_net: SegmentLane,                // control polygon lines; register:shell
-    pub widget: widget::Widget,                  // gumball mesh, own depth; register:gumball
-    pub ui: Option<ui::Ui>,                      // egui overlay; register:egui
-    pub text: text::TextLane,                    // labels; register:text
-    pub selection_revision: u64,                 // bumps on every selection change
-    pub logical_size: [f64; 2],                  // canvas size in CSS pixels
-    pub cloud: CloudLane,                        // point cloud buffers; register:clouds
-    registered: Vec<Box<dyn RowLane>>,           // lanes from lane::REGISTRY
-    passes: Vec<Box<dyn Pass>>,                  // passes from pass::PASSES, in frame order
+    pub(crate) spatial: Option<SpatialView>, // independent projection for the 3D presentation region
+    pub targets: Targets,                    // depth and color textures
+    pub view: View,                          // display settings
+    pub objects: InstanceTable,              // one row per object
+    pub backdrop: BackdropLane,              // background and grid
+    pub arena: ArenaLane,                    // meshes; register:meshes
+    pub segments: SegmentLane,               // lines; register:strokes
+    pub glyphs: GlyphLane,                   // markers and dots; register:markers
+    pub controls: GlyphLane,                 // control point dots; register:shell
+    pub control_net: SegmentLane,            // control polygon lines; register:shell
+    pub widget: widget::Widget,              // gumball mesh, own depth; register:gumball
+    pub ui: Option<ui::Ui>,                  // egui overlay; register:egui
+    pub text: text::TextLane,                // labels; register:text
+    pub selection_revision: u64,             // bumps on every selection change
+    pub logical_size: [f64; 2],              // canvas size in CSS pixels
+    pub cloud: CloudLane,                    // point cloud buffers; register:clouds
+    registered: Vec<Box<dyn RowLane>>,       // lanes from lane::REGISTRY
+    passes: Vec<Box<dyn Pass>>,              // passes from pass::PASSES, in frame order
     dead: patch::Counts, // editable rows retired and not yet reclaimed; register:patch
     dead_points: u32,    // cloud points retired and not yet reclaimed; register:clouds
     pub splat: Splat,    // point cloud drawing; register:clouds
@@ -236,6 +237,7 @@ impl Gpu {
             config,
             layouts,
             frame,
+            spatial: None,
             targets,
             view: View::from_env(),
             objects,
@@ -462,7 +464,10 @@ impl Gpu {
             .objects
             .rebase_anchor(&self.ctx, origin, view_dist, now);
 
-        self.backdrop.rebase(&self.ctx, [rebase.anchor[0], rebase.anchor[1], rebase.anchor[2]]);
+        self.backdrop.rebase(
+            &self.ctx,
+            [rebase.anchor[0], rebase.anchor[1], rebase.anchor[2]],
+        );
 
         if rebase.moved {
             self.splat.invalidate(); // register:clouds
@@ -500,6 +505,61 @@ impl Gpu {
         self.objects
             .set_flag(&self.ctx, row, Instance::FLAG_HIDDEN, on);
         self.splat.invalidate(); // register:clouds
+    }
+
+    /// Draw an object in the independent 3D region rather than the 2D slide plane.
+    pub fn set_spatial(&mut self, row: u32, on: bool) {
+        self.objects
+            .set_flag(&self.ctx, row, Instance::FLAG_SPATIAL, on);
+    }
+
+    pub fn set_spatial_view(&mut self, view: Option<SpatialView>) {
+        self.spatial = view;
+    }
+
+    pub fn set_non_pickable(&mut self, row: u32, on: bool) {
+        self.objects
+            .set_flag(&self.ctx, row, Instance::FLAG_NON_PICKABLE, on);
+    }
+
+    /// Reveal a line from 0..1 and scale its points.
+    pub fn set_reveal(&mut self, row: u32, trim: f32, scale: f32) {
+        self.objects.set_reveal(&self.ctx, row, trim, scale);
+    }
+
+    /// Scale arrowheads independently of shaft width.
+    pub fn set_head_scale(&mut self, row: u32, scale: f32) {
+        self.objects.set_head_scale(&self.ctx, row, scale);
+    }
+
+    /// Restore a captured object placement before an absolute transformation.
+    pub fn set_placement(&mut self, row: u32, place: &session_rust::Xform) -> bool {
+        self.objects.set_placement(&self.ctx, row, place)
+    }
+
+    /// Move an object while keeping its local geometry unchanged.
+    pub fn set_translation(&mut self, row: u32, at: [f64; 3]) -> bool {
+        self.objects.set_translation(&self.ctx, row, at)
+    }
+
+    /// Scale an object about a fixed world point.
+    pub fn scale_about(&mut self, row: u32, about: [f64; 3], factor: f64) -> bool {
+        self.objects.scale_about(&self.ctx, row, about, factor)
+    }
+
+    /// Highlight up to two packed inclusive matrix-cell spans, or clear them with None.
+    pub fn set_cells(&mut self, row: u32, cells: Option<((u32, u32), Option<(u32, u32)>)>) {
+        self.objects.set_cells(&self.ctx, row, cells);
+    }
+
+    /// Color arbitrary entries of a presentation matrix independently of hover spans.
+    pub fn set_colored_cells(&mut self, row: u32, mask: [u32; 2]) {
+        self.objects.set_colored_cells(&self.ctx, row, mask);
+    }
+
+    /// Set both colors of a line gradient.
+    pub fn set_gradient(&mut self, row: u32, start: [u8; 4], end: [u8; 4]) {
+        self.objects.set_gradient(&self.ctx, row, start, end);
     }
 }
 
@@ -673,5 +733,8 @@ fn initial_prewarm_reuses_pipelines_and_leaves_other_modes_lazy() {
     assert_eq!(gpu.live_faces(), 0);
     assert!(!gpu.performance.geometry_complete());
     gpu.ctx.cache.compile_all();
-    assert!(crate::engine::pipelines::created().0 > warm, "picking and selection must stay lazy at startup");
+    assert!(
+        crate::engine::pipelines::created().0 > warm,
+        "picking and selection must stay lazy at startup"
+    );
 }

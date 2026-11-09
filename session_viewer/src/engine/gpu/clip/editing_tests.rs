@@ -181,8 +181,8 @@ mod gpu {
     #[test]
     #[ignore = "requires a native GPU adapter"]
     fn sections_default_to_light_grey_with_black_boundaries() {
-        let (mut gpu, scene) = solids(vec![block([-50.0; 3], [50.0; 3], Color::blue(), true)])
-            .expect("native GPU");
+        let (mut gpu, scene) =
+            solids(vec![block([-50.0; 3], [50.0; 3], Color::blue(), true)]).expect("native GPU");
         gpu.pass_mut::<super::super::Clip>().fill = super::super::Clip::new(gpu.target()).fill;
         assert_eq!(gpu.pass::<super::super::Clip>().fill, 1);
         cut(&mut gpu, &scene, &[cut_above(0.0)]);
@@ -192,8 +192,7 @@ mod gpu {
             for dpr in [1.0, 2.0] {
                 gpu.logical_size = [SIZE as f64 / dpr; 2];
                 for perspective in [false, true] {
-                    let (input, pixel) =
-                        frame(&mut gpu, [0.0, 0.0, 250.0], [0.0; 3], perspective);
+                    let (input, pixel) = frame(&mut gpu, [0.0, 0.0, 250.0], [0.0; 3], perspective);
                     let rgba = gpu.render_offscreen(&input);
                     let center = pixel([0.0; 3]);
                     for y in center.1 - 8..=center.1 + 8 {
@@ -213,9 +212,7 @@ mod gpu {
                     ] {
                         let at = pixel(edge);
                         let black = (at.1 - 4..=at.1 + 4)
-                            .flat_map(|y| {
-                                (at.0 - 4..=at.0 + 4).map(move |x| (y * SIZE + x) * 4)
-                            })
+                            .flat_map(|y| (at.0 - 4..=at.0 + 4).map(move |x| (y * SIZE + x) * 4))
                             .filter(|at| rgba[*at..*at + 3].iter().all(|v| *v < 16))
                             .count();
                         assert!(
@@ -239,8 +236,7 @@ mod gpu {
     /// A cut cube seen from the cut side: hatch on the section, the kept top face stays plain,
     /// and the removed half shows the section behind it.
     fn a_cut_cube_caps_its_section_and_nothing_else() {
-        let Some((mut gpu, scene)) =
-            solids(vec![block([0.0; 3], [100.0; 3], Color::grey(), true)])
+        let Some((mut gpu, scene)) = solids(vec![block([0.0; 3], [100.0; 3], Color::grey(), true)])
         else {
             return;
         };
@@ -492,8 +488,7 @@ mod gpu {
         use crate::engine::gpu::{CylinderSegment, GlyphPoint, ObjectRow, Upload};
         use session_rust::AABB;
 
-        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32))
-        else {
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(SIZE as u32, SIZE as u32)) else {
             return;
         };
         gpu.view.show_grid = false;
@@ -538,6 +533,9 @@ mod gpu {
             head: 0.0,
             heads: VectorRow::HEAD_END,
             pad: 0,
+            start_trim: 0.0,
+            end_trim: 0.0,
+            reserved: [0; 2],
         });
         gpu.set_scene(&up);
         // ink left and right of x = 0, and pick ids right of it
@@ -602,8 +600,7 @@ mod gpu {
     #[ignore = "requires a native GPU adapter"]
     /// Seen along the cut, the removed half is empty: nothing to see, nothing to pick.
     fn cut_away_geometry_cannot_be_picked() {
-        let Some((mut gpu, scene)) =
-            solids(vec![block([0.0; 3], [100.0; 3], Color::grey(), true)])
+        let Some((mut gpu, scene)) = solids(vec![block([0.0; 3], [100.0; 3], Color::grey(), true)])
         else {
             return;
         };

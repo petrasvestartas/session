@@ -68,3 +68,13 @@ bash/view_live.sh scene.yaml scan.pb
 ```
 
 Every checkpoint of the course is a runnable crate under `docs/lessons/<id>/`; the lessons are in `docs/`.
+
+## Session presentations
+
+The [Linkwitz force-density example](examples/linkwitz/README.md) documents the 36-slide protobuf deck, its camera-aligned closed force polygon, pink free-node styling, regeneration, browser verification, and Teaching publication. For a minimal starting point, run [`one_slide.py`](examples/linkwitz/one_slide.py) or follow the [authoring guide](examples/linkwitz/AUTHORING.md#make-one-slide-and-open-it-in-chrome). Teaching also has a [one-slide guide](https://github.com/BRG-teaching/Teaching/blob/main/CAS/website/session-viewer-guide/one-slide.md).
+
+Presentation playback uses Session kernel objects serialized to protobuf, this Rust renderer, and the existing WGSL shaders. It does not require a second renderer or browser-side Python.
+
+## Stage decks: mathematics in YAML
+
+`?stage=force-density` plays a deck written only in YAML: an orthographic 3D view on the left that stays put between slides, and a column of TeX formulas and rounded-cell matrices on the right, laid out without overlaps. Steps write, morph, derive and project formulas and geometry. The TeX layout reads the OpenType MATH table of New Computer Modern (`assets/stage/`), and the glyphs are drawn through the egui painter. The format, the actions and the publishing commands are in [examples/stage/README.md](examples/stage/README.md). The seven-chapter [force-density deck](examples/stage/force-density/) derives Linkwitz's method from the inputs, through one node, the matrices, the Jacobian and the matrix form, to materialization. `cargo test --lib stage::` plays every step of it.

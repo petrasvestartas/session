@@ -1,4 +1,4 @@
-// One line segment with its neighbours, 52 bytes; matches StrokeSegment in Rust.
+// One line segment with its neighbours and dash pattern, 72 bytes; matches StrokeSegment in Rust.
 struct StrokeSegment {
     p0x: f32, // start point x
     p0y: f32, // start point y
@@ -13,6 +13,10 @@ struct StrokeSegment {
     previous: u32, // row of the segment before it, none, or HEAD_MARK
     next: u32, // row of the segment after it, none, or HEAD_MARK
     sag: f32, // how far the stroke rises off the faces beside it, mm; the hidden-line test's slack; its sign bit marks a silhouette-only segment
+    start_trim: f32, // visible point radius at the outer start
+    dash: vec2<f32>, // on and off lengths; zero is solid
+    dash_offset: f32, // cumulative length before this segment
+    end_trim: f32, // visible point radius at the outer end
 }
 
 // Neighbour code of an end under an arrowhead, drawn by the vector lane; matches HEAD_MARK in Rust.
@@ -50,13 +54,13 @@ fn half_width_px(radius: f32, w: f32) -> f32 {
 // Half a pixel's diagonal: how far a pixel reaches from its center.
 const FILTER_REACH: f32 = 0.70711;
 // Default arrowhead length, in pen widths; as in vector.wgsl.
-const HEAD_PENS: f32 = 10.0;
+const HEAD_PENS: f32 = 12.0;
 // Half the arrowhead's base width over its length; as in vector.wgsl.
-const HEAD_ASPECT: f32 = 0.4;
+const HEAD_ASPECT: f32 = 0.55;
 
-// Arrowhead length in px: `pens` pen widths, six shaft half widths at least, `most` at most.
+// Arrowhead length in px: `pens` pen widths, seven shaft half widths at least, `most` at most.
 fn head_px(pens: f32, hw: f32, most: f32) -> f32 {
-    return min(max(pens * line.thickness, hw * 6.0), most);
+    return min(max(pens * line.thickness, hw * 7.0), most);
 }
 
 // How far the shaft runs under a head past its base: a pixel's reach at least, so the seam has no gap.
@@ -71,7 +75,7 @@ const NO_CUT: vec2<f32> = vec2<f32>(0.0, 3.0e38);
 
 // Object point `q` of row `id` in screen px, with clip w; w is 0 when the near plane cuts it.
 fn screen_of(id: u32, q: vec3<f32>) -> vec3<f32> {
-    let c = mvp * vec4<f32>(place(id, q), 1.0);
+    let c = view_mvp(id) * vec4<f32>(place(id, q), 1.0);
 
     if (c.w <= 0.0 || c.z > c.w) {
         return vec3<f32>(0.0);
@@ -96,7 +100,9 @@ fn head_plane(iid: u32, forward: bool, near: vec3<f32>, far: vec3<f32>, radius: 
             // the head the vector lane draws on this segment: tip at `at`, aimed from `back`
             let hw_tip = max(half_width_px(radius, at.z), floor_hw);
             let hw = max(hw_tip, max(half_width_px(radius, back.z), floor_hw));
-            let head = head_px(HEAD_PENS, hw_tip, 3.0e38);
+            let effect = instances[segments[row].instance_id].effect;
+            let head_scale = select(1.0, effect.z, effect.z > 0.0 && effect.z < 1.0);
+            let head = head_scale * head_px(HEAD_PENS, hw_tip, 3.0e38);
             let under = head - tuck(head, head * HEAD_ASPECT, hw);
             let run = at.xy - back.xy;
 
@@ -268,7 +274,7 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
 // roundoff: in depth and screen px. A zero-sag crease and its adjacent triangles
 // take different f32 arithmetic paths. Allow for rounding in rebased scene units,
 // rather than adding a fixed physical gap that would overwhelm a tiny model.
-fn sag_terms(w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
+fn sag_terms(id: u32, w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
     let toward = toward_eye(w);
     // an orthographic view has no eye, only a direction: its stand-in point lies 1e9 away and would make the slack metres wide
     let eye_distance = select(length(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - w), 0.0, line.ortho_h > 0.0);
@@ -279,7 +285,7 @@ fn sag_terms(w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
         return vec2<f32>(0.0);
     }
 
-    let lifted = mvp * vec4<f32>(w + normalize(toward) * rise, 1.0);
+    let lifted = view_mvp(id) * vec4<f32>(w + normalize(toward) * rise, 1.0);
 
     if (lifted.w <= 0.0) {
         return vec2<f32>(0.0);
@@ -323,6 +329,10 @@ var<private> slot_row: u32 = 0xffffffffu;
 fn placed_segment(index: u32) -> StrokeSegment {
     var seg = segments[index];
     seg.instance_id = select(slot_row, seg.instance_id, slot_row == 0xffffffffu);
+    let reveal = instances[seg.instance_id].effect.x;
+    seg.p1x = mix(seg.p0x, seg.p1x, reveal);
+    seg.p1y = mix(seg.p0y, seg.p1y, reveal);
+    seg.p1z = mix(seg.p0z, seg.p1z, reveal);
     return seg;
 }
 
@@ -339,9 +349,10 @@ fn join_plane(before: u32, after: u32) -> vec4<f32> {
         return vec4<f32>(0.0);
     }
 
-    let c0 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x, a.p0y, a.p0z)), 1.0);
-    let c1 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x, a.p1y, a.p1z)), 1.0);
-    let c2 = mvp * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x, b.p1y, b.p1z)), 1.0);
+    let camera = view_mvp(a.instance_id);
+    let c0 = camera * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x, a.p0y, a.p0z)), 1.0);
+    let c1 = camera * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x, a.p1y, a.p1z)), 1.0);
+    let c2 = camera * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x, b.p1y, b.p1z)), 1.0);
 
     if (c0.w <= 0.0 || c1.w <= 0.0 || c2.w <= 0.0 || c0.z > c0.w || c1.z > c1.w || c2.z > c2.w) {
         return vec4<f32>(0.0);
@@ -427,8 +438,9 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
         return dead_vertex();
     }
 
-    var c0 = mvp * vec4<f32>(w0, 1.0);
-    var c1 = mvp * vec4<f32>(w1, 1.0);
+    let camera = view_mvp(seg.instance_id);
+    var c0 = camera * vec4<f32>(w0, 1.0);
+    var c1 = camera * vec4<f32>(w1, 1.0);
     let contact = seg.color == 0x01000000u;
     if (contact && seg.facing != FACING_UNKNOWN) {
         let normal = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
@@ -452,30 +464,39 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 
     // both ends in screen pixels
     let vp = vec2<f32>(line.vp_w, line.vp_h);
-    let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
-    let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
+    var s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
+    var s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
     // The expanded quad cannot reach the viewport: skip visibility and neighbour work.
     // Two half widths bound the sideways + end-cap expansion, including selected hairlines.
-    let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
-    let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
+    let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, 3.5 * line.thickness, selected));
+    let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, 3.5 * line.thickness, selected));
     let reach = 2.0 * (max(max(raw0, raw1), 0.5) + FILTER_REACH);
     if (any(max(s0, s1) + reach < vec2<f32>(0.0)) || any(min(s0, s1) - reach > vp)) {
         return dead_vertex();
     }
     // the stroke's rise off its faces, as the farther end sees it
-    let sag = max(sag_terms(w0, c0, abs(seg.sag)), sag_terms(w1, c1, abs(seg.sag)));
+    let sag = max(sag_terms(seg.instance_id, w0, c0, abs(seg.sag)), sag_terms(seg.instance_id, w1, c1, abs(seg.sag)));
 
     // one triangle in front of both ends hides it all: no fragment need ask
     if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w, sag)) {
         return dead_vertex();
     }
 
+    let original = s1 - s0;
+    let original_length = length(original);
+    let dir = select(vec2<f32>(1.0, 0.0), original / original_length, original_length > 1e-6);
+    let trim0 = select(0.0, half_width_px(seg.start_trim, e0.w) + FILTER_REACH, seg.start_trim != 0.0);
+    let trim1 = select(0.0, half_width_px(seg.end_trim, e1.w) + FILTER_REACH, seg.end_trim != 0.0);
+    if (original_length <= trim0 + trim1 + 2.0) {
+        return dead_vertex();
+    }
+    s0 += dir * trim0;
+    s1 -= dir * trim1;
     let d = s1 - s0;
     let len = length(d);
-    let dir = select(vec2<f32>(1.0, 0.0), d / len, len > 1e-6);
     let n = vec2<f32>(-dir.y, dir.x);
 
-    // half widths at both ends; a selected stroke is at least a full pen wide
+    // highlighted strokes use a thicker half-width floor
     let px = floor_hairline(select(raw0, raw1, at_end1));
     // corner: sideways by the width, outward by the filter reach
     let along = select(-1.0, 1.0, at_end1);
@@ -485,6 +506,10 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = edge_color(unpack4x8unorm(seg.color), inst);
+    if ((inst.flags & 65536u) != 0u) {
+        let along = clamp(dot(p - s0, d) / max(dot(d, d), 1e-6), 0.0, 1.0);
+        color = mix(color, inst.end_color, along);
+    }
 
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
@@ -512,7 +537,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     o.end_join = join_plane(iid, seg.next);
 
     // a curve stops flat under its heads' bases, unless the near plane cut that end; headless curves skip the walk
-    let floor_hw = select(0.0, line.thickness, selected);
+    let floor_hw = select(0.0, 3.5 * line.thickness, selected);
     let near = vec3<f32>(s0, e0.w);
     let far = vec3<f32>(s1, e1.w);
     let headed = (inst.flags & FLAG_HEADS) != 0u && seg.facing == FACING_UNKNOWN;
@@ -577,6 +602,30 @@ fn vs_front_selected(@builtin(vertex_index) vid: u32, @location(0) slot: u32) ->
     return stroke_vertex(vid, 2u);
 }
 
+fn dash_coverage(in: VsOut, h: f32) -> f32 {
+    let seg = segments[in.segment_index];
+    if (seg.dash.x <= 0.0 || seg.dash.y <= 0.0) {
+        return 1.0;
+    }
+    let p0 = vec3<f32>(seg.p0x, seg.p0y, seg.p0z);
+    let p1 = vec3<f32>(seg.p1x, seg.p1y, seg.p1z);
+    let local_length = distance(p0, p1);
+    let world_length = distance(place(seg.instance_id, p0), place(seg.instance_id, p1));
+    let scale = world_length / max(local_length, 1e-6);
+    let on = seg.dash.x * scale;
+    let off = seg.dash.y * scale;
+    let d0 = max(in.end_depth.x, 1e-20);
+    let d1 = max(in.end_depth.y, 1e-20);
+    let t = clamp(h, 0.0, 1.0);
+    let world_t = t * d1 / ((1.0 - t) * d0 + t * d1);
+    let distance = seg.dash_offset * scale + world_t * world_length;
+    let period = on + off;
+    let phase = distance % period;
+    let screen_length = in.end_depth.w - in.end_depth.z;
+    let antialias = max(world_length / max(screen_length, 1e-6) * 0.75, 1e-6);
+    return clamp((on - phase) / antialias + 0.5, 0.0, 1.0);
+}
+
 // How much of this pixel the stroke covers, 0..1, times the hairline alpha.
 fn coverage(in: VsOut) -> f32 {
     let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
@@ -605,6 +654,7 @@ fn coverage(in: VsOut) -> f32 {
     let v = pa - dir * clamp(along, in.end_depth.z, in.end_depth.w);
     let d = length(v);
     let hf = resolve_width(in, h);
+    let dashed = dash_coverage(in, h);
 
     // near a flat end: a band across times the pixel's share on the inner side of the end
     if (len > 1e-6 && any(in.style.yz > vec2<f32>(0.5))) {
@@ -623,12 +673,12 @@ fn coverage(in: VsOut) -> f32 {
             let q = max(2.0 * a * b, 1e-6);
             let inside0 = select(1.0, box_cdf(t, reach, lo, m, q), flat0);
             let inside1 = select(1.0, box_cdf(len - t, reach, lo, m, q), flat1);
-            return across * inside0 * inside1 * hf.y;
+            return across * inside0 * inside1 * hf.y * dashed;
         }
     }
 
     let g = select(vec2<f32>(1.0, 0.0), v / d, d > 1e-6);
-    return clamp(band_area(d, hf.x, g), 0.0, 1.0) * hf.y;
+    return clamp(band_area(d, hf.x, g), 0.0, 1.0) * hf.y * dashed;
 }
 
 // The stroke's center line as this fragment sees it.
@@ -661,6 +711,9 @@ fn axis_cut(in: VsOut) -> bool {
 @fragment
 // Color: the stroke, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
+    if (spatial_clipped(in.inst_id, in.pos.xy)) {
+        discard;
+    }
     let covered = coverage(in);
 
     // no coverage: no depth reads
@@ -726,7 +779,7 @@ const SEGMENT_BIT: u32 = 0x80000000u;
 @fragment
 // Pick id: object row + 1 and tagged segment row + 1.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -736,7 +789,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 // Pick id for edge picks; segments without a source edge are skipped.
 @fragment
 fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 

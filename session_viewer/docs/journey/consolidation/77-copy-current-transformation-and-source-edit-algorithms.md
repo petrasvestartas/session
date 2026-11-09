@@ -1,6 +1,6 @@
-# 15.1 · Original transforms, part edits and solid recipes
+# 15.1 Ã‚Â· Original transforms, part edits and solid recipes
 
-**Steps:** 49 · **Source:** [app/deform.rs](../../../src/app/deform.rs) · [state/edit.rs](../../../src/state/edit.rs) · [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) · [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
+**Steps:** 49 Ã‚Â· **Source:** [app/deform.rs](../../../src/app/deform.rs) Ã‚Â· [state/edit.rs](../../../src/state/edit.rs) Ã‚Â· [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs) Ã‚Â· [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -53,7 +53,7 @@ Create the file and type:
 
 ```rust
 use session_rust::{Plane, Point, Vector, Xform};
-/// How far `p` reaches from `origin`: in space, in the plane, or along origin→`from` for 1D.
+/// How far `p` reaches from `origin`: in space, in the plane, or along originÃ¢â€ â€™`from` for 1D.
 pub fn reach(
     mode: u8,
     origin: &Point,
@@ -90,7 +90,7 @@ pub fn factor(
     (base > 1e-12 && k.is_finite() && k > 1e-12).then_some(k)
 }
 
-/// A scale by `k` about `origin`: uniform, in the plane, or along origin→`from`.
+/// A scale by `k` about `origin`: uniform, in the plane, or along originÃ¢â€ â€™`from`.
 pub fn scaling(mode: u8, origin: &Point, from: &Point, k: f64, plane: &Plane) -> Xform {
     match mode {
         1 => stretch(origin, &[(from - origin).normalized()], k),
@@ -2184,7 +2184,7 @@ impl Draft {
     pub fn prompt(&self) -> String {
         let question = match (self.kind, self.points.len(), self.mode) {
             (Kind::Copy | Kind::Move, 0, _) => "Base point",
-            (Kind::Copy, _, _) => "Target point · Enter finishes",
+            (Kind::Copy, _, _) => "Target point Ã‚Â· Enter finishes",
             (Kind::Move, _, _) => "Target point or distance along the band",
             (Kind::Scale, 0, _) => "Origin point",
             (Kind::Scale, 1, 1) => "First reference point sets the direction",
@@ -2195,10 +2195,10 @@ impl Draft {
             (Kind::Rotate, _, _) => "Second reference point or angle",
         };
         format!(
-            "{} · {question} · Esc cancels{}",
+            "{} Ã‚Â· {question} Ã‚Â· Esc cancels{}",
             self.kind.name(),
             if self.kind == Kind::Scale {
-                format!(" · {}D", self.mode)
+                format!(" Ã‚Â· {}D", self.mode)
             } else {
                 String::new()
             }
@@ -2255,7 +2255,7 @@ Edit the existing block to match this code; keep unchanged lines:
             Answer::Number(value) => {
                 if !value.is_finite() || value.abs() > 1e12 {
                     return Err(
-                        "Transform value must be finite and within ±1e12".into(),
+                        "Transform value must be finite and within Ã‚Â±1e12".into(),
                     );
                 }
                 let Some(&origin) = self.points.first() else {
@@ -6456,7 +6456,7 @@ fn build(input: &Input) -> Result<Made, String> {
     {
         if *number > 0 {
             message.push_str(&format!(
-                " · no cap on {} ({why})",
+                " Ã‚Â· no cap on {} ({why})",
                 count(*number, "curve")
             ));
         }
@@ -6798,7 +6798,7 @@ fn build(input: &Input) -> Result<Made, String> {
         .collect::<Result<Vec<_>, String>>()?;
     Ok(Made {
         message: format!(
-            "Revolved {} by {degrees}°",
+            "Revolved {} by {degrees}Ã‚Â°",
             count(geometries.len(), "curve")
         ),
         geometries,
@@ -6879,7 +6879,7 @@ mod tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 15.1 (77zzo-revolve-original-profiles-around-an-axis)](../../screenshots/journey/77zzo-revolve-original-profiles-around-an-axis.png)
+![Shared BRep box in three transformed placements](../../screenshots/journey/77zzo-revolve-original-profiles-around-an-axis-6622df059111.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 15.1
@@ -6891,4 +6891,4 @@ npm --prefix ../session_tests run course -- check 15.1
 npm --prefix ../session_tests run course -- save 15.1
 ```
 
-Continue with [15.2 · Profile collection and one surfacing transaction](78-copy-current-curve-collection-and-surfacing-recipes.md).
+Continue with [15.2 Ã‚Â· Profile collection and one surfacing transaction](78-copy-current-curve-collection-and-surfacing-recipes.md).

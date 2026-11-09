@@ -174,11 +174,9 @@ pub mod tests {
 
     /// A drawing verb that exists only here and in one `#[cfg(test)]` registry line.
     pub const SPEC: Draw = Draw {
-        spec: Spec::new(
-            &["Wedge"],
-            "Wedge · three corners",
-            |_, rest| Draw::parse(&SPEC, rest),
-        ),
+        spec: Spec::new(&["Wedge"], "Wedge · three corners", |_, rest| {
+            Draw::parse(&SPEC, rest)
+        }),
         points: 3..=3,
         what: "wedge",
         buttons: &[("Cancel", "Escape")],

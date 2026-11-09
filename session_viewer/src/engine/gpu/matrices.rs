@@ -47,7 +47,8 @@ fn block_starts(words: &[u32], base: u32) -> Vec<u32> {
 
     while at + HEADER_WORDS <= words.len() {
         starts.push(base + at as u32);
-        at += HEADER_WORDS + words[at + ROWS_AT] as usize * words[at + COLS_AT] as usize * VALUE_WORDS;
+        at += HEADER_WORDS
+            + words[at + ROWS_AT] as usize * words[at + COLS_AT] as usize * VALUE_WORDS;
     }
 
     starts
@@ -155,7 +156,8 @@ impl Lane for MatrixLane {
             return;
         };
 
-        self.starts.extend(block_starts(&rows.words, self.buf.len()));
+        self.starts
+            .extend(block_starts(&rows.words, self.buf.len()));
 
         if self.buf.append(ctx, &rows.words) {
             self.rebind(ctx, layouts);
@@ -244,7 +246,10 @@ mod tests {
             ("ZERO", ZERO_AT),
             ("TEXT", TEXT_AT),
         ] {
-            assert!(src.contains(&format!("const {name}: u32 = {at}u;")), "{name}");
+            assert!(
+                src.contains(&format!("const {name}: u32 = {at}u;")),
+                "{name}"
+            );
         }
 
         assert!(src.contains(&format!("const SIGN_BIT: u32 = {SIGN_BIT:#x}u;")));
@@ -260,5 +265,79 @@ mod tests {
         words[first + ROWS_AT] = 1;
         words[first + COLS_AT] = 1;
         assert_eq!(block_starts(&words, 10), [10, 10 + first as u32]);
+    }
+
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn presentation_cells_have_rounded_corners_and_gaps() {
+        use crate::app::scene::{FileDoc, Scene};
+        use crate::engine::gpu::{FrameInput, Gpu, Instance};
+        use session_rust::{Color, Matrix, Session, Xform};
+        use std::rc::Rc;
+
+        let mut matrix = Matrix::new(1, 2);
+        matrix.name.clear();
+        matrix.cell = 0.5;
+        matrix.mincolor = Color::white();
+        matrix.maxcolor = Color::white();
+        matrix.zerocolor = Color::white();
+        let mut session = Session::new("cells");
+        session.add_matrix(&matrix, None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "cells".into(),
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: false,
+        });
+        for row in &mut scene.tables.obj.rows {
+            row.flags |= Instance::FLAG_MATH;
+        }
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(256, 256)) else {
+            eprintln!("no GPU adapter; skipped");
+            return;
+        };
+        gpu.view.dark = true;
+        gpu.view.show_grid = false;
+        gpu.view.lit = false;
+        scene.upload_to(&mut gpu);
+        let pixels = gpu.render_offscreen(&FrameInput {
+            view_proj: Xform::identity(),
+            clear: wgpu::Color::BLACK,
+            now_ms: 0.0,
+        });
+        assert!(
+            scene
+                .tables
+                .obj
+                .rows
+                .iter()
+                .all(|row| row.flags & Instance::FLAG_MATH != 0)
+        );
+        let pixel = |x: usize, y: usize| &pixels[(y * 256 + x) * 4..][..3];
+        let white = |x: usize, y: usize| pixel(x, y)[0] > 200;
+        let vertical: Vec<usize> = (0..256).filter(|&y| white(128, y)).collect();
+        let middle = (vertical[0] + vertical[vertical.len() - 1]) / 2;
+        let horizontal: Vec<usize> = (0..256).filter(|&x| white(x, middle)).collect();
+        let first_left = horizontal[0];
+        let (first_right, second_left) = horizontal
+            .windows(2)
+            .find_map(|pair| (pair[1] > pair[0] + 1).then_some((pair[0], pair[1])))
+            .expect("a visible gap separates the cells");
+        assert!((2..=5).contains(&(second_left - first_right - 1)));
+        assert!(white(second_left + 8, middle), "the second cell is filled");
+        let first_center = (first_left + first_right) / 2;
+        let top = (0..256)
+            .find(|&y| white(first_center, y))
+            .expect("the first cell has a top edge");
+        assert!(
+            !white(first_left, top),
+            "the outer corner pixel must expose the background"
+        );
+        assert!(
+            white(first_left + 8, top + 8),
+            "the corner interior is filled"
+        );
     }
 }

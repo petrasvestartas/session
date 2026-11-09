@@ -110,7 +110,9 @@ impl LiveSource {
         }
 
         self.viewed = true;
-        self.manifest.as_ref().map(|manifest| (manifest.view, manifest.grid))
+        self.manifest
+            .as_ref()
+            .map(|manifest| (manifest.view, manifest.grid))
     }
 
     /// Watch a named scene's manifest, announced on the same relay as view_live.
@@ -364,7 +366,10 @@ impl LiveSource {
         };
 
         super::feedback::phase("decode", started, n as u64, url);
-        if session.lookup.is_empty() && session.instance_lookup.is_empty() && !crate::app::walk::matrix::holds_matrix(&session) {
+        if session.lookup.is_empty()
+            && session.instance_lookup.is_empty()
+            && !crate::app::walk::matrix::holds_matrix(&session)
+        {
             self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
             return;
         }

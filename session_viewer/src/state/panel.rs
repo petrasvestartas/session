@@ -1,6 +1,6 @@
+use crate::app::hierarchy::Pick;
 use crate::app::layers::Layer;
 use crate::state::State;
-use crate::app::hierarchy::Pick;
 use session_rust::Geometry;
 use std::rc::Rc;
 
@@ -374,10 +374,18 @@ impl State {
         let Some(Geometry::Element(element)) = self.scene.geometry(pick.row) else {
             return;
         };
-        let drawn = if pick.interactions { self.scene.interactions } else { self.scene.attributes };
+        let drawn = if pick.interactions {
+            self.scene.interactions
+        } else {
+            self.scene.attributes
+        };
         let mut features = element.features().to_vec();
         // anything drawn: hide all, else show them
-        let show = !drawn || !pick.features.iter().any(|&i| features.get(i).is_some_and(|f| f.visible));
+        let show = !drawn
+            || !pick
+                .features
+                .iter()
+                .any(|&i| features.get(i).is_some_and(|f| f.visible));
 
         for &i in &pick.features {
             if let Some(feature) = features.get_mut(i) {
@@ -387,7 +395,11 @@ impl State {
 
         let mut element = (**element).clone();
         element.set_features(features);
-        let label = if show { "show features" } else { "hide features" };
+        let label = if show {
+            "show features"
+        } else {
+            "hide features"
+        };
 
         if let Err(message) = self
             .scene
@@ -416,7 +428,11 @@ impl State {
         let Some(Geometry::Element(element)) = self.scene.geometry(pick.row) else {
             return (0, true);
         };
-        let drawn = if pick.interactions { self.scene.interactions } else { self.scene.attributes };
+        let drawn = if pick.interactions {
+            self.scene.interactions
+        } else {
+            self.scene.attributes
+        };
         let hidden = !drawn
             || pick
                 .features
@@ -461,9 +477,9 @@ impl State {
         let held = self.features.hierarchy.held();
 
         !rows.is_empty()
-            && rows
-                .iter()
-                .all(|row| crate::app::hierarchy::Hierarchy::hidden_itself(&self.scene, &held, *row))
+            && rows.iter().all(|row| {
+                crate::app::hierarchy::Hierarchy::hidden_itself(&self.scene, &held, *row)
+            })
     }
 
     /// Hide or show sorted rows.
@@ -565,7 +581,11 @@ impl State {
                     self.features.hierarchy.lamp_is_off(index)
                         || (count > 0
                             && targets.iter().all(|row| {
-                                crate::app::hierarchy::Hierarchy::hidden_itself(&self.scene, &held, *row)
+                                crate::app::hierarchy::Hierarchy::hidden_itself(
+                                    &self.scene,
+                                    &held,
+                                    *row,
+                                )
                             })),
                 ),
             };

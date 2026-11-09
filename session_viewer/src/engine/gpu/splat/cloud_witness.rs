@@ -39,6 +39,7 @@ pub async fn render(
     gpu.view = View {
         ssao: false,
         show_grid: false,
+        dark: false,
         show_points: false,
         show_lines: false,
         show_mesh_edges: false,

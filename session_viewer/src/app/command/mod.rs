@@ -34,8 +34,8 @@ pub struct Spec {
     pub hint: &'static str,             // help line, empty for the generic one
     pub options: &'static [&'static str], // clickable choices
     pub arity: Option<usize>,           // exact argument count, when fixed
-    pub wait_for_option: bool,          // completing the bare verb waits for an option it cannot run without
-    pub wait_after_option: bool,        // completing verb and option waits for more
+    pub wait_for_option: bool, // completing the bare verb waits for an option it cannot run without
+    pub wait_after_option: bool, // completing verb and option waits for more
     pub parse: fn(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String>,
 }
 
@@ -204,12 +204,20 @@ pub fn repeat(line: &str) -> Option<String> {
         return Some(text);
     }
 
-    Some(options(name).iter()
-        .filter(|option| text == **option || text.strip_prefix(**option).is_some_and(|tail| tail.starts_with(' ')))
-        .max_by_key(|option| option.len())
-        .copied()
-        .unwrap_or(name)
-        .to_owned())
+    Some(
+        options(name)
+            .iter()
+            .filter(|option| {
+                text == **option
+                    || text
+                        .strip_prefix(**option)
+                        .is_some_and(|tail| tail.starts_with(' '))
+            })
+            .max_by_key(|option| option.len())
+            .copied()
+            .unwrap_or(name)
+            .to_owned(),
+    )
 }
 
 /// Help text for the verb being typed.

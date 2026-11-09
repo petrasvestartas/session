@@ -25,16 +25,16 @@ const INK_LEVEL: u8 = 190;
 
 /// The scene as the CPU sees it: placed triangles, placed strokes and the camera.
 pub(super) struct Oracle {
-    eye: [f64; 3],                // scene units
+    eye: [f64; 3],                  // scene units
     orthographic: Option<[f64; 3]>, // parallel direction; perspective rays start at eye
-    ray_span: f64,               // enough world distance to start before the scene
-    origin: [f64; 3],             // the point the matrix is relative to
-    matrix: [f64; 16],            // view-projection, column-major, scene units in
-    size: (u32, u32),             // frame size, px
-    tris: Vec<[[f64; 3]; 3]>,     // placed triangles
-    cells: Vec<Vec<u32>>,         // triangle indices per screen cell
-    strokes: Vec<[[f64; 3]; 2]>,  // placed stroke segments
-    stroke_rows: Vec<u32>,        // object row of each stroke
+    ray_span: f64,                  // enough world distance to start before the scene
+    origin: [f64; 3],               // the point the matrix is relative to
+    matrix: [f64; 16],              // view-projection, column-major, scene units in
+    size: (u32, u32),               // frame size, px
+    tris: Vec<[[f64; 3]; 3]>,       // placed triangles
+    cells: Vec<Vec<u32>>,           // triangle indices per screen cell
+    strokes: Vec<[[f64; 3]; 2]>,    // placed stroke segments
+    stroke_rows: Vec<u32>,          // object row of each stroke
 }
 
 /// What the frame showed of the points the oracle found visible.
@@ -62,7 +62,11 @@ impl Verdict {
 
 /// `place` applied to an f32 point.
 fn placed(place: &Xform, p: [f32; 3]) -> [f64; 3] {
-    let q = place.transform_point(&Point::new(f64::from(p[0]), f64::from(p[1]), f64::from(p[2])));
+    let q = place.transform_point(&Point::new(
+        f64::from(p[0]),
+        f64::from(p[1]),
+        f64::from(p[2]),
+    ));
     [q[0], q[1], q[2]]
 }
 
@@ -127,7 +131,10 @@ impl Oracle {
 
             let place = |index: u32| {
                 let vertex = &tables.arena.verts[index as usize];
-                placed(&rows[tables.arena.vids[index as usize] as usize].place, vertex.position)
+                placed(
+                    &rows[tables.arena.vids[index as usize] as usize].place,
+                    vertex.position,
+                )
             };
             tris.push([place(corner[0]), place(corner[1]), place(corner[2])]);
         }
@@ -150,9 +157,14 @@ impl Oracle {
         let origin = camera.origin();
         let aspect = f64::from(size.0) / f64::from(size.1);
         let mut oracle = Self {
-            eye: [camera.position[0] / s, camera.position[1] / s, camera.position[2] / s],
-            orthographic: (!camera.perspective).then(|| std::array::from_fn(|i|
-                (camera.target[i] - camera.position[i]) / camera.distance)),
+            eye: [
+                camera.position[0] / s,
+                camera.position[1] / s,
+                camera.position[2] / s,
+            ],
+            orthographic: (!camera.perspective).then(|| {
+                std::array::from_fn(|i| (camera.target[i] - camera.position[i]) / camera.distance)
+            }),
             ray_span: 2.0 * (camera.distance + 2.0 * camera.scene_extent) / s,
             origin: [origin[0], origin[1], origin[2]],
             matrix: camera.view_proj(aspect).m,
@@ -216,8 +228,14 @@ impl Oracle {
 
                 let xs = corners.iter().map(|c| c.unwrap().0);
                 let ys = corners.iter().map(|c| c.unwrap().1);
-                let (x0, x1) = (xs.clone().fold(f64::MAX, f64::min), xs.fold(f64::MIN, f64::max));
-                let (y0, y1) = (ys.clone().fold(f64::MAX, f64::min), ys.fold(f64::MIN, f64::max));
+                let (x0, x1) = (
+                    xs.clone().fold(f64::MAX, f64::min),
+                    xs.fold(f64::MIN, f64::max),
+                );
+                let (y0, y1) = (
+                    ys.clone().fold(f64::MAX, f64::min),
+                    ys.fold(f64::MIN, f64::max),
+                );
                 (self.cell(x0, y0), self.cell(x1, y1))
             })
             .collect();
@@ -233,8 +251,9 @@ impl Oracle {
 
     /// How far in front of `p` the nearest triangle on the ray to it lies, mm; 0 for none.
     pub fn cover(&self, p: &[f64; 3], pixel: (f64, f64)) -> f64 {
-        let origin = self.orthographic.map_or(self.eye, |forward|
-            std::array::from_fn(|i| p[i] - forward[i] * self.ray_span));
+        let origin = self.orthographic.map_or(self.eye, |forward| {
+            std::array::from_fn(|i| p[i] - forward[i] * self.ray_span)
+        });
         let d = sub(p, &origin);
         let length = dot(&d, &d).sqrt();
         let (cx, cy) = self.cell(pixel.0, pixel.1);
@@ -256,7 +275,8 @@ impl Oracle {
         let mut verdict = Verdict::default();
         let mut visible_pixels = std::collections::HashSet::new();
         let mut hidden_samples = Vec::new();
-        let inside = |x: f64, y: f64| x >= region.0 && y >= region.1 && x < region.2 && y < region.3;
+        let inside =
+            |x: f64, y: f64| x >= region.0 && y >= region.1 && x < region.2 && y < region.3;
 
         for (stroke, &row) in self.strokes.iter().zip(&self.stroke_rows) {
             // the part in front of the eye: clip w is affine along the stroke
@@ -268,7 +288,11 @@ impl Oracle {
 
             let crossing = |w: f64, other: f64| (1e-3 - w) / (other - w);
             let h0 = if w0 <= 0.0 { crossing(w0, w1) } else { 0.0 };
-            let h1 = if w1 <= 0.0 { 1.0 - crossing(w1, w0) } else { 1.0 };
+            let h1 = if w1 <= 0.0 {
+                1.0 - crossing(w1, w0)
+            } else {
+                1.0
+            };
             let at = |h: f64| -> [f64; 3] {
                 std::array::from_fn(|i| stroke[0][i] + (stroke[1][i] - stroke[0][i]) * h)
             };
@@ -385,11 +409,20 @@ fn render_configured(
     let s = camera.unit.to_meters();
     println!(
         "oracle camera: eye ({:.1}, {:.1}, {:.1}) target ({:.1}, {:.1}, {:.1}) mm, bounds centre ({:.1}, {:.1}, {:.1}) half ({:.1}, {:.1}, {:.1}), {} triangles, {} strokes",
-        camera.position[0] / s, camera.position[1] / s, camera.position[2] / s,
-        camera.target[0] / s, camera.target[1] / s, camera.target[2] / s,
-        scene.tables.bounds.cx, scene.tables.bounds.cy, scene.tables.bounds.cz,
-        scene.tables.bounds.hx, scene.tables.bounds.hy, scene.tables.bounds.hz,
-        oracle.tris.len(), oracle.strokes.len()
+        camera.position[0] / s,
+        camera.position[1] / s,
+        camera.position[2] / s,
+        camera.target[0] / s,
+        camera.target[1] / s,
+        camera.target[2] / s,
+        scene.tables.bounds.cx,
+        scene.tables.bounds.cy,
+        scene.tables.bounds.cz,
+        scene.tables.bounds.hx,
+        scene.tables.bounds.hy,
+        scene.tables.bounds.hz,
+        oracle.tris.len(),
+        oracle.strokes.len()
     );
     scene.upload_to(&mut gpu);
     gpu.find_solids(|row| scene.solid_faces(row));
@@ -416,35 +449,62 @@ fn close_up_edges_preserve_visibility_across_views_and_samples() {
         for msaa in [1, 4] {
             let mut session = Session::new("plate matrix");
             session.add_brep(BRep::create_box(3000.0, 400.0, 120.0), None);
-            let (oracle, rgba) = render_configured(session, size, |camera, bounds| {
-                let s = camera.unit.to_meters();
-                camera.orbit(60.0_f32.to_radians() / 0.005,
-                    (angle as f32 - 30.0).to_radians() / 0.005);
-                let eye = [bounds.cx - bounds.hx + inset, bounds.cy - 50.0,
-                    bounds.cz + bounds.hz + height];
-                let forward = [angle.to_radians().cos(), 0.0, -angle.to_radians().sin()];
-                let distance = 2000.0;
-                camera.target = std::array::from_fn(|i| (eye[i] + forward[i] * distance) * s);
-                camera.distance = distance * s;
-                camera.perspective = perspective;
-                camera.update_position();
-            }, |gpu| {
-                gpu.view.show_grid = false;
-                gpu.view.show_outlines = false;
-                gpu.view.markers = false;
-                gpu.view.lit = false;
-                gpu.view.opacity = 1.0;
-                gpu.view.msaa_forced = Some(msaa);
-            });
+            let (oracle, rgba) = render_configured(
+                session,
+                size,
+                |camera, bounds| {
+                    let s = camera.unit.to_meters();
+                    camera.orbit(
+                        60.0_f32.to_radians() / 0.005,
+                        (angle as f32 - 30.0).to_radians() / 0.005,
+                    );
+                    let eye = [
+                        bounds.cx - bounds.hx + inset,
+                        bounds.cy - 50.0,
+                        bounds.cz + bounds.hz + height,
+                    ];
+                    let forward = [angle.to_radians().cos(), 0.0, -angle.to_radians().sin()];
+                    let distance = 2000.0;
+                    camera.target = std::array::from_fn(|i| (eye[i] + forward[i] * distance) * s);
+                    camera.distance = distance * s;
+                    camera.perspective = perspective;
+                    camera.update_position();
+                },
+                |gpu| {
+                    gpu.view.show_grid = false;
+                    gpu.view.show_outlines = false;
+                    gpu.view.markers = false;
+                    gpu.view.lit = false;
+                    gpu.view.opacity = 1.0;
+                    gpu.view.msaa_forced = Some(msaa);
+                },
+            );
             let verdict = oracle.judge(&rgba, (0.0, 0.0, f64::from(size.0), f64::from(size.1)));
-            println!("angle {angle}, height {height}, perspective {perspective}, MSAA{msaa}: {} / {} visible, {} / {} hidden leaks",
-                verdict.inked, verdict.visible, verdict.leaked, verdict.hidden);
+            println!(
+                "angle {angle}, height {height}, perspective {perspective}, MSAA{msaa}: {} / {} visible, {} / {} hidden leaks",
+                verdict.inked, verdict.visible, verdict.leaked, verdict.hidden
+            );
             if let Ok(out) = std::env::var("VIEWER_ORACLE_OUT") {
-                write_marked(&format!("{out}-{angle}-{perspective}-{msaa}.ppm"), &rgba, size, &verdict);
+                write_marked(
+                    &format!("{out}-{angle}-{perspective}-{msaa}.ppm"),
+                    &rgba,
+                    size,
+                    &verdict,
+                );
             }
             assert!(verdict.visible > 100, "The case must expose edges");
-            assert!(verdict.inked_share() >= 0.98, "{} / {} visible samples missing", verdict.misses.len(), verdict.visible);
-            assert!(verdict.leaked <= 5.max(verdict.hidden / 50), "{} / {} hidden samples leak", verdict.leaked, verdict.hidden);
+            assert!(
+                verdict.inked_share() >= 0.98,
+                "{} / {} visible samples missing",
+                verdict.misses.len(),
+                verdict.visible
+            );
+            assert!(
+                verdict.leaked <= 5.max(verdict.hidden / 50),
+                "{} / {} hidden samples leak",
+                verdict.leaked,
+                verdict.hidden
+            );
         }
     }
 }
@@ -456,7 +516,11 @@ pub(super) fn write_marked(path: &str, rgba: &[u8], size: (u32, u32), verdict: &
     // red: nothing in front of the point; orange: a face within the clearance
     for (&(x, y), &cover) in verdict.misses.iter().zip(&verdict.covers) {
         let at = ((y * size.0 + x) * 4) as usize;
-        marked[at..at + 3].copy_from_slice(&if cover > 0.0 { [255, 140, 0] } else { [255, 0, 0] });
+        marked[at..at + 3].copy_from_slice(&if cover > 0.0 {
+            [255, 140, 0]
+        } else {
+            [255, 0, 0]
+        });
     }
 
     super::write_ppm(path, &marked, size.0, size.1).expect("write marked frame");
@@ -478,10 +542,21 @@ fn close_up_edges_of_a_near_plate_are_continuous() {
     let (oracle, rgba) = render_with_oracle(session, size, |camera, bounds| {
         let s = camera.unit.to_meters();
         // heading along +x, 3 degrees down: the fit looks 60 degrees round and 30 degrees down
-        camera.orbit(60.0_f32.to_radians() / 0.005, -(27.0_f32.to_radians() / 0.005));
+        camera.orbit(
+            60.0_f32.to_radians() / 0.005,
+            -(27.0_f32.to_radians() / 0.005),
+        );
         // the eye 25 mm over the top face, 300 mm in from the near end, 50 mm off the middle
-        let eye = [bounds.cx - bounds.hx + 300.0, bounds.cy - 50.0, bounds.cz + bounds.hz + 25.0];
-        let forward = [3.0_f64.to_radians().cos(), 0.0, -(3.0_f64.to_radians().sin())];
+        let eye = [
+            bounds.cx - bounds.hx + 300.0,
+            bounds.cy - 50.0,
+            bounds.cz + bounds.hz + 25.0,
+        ];
+        let forward = [
+            3.0_f64.to_radians().cos(),
+            0.0,
+            -(3.0_f64.to_radians().sin()),
+        ];
         let distance = 2000.0;
         camera.target = std::array::from_fn(|i| (eye[i] + forward[i] * distance) * s);
         camera.distance = distance * s;
@@ -523,26 +598,47 @@ fn far_floor_edges_are_continuous_at_phone_and_desktop_sizes() {
     for size in [(1200, 800), (824, 1830)] {
         for (scale, perspective) in [(1.0, true), (1.6, true), (1.0, false)] {
             let session = Session::pb_loads(bytes).expect("floor fixture");
-            let (oracle, rgba) = render_configured(session, size, |camera, _| {
-                camera.distance *= scale;
-                camera.perspective = perspective;
-                camera.update_position();
-            }, |gpu| {
-                gpu.view.show_grid = false;
-                gpu.view.show_outlines = false;
-                gpu.view.markers = false;
-                gpu.view.lit = false;
-                gpu.view.opacity = 1.0;
-                gpu.view.msaa_forced = Some(1);
-            });
+            let (oracle, rgba) = render_configured(
+                session,
+                size,
+                |camera, _| {
+                    camera.distance *= scale;
+                    camera.perspective = perspective;
+                    camera.update_position();
+                },
+                |gpu| {
+                    gpu.view.show_grid = false;
+                    gpu.view.show_outlines = false;
+                    gpu.view.markers = false;
+                    gpu.view.lit = false;
+                    gpu.view.opacity = 1.0;
+                    gpu.view.msaa_forced = Some(1);
+                },
+            );
             let verdict = oracle.judge(&rgba, (0.0, 0.0, f64::from(size.0), f64::from(size.1)));
-            println!("far floor {size:?} scale {scale} perspective {perspective}: {} / {} visible ({:.4}%), {} / {} hidden leaks",
-                verdict.inked, verdict.visible, 100.0 * verdict.inked_share(), verdict.leaked, verdict.hidden);
+            println!(
+                "far floor {size:?} scale {scale} perspective {perspective}: {} / {} visible ({:.4}%), {} / {} hidden leaks",
+                verdict.inked,
+                verdict.visible,
+                100.0 * verdict.inked_share(),
+                verdict.leaked,
+                verdict.hidden
+            );
             if let Ok(out) = std::env::var("VIEWER_ORACLE_OUT") {
-                write_marked(&format!("{out}-{}-{scale}-{perspective}.ppm", size.0), &rgba, size, &verdict);
+                write_marked(
+                    &format!("{out}-{}-{scale}-{perspective}.ppm", size.0),
+                    &rgba,
+                    size,
+                    &verdict,
+                );
             }
             assert!(verdict.visible > 1000, "must expose the floor's edges");
-            assert!(verdict.inked_share() >= 0.999, "{} / {} visible edge samples missing", verdict.misses.len(), verdict.visible);
+            assert!(
+                verdict.inked_share() >= 0.999,
+                "{} / {} visible edge samples missing",
+                verdict.misses.len(),
+                verdict.visible
+            );
         }
     }
 }
@@ -558,27 +654,56 @@ fn close_floor_edges_are_continuous_at_phone_and_desktop_sizes() {
     for size in [(1200, 800), (824, 1830)] {
         for (scale, angle) in [(0.3, 3.0_f32), (0.1, 3.0), (0.3, 12.0)] {
             let session = Session::pb_loads(bytes).expect("floor fixture");
-            let (oracle, rgba) = render_configured(session, size, |camera, _| {
-                camera.orbit(0.0, (angle - 30.0).to_radians() / 0.005);
-                camera.distance *= scale;
-                camera.update_position();
-            }, |gpu| {
-                gpu.view.show_grid = false;
-                gpu.view.show_outlines = false;
-                gpu.view.markers = false;
-                gpu.view.lit = false;
-                gpu.view.opacity = 1.0;
-                gpu.view.msaa_forced = Some(1);
-            });
-            let verdict = oracle.judge(&rgba, (2.0, 2.0, f64::from(size.0)-2.0, f64::from(size.1)-2.0));
-            println!("close floor {size:?} scale {scale} angle {angle}: {} / {} visible ({:.4}%), {} / {} hidden leaks",
-                verdict.inked, verdict.visible, 100.0 * verdict.inked_share(), verdict.leaked, verdict.hidden);
+            let (oracle, rgba) = render_configured(
+                session,
+                size,
+                |camera, _| {
+                    camera.orbit(0.0, (angle - 30.0).to_radians() / 0.005);
+                    camera.distance *= scale;
+                    camera.update_position();
+                },
+                |gpu| {
+                    gpu.view.show_grid = false;
+                    gpu.view.show_outlines = false;
+                    gpu.view.markers = false;
+                    gpu.view.lit = false;
+                    gpu.view.opacity = 1.0;
+                    gpu.view.msaa_forced = Some(1);
+                },
+            );
+            let verdict = oracle.judge(
+                &rgba,
+                (2.0, 2.0, f64::from(size.0) - 2.0, f64::from(size.1) - 2.0),
+            );
+            println!(
+                "close floor {size:?} scale {scale} angle {angle}: {} / {} visible ({:.4}%), {} / {} hidden leaks",
+                verdict.inked,
+                verdict.visible,
+                100.0 * verdict.inked_share(),
+                verdict.leaked,
+                verdict.hidden
+            );
             if let Ok(out) = std::env::var("VIEWER_ORACLE_OUT") {
-                write_marked(&format!("{out}-{}-{scale}-{angle}.ppm", size.0), &rgba, size, &verdict);
+                write_marked(
+                    &format!("{out}-{}-{scale}-{angle}.ppm", size.0),
+                    &rgba,
+                    size,
+                    &verdict,
+                );
             }
             assert!(verdict.visible > 100, "must expose the floor's edges");
-            assert!(verdict.leaked <= 5.max(verdict.hidden / 50), "{} / {} hidden samples leak", verdict.leaked, verdict.hidden);
-            assert!(verdict.inked_share() >= 0.999, "{} / {} visible edge samples missing", verdict.misses.len(), verdict.visible);
+            assert!(
+                verdict.leaked <= 5.max(verdict.hidden / 50),
+                "{} / {} hidden samples leak",
+                verdict.leaked,
+                verdict.hidden
+            );
+            assert!(
+                verdict.inked_share() >= 0.999,
+                "{} / {} visible edge samples missing",
+                verdict.misses.len(),
+                verdict.visible
+            );
         }
     }
 }
@@ -592,31 +717,59 @@ fn offscreen_stroke_axes_keep_their_visible_width() {
     }
     for width in [40.0, 80.0] {
         for (axis, side) in [(0, -1.0), (0, 1.0), (1, -1.0), (1, 1.0)] {
-            let mut a = [0.0; 3]; let mut b = a;
-            a[axis] = side * 110.0; b[axis] = a[axis];
-            a[1-axis] = -20.0; b[1-axis] = 20.0;
-            a[2] = 10.0; b[2] = 10.0;
-            let shape = BRep::create_box(if axis == 0 { 20.0 } else { 40.0 }, if axis == 1 { 20.0 } else { 40.0 }, 20.0);
+            let mut a = [0.0; 3];
+            let mut b = a;
+            a[axis] = side * 110.0;
+            b[axis] = a[axis];
+            a[1 - axis] = -20.0;
+            b[1 - axis] = 20.0;
+            a[2] = 10.0;
+            b[2] = 10.0;
+            let shape = BRep::create_box(
+                if axis == 0 { 20.0 } else { 40.0 },
+                if axis == 1 { 20.0 } else { 40.0 },
+                20.0,
+            );
             let mut session = Session::new("stroke fringe");
-            let mut shift = [0.0; 3]; shift[axis] = side * 120.0;
-            let id = shape.guid().to_string(); session.add_brep(shape, None);
+            let mut shift = [0.0; 3];
+            shift[axis] = side * 120.0;
+            let id = shape.guid().to_string();
+            session.add_brep(shape, None);
             session.set_xform(&id, Xform::translation(shift[0], shift[1], shift[2]));
-            let (oracle, rgba) = render_configured(session, (256, 256), |camera, _| {
-                camera.set_view(crate::camera::View::Top);
-                camera.target = [0.0; 3];
-                camera.distance = 100.0 * camera.unit.to_meters() / (crate::camera::FOVY_DEG * 0.5).to_radians().tan();
-                camera.update_position();
-            }, |gpu| {
-                gpu.view.show_grid = false; gpu.view.markers = false;
-                gpu.view.show_outlines = false; gpu.view.opacity = 1.0;
-                gpu.view.thickness_px = width as f32; gpu.view.msaa_forced = Some(1);
-            });
+            let (oracle, rgba) = render_configured(
+                session,
+                (256, 256),
+                |camera, _| {
+                    camera.set_view(crate::camera::View::Top);
+                    camera.target = [0.0; 3];
+                    camera.distance = 100.0 * camera.unit.to_meters()
+                        / (crate::camera::FOVY_DEG * 0.5).to_radians().tan();
+                    camera.update_position();
+                },
+                |gpu| {
+                    gpu.view.show_grid = false;
+                    gpu.view.markers = false;
+                    gpu.view.show_outlines = false;
+                    gpu.view.opacity = 1.0;
+                    gpu.view.thickness_px = width as f32;
+                    gpu.view.msaa_forced = Some(1);
+                },
+            );
             for endpoint in [a, b] {
                 let (x, y) = oracle.screen(&endpoint).expect("in front of camera");
-                assert!(x < 0.0 || x > 256.0 || y < 0.0 || y > 256.0, "axis must be outside the viewport");
+                assert!(
+                    x < 0.0 || x > 256.0 || y < 0.0 || y > 256.0,
+                    "axis must be outside the viewport"
+                );
             }
-            let inked = rgba.chunks_exact(4).filter(|p| p[0] < 190 && p[1] < 190 && p[2] < 190).count();
-            assert!(inked > 150, "the stroke's width must still reach the viewport: axis {axis}, side {side}, width {width}, inked {inked}");
+            let inked = rgba
+                .chunks_exact(4)
+                .filter(|p| p[0] < 190 && p[1] < 190 && p[2] < 190)
+                .count();
+            assert!(
+                inked > 150,
+                "the stroke's width must still reach the viewport: axis {axis}, side {side}, width {width}, inked {inked}"
+            );
         }
     }
 }
@@ -650,21 +803,37 @@ fn edges_behind_another_solid_stay_hidden() {
             }
 
             let size = (640, 400);
-            let (oracle, rgba) = render_configured(session, size, |camera, _| {
-                camera.set_view(crate::camera::View::Front);
-                camera.update_position();
-            }, |gpu| {
-                gpu.view.show_grid = false;
-                gpu.view.show_outlines = false;
-                gpu.view.markers = false;
-                gpu.view.lit = false;
-                gpu.view.opacity = 1.0;
-                gpu.view.msaa_forced = Some(msaa);
-            });
+            let (oracle, rgba) = render_configured(
+                session,
+                size,
+                |camera, _| {
+                    camera.set_view(crate::camera::View::Front);
+                    camera.update_position();
+                },
+                |gpu| {
+                    gpu.view.show_grid = false;
+                    gpu.view.show_outlines = false;
+                    gpu.view.markers = false;
+                    gpu.view.lit = false;
+                    gpu.view.opacity = 1.0;
+                    gpu.view.msaa_forced = Some(msaa);
+                },
+            );
             let verdict = oracle.judge(&rgba, (0.0, 0.0, f64::from(size.0), f64::from(size.1)));
-            println!("mesh {mesh}, MSAA{msaa}: {} / {} visible, {} / {} hidden leaks", verdict.inked, verdict.visible, verdict.leaked, verdict.hidden);
-            assert!(verdict.hidden > 100, "the back box must lie behind the front one");
-            assert!(verdict.leaked <= 5.max(verdict.hidden / 50), "{} / {} hidden samples leak", verdict.leaked, verdict.hidden);
+            println!(
+                "mesh {mesh}, MSAA{msaa}: {} / {} visible, {} / {} hidden leaks",
+                verdict.inked, verdict.visible, verdict.leaked, verdict.hidden
+            );
+            assert!(
+                verdict.hidden > 100,
+                "the back box must lie behind the front one"
+            );
+            assert!(
+                verdict.leaked <= 5.max(verdict.hidden / 50),
+                "{} / {} hidden samples leak",
+                verdict.leaked,
+                verdict.hidden
+            );
         }
     }
 }

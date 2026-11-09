@@ -8,9 +8,9 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
+mod box_select; // register:box_select
 mod clipping; // register:clipping
 mod cloud_query; // register:cloud_query
-mod box_select; // register:box_select
 mod drag; // register:drag
 mod drawing; // register:drawing
 pub mod edit; // register:edit
@@ -18,6 +18,7 @@ mod features; // register:features
 mod hydrate; // register:hydrate
 pub(crate) mod number_box; // register:number_box
 mod panel; // register:panel
+mod presentation;
 mod sheet_query; // register:sheet_query
 mod splitting; // register:splitting
 mod text; // register:text
@@ -42,28 +43,30 @@ pub struct State {
     pub window: Arc<Window>,                // the winit window on the canvas
     pub gpu: Gpu,                           // device, buffers, pipelines
     pub camera: Camera,                     // the view
-    pub view_frame: [f64; 4],               // the canvas part the panels leave free: left, top, right, bottom in fractions
+    pub view_frame: [f64; 4], // the canvas part the panels leave free: left, top, right, bottom in fractions
     load_camera: crate::camera::CameraPose, // the view before loading started
-    pub scene: Scene,                       // the loaded documents
-    pub needs_frame: bool,                  // draw again on the next redraw
-    gpu_stopped: bool,                      // failure handled; never submit again
-    pub interacting: bool,                  // a drag or pinch is in progress
-    dirty: bool,                            // the picture changed
-    last_frame_ms: f64,                     // when the last frame was drawn
-    last_resize_ms: f64,                    // when the last resize was applied
-    pub selection: SelectionMode,           // object, edge, face or control points
+    pub scene: Scene,         // the loaded documents
+    pub(crate) presentation: Option<presentation::PresentationState>,
+    pub(crate) stage: Option<Box<crate::app::stage::StageApp>>, // a running stage deck, painted by egui
+    pub needs_frame: bool,        // draw again on the next redraw
+    gpu_stopped: bool,            // failure handled; never submit again
+    pub interacting: bool,        // a drag or pinch is in progress
+    dirty: bool,                  // the picture changed
+    last_frame_ms: f64,           // when the last frame was drawn
+    last_resize_ms: f64,          // when the last resize was applied
+    pub selection: SelectionMode, // object, edge, face or control points
     pub selection_tool: crate::app::selection::SelectionTool, // what a click selects
-    controls: Controls,                     // control points of the selected object
-    requested: PickMode,                    // what the pending pick looks for
-    pub(crate) additive_selection: bool,    // Shift held: add to the selection
-    pub(crate) snap_rotation: bool,         // Shift held: the gumball turns by 90 degree steps
-    pub(crate) shift_held: bool,            // Shift held: a selection rectangle adds
-    pub(crate) ctrl_held: bool,             // Ctrl held: a selection rectangle takes out
-    selection_order: Vec<u32>,              // selected rows in pick order
-    highlighted: Vec<u32>,                  // rows highlighted, when several are selected
-    pub selection_radius_css: f64,          // click tolerance in CSS pixels
-    show_selected_names: bool,              // name label on the selection, T toggles
-    pub(crate) features: Features,          // what each feature keeps, features.rs
+    controls: Controls,           // control points of the selected object
+    requested: PickMode,          // what the pending pick looks for
+    pub(crate) additive_selection: bool, // Shift held: add to the selection
+    pub(crate) snap_rotation: bool, // Shift held: the gumball turns by 90 degree steps
+    pub(crate) shift_held: bool,  // Shift held: a selection rectangle adds
+    pub(crate) ctrl_held: bool,   // Ctrl held: a selection rectangle takes out
+    selection_order: Vec<u32>,    // selected rows in pick order
+    highlighted: Vec<u32>,        // rows highlighted, when several are selected
+    pub selection_radius_css: f64, // click tolerance in CSS pixels
+    show_selected_names: bool,    // name label on the selection, T toggles
+    pub(crate) features: Features, // what each feature keeps, features.rs
 }
 
 impl State {
@@ -83,6 +86,8 @@ impl State {
             load_camera: camera.pose(),
             camera,
             scene,
+            presentation: None,
+            stage: None,
             needs_frame: true,
             gpu_stopped: false,
             interacting: false,
@@ -173,6 +178,8 @@ impl State {
 
     /// Turn the camera to the scene's view and show or hide the floor grid; the fit that follows still frames it.
     pub fn open_scene(&mut self, view: Option<crate::camera::View>, grid: bool) {
+        self.gpu.view.dark = false;
+        self.gpu.view.thickness_px = crate::engine::gpu::View::from_env().thickness_px;
         if let Some(view) = view {
             self.camera.set_view(view);
             self.load_camera = self.camera.pose();
@@ -206,7 +213,8 @@ impl State {
         self.refresh_bounds();
         let b = &self.gpu.bounds;
         log::info!("fit: bounds {} aspect {:.3}", b.str(), self.aspect());
-        self.camera.fit_in(&self.gpu.bounds, self.aspect(), self.view_frame);
+        self.camera
+            .fit_in(&self.gpu.bounds, self.aspect(), self.view_frame);
         self.touch();
     }
 
@@ -249,6 +257,9 @@ impl State {
         self.last_resize_ms = now;
         self.gpu.resize(width, height);
         self.gpu.logical_size = self.logical_size();
+        if self.presenting() {
+            self.refit_presentation();
+        }
         self.upload_controls(); // register:controls
         self.touch();
         true
@@ -273,6 +284,11 @@ impl State {
     /// Ask what is under a pixel; the answer comes in a later frame.
     pub fn request_pick(&mut self, x: u32, y: u32) {
         self.request_selection(x, y, false, false);
+    }
+
+    /// Present the frame being drawn without asking for another.
+    pub(crate) fn redraw_once(&mut self) {
+        self.dirty = true;
     }
 
     /// The picture changed: draw on the next redraw.
@@ -551,6 +567,8 @@ impl State {
             return;
         }
 
+        self.tick_presentation();
+
         for hook in features::BEFORE_PICKS {
             hook(self);
         }
@@ -567,7 +585,9 @@ impl State {
 
         // apply a pick answer first, so this frame shows it
         if let Some(pick) = self.gpu.pick.poll() {
-            self.apply_pick(pick);
+            if !self.apply_presentation_pick_if_active(pick) {
+                self.apply_pick(pick);
+            }
         } else {
             self.cloud_query_lost(); // register:cloud_query
         }
@@ -611,7 +631,13 @@ impl State {
             .view_proj_anchored(self.aspect(), &rebase.anchor);
         let input = FrameInput {
             view_proj,
-            clear: CLEAR,
+            clear: if self.presentation_dark() {
+                wgpu::Color::BLACK
+            } else if self.presenting() {
+                wgpu::Color::WHITE
+            } else {
+                CLEAR
+            },
             now_ms,
         };
         self.dirty |= rebase.moved
@@ -663,7 +689,8 @@ impl State {
             || self.gpu.view.spin
             || self.gpu.ambient_pending()
             || self.gpu.visibility_pending()
-            || self.gpu.performance.rough();
+            || self.gpu.performance.rough()
+            || self.presentation_animating();
         #[cfg(target_arch = "wasm32")]
         crate::app::inspection::publish(self);
     }

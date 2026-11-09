@@ -17,10 +17,12 @@ use std::collections::{HashMap, HashSet};
 #[derive(Clone, Debug, PartialEq)]
 pub struct TextFrame {
     pub mvp: [f32; 16],                             // camera matrix
-    pub origin: [f64; 3],                           // scene origin the matrix is relative to
-    pub framebuffer: [u32; 2],                      // canvas size, px
-    pub logical: [f64; 2],                          // canvas size, CSS px
-    pub ortho_half_height: f32,                     // ortho half-height; 0 = perspective
+    pub spatial_mvp: [f32; 16],                     // independent 3D region camera
+    pub spatial_split: f32, // right edge of that region in framebuffer pixels
+    pub origin: [f64; 3],   // scene origin the matrix is relative to
+    pub framebuffer: [u32; 2], // canvas size, px
+    pub logical: [f64; 2],  // canvas size, CSS px
+    pub ortho_half_height: f32, // ortho half-height; 0 = perspective
     pub clip: [[f64; 4]; super::frame::MAX_PLANES], // clipping planes, world (normal, offset); zero cuts nothing
 }
 
@@ -185,19 +187,17 @@ impl TextLane {
             if let Some(rectangle) = text_rectangle(run, &mut placed, frame, scale) {
                 plates.push(rectangle);
             }
+            if plane::textured_spatial(&run.label) {
+                continue;
+            }
 
-            let area = TextArea {
+            let area = |left: f32, top: f32, color: [u8; 4]| TextArea {
                 buffer: &run.buffer,
-                left: placed.left,
-                top: placed.top,
+                left,
+                top,
                 scale: placed.scale,
                 bounds: clip_bounds(&run.label, frame, scale),
-                default_color: Color::rgba(
-                    run.label.ink_color()[0],
-                    run.label.ink_color()[1],
-                    run.label.ink_color()[2],
-                    run.label.ink_color()[3],
-                ),
+                default_color: Color::rgba(color[0], color[1], color[2], color[3]),
                 custom_glyphs: &[],
             };
 
@@ -214,19 +214,50 @@ impl TextLane {
 
             // note whether each renderer has anything to draw
             if !run.label.text.is_empty() {
-                match run.label.placement {
-                    TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
-                        self.overlay_count = 1
-                    }
-                    _ => self.anchored_count = 1,
+                if placed.depth.is_some() {
+                    self.anchored_count = 1;
+                } else {
+                    self.overlay_count = 1;
                 }
             }
 
             if let Some(depth) = placed.depth {
                 depths.insert(run.label.id as usize, depth);
-                anchors.push(area);
+            }
+            if run.label.outline != 0.0 {
+                let reach = run.label.outline.abs() * scale;
+                let halo_color = if run.label.outline < 0.0 {
+                    [0, 0, 0, 255]
+                } else {
+                    [255; 4]
+                };
+                for (dx, dy) in [
+                    (-1.0, -1.0),
+                    (0.0, -1.0),
+                    (1.0, -1.0),
+                    (-1.0, 0.0),
+                    (1.0, 0.0),
+                    (-1.0, 1.0),
+                    (0.0, 1.0),
+                    (1.0, 1.0),
+                ] {
+                    let halo = area(
+                        placed.left + dx * reach,
+                        placed.top + dy * reach,
+                        halo_color,
+                    );
+                    if placed.depth.is_some() {
+                        anchors.push(halo);
+                    } else {
+                        overlays.push(halo);
+                    }
+                }
+            }
+            let ink = area(placed.left, placed.top, run.label.ink_color());
+            if placed.depth.is_some() {
+                anchors.push(ink);
             } else {
-                overlays.push(area);
+                overlays.push(ink);
             }
         }
 
@@ -438,7 +469,11 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
         (world[1] - frame.origin[1]) as f32,
         (world[2] - frame.origin[2]) as f32,
     ];
-    let m = &frame.mvp;
+    let m = if label.id & crate::engine::text::SPATIAL_TEXT_ID != 0 {
+        &frame.spatial_mvp
+    } else {
+        &frame.mvp
+    };
     // behind the camera: not drawn
     let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
 
@@ -468,13 +503,25 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
         return None;
     }
 
+    let left = (x + 1.0) * 0.5 * frame.framebuffer[0] as f32 + offset[0] * scale;
+    if label.id & crate::engine::text::SPATIAL_TEXT_ID != 0
+        && frame.spatial_split >= 0.0
+        && left >= frame.spatial_split
+    {
+        return None;
+    }
+
     Some(PlacedText {
         left: (x + 1.0) * 0.5 * frame.framebuffer[0] as f32 + offset[0] * scale,
         top: (1.0 - y) * 0.5 * frame.framebuffer[1] as f32 + offset[1] * scale,
         scale: raster_scale,
-        depth: match label.placement {
-            TextPlacement::Nameplate { .. } => None,
-            _ => Some(z),
+        depth: if label.outline < 0.0 {
+            None
+        } else {
+            match label.placement {
+                TextPlacement::Nameplate { .. } => None,
+                _ => Some(z),
+            }
         },
     })
 }
@@ -486,12 +533,16 @@ fn text_rectangle(
     frame: &TextFrame,
     scale: f32,
 ) -> Option<plate::Rectangle> {
-    let (mut padding, rounded, centered) = match run.label.placement {
+    let centered = matches!(run.label.placement, TextPlacement::Nameplate { .. })
+        || (run.label.outline < 0.0 && run.label.id & crate::engine::text::MATH_SERIF_ID == 0);
+    let plate = match run.label.placement {
         TextPlacement::Nameplate {
             padding, rounded, ..
-        } => (padding, rounded, true),
-        _ if run.label.object.is_some() => ([0.0, run.label.font_size * 2.0 / 9.0], true, false),
-        _ => return None,
+        } => Some((padding, rounded)),
+        _ if run.label.outline >= 0.0 && run.label.object.is_some() => {
+            Some(([0.0, run.label.font_size * 2.0 / 9.0], true))
+        }
+        _ => None,
     };
 
     if run.label.text.is_empty() {
@@ -512,17 +563,18 @@ fn text_rectangle(
         return None;
     }
 
-    if rounded {
-        // round caps need a full half-height at each end
-        padding[0] = padding[0].max((bottom - top) * 0.5 + padding[1]);
-    }
-
     let raster = placed.scale;
 
-    // nameplates sit centered on their anchor
+    // Outlined plain labels sit centered; TeX runs already have their own baseline.
     if centered {
         placed.left -= width * raster * 0.5;
         placed.top -= (top + bottom) * raster * 0.5;
+    }
+
+    let (mut padding, rounded) = plate?;
+    if rounded {
+        // round caps need a full half-height at each end
+        padding[0] = padding[0].max((bottom - top) * 0.5 + padding[1]);
     }
 
     let bounds = clip_bounds(&run.label, frame, scale);
@@ -613,6 +665,10 @@ mod tests {
             mvp: [
                 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
             ],
+            spatial_mvp: [
+                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+            ],
+            spatial_split: -1.0,
             origin: [0.0; 3],
             framebuffer: [(800.0 * scale) as u32, (600.0 * scale) as u32],
             logical: [800.0, 600.0],
@@ -634,6 +690,7 @@ mod tests {
                 font_size: 16.0,
                 line_height: 24.0,
                 color: [255; 4],
+                outline: 0.0,
                 placement: TextPlacement::Screen {
                     left: 12.25,
                     top: 8.5,
@@ -658,6 +715,7 @@ mod tests {
             font_size: 16.0,
             line_height: 24.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::Anchor {
                 world: [1_000_000.0, 0.0, 0.25],
                 offset: [0.0; 2],
@@ -685,6 +743,7 @@ mod tests {
             font_size: 18.0,
             line_height: 26.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::Nameplate {
                 world: [0.0, 0.0, 0.25],
                 padding: [6.0, 4.0],
@@ -780,6 +839,7 @@ mod tests {
             font_size: 13.5,
             line_height: 19.5,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::Nameplate {
                 world: [0.0, 0.0, 0.2],
                 padding: [12.75, 3.0],
@@ -925,6 +985,7 @@ mod tests {
             font_size: 14.0,
             line_height: 21.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::Anchor {
                 world: [-0.8, 0.8, 0.5],
                 offset: [0.0; 2],
@@ -1013,6 +1074,7 @@ mod tests {
             font_size: 14.0,
             line_height: 21.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::WorldBillboard {
                 world: [-0.9, 0.5, 0.5],
                 world_height: 0.2,
@@ -1045,6 +1107,94 @@ mod tests {
             "this continuous-scale fixture must actually cross the eviction threshold"
         );
         assert_eq!(gpu.text.stats.missing_glyphs, 0);
+    }
+
+    #[test]
+    #[cfg(not(target_arch = "wasm32"))]
+    fn spatial_label_has_white_ink_black_shader_halo_and_no_capsule() {
+        use crate::engine::gpu::{FrameInput, Gpu};
+        use session_rust::Xform;
+
+        let label = TextLabel {
+            id: crate::engine::text::SPATIAL_TEXT_ID,
+            object: Some(crate::engine::text::TextObject {
+                row: 0,
+                selected: false,
+            }),
+            text: "n0".into(),
+            font_size: 32.0,
+            line_height: 40.0,
+            color: [255; 4],
+            outline: -2.0,
+            placement: TextPlacement::WorldBillboard {
+                world: [0.0; 3],
+                world_height: 0.5,
+            },
+            clip: None,
+        };
+        let mut document = TextDocument::new();
+        document.set_labels(vec![label.clone()]).unwrap();
+        let mut frame = frame(1.0);
+        frame.framebuffer = [320, 160];
+        frame.logical = [320.0, 160.0];
+        let mut placed = place(&label, &frame, 1.0).unwrap();
+        let anchor = placed.left;
+        assert!(text_rectangle(&document.runs[0], &mut placed, &frame, 1.0).is_none());
+        assert!(placed.left < anchor, "plain spatial text stays centered");
+        assert!(placed.depth.is_none());
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(320, 160)) else {
+            return;
+        };
+        gpu.view.dark = true;
+        gpu.view.show_grid = false;
+        gpu.view.lit = false;
+        gpu.text.set_labels(vec![label]).unwrap();
+        let pixels = gpu.render_offscreen(&FrameInput {
+            view_proj: Xform::identity(),
+            clear: wgpu::Color::BLACK,
+            now_ms: 0.0,
+        });
+        assert!(white_pixels(&pixels) > 40, "white text must be visible");
+        assert_eq!(gpu.text.overlay_count, 0);
+        assert_eq!(gpu.text.anchored_count, 0);
+        assert_eq!(gpu.text.stats.world_plane_rasterizations, 1);
+        assert_eq!(gpu.text.stats.requested_glyphs, 0);
+    }
+
+    #[test]
+    fn math_outline_does_not_recenter_typeset_runs() {
+        fn outlined(id: u32) -> TextLabel {
+            TextLabel {
+                id,
+                object: None,
+                text: "n0".into(),
+                font_size: 32.0,
+                line_height: 40.0,
+                color: [255; 4],
+                outline: -2.0,
+                placement: TextPlacement::WorldBillboard {
+                    world: [0.0; 3],
+                    world_height: 0.5,
+                },
+                clip: None,
+            }
+        }
+        let mut document = TextDocument::new();
+        let mut frame = frame(1.0);
+        frame.framebuffer = [320, 160];
+        frame.logical = [320.0, 160.0];
+        let label = outlined(crate::engine::text::SPATIAL_TEXT_ID);
+        document.set_labels(vec![label.clone()]).unwrap();
+        let mut placed = place(&label, &frame, 1.0).unwrap();
+        text_rectangle(&document.runs[0], &mut placed, &frame, 1.0);
+        let ordinary_left = placed.left;
+        let label =
+            outlined(crate::engine::text::SPATIAL_TEXT_ID | crate::engine::text::MATH_SERIF_ID);
+        document.set_labels(vec![label.clone()]).unwrap();
+        let mut placed = place(&label, &frame, 1.0).unwrap();
+        text_rectangle(&document.runs[0], &mut placed, &frame, 1.0);
+        assert!((placed.left - 160.0).abs() < 1e-4);
+        assert!(placed.left > ordinary_left);
     }
 
     #[cfg(not(target_arch = "wasm32"))]

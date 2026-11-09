@@ -53,20 +53,15 @@ fn occlusion_darkens_contact_and_releases_its_small_uniform() {
         let shaded = gpu.render_offscreen(&input);
         assert_eq!(partial, shaded, "one frame computes the complete image");
         if std::env::var_os("VIEWER_AO_CAPTURE").is_some() {
-            std::fs::write(format!("target/review/ambient-{samples}x-off.rgba"), &plain)
-                .unwrap();
-            std::fs::write(format!("target/review/ambient-{samples}x-on.rgba"), &shaded)
-                .unwrap();
+            std::fs::write(format!("target/review/ambient-{samples}x-off.rgba"), &plain).unwrap();
+            std::fs::write(format!("target/review/ambient-{samples}x-on.rgba"), &shaded).unwrap();
         }
         for shaded in [&partial, &shaded] {
             let ground_shadow = plain
                 .chunks_exact(4)
                 .zip(shaded.chunks_exact(4))
                 .filter(|(a, b)| {
-                    a[0] == 255
-                        && a[1] == 255
-                        && a[2] == 255
-                        && b[0] < shaded[0].saturating_sub(3)
+                    a[0] == 255 && a[1] == 255 && a[2] == 255 && b[0] < shaded[0].saturating_sub(3)
                 })
                 .count();
             assert!(
@@ -198,8 +193,7 @@ fn benchmark_arctic() {
         name: "arctic benchmark".into(),
         session: Rc::new(source),
         place: Xform::from_matrix([
-            scale, 0.0, 0.0, 0.0, 0.0, 0.0, scale, 0.0, 0.0, -scale, 0.0, 0.0, 0.0, 0.0, 0.0,
-            1.0,
+            scale, 0.0, 0.0, 0.0, 0.0, 0.0, scale, 0.0, 0.0, -scale, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
         ]),
         point_px: 0.0,
         display_only: false,
@@ -340,8 +334,7 @@ fn bench_ambient() {
             let pixels = (0..4).fold(Vec::new(), |_, _| timed(&mut gpu, &camera, &anchor).1);
             if ssao {
                 std::fs::create_dir_all("target/review").unwrap();
-                std::fs::write(format!("target/review/bench-{samples}x.rgba"), &pixels)
-                    .unwrap();
+                std::fs::write(format!("target/review/bench-{samples}x.rgba"), &pixels).unwrap();
             }
             let still: f64 = (0..120)
                 .map(|_| timed(&mut gpu, &camera, &anchor).0)
@@ -495,11 +488,7 @@ fn rotation_reprojects_ground_shadows_without_erasing_them() {
     let probes: Vec<_> = (-35_i32..=35)
         .flat_map(|x| {
             (-35_i32..=35).filter_map(move |y| {
-                (x.abs() > 25 || y.abs() > 25).then_some([
-                    f64::from(x * 2),
-                    f64::from(y * 2),
-                    -5.0,
-                ])
+                (x.abs() > 25 || y.abs() > 25).then_some([f64::from(x * 2), f64::from(y * 2), -5.0])
             })
         })
         .collect();
@@ -534,10 +523,7 @@ fn rotation_reprojects_ground_shadows_without_erasing_them() {
             for (index, point) in probes.iter().enumerate() {
                 let p: [f64; 3] = std::array::from_fn(|i| point[i] - anchor[i]);
                 let clip: [f64; 4] = std::array::from_fn(|r| {
-                    matrix[r] * p[0]
-                        + matrix[r + 4] * p[1]
-                        + matrix[r + 8] * p[2]
-                        + matrix[r + 12]
+                    matrix[r] * p[0] + matrix[r + 4] * p[1] + matrix[r + 8] * p[2] + matrix[r + 12]
                 });
                 let x = (clip[0] / clip[3] * 0.5 + 0.5) * 512.0 - 0.5;
                 let y = (0.5 - clip[1] / clip[3] * 0.5) * 512.0 - 0.5;
@@ -632,7 +618,9 @@ fn shader_validates_for_both_depth_sample_counts() {
                         offset_of!(Instance, flags),
                         offset_of!(Instance, ao_radius),
                         offset_of!(Instance, spacing),
-                        offset_of!(Instance, _pad)
+                        offset_of!(Instance, _pad),
+                        offset_of!(Instance, effect),
+                        offset_of!(Instance, end_color)
                     ]
                 );
             }

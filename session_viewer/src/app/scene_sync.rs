@@ -22,7 +22,7 @@ use super::rows::{
     Cap, FREE, Footprint, GEOMETRY, Note, PLACE, PRESENCE, SINK, SUBTREE, TOMB, Tomb,
 };
 use crate::app::walk::bounds::{Baselines, in_band, mark_pens_from};
-use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry, walk_features};
+use crate::app::walk::{Walk, WalkCx, is_drawable, walk_features, walk_geometry};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
 use session_rust::history;
@@ -364,6 +364,7 @@ impl Scene {
             attributes: self.attributes,
         };
         let mut walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
+        crate::app::walk::curves::endpoint_clearance(&mut up, &file.session);
         walk_features(&mut Walk::of(&mut up), &cx, features, &mut walked.bounds);
         let mut object = ObjectRow::new(place.clone(), walked.flags);
         object.bounds = walked.bounds;

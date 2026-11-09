@@ -2,6 +2,7 @@
 pub struct View {
     pub ssao: bool,               // ambient occlusion on
     pub show_grid: bool,          // floor grid
+    pub dark: bool,               // presentation backdrop is the frame's black clear color
     pub show_points: bool,        // point markers, `Q`
     pub show_lines: bool,         // lines and curves, `W`
     pub show_mesh_edges: bool,    // mesh edges and their vertex markers, `E`
@@ -33,6 +34,7 @@ impl View {
         Self {
             ssao: false,
             show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
+            dark: false,
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,

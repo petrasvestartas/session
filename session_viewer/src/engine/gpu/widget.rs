@@ -301,10 +301,15 @@ impl Tile {
             min_filter: wgpu::FilterMode::Linear,
             ..Default::default()
         });
-        let group = resource_group(ctx, layout, "widget image", [
-            (0, wgpu::BindingResource::TextureView(&resolved)),
-            (1, wgpu::BindingResource::Sampler(&sampler)),
-        ]);
+        let group = resource_group(
+            ctx,
+            layout,
+            "widget image",
+            [
+                (0, wgpu::BindingResource::TextureView(&resolved)),
+                (1, wgpu::BindingResource::Sampler(&sampler)),
+            ],
+        );
         Self {
             size,
             color,

@@ -1,0 +1,169 @@
+# Chapter 5: Linkwitz 6.4.2. How fast does a cable length change when the free node moves?
+# Two derivations of dl_k/dx_0 = -(x_k - x_0)/l_k, then all four cables as C_N^T U L^-1 (6.23-6.24).
+title: The Jacobian of the lengths
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 24}
+points:
+  P0: [3, 3, 0.25]
+  X: [3, 3, 0.25]         # the node we nudge; it starts on P0
+  P1: [0, 0, 0]
+  P2: [5, 0, 3]
+  P3: [0, 7, 3]
+  P4: [7, 5, 0]
+slides:
+  - title: The physical setup
+    steps:
+      - say: 'A free node $P_0 = (x_0, y_0, z_0)$ and one anchor $P_k = (x_k, y_k, z_k)$, joined by a bar of length $l_k$.'
+        do:
+          - add:
+              - {id: o2, point: P2, color: fixed, opacity: 0.25}
+              - {id: o3, point: P3, color: fixed, opacity: 0.25}
+              - {id: o4, point: P4, color: fixed, opacity: 0.25}
+              - {id: b, line: [X, P2], opacity: 0.2}
+              - {id: c, line: [X, P3], opacity: 0.2}
+              - {id: d, line: [X, P4], opacity: 0.2}
+          - add: {id: k, line: [X, P1], label: 'l_k', width: 3.6}
+          - add:
+              - {id: nk, point: P1, color: fixed, label: 'P_k'}
+              - {id: n0, point: X, color: free, label: 'P_0'}
+          - camera: {fit: [P0, P1, '[5.4, 3.6, 0.25]'], yaw: -52, pitch: 22, with: true}
+      - say: 'By Pythagoras in 3D, the length is the root of the three squared coordinate differences.'
+        do:
+          - add: {id: box, cuboid: [X, P1], color: dim}
+          - derive: {from: k, id: kx, arrow: [X, '[x(P1), y(X), z(X)]'], color: x, width: 3.4}
+          - derive: {from: k, id: ky, arrow: ['[x(P1), y(X), z(X)]', '[x(P1), y(P1), z(X)]'], color: y, width: 3.4}
+          - derive: {from: k, id: kz, arrow: ['[x(P1), y(P1), z(X)]', P1], color: z, width: 3.4}
+          - add: {id: L, tex: 'l_k = \sqrt{ {{(x_k - x_0)^2}} + {{(y_k - y_0)^2}} + {{(z_k - z_0)^2}} }'}
+          - color: {target: 'L{(x_k - x_0)^2}', color: x}
+          - color: {target: 'L{(y_k - y_0)^2}', color: y, with: true}
+          - color: {target: 'L{(z_k - z_0)^2}', color: z, with: true}
+      - say: 'Linkwitz asks (6.4.2): if $P_0$ moves right by a tiny $\Delta x_0$, how much does $l_k$ change?'
+        do:
+          - remove: [box, ky, kz]
+          - add: {id: qn, tex: '\frac{\text{change in length } \Delta l_k}{\text{shift of the node } \Delta x_0} \;=\; ?'}
+
+  - title: A tiny nudge
+    steps:
+      - say: 'Keep the old bar as a ghost and push $P_0$ to the right.'
+        do:
+          - remove: [kx, qn]
+          - add: {id: ghost, line: [P0, P1], color: dim, dash: true, width: 2}
+          - add: {id: dx, arrow: [P0, X], color: x, width: 3.4}
+          - add: {id: lv, tex: 'l_k = {=len(X,P1):.3}', align: '='}
+          - move: {point: X, to: [3.8, 3, 0.25], dur: 1.6}
+      - say: 'Compare the change in length with the shift. For a big nudge the ratio is still inexact.'
+        do:
+          - add: {id: rv, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{ {=len(X,P1)-len(P0,P1):.3} }{ {=x(X)-x(P0):.3} } = {=(len(X,P1)-len(P0,P1))/(x(X)-x(P0)):.3}', align: '='}
+      - say: 'Make the nudge smaller and smaller: the ratio settles on one number.'
+        do:
+          - move: {point: X, to: [3.3, 3, 0.25], dur: 1.4}
+          - move: {point: X, to: [3.1, 3, 0.25], dur: 1.2}
+          - move: {point: X, to: [3.02, 3, 0.25], dur: 1.2}
+      - say: 'That limit is the partial derivative of the length with respect to $x_0$.'
+        do:
+          - add: {id: lim, tex: '\lim_{\Delta x_0 \to 0}\frac{\Delta l_k}{\Delta x_0} = \frac{\partial l_k}{\partial x_0}', color: accent}
+
+  - title: 'Method 1 · square, then nudge'
+    steps:
+      - say: '**Step A.** Square both sides of the distance formula to get rid of the root.'
+        do:
+          - remove: [lv, rv, lim, dx]
+          - move: {point: X, to: P0, dur: 0.8, with: true}
+          - add: {id: A, tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', align: '='}
+          - morph: {target: A, tex: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
+      - say: '**Step B.** Shift $x_0$ to $x_0 + \Delta x_0$; the length becomes $l_k + \Delta l_k$. Only the $x$-term changes.'
+        do:
+          - derive: {from: A, id: B, tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', align: '='}
+          - indicate: ['B']
+
+  - title: 'Expand both sides'
+    steps:
+      - say: '**Step C.** Expand the left side with $(a + b)^2 = a^2 + 2ab + b^2$.'
+        do:
+          - add: {id: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + (\Delta l_k)^2', align: '='}
+      - say: '$\Delta l_k$ is tiny, so its square is negligible: drop it.'
+        do:
+          - morph: {target: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + \cancel{(\Delta l_k)^2}'}
+          - morph: {target: Cl, tex: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2 l_k \Delta l_k'}
+      - say: '**Step D.** On the right, regroup the shifted $x$-term and expand it the same way.'
+        do:
+          - add: {id: D, tex: '\big(x_k - (x_0 + \Delta x_0)\big)^2 = \big((x_k - x_0) - \Delta x_0\big)^2', align: '='}
+          - derive: {from: D, id: D2, tex: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (\Delta x_0)^2', align: '='}
+      - say: 'Again $(\Delta x_0)^2 \approx 0$.'
+        do:
+          - morph: {target: D2, tex: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + \cancel{(\Delta x_0)^2}'}
+          - morph: {target: D2, tex: '\big((x_k - x_0) - \Delta x_0\big)^2 \approx (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0'}
+
+  - title: 'Subtract and divide'
+    steps:
+      - say: '**Step E.** Put both expanded sides together.'
+        do:
+          - add: {id: E, tex: 'l_k^2 + 2 l_k \Delta l_k = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2', align: '='}
+      - say: '**Step F.** Subtract the original $l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2$ from both sides.'
+        do:
+          - morph: {target: E, tex: '\cancel{l_k^2} + 2 l_k \Delta l_k = \cancel{(x_k - x_0)^2} - 2(x_k - x_0)\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'}
+          - morph: {target: E, tex: '2 l_k \Delta l_k = -2(x_k - x_0)\Delta x_0'}
+      - say: '**Step G.** Divide both sides by $2 l_k \Delta x_0$.'
+        do:
+          - add: {id: G, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2(x_k - x_0)\Delta x_0}{2 l_k \Delta x_0}', align: '='}
+          - morph: {target: G, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}(x_k - x_0)\cancel{\Delta x_0}}{\cancel{2} l_k \cancel{\Delta x_0}}'}
+          - morph: {target: G, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-(x_k - x_0)}{l_k}'}
+      - say: 'Taking the limit $\Delta x_0 \to 0$ gives the exact partial derivative.'
+        do:
+          - add: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}', align: '=', color: accent}
+          - box: {target: R, color: accent}
+
+  - title: 'Method 2 · the chain rule'
+    steps:
+      - say: 'Write the length as a power of an inner function $u$.'
+        do:
+          - add: {id: c1, tex: 'l_k = u^{1/2}, \qquad u = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
+          - add: {id: c2, tex: '\frac{\partial l_k}{\partial x_0} = \frac{d l_k}{d u}\cdot\frac{\partial u}{\partial x_0}', align: '='}
+      - say: '**Outer derivative.** The power rule, with $\sqrt{u} = l_k$.'
+        do:
+          - add: {id: c3, tex: '\frac{d l_k}{d u} = \tfrac{1}{2}u^{-1/2} = \frac{1}{2\sqrt{u}} = \frac{1}{2 l_k}', align: '='}
+      - say: '**Inner derivative.** Only the $x$-term contains $x_0$; the $y$ and $z$ terms differentiate to $0$.'
+        do:
+          - add: {id: c4, tex: '\frac{\partial u}{\partial x_0} = 2(x_k - x_0)\cdot(-1) = -2(x_k - x_0)', align: '='}
+      - say: 'Multiply outer and inner: the same result as method 1.'
+        do:
+          - add: {id: c5, tex: '\frac{\partial l_k}{\partial x_0} = \frac{1}{2 l_k}\cdot\big(-2(x_k - x_0)\big) = \frac{-(x_k - x_0)}{l_k}', align: '=', color: accent}
+          - box: {target: c5, color: accent}
+
+  - title: What the result means
+    steps:
+      - say: '$(x_k - x_0)/l_k$ is the direction cosine from chapter 2, so $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
+        do:
+          - remove: [ghost]
+          - add: {id: m1, tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'}
+          - add: {id: unit, arrow: [P0, 'P0 + (P0 - P1)/len(P0, P1)*1.6'], color: accent, width: 3.6}
+          - derive: {from: unit, id: unitx, arrow: [P0, 'P0 + [(x(P0) - x(P1))/len(P0, P1)*1.6, 0, 0]'], color: x, width: 3.6}
+      - say: 'For cable $a$ ($P_k = P_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
+        do:
+          - add: {id: m2, tex: '\frac{\partial l_a}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706', align: '='}
+      - say: 'Moving $P_0$ right by 1 m lengthens cable $a$ by about 0.706 m: it points away from its anchor.'
+        do:
+          - box: {target: m2, color: x}
+          - indicate: [unitx]
+
+  - title: 'All four cables · (6.23)–(6.24)'
+    steps:
+      - say: 'Collect the derivative of every cable length into one row: the transposed Jacobian.'
+        do:
+          - remove: [unit, unitx]
+          - add:
+              - {id: b2, line: [P0, P2]}
+              - {id: c2l, line: [P0, P3]}
+              - {id: d2, line: [P0, P4]}
+          - camera: {fit: [P0, P1, P2, P3, P4], yaw: -58, pitch: 26, with: true}
+          - add: {id: J, row: ['\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T} =', {id: Jm, matrix: {rows: [['\dfrac{-(x_1 - x_0)}{l_a}', '\dfrac{-(x_2 - x_0)}{l_b}', '\dfrac{-(x_3 - x_0)}{l_c}', '\dfrac{-(x_4 - x_0)}{l_d}']], collabels: [a, b, c, d]}}]}
+      - say: 'With the numbers of our net:'
+        do:
+          - add: {id: Jn, row: ['=', {id: Jv, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], collabels: [a, b, c, d]}}]}
+      - say: 'With $\mathbf{u} = \mathbf{C}\mathbf{x} = x_0 - x_k$, each entry is $u_k/l_k$: a diagonal $\mathbf{U}\mathbf{L}^{-1}$ summed by $\mathbf{C}_N^T$.'
+        do:
+          - add: {id: UL, row: ['\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1} =', {id: CNT, matrix: [[1, 1, 1, 1]]}, {id: ULm, matrix: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}]}
+      - say: 'Linkwitz writes the whole row compactly as equation (6.24).'
+        do:
+          - add: {id: e624, tex: '\Big(\frac{\partial \mathbf{f}(\mathbf{x})}{\partial \mathbf{x}}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \qquad (6.24)', color: accent}
+          - box: {target: e624, color: accent}

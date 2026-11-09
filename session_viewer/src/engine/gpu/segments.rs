@@ -52,11 +52,13 @@ pub struct SegDraw {
 pub struct SegRows {
     pub pipes: Vec<CylinderSegment>,              // mesh and solid edges
     pub pipe_ids: Vec<u32>,                       // source edge per pipe, or u32::MAX
-    pub pipe_sags: Vec<f32>,                      // per pipe: how far it rises off the faces beside it, mm; 0 = on them
-    pub pipe_chains: Vec<std::ops::Range<u32>>,   // runs of pipes that form one curve
+    pub pipe_sags: Vec<f32>, // per pipe: how far it rises off the faces beside it, mm; 0 = on them
+    pub pipe_chains: Vec<std::ops::Range<u32>>, // runs of pipes that form one curve
     pub ribbon_chains: Vec<std::ops::Range<u32>>, // runs of ribbons that form one curve
-    pub ribbons: Vec<CylinderSegment>,            // standalone lines and curves
-    pub ribbon_ids: Vec<u32>,                     // source entity per ribbon, or u32::MAX
+    pub ribbons: Vec<CylinderSegment>, // standalone lines and curves
+    pub ribbon_ids: Vec<u32>, // source entity per ribbon, or u32::MAX
+    pub ribbon_dashes: Vec<[f32; 3]>, // on length, off length, cumulative length before the segment
+    pub ribbon_trims: Vec<[f32; 2]>, // visible point radii at the outer ends
     pub ribbon_heads: Vec<(u32, u32)>, // (ribbon, HEAD_END or HEAD_START): that end stops under an arrowhead
     pub sheet_rows: Vec<CylinderSegment>, // streamed sheet segments, kept apart from editable lines
     pub sheet_ids: Vec<u32>,           // source entity per sheet segment, or u32::MAX
@@ -73,6 +75,8 @@ impl SegRows {
         drop_rows(&mut self.ribbon_chains);
         drop_rows(&mut self.ribbons);
         drop_rows(&mut self.ribbon_ids);
+        drop_rows(&mut self.ribbon_dashes);
+        drop_rows(&mut self.ribbon_trims);
         drop_rows(&mut self.ribbon_heads);
         drop_rows(&mut self.sheet_rows);
         drop_rows(&mut self.sheet_ids);
@@ -157,7 +161,13 @@ pub(super) struct StrokeSegment {
     pub(super) previous: u32,            // row of the segment before it, u32::MAX, or HEAD_MARK
     pub(super) next: u32,                // row of the segment after it, u32::MAX, or HEAD_MARK
     pub(super) sag: f32, // how far the stroke rises off the faces beside it, mm: the hidden-line test's slack
+    pub(super) start_trim: f32,
+    pub(super) dash: [f32; 2],   // on and off lengths; zero is solid
+    pub(super) dash_offset: f32, // cumulative length before this segment
+    pub(super) end_trim: f32,
 }
+
+const _: () = assert!(std::mem::size_of::<StrokeSegment>() == 72);
 
 /// Link neighbouring segments inside each chain; a headed end joins nothing. `sags` is per
 /// row, zero past its end.
@@ -168,14 +178,32 @@ fn joined_rows(
     base: u32,
     sags: &[f32],
 ) -> Vec<StrokeSegment> {
+    joined_rows_dashed(rows, chains, heads, base, sags, &[], &[])
+}
+
+fn joined_rows_dashed(
+    rows: &[CylinderSegment],
+    chains: &[std::ops::Range<u32>],
+    heads: &[(u32, u32)],
+    base: u32,
+    sags: &[f32],
+    dashes: &[[f32; 3]],
+    trims: &[[f32; 2]],
+) -> Vec<StrokeSegment> {
     let mut result = Vec::with_capacity(rows.len());
 
     for (index, segment) in rows.iter().enumerate() {
+        let dash = dashes.get(index).copied().unwrap_or([0.0; 3]);
+        let trim = trims.get(index).copied().unwrap_or([0.0; 2]);
         result.push(StrokeSegment {
             segment: *segment,
             previous: u32::MAX,
             next: u32::MAX,
             sag: sags.get(index).copied().unwrap_or(0.0),
+            start_trim: trim[0],
+            dash: [dash[0], dash[1]],
+            dash_offset: dash[2],
+            end_trim: trim[1],
         });
     }
 
@@ -373,12 +401,14 @@ impl SegmentLane {
         let ribbon_base = self.ribbons.buf.len();
         let mut ribbon_ids = up.ribbon_ids.clone();
         ribbon_ids.resize(up.ribbons.len(), u32::MAX);
-        let ribbons = joined_rows(
+        let ribbons = joined_rows_dashed(
             &up.ribbons,
             &up.ribbon_chains,
             &up.ribbon_heads,
             ribbon_base,
             &[],
+            &up.ribbon_dashes,
+            &up.ribbon_trims,
         );
         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
 
@@ -436,6 +466,10 @@ impl SegmentLane {
             previous: u32::MAX,
             next: u32::MAX,
             sag: 0.0,
+            start_trim: 0.0,
+            dash: [0.0; 2],
+            dash_offset: 0.0,
+            end_trim: 0.0,
         };
         table.buf.fill(ctx, first, count, &dead);
     }
@@ -464,12 +498,14 @@ impl SegmentLane {
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
         self.pipes.ids.write_at(ctx, at.pipes, &ids);
-        let ribbons = joined_rows(
+        let ribbons = joined_rows_dashed(
             &up.ribbons,
             &up.ribbon_chains,
             &up.ribbon_heads,
             at.ribbons,
             &[],
+            &up.ribbon_dashes,
+            &up.ribbon_trims,
         );
         self.ribbons.buf.write_at(ctx, at.ribbons, &ribbons);
         let mut ids = up.ribbon_ids.clone();
@@ -951,10 +987,14 @@ impl SegRows {
         seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
         seg.pipe_sags.resize(seg.pipes.len(), 0.0);
         seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
+        seg.ribbon_dashes.resize(seg.ribbons.len(), [0.0; 3]);
+        seg.ribbon_trims.resize(seg.ribbons.len(), [0.0; 2]);
         seg.sheet_ids.resize(seg.sheet_rows.len(), u32::MAX);
         other.pipe_ids.resize(other.pipes.len(), u32::MAX);
         other.pipe_sags.resize(other.pipes.len(), 0.0);
         other.ribbon_ids.resize(other.ribbons.len(), u32::MAX);
+        other.ribbon_dashes.resize(other.ribbons.len(), [0.0; 3]);
+        other.ribbon_trims.resize(other.ribbons.len(), [0.0; 2]);
         other.sheet_ids.resize(other.sheet_rows.len(), u32::MAX);
         seg.pipe_chains.extend(
             other
@@ -986,6 +1026,8 @@ impl SegRows {
         seg.pipe_sags.append(&mut other.pipe_sags);
         seg.ribbons.append(&mut other.ribbons);
         seg.ribbon_ids.append(&mut other.ribbon_ids);
+        seg.ribbon_dashes.append(&mut other.ribbon_dashes);
+        seg.ribbon_trims.append(&mut other.ribbon_trims);
         seg.sheet_rows.append(&mut other.sheet_rows);
         seg.sheet_ids.append(&mut other.sheet_ids);
     }

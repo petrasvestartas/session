@@ -288,7 +288,10 @@ fn chain_on_edge(b: &BRep, edge: usize, fm: &Mesh, keys: &[usize]) -> bool {
     let end = curve.point_at_end();
     let (start, end) = ([start[0], start[1], start[2]], [end[0], end[1], end[2]]);
     let (a, z) = (vertex_position(fm, *first), vertex_position(fm, *last));
-    let scale = start.iter().chain(end.iter()).fold(1.0f64, |m, v| m.max(v.abs()));
+    let scale = start
+        .iter()
+        .chain(end.iter())
+        .fold(1.0f64, |m, v| m.max(v.abs()));
     let tolerance = 1e-6 * scale;
     let near = |p: [f64; 3], q: [f64; 3]| distance2(p, q).sqrt() <= tolerance;
 
@@ -355,8 +358,8 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
 /// chain segment of the face mesh it lies on, for its facing, with how far it rises off that mesh.
 pub struct DisplayChain {
     pub points: Vec<[f64; 3]>, // display points on the edge's exact curve, in chain order
-    pub spans: Vec<usize>,     // per display segment: the chain segment (keys[k], keys[k+1]) it lies on
-    pub sags: Vec<f32>,        // per display segment: its rise off the face mesh, mm; 0 on a straight edge
+    pub spans: Vec<usize>, // per display segment: the chain segment (keys[k], keys[k+1]) it lies on
+    pub sags: Vec<f32>, // per display segment: its rise off the face mesh, mm; 0 on a straight edge
 }
 
 /// Position of one mesh vertex.
@@ -451,8 +454,13 @@ fn curve_parameter(curve: &session_rust::NurbsCurve, p: [f64; 3], scouts: &[[f64
         distance2([q[0], q[1], q[2]], p)
     };
     let step = (t1 - t0) / count as f64;
-    let nearest = (0..=count).min_by(|&i, &j| distance2(scouts[i], p).total_cmp(&distance2(scouts[j], p))).unwrap_or(0);
-    let (mut lo, mut hi) = ((t0 + step * (nearest as f64 - 1.0)).max(t0), (t0 + step * (nearest as f64 + 1.0)).min(t1));
+    let nearest = (0..=count)
+        .min_by(|&i, &j| distance2(scouts[i], p).total_cmp(&distance2(scouts[j], p)))
+        .unwrap_or(0);
+    let (mut lo, mut hi) = (
+        (t0 + step * (nearest as f64 - 1.0)).max(t0),
+        (t0 + step * (nearest as f64 + 1.0)).min(t1),
+    );
     let ratio = 0.5 * (5.0f64.sqrt() - 1.0);
 
     for _ in 0..60 {
@@ -477,7 +485,12 @@ pub fn display_chain(b: &BRep, chain: &EdgeChain, fm: &Mesh) -> DisplayChain {
     display_chain_quality(b, chain, fm, Default::default())
 }
 
-pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: super::display::Quality) -> DisplayChain {
+pub fn display_chain_quality(
+    b: &BRep,
+    chain: &EdgeChain,
+    fm: &Mesh,
+    quality: super::display::Quality,
+) -> DisplayChain {
     let coarse: Vec<[f64; 3]> = chain
         .keys
         .iter()
@@ -493,16 +506,26 @@ pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: su
     } else {
         !(turning_degrees(curve) > EDGE_DEGREES) || knobs::coarse_edges()
     };
-    let chords = if straight { segments } else { display_chords(curve, segments) };
+    let chords = if straight {
+        segments
+    } else {
+        display_chords(curve, segments)
+    };
     let (t0, t1) = curve.domain();
     let period = t1 - t0;
 
     // every mesh vertex's parameter, unwrapped across the seam of a closed curve so the chain runs on
     let count = (8 * chords).clamp(8, super::display::CURVE_SEGMENTS * 8);
-    let scouts: Vec<[f64; 3]> = (0..=count).map(|i| {
-        let p = curve.point_at(t0 + period * i as f64 / count as f64); [p[0], p[1], p[2]]
-    }).collect();
-    let mut parameters: Vec<f64> = coarse.iter().map(|&p| curve_parameter(curve, p, &scouts)).collect();
+    let scouts: Vec<[f64; 3]> = (0..=count)
+        .map(|i| {
+            let p = curve.point_at(t0 + period * i as f64 / count as f64);
+            [p[0], p[1], p[2]]
+        })
+        .collect();
+    let mut parameters: Vec<f64> = coarse
+        .iter()
+        .map(|&p| curve_parameter(curve, p, &scouts))
+        .collect();
 
     if curve.is_closed() {
         for k in 1..parameters.len() {
@@ -517,15 +540,31 @@ pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: su
 
         // a closed chain ends where it starts, one turn on
         if chain.keys.first() == chain.keys.last() && segments > 1 {
-            let turn = if parameters[segments - 1] > parameters[0] { period } else { -period };
+            let turn = if parameters[segments - 1] > parameters[0] {
+                period
+            } else {
+                -period
+            };
             parameters[segments] = parameters[0] + turn;
         }
     }
 
-    let wrap = |t: f64| if curve.is_closed() { t0 + (t - t0).rem_euclid(period) } else { t.clamp(t0, t1) };
+    let wrap = |t: f64| {
+        if curve.is_closed() {
+            t0 + (t - t0).rem_euclid(period)
+        } else {
+            t.clamp(t0, t1)
+        }
+    };
     let total: f64 = parameters.windows(2).map(|w| (w[1] - w[0]).abs()).sum();
     let sampled = (quality.tolerance.is_finite() && segments + 2 < super::display::CURVE_SEGMENTS)
-        .then(|| super::display::sample(curve, quality, super::display::CURVE_SEGMENTS - segments - 2));
+        .then(|| {
+            super::display::sample(
+                curve,
+                quality,
+                super::display::CURVE_SEGMENTS - segments - 2,
+            )
+        });
     let first = curve.point_at(wrap(parameters[0]));
     let mut points = vec![[first[0], first[1], first[2]]];
     let mut spans = Vec::with_capacity(chords);
@@ -533,19 +572,37 @@ pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: su
 
     for k in 0..segments {
         let (a, z) = (coarse[k], coarse[k + 1]);
-        let share = if total > 0.0 { (parameters[k + 1] - parameters[k]).abs() / total } else { 0.0 };
-        let steps = if straight || sampled.is_some() { 1 } else { ((chords as f64 * share).round() as usize).max(1) };
-        let mut cuts: Vec<f64> = (1..=steps).map(|j| parameters[k] + (parameters[k + 1] - parameters[k]) * j as f64 / steps as f64).collect();
+        let share = if total > 0.0 {
+            (parameters[k + 1] - parameters[k]).abs() / total
+        } else {
+            0.0
+        };
+        let steps = if straight || sampled.is_some() {
+            1
+        } else {
+            ((chords as f64 * share).round() as usize).max(1)
+        };
+        let mut cuts: Vec<f64> = (1..=steps)
+            .map(|j| parameters[k] + (parameters[k + 1] - parameters[k]) * j as f64 / steps as f64)
+            .collect();
         if let Some(sampled) = &sampled {
             for &t in &sampled.parameters {
                 // Match the unwrapped interval of a closed chain without adding seam copies.
-                let t = if curve.is_closed() { t + ((parameters[k] - t) / period).round() * period } else { t };
-                if t > parameters[k].min(parameters[k + 1]) && t < parameters[k].max(parameters[k + 1]) {
+                let t = if curve.is_closed() {
+                    t + ((parameters[k] - t) / period).round() * period
+                } else {
+                    t
+                };
+                if t > parameters[k].min(parameters[k + 1])
+                    && t < parameters[k].max(parameters[k + 1])
+                {
                     cuts.push(t);
                 }
             }
             cuts.sort_by(f64::total_cmp);
-            if parameters[k + 1] < parameters[k] { cuts.reverse(); }
+            if parameters[k + 1] < parameters[k] {
+                cuts.reverse();
+            }
             cuts.dedup_by(|a, b| (*a - *b).abs() < period.abs() * 1e-12);
         }
         let mut previous = *points.last().unwrap();
@@ -553,7 +610,11 @@ pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: su
         for t in cuts {
             let q = curve.point_at(wrap(t));
             let p = [q[0], q[1], q[2]];
-            let rise = if straight && !finite_quality { 0.0 } else { segment_distance(previous, a, z).max(segment_distance(p, a, z)) };
+            let rise = if straight && !finite_quality {
+                0.0
+            } else {
+                segment_distance(previous, a, z).max(segment_distance(p, a, z))
+            };
             points.push(p);
             spans.push(k);
             sags.push((rise * SAG_MARGIN) as f32);
@@ -565,7 +626,11 @@ pub fn display_chain_quality(b: &BRep, chain: &EdgeChain, fm: &Mesh, quality: su
         return coarse_display(coarse);
     }
 
-    DisplayChain { points, spans, sags }
+    DisplayChain {
+        points,
+        spans,
+        sags,
+    }
 }
 
 /// A triangle edge keyed by its two end positions.
@@ -720,7 +785,12 @@ impl<'a> EdgePen<'a> {
     }
 
     /// Interior facet edges are visible only where their triangle normals straddle the view.
-    pub fn push_silhouette_pipes(&self, seg: &mut SegRows, bounds: &mut AABB, mut remaining: usize) {
+    pub fn push_silhouette_pipes(
+        &self,
+        seg: &mut SegRows,
+        bounds: &mut AABB,
+        mut remaining: usize,
+    ) {
         seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
         seg.pipe_sags.resize(seg.pipes.len(), 0.0);
 
@@ -732,7 +802,8 @@ impl<'a> EdgePen<'a> {
                 let (Some(n0), Some(n1)) = (pair.normals[0], pair.normals[1]) else {
                     continue;
                 };
-                if pair.count != 2 || n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] >= COPLANAR_DOT {
+                if pair.count != 2 || n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] >= COPLANAR_DOT
+                {
                     continue;
                 }
 
@@ -749,7 +820,10 @@ impl<'a> EdgePen<'a> {
 
                 bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
                 bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
-                let pair = (scaled_normal(Some(n0), self.signs[face]), scaled_normal(Some(n1), self.signs[face]));
+                let pair = (
+                    scaled_normal(Some(n0), self.signs[face]),
+                    scaled_normal(Some(n1), self.signs[face]),
+                );
                 seg.pipes.push(CylinderSegment {
                     p0,
                     radius: self.pen.radius,
@@ -874,18 +948,32 @@ mod tests {
     fn silhouettes_use_flat_triangle_normals_and_exclude_planar_and_boundary_edges() {
         for (height, nonmanifold, expected) in [(0.0, false, 0), (1.0, false, 1), (1.0, true, 0)] {
             let meshes = [folded_mesh(height, nonmanifold)];
-            let ep = EdgePen::new(&meshes, &[-1.0], Pen { row: 3, radius: 1.0, color: 0 }).recording();
+            let ep = EdgePen::new(
+                &meshes,
+                &[-1.0],
+                Pen {
+                    row: 3,
+                    radius: 1.0,
+                    color: 0,
+                },
+            )
+            .recording();
             let mut seg = SegRows::default();
             ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), usize::MAX);
             assert_eq!(seg.pipes.len(), expected);
             let normals = ep.take_normals();
             assert_eq!(normals.len(), expected);
             if expected == 1 {
-                let (Some(a), Some(b)) = normals[0] else { panic!("missing triangle normals") };
+                let (Some(a), Some(b)) = normals[0] else {
+                    panic!("missing triangle normals")
+                };
                 assert_eq!(a, [0.0, 0.0, -1.0]);
                 assert_eq!(b, [0.0, -1.0 / 2.0f64.sqrt(), -1.0 / 2.0f64.sqrt()]);
                 assert_eq!(seg.pipes[0].facing, pack_facing(Some(&a), Some(&b)));
-                assert_eq!((seg.pipes[0].p0, seg.pipes[0].p1), ([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]));
+                assert_eq!(
+                    (seg.pipes[0].p0, seg.pipes[0].p1),
+                    ([0.0, 0.0, 0.0], [1.0, 0.0, 0.0])
+                );
                 assert_eq!(seg.pipe_ids, [u32::MAX]);
                 assert!(seg.pipe_sags[0].is_sign_negative());
                 assert!(seg.pipe_chains.is_empty());
@@ -896,15 +984,30 @@ mod tests {
     #[test]
     fn silhouette_candidates_respect_the_remaining_segment_budget() {
         let meshes = [folded_mesh(1.0, false)];
-        let ep = EdgePen::new(&meshes, &[1.0], Pen { row: 0, radius: 1.0, color: 0 }).recording();
+        let ep = EdgePen::new(
+            &meshes,
+            &[1.0],
+            Pen {
+                row: 0,
+                radius: 1.0,
+                color: 0,
+            },
+        )
+        .recording();
         let mut seg = SegRows::default();
-        assert!(super::super::display::candidate(|| {
-            ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), 0);
-        }).is_none());
+        assert!(
+            super::super::display::candidate(|| {
+                ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), 0);
+            })
+            .is_none()
+        );
         assert!(seg.pipes.is_empty() && ep.take_normals().is_empty());
-        assert!(super::super::display::candidate(|| {
-            ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), 1);
-        }).is_some());
+        assert!(
+            super::super::display::candidate(|| {
+                ep.push_silhouette_pipes(&mut seg, &mut AABB::empty(), 1);
+            })
+            .is_some()
+        );
         assert_eq!(seg.pipes.len(), 1);
         assert_eq!(ep.take_normals().len(), 1);
     }
@@ -1166,11 +1269,20 @@ mod tests {
         let mut seg = SegRows::default();
         let mut bounds = AABB::empty();
         let chain = chains[0].as_ref().unwrap();
-        let circle = push_edge_pipes(&mut seg, chain, &display_chain(&b, chain, &fms[chain.face]), &ep, &mut bounds);
+        let circle = push_edge_pipes(
+            &mut seg,
+            chain,
+            &display_chain(&b, chain, &fms[chain.face]),
+            &ep,
+            &mut bounds,
+        );
         assert!(circle.len() >= chain.keys.len() - 1);
         assert_eq!(circle.first(), Some(&0));
         assert_eq!(circle.last(), Some(&(chain.keys.len() - 2)));
-        assert!(circle.windows(2).all(|w| w[1] == w[0] || w[1] == w[0] + 1), "pipes follow the chain in order");
+        assert!(
+            circle.windows(2).all(|w| w[1] == w[0] || w[1] == w[0] + 1),
+            "pipes follow the chain in order"
+        );
 
         for p in &seg.pipes {
             assert_ne!(
@@ -1184,7 +1296,13 @@ mod tests {
 
         let before = seg.pipes.len();
         let chain = chains[2].as_ref().unwrap();
-        let seam = push_edge_pipes(&mut seg, chain, &display_chain(&b, chain, &fms[chain.face]), &ep, &mut bounds);
+        let seam = push_edge_pipes(
+            &mut seg,
+            chain,
+            &display_chain(&b, chain, &fms[chain.face]),
+            &ep,
+            &mut bounds,
+        );
         assert_eq!(seam, vec![0]);
         let p = &seg.pipes[before];
         assert_ne!(p.facing & 0xffff, p.facing >> 16);
@@ -1193,7 +1311,10 @@ mod tests {
         assert_eq!(seg.pipe_sags.len(), seg.pipes.len());
         assert!(seg.pipe_ids[..before].iter().all(|&id| id == 0));
         assert_eq!(seg.pipe_ids[before], 2);
-        assert_eq!(seg.pipe_sags[before], 0.0, "a straight seam lies on its faces");
+        assert_eq!(
+            seg.pipe_sags[before], 0.0,
+            "a straight seam lies on its faces"
+        );
         assert!(seg.pipe_sags[..before].iter().all(|&sag| sag >= 0.0));
     }
 
@@ -1282,21 +1403,35 @@ mod tests {
             let curve = &brep.m_curves_3d[curve_index];
             let (start, end) = curve.domain();
             let (a, b) = (curve.point_at(start), curve.point_at(end));
-            let mut middle = Point::new((a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5, (a[2] + b[2]) * 0.5);
+            let mut middle = Point::new(
+                (a[0] + b[0]) * 0.5,
+                (a[1] + b[1]) * 0.5,
+                (a[2] + b[2]) * 0.5,
+            );
             let axis = if (a[2] - b[2]).abs() < 1e-12 { 2 } else { 0 };
             middle[axis] += offset;
             brep.m_curves_3d[curve_index] = NurbsCurve::create(false, 2, &[a, middle, b]);
             assert!(turning_degrees(&brep.m_curves_3d[curve_index]) < EDGE_DEGREES);
             let legacy = display_chain(&brep, chain, &meshes[chain.face]);
             assert!(legacy.sags.iter().all(|sag| *sag == 0.0));
-            let display = display_chain_quality(&brep, chain, &meshes[chain.face], super::super::display::Quality { tolerance: offset / 100.0 });
+            let display = display_chain_quality(
+                &brep,
+                chain,
+                &meshes[chain.face],
+                super::super::display::Quality {
+                    tolerance: offset / 100.0,
+                },
+            );
             assert!(display.sags.iter().any(|sag| *sag > 0.0));
             for (i, ends) in display.points.windows(2).enumerate() {
                 let span = display.spans[i];
                 let a = vertex_position(&meshes[chain.face], chain.keys[span]);
                 let b = vertex_position(&meshes[chain.face], chain.keys[span + 1]);
                 for point in ends {
-                    assert!(segment_distance(*point, a, b) <= f64::from(display.sags[i]) + offset * 1e-5);
+                    assert!(
+                        segment_distance(*point, a, b)
+                            <= f64::from(display.sags[i]) + offset * 1e-5
+                    );
                 }
             }
         }
@@ -1386,11 +1521,19 @@ mod tests {
                     .windows(2)
                     .map(|w| segment_distance(v, w[0], w[1]))
                     .fold(f64::INFINITY, f64::min);
-                assert!(nearest < 0.05, "edge {} mesh vertex {v:?} is {nearest} off the drawn line", chain.edge);
+                assert!(
+                    nearest < 0.05,
+                    "edge {} mesh vertex {v:?} is {nearest} off the drawn line",
+                    chain.edge
+                );
             }
 
             assert!(display.sags.iter().any(|&sag| sag > 0.0));
-            assert!(seg.pipes.iter().all(|p| p.facing != FACING_UNKNOWN), "edge {} facets", chain.edge);
+            assert!(
+                seg.pipes.iter().all(|p| p.facing != FACING_UNKNOWN),
+                "edge {} facets",
+                chain.edge
+            );
             assert_eq!(spans.first(), Some(&0));
             assert_eq!(spans.last(), Some(&31));
         }
@@ -1410,10 +1553,20 @@ mod tests {
             let display = display_chain(&b, chain, &fms[chain.face]);
             let fm = &fms[chain.face];
             assert!(distance2(display.points[0], vertex_position(fm, chain.keys[0])).sqrt() < 1e-9);
-            assert!(distance2(*display.points.last().unwrap(), vertex_position(fm, *chain.keys.last().unwrap())).sqrt() < 1e-9);
+            assert!(
+                distance2(
+                    *display.points.last().unwrap(),
+                    vertex_position(fm, *chain.keys.last().unwrap())
+                )
+                .sqrt()
+                    < 1e-9
+            );
             let second = vertex_position(fm, chain.keys[1]);
             let at = nearest_index(&display.points, second);
-            assert!(at > 0 && at < display.points.len() / 2, "the second mesh vertex comes early, not at the wrap");
+            assert!(
+                at > 0 && at < display.points.len() / 2,
+                "the second mesh vertex comes early, not at the wrap"
+            );
             assert!(display.spans.windows(2).all(|w| w[1] >= w[0]));
         }
     }
@@ -1435,7 +1588,12 @@ mod tests {
         let other = chains
             .iter()
             .flatten()
-            .find(|c| c.face == chain.face && c.edge != chain.edge && c.keys.first() != chain.keys.first() && c.keys.last() != chain.keys.last())
+            .find(|c| {
+                c.face == chain.face
+                    && c.edge != chain.edge
+                    && c.keys.first() != chain.keys.first()
+                    && c.keys.last() != chain.keys.last()
+            })
             .unwrap();
         assert!(!chain_on_edge(&b, chain.edge, fm, &other.keys));
     }
@@ -1531,20 +1689,31 @@ mod tests {
         let fms = b.face_meshes_q(Some(QUALITY));
         assert!(!fms[0].face.is_empty());
         assert!(b.face_meshes_q_bounded(QUALITY, 1).is_none());
-        let bounded = b.face_meshes_q_bounded(QUALITY, 1_000_000).expect("bounded generic curved trim");
+        let bounded = b
+            .face_meshes_q_bounded(QUALITY, 1_000_000)
+            .expect("bounded generic curved trim");
         let (before, after) = (fms[0].to_render(), bounded[0].to_render());
         assert_eq!(before.indices, after.indices);
-        assert_eq!(bytemuck::cast_slice::<_, u8>(&before.vertices), bytemuck::cast_slice::<_, u8>(&after.vertices));
+        assert_eq!(
+            bytemuck::cast_slice::<_, u8>(&before.vertices),
+            bytemuck::cast_slice::<_, u8>(&after.vertices)
+        );
 
         let absolute_chord = QUALITY.1 * super::super::display::brep_diagonal(&b);
         let remote = surface.transformed(&session_rust::Xform::translation(100.0, 0.0, 0.0));
         let mut wider = b.clone();
         wider.add_surface(&remote);
-        let quality = (QUALITY.0, absolute_chord / super::super::display::brep_diagonal(&wider));
+        let quality = (
+            QUALITY.0,
+            absolute_chord / super::super::display::brep_diagonal(&wider),
+        );
         let wider_meshes = wider.face_meshes_q_bounded(quality, 1_000_000).unwrap();
         let wider_render = wider_meshes[0].to_render();
         assert_eq!(after.indices, wider_render.indices);
-        assert_eq!(bytemuck::cast_slice::<_, u8>(&after.vertices), bytemuck::cast_slice::<_, u8>(&wider_render.vertices));
+        assert_eq!(
+            bytemuck::cast_slice::<_, u8>(&after.vertices),
+            bytemuck::cast_slice::<_, u8>(&wider_render.vertices)
+        );
 
         let chains = edge_chains(&b, &fms);
 

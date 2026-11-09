@@ -1,6 +1,6 @@
-use crate::engine::gpu::buffers::resource_group;
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use super::TextFrame;
+use crate::engine::gpu::buffers::resource_group;
 use crate::engine::pipelines::bindings::texture_entry;
 use crate::engine::pipelines::{Pipeline, Target};
 use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
@@ -12,12 +12,12 @@ const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
 
 /// One label rasterized into a texture.
 struct CachedPlane {
-    label: TextLabel,       // the label it was made from
+    labels: Vec<TextLabel>, // the complete expression it was made from
     font_revision: u64,     // font set it was made with
     em_pixels: u32,         // pixels per em it was rasterized at
     size: [u32; 2],         // texture size, px
     extent: [f32; 4],       // glyph box in font units: left, top, right, bottom
-    texture: wgpu::Texture, // glyph coverage, one byte per pixel
+    texture: wgpu::Texture, // glyph and white-halo coverage, two bytes per pixel
     bind: wgpu::BindGroup,  // texture and sampler
 }
 
@@ -26,6 +26,16 @@ impl Drop for CachedPlane {
     fn drop(&mut self) {
         self.texture.destroy();
     }
+}
+
+/// Spatial outlined labels use the same single-quad WGSL path as world-plane text.
+pub(super) fn textured_spatial(label: &TextLabel) -> bool {
+    label.outline < 0.0
+        && label.id & crate::engine::text::SPATIAL_TEXT_ID != 0
+        && matches!(
+            label.placement,
+            TextPlacement::Anchor { .. } | TextPlacement::WorldBillboard { .. }
+        )
 }
 
 /// Draws text labels that sit on a plane in the world.
@@ -74,7 +84,7 @@ impl Planes {
         Self {
             cached: Vec::new(),
             draws: Vec::new(),
-            vertices: GrowBuf::new(ctx, "world text vertices", 68, VERTS),
+            vertices: GrowBuf::new(ctx, "world text vertices", 72, VERTS),
             layout,
             sampler,
             pipeline,
@@ -90,7 +100,7 @@ impl Planes {
         self.pipeline = pipeline(ctx, target, &self.layout, false);
     }
 
-    /// Rasterize new or changed labels and place every label's quad.
+    /// Rasterize new or changed expressions and place one quad for each complete expression.
     pub(super) fn prepare(
         &mut self,
         ctx: &GpuCtx,
@@ -102,11 +112,11 @@ impl Planes {
         self.vertices.reset();
         let mut retained = Vec::new();
 
-        // keep textures whose label still exists
         for cached in self.cached.drain(..) {
             for run in &document.runs {
-                if run.label.id == cached.label.id
-                    && matches!(run.label.placement, TextPlacement::WorldPlane { .. })
+                if run.label.id == cached.labels[0].id
+                    && (matches!(run.label.placement, TextPlacement::WorldPlane { .. })
+                        || textured_spatial(&run.label))
                 {
                     retained.push(cached);
                     break;
@@ -116,51 +126,65 @@ impl Planes {
 
         self.cached = retained;
         let mut vertices = Vec::new();
+        let mut run_index = 0;
 
-        for run in &document.runs {
-            if !matches!(run.label.placement, TextPlacement::WorldPlane { .. })
+        while run_index < document.runs.len() {
+            let run = &document.runs[run_index];
+            if (!matches!(run.label.placement, TextPlacement::WorldPlane { .. })
+                && !textured_spatial(&run.label))
                 || run.label.text.is_empty()
             {
+                run_index += 1;
                 continue;
             }
 
-            // cut away by a clipping plane
             if let TextPlacement::WorldPlane { world, .. } = run.label.placement
                 && frame.cut(world)
             {
+                run_index += 1;
                 continue;
             }
-            // resolution the label needs on screen now
-            let em_pixels = raster_em(&run.label, frame).min(fitting_em(run));
+            let mut group_end = run_index + 1;
+            if textured_spatial(&run.label) {
+                while group_end < document.runs.len()
+                    && same_expression(
+                        &run.label,
+                        &document.runs[group_end - 1].label,
+                        &document.runs[group_end].label,
+                    )
+                {
+                    group_end += 1;
+                }
+            }
+            let group = &document.runs[run_index..group_end];
+            run_index = group_end;
+            let em_pixels = group.iter().fold(raster_em(&run.label, frame), |em, run| {
+                em.min(raster_em(&run.label, frame)).min(fitting_em(run))
+            });
             let mut index = None;
 
             for (at, cached) in self.cached.iter().enumerate() {
-                if cached.label.id == run.label.id {
+                if cached.labels[0].id == run.label.id {
                     index = Some(at);
                     break;
                 }
             }
 
-            // new label, or text, font or resolution changed
             let rebuild = match index {
-                Some(at) => !same_raster(
-                    &self.cached[at],
-                    &run.label,
-                    document.font_revision,
-                    em_pixels,
-                ),
+                Some(at) => {
+                    !same_raster(&self.cached[at], group, document.font_revision, em_pixels)
+                }
                 None => true,
             };
 
             if rebuild {
                 let (pixels, size, extent) =
-                    rasterize(run, &mut document.fonts, raster, em_pixels)?;
-                // bytes of every texture after this one
-                let mut allocated = u64::from(size[0]) * u64::from(size[1]);
+                    rasterize(group, &mut document.fonts, raster, em_pixels)?;
+                let mut allocated = u64::from(size[0]) * u64::from(size[1]) * 2;
 
                 for (at, cached) in self.cached.iter().enumerate() {
                     if Some(at) != index {
-                        allocated += u64::from(cached.size[0]) * u64::from(cached.size[1]);
+                        allocated += u64::from(cached.size[0]) * u64::from(cached.size[1]) * 2;
                     }
                 }
 
@@ -178,7 +202,7 @@ impl Planes {
                     mip_level_count: 1,
                     sample_count: 1,
                     dimension: wgpu::TextureDimension::D2,
-                    format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
+                    format: wgpu::TextureFormat::Rg8Unorm,
                     usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
                     view_formats: &[],
                 });
@@ -187,7 +211,7 @@ impl Planes {
                     &pixels,
                     wgpu::TexelCopyBufferLayout {
                         offset: 0,
-                        bytes_per_row: Some(size[0]),
+                        bytes_per_row: Some(size[0] * 2),
                         rows_per_image: Some(size[1]),
                     },
                     texture.size(),
@@ -203,7 +227,7 @@ impl Planes {
                     ],
                 );
                 let cached = CachedPlane {
-                    label: run.label.clone(),
+                    labels: group.iter().map(|run| run.label.clone()).collect(),
                     font_revision: document.font_revision,
                     em_pixels,
                     size,
@@ -222,7 +246,6 @@ impl Planes {
 
                 self.rasterizations += 1;
 
-                // drop the CPU glyph cache when it grows large
                 if raster.image_cache.len() > 4096 {
                     *raster = SwashCache::new();
                 }
@@ -230,14 +253,21 @@ impl Planes {
 
             let index = index.expect("a prepared world plane has a cache entry");
             let start = vertices.len() as u32;
+            let cached = &self.cached[index];
+            let halo =
+                (run.label.outline.abs() * (cached.em_pixels as f32 / run.label.font_size) * 0.5)
+                    .ceil();
             append_quad(
                 &mut vertices,
-                &run.label,
-                self.cached[index].extent,
+                run,
+                cached.extent,
+                halo,
                 frame,
                 self.target.format.is_srgb(),
             );
-            self.draws.push((index, start));
+            if vertices.len() as u32 > start {
+                self.draws.push((index, start));
+            }
         }
 
         self.vertices.append(ctx, &vertices);
@@ -303,35 +333,60 @@ impl Planes {
         let mut total = 0;
 
         for cached in &self.cached {
-            total += u64::from(cached.size[0]) * u64::from(cached.size[1]);
+            total += u64::from(cached.size[0]) * u64::from(cached.size[1]) * 2;
         }
 
         total
     }
 }
 
-/// True when the cached texture still fits the label.
-fn same_raster(cached: &CachedPlane, label: &TextLabel, revision: u64, em_pixels: u32) -> bool {
+/// Consecutive runs at one anchor belong to one TeX expression and share its coverage texture.
+fn same_expression(first: &TextLabel, previous: &TextLabel, next: &TextLabel) -> bool {
+    let row = |label: &TextLabel| label.id & !crate::engine::text::TEXT_ID_FLAGS;
+    textured_spatial(next)
+        && row(next) == row(previous) + 1
+        && next.color == first.color
+        && next.outline == first.outline
+        && next.object.map(|object| object.selected) == first.object.map(|object| object.selected)
+        && match (&first.placement, &next.placement) {
+            (TextPlacement::Anchor { world: a, .. }, TextPlacement::Anchor { world: b, .. }) => {
+                a == b
+            }
+            _ => false,
+        }
+}
+
+/// True when the cached texture still fits every run of the expression.
+fn same_raster(cached: &CachedPlane, group: &[TextRun], revision: u64, em_pixels: u32) -> bool {
     cached.font_revision == revision
-        && cached.label.text == label.text
-        && cached.label.font_size == label.font_size
-        && cached.label.line_height == label.line_height
         && cached.em_pixels >= em_pixels
+        && cached.labels.len() == group.len()
+        && cached.labels.iter().zip(group).all(|(cached, run)| {
+            cached.text == run.label.text
+                && cached.font_size == run.label.font_size
+                && cached.line_height == run.label.line_height
+                && cached.outline == run.label.outline
+        })
 }
 
 /// World point to clip space, keeping w for perspective.
-fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
+fn project(world: [f64; 3], frame: &TextFrame, spatial: bool) -> [f32; 4] {
     let point = [
         (world[0] - frame.origin[0]) as f32,
         (world[1] - frame.origin[1]) as f32,
         (world[2] - frame.origin[2]) as f32,
         1.0,
     ];
+    let camera = if spatial {
+        &frame.spatial_mvp
+    } else {
+        &frame.mvp
+    };
     let mut clip = [0.0; 4];
 
     for (row, out) in clip.iter_mut().enumerate() {
         for (column, value) in point.iter().enumerate() {
-            *out += frame.mvp[column * 4 + row] * value;
+            *out += camera[column * 4 + row] * value;
         }
     }
 
@@ -340,6 +395,20 @@ fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
 
 /// Pixels per em to rasterize at: a power of two from 32 to 256.
 fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
+    if textured_spatial(label) {
+        let Ok(scale) = frame.scale() else {
+            return 32;
+        };
+        let Some(placed) = super::place(label, frame, scale) else {
+            return 32;
+        };
+        let needed = (label.font_size * placed.scale * 2.0).clamp(32.0, 256.0);
+        let mut bucket = 32;
+        while (bucket as f32) < needed {
+            bucket *= 2;
+        }
+        return bucket;
+    }
     let TextPlacement::WorldPlane {
         world,
         right,
@@ -350,7 +419,11 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
     else {
         return 32;
     };
-    let a = project(world, frame);
+    let a = project(
+        world,
+        frame,
+        label.id & crate::engine::text::SPATIAL_TEXT_ID != 0,
+    );
 
     if a[3] <= 0.0 {
         return 32;
@@ -366,7 +439,11 @@ fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
             end[axis] += direction[axis] * world_height;
         }
 
-        let b = project(end, frame);
+        let b = project(
+            end,
+            frame,
+            label.id & crate::engine::text::SPATIAL_TEXT_ID != 0,
+        );
 
         if b[3] <= 0.0 {
             continue;
@@ -406,43 +483,52 @@ fn fitting_em(run: &TextRun) -> u32 {
     em
 }
 
-/// Draw the label's glyphs into one coverage image.
+/// Draw every run of one expression into one coverage image.
 fn rasterize(
-    run: &TextRun,
+    group: &[TextRun],
     fonts: &mut FontSystem,
     raster: &mut SwashCache,
     em_pixels: u32,
 ) -> anyhow::Result<(Vec<u8>, [u32; 2], [f32; 4])> {
+    let run = &group[0];
     let scale = em_pixels as f32 / run.label.font_size;
     let mut glyphs = Vec::new();
     let mut bounds = [0i32; 4];
 
-    // first pass: glyph positions and the box around them
-    for line in run.buffer.layout_runs() {
-        bounds[2] = bounds[2].max((line.line_w * scale).ceil() as i32);
-        bounds[3] = bounds[3].max(((line.line_top + line.line_height) * scale).ceil() as i32);
-        anyhow::ensure!(
-            bounds[2] <= 4092 && bounds[3] <= 4092,
-            "world text layout exceeds 4096px extent"
-        );
+    for run in group {
+        let offset = match run.label.placement {
+            TextPlacement::Anchor { offset, .. } => offset,
+            _ => [0.0; 2],
+        };
+        for line in run.buffer.layout_runs() {
+            bounds[2] = bounds[2].max(((offset[0] + line.line_w) * scale).ceil() as i32);
+            bounds[3] = bounds[3]
+                .max(((offset[1] + line.line_top + line.line_height) * scale).ceil() as i32);
+            anyhow::ensure!(
+                bounds[2] <= 4092 && bounds[3] <= 4092,
+                "world text layout exceeds 4096px extent"
+            );
 
-        for glyph in line.glyphs {
-            let physical = glyph.physical((0.0, 0.0), scale);
-            let Some(image) = raster.get_image(fonts, physical.cache_key) else {
-                continue;
-            };
-            let x = physical.x + image.placement.left;
-            let y = (line.line_y * scale).round() as i32 + physical.y - image.placement.top;
-            bounds[0] = bounds[0].min(x);
-            bounds[1] = bounds[1].min(y);
-            bounds[2] = bounds[2].max(x + image.placement.width as i32);
-            bounds[3] = bounds[3].max(y + image.placement.height as i32);
-            glyphs.push((physical.cache_key, x, y));
+            for glyph in line.glyphs {
+                let physical = glyph.physical((0.0, 0.0), scale);
+                let Some(image) = raster.get_image(fonts, physical.cache_key) else {
+                    continue;
+                };
+                let x = (offset[0] * scale).round() as i32 + physical.x + image.placement.left;
+                let y = ((offset[1] + line.line_y) * scale).round() as i32 + physical.y
+                    - image.placement.top;
+                bounds[0] = bounds[0].min(x);
+                bounds[1] = bounds[1].min(y);
+                bounds[2] = bounds[2].max(x + image.placement.width as i32);
+                bounds[3] = bounds[3].max(y + image.placement.height as i32);
+                glyphs.push((physical.cache_key, x, y));
+            }
         }
     }
 
-    // padding around the glyphs
-    let vertical_padding = (run.label.font_size * (2.0 / 9.0) * scale).ceil() as i32;
+    // The raster is normally twice screen resolution, so half the CSS halo width per raster pixel.
+    let halo = (run.label.outline.abs() * scale * 0.5).ceil() as i32;
+    let vertical_padding = (run.label.font_size * (2.0 / 9.0) * scale).ceil() as i32 + halo;
     let horizontal_padding = (bounds[3] - bounds[1] + 2 * vertical_padding + 1) / 2;
     bounds[0] -= horizontal_padding;
     bounds[1] -= vertical_padding;
@@ -467,7 +553,6 @@ fn rasterize(
         for row in 0..image.placement.height {
             for column in 0..image.placement.width {
                 let source = (row * image.placement.width + column) as usize;
-                // coverage byte from whichever image format the font gave
                 let coverage = match image.content {
                     SwashContent::Mask => image.data[source],
                     SwashContent::Color => image.data[source * 4 + 3],
@@ -481,14 +566,40 @@ fn rasterize(
                 let target = ((y - bounds[1] + row as i32) as u32 * size[0]
                     + (x - bounds[0] + column as i32) as u32) as usize;
                 let previous = u16::from(pixels[target]);
-                // blend over what is already there
                 pixels[target] = (previous + u16::from(coverage) * (255 - previous) / 255) as u8;
             }
         }
     }
 
+    // R is glyph coverage and G a white halo; black halos are dilated by the fragment shader.
+    let mut packed = vec![0u8; pixels.len() * 2];
+    for (index, coverage) in pixels.iter().copied().enumerate() {
+        packed[index * 2] = coverage;
+    }
+    if halo > 0 && run.label.outline > 0.0 {
+        for y in 0..size[1] as i32 {
+            for x in 0..size[0] as i32 {
+                let mut coverage = 0u8;
+                for dy in -halo..=halo {
+                    for dx in -halo..=halo {
+                        if dx * dx + dy * dy > halo * halo {
+                            continue;
+                        }
+                        let sx = x + dx;
+                        let sy = y + dy;
+                        if sx >= 0 && sy >= 0 && sx < size[0] as i32 && sy < size[1] as i32 {
+                            coverage =
+                                coverage.max(pixels[(sy as u32 * size[0] + sx as u32) as usize]);
+                        }
+                    }
+                }
+                packed[(y as u32 * size[0] + x as u32) as usize * 2 + 1] = coverage;
+            }
+        }
+    }
+
     Ok((
-        pixels,
+        packed,
         size,
         [
             bounds[0] as f32 / scale,
@@ -501,24 +612,35 @@ fn rasterize(
 
 /// Append the label's quad as six vertices.
 fn append_quad(
-    vertices: &mut Vec<[f32; 17]>,
-    label: &TextLabel,
+    vertices: &mut Vec<[f32; 18]>,
+    run: &TextRun,
     extent: [f32; 4],
+    halo: f32,
     frame: &TextFrame,
     srgb: bool,
 ) {
-    let TextPlacement::WorldPlane {
-        world,
-        right,
-        up,
-        world_height,
-        plate,
-    } = label.placement
-    else {
-        return;
+    let label = &run.label;
+    let spatial = textured_spatial(label);
+    let placed = if spatial {
+        let Ok(scale) = frame.scale() else {
+            return;
+        };
+        let mut anchor = label.clone();
+        if let TextPlacement::Anchor { offset, .. } = &mut anchor.placement {
+            *offset = [0.0; 2];
+        }
+        let Some(mut placed) = super::place(&anchor, frame, scale) else {
+            return;
+        };
+        let _ = super::text_rectangle(run, &mut placed, frame, scale);
+        Some(placed)
+    } else {
+        None
     };
-    // world units per font unit
-    let unit = world_height / f64::from(label.font_size);
+    let unit = match label.placement {
+        TextPlacement::WorldPlane { world_height, .. } => world_height / f64::from(label.font_size),
+        _ => 0.0,
+    };
     let mut color = [0.0; 4];
 
     // color to linear when the canvas is sRGB
@@ -549,6 +671,9 @@ fn append_quad(
             *value = clip[index] * scale;
         }
     }
+    if label.id & crate::engine::text::SPATIAL_TEXT_ID != 0 && frame.spatial_split >= 0.0 {
+        bounds[2] = bounds[2].min(frame.spatial_split);
+    }
 
     // two triangles
     for [u, v] in [
@@ -559,15 +684,34 @@ fn append_quad(
         [1.0, 1.0],
         [1.0, 0.0],
     ] {
-        let x = f64::from(extent[0] + (extent[2] - extent[0]) * u) * unit;
-        let y = f64::from(extent[1] + (extent[3] - extent[1]) * v) * unit;
-        let mut point = world;
-
-        for axis in 0..3 {
-            point[axis] += right[axis] * x - up[axis] * y;
-        }
-
-        let clip = project(point, frame);
+        let clip = if let Some(placed) = &placed {
+            let x = placed.left + (extent[0] + (extent[2] - extent[0]) * u) * placed.scale;
+            let y = placed.top + (extent[1] + (extent[3] - extent[1]) * v) * placed.scale;
+            [
+                2.0 * x / frame.framebuffer[0] as f32 - 1.0,
+                1.0 - 2.0 * y / frame.framebuffer[1] as f32,
+                1.0,
+                1.0,
+            ]
+        } else {
+            let TextPlacement::WorldPlane {
+                world, right, up, ..
+            } = label.placement
+            else {
+                return;
+            };
+            let x = f64::from(extent[0] + (extent[2] - extent[0]) * u) * unit;
+            let y = f64::from(extent[1] + (extent[3] - extent[1]) * v) * unit;
+            let mut point = world;
+            for axis in 0..3 {
+                point[axis] += right[axis] * x - up[axis] * y;
+            }
+            project(
+                point,
+                frame,
+                label.id & crate::engine::text::SPATIAL_TEXT_ID != 0,
+            )
+        };
         vertices.push([
             clip[0],
             clip[1],
@@ -589,7 +733,17 @@ fn append_quad(
             } else {
                 0.0
             },
-            if plate { 1.0 } else { 0.0 },
+            if label.outline < 0.0 {
+                2.0
+            } else if matches!(
+                label.placement,
+                TextPlacement::WorldPlane { plate: true, .. }
+            ) {
+                1.0
+            } else {
+                0.0
+            },
+            halo,
         ]);
     }
 }
@@ -615,8 +769,8 @@ fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout, ids: b
         });
         device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("world text"), layout: Some(&pipeline_layout),
-            vertex: wgpu::VertexState { module: &shader, entry_point: Some(if ids { "vs_id" } else { "vs_main" }), buffers: &[wgpu::VertexBufferLayout { array_stride: 68, step_mode: wgpu::VertexStepMode::Vertex,
-                attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32, 6 => Float32] }], compilation_options: Default::default() },
+            vertex: wgpu::VertexState { module: &shader, entry_point: Some(if ids { "vs_id" } else { "vs_main" }), buffers: &[wgpu::VertexBufferLayout { array_stride: 72, step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32, 6 => Float32, 7 => Float32] }], compilation_options: Default::default() },
             fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
             primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
             multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
@@ -640,6 +794,7 @@ mod tests {
             font_size: 18.0,
             line_height: 26.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::WorldPlane {
                 world: [0.0; 3],
                 right: [1.0, 0.0, 0.0],
@@ -656,7 +811,13 @@ mod tests {
         let (long, short) = (&document.runs[0], &document.runs[1]);
         let em = fitting_em(long);
         let mut raster = SwashCache::new();
-        let (_, size, _) = rasterize(long, &mut document.fonts, &mut raster, em).unwrap();
+        let (_, size, _) = rasterize(
+            std::slice::from_ref(long),
+            &mut document.fonts,
+            &mut raster,
+            em,
+        )
+        .unwrap();
         assert!(size[0] <= 4096 && size[1] <= 4096, "{size:?} at {em}");
         assert_eq!(fitting_em(short), 256);
     }
@@ -700,6 +861,7 @@ mod tests {
             font_size: 18.0,
             line_height: 26.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::WorldPlane {
                 world: [-0.8, 0.6, 0.5],
                 right: [1.0, 0.0, 0.0],

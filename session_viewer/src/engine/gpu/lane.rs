@@ -81,8 +81,8 @@ pub struct Registered {
 
 /// Lanes that live only behind the `Lane` hooks. Adding one means one file and one line here.
 pub const REGISTRY: &[Registered] = &[
-    super::vectors::REGISTERED, // register:vectors
-    super::planes::REGISTERED,  // register:planes
+    super::vectors::REGISTERED,  // register:vectors
+    super::planes::REGISTERED,   // register:planes
     super::matrices::REGISTERED, // register:matrices
 ];
 

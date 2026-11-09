@@ -123,7 +123,11 @@ fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("segment.rows.layout"),
         entries: &[
-            storage_entry(0),
+            buffer_entry(
+                0,
+                ShaderStages::VERTEX_FRAGMENT,
+                BufferBindingType::Storage { read_only: true },
+            ),
             storage_entry(1),
             buffer_entry(2, ShaderStages::VERTEX, BufferBindingType::Uniform),
         ],

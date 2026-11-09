@@ -392,16 +392,18 @@ impl SurfaceOutline {
                 samples: 1,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                     | wgpu::TextureUsages::TEXTURE_BINDING
-                    | if cfg!(test) { wgpu::TextureUsages::COPY_SRC } else { wgpu::TextureUsages::empty() },
+                    | if cfg!(test) {
+                        wgpu::TextureUsages::COPY_SRC
+                    } else {
+                        wgpu::TextureUsages::empty()
+                    },
             };
             let texture = Attachment::new(ctx, "selection outline alpha", &spec);
             let group = resource_group(
                 ctx,
                 &self.alpha_layout,
                 "selection outline alpha",
-                [
-                    (0, wgpu::BindingResource::TextureView(&texture)),
-                ],
+                [(0, wgpu::BindingResource::TextureView(&texture))],
             );
             self.alpha = Some(Alpha {
                 texture,
@@ -443,9 +445,7 @@ impl SurfaceOutline {
             ctx,
             &self.table_layout,
             "selection outline taps",
-            [
-                (0, buffer.as_entire_binding()),
-            ],
+            [(0, buffer.as_entire_binding())],
         );
         self.table = Some(Table {
             buffer,
@@ -508,9 +508,7 @@ impl SurfaceOutline {
             ctx,
             &faces.layout,
             "face coverage",
-            [
-                (0, wgpu::BindingResource::TextureView(&targets.gradient)),
-            ],
+            [(0, wgpu::BindingResource::TextureView(&targets.gradient))],
         );
         faces.group = Some((targets.gradient.view.clone(), group));
     }

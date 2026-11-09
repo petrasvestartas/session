@@ -659,12 +659,12 @@ pub fn keep(words: Vec<u64>, recording: Option<Recording>) {
 
 #[cfg(test)]
 mod tests {
-    use crate::engine::gpu::segments::is_silhouette;
     use super::*;
     use crate::app::walk::brep::walk_brep;
     use crate::app::walk::encode::FACING_UNKNOWN;
     use crate::engine::gpu::glyphs::GlyphRows;
     use crate::engine::gpu::segments::SegRows;
+    use crate::engine::gpu::segments::is_silhouette;
     use session_rust::{Vector, Xform};
 
     /// Every table a BRep walk writes.
@@ -819,18 +819,39 @@ mod tests {
         let ids = &shared.seg.pipe_ids[at.pipes..];
         assert_eq!(pipes_per_edge(ids), pipes_per_edge(&alone.seg.pipe_ids));
         let silhouettes = |sags: &[f32]| sags.iter().filter(|sag| is_silhouette(**sag)).count();
-        assert_eq!(silhouettes(&shared.seg.pipe_sags[at.pipes..]), silhouettes(&alone.seg.pipe_sags));
-        assert!(silhouettes(&alone.seg.pipe_sags) > 0, "the curved bore retains apparent contours");
-        for ((pipe, &id), &sag) in shared.seg.pipes[at.pipes..].iter().zip(ids).zip(&shared.seg.pipe_sags[at.pipes..]) {
-            assert_eq!(id == u32::MAX, is_silhouette(sag), "only silhouette candidates lack a source edge");
+        assert_eq!(
+            silhouettes(&shared.seg.pipe_sags[at.pipes..]),
+            silhouettes(&alone.seg.pipe_sags)
+        );
+        assert!(
+            silhouettes(&alone.seg.pipe_sags) > 0,
+            "the curved bore retains apparent contours"
+        );
+        for ((pipe, &id), &sag) in shared.seg.pipes[at.pipes..]
+            .iter()
+            .zip(ids)
+            .zip(&shared.seg.pipe_sags[at.pipes..])
+        {
+            assert_eq!(
+                id == u32::MAX,
+                is_silhouette(sag),
+                "only silhouette candidates lack a source edge"
+            );
             if is_silhouette(sag) {
-                assert_ne!(pipe.facing, FACING_UNKNOWN, "replay keeps the incident triangle normals");
+                assert_ne!(
+                    pipe.facing, FACING_UNKNOWN,
+                    "replay keeps the incident triangle normals"
+                );
             }
         }
         let edge_pipes = ids.iter().filter(|id| **id != u32::MAX).count();
         let mut same_ends = 0;
 
-        for (pipe, id) in shared.seg.pipes[at.pipes..].iter().zip(ids).filter(|(_, id)| **id != u32::MAX) {
+        for (pipe, id) in shared.seg.pipes[at.pipes..]
+            .iter()
+            .zip(ids)
+            .filter(|(_, id)| **id != u32::MAX)
+        {
             let edge: Vec<&CylinderSegment> = alone
                 .seg
                 .pipes

@@ -1,0 +1,118 @@
+# Chapter 3: the matrices of the method, built from the five-node example and multiplied step by step.
+title: The matrices we use
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+points:
+  P0: [3, 3, 0.25]
+  P1: [0, 0, 0]
+  P2: [5, 0, 3]
+  P3: [0, 7, 3]
+  P4: [7, 5, 0]
+slides:
+  - title: 'Branch–node matrix $\mathbf{C}$'
+    steps:
+      - say: 'Number the nodes $P_0,\dots,P_4$ and the cables $a,\dots,d$. Each cable runs from the free node to an anchor.'
+        do:
+          - add:
+              - {id: n1, point: P1, color: fixed, label: 'P_1'}
+              - {id: n2, point: P2, color: fixed, label: 'P_2'}
+              - {id: n3, point: P3, color: fixed, label: 'P_3'}
+              - {id: n4, point: P4, color: fixed, label: 'P_4'}
+              - {id: a, arrow: [P0, P1], label: 'a', width: 2.6}
+              - {id: b, arrow: [P0, P2], label: 'b', width: 2.6}
+              - {id: c, arrow: [P0, P3], label: 'c', width: 2.6}
+              - {id: d, arrow: [P0, P4], label: 'd', width: 2.6}
+          - add: {id: n0, point: P0, color: free, label: 'P_0'}
+      - say: 'A row per cable, a column per node: $+1$ where the cable starts, $-1$ where it ends, $0$ elsewhere.'
+        do:
+          - add: {id: C, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], name: '\mathbf{C}', rowlabels: [a, b, c, d], collabels: [P_0, P_1, P_2, P_3, P_4]}}
+          - color: {target: a, color: accent}
+          - indicate: ['C[0,:]', 'n0', 'n1']
+          - color: {target: a, color: reset}
+      - say: '$\mathbf{C}$ stores only topology: which cable touches which node. No lengths, no forces.'
+        do:
+          - box: {target: 'C[:,0]', color: free}
+          - add: {id: t1, text: 'Column $P_0$ is the only free node: all four cables start there.', size: 23}
+
+  - title: '$\mathbf{C}$ turns coordinates into differences'
+    steps:
+      - say: 'Multiply $\mathbf{C}$ by the $x$-coordinates of all five nodes.'
+        do:
+          - add: {id: m, row: [{id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [a, b, c, d], name: '\mathbf{C}'}}, {id: xv, matrix: {rows: [[3], [0], [5], [0], [7]], rowlabels: [x_0, x_1, x_2, x_3, x_4], name: '\mathbf{x}'}}, '=', {id: uv, matrix: {rows: [[3], [-2], [3], [-4]], name: '\mathbf{u}', empty: true}}]}
+      - say: 'Row $a$ times the column: only two entries survive, $u_a = x_0 - x_1$.'
+        do:
+          - box: {target: 'Cm[0,:]', color: accent}
+          - box: {target: 'xv[:,0]', color: accent, with: true}
+          - add: {id: dot, tex: 'u_a = 1\cdot 3 + (-1)\cdot 0 + 0\cdot 5 + 0\cdot 0 + 0\cdot 7 = {{3}}'}
+          - fly: {from: 'dot{3}', to: 'uv[0,0]'}
+          - remove: ['box:Cm[0,:]', 'box:xv[:,0]']
+      - say: 'The other rows give the other cables: $\mathbf{u} = \mathbf{C}\mathbf{x}$ holds every $x_0 - x_k$.'
+        do:
+          - morph: {target: dot, tex: 'u_k = x_0 - x_k'}
+          - show: ['uv[1,0]', 'uv[2,0]', 'uv[3,0]']
+      - say: 'In 3D these are the $x$-extents of the cables, measured from each anchor to $P_0$.'
+        do:
+          - add:
+              - {id: ua, arrow: [P1, '[x(P0), y(P1), z(P1)]'], color: x, width: 3.4}
+              - {id: ub, arrow: [P2, '[x(P0), y(P2), z(P2)]'], color: x, width: 3.4}
+              - {id: uc, arrow: [P3, '[x(P0), y(P3), z(P3)]'], color: x, width: 3.4}
+              - {id: ud, arrow: [P4, '[x(P0), y(P4), z(P4)]'], color: x, width: 3.4}
+          - indicate: ['uv[:,0]']
+
+  - title: Free and fixed columns
+    steps:
+      - say: 'Split the columns: $\mathbf{C}_N$ for the free node, $\mathbf{C}_F$ for the anchors. The product splits the same way.'
+        do:
+          - remove: [ua, ub, uc, ud]
+          - add: {id: s, row: ['\mathbf{u} =', {id: CN, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{C}_N', rowlabels: [a, b, c, d]}}, {id: XN, matrix: {rows: [[3]], name: '\mathbf{x}_N'}}, '+', {id: CF, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], name: '\mathbf{C}_F'}}, {id: XF, matrix: {rows: [[0], [5], [0], [7]], name: '\mathbf{x}_F'}}]}
+      - say: 'The unknown sits only in $\mathbf{x}_N$; everything in $\mathbf{C}_F\mathbf{x}_F$ is known.'
+        do:
+          - box: {target: XN, color: free}
+          - box: {target: XF, color: fixed, with: true}
+          - add: {id: f1, tex: '\mathbf{u} = \mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_F\,\mathbf{x}_F'}
+
+  - title: Three diagonal matrices
+    steps:
+      - say: 'Put one number per cable on a diagonal. A diagonal matrix scales each row on its own: one cable, one factor.'
+        do:
+          - add: {id: U, row: ['\mathbf{U} = \operatorname{diag}(\mathbf{u}) =', {id: Um, matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]], rowlabels: [a, b, c, d]}}]}
+      - say: 'The cable lengths form $\mathbf{L}$; the prescribed force densities form $\mathbf{Q}$.'
+        do:
+          - add: {id: L, row: ['\mathbf{L} =', {id: Lm, matrix: {rows: [['4.250', 0, 0, 0], [0, '4.535', 0, 0], [0, 0, '5.706', 0], [0, 0, 0, '4.479']]}}, '\qquad\mathbf{Q} =', {id: Qm, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}}]}
+      - say: '$\mathbf{U}$ and $\mathbf{L}$ change when the shape changes. $\mathbf{Q}$ does not: we choose it.'
+        do:
+          - box: {target: Qm, color: free}
+
+  - title: 'Stiffness of the free node $\mathbf{D}_N$'
+    steps:
+      - say: 'First $\mathbf{Q}\,\mathbf{C}_N$: each row of $\mathbf{C}_N$ is scaled by its own $q$.'
+        do:
+          - add: {id: s1, row: ['\mathbf{Q}\,\mathbf{C}_N =', {id: Q1, matrix: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}, {id: CN1, matrix: [[1], [1], [1], [1]]}, '=', {id: QC, matrix: {rows: [[1], [1], [1], [1]], empty: true}}]}
+          - show: ['QC[:,0]']
+      - say: 'Then $\mathbf{C}_N^T$ times that column: a sum over the four cables.'
+        do:
+          - add: {id: s2, row: ['\mathbf{D}_N = \mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N) =', {id: CT, matrix: [[1, 1, 1, 1]]}, {id: QC2, matrix: [[1], [1], [1], [1]]}, '=', {id: DN, matrix: {rows: [[4]], empty: true}}]}
+          - box: {target: 'CT[0,:]', color: accent}
+          - box: {target: 'QC2[:,0]', color: accent, with: true}
+          - add: {id: dot, tex: '1\cdot 1 + 1\cdot 1 + 1\cdot 1 + 1\cdot 1 = {{4}}'}
+          - fly: {from: 'dot{4}', to: 'DN[0,0]'}
+      - say: '$\mathbf{D}_N$ adds up the force densities of all cables meeting at the free node: $q_a + q_b + q_c + q_d = 4$.'
+        do:
+          - remove: ['box:CT[0,:]', 'box:QC2[:,0]']
+          - morph: {target: dot, tex: '\mathbf{D}_N = q_a + q_b + q_c + q_d = 4'}
+
+  - title: 'Coupling to the anchors $\mathbf{D}_F$'
+    steps:
+      - say: 'The same product with $\mathbf{C}_F$ couples the free node to every anchor. ($\mathbf{Q}$ is the identity here.)'
+        do:
+          - add: {id: s3, row: ['\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F =', {id: CT3, matrix: [[1, 1, 1, 1]]}, {id: CF3, matrix: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]}, '=', {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [P_1, P_2, P_3, P_4], empty: true}}]}
+          - show: ['DF[0,:]']
+      - say: 'Each entry is $-q$ of the cable that joins the free node to that anchor.'
+        do:
+          - color: {target: b, color: accent}
+          - indicate: ['DF[0,1]']
+          - color: {target: b, color: reset}
+      - say: 'Times the anchor coordinates, this is the known right-hand side of the solve.'
+        do:
+          - add: {id: rhs, row: ['\mathbf{D}_F\,\mathbf{x}_F =', {id: DF2, matrix: [[-1, -1, -1, -1]]}, {id: XF2, matrix: [[0], [5], [0], [7]]}, '= -12'], gap: 30}
+          - add: {id: sol, tex: 'x_0 = \mathbf{D}_N^{-1}(p_x - \mathbf{D}_F\,\mathbf{x}_F) = \tfrac{1}{4}(0 + 12) = 3', color: free}

@@ -1,7 +1,7 @@
 use crate::State;
 use session_rust::{Plane, Point, Xform};
-pub mod cut; // register:cut
 pub mod choices;
+pub mod cut; // register:cut
 pub mod gather; // register:gather
 mod options; // register:gather
 pub mod shape; // register:shape
@@ -161,7 +161,7 @@ pub struct Overlay {
     pub strokes: Vec<Stroke>,                // lines
     pub marks: Vec<(f64, f64)>,              // small squares, device pixels
     pub label: Option<((f64, f64), String)>, // text beside a point
-    pub fill: Option<[u8; 4]>,               // a faint RGBA wash inside the first stroke, a convex loop
+    pub fill: Option<[u8; 4]>, // a faint RGBA wash inside the first stroke, a convex loop
 }
 
 /// The move that takes `from` to `to`.

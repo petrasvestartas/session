@@ -4,12 +4,7 @@ use crate::engine::gpu::Instance;
 use session_rust::{Point, Vector};
 
 /// A camera at `eye` looking at `target`, relative to `anchor`, in scene units; reverse depth.
-pub(super) fn view(
-    eye: [f64; 3],
-    target: [f64; 3],
-    anchor: [f64; 3],
-    perspective: bool,
-) -> Xform {
+pub(super) fn view(eye: [f64; 3], target: [f64; 3], anchor: [f64; 3], perspective: bool) -> Xform {
     let at = |p: [f64; 3]| Point::new(p[0] - anchor[0], p[1] - anchor[1], p[2] - anchor[2]);
     let d = [target[0] - eye[0], target[1] - eye[1], target[2] - eye[2]];
     let distance = dot(d, d).sqrt();

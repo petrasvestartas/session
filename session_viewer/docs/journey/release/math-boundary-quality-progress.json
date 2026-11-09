@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-06T08:12:24.232742+00:00",
+  "updatedUtc": "2026-11-06T08:28:53.773143+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -199,7 +199,7 @@
       "renderingPipelineChangedFiles": 0,
       "removedLiveWoodPins": 11,
       "addedSuppliedPins": 13,
-      "acceptedImages": 13,
+      "acceptedImages": 14,
       "status": "ACTUAL_CURRENT_DEPENDENCY_IMAGES_ROOT_REVIEWED",
       "historicalFreeze13AcceptedImages": 51,
       "historicalScope": "Prior renderer13 runtime/test proofs remain as recorded; not rerun under freeze15 dependencies."
@@ -252,19 +252,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 69,
-    "remainingAffected": 1257,
-    "acceptedForFinalSource": 13,
-    "remainingFinalSourceAcceptance": 1313,
-    "qualificationNote": "13 images qualify current freeze15 dependencies; 51 retain historical freeze13 dependency proofs with unchanged renderer13 rendering pipeline. The continuation plan retains 64 accepted renderer-lineage destinations. Old receipts are immutable and are not asserted to validate current dependencies; HTTP/Chrome scope remains separately recorded.",
+    "newPublishedReviewed": 70,
+    "remainingAffected": 1256,
+    "acceptedForFinalSource": 14,
+    "remainingFinalSourceAcceptance": 1312,
+    "qualificationNote": "14 images qualify freeze15 dependencies; 51 retain historical freeze13 proofs with unchanged rendering pipeline. 65 accepted renderer-lineage destinations. HTTP/browser scope remains separately recorded.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 64,
-    "remainingPlannedImageAcceptances": 1262,
-    "physicalJourneyPngs": 528,
-    "uniqueJourneyPngs": 528,
+    "acceptedAcrossRendererLineage": 65,
+    "remainingPlannedImageAcceptances": 1261,
+    "physicalJourneyPngs": 529,
+    "uniqueJourneyPngs": 529,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
       "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
@@ -321,7 +321,7 @@
       "normalLedgerRetirement": true,
       "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
     },
-    "reviewedFigureCountScope": "64 renderer-lineage destinations plus 4 maintained-renderer control figures and 1 dense-cloud supplemental figure. Visible 42-update plan tracked separately.",
+    "reviewedFigureCountScope": "65 renderer-lineage destinations plus 4 maintained-renderer controls and 1 dense-cloud supplement; visible 42-update plan tracked separately.",
     "native74Dpr4Image": {
       "receipt": "docs/journey/release/math-boundary-quality-source15-native74-dpr4-a8b7dfe56c56.json",
       "sha256": "6701239d01ac7da7190187be22309e7badfb4baa793ed3aa700def9dde8b914f",
@@ -355,19 +355,32 @@
       "rootOriginalPixelReview": true,
       "normalLedgerRetirement": true,
       "scope": "Actual round-solid fixture only; no parabola-preview or later-checkpoint acceptance. Global apparent contours are introduced later."
+    },
+    "native77Dpr4Image": {
+      "receipt": "docs/journey/release/math-boundary-quality-source15-native77-dpr4-6622df059111.json",
+      "sha256": "625d7b809e573267590ddb795a40890788a8bcac7bdcf44a1942f7b5fd65d60d",
+      "imageSha256": "6622df059111c72b86a39dae15db057018f8984fd93378d1760860c83de65d20",
+      "rawPhysicalPixels": [
+        2560,
+        1920
+      ],
+      "rootOriginalPixelReview": true,
+      "normalLedgerRetirement": true,
+      "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 28 historical aliases and their original pixels remain unchanged. Three independently transformed placements sharing one original BRep box and one geometry upload; not a revolution screenshot. Current-stage true boundaries and selection features only; global contours are not promised before91."
     }
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 37,
+    "pending": 36,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 5,
+    "published": 6,
     "native55Published": 1,
     "native74Published": 1,
-    "native75Published": 1
+    "native75Published": 1,
+    "native77Published": 1
   },
   "published": [
     {

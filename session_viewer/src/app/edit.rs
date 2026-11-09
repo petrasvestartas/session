@@ -697,6 +697,7 @@ pub(crate) mod tests {
             font_size: 18.0,
             line_height: 26.0,
             color: [255; 4],
+            outline: 0.0,
             placement: crate::engine::text::TextPlacement::WorldPlane {
                 world: [x, 0.0, 0.0],
                 right: [1.0, 0.0, 0.0],

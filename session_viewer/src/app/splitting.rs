@@ -116,11 +116,10 @@ impl Scene {
                 (pieces, count)
             }
             Geometry::Polyline(line) => {
-                let pieces: Vec<_> =
-                    split::split_polyline_by_curves(line, &tools, tolerance)?
-                        .into_iter()
-                        .map(|p| Geometry::Polyline(Rc::new(p)))
-                        .collect();
+                let pieces: Vec<_> = split::split_polyline_by_curves(line, &tools, tolerance)?
+                    .into_iter()
+                    .map(|p| Geometry::Polyline(Rc::new(p)))
+                    .collect();
                 let count = pieces.len();
                 (pieces, count)
             }

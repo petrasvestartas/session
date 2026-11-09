@@ -1,7 +1,7 @@
+mod box_select;
 mod control; // register:control-drag
 mod gizmo; // register:gizmo-drag
-mod object; // register:object-drag
-mod box_select; // register:box-select
+mod object; // register:object-drag // register:box-select
 
 use crate::State;
 
@@ -16,9 +16,9 @@ pub struct Gesture {
 
 /// Every left-button tool, tried in this order.
 pub const GESTURES: &[&Gesture] = &[
-    &control::GESTURE, // register:control-drag
-    &gizmo::GESTURE,   // register:gizmo-drag
-    &object::GESTURE,  // register:object-drag
+    &control::GESTURE,    // register:control-drag
+    &gizmo::GESTURE,      // register:gizmo-drag
+    &object::GESTURE,     // register:object-drag
     &box_select::GESTURE, // register:box-select
 ];
 

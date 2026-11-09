@@ -1,7 +1,7 @@
-#[path = "scene_instances.rs"] // register:instancing
-pub(crate) mod instances; // register:instancing
 #[path = "scene_display.rs"]
 pub(crate) mod display;
+#[path = "scene_instances.rs"] // register:instancing
+pub(crate) mod instances; // register:instancing
 #[path = "scene_release.rs"] // register:release
 mod release; // register:release
 #[path = "scene_rows.rs"]
@@ -14,14 +14,14 @@ pub use text::SceneText; // register:scene_text
 
 use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
 use crate::app::walk::brep_shapes::SharedWalks;
-use crate::app::walk::mesh::Lap;
 use crate::app::walk::matrix;
+use crate::app::walk::mesh::Lap;
 use crate::app::walk::plane::unit;
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::matrices::MatrixRows;
-use crate::engine::text::{TextLabel, TextPlacement};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
+use crate::engine::text::{TextLabel, TextPlacement};
 use rows::{Cap, DocState, FREE, Footprint, Ids, Note, SINK, Spans, Staged, TOMB, Tomb};
 use session_rust::{Geometry, Point, Session, TreeNode, Vector, Xform};
 use std::cell::RefCell;
@@ -79,9 +79,12 @@ pub struct Scene {
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // face colour overrides
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
     pub selected: Option<u32>,                           // selected object row
-    pub interactions: bool,                              // element interactions drawn, on from the start
-    pub attributes: bool,                                // an element's attributes shown: its attributes group and its own features
-    order: Vec<Rc<str>>,                                 // guid of each row, empty when free
+    pub linked: HashSet<u32>,                            // linked presentation highlights
+    pub text_scales: HashMap<u32, f32>,                  // animated world-text size multipliers
+    pub text_opacities: HashMap<u32, f32>,               // animated text fade multipliers
+    pub interactions: bool, // element interactions drawn, on from the start
+    pub attributes: bool, // an element's attributes shown: its attributes group and its own features
+    order: Vec<Rc<str>>,  // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
     feet: Vec<Footprint>, // lane rows of each row
     nodes: Vec<Weak<RefCell<TreeNode>>>, // tree node each row was placed from; a cache
@@ -128,7 +131,7 @@ pub struct Scene {
     #[cfg(test)]
     pub(crate) ledger: HashMap<u32, ObjectRow>, // object rows as the GPU would hold them
     #[cfg(test)]
-    pub(crate) searches: usize,   // tree walks the syncs needed
+    pub(crate) searches: usize, // tree walks the syncs needed
 }
 
 impl Default for Scene {
@@ -159,6 +162,9 @@ impl Scene {
             colors: HashMap::new(),
             edge_colors: HashMap::new(),
             selected: None,
+            linked: HashSet::new(),
+            text_scales: HashMap::new(),
+            text_opacities: HashMap::new(),
             interactions: true,
             attributes: false,
             order: Vec::new(),
@@ -199,7 +205,7 @@ impl Scene {
             edge_steps: HashMap::new(), // register:editing
             groups: HashSet::new(),
             text_rows: Vec::new(),
-            matrix_titles: Vec::new(), // register:matrices
+            matrix_titles: Vec::new(),       // register:matrices
             released: HashMap::new(),        // register:release
             asked: RefCell::new(Vec::new()), // register:release
             stream_ceiling: 0,               // register:stream
@@ -264,6 +270,9 @@ impl Scene {
         self.edge_sources.clear();
         self.guid_to_row.clear();
         self.selected = None;
+        self.linked.clear();
+        self.text_scales.clear();
+        self.text_opacities.clear();
         self.object_rows = 0;
         self.uploaded = Counts::default();
         self.instancing.clear(); // register:instancing
@@ -519,6 +528,7 @@ impl Scene {
             };
             let start = self.uploaded.plus(Counts::of(&self.tables));
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
+            crate::app::walk::curves::endpoint_clearance(&mut self.tables, &session);
             let end = self.uploaded.plus(Counts::of(&self.tables));
             self.feet[row as usize] = if matches!(geom, Geometry::PointCloud(_)) {
                 Footprint::Cloud
@@ -709,6 +719,55 @@ impl Scene {
         self.guid_to_row.get(&(doc, Rc::from(guid))).copied()
     }
 
+    /// The authored object, matrix or text name used by presentation links.
+    pub fn row_link_name(&self, row: u32) -> Option<&str> {
+        if let Some(name) = self.text_link_name(row) {
+            return Some(name);
+        }
+        let (_, guid) = self.identity_of(row)?;
+        if let Some(component) = self
+            .document(row)?
+            .session
+            .objects
+            .components
+            .iter()
+            .find(|component| component.guid == guid.as_ref())
+        {
+            return Some(&component.name);
+        }
+        Some(self.object_name(row))
+    }
+
+    /// Every row with an authored name; unnamed type fallbacks do not match.
+    pub fn rows_named(&self, name: &str) -> Vec<u32> {
+        (0..self.row_count() as u32)
+            .filter(|row| {
+                self.row_link_name(*row)
+                    .is_some_and(|candidate| candidate == name)
+            })
+            .collect()
+    }
+
+    /// Matrix dimensions of a row, or None when it is not a matrix component.
+    pub fn matrix_shape(&self, row: u32) -> Option<(u32, u32)> {
+        let (_, guid) = self.identity_of(row)?;
+        let component = self
+            .document(row)?
+            .session
+            .objects
+            .components
+            .iter()
+            .find(|component| component.guid == guid.as_ref() && component.type_name == "Matrix")?;
+        let count = |key| {
+            component
+                .extra
+                .get(key)
+                .and_then(serde_json::Value::as_u64)
+                .and_then(|n| u32::try_from(n).ok())
+        };
+        Some((count("rows")?, count("cols")?))
+    }
+
     /// The document and guid of a row; None for a free id and the sink.
     pub fn identity_of(&self, row: u32) -> Option<(usize, Rc<str>)> {
         let owner = *self.owners.get(row as usize)?;
@@ -813,6 +872,7 @@ impl Scene {
                     font_size: 18.0,
                     line_height: 26.0,
                     color,
+                    outline: 0.0,
                     placement: TextPlacement::WorldPlane {
                         world: [at[0], at[1], at[2]],
                         right: unit([right[0], right[1], right[2]]),
@@ -822,7 +882,8 @@ impl Scene {
                     },
                     clip: None,
                 };
-                self.matrix_titles.push((format!("matrix-title/{doc}/{guid}"), label));
+                self.matrix_titles
+                    .push((format!("matrix-title/{doc}/{guid}"), label));
             }
         }
     }

@@ -13,6 +13,7 @@ impl Gpu {
             size,
             // framebuffer pixels per CSS pixel
             pixel_scale: size.0 as f32 / self.logical_size[0].max(1.0) as f32,
+            spatial: self.spatial.as_ref(),
         };
         self.frame.write(&self.ctx, input, &cx);
         self.each_pass(|pass, g| pass.write_frame(g, input));
@@ -179,6 +180,11 @@ impl Gpu {
     fn prepare_text(&mut self, size: (u32, u32)) {
         let frame = super::text::TextFrame {
             mvp: self.frame.mvp_f32,
+            spatial_mvp: self
+                .spatial
+                .as_ref()
+                .map_or(self.frame.mvp_f32, |view| view.view_proj.to_f32()),
+            spatial_split: self.spatial.as_ref().map_or(-1.0, |view| view.split_x),
             origin: self.objects.anchor(),
             framebuffer: [size.0, size.1],
             logical: self.logical_size,

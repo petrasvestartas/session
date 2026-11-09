@@ -354,7 +354,10 @@ mod tests {
         assert!(perf.wheeling(299.0));
         perf.wheel(250.0);
         assert!(perf.wheeling(449.0));
-        assert!(perf.wheeling(450.0), "a busy GPU has not drawn this wheel pose yet");
+        assert!(
+            perf.wheeling(450.0),
+            "a busy GPU has not drawn this wheel pose yet"
+        );
         perf.frame(1, 1, 450.0, false);
         assert!(!perf.wheeling(450.0));
         perf.interacting = perf.wheeling(450.0);
@@ -442,15 +445,31 @@ mod tests {
         frames(&mut perf, 4, 40.0, true);
         assert_eq!(perf.drag_tier(), 1);
         frames(&mut perf, 60, 12.0, true);
-        assert_eq!(perf.drag_tier(), 1, "cheap frames are not evidence that full detail is cheap");
+        assert_eq!(
+            perf.drag_tier(),
+            1,
+            "cheap frames are not evidence that full detail is cheap"
+        );
         frames(&mut perf, 1, 16.7, false);
-        assert_eq!(perf.drag_tier(), 0, "stopping immediately restores full detail");
+        assert_eq!(
+            perf.drag_tier(),
+            0,
+            "stopping immediately restores full detail"
+        );
         frames(&mut perf, 1, 12.0, true);
         assert_eq!(perf.drag_tier(), 1, "a new gesture reuses the learned tier");
         frames(&mut perf, 24, 12.0, true);
-        assert_eq!(perf.drag_tier(), 0, "retry full detail after one second of timed motion");
+        assert_eq!(
+            perf.drag_tier(),
+            0,
+            "retry full detail after one second of timed motion"
+        );
         frames(&mut perf, 3, 40.0, true);
-        assert_eq!(perf.drag_tier(), 1, "a slow retry returns to cheaper frames");
+        assert_eq!(
+            perf.drag_tier(),
+            1,
+            "a slow retry returns to cheaper frames"
+        );
         frames(&mut perf, 30, 12.0, true);
         assert_eq!(perf.drag_tier(), 1);
     }

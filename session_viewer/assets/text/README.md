@@ -1,12 +1,12 @@
 # Bundled text fonts
 
-Noto Sans Regular, Noto Sans Symbols Regular and Noto Sans Symbols 2 Regular are distributed under the adjacent
-SIL Open Font License 1.1 (`OFL.txt`). The WASM embeds only their `*.subset.ttf` files (hinted, `.notdef`
-outline and license names kept): Noto Sans cut to Latin, Lithuanian, German, the CAD specimen and every
-string the viewer draws itself (51 KB), the symbol fonts cut to the symbols those strings use (→ ⚙ and
-■ ⏵ ◻ ⏳ ⌘). Labels and panels (egui draws Noto Sans too; Ubuntu Light is gone) use the same faces.
-A label, document, layer or object name with a character outside the subsets fetches the three whole
-fonts once from `text/` and reshapes; until they arrive that character is a `.notdef` box (petras
+Noto Sans Regular, Noto Sans Math, Noto Sans Symbols Regular and Noto Sans Symbols 2 Regular are distributed under
+SIL Open Font License 1.1 (`OFL.txt` and `NotoSansMath-OFL.txt`). The WASM embeds the regular and symbol
+`*.subset.ttf` files plus the full Noto Sans Math font for Rust TeX layout (hinted, `.notdef` outline and license names kept): Noto Sans cut to Latin, Lithuanian,
+German, the CAD specimen and every string the viewer draws itself (51 KB), the symbol fonts cut to the symbols
+those strings use (→ ⚙ and ■ ⏵ ◻ ⏳ ⌘). Labels and panels (egui draws Noto Sans too; Ubuntu Light is gone)
+use the same faces. A label, document, layer or object name with a character outside the subsets fetches the four
+full fonts once from `text/` and reshapes; until they arrive that character is a `.notdef` box (petras
 approved this async fallback, 2026-09-24). Trunk copies the whole fonts for that fetch and for
 `text-quality.html`'s browser reference. No machine-installed font discovery is used.
 The subsets are fontTools subsets (`pyftsubset <font> --unicodes=... --notdef-outline
@@ -16,6 +16,7 @@ command strings and the Lithuanian, German and CAD samples stay covered.
 
 Upstream sources:
 - https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf
+- https://github.com/google/fonts/blob/main/ofl/notosansmath/NotoSansMath-Regular.ttf
 - https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSansSymbols2/NotoSansSymbols2-Regular.ttf
 - https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSansSymbols/NotoSansSymbols-Regular.ttf
 - https://github.com/notofonts/noto-fonts/blob/main/LICENSE

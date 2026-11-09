@@ -1,18 +1,20 @@
 use session_rust::Xform;
 
-/// One object row as the shaders read it, 96 bytes.
+/// One object row as the shaders read it, 128 bytes.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Instance {
-    pub model: [f32; 16], // rotation and scale; translation is stored separately
-    pub color: [f32; 4],  // rgba tint
-    pub flags: u32,       // FLAG_* bits below
-    pub ao_radius: f32,   // SSAO contact radius, world units
-    pub spacing: f32,     // vertex spacing, world units; 0 = unknown
-    pub _pad: u32,        // padding
+    pub model: [f32; 16],    // rotation and scale; translation is stored separately
+    pub color: [f32; 4],     // rgba tint
+    pub flags: u32,          // FLAG_* bits below
+    pub ao_radius: f32,      // SSAO contact radius, world units
+    pub spacing: f32,        // vertex spacing, world units; 0 = unknown
+    pub _pad: u32,           // packed edge color
+    pub effect: [f32; 4],    // line reveal, point scale, first and last packed matrix cells
+    pub end_color: [f32; 4], // gradient rgba; matrices: second cell span and 64-cell authored color mask
 }
 
-const _: () = assert!(std::mem::size_of::<Instance>() == 96);
+const _: () = assert!(std::mem::size_of::<Instance>() == 128);
 
 impl Instance {
     /// Selected: drawn tinted.
@@ -63,7 +65,19 @@ impl Instance {
     /// A curve with arrowheads: its ribbons look along the curve for a head to stop under.
     pub const FLAG_HEADS: u32 = 1 << 15;
 
-    /// The one row an empty scene binds: identity, grey, no flags.
+    /// Interpolate between the authored line color and `end_color`.
+    pub const FLAG_GRADIENT: u32 = 1 << 16;
+
+    /// Matrix values are typeset by the Rust math layout, not the built-in digit shader.
+    pub const FLAG_MATH: u32 = 1 << 17;
+
+    /// A presentation object drawn in the independent 3D region, not the 2D math plane.
+    pub const FLAG_SPATIAL: u32 = 1 << 18;
+
+    /// Decorative geometry, such as a reference grid, that must never be picked.
+    pub const FLAG_NON_PICKABLE: u32 = 1 << 19;
+
+    /// The one row an empty scene binds: identity, grey, no effects.
     pub fn placeholder() -> Self {
         Self {
             model: Xform::identity().to_f32(),
@@ -72,6 +86,8 @@ impl Instance {
             ao_radius: 0.0,
             spacing: 0.0,
             _pad: 0,
+            effect: [1.0, 1.0, f32::from_bits(u32::MAX), f32::from_bits(u32::MAX)],
+            end_color: [f32::from_bits(u32::MAX), f32::from_bits(u32::MAX), 0.0, 0.0],
         }
     }
 }
@@ -114,6 +130,8 @@ mod tests {
             "ao_radius",
             "spacing",
             "edge_color",
+            "effect",
+            "end_color",
         ];
         assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
     }
@@ -138,13 +156,15 @@ mod tests {
             "frame",
             "opacity",
             "plane_size",
+            "spatial_mvp",
+            "spatial",
         ];
         assert_eq!(
             wgsl_fields(SCENE, "LineUniform"),
             rust,
             "LineUniform fields"
         );
-        assert_eq!(std::mem::size_of::<LineUniform>(), 80);
+        assert_eq!(std::mem::size_of::<LineUniform>(), 160);
     }
 
     /// Translations live in the shared code; no shader redeclares the structs.
@@ -225,6 +245,10 @@ mod tiles_tests {
                             offset_of!(StrokeSegment, previous),
                             offset_of!(StrokeSegment, next),
                             offset_of!(StrokeSegment, sag),
+                            offset_of!(StrokeSegment, start_trim),
+                            offset_of!(StrokeSegment, dash),
+                            offset_of!(StrokeSegment, dash_offset),
+                            offset_of!(StrokeSegment, end_trim),
                         ],
                         size_of::<StrokeSegment>(),
                     ),
@@ -261,6 +285,8 @@ mod tiles_tests {
                             offset_of!(LineUniform, frame),
                             offset_of!(LineUniform, opacity),
                             offset_of!(LineUniform, plane_size),
+                            offset_of!(LineUniform, spatial_mvp),
+                            offset_of!(LineUniform, spatial),
                         ],
                         size_of::<LineUniform>(),
                     ),

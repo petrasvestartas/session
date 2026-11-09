@@ -389,7 +389,13 @@ fn set_curve_control(curve: &mut session_rust::NurbsCurve, index: usize, point: 
     let Some((_, _, _, weight)) = curve.get_cv_4d(index) else {
         return false;
     };
-    curve.set_cv_4d(index, point[0] * weight, point[1] * weight, point[2] * weight, weight)
+    curve.set_cv_4d(
+        index,
+        point[0] * weight,
+        point[1] * weight,
+        point[2] * weight,
+        weight,
+    )
 }
 
 #[cfg(test)]
@@ -418,23 +424,46 @@ mod tests {
     /// Moving a face moves its vertices only.
     #[test]
     fn rational_curve_control_moves_without_changing_weights_or_other_controls() {
-        let mut curve = session_rust::NurbsCurve::create(true, 2, &[
-            Point::new(-1.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0), Point::new(1.0, 0.0, 0.0),
-        ]);
+        let mut curve = session_rust::NurbsCurve::create(
+            true,
+            2,
+            &[
+                Point::new(-1.0, 0.0, 0.0),
+                Point::new(0.0, 1.0, 0.0),
+                Point::new(1.0, 0.0, 0.0),
+            ],
+        );
         assert!(curve.set_cv_4d(1, 0.0, 2.0, 0.0, 2.0));
         let _ = curve.guid();
         let geometry = Geometry::NurbsCurve(Rc::new(curve));
         let delta = Xform::translation(0.123456789012345, 0.25, -0.5);
-        let moved = transform(&geometry, Target::Control(ControlId::Curve { curve: 0, point: 1 }), &delta).unwrap();
-        let (Geometry::NurbsCurve(original), Geometry::NurbsCurve(edited)) = (&geometry, moved) else { panic!("Curve"); };
+        let moved = transform(
+            &geometry,
+            Target::Control(ControlId::Curve { curve: 0, point: 1 }),
+            &delta,
+        )
+        .unwrap();
+        let (Geometry::NurbsCurve(original), Geometry::NurbsCurve(edited)) = (&geometry, moved)
+        else {
+            panic!("Curve");
+        };
         assert_eq!(edited.guid(), original.guid());
         assert_eq!(edited.m_nurbsknot, original.m_nurbsknot);
         for index in 0..original.cv_count() {
-            assert_eq!(edited.get_cv_4d(index).unwrap().3, original.get_cv_4d(index).unwrap().3);
+            assert_eq!(
+                edited.get_cv_4d(index).unwrap().3,
+                original.get_cv_4d(index).unwrap().3
+            );
             let before = original.get_cv(index).unwrap();
-            let expected = if index == 1 { before.transformed(&delta) } else { before };
+            let expected = if index == 1 {
+                before.transformed(&delta)
+            } else {
+                before
+            };
             let actual = edited.get_cv(index).unwrap();
-            for axis in 0..3 { assert!((actual[axis] - expected[axis]).abs() < 1e-14); }
+            for axis in 0..3 {
+                assert!((actual[axis] - expected[axis]).abs() < 1e-14);
+            }
         }
     }
 

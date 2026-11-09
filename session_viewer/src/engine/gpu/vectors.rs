@@ -21,14 +21,17 @@ const VECTOR_VERTS: u32 = 18;
 #[derive(Clone, Copy, Debug, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct VectorRow {
     // offset size
-    pub start: [f32; 3],  //   0   12  start point, object space
-    pub radius: f32,      //  12    4  0 = pen; > 0 world mm; < 0 pen multiplier
-    pub end: [f32; 3],    //  16   12  end point, object space
-    pub instance_id: u32, //  28    4  object row
-    pub color: u32,       //  32    4  packed rgba, red in the low byte
-    pub head: f32,        //  36    4  arrowhead length in pens; 0 = default
-    pub heads: u32,       //  40    4  HEAD_END | HEAD_START | HEAD_ONLY
-    pub pad: u32,         //  44    4  -> 48, a multiple of 16
+    pub start: [f32; 3],    //   0   12  start point, object space
+    pub radius: f32,        //  12    4  0 = pen; > 0 world mm; < 0 pen multiplier
+    pub end: [f32; 3],      //  16   12  end point, object space
+    pub instance_id: u32,   //  28    4  object row
+    pub color: u32,         //  32    4  packed rgba, red in the low byte
+    pub head: f32,          //  36    4  arrowhead length in pens; 0 = default
+    pub heads: u32,         //  40    4  HEAD_END | HEAD_START | HEAD_ONLY
+    pub pad: u32,           //  44    4
+    pub start_trim: f32,    //  48    4  visible point radius at the start
+    pub end_trim: f32,      //  52    4  visible point radius at the end
+    pub reserved: [u32; 2], // 56   8  -> 64, a multiple of 16
 }
 
 impl VectorRow {
@@ -37,7 +40,7 @@ impl VectorRow {
     pub const HEAD_ONLY: u32 = 4; // no shaft: `start` only aims the heads, e.g. a curve's end tangent
 }
 
-const _: () = assert!(std::mem::size_of::<VectorRow>() == 48);
+const _: () = assert!(std::mem::size_of::<VectorRow>() == 64);
 
 /// Vector rows of one upload; producers write them with `up.lanes.get_mut::<VectorRows>()`.
 #[derive(Default)]
@@ -238,6 +241,9 @@ mod tests {
             head: 0.0,
             heads: VectorRow::HEAD_END,
             pad: 0,
+            start_trim: 0.0,
+            end_trim: 0.0,
+            reserved: [0; 2],
         }
     }
 
@@ -254,6 +260,9 @@ mod tests {
             "head",
             "heads",
             "pad",
+            "start_trim",
+            "end_trim",
+            "reserved",
         ];
         let (_, src) = SHADERS[0];
         assert_eq!(wgsl_fields(src, "VectorRow"), rust, "VectorRow fields");
@@ -278,6 +287,9 @@ mod tests {
             offset_of!(VectorRow, head),
             offset_of!(VectorRow, heads),
             offset_of!(VectorRow, pad),
+            offset_of!(VectorRow, start_trim),
+            offset_of!(VectorRow, end_trim),
+            offset_of!(VectorRow, reserved),
         ];
         assert_eq!(*span as usize, size_of::<VectorRow>());
         assert_eq!(members.len(), offsets.len());
@@ -406,7 +418,8 @@ mod tests {
         dir: [f64; 2],
         r: f64,
     ) -> f64 {
-        let side = (1.0 + 0.16_f64).sqrt();
+        let aspect = 0.55_f64;
+        let side = (1.0 + aspect * aspect).sqrt();
         let mut near = Vec::new(); // (u, v, coverage) per pixel, apex at the point
 
         for (i, (p, q)) in rgba.chunks_exact(4).zip(paper.chunks_exact(4)).enumerate() {
@@ -429,9 +442,9 @@ mod tests {
                 .map(|(u, v, covered)| {
                     let u = u - shift;
                     // past the apex's normal cone: the apex is nearest, else the side line
-                    let along_side = (-u + 0.4 * v) / side;
+                    let along_side = (-u + aspect * v) / side;
                     let distance = if along_side >= 0.0 {
-                        (0.4 * u + v) / side
+                        (aspect * u + v) / side
                     } else {
                         (u * u + v * v).sqrt()
                     };
@@ -753,7 +766,7 @@ mod walk_tests {
                     gpu.reset();
                     let mut up = Upload::default();
                     let cx = WalkCx {
-                quality: Default::default(),
+                        quality: Default::default(),
                         vert_base: 0,
                         cloud_px: 0.0,
                         row: 0,
@@ -959,5 +972,89 @@ mod shell_tests {
         gpu.release();
         let empty = gpu.render_offscreen(&input);
         assert_eq!(ink(&empty), 0, "released vectors are gone");
+    }
+}
+
+#[cfg(test)]
+mod spatial_tests {
+    use crate::app::scene::{FileDoc, Scene};
+    use crate::engine::gpu::{FrameInput, Gpu, Pick, SpatialView};
+    use session_rust::{Arrowhead, Color, Line, Session, Xform};
+    use std::rc::Rc;
+
+    #[test]
+    fn spatial_line_projects_and_picks_in_its_own_region() {
+        let mut line = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+        line.width = 10.0;
+        line.arrowhead = Arrowhead::END;
+        line.linecolor = Color::white();
+        let mut session = Session::new("spatial-line");
+        session.add_line(line, None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "spatial-line".into(),
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(256, 256)) else {
+            return;
+        };
+        gpu.view.dark = true;
+        gpu.view.show_grid = false;
+        gpu.view.lit = false;
+        scene.upload_to(&mut gpu);
+        gpu.set_spatial(0, true);
+        gpu.set_spatial_view(Some(SpatialView {
+            view_proj: Xform::translation(-0.5, 0.0, 0.0),
+            split_x: 128.0,
+        }));
+        let input = FrameInput {
+            view_proj: Xform::identity(),
+            clear: wgpu::Color::BLACK,
+            now_ms: 0.0,
+        };
+        let pixels = gpu.render_offscreen(&input);
+        assert!(
+            pixels[(128 * 256 + 64) * 4] > 200,
+            "line uses the spatial projection"
+        );
+        let ids = gpu.render_ids_offscreen(&input);
+        assert_eq!(ids[128 * 256 + 64][0], 1, "spatial line id");
+        assert_eq!(
+            ids[128 * 256 + 128][0],
+            0,
+            "the 2D projection is not picked"
+        );
+        gpu.set_non_pickable(0, true);
+        assert_eq!(gpu.render_ids_offscreen(&input)[128 * 256 + 64][0], 0);
+        gpu.set_non_pickable(0, false);
+        gpu.pick_frame(&input, (64, 128));
+        let _ = gpu.ctx.device.poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: None,
+        });
+        assert_eq!(
+            gpu.pick.poll(),
+            Some(Some(Pick {
+                row: 0,
+                sub: 0x80000000,
+            })),
+            "the mouse pick window must use the same spatial projection"
+        );
+        gpu.pick_frame(&input, (96, 128));
+        let _ = gpu.ctx.device.poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: None,
+        });
+        assert_eq!(
+            gpu.pick.poll(),
+            Some(Some(Pick {
+                row: 0,
+                sub: 0x80000000,
+            })),
+            "the middle of the spatial shaft must remain pickable"
+        );
     }
 }

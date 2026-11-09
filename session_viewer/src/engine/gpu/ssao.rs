@@ -93,9 +93,14 @@ fn depth_group(
     layout: &wgpu::BindGroupLayout,
     views: [&wgpu::TextureView; 3],
 ) -> wgpu::BindGroup {
-    resource_group(ctx, layout, "ambient depth", std::array::from_fn::<_, 3, _>(|i| {
-        (i as u32, wgpu::BindingResource::TextureView(views[i]))
-    }))
+    resource_group(
+        ctx,
+        layout,
+        "ambient depth",
+        std::array::from_fn::<_, 3, _>(|i| {
+            (i as u32, wgpu::BindingResource::TextureView(views[i]))
+        }),
+    )
 }
 
 fn attachment(
@@ -327,10 +332,15 @@ impl Ssao {
         ctx.queue
             .write_buffer(&edge_buffers[3], 0, bytemuck::cast_slice(&[6_u32, 0, 0, 0]));
         let edge_write = bind_group(
-            ctx, &pipes.write_layout, "ambient edge output", &edge_buffers.each_ref(),
+            ctx,
+            &pipes.write_layout,
+            "ambient edge output",
+            &edge_buffers.each_ref(),
         );
         let edge_read = bind_group(
-            ctx, &pipes.composite_layout, "ambient edge input",
+            ctx,
+            &pipes.composite_layout,
+            "ambient edge input",
             &[&inverse, &edge_buffers[0], &edge_buffers[2]],
         );
         Self {

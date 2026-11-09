@@ -1,0 +1,91 @@
+{
+  "name": "Session presentation",
+  "width": 1600,
+  "height": 760,
+  "dark": true,
+  "stroke_scale": 1.0,
+  "head_scale": 0.7,
+  "spatial_split": 0.56,
+  "topics": [
+    {
+      "title": "1 · Matrix multiplication",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "1 · Matrix multiplication",
+          "caption": "Watch the first row multiply the column vector.",
+          "items": [
+            {
+              "file": "steps/00_00.pb",
+              "name": "1 · Matrix multiplication",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "B-0-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "B[0,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "A[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "A[0,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "x[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "x[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    }
+  ],
+  "links": [],
+  "spatial": [],
+  "non_pickable": [],
+  "gradients": {},
+  "colored": {
+    "A": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "x": [
+      0,
+      1
+    ],
+    "B": [
+      0,
+      1
+    ]
+  }
+}

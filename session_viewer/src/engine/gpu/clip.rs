@@ -1,6 +1,6 @@
-use super::buffers::resource_group;
 use super::Gpu;
 use super::arena::ArenaLane;
+use super::buffers::resource_group;
 use super::buffers::{GpuCtx, zeroed_buffer};
 use super::frame::{Binds, FrameInput};
 use super::objects::InstanceTable;
@@ -386,9 +386,7 @@ impl Clip {
             ctx,
             &pipes.counts,
             "clip.counts",
-            [
-                (0, wgpu::BindingResource::TextureView(&texture)),
-            ],
+            [(0, wgpu::BindingResource::TextureView(&texture))],
         );
         self.counts = Some(Counts {
             texture,
@@ -468,9 +466,7 @@ impl Clip {
             ctx,
             &pipes.primitives,
             "clip.primitives",
-            [
-                (1, wgpu::BindingResource::TextureView(&targets.gradient)),
-            ],
+            [(1, wgpu::BindingResource::TextureView(&targets.gradient))],
         );
         self.primitives = Some((targets.gradient.view.clone(), group));
     }
@@ -553,9 +549,7 @@ impl Clip {
                 ctx,
                 &pipes.layout,
                 "clip.pick",
-                [
-                    (5, buffer.as_entire_binding()),
-                ],
+                [(5, buffer.as_entire_binding())],
             );
             self.pick = Some(PickCaps {
                 buffer,

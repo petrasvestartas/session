@@ -13,20 +13,20 @@ use std::time::Instant;
 /// Totals of one kind of object.
 #[derive(Default)]
 struct Kind {
-    objects: usize,  // objects walked
-    ms: f64,         // walk time
-    triangles: u64,  // face triangles
-    vertices: u64,   // face vertices
-    pipes: u64,      // edge segments
-    ribbons: u64,    // curve segments
-    spheres: u64,    // vertex markers
-    dots: u64,       // point markers
-    features: u64,   // element feature outlines
-    faces: u64,      // BRep faces
-    edges: u64,      // BRep edges
-    mesh_ms: f64,    // BRep face meshing
-    chains_ms: f64,  // BRep edge chains
-    signs_ms: f64,   // BRep face orientation
+    objects: usize, // objects walked
+    ms: f64,        // walk time
+    triangles: u64, // face triangles
+    vertices: u64,  // face vertices
+    pipes: u64,     // edge segments
+    ribbons: u64,   // curve segments
+    spheres: u64,   // vertex markers
+    dots: u64,      // point markers
+    features: u64,  // element feature outlines
+    faces: u64,     // BRep faces
+    edges: u64,     // BRep edges
+    mesh_ms: f64,   // BRep face meshing
+    chains_ms: f64, // BRep edge chains
+    signs_ms: f64,  // BRep face orientation
 }
 
 /// The kind an object is reported under.
@@ -96,7 +96,7 @@ pub fn document(session: &Session) {
         let kind = kinds.entry(kind_of(geom)).or_default();
         let before = counts(&up);
         let cx = WalkCx {
-                quality: Default::default(),
+            quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: kind.objects as u32,
@@ -117,7 +117,11 @@ pub fn document(session: &Session) {
         kind.dots += after[5] - before[5];
 
         if let Geometry::Element(e) = geom {
-            kind.features += e.features().iter().map(|f| f.outlines.len() as u64).sum::<u64>();
+            kind.features += e
+                .features()
+                .iter()
+                .map(|f| f.outlines.len() as u64)
+                .sum::<u64>();
         }
 
         if let Some(b) = brep_of(geom) {
@@ -153,16 +157,48 @@ pub fn document(session: &Session) {
         }
     }
 
-    println!("profile: {} objects in the file, {} instances", session.lookup.len(), session.instance_lookup.len());
+    println!(
+        "profile: {} objects in the file, {} instances",
+        session.lookup.len(),
+        session.instance_lookup.len()
+    );
     println!(
         "{:<14} {:>5} {:>9} {:>9} {:>9} {:>8} {:>8} {:>8} {:>7} {:>8} {:>6} {:>6} {:>8} {:>8} {:>8}",
-        "kind", "n", "walk ms", "tris", "verts", "pipes", "ribbons", "spheres", "dots", "features", "faces", "edges", "mesh ms", "chain ms", "sign ms"
+        "kind",
+        "n",
+        "walk ms",
+        "tris",
+        "verts",
+        "pipes",
+        "ribbons",
+        "spheres",
+        "dots",
+        "features",
+        "faces",
+        "edges",
+        "mesh ms",
+        "chain ms",
+        "sign ms"
     );
 
     for (name, k) in &kinds {
         println!(
             "{:<14} {:>5} {:>9.1} {:>9} {:>9} {:>8} {:>8} {:>8} {:>7} {:>8} {:>6} {:>6} {:>8.1} {:>8.1} {:>8.1}",
-            name, k.objects, k.ms, k.triangles, k.vertices, k.pipes, k.ribbons, k.spheres, k.dots, k.features, k.faces, k.edges, k.mesh_ms, k.chains_ms, k.signs_ms
+            name,
+            k.objects,
+            k.ms,
+            k.triangles,
+            k.vertices,
+            k.pipes,
+            k.ribbons,
+            k.spheres,
+            k.dots,
+            k.features,
+            k.faces,
+            k.edges,
+            k.mesh_ms,
+            k.chains_ms,
+            k.signs_ms
         );
     }
 

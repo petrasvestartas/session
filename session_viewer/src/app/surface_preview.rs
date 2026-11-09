@@ -302,7 +302,7 @@ mod tests {
         let source = Geometry::BRep(Rc::new(BRep::create_box(10.0, 10.0, 10.0)));
         let mut upload = Upload::default();
         let cx = WalkCx {
-                quality: Default::default(),
+            quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: 3,

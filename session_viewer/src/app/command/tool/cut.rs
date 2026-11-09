@@ -179,8 +179,7 @@ mod tests {
             1,
             &[Point::new(5., -1., 0.), Point::new(5., 11., 0.)],
         );
-        let face =
-            session_rust::split::split_surface_by_curves(&square, &[cutter], 1e-6).unwrap();
+        let face = session_rust::split::split_surface_by_curves(&square, &[cutter], 1e-6).unwrap();
         assert_eq!(face.face_count(), 2);
         let mut one = face.clone();
         one.m_faces.truncate(1);

@@ -2,7 +2,7 @@ use serde::Deserialize;
 use session_rust::Xform;
 
 /// One manifest entry: a file and its placement.
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Item {
     pub file: String, // path like `pb/box.pb`, relative to the scene
     #[serde(default)]
@@ -24,16 +24,36 @@ pub struct Item {
 /// One text placed in the world.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TextItem {
-    pub text: String, // the text
+    pub text: String, // plain text, or TeX when `math` is true
+    #[serde(default)]
+    pub math: bool, // typeset with Rust and render through the glyph and vector lanes
+    #[serde(default)]
+    pub serif: bool, // use STIX Two Text for this math label
+    #[serde(default)]
+    pub center: bool, // center the math layout on `at`
+    #[serde(default)]
+    pub center_ink: bool, // center the measured glyph bounds instead of the layout box
+    #[serde(default)]
+    pub fixed: bool, // keep this label anchored during presentation collision resolution
+    #[serde(default)]
+    pub max_width: f64, // legacy layout width; never scales the font
+    #[serde(default)]
+    pub name: String, // optional link target; empty = the text itself
+    #[serde(default)]
+    pub outline: f32, // positive white glyph halo, negative black glyph halo; 0 = none
     #[serde(default)]
     pub at: [f64; 3], // world origin of the text
+    #[serde(default)]
+    pub offset: [f32; 2], // screen-space offset of a fixed-size spatial label, CSS px
     #[serde(default = "text_right")]
     pub right: [f64; 3], // unit direction of the text line
     #[serde(default = "text_up")]
     pub up: [f64; 3], // unit direction up the text
-    pub height: f64,  // letter height in world units
+    pub height: f64,  // letter height in world units, or CSS pixels for fixed spatial text
     #[serde(default)]
     pub camera_facing: bool, // always face the camera
+    #[serde(default)]
+    pub spatial: bool, // project into the presentation's independent 3D region
     #[serde(default = "text_plate")]
     pub plate: bool, // a black plate behind the glyphs; lying texts only
     #[serde(default)]
@@ -179,6 +199,10 @@ impl TextItem {
 
         if !self.height.is_finite() || self.height <= 0.0 {
             return Err(format!("text {index}: height must be positive and finite"));
+        }
+
+        if !self.outline.is_finite() || self.outline.abs() > 16.0 {
+            return Err(format!("text {index}: outline must be 0..16 CSS pixels"));
         }
 
         if nonfinite_transform(self.at) {
@@ -370,7 +394,10 @@ mod tests {
         assert_eq!(text.up, [0.0, 1.0, 0.0]);
         assert!(text.plate);
         assert_eq!(text.color, None);
-        let bare = Manifest::parse(b"items: []\ntexts: [{text: '1.5', height: 2, plate: false, color: [0, 0, 255, 255]}]").unwrap();
+        let bare = Manifest::parse(
+            b"items: []\ntexts: [{text: '1.5', height: 2, plate: false, color: [0, 0, 255, 255]}]",
+        )
+        .unwrap();
         assert!(!bare.texts[0].plate);
         assert_eq!(bare.texts[0].color, Some([0, 0, 255, 255]));
         let empty = Manifest::parse(b"items: []").unwrap();

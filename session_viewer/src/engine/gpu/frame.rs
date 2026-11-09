@@ -12,12 +12,20 @@ pub struct FrameInput {
     pub now_ms: f64,        // time of this frame, ms
 }
 
+/// A second projection for objects authored in a presentation's 3D region.
+#[derive(Clone)]
+pub struct SpatialView {
+    pub view_proj: Xform,
+    pub split_x: f32,
+}
+
 /// Extra inputs for writing the frame uniforms.
 pub struct FrameCx<'a> {
     pub view: &'a View,   // display settings
     pub anchor: [f32; 3], // world point the scene is centered on
     pub size: (u32, u32), // framebuffer size, px
     pub pixel_scale: f32, // framebuffer pixels per CSS pixel
+    pub spatial: Option<&'a SpatialView>,
 }
 
 /// The three bind groups every draw starts with.
@@ -36,7 +44,7 @@ impl Binds<'_> {
     }
 }
 
-/// Pen and view settings every shader reads, 80 bytes.
+/// Pen and view settings every shader reads, 160 bytes.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LineUniform {
@@ -54,11 +62,13 @@ pub struct LineUniform {
     pub frame: [f32; 2],  // canvas size, px
     pub opacity: f32,     // alpha of mesh faces
     pub plane_size: f32,  // half side of every plane's grid, scene units
+    pub spatial_mvp: [f32; 16],
+    pub spatial: [f32; 4],
 }
 
 // the shaders read these byte offsets
 const _: () = {
-    assert!(std::mem::size_of::<LineUniform>() == 80);
+    assert!(std::mem::size_of::<LineUniform>() == 160);
     assert!(std::mem::offset_of!(LineUniform, lit) == 48);
     assert!(std::mem::offset_of!(LineUniform, backface) == 52);
     assert!(std::mem::offset_of!(LineUniform, origin) == 56);
@@ -234,6 +244,8 @@ impl FrameUniforms {
             frame: [size.0 as f32, size.1 as f32],
             opacity: 1.0,
             plane_size: super::planes::plane_size() as f32,
+            spatial_mvp: Xform::identity().to_f32(),
+            spatial: [0.0; 4],
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
         let cloud = CloudUniform {
@@ -343,6 +355,17 @@ impl FrameUniforms {
             frame: [cx.size.0 as f32, cx.size.1 as f32],
             opacity: cx.view.opacity,
             plane_size: super::planes::plane_size() as f32,
+            spatial_mvp: cx
+                .spatial
+                .map_or_else(|| input.view_proj.to_f32(), |view| view.view_proj.to_f32()),
+            spatial: cx.spatial.map_or([0.0; 4], |view| {
+                [
+                    view.split_x,
+                    view.view_proj.ortho_half_height() as f32,
+                    1.0,
+                    0.0,
+                ]
+            }),
         };
         ctx.queue
             .write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
@@ -394,6 +417,7 @@ impl FrameUniforms {
             vp_w: view.w as f32,
             vp_h: view.h as f32,
             origin: [view.x as f32, view.y as f32],
+            spatial_mvp: mat4_mul(&transform, &self.line.spatial_mvp),
             ..self.line
         };
         ctx.queue

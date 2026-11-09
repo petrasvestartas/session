@@ -70,6 +70,32 @@ pub fn query_scene() -> Option<String> {
     safe.then_some(decoded)
 }
 
+/// A presentation and the folder its step files are relative to.
+pub fn presentation_route() -> Option<SceneRoute> {
+    let path = query("presentation")?;
+    let safe = !path.is_empty()
+        && !path.starts_with('/')
+        && !path.contains("//")
+        && !path.contains(':')
+        && !path.split('/').any(|part| part == "..");
+    if !safe {
+        log::warn!("presentation: refusing a path outside the viewer tree");
+        return None;
+    }
+    let path = if path.contains('.') {
+        path
+    } else {
+        format!("{path}.yaml")
+    };
+    let base = path
+        .rsplit_once('/')
+        .map_or(String::new(), |(folder, _)| format!("{folder}/"));
+    Some(SceneRoute {
+        manifest: path,
+        base,
+    })
+}
+
 /// The data URL prefix: `?data=`, `off` for this origin, else the bucket.
 pub fn data_base() -> String {
     let base = match query("data") {

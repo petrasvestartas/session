@@ -1,0 +1,132 @@
+# Chapter 2: the first principles at one free node. Forces, direction cosines, force density.
+title: Equilibrium of one node
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+points:
+  P0: [3, 3, 0.25]
+  P1: [0, 0, 0]
+  P2: [5, 0, 3]
+  P3: [0, 7, 3]
+  P4: [7, 5, 0]
+  U: [3, 3, 1.5]          # where P0 would hang without the load
+slides:
+  - title: Five nodes, four cables
+    steps:
+      - say: 'The solved shape from chapter 1: $P_0 = (3,\ 3,\ 0.25)$ hangs from four anchors.'
+        do:
+          - add:
+              - {id: n1, point: P1, color: fixed, label: 'P_1'}
+              - {id: n2, point: P2, color: fixed, label: 'P_2'}
+              - {id: n3, point: P3, color: fixed, label: 'P_3'}
+              - {id: n4, point: P4, color: fixed, label: 'P_4'}
+              - {id: a, line: [P0, P1], label: 'a'}
+              - {id: b, line: [P0, P2], label: 'b'}
+              - {id: c, line: [P0, P3], label: 'c'}
+              - {id: d, line: [P0, P4], label: 'd'}
+          - add: {id: n0, point: P0, color: free, label: 'P_0'}
+          - add: {id: p, arrow: [P0, 'P0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
+      - say: 'Each cable pulls $P_0$ toward its anchor with a force $F_k$ along the cable.'
+        do:
+          - add:
+              - {id: fa, arrow: [P0, 'P0 + 0.5*(P1 - P0)'], color: accent, width: 3.4, label: 'F_a'}
+              - {id: fb, arrow: [P0, 'P0 + 0.5*(P2 - P0)'], color: accent, width: 3.4, label: 'F_b'}
+              - {id: fc, arrow: [P0, 'P0 + 0.5*(P3 - P0)'], color: accent, width: 3.4, label: 'F_c'}
+              - {id: fd, arrow: [P0, 'P0 + 0.5*(P4 - P0)'], color: accent, width: 3.4, label: 'F_d'}
+      - say: 'At rest, the four cable forces and the load add up to nothing.'
+        do:
+          - add: {id: eq, tex: '\mathbf{F}_a + \mathbf{F}_b + \mathbf{F}_c + \mathbf{F}_d + \mathbf{p} = \mathbf{0}'}
+          - indicate: [p]
+          - add: {id: note, text: 'A vector equation: it holds separately along $x$, $y$ and $z$. To use it we need the $x$, $y$, $z$ parts of every force.', size: 23}
+
+  - title: Project one force onto the axes
+    steps:
+      - say: 'Take cable $a$ alone. It runs from $P_0$ to the anchor $P_1$.'
+        do:
+          - dim: [b, c, d, fb, fc, fd, p, n2, n3, n4, b.label, c.label, d.label, fb.label, fc.label, fd.label, p.label, n2.label, n3.label, n4.label]
+          - camera: {fit: [P0, P1], yaw: -50, pitch: 22, with: true}
+          - add: {id: box, cuboid: [P0, P1], color: dim}
+      - say: 'Walk from $P_0$ to $P_1$ along $x$, then $y$, then $z$: three coordinate differences.'
+        do:
+          - derive: {from: a, id: ux, arrow: [P0, '[x(P1), y(P0), z(P0)]'], color: x, width: 3.6}
+          - derive: {from: a, id: uy, arrow: ['[x(P1), y(P0), z(P0)]', '[x(P1), y(P1), z(P0)]'], color: y, width: 3.6}
+          - derive: {from: a, id: uz, arrow: ['[x(P1), y(P1), z(P0)]', P1], color: z, width: 3.6}
+          - add:
+              - {id: ux.l, label: 'mid(P0, [x(P1), y(P0), z(P0)])', tex: 'x_1 - x_0', color: x, size: 21}
+              - {id: uy.l, label: 'mid([x(P1), y(P0), z(P0)], [x(P1), y(P1), z(P0)])', tex: 'y_1 - y_0', color: y, size: 21}
+      - say: 'Pythagoras in 3D gives the length of the cable.'
+        do:
+          - add: {id: la, tex: 'l_a = \sqrt{ {{(x_1 - x_0)^2}} + {{(y_1 - y_0)^2}} + {{(z_1 - z_0)^2}} } = 4.250', align: '='}
+          - color: {target: 'la{(x_1 - x_0)^2}', color: x}
+          - color: {target: 'la{(y_1 - y_0)^2}', color: y, with: true}
+          - color: {target: 'la{(z_1 - z_0)^2}', color: z, with: true}
+      - say: 'The direction cosine is the share of the cable length that lies along $x$.'
+        do:
+          - add: {id: cx, tex: '\cos\alpha_x = \frac{x_1 - x_0}{l_a} = \frac{0 - 3}{4.250} = -0.706', align: '='}
+          - indicate: [ux]
+      - say: 'The force splits in exactly the same proportion: the $x$ part of $F_a$ is $F_a\cos\alpha_x$.'
+        do:
+          - add: {id: fx, tex: 'F_{a,x} = F_a\cos\alpha_x = F_a\,\frac{x_1 - x_0}{l_a}', align: '='}
+          - box: {target: fx, color: x}
+
+  - title: Sum the components
+    steps:
+      - say: 'Do this for all four cables and add the load: equilibrium along $x$.'
+        do:
+          - undim: [b, c, d, fb, fc, fd, p, n2, n3, n4, b.label, c.label, d.label, fb.label, fc.label, fd.label, p.label, n2.label, n3.label, n4.label]
+          - remove: [box, ux, uy, uz, ux.l, uy.l]
+          - camera: {yaw: -58, pitch: 26, fit: [P0, P1, P2, P3, P4, U], with: true}
+          - add: {id: sx, tex: 'F_a\frac{x_1 - x_0}{l_a} + F_b\frac{x_2 - x_0}{l_b} + F_c\frac{x_3 - x_0}{l_c} + F_d\frac{x_4 - x_0}{l_d} + p_x = 0'}
+      - say: 'The same holds along $y$ and $z$: three equations for the three unknowns $x_0$, $y_0$, $z_0$.'
+        do:
+          - derive: {from: sx, id: sy, tex: 'F_a\frac{y_1 - y_0}{l_a} + F_b\frac{y_2 - y_0}{l_b} + F_c\frac{y_3 - y_0}{l_c} + F_d\frac{y_4 - y_0}{l_d} + p_y = 0'}
+          - derive: {from: sx, id: sz, tex: 'F_a\frac{z_1 - z_0}{l_a} + F_b\frac{z_2 - z_0}{l_b} + F_c\frac{z_3 - z_0}{l_c} + F_d\frac{z_4 - z_0}{l_d} + p_z = 0'}
+      - say: 'The catch: every length $l_k$ depends on where $P_0$ is. The unknowns sit under a square root, so the equations are **non-linear**.'
+        do:
+          - add: {id: lk, tex: 'l_k = \sqrt{(x_k - {{x_0}})^2 + (y_k - {{y_0}})^2 + (z_k - {{z_0}})^2}', color: accent}
+          - indicate: ['lk{x_0}', 'lk{y_0}', 'lk{z_0}']
+
+  - title: 'The force density trick'
+    steps:
+      - say: 'Linkwitz and Schek prescribe the ratio of force to length in each cable instead of the force: the **force density** $q$.'
+        do:
+          - add: {id: qd, tex: 'q_k = \frac{F_k}{l_k} \qquad\Longrightarrow\qquad F_k = q_k\, l_k'}
+      - say: 'Substitute $F_k = q_k l_k$ into one term of the sum.'
+        do:
+          - add: {id: t, tex: '{{F_k}}\,\frac{x_k - x_0}{l_k}', align: '='}
+          - morph: {target: t, tex: '{{q_k\, l_k}}\,\frac{x_k - x_0}{l_k}', map: {'F_k': 'q_k\, l_k'}}
+      - say: 'The length cancels: the square root is gone.'
+        do:
+          - morph: {target: t, tex: 'q_k\, \cancel{l_k}\,\frac{x_k - x_0}{\cancel{l_k}}'}
+          - morph: {target: t, tex: 'q_k\,(x_k - x_0)'}
+      - say: 'So equilibrium along $x$ becomes **linear** in the unknown $x_0$.'
+        do:
+          - add: {id: lin, tex: 'q_a(x_1 - x_0) + q_b(x_2 - x_0) + q_c(x_3 - x_0) + q_d(x_4 - x_0) + p_x = 0', color: ink}
+          - box: {target: lin, color: free}
+
+  - title: Solve it by hand
+    steps:
+      - say: 'Collect $x_0$ on one side.'
+        do:
+          - add: {id: h1, tex: '(q_a + q_b + q_c + q_d)\,x_0 = q_a x_1 + q_b x_2 + q_c x_3 + q_d x_4 + p_x', align: '='}
+      - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load.'
+        do:
+          - derive: {from: h1, id: h2, tex: 'x_0 = \frac{q_a x_1 + q_b x_2 + q_c x_3 + q_d x_4 + p_x}{q_a + q_b + q_c + q_d}', align: '='}
+      - say: 'Without a load, $P_0$ would hang at the plain average of the anchor heights, $z = 1.5$.'
+        do:
+          - add: {id: hz, tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', align: '='}
+          - add: {id: u0, point: U, color: dim, label: 'p = 0'}
+          - add: {id: drop, line: [U, P0], color: dim, dash: true, with: true}
+      - say: 'With $p_z = -5$ the average drops by $5/4$: $P_0$ settles at $z_0 = 0.25$.'
+        do:
+          - morph: {target: hz, tex: 'z_0 = \frac{0 + 3 + 3 + 0 - 5}{4} = 0.25'}
+          - indicate: [n0]
+
+  - title: The forces come back
+    steps:
+      - say: 'With the shape known, each force is its density times its length: $F_k = q_k l_k$.'
+        do:
+          - add: {id: fl, row: ['\mathbf{f} = \mathbf{L}\,\mathbf{q}:\qquad', {id: F, matrix: {rows: ['4.250', '4.535', '5.706', '4.479'], rowlabels: [F_a, F_b, F_c, F_d], name: '\text{kN}'}}]}
+      - say: 'Check along $z$: the cable pulls lift exactly the load.'
+        do:
+          - add: {id: ck, tex: '\sum_k q_k(z_k - z_0) = -0.25 + 2.75 + 2.75 - 0.25 = 5 = -p_z'}
+          - box: {target: ck, color: load}

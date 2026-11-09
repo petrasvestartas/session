@@ -1,0 +1,4926 @@
+{
+  "name": "Session presentation",
+  "width": 1600,
+  "height": 760,
+  "dark": true,
+  "stroke_scale": 1.0,
+  "head_scale": 0.7,
+  "spatial_split": 0.56,
+  "topics": [
+    {
+      "title": "1 Equilibrium",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "1 Equilibrium",
+          "caption": "Four cable forces and the external load form a closed polygon.",
+          "items": [
+            {
+              "file": "steps/00_00.pb",
+              "name": "1 Equilibrium",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "equilibrium-sum",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 7600.0
+            },
+            {
+              "name": "polygon-label-4",
+              "from": "p-label",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 6400.0
+            },
+            {
+              "name": "polygon-label-3",
+              "from": "e3-label",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "polygon-label-1",
+              "from": "e1-label",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 1600.0
+            },
+            {
+              "name": "polygon-2",
+              "from": "e2",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 3200.0
+            },
+            {
+              "name": "polygon-label-2",
+              "from": "e2-label",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 3200.0
+            },
+            {
+              "name": "polygon-label-0",
+              "from": "e0-label",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "polygon-1",
+              "from": "e1",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 1600.0
+            },
+            {
+              "name": "polygon-3",
+              "from": "e3",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "polygon-4",
+              "from": "p",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 6400.0
+            },
+            {
+              "name": "polygon-0",
+              "from": "e0",
+              "kind": "morph",
+              "duration_ms": 1500.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "2 Given",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "2 Given",
+          "caption": "The fixed coordinates and every force density are known.",
+          "items": [
+            {
+              "file": "steps/01_00.pb",
+              "name": "2 Given",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "3 Connectivity",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "3 Connectivity",
+          "caption": "One row per cable: +1 at n₀, −1 at its fixed neighbour.",
+          "items": [
+            {
+              "file": "steps/02_00.pb",
+              "name": "3 Connectivity",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "4 Direction cosines",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "4 Direction cosines",
+          "caption": "One cable, one box, three coordinate projections.",
+          "items": [
+            {
+              "file": "steps/03_00.pb",
+              "name": "4 Direction cosines",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "box-1-6",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-7",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-2",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "projection-z",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 1400.0
+            },
+            {
+              "name": "box-1-8",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-5",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "projection-y",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "box-1-1",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "projection-x",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "cosine",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 2100.0
+            },
+            {
+              "name": "box-1-z",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-9",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-3",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-y",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-10",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-4",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-0",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-x",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "5 Cable e₁",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "5 Cable e₁",
+          "caption": "The x-component of one cable.",
+          "items": [
+            {
+              "file": "steps/04_00.pb",
+              "name": "5 Cable e₁",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "box-1-8",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-6",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-5",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-0",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "fx-value-1",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-7",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-4",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-1",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-10",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-3",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-x",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-2",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-1-9",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "6 Cable e₀",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "6 Cable e₀",
+          "caption": "A negative x-component points the other way.",
+          "items": [
+            {
+              "file": "steps/05_00.pb",
+              "name": "6 Cable e₀",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "box-0-9",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-5",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-10",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-8",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-0",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-2",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "fx-value-0",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-4",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-3",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-6",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-7",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-1",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-0-x",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "7 Cable e₂",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "7 Cable e₂",
+          "caption": "Another cable, another signed x-component.",
+          "items": [
+            {
+              "file": "steps/06_00.pb",
+              "name": "7 Cable e₂",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "box-2-7",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-2",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-0",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-6",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-x",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-5",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-3",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-10",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-1",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-9",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-8",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-2-4",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "fx-value-2",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "8 Cable e₃",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "8 Cable e₃",
+          "caption": "The last x-component.",
+          "items": [
+            {
+              "file": "steps/07_00.pb",
+              "name": "8 Cable e₃",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "box-3-8",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-10",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-5",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-9",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-6",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-7",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-4",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-0",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-2",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "fx-value-3",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-x",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-1",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "box-3-3",
+              "kind": "grow",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "9 Equilibrium along x",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "9 Equilibrium along x",
+          "caption": "Only the four signed x-projections matter here.",
+          "items": [
+            {
+              "file": "steps/08_00.pb",
+              "name": "9 Equilibrium along x",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "projection-2",
+              "kind": "grow",
+              "duration_ms": 1600.0,
+              "delay_ms": 1200.0
+            },
+            {
+              "name": "projection-1",
+              "kind": "grow",
+              "duration_ms": 1600.0,
+              "delay_ms": 600.0
+            },
+            {
+              "name": "projection-3",
+              "kind": "grow",
+              "duration_ms": 1600.0,
+              "delay_ms": 1800.0
+            },
+            {
+              "name": "projection-0",
+              "kind": "grow",
+              "duration_ms": 1600.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "10 Force density",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "10 Force density",
+          "caption": "qᵢ = fᵢ / lᵢ turns the nonlinear balance into a linear one.",
+          "items": [
+            {
+              "file": "steps/09_00.pb",
+              "name": "10 Force density",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "cancel",
+              "from": "cancel-source",
+              "kind": "morph",
+              "duration_ms": 650.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "11 Equal force densities",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "11 Equal force densities",
+          "caption": "Two equal force densities put n₀ at the midpoint.",
+          "items": [
+            {
+              "file": "steps/10_00.pb",
+              "name": "11 Equal force densities",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "equal-solved",
+              "from": "weighted",
+              "kind": "morph",
+              "duration_ms": 1400.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "12 A stronger neighbour",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "12 A stronger neighbour",
+          "caption": "Increasing q₂ from 1 to 3 pulls n₀ from 5 to 7.5.",
+          "items": [
+            {
+              "file": "steps/11_00.pb",
+              "name": "12 A stronger neighbour",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "line-n0",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                7.5,
+                -2.5,
+                0
+              ]
+            },
+            {
+              "name": "line-q1",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                7.1,
+                -2.5,
+                0.0
+              ]
+            },
+            {
+              "name": "line-n0-label",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                7.5,
+                -3.2,
+                0
+              ]
+            },
+            {
+              "name": "line-cable1",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "scale",
+              "factor": 1.5,
+              "about": [
+                -0.0,
+                -2.5,
+                -0.0
+              ]
+            },
+            {
+              "name": "line-q2",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "scale",
+              "factor": 3.0,
+              "about": [
+                3.75,
+                -2.5,
+                -0.0
+              ]
+            },
+            {
+              "name": "line-cable2",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "scale",
+              "factor": 0.5,
+              "about": [
+                10.0,
+                -2.5,
+                0.0
+              ]
+            },
+            {
+              "name": "line-q1-label",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                3.75,
+                -1.4,
+                0
+              ]
+            },
+            {
+              "name": "case-1-solved",
+              "from": "weighted",
+              "kind": "morph",
+              "duration_ms": 1400.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "line-x0-solved",
+              "from": "line-x0",
+              "kind": "morph",
+              "duration_ms": 1200.0,
+              "delay_ms": 400.0
+            },
+            {
+              "name": "line-q2-solved",
+              "from": "line-q2-label",
+              "kind": "morph",
+              "duration_ms": 1200.0,
+              "delay_ms": 400.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "13 An external load",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "13 An external load",
+          "caption": "With p = 4 and equal force densities, n₀ moves to 7.",
+          "items": [
+            {
+              "file": "steps/12_00.pb",
+              "name": "13 An external load",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "line-p",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                6.4,
+                -2.5,
+                0.0
+              ]
+            },
+            {
+              "name": "line-q1-label",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                3.5,
+                -1.4,
+                0
+              ]
+            },
+            {
+              "name": "line-n0",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                7.0,
+                -2.5,
+                0
+              ]
+            },
+            {
+              "name": "line-q2-label",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                8.5,
+                -1.4,
+                0
+              ]
+            },
+            {
+              "name": "line-cable2",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "scale",
+              "factor": 0.6,
+              "about": [
+                10.0,
+                -2.5,
+                0.0
+              ]
+            },
+            {
+              "name": "line-n0-label",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                7.0,
+                -3.2,
+                0
+              ]
+            },
+            {
+              "name": "line-cable1",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "scale",
+              "factor": 1.4,
+              "about": [
+                -0.0,
+                -2.5000000000000004,
+                -0.0
+              ]
+            },
+            {
+              "name": "line-q1",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                6.6,
+                -2.5,
+                0.0
+              ]
+            },
+            {
+              "name": "line-q2",
+              "duration_ms": 3200,
+              "delay_ms": 400,
+              "kind": "move",
+              "to": [
+                7.4,
+                -2.5,
+                0.0
+              ]
+            },
+            {
+              "name": "line-x0-solved",
+              "from": "line-x0",
+              "kind": "morph",
+              "duration_ms": 1200.0,
+              "delay_ms": 400.0
+            },
+            {
+              "name": "case-2-solved",
+              "from": "weighted",
+              "kind": "morph",
+              "duration_ms": 1400.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "14 Length is a function of n₀",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "14 Length is a function of n₀",
+          "caption": "Moving n₀ changes each cable length.",
+          "items": [
+            {
+              "file": "steps/13_00.pb",
+              "name": "14 Length is a function of n₀",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "n0-moved",
+              "kind": "pulse",
+              "duration_ms": 1800.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "15 The slope of a length",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "15 The slope of a length",
+          "caption": "Only the motion along a cable changes its length.",
+          "items": [
+            {
+              "file": "steps/14_00.pb",
+              "name": "15 The slope of a length",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "length-differential",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "length-slope",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 1100.0
+            },
+            {
+              "name": "dx",
+              "kind": "grow",
+              "duration_ms": 1600.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "16 The Jacobian row",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "16 The Jacobian row",
+          "caption": "Four direction cosines collect the four length slopes.",
+          "items": [
+            {
+              "file": "steps/15_00.pb",
+              "name": "16 The Jacobian row",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "17 Diagonal matrices",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "17 Diagonal matrices",
+          "caption": "Coordinate differences divided by lengths give the same row.",
+          "items": [
+            {
+              "file": "steps/16_00.pb",
+              "name": "17 Diagonal matrices",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "18 Equilibrium with J",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "18 Equilibrium with J",
+          "caption": "Row times column collects the four x-components.",
+          "items": [
+            {
+              "file": "steps/17_00.pb",
+              "name": "18 Equilibrium with J",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "j-equilibrium",
+              "kind": "grow",
+              "duration_ms": 850.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "j-products",
+              "kind": "grow",
+              "duration_ms": 850.0,
+              "delay_ms": 900.0
+            },
+            {
+              "name": "j-sum",
+              "kind": "grow",
+              "duration_ms": 850.0,
+              "delay_ms": 2700.0
+            },
+            {
+              "name": "j-products-2",
+              "kind": "grow",
+              "duration_ms": 850.0,
+              "delay_ms": 1800.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "19 Lengths cancel",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "19 Lengths cancel",
+          "caption": "Force over length replaces L⁻¹f by q.",
+          "items": [
+            {
+              "file": "steps/18_00.pb",
+              "name": "19 Lengths cancel",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "q-force-density",
+              "from": "q-jacobian",
+              "kind": "morph",
+              "duration_ms": 1400.0,
+              "delay_ms": 4200.0
+            },
+            {
+              "name": "q-equilibrium",
+              "from": "q-force-density",
+              "kind": "morph",
+              "duration_ms": 1400.0,
+              "delay_ms": 6300.0
+            },
+            {
+              "name": "q-jacobian",
+              "from": "q-start",
+              "kind": "morph",
+              "duration_ms": 1400.0,
+              "delay_ms": 2100.0
+            },
+            {
+              "name": "q-no-length",
+              "from": "q-commute",
+              "kind": "morph",
+              "duration_ms": 1200.0,
+              "delay_ms": 8800.0
+            },
+            {
+              "name": "q-definition",
+              "from": "q-jacobian-note",
+              "kind": "morph",
+              "duration_ms": 1100.0,
+              "delay_ms": 4500.0
+            },
+            {
+              "name": "q-jacobian-note",
+              "from": "q-start-note",
+              "kind": "morph",
+              "duration_ms": 1100.0,
+              "delay_ms": 2400.0
+            },
+            {
+              "name": "q-commute",
+              "from": "q-definition",
+              "kind": "morph",
+              "duration_ms": 1100.0,
+              "delay_ms": 6600.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "20 Coordinates from C",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "20 Coordinates from C",
+          "caption": "Each row subtracts a fixed coordinate from the free one.",
+          "items": [
+            {
+              "file": "steps/19_00.pb",
+              "name": "20 Coordinates from C",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "Cx-u-1-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 2800
+            },
+            {
+              "name": "Cx-u-2-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 5600
+            },
+            {
+              "name": "Cx-u-0-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "Cx-u-3-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 8400
+            },
+            {
+              "name": "Cx-C[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2800.0
+            },
+            {
+              "name": "Cx-C[1,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "Cx-C[1,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3800.0
+            },
+            {
+              "name": "Cx-C[1,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4300.0
+            },
+            {
+              "name": "Cx-C[1,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "Cx-x[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2800.0
+            },
+            {
+              "name": "Cx-x[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "Cx-x[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3800.0
+            },
+            {
+              "name": "Cx-x[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4300.0
+            },
+            {
+              "name": "Cx-x[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "Cx-u[1,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 5300.0
+            },
+            {
+              "name": "Cx-C[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5600.0
+            },
+            {
+              "name": "Cx-C[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6100.0
+            },
+            {
+              "name": "Cx-C[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6600.0
+            },
+            {
+              "name": "Cx-C[2,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7100.0
+            },
+            {
+              "name": "Cx-C[2,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7600.0
+            },
+            {
+              "name": "Cx-C[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "Cx-C[0,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "Cx-C[0,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "Cx-C[0,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "Cx-C[0,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "Cx-C[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8400.0
+            },
+            {
+              "name": "Cx-C[3,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8900.0
+            },
+            {
+              "name": "Cx-C[3,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 9400.0
+            },
+            {
+              "name": "Cx-C[3,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 9900.0
+            },
+            {
+              "name": "Cx-C[3,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 10400.0
+            },
+            {
+              "name": "Cx-x[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5600.0
+            },
+            {
+              "name": "Cx-x[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6100.0
+            },
+            {
+              "name": "Cx-x[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6600.0
+            },
+            {
+              "name": "Cx-x[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7100.0
+            },
+            {
+              "name": "Cx-x[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7600.0
+            },
+            {
+              "name": "Cx-u[2,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 8100.0
+            },
+            {
+              "name": "Cx-x[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "Cx-x[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "Cx-x[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "Cx-x[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "Cx-x[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "Cx-u[0,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "Cx-x[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8400.0
+            },
+            {
+              "name": "Cx-x[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8900.0
+            },
+            {
+              "name": "Cx-x[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 9400.0
+            },
+            {
+              "name": "Cx-x[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 9900.0
+            },
+            {
+              "name": "Cx-x[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 10400.0
+            },
+            {
+              "name": "Cx-u[3,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 10900.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "21 Free-node contribution",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "21 Free-node contribution",
+          "caption": "Each row of Cₙ copies x₀ into the free-node part of a coordinate difference.",
+          "items": [
+            {
+              "file": "steps/20_00.pb",
+              "name": "21 Free-node contribution",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "CNxN-3-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 3300
+            },
+            {
+              "name": "CNxN-0-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "CNxN-2-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 2200
+            },
+            {
+              "name": "CNxN-1-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1100
+            },
+            {
+              "name": "CN[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "CN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "CN[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2200.0
+            },
+            {
+              "name": "CN[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1100.0
+            },
+            {
+              "name": "xN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "xN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "xN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2200.0
+            },
+            {
+              "name": "xN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1100.0
+            },
+            {
+              "name": "CNxN[3,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 3800.0
+            },
+            {
+              "name": "CNxN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "CNxN[2,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 2700.0
+            },
+            {
+              "name": "CNxN[1,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 1600.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "22 Fixed-node contribution",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "22 Fixed-node contribution",
+          "caption": "Each row of C𝒇 selects and negates one fixed x-coordinate.",
+          "items": [
+            {
+              "file": "steps/21_00.pb",
+              "name": "22 Fixed-node contribution",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "CFxF-1-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 2400
+            },
+            {
+              "name": "CFxF-0-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "CFxF-2-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 4800
+            },
+            {
+              "name": "CFxF-3-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 7200
+            },
+            {
+              "name": "CFxF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4400.0
+            },
+            {
+              "name": "CFxF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "CFxF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 6800.0
+            },
+            {
+              "name": "CFxF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 9200.0
+            },
+            {
+              "name": "CF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2400.0
+            },
+            {
+              "name": "CF[1,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2900.0
+            },
+            {
+              "name": "CF[1,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3400.0
+            },
+            {
+              "name": "CF[1,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3900.0
+            },
+            {
+              "name": "xF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2400.0
+            },
+            {
+              "name": "xF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2900.0
+            },
+            {
+              "name": "xF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3400.0
+            },
+            {
+              "name": "xF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3900.0
+            },
+            {
+              "name": "CF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "CF[0,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "CF[0,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "CF[0,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "CF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "CF[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5300.0
+            },
+            {
+              "name": "CF[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5800.0
+            },
+            {
+              "name": "CF[2,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6300.0
+            },
+            {
+              "name": "CF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7200.0
+            },
+            {
+              "name": "CF[3,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7700.0
+            },
+            {
+              "name": "CF[3,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8200.0
+            },
+            {
+              "name": "CF[3,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8700.0
+            },
+            {
+              "name": "xF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "xF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "xF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "xF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "xF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "xF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5300.0
+            },
+            {
+              "name": "xF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5800.0
+            },
+            {
+              "name": "xF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6300.0
+            },
+            {
+              "name": "xF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7200.0
+            },
+            {
+              "name": "xF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7700.0
+            },
+            {
+              "name": "xF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8200.0
+            },
+            {
+              "name": "xF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8700.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "23 Add the contributions",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "23 Add the contributions",
+          "caption": "Add matching entries to obtain every x-coordinate difference.",
+          "items": [
+            {
+              "file": "steps/22_00.pb",
+              "name": "23 Add the contributions",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "u-sum-3-0",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 4500
+            },
+            {
+              "name": "u-sum-2-0",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 3000
+            },
+            {
+              "name": "u-sum-1-0",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1500
+            },
+            {
+              "name": "u-sum-0-0",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "CNxN[3,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 4500.0
+            },
+            {
+              "name": "CFxF[3,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 4950.0
+            },
+            {
+              "name": "u[3,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 5400.0
+            },
+            {
+              "name": "CNxN[2,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "CNxN[1,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "CNxN[0,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "CFxF[2,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 3450.0
+            },
+            {
+              "name": "CFxF[1,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 1950.0
+            },
+            {
+              "name": "CFxF[0,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "u[2,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 3900.0
+            },
+            {
+              "name": "u[1,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 2400.0
+            },
+            {
+              "name": "u[0,0]",
+              "kind": "highlight",
+              "duration_ms": 600.0,
+              "delay_ms": 900.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "24 One linear equation",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "24 One linear equation",
+          "caption": "Known terms move to the right-hand side.",
+          "items": [
+            {
+              "file": "steps/23_00.pb",
+              "name": "24 One linear equation",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "linear-known",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 1200.0
+            },
+            {
+              "name": "linear-general",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "n0",
+              "kind": "pulse",
+              "duration_ms": 2400.0,
+              "delay_ms": 2600.0
+            },
+            {
+              "name": "linear-solved",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 2400.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "25 Solve three axes",
+      "preserve_spatial": false,
+      "steps": [
+        {
+          "name": "25 Solve three axes",
+          "caption": "One division per axis gives n₀ = (3, 3, 0.25).",
+          "items": [
+            {
+              "file": "steps/24_00.pb",
+              "name": "25 Solve three axes",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "solve-y",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 1200.0
+            },
+            {
+              "name": "solve-forces",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 3600.0
+            },
+            {
+              "name": "solve-z",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 2400.0
+            },
+            {
+              "name": "solve-x",
+              "kind": "grow",
+              "duration_ms": 900.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "n0",
+              "kind": "pulse",
+              "duration_ms": 2000.0,
+              "delay_ms": 0.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    },
+    {
+      "title": "26 A small cable net",
+      "preserve_spatial": true,
+      "steps": [
+        {
+          "name": "26 A small cable net",
+          "caption": "A collects the force-density weights around every free node.",
+          "items": [
+            {
+              "file": "steps/25_00.pb",
+              "name": "26 A small cable net",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "net-edge-0",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "net-edge-1",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 60
+            },
+            {
+              "name": "net-edge-10",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 600
+            },
+            {
+              "name": "net-edge-11",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 660
+            },
+            {
+              "name": "net-edge-2",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 120
+            },
+            {
+              "name": "net-edge-3",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 180
+            },
+            {
+              "name": "net-edge-4",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 240
+            },
+            {
+              "name": "net-edge-5",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 300
+            },
+            {
+              "name": "net-edge-6",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 360
+            },
+            {
+              "name": "net-edge-7",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 420
+            },
+            {
+              "name": "net-edge-8",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 480
+            },
+            {
+              "name": "net-edge-9",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 540
+            },
+            {
+              "name": "net-node-0",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-1",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-2",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-3",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-4",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-5",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-6",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-7",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-8",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            }
+          ],
+          "highlight": []
+        },
+        {
+          "name": "27 Node a",
+          "caption": "One matrix row is one free node's equilibrium; follow its cables and its x-balance.",
+          "items": [
+            {
+              "file": "steps/25_01.pb",
+              "name": "27 Node a",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "node-general-a",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "node-rhs-0-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solved-a",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 5500.0
+            },
+            {
+              "name": "node-symbolic-a",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "node-rhs[0,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4000.0
+            },
+            {
+              "name": "node-solution[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solution[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "node-solution[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "node-solution[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "node-solution[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "net-stiffness[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[0,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-stiffness[0,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-stiffness[0,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "net-stiffness[0,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            }
+          ],
+          "highlight": [
+            "net-node-1"
+          ]
+        },
+        {
+          "name": "28 Node b",
+          "caption": "The same row-by-row construction, now at node b.",
+          "items": [
+            {
+              "file": "steps/25_02.pb",
+              "name": "28 Node b",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "node-symbolic-b",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "node-rhs-1-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-general-b",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "node-solved-b",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 5500.0
+            },
+            {
+              "name": "net-stiffness[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[1,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-stiffness[1,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-stiffness[1,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "net-stiffness[1,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "node-rhs[1,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4000.0
+            },
+            {
+              "name": "node-solution[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solution[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "node-solution[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "node-solution[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "node-solution[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            }
+          ],
+          "highlight": [
+            "net-node-3"
+          ]
+        },
+        {
+          "name": "29 Node c",
+          "caption": "The interior node connects to all four surrounding free nodes.",
+          "items": [
+            {
+              "file": "steps/25_03.pb",
+              "name": "29 Node c",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "node-general-c",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "node-rhs-2-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solved-c",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 5500.0
+            },
+            {
+              "name": "node-symbolic-c",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "net-stiffness[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-stiffness[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-stiffness[2,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "net-stiffness[2,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "node-rhs[2,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4000.0
+            },
+            {
+              "name": "node-solution[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solution[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "node-solution[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "node-solution[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "node-solution[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            }
+          ],
+          "highlight": [
+            "net-node-4"
+          ]
+        },
+        {
+          "name": "30 Node d",
+          "caption": "The same equilibrium row at node d.",
+          "items": [
+            {
+              "file": "steps/25_04.pb",
+              "name": "30 Node d",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "node-symbolic-d",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "node-solved-d",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 5500.0
+            },
+            {
+              "name": "node-general-d",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "node-rhs-3-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[3,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-stiffness[3,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-stiffness[3,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "net-stiffness[3,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "node-solution[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solution[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "node-solution[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "node-solution[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "node-solution[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "node-rhs[3,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4000.0
+            }
+          ],
+          "highlight": [
+            "net-node-5"
+          ]
+        },
+        {
+          "name": "31 Node e",
+          "caption": "The last free-node row completes the five by five system.",
+          "items": [
+            {
+              "file": "steps/25_05.pb",
+              "name": "31 Node e",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "node-rhs-4-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solved-e",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 5500.0
+            },
+            {
+              "name": "node-general-e",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "node-symbolic-e",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "net-stiffness[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[4,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-stiffness[4,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-stiffness[4,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "net-stiffness[4,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "node-rhs[4,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4000.0
+            },
+            {
+              "name": "node-solution[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "node-solution[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "node-solution[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "node-solution[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "node-solution[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3500.0
+            }
+          ],
+          "highlight": [
+            "net-node-7"
+          ]
+        },
+        {
+          "name": "32 Three coordinate systems",
+          "caption": "The same A acts independently on x, y, and z; their right-hand sides differ.",
+          "items": [
+            {
+              "file": "steps/25_06.pb",
+              "name": "32 Three coordinate systems",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [],
+          "highlight": []
+        },
+        {
+          "name": "33 Relaxed coordinates",
+          "caption": "Each coordinate row pulses the free node it places in the relaxed net.",
+          "items": [
+            {
+              "file": "steps/25_07.pb",
+              "name": "33 Relaxed coordinates",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "coordinate-a",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-1",
+              "kind": "pulse",
+              "duration_ms": 900.0,
+              "delay_ms": 300.0
+            },
+            {
+              "name": "net-node-3",
+              "kind": "pulse",
+              "duration_ms": 900.0,
+              "delay_ms": 1400.0
+            },
+            {
+              "name": "net-node-4",
+              "kind": "pulse",
+              "duration_ms": 900.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-node-5",
+              "kind": "pulse",
+              "duration_ms": 900.0,
+              "delay_ms": 3600.0
+            },
+            {
+              "name": "net-node-7",
+              "kind": "pulse",
+              "duration_ms": 900.0,
+              "delay_ms": 4700.0
+            },
+            {
+              "name": "net-solution/0",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "coordinate-b",
+              "from": "coordinate-a",
+              "kind": "morph",
+              "duration_ms": 750.0,
+              "delay_ms": 1100.0
+            },
+            {
+              "name": "net-solution/2",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 2200.0
+            },
+            {
+              "name": "coordinate-d",
+              "from": "coordinate-c",
+              "kind": "morph",
+              "duration_ms": 750.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "coordinate-c",
+              "from": "coordinate-b",
+              "kind": "morph",
+              "duration_ms": 750.0,
+              "delay_ms": 2200.0
+            },
+            {
+              "name": "net-solution/3",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "net-solution/4",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 4400.0
+            },
+            {
+              "name": "net-solution/1",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 1100.0
+            },
+            {
+              "name": "coordinate-e",
+              "from": "coordinate-d",
+              "kind": "morph",
+              "duration_ms": 750.0,
+              "delay_ms": 4400.0
+            }
+          ],
+          "highlight": []
+        },
+        {
+          "name": "34 Verify node c",
+          "caption": "The four highlighted cables produce one matrix row, checked independently for x, y, and z.",
+          "items": [
+            {
+              "file": "steps/25_08.pb",
+              "name": "34 Verify node c",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "net-rhs-2-0-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "net-rhs-2-2-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 6600
+            },
+            {
+              "name": "net-rhs-2-1-calculation",
+              "kind": "grow",
+              "duration_ms": 500.0,
+              "delay_ms": 3300
+            },
+            {
+              "name": "net-rhs[2,0]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 2500.0
+            },
+            {
+              "name": "net-stiffness[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-stiffness[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "net-stiffness[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "net-stiffness[2,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-stiffness[2,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-solution[0,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-solution[1,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 500.0
+            },
+            {
+              "name": "net-solution[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1000.0
+            },
+            {
+              "name": "net-solution[3,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 1500.0
+            },
+            {
+              "name": "net-solution[4,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 2000.0
+            },
+            {
+              "name": "net-rhs[2,2]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 9100.0
+            },
+            {
+              "name": "net-rhs[2,1]",
+              "kind": "highlight",
+              "duration_ms": 800.0,
+              "delay_ms": 5800.0
+            },
+            {
+              "name": "net-stiffness[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6600.0
+            },
+            {
+              "name": "net-stiffness[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7100.0
+            },
+            {
+              "name": "net-stiffness[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7600.0
+            },
+            {
+              "name": "net-stiffness[2,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8100.0
+            },
+            {
+              "name": "net-stiffness[2,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8600.0
+            },
+            {
+              "name": "net-solution[0,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 6600.0
+            },
+            {
+              "name": "net-solution[1,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7100.0
+            },
+            {
+              "name": "net-solution[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 7600.0
+            },
+            {
+              "name": "net-solution[3,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8100.0
+            },
+            {
+              "name": "net-solution[4,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 8600.0
+            },
+            {
+              "name": "net-stiffness[2,0]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "net-stiffness[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3800.0
+            },
+            {
+              "name": "net-stiffness[2,2]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4300.0
+            },
+            {
+              "name": "net-stiffness[2,3]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "net-stiffness[2,4]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5300.0
+            },
+            {
+              "name": "net-solution[0,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3300.0
+            },
+            {
+              "name": "net-solution[1,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 3800.0
+            },
+            {
+              "name": "net-solution[2,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4300.0
+            },
+            {
+              "name": "net-solution[3,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 4800.0
+            },
+            {
+              "name": "net-solution[4,1]",
+              "kind": "highlight",
+              "duration_ms": 550.0,
+              "delay_ms": 5300.0
+            }
+          ],
+          "highlight": [
+            "net-node-4"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "35 One local rule, repeated",
+      "preserve_spatial": true,
+      "steps": [
+        {
+          "name": "35 One local rule, repeated",
+          "caption": "Every interior node balances four unit-weight cables by averaging its four neighbors.",
+          "items": [
+            {
+              "file": "steps/26_00.pb",
+              "name": "35 One local rule, repeated",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "large-z",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 2100.0
+            },
+            {
+              "name": "large-local-rule",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "large-x",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 700.0
+            },
+            {
+              "name": "large-y",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 1400.0
+            },
+            {
+              "name": "large-z-average",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 3500.0
+            },
+            {
+              "name": "large-average",
+              "kind": "grow",
+              "duration_ms": 700.0,
+              "delay_ms": 2800.0
+            },
+            {
+              "name": "net-edge-0",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 0
+            },
+            {
+              "name": "net-edge-1",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 15
+            },
+            {
+              "name": "net-edge-10",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 150
+            },
+            {
+              "name": "net-edge-11",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 165
+            },
+            {
+              "name": "net-edge-12",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 180
+            },
+            {
+              "name": "net-edge-13",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 195
+            },
+            {
+              "name": "net-edge-14",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 210
+            },
+            {
+              "name": "net-edge-15",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 225
+            },
+            {
+              "name": "net-edge-16",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 240
+            },
+            {
+              "name": "net-edge-17",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 255
+            },
+            {
+              "name": "net-edge-18",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 270
+            },
+            {
+              "name": "net-edge-19",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 285
+            },
+            {
+              "name": "net-edge-2",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 30
+            },
+            {
+              "name": "net-edge-20",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 300
+            },
+            {
+              "name": "net-edge-21",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 315
+            },
+            {
+              "name": "net-edge-22",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 330
+            },
+            {
+              "name": "net-edge-23",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 345
+            },
+            {
+              "name": "net-edge-24",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 360
+            },
+            {
+              "name": "net-edge-25",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 375
+            },
+            {
+              "name": "net-edge-26",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 390
+            },
+            {
+              "name": "net-edge-27",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 405
+            },
+            {
+              "name": "net-edge-28",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 420
+            },
+            {
+              "name": "net-edge-29",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 435
+            },
+            {
+              "name": "net-edge-3",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 45
+            },
+            {
+              "name": "net-edge-30",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 450
+            },
+            {
+              "name": "net-edge-31",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 465
+            },
+            {
+              "name": "net-edge-32",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 480
+            },
+            {
+              "name": "net-edge-33",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 495
+            },
+            {
+              "name": "net-edge-34",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 510
+            },
+            {
+              "name": "net-edge-35",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 525
+            },
+            {
+              "name": "net-edge-36",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 540
+            },
+            {
+              "name": "net-edge-37",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 555
+            },
+            {
+              "name": "net-edge-38",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 570
+            },
+            {
+              "name": "net-edge-39",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 585
+            },
+            {
+              "name": "net-edge-4",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 60
+            },
+            {
+              "name": "net-edge-40",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 600
+            },
+            {
+              "name": "net-edge-41",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 615
+            },
+            {
+              "name": "net-edge-42",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 630
+            },
+            {
+              "name": "net-edge-43",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 645
+            },
+            {
+              "name": "net-edge-44",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 660
+            },
+            {
+              "name": "net-edge-45",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 675
+            },
+            {
+              "name": "net-edge-46",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 690
+            },
+            {
+              "name": "net-edge-47",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 705
+            },
+            {
+              "name": "net-edge-48",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 720
+            },
+            {
+              "name": "net-edge-49",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 735
+            },
+            {
+              "name": "net-edge-5",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 75
+            },
+            {
+              "name": "net-edge-50",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 750
+            },
+            {
+              "name": "net-edge-51",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 765
+            },
+            {
+              "name": "net-edge-52",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 780
+            },
+            {
+              "name": "net-edge-53",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 795
+            },
+            {
+              "name": "net-edge-54",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 810
+            },
+            {
+              "name": "net-edge-55",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 825
+            },
+            {
+              "name": "net-edge-56",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 840
+            },
+            {
+              "name": "net-edge-57",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 855
+            },
+            {
+              "name": "net-edge-58",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 870
+            },
+            {
+              "name": "net-edge-59",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 885
+            },
+            {
+              "name": "net-edge-6",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 90
+            },
+            {
+              "name": "net-edge-60",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 900
+            },
+            {
+              "name": "net-edge-61",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 915
+            },
+            {
+              "name": "net-edge-62",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 930
+            },
+            {
+              "name": "net-edge-63",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 945
+            },
+            {
+              "name": "net-edge-64",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 960
+            },
+            {
+              "name": "net-edge-65",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 975
+            },
+            {
+              "name": "net-edge-66",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 990
+            },
+            {
+              "name": "net-edge-67",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1005
+            },
+            {
+              "name": "net-edge-68",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1020
+            },
+            {
+              "name": "net-edge-69",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1035
+            },
+            {
+              "name": "net-edge-7",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 105
+            },
+            {
+              "name": "net-edge-70",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1050
+            },
+            {
+              "name": "net-edge-71",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1065
+            },
+            {
+              "name": "net-edge-72",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1080
+            },
+            {
+              "name": "net-edge-73",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1095
+            },
+            {
+              "name": "net-edge-74",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1110
+            },
+            {
+              "name": "net-edge-75",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1125
+            },
+            {
+              "name": "net-edge-76",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1140
+            },
+            {
+              "name": "net-edge-77",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1155
+            },
+            {
+              "name": "net-edge-78",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1170
+            },
+            {
+              "name": "net-edge-79",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1185
+            },
+            {
+              "name": "net-edge-8",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 120
+            },
+            {
+              "name": "net-edge-80",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1200
+            },
+            {
+              "name": "net-edge-81",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1215
+            },
+            {
+              "name": "net-edge-82",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1230
+            },
+            {
+              "name": "net-edge-83",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 1245
+            },
+            {
+              "name": "net-edge-9",
+              "kind": "grow",
+              "duration_ms": 1300.0,
+              "delay_ms": 135
+            },
+            {
+              "name": "net-node-0",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-1",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-10",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-11",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-12",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-13",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-14",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-15",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-16",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-17",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-18",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-19",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-2",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-20",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-21",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-22",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-23",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-24",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-25",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-26",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-27",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-28",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-29",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-3",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-30",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-31",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-32",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-33",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-34",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-35",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-36",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-37",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-38",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-39",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-4",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-40",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-41",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-42",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-43",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-44",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            },
+            {
+              "name": "net-node-45",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 270.0
+            },
+            {
+              "name": "net-node-46",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 360.0
+            },
+            {
+              "name": "net-node-47",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-48",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-5",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 450.0
+            },
+            {
+              "name": "net-node-6",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 540.0
+            },
+            {
+              "name": "net-node-7",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 0.0
+            },
+            {
+              "name": "net-node-8",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 90.0
+            },
+            {
+              "name": "net-node-9",
+              "kind": "grow",
+              "duration_ms": 1200.0,
+              "delay_ms": 180.0
+            }
+          ],
+          "highlight": [
+            "net-edge-33",
+            "net-edge-43",
+            "net-edge-45",
+            "net-edge-46",
+            "net-node-24"
+          ]
+        },
+        {
+          "name": "36 Recover cable forces",
+          "caption": "Read q and length from each highlighted cable, then recover its force.",
+          "items": [
+            {
+              "file": "steps/26_01.pb",
+              "name": "36 Recover cable forces",
+              "at": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "name": "large-force",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 3000.0
+            },
+            {
+              "name": "large-difference",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 800.0
+            },
+            {
+              "name": "large-force-example",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 4100.0
+            },
+            {
+              "name": "large-length",
+              "kind": "grow",
+              "duration_ms": 800.0,
+              "delay_ms": 1900.0
+            }
+          ],
+          "highlight": []
+        }
+      ]
+    }
+  ],
+  "links": [
+    [
+      "e1",
+      "C/1"
+    ],
+    [
+      "n0",
+      "C"
+    ],
+    [
+      "e2",
+      "C/2"
+    ],
+    [
+      "e3",
+      "C/3"
+    ],
+    [
+      "e0",
+      "C/0"
+    ],
+    [
+      "e2",
+      "D/2"
+    ],
+    [
+      "e1",
+      "D/1"
+    ],
+    [
+      "e0",
+      "D/0"
+    ],
+    [
+      "e3",
+      "D/3"
+    ],
+    [
+      "n0-moved",
+      "L/0"
+    ],
+    [
+      "e2",
+      "Jx[0,2]"
+    ],
+    [
+      "e3",
+      "Jx[0,3]"
+    ],
+    [
+      "e0",
+      "Jx[0,0]"
+    ],
+    [
+      "e1",
+      "Jx[0,1]"
+    ],
+    [
+      "e0",
+      "U/0"
+    ],
+    [
+      "e0",
+      "Linv/0"
+    ],
+    [
+      "e2",
+      "U/2"
+    ],
+    [
+      "e1",
+      "U/1"
+    ],
+    [
+      "e3",
+      "U/3"
+    ],
+    [
+      "e2",
+      "Linv/2"
+    ],
+    [
+      "e1",
+      "Linv/1"
+    ],
+    [
+      "e3",
+      "Linv/3"
+    ],
+    [
+      "e2",
+      "Cx-C/2"
+    ],
+    [
+      "e0",
+      "Cx-C/0"
+    ],
+    [
+      "e1",
+      "Cx-C/1"
+    ],
+    [
+      "e3",
+      "Cx-C/3"
+    ],
+    [
+      "net-edge-3",
+      "net-stiffness[0,2]"
+    ],
+    [
+      "net-edge-5",
+      "net-stiffness[1,2]"
+    ],
+    [
+      "net-edge-7",
+      "net-stiffness[2,3]"
+    ],
+    [
+      "net-edge-8",
+      "net-stiffness[2,4]"
+    ],
+    [
+      "net-node-1",
+      "net-stiffness/0"
+    ],
+    [
+      "net-node-3",
+      "net-stiffness/1"
+    ],
+    [
+      "net-node-4",
+      "net-stiffness/2"
+    ],
+    [
+      "net-node-5",
+      "net-stiffness/3"
+    ],
+    [
+      "net-node-7",
+      "net-stiffness/4"
+    ],
+    [
+      "net-node-1",
+      "net-rhs-y/0"
+    ],
+    [
+      "net-node-3",
+      "net-rhs-y/1"
+    ],
+    [
+      "net-node-4",
+      "net-rhs-y/2"
+    ],
+    [
+      "net-node-5",
+      "net-rhs-y/3"
+    ],
+    [
+      "net-node-7",
+      "net-rhs-y/4"
+    ],
+    [
+      "net-node-1",
+      "net-rhs-x/0"
+    ],
+    [
+      "net-node-3",
+      "net-rhs-x/1"
+    ],
+    [
+      "net-node-4",
+      "net-rhs-x/2"
+    ],
+    [
+      "net-node-5",
+      "net-rhs-x/3"
+    ],
+    [
+      "net-node-7",
+      "net-rhs-x/4"
+    ],
+    [
+      "net-node-1",
+      "net-rhs-z/0"
+    ],
+    [
+      "net-node-3",
+      "net-rhs-z/1"
+    ],
+    [
+      "net-node-4",
+      "net-rhs-z/2"
+    ],
+    [
+      "net-node-5",
+      "net-rhs-z/3"
+    ],
+    [
+      "net-node-7",
+      "net-rhs-z/4"
+    ],
+    [
+      "net-node-1",
+      "net-solution/0"
+    ],
+    [
+      "net-node-3",
+      "net-solution/1"
+    ],
+    [
+      "net-node-4",
+      "net-solution/2"
+    ],
+    [
+      "net-node-5",
+      "net-solution/3"
+    ],
+    [
+      "net-node-7",
+      "net-solution/4"
+    ],
+    [
+      "net-node-1",
+      "net-rhs/0"
+    ],
+    [
+      "net-node-3",
+      "net-rhs/1"
+    ],
+    [
+      "net-node-4",
+      "net-rhs/2"
+    ],
+    [
+      "net-node-5",
+      "net-rhs/3"
+    ],
+    [
+      "net-node-7",
+      "net-rhs/4"
+    ],
+    [
+      "net-edge-45",
+      "large-force"
+    ],
+    [
+      "net-edge-45",
+      "large-difference"
+    ],
+    [
+      "net-edge-2",
+      "large-force-example"
+    ],
+    [
+      "net-edge-45",
+      "large-length"
+    ]
+  ],
+  "spatial": [
+    "n0",
+    "n1",
+    "n2",
+    "n3",
+    "n4",
+    "e0",
+    "e1",
+    "e2",
+    "e3",
+    "grid/0/-1",
+    "grid/0/0",
+    "grid/0/1",
+    "grid/0/2",
+    "grid/0/3",
+    "grid/0/4",
+    "grid/0/5",
+    "grid/0/6",
+    "grid/0/7",
+    "grid/0/8",
+    "grid/1/-1",
+    "grid/1/0",
+    "grid/1/1",
+    "grid/1/2",
+    "grid/1/3",
+    "grid/1/4",
+    "grid/1/5",
+    "grid/1/6",
+    "grid/1/7",
+    "grid/1/8",
+    "p",
+    "box-1-0",
+    "box-1-1",
+    "box-1-2",
+    "box-1-3",
+    "box-1-4",
+    "box-1-5",
+    "box-1-6",
+    "box-1-7",
+    "box-1-8",
+    "box-1-9",
+    "box-1-10",
+    "box-1-x",
+    "box-1-y",
+    "box-1-z",
+    "box-0-0",
+    "box-0-1",
+    "box-0-2",
+    "box-0-3",
+    "box-0-4",
+    "box-0-5",
+    "box-0-6",
+    "box-0-7",
+    "box-0-8",
+    "box-0-9",
+    "box-0-10",
+    "box-0-x",
+    "box-2-0",
+    "box-2-1",
+    "box-2-2",
+    "box-2-3",
+    "box-2-4",
+    "box-2-5",
+    "box-2-6",
+    "box-2-7",
+    "box-2-8",
+    "box-2-9",
+    "box-2-10",
+    "box-2-x",
+    "box-3-0",
+    "box-3-1",
+    "box-3-2",
+    "box-3-3",
+    "box-3-4",
+    "box-3-5",
+    "box-3-6",
+    "box-3-7",
+    "box-3-8",
+    "box-3-9",
+    "box-3-10",
+    "box-3-x",
+    "x-axis",
+    "projection-0",
+    "projection-1",
+    "projection-2",
+    "projection-3",
+    "line-axis",
+    "line-n1",
+    "line-n2",
+    "line-n0",
+    "line-cable1",
+    "line-cable2",
+    "line-q1",
+    "line-q2",
+    "line-p",
+    "n0-moved",
+    "dx",
+    "net-node-0",
+    "net-node-1",
+    "net-node-2",
+    "net-node-3",
+    "net-node-4",
+    "net-node-5",
+    "net-node-6",
+    "net-node-7",
+    "net-node-8",
+    "net-edge-0",
+    "net-edge-1",
+    "net-edge-2",
+    "net-edge-3",
+    "net-edge-4",
+    "net-edge-5",
+    "net-edge-6",
+    "net-edge-7",
+    "net-edge-8",
+    "net-edge-9",
+    "net-edge-10",
+    "net-edge-11",
+    "grid/net/0/0",
+    "grid/net/0/1",
+    "grid/net/0/2",
+    "grid/net/1/0",
+    "grid/net/1/1",
+    "grid/net/1/2",
+    "node-x-arrow-a",
+    "node-x-projection-a",
+    "node-x-arrow-b",
+    "node-x-projection-b",
+    "node-x-arrow-c",
+    "node-x-projection-c",
+    "node-x-arrow-d",
+    "node-x-projection-d",
+    "node-x-arrow-e",
+    "node-x-projection-e",
+    "net-node-9",
+    "net-node-10",
+    "net-node-11",
+    "net-node-12",
+    "net-node-13",
+    "net-node-14",
+    "net-node-15",
+    "net-node-16",
+    "net-node-17",
+    "net-node-18",
+    "net-node-19",
+    "net-node-20",
+    "net-node-21",
+    "net-node-22",
+    "net-node-23",
+    "net-node-24",
+    "net-node-25",
+    "net-node-26",
+    "net-node-27",
+    "net-node-28",
+    "net-node-29",
+    "net-node-30",
+    "net-node-31",
+    "net-node-32",
+    "net-node-33",
+    "net-node-34",
+    "net-node-35",
+    "net-node-36",
+    "net-node-37",
+    "net-node-38",
+    "net-node-39",
+    "net-node-40",
+    "net-node-41",
+    "net-node-42",
+    "net-node-43",
+    "net-node-44",
+    "net-node-45",
+    "net-node-46",
+    "net-node-47",
+    "net-node-48",
+    "net-edge-12",
+    "net-edge-13",
+    "net-edge-14",
+    "net-edge-15",
+    "net-edge-16",
+    "net-edge-17",
+    "net-edge-18",
+    "net-edge-19",
+    "net-edge-20",
+    "net-edge-21",
+    "net-edge-22",
+    "net-edge-23",
+    "net-edge-24",
+    "net-edge-25",
+    "net-edge-26",
+    "net-edge-27",
+    "net-edge-28",
+    "net-edge-29",
+    "net-edge-30",
+    "net-edge-31",
+    "net-edge-32",
+    "net-edge-33",
+    "net-edge-34",
+    "net-edge-35",
+    "net-edge-36",
+    "net-edge-37",
+    "net-edge-38",
+    "net-edge-39",
+    "net-edge-40",
+    "net-edge-41",
+    "net-edge-42",
+    "net-edge-43",
+    "net-edge-44",
+    "net-edge-45",
+    "net-edge-46",
+    "net-edge-47",
+    "net-edge-48",
+    "net-edge-49",
+    "net-edge-50",
+    "net-edge-51",
+    "net-edge-52",
+    "net-edge-53",
+    "net-edge-54",
+    "net-edge-55",
+    "net-edge-56",
+    "net-edge-57",
+    "net-edge-58",
+    "net-edge-59",
+    "net-edge-60",
+    "net-edge-61",
+    "net-edge-62",
+    "net-edge-63",
+    "net-edge-64",
+    "net-edge-65",
+    "net-edge-66",
+    "net-edge-67",
+    "net-edge-68",
+    "net-edge-69",
+    "net-edge-70",
+    "net-edge-71",
+    "net-edge-72",
+    "net-edge-73",
+    "net-edge-74",
+    "net-edge-75",
+    "net-edge-76",
+    "net-edge-77",
+    "net-edge-78",
+    "net-edge-79",
+    "net-edge-80",
+    "net-edge-81",
+    "net-edge-82",
+    "net-edge-83",
+    "grid/net/0/3",
+    "grid/net/0/4",
+    "grid/net/0/5",
+    "grid/net/0/6",
+    "grid/net/1/3",
+    "grid/net/1/4",
+    "grid/net/1/5",
+    "grid/net/1/6"
+  ],
+  "non_pickable": [
+    "grid/0/-1",
+    "grid/0/0",
+    "grid/0/1",
+    "grid/0/2",
+    "grid/0/3",
+    "grid/0/4",
+    "grid/0/5",
+    "grid/0/6",
+    "grid/0/7",
+    "grid/0/8",
+    "grid/1/-1",
+    "grid/1/0",
+    "grid/1/1",
+    "grid/1/2",
+    "grid/1/3",
+    "grid/1/4",
+    "grid/1/5",
+    "grid/1/6",
+    "grid/1/7",
+    "grid/1/8",
+    "grid/net/0/0",
+    "grid/net/0/1",
+    "grid/net/0/2",
+    "grid/net/1/0",
+    "grid/net/1/1",
+    "grid/net/1/2",
+    "node-x-projection-a",
+    "node-x-projection-b",
+    "node-x-projection-c",
+    "node-x-projection-d",
+    "node-x-projection-e",
+    "grid/net/0/3",
+    "grid/net/0/4",
+    "grid/net/0/5",
+    "grid/net/0/6",
+    "grid/net/1/3",
+    "grid/net/1/4",
+    "grid/net/1/5",
+    "grid/net/1/6"
+  ],
+  "gradients": {},
+  "colored": {
+    "C": [
+      0,
+      1,
+      5,
+      7,
+      10,
+      13,
+      15,
+      19
+    ],
+    "D": [
+      2,
+      5,
+      8,
+      11
+    ],
+    "L": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "Jx": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "U": [
+      0,
+      5,
+      10,
+      15
+    ],
+    "Linv": [
+      0,
+      5,
+      10,
+      15
+    ],
+    "Cx-C": [
+      0,
+      1,
+      5,
+      7,
+      10,
+      13,
+      15,
+      19
+    ],
+    "Cx-x": [
+      0,
+      2,
+      4
+    ],
+    "Cx-u": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "CN": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "xN": [
+      0
+    ],
+    "CNxN": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "CF": [
+      0,
+      5,
+      10,
+      15
+    ],
+    "xF": [
+      1,
+      3
+    ],
+    "CFxF": [
+      1,
+      3
+    ],
+    "u": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "net-stiffness": [
+      0,
+      2,
+      6,
+      7,
+      10,
+      11,
+      12,
+      13,
+      14,
+      17,
+      18,
+      22,
+      24
+    ],
+    "node-solution": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "node-rhs": [
+      0,
+      3,
+      4
+    ],
+    "net-rhs-x": [
+      0,
+      3,
+      4
+    ],
+    "net-rhs-y": [
+      1,
+      3,
+      4
+    ],
+    "net-rhs-z": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "net-solution": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "net-rhs": [
+      0,
+      2,
+      4,
+      5,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  }
+}

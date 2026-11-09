@@ -25,7 +25,13 @@ pub fn hosted(session: &Session, guid: &str, element: &Element) -> Vec<Hosted> {
     let mut out = Vec::new();
 
     // the edges in the order they were made, so the lines keep their order
-    let mut edges: Vec<_> = session.graph.edges.get(guid).into_iter().flatten().collect();
+    let mut edges: Vec<_> = session
+        .graph
+        .edges
+        .get(guid)
+        .into_iter()
+        .flatten()
+        .collect();
     edges.sort_by_key(|(_, edge)| edge.index);
 
     for (other, edge) in edges {

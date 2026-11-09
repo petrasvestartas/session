@@ -16,10 +16,21 @@ pub static SYMBOL_BYTES: &[u8] =
 pub static FALLBACK_BYTES: &[u8] =
     include_bytes!("../../assets/text/NotoSansSymbols2-Regular.subset.ttf");
 
-/// The whole fonts under `text/`, in the order of the bundled ones, fetched when a text needs them.
+/// Full math font bundled for TeX layout and mathematical italic/fallback glyphs.
+pub static MATH_FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansMath-Regular.ttf");
+pub static STIX_REGULAR_BYTES: &[u8] = include_bytes!("../../assets/text/STIXTwoText-Regular.ttf");
+pub static STIX_ITALIC_BYTES: &[u8] = include_bytes!("../../assets/text/STIXTwoText-Italic.ttf");
+pub const MATH_SERIF_ID: u32 = 1 << 31;
+pub const SPATIAL_TEXT_ID: u32 = 1 << 30;
+pub const TEXT_ID_FLAGS: u32 = MATH_SERIF_ID | SPATIAL_TEXT_ID;
+
+/// Full fonts fetched when a text needs more than the bundled subsets; math precedes symbol fallback.
 #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
-pub const FULL_FONTS: [&str; 3] = [
+pub const FULL_FONTS: [&str; 6] = [
     "NotoSans-Regular.ttf",
+    "NotoSansMath-Regular.ttf",
+    "STIXTwoText-Regular.ttf",
+    "STIXTwoText-Italic.ttf",
     "NotoSansSymbols2-Regular.ttf",
     "NotoSansSymbols-Regular.ttf",
 ];
@@ -86,15 +97,24 @@ pub struct TextLabel {
     pub font_size: f32,             // em size
     pub line_height: f32,           // distance between lines
     pub color: [u8; 4],             // rgba
+    #[serde(default)]
+    pub outline: f32, // positive white glyph halo, negative black glyph halo; 0 = none
     pub placement: TextPlacement,   // where it sits
     pub clip: Option<[f32; 4]>,     // screen box to cut it to: left, top, right, bottom
 }
 
 impl TextLabel {
-    /// Ink color: black when selected, else the label's own.
+    /// Ink color: black on a selected plate, amber for selected bare text, else the label's own.
     pub fn ink_color(&self) -> [u8; 4] {
         if self.object.is_some_and(|object| object.selected) {
-            [0, 0, 0, 255]
+            if matches!(
+                self.placement,
+                TextPlacement::WorldPlane { plate: false, .. }
+            ) {
+                [190, 115, 0, 255]
+            } else {
+                [0, 0, 0, 255]
+            }
         } else {
             self.color
         }
@@ -288,7 +308,7 @@ pub fn covers(text: &str) -> bool {
 /// True when a bundled font maps `c` to a glyph; only the character maps are read.
 fn bundled_glyph(c: char) -> bool {
     thread_local! {
-        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
+        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, MATH_FONT_BYTES, STIX_REGULAR_BYTES, STIX_ITALIC_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
             .into_iter()
             .filter_map(|bytes| {
                 let face = ttf_parser::RawFace::parse(bytes, 0).ok()?;
@@ -310,7 +330,14 @@ fn bundled_glyph(c: char) -> bool {
 fn bundled_fonts() -> FontSystem {
     let mut db = fontdb::Database::new();
 
-    for bytes in [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES] {
+    for bytes in [
+        FONT_BYTES,
+        MATH_FONT_BYTES,
+        STIX_REGULAR_BYTES,
+        STIX_ITALIC_BYTES,
+        FALLBACK_BYTES,
+        SYMBOL_BYTES,
+    ] {
         db.load_font_source(fontdb::Source::Binary(std::sync::Arc::new(bytes)));
     }
 
@@ -356,6 +383,10 @@ fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
         } => world.iter().all(finite_f64) && world_height.is_finite() && world_height > 0.0,
     };
     anyhow::ensure!(valid_placement, "invalid text placement");
+    anyhow::ensure!(
+        label.outline.is_finite() && label.outline.abs() <= 16.0,
+        "text outline must be 0..16 CSS pixels"
+    );
 
     if let Some(c) = label.clip {
         anyhow::ensure!(
@@ -413,7 +444,11 @@ fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
         fonts,
         &label.text,
         &Attrs::new()
-            .family(Family::Name(FONT_FAMILY))
+            .family(if label.id & MATH_SERIF_ID != 0 {
+                Family::Name("STIX Two Text")
+            } else {
+                Family::Name(FONT_FAMILY)
+            })
             .metadata(label.id as usize),
         Shaping::Advanced,
         None,
@@ -435,6 +470,7 @@ mod tests {
             font_size: 16.0,
             line_height: 24.0,
             color: [255; 4],
+            outline: 0.0,
             placement: TextPlacement::Screen {
                 left: 0.0,
                 top: 0.0,
@@ -571,7 +607,8 @@ mod commands_tests {
             assert!(covers(text), "{text}");
         }
 
-        assert!(!covers("Fixed Ω cube"));
+        assert!(covers("Fixed Ω cube"));
+        assert!(!covers("Fixed 🦀 cube"));
         let whole: Vec<Vec<u8>> = FULL_FONTS
             .iter()
             .map(|name| std::fs::read(format!("assets/text/{name}")).unwrap())
@@ -580,5 +617,18 @@ mod commands_tests {
         doc.replace_fonts(whole).unwrap();
         doc.set_labels(vec![label("Fixed Ω cube")]).unwrap();
         assert!(doc.diagnostics().iter().all(|glyph| glyph.glyph != 0));
+        let math = "n₀ fᵢ qᵢ p_z Σ α β γ Δ √ − ± × · ⁻¹ ₓ ᵧ";
+        doc.set_labels(vec![label(math)]).unwrap();
+        for glyph in doc.diagnostics().iter().filter(|glyph| glyph.glyph == 0) {
+            eprintln!(
+                "missing math glyph {:?} from {}",
+                &math[glyph.cluster[0]..glyph.cluster[1]],
+                glyph.font
+            );
+        }
+        assert!(
+            doc.diagnostics().iter().all(|glyph| glyph.glyph != 0),
+            "missing deck math glyph"
+        );
     }
 }

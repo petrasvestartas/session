@@ -328,7 +328,9 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
                 // components: kept whole; a kernel Matrix among them is drawn by the matrix lane
                 16 => {
                     let source: proto::Component = r.message(f)?;
-                    s.objects.components.push(session_rust::Component::from_proto(source));
+                    s.objects
+                        .components
+                        .push(session_rust::Component::from_proto(source));
                 }
                 18 => instance(&mut s, &mut r, f, &mut folds)?,
                 _ => continue,
@@ -482,6 +484,9 @@ fn read_graph(r: &mut Reader, f: Field, vertices: bool) -> Result<session_rust::
             3 if vertices => {
                 let entry = read_vertex(r, field)?;
                 graph.add_node(&entry.0, &entry.1);
+                for (name, value) in entry.2 {
+                    graph.set_vertex_attribute(&entry.0, &name, value);
+                }
             }
             4 => {
                 let edge: proto::Edge = r.message(field)?;
@@ -495,6 +500,9 @@ fn read_graph(r: &mut Reader, f: Field, vertices: bool) -> Result<session_rust::
                         }
                     }
                 }
+                for (name, value) in edge.attributes {
+                    graph.set_edge_attribute((&edge.v0, &edge.v1), &name, value);
+                }
             }
             _ => {}
         }
@@ -503,10 +511,11 @@ fn read_graph(r: &mut Reader, f: Field, vertices: bool) -> Result<session_rust::
     Ok(graph)
 }
 
-/// One vertex map entry: its key and its attribute text.
-fn read_vertex(r: &mut Reader, f: Field) -> Result<(String, String), String> {
+/// One vertex map entry: its key, attribute text and numeric attributes.
+fn read_vertex(r: &mut Reader, f: Field) -> Result<(String, String, Vec<(String, f64)>), String> {
     expect(f)?;
     let (mut key, mut attribute) = (String::new(), String::new());
+    let mut attributes = Vec::new();
     let mut at = f.at;
 
     while at < f.next {
@@ -514,14 +523,18 @@ fn read_vertex(r: &mut Reader, f: Field) -> Result<(String, String), String> {
 
         match field.number {
             1 => key = r.string(field)?,
-            2 => attribute = r.message::<proto::Vertex>(field)?.attribute,
+            2 => {
+                let vertex = r.message::<proto::Vertex>(field)?;
+                attribute = vertex.attribute;
+                attributes = vertex.attributes.into_iter().collect();
+            }
             _ => {}
         }
 
         at = field.next;
     }
 
-    Ok((key, attribute))
+    Ok((key, attribute, attributes))
 }
 
 /// The tree message `f`.
@@ -843,17 +856,56 @@ mod tests {
         let b = s.add_point(p(1.0, 0.0, 0.0), None).borrow().name.clone();
         s.add_edge(&a, &b, "touches");
         let edge = s.graph.edges[&a][&b].guid().to_string();
-        let contact = session_rust::InteractionUnknown::new("InteractionContactFace", &[1, 2], "seam_wedge_0");
+        let contact = session_rust::InteractionUnknown::new(
+            "InteractionContactFace",
+            &[1, 2],
+            "seam_wedge_0",
+        );
         let id = session_rust::Interaction::guid(&contact).to_string();
         s.interactions.insert(edge.clone(), vec![Box::new(contact)]);
         let d = decoded(s.pb_dumps(), false).unwrap();
         assert_eq!(d.graph.edges[&a][&b].guid(), edge);
-        assert_eq!(d.graph.edges[&b][&a].guid(), edge, "both copies of the edge");
+        assert_eq!(
+            d.graph.edges[&b][&a].guid(),
+            edge,
+            "both copies of the edge"
+        );
         let kept = &d.interactions[&edge];
         assert_eq!(kept.len(), 1);
         assert_eq!(
-            (kept[0].interaction_type_name(), kept[0].name(), kept[0].guid()),
+            (
+                kept[0].interaction_type_name(),
+                kept[0].name(),
+                kept[0].guid()
+            ),
             ("InteractionContactFace", "seam_wedge_0", id.as_str())
+        );
+    }
+
+    /// Animation and relationship attributes survive the protobuf graph decoder.
+    #[test]
+    fn window_decode_keeps_graph_attributes() {
+        let mut s = Session::new("animated");
+        let point = p(0.0, 0.0, 0.0);
+        let guid = point.guid().to_string();
+        s.add_point(point, None);
+        s.animate_xform(&guid, Xform::translation(1.0, 0.0, 0.0), 900.0, 150.0);
+        s.add_edge(&guid, "matrix", "morph");
+        s.graph
+            .set_edge_attribute((&guid, "matrix"), "duration_ms", 1100.0);
+        s.graph
+            .set_edge_attribute((&guid, "matrix"), "delay_ms", 200.0);
+        let d = decoded(s.pb_dumps(), true).unwrap();
+
+        assert_eq!(d.graph.vertex_attribute(&guid, "xform_ms"), Some(900.0));
+        assert_eq!(d.graph.vertex_attribute(&guid, "delay_ms"), Some(150.0));
+        assert_eq!(
+            d.graph.edge_attribute((&guid, "matrix"), "duration_ms"),
+            Some(1100.0)
+        );
+        assert_eq!(
+            d.graph.edge_attribute((&guid, "matrix"), "delay_ms"),
+            Some(200.0)
         );
     }
 

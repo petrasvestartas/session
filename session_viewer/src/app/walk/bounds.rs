@@ -86,8 +86,8 @@ pub fn mark_pens_from(t: &mut Upload, from: &Baselines) {
         .skip(from.pipe)
         .chain(t.seg.ribbons.iter_mut().skip(from.ribbon))
     {
-        if s.radius <= 0.0 {
-            s.radius = 0.5; // half width in mm
+        if s.radius == 0.0 {
+            s.radius = 0.5; // half width in mm; negative radii already mean screen pixels
         }
     }
 
@@ -103,7 +103,7 @@ pub fn mark_pens_from(t: &mut Upload, from: &Baselines) {
         .iter_mut()
         .skip(from.vector)
     {
-        if v.radius <= 0.0 {
+        if v.radius == 0.0 {
             v.radius = 0.5;
         }
     }

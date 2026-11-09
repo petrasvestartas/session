@@ -28,10 +28,10 @@ pub mod display;
 pub mod display_features;
 pub mod encode;
 pub mod frames;
+pub mod matrix; // register:matrices
 pub mod mesh;
 pub mod mesh_ink;
 pub mod mesh_topology;
-pub mod matrix; // register:matrices
 pub mod plane;
 pub mod points;
 pub mod sheet; // register:sheets
@@ -72,9 +72,9 @@ impl<'a> Walk<'a> {
 /// Where one object's rows go.
 pub struct WalkCx {
     pub quality: display::Quality,
-    pub vert_base: u32,   // arena vertices already on the GPU
-    pub cloud_px: f32,    // point size override in px, 0 = file's own
-    pub row: u32,         // this object's row index
+    pub vert_base: u32,     // arena vertices already on the GPU
+    pub cloud_px: f32,      // point size override in px, 0 = file's own
+    pub row: u32,           // this object's row index
     pub interactions: bool, // draw the features other elements put on an element, inside its row
     pub attributes: bool,   // draw an element's own features, an axis or a section
 }
@@ -176,11 +176,19 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
 }
 
 /// A contact polygon as red triangles on its plane, in the row of `cx`; the face shader draws them a depth layer in front. None without area.
-fn walk_contact(arena: &mut ArenaRows, cx: &WalkCx, outline: &session_rust::Polyline) -> Option<(AABB, [f32; 3])> {
+fn walk_contact(
+    arena: &mut ArenaRows,
+    cx: &WalkCx,
+    outline: &session_rust::Polyline,
+) -> Option<(AABB, [f32; 3])> {
     use crate::engine::gpu::faces::FaceSource;
     use session_rust::Point;
 
-    let mut points: Vec<[f64; 3]> = outline.coords.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
+    let mut points: Vec<[f64; 3]> = outline
+        .coords
+        .chunks_exact(3)
+        .map(|c| [c[0], c[1], c[2]])
+        .collect();
     if points.len() > 1 && points.first() == points.last() {
         points.pop();
     }
@@ -203,18 +211,34 @@ fn walk_contact(arena: &mut ArenaRows, cx: &WalkCx, outline: &session_rust::Poly
     let normal = normal.map(|c| (c / length) as f32); // the face shader measures the depth layer's slope across it
 
     let mut bounds = AABB::empty();
-    let corners: Vec<Point> = points.iter().map(|p| Point::new(p[0], p[1], p[2])).collect();
+    let corners: Vec<Point> = points
+        .iter()
+        .map(|p| Point::new(p[0], p[1], p[2]))
+        .collect();
     let render = session_rust::Mesh::from_polylines(vec![corners], None).to_render();
     let base = cx.vert_base + arena.verts.len() as u32;
     for vertex in &render.vertices {
-        bounds.union_with_point(vertex.position[0] as f64, vertex.position[1] as f64, vertex.position[2] as f64);
-        arena.verts.push(session_rust::render_mesh::RenderVertex { normal, color: CONTACT_COLOR, ..*vertex });
+        bounds.union_with_point(
+            vertex.position[0] as f64,
+            vertex.position[1] as f64,
+            vertex.position[2] as f64,
+        );
+        arena.verts.push(session_rust::render_mesh::RenderVertex {
+            normal,
+            color: CONTACT_COLOR,
+            ..*vertex
+        });
         arena.vids.push(cx.row);
     }
     arena.idx.extend(render.indices.iter().map(|&i| base + i));
     let address = arena.face_sources.len() as u32;
-    arena.face_sources.push(FaceSource { parent: cx.row, face: 0 });
-    arena.face_ids.extend(std::iter::repeat_n(address, render.indices.len() / 3));
+    arena.face_sources.push(FaceSource {
+        parent: cx.row,
+        face: 0,
+    });
+    arena
+        .face_ids
+        .extend(std::iter::repeat_n(address, render.indices.len() / 3));
 
     Some((bounds, normal))
 }
@@ -252,7 +276,9 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         }
         Geometry::Line(l) => walk_line(w.seg, w.lanes, l, cx.row),
         Geometry::Polyline(pl) => walk_polyline(w.seg, w.lanes, pl, cx.row),
-        Geometry::NurbsCurve(c) => curves::walk_nurbscurve_quality(w.seg, w.lanes, c, cx.row, cx.quality),
+        Geometry::NurbsCurve(c) => {
+            curves::walk_nurbscurve_quality(w.seg, w.lanes, c, cx.row, cx.quality)
+        }
         Geometry::Plane(p) if plane::is_clipping(p) => plane::walk(w.seg, p, cx.row),
         Geometry::Plane(p) => walk_plane(w.lanes, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),
@@ -314,7 +340,7 @@ mod tests {
         element.add_feature(hidden);
         let mut up = Upload::default();
         let cx = WalkCx {
-                quality: Default::default(),
+            quality: Default::default(),
             vert_base: 0,
             cloud_px: 0.0,
             row: 4,
@@ -348,24 +374,64 @@ mod tests {
     fn contact_polygons_fill_red() {
         let mut element = Element::new("plate");
         element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
-        let square = Polyline::new(vec![Point::new(0.0, 0.0, 5.0), Point::new(4.0, 0.0, 5.0), Point::new(4.0, 4.0, 5.0), Point::new(0.0, 4.0, 5.0), Point::new(0.0, 0.0, 5.0)]);
+        let square = Polyline::new(vec![
+            Point::new(0.0, 0.0, 5.0),
+            Point::new(4.0, 0.0, 5.0),
+            Point::new(4.0, 4.0, 5.0),
+            Point::new(0.0, 4.0, 5.0),
+            Point::new(0.0, 0.0, 5.0),
+        ]);
         element.add_feature(ElementFeature::new("contact", 0, vec![square], "side_side"));
         let mut up = Upload::default();
         let cx = WalkCx {
-                quality: Default::default(), vert_base: 0, cloud_px: 0.0, row: 7, interactions: true, attributes: false };
+            quality: Default::default(),
+            vert_base: 0,
+            cloud_px: 0.0,
+            row: 7,
+            interactions: true,
+            attributes: false,
+        };
         let before = {
             let mut bare = Upload::default();
             let mut plain = element.clone();
             plain.set_features(vec![]);
-            walk_geometry(&mut Walk::of(&mut bare), &cx, &Geometry::Element(std::rc::Rc::new(plain)));
+            walk_geometry(
+                &mut Walk::of(&mut bare),
+                &cx,
+                &Geometry::Element(std::rc::Rc::new(plain)),
+            );
             bare.arena.idx.len()
         };
-        walk_geometry(&mut Walk::of(&mut up), &cx, &Geometry::Element(std::rc::Rc::new(element)));
-        assert_eq!(up.arena.idx.len(), before + 6, "two triangles, one copy on the face");
-        assert!(up.arena.verts.iter().rev().take(4).all(|v| v.color == CONTACT_COLOR));
+        walk_geometry(
+            &mut Walk::of(&mut up),
+            &cx,
+            &Geometry::Element(std::rc::Rc::new(element)),
+        );
+        assert_eq!(
+            up.arena.idx.len(),
+            before + 6,
+            "two triangles, one copy on the face"
+        );
+        assert!(
+            up.arena
+                .verts
+                .iter()
+                .rev()
+                .take(4)
+                .all(|v| v.color == CONTACT_COLOR)
+        );
         assert!(up.arena.vids.iter().rev().take(4).all(|&row| row == 7));
-        assert_eq!(up.seg.ribbons.len(), 4, "a black outline, one ribbon per side");
-        assert!(up.seg.ribbons.iter().all(|edge| edge.color == 0x0100_0000 && edge.facing != encode::FACING_UNKNOWN));
+        assert_eq!(
+            up.seg.ribbons.len(),
+            4,
+            "a black outline, one ribbon per side"
+        );
+        assert!(
+            up.seg
+                .ribbons
+                .iter()
+                .all(|edge| edge.color == 0x0100_0000 && edge.facing != encode::FACING_UNKNOWN)
+        );
     }
 
     /// A contact lying on its face shows exactly the red of the same contact over a lower face: the depth layer wins at every angle without moving it.
@@ -381,33 +447,69 @@ mod tests {
         let red = |gpu: &mut Gpu, top: f64, orbit: (f32, f32), perspective: bool| -> (usize, f64) {
             let mut element = Element::new("plate");
             element.set_geometry(Mesh::create_box(10.0, 10.0, top * 2.0));
-            let square = Polyline::new(vec![Point::new(-3.0, -3.0, 5.0), Point::new(3.0, -3.0, 5.0), Point::new(3.0, 3.0, 5.0), Point::new(-3.0, 3.0, 5.0), Point::new(-3.0, -3.0, 5.0)]);
+            let square = Polyline::new(vec![
+                Point::new(-3.0, -3.0, 5.0),
+                Point::new(3.0, -3.0, 5.0),
+                Point::new(3.0, 3.0, 5.0),
+                Point::new(-3.0, 3.0, 5.0),
+                Point::new(-3.0, -3.0, 5.0),
+            ]);
             element.add_feature(ElementFeature::new("contact", 0, vec![square], "face"));
             let mut source = Session::new("contact on its face");
             source.add_element(element, None);
             gpu.reset();
             let mut scene = Scene::new();
-            scene.add_file(FileDoc { name: "plate".into(), session: Rc::new(source), place: Xform::identity(), point_px: 0.0, display_only: false });
+            scene.add_file(FileDoc {
+                name: "plate".into(),
+                session: Rc::new(source),
+                place: Xform::identity(),
+                point_px: 0.0,
+                display_only: false,
+            });
             scene.upload_to(gpu);
             gpu.set_object_color(0, false, Some([0, 0, 255]));
             gpu.set_object_color(0, true, Some([0, 255, 0]));
             let mut camera = Camera::new();
             camera.perspective = perspective;
-            camera.fit(&session_rust::AABB::from_points(&[Point::new(-5.0, -5.0, -5.0), Point::new(5.0, 5.0, 5.0)], 0.0), 1.0);
+            camera.fit(
+                &session_rust::AABB::from_points(
+                    &[Point::new(-5.0, -5.0, -5.0), Point::new(5.0, 5.0, 5.0)],
+                    0.0,
+                ),
+                1.0,
+            );
             camera.orbit(orbit.0, orbit.1);
             let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
-            let input = FrameInput { view_proj: camera.view_proj_anchored(1.0, &rebase.anchor), clear: wgpu::Color::WHITE, now_ms: 0.0 };
+            let input = FrameInput {
+                view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
+                clear: wgpu::Color::WHITE,
+                now_ms: 0.0,
+            };
             let pixels = gpu.render_offscreen(&input);
-            let red = pixels.chunks_exact(4).filter(|p| p[0] > 180 && p[1] < 140 && p[2] < 140).count();
+            let red = pixels
+                .chunks_exact(4)
+                .filter(|p| p[0] > 180 && p[1] < 140 && p[2] < 140)
+                .count();
             if red > 100 && camera.position[2] / camera.unit.to_meters() > 5.0 {
-                let black = pixels.chunks_exact(4).filter(|p| p[..3].iter().all(|c| *c < 180)).count();
-                assert!(black > 20, "Contact boundaries stay black under a colored layer: {black}; top={top}, orbit={orbit:?}, perspective={perspective}");
+                let black = pixels
+                    .chunks_exact(4)
+                    .filter(|p| p[..3].iter().all(|c| *c < 180))
+                    .count();
+                assert!(
+                    black > 20,
+                    "Contact boundaries stay black under a colored layer: {black}; top={top}, orbit={orbit:?}, perspective={perspective}"
+                );
             }
             (red, camera.position[2] / camera.unit.to_meters())
         };
 
         let mut seen = 0;
-        for (size, samples, perspective) in [(256, 1, true), (640, 4, true), (256, 1, false), (640, 4, false)] {
+        for (size, samples, perspective) in [
+            (256, 1, true),
+            (640, 4, true),
+            (256, 1, false),
+            (640, 4, false),
+        ] {
             let mut gpu = pollster::block_on(Gpu::new_headless(size, size)).unwrap();
             gpu.view.show_grid = false;
             gpu.view.markers = false;
@@ -422,7 +524,10 @@ mod tests {
                         continue; // from under its plane the face hides the contact, as it should
                     }
                     seen += 1;
-                    assert!(on_face * 100 >= clear * 99, "{size} px, perspective {perspective}, orbit {orbit:?}: {on_face} red pixels on the face, {clear} over a lower one");
+                    assert!(
+                        on_face * 100 >= clear * 99,
+                        "{size} px, perspective {perspective}, orbit {orbit:?}: {on_face} red pixels on the face, {clear} over a lower one"
+                    );
                 }
             }
         }
