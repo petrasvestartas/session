@@ -1,12 +1,9 @@
-# Force density method, step by step: a session_viewer stage deck.
+# Force density method in three levels: a session_viewer stage deck.
 # Open: https://petrasvestartas.github.io/session/?stage=force-density
-# Each chapter is its own file; the viewer plays them in this order.
-title: Force density method, step by step
+# The derivations (Jacobian, matrix form) are a separate deck: ?stage=force-density-derivations
+name: Force density method
 chapters:
   - 01-one-solve.yaml
-  - 02-one-node.yaml
+  - 02-five-nodes.yaml
   - 03-matrices.yaml
-  - 04-many-nodes.yaml
-  - 05-jacobian.yaml
-  - 06-matrix-form.yaml
-  - 07-materialization.yaml
+  - 04-several-nodes.yaml

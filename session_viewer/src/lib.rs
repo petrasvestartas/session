@@ -335,7 +335,10 @@ impl ApplicationHandler<Msg> for App {
             other if state.stage.is_some() => {
                 let scale = state.window.scale_factor();
                 let now = engine::performance::now_ms();
-                state.stage.as_mut().is_some_and(|s| s.pointer(&other, scale, now))
+                let mut stage = state.stage.take();
+                let used = stage.as_mut().is_some_and(|s| s.pointer(&other, scale, now, &mut state.camera));
+                state.stage = stage;
+                used
             }
             other if state.presenting() => {
                 let presentation = state.presentation_input(&other);

@@ -179,6 +179,34 @@ pub struct View {
     up: [f64; 3],
     cam: Cam,
     origin: [f32; 2],
+    lens: Option<Lens>,
+}
+
+/// The real camera as an affine map from world to slide pixels: `a * p + b`.
+#[derive(Clone, Copy, Debug)]
+pub struct Lens {
+    pub a: [[f64; 3]; 2],
+    pub b: [f64; 2],
+}
+
+/// A 3D object as the scene should show it this frame.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Spatial {
+    pub id: String,
+    pub kind: SpatialKind,
+    pub pts: Vec<[f64; 3]>,
+    pub color: Rgba,
+    pub width: f32,
+    pub dash: bool,
+    pub reveal: f32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum SpatialKind {
+    Point,
+    Line,
+    Arrow,
+    Polyline,
 }
 
 fn dot(a: [f64; 3], b: [f64; 3]) -> f64 {
@@ -200,9 +228,13 @@ impl View {
             up,
             cam,
             origin,
+            lens: None,
         }
     }
     pub fn project(&self, p: [f64; 3]) -> [f32; 2] {
+        if let Some(l) = &self.lens {
+            return [(dot(l.a[0], p) + l.b[0]) as f32, (dot(l.a[1], p) + l.b[1]) as f32];
+        }
         let d = [
             p[0] - self.cam.center[0],
             p[1] - self.cam.center[1],
@@ -380,6 +412,13 @@ pub struct Stage {
     labels: HashMap<String, [f32; 2]>,
     pub split: f32,
     pub spatial: usize,
+    /// True when the viewer's scene draws the 3D objects and its camera supplies `lens`.
+    pub scene: bool,
+    pub lens: Option<Lens>,
+    pub objects3: Vec<Spatial>,
+    ghosts: Vec<(Vec<Spatial>, f64, f64)>,
+    pub cam_serial: u64,
+    pub epoch: u64,
     pub now: f64,
     pub changed: bool,
 }
@@ -656,6 +695,12 @@ impl Stage {
             labels: HashMap::new(),
             split: 0.46,
             spatial: 0,
+            scene: false,
+            lens: None,
+            objects3: Vec::new(),
+            ghosts: Vec::new(),
+            cam_serial: 0,
+            epoch: 0,
             now: 0.0,
             changed: true,
         };
@@ -676,6 +721,7 @@ impl Stage {
 
     pub fn animating(&self) -> bool {
         !self.pending.is_empty()
+            || !self.ghosts.is_empty()
             || self.anims.iter().any(|a| a.t0 + a.dur > self.now)
             || self.cam.busy(self.now)
             || self.points.values().any(|p| p.busy(self.now))
@@ -717,6 +763,9 @@ impl Stage {
         };
         let cam = self.camera_for(&spec, base, true);
         self.cam = Tween::fixed(cam);
+        self.cam_serial += 1;
+        self.epoch += 1;
+        self.ghosts.clear();
         self.user = [0.0, 0.0, 1.0];
         self.changed = true;
     }
@@ -1054,18 +1103,18 @@ impl Stage {
                     .cloned()
                     .flatten();
                 let (color, fill) = match (named, value) {
-                    (Some(n), _) => (self.color(Some(&n), "dim"), 0.24),
+                    (Some(n), _) => (self.color(Some(&n), "dim"), 0.36),
                     (None, Some(v)) if spec.signs && v > 1e-12 => {
-                        (self.color(Some("pos"), "pos"), 0.2)
+                        (self.color(Some("pos"), "pos"), 0.34)
                     }
                     (None, Some(v)) if spec.signs && v < -1e-12 => {
-                        (self.color(Some("neg"), "neg"), 0.2)
+                        (self.color(Some("neg"), "neg"), 0.34)
                     }
-                    (None, Some(_)) => (self.color(Some("faint"), "faint"), 0.0),
+                    (None, Some(_)) => (self.color(Some("faint"), "faint"), 0.5),
                     // a symbol takes its sign from a leading minus
-                    (None, None) if spec.signs && spec.rows[r][c].trim().starts_with('-') => (self.color(Some("neg"), "neg"), 0.14),
-                    (None, None) if spec.signs && !spec.rows[r][c].trim().is_empty() => (self.color(Some("pos"), "pos"), 0.14),
-                    (None, None) => (neutral, 0.08),
+                    (None, None) if spec.signs && spec.rows[r][c].trim().starts_with('-') => (self.color(Some("neg"), "neg"), 0.28),
+                    (None, None) if spec.signs && !spec.rows[r][c].trim().is_empty() => (self.color(Some("pos"), "pos"), 0.28),
+                    (None, None) => (neutral, 0.3),
                 };
                 let x = left + c as f32 * (cw + g);
                 let y = top + r as f32 * (ch + g);
@@ -1077,7 +1126,7 @@ impl Stage {
                             h: ch,
                             radius: 0.24 * ch.min(cw),
                             fill,
-                            stroke: 0.045,
+                            stroke: 0.0,
                         },
                         x,
                         y,
@@ -1549,10 +1598,18 @@ impl Stage {
         cam.yaw += self.user[0];
         cam.pitch = (cam.pitch + self.user[1]).clamp(-89.0, 89.9);
         cam.zoom *= self.user[2];
-        View::new(cam, self.origin())
+        let mut v = View::new(cam, self.origin());
+        v.lens = self.lens;
+        v
     }
 
-    fn origin(&self) -> [f32; 2] {
+    /// The authored camera at `now`, and whether it is still moving.
+    pub fn camera(&self, now: f64) -> (Cam, bool) {
+        (self.cam.at(now), self.cam.busy(now))
+    }
+
+    /// Where the camera centre sits on the slide.
+    pub fn origin(&self) -> [f32; 2] {
         [self.split * W / 2.0, (TOP - 30.0 + H - 70.0) / 2.0]
     }
 
@@ -1663,17 +1720,77 @@ impl Stage {
         }
     }
 
+    /// Control points during a morph, blended by the kernel: a point, a line, or polylines of any two counts.
     fn geo_points(&self, o: &Obj, now: f64) -> Vec<[f64; 3]> {
+        use session_rust::{Line, Point, Polyline};
         let live = self.ctrl(o, now);
-        match &o.geo_from {
-            Some((from, t0, dur)) if from.len() == live.len() => {
-                let t = smooth(((now - t0) / dur).clamp(0.0, 1.0));
-                from.iter()
-                    .zip(&live)
-                    .map(|(a, b)| <[f64; 3]>::lerp(*a, *b, t))
-                    .collect()
+        let Some((from, t0, dur)) = &o.geo_from else { return live };
+        let t = smooth(((now - t0) / dur).clamp(0.0, 1.0));
+        let pt = |p: &[f64; 3]| Point::new(p[0], p[1], p[2]);
+        let xyz = |p: Point| [p[0], p[1], p[2]];
+        match (from.as_slice(), live.as_slice()) {
+            ([a], [b]) => vec![xyz(Point::lerp(&pt(a), &pt(b), t))],
+            ([a0, a1], [b0, b1]) => {
+                let line = Line::lerp(&Line::from_points(&pt(a0), &pt(a1)), &Line::from_points(&pt(b0), &pt(b1)), t);
+                vec![xyz(line.start()), xyz(line.end())]
+            }
+            (a, b) if a.len() >= 2 && b.len() >= 2 => {
+                let from = Polyline::new(a.iter().map(pt).collect());
+                let to = Polyline::new(b.iter().map(pt).collect());
+                Polyline::morph(&from, &to, t).get_points().into_iter().map(xyz).collect()
             }
             _ => live,
+        }
+    }
+
+    /// A 3D object in world space for the scene: cuboids become twelve dashed edges.
+    fn geo_spatial(&self, o: &Obj, now: f64, grow: f32, alpha: f32) -> Vec<Spatial> {
+        let pts = self.geo_points(o, now);
+        let base = o.colors.get(&usize::MAX).map_or(o.color, |c| c.at(now));
+        let color = with_alpha(base, alpha * o.opacity * (1.0 - 0.7 * o.dim.at(now)));
+        let one = |kind, pts: Vec<[f64; 3]>, id: String, dash: bool| Spatial {
+            id,
+            kind,
+            pts,
+            color,
+            width: o.width,
+            dash,
+            reveal: grow.clamp(0.0, 1.0),
+        };
+        match &o.content {
+            Content::Point(_) => vec![one(SpatialKind::Point, pts, o.id.clone(), false)],
+            Content::Line { arrow, .. } => {
+                let kind = if *arrow { SpatialKind::Arrow } else { SpatialKind::Line };
+                vec![one(kind, pts, o.id.clone(), o.dash)]
+            }
+            Content::Polyline { closed, .. } => {
+                let mut pts = pts;
+                if *closed && !pts.is_empty() {
+                    pts.push(pts[0]);
+                }
+                vec![one(SpatialKind::Polyline, pts, o.id.clone(), o.dash)]
+            }
+            Content::Cuboid { .. } => {
+                let (a, b) = (pts[0], pts[1]);
+                let c = |i: usize| {
+                    [
+                        if i & 1 == 0 { a[0] } else { b[0] },
+                        if i & 2 == 0 { a[1] } else { b[1] },
+                        if i & 4 == 0 { a[2] } else { b[2] },
+                    ]
+                };
+                let mut out = Vec::new();
+                for i in 0..8usize {
+                    for bit in [1usize, 2, 4] {
+                        if i & bit == 0 {
+                            let id = format!("{}#{}", o.id, out.len());
+                            out.push(one(SpatialKind::Line, vec![c(i), c(i | bit)], id, true));
+                        }
+                    }
+                }
+                out
+            }
+            _ => Vec::new(),
         }
     }
 
@@ -1926,7 +2043,7 @@ impl Stage {
                 if !entries.is_empty() && entries.iter().all(|e| o.hidden.contains(e)) {
                     if let (Some(q), Shape::Rect { w, h, radius, stroke, .. }) = (out.get_mut(rect), o.expr.prims[rect].shape) {
                         q.color = faint;
-                        q.shape = Shape::Rect { w: w * k, h: h * k, radius: radius * k, fill: 0.0, stroke: stroke * k };
+                        q.shape = Shape::Rect { w: w * k, h: h * k, radius: radius * k, fill: 0.5, stroke: stroke * k };
                     }
                 }
             }
@@ -2051,7 +2168,26 @@ impl Stage {
         let view = self.view(now);
         self.place_labels(&view, now);
         let mut out = Vec::new();
-        if let Some(g) = self.chapters[self.chapter].grid.clone() {
+        let mut objects3: Vec<Spatial> = Vec::new();
+        if let Some(g) = self.chapters[self.chapter].grid.clone().filter(|_| self.scene) {
+            // the floor grid as thin kernel lines in the scene
+            let color = with_alpha(self.color(Some("faint"), "faint"), 0.6);
+            let n = (g.size / g.step).round() as i32;
+            let h = g.size / 2.0;
+            for i in 0..=n {
+                let t = -h + i as f64 * g.step;
+                for (k, pts) in [
+                    vec![[g.center[0] + t, g.center[1] - h, g.z], [g.center[0] + t, g.center[1] + h, g.z]],
+                    vec![[g.center[0] - h, g.center[1] + t, g.z], [g.center[0] + h, g.center[1] + t, g.z]],
+                ]
+                .into_iter()
+                .enumerate()
+                {
+                    objects3.push(Spatial { id: format!("grid#{k}/{i}"), kind: SpatialKind::Line, pts, color, width: 1.2, dash: false, reveal: 1.0 });
+                }
+            }
+        }
+        if let Some(g) = self.chapters[self.chapter].grid.clone().filter(|_| !self.scene) {
             let tilt = (view.cam.pitch.to_radians().sin().abs() as f32 * 3.0).clamp(0.0, 1.0);
             let col = with_alpha(self.color(Some("faint"), "faint"), 0.55 * tilt);
             let n = (g.size / g.step).round() as i32;
@@ -2080,7 +2216,7 @@ impl Stage {
                 });
             }
         }
-        if self.chapters[self.chapter].axes {
+        if self.chapters[self.chapter].axes && !self.scene {
             for (k, name) in ["x", "y", "z"].iter().enumerate() {
                 let mut e = [0.0; 3];
                 e[k] = 1.0;
@@ -2138,6 +2274,10 @@ impl Stage {
                     Some((Style::None, ..)) | None => (1.0, 1.0),
                     Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
                 };
+                objects3.extend(self.geo_spatial(o, now, grow, alpha));
+                if self.scene {
+                    continue;
+                }
                 let d = self.geo_draws(o, &view, now, grow, alpha);
                 if matches!(o.content, Content::Point(_)) {
                     discs.extend(d);
@@ -2195,7 +2335,7 @@ impl Stage {
                 let set: Vec<usize> = subset.clone().unwrap_or_else(|| (0..prims.len()).collect());
                 if let Some(b) = self.bbox(&prims, Some(&set)) {
                     let (cx, cy) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
-                    let s = 1.0 + 0.14 * tb;
+                    let s = 1.0 + 0.2 * tb;
                     for &j in &set {
                         if let Some(q) = prims.get_mut(j) {
                             q.x = cx + (q.x - cx) * s;
@@ -2239,6 +2379,17 @@ impl Stage {
                 texts.extend(visible);
             }
         }
+        // removed 3D objects fade out as ghosts
+        self.ghosts.retain(|(_, t0, dur)| t0 + dur > now);
+        for (list, t0, dur) in &self.ghosts {
+            let f = 1.0 - smooth(((now - t0) / dur).clamp(0.0, 1.0)) as f32;
+            for g in list {
+                let mut g = g.clone();
+                g.color[3] *= f;
+                objects3.push(g);
+            }
+        }
+        self.objects3 = objects3;
         out.extend(lines);
         out.extend(discs);
         out.extend(labels);
@@ -2432,6 +2583,15 @@ impl Stage {
                 gone.extend(boxed);
                 for id in gone {
                     if let Some(i) = self.find(&id) {
+                        if self.scene && self.objs[i].geo() {
+                            // the scene fades its own copy of the object
+                            let ghost = self.geo_spatial(&self.objs[i], now, 1.0, 1.0);
+                            self.objs.remove(i);
+                            if animate {
+                                self.ghosts.push((ghost, now, dur));
+                            }
+                            continue;
+                        }
                         let draws = self.snapshot(i, now, &view);
                         self.objs.remove(i);
                         push(self, Fx::Vanish { draws });
@@ -2723,6 +2883,7 @@ impl Stage {
                 } else {
                     self.cam = Tween::fixed(cam);
                 }
+                self.cam_serial += 1;
             }
             Kind::Wait => {}
             Kind::Dim(refs) | Kind::Undim(refs) => {

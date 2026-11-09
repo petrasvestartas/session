@@ -406,7 +406,9 @@ pub fn paint(
     screen: Rect,
 ) -> Vec<(Rect, usize)> {
     let bg = stage.palette("bg");
-    painter.add(EShape::rect_filled(screen, 0.0, c32(bg)));
+    // the scene shows through on the 3D side; the column gets an opaque ground
+    let ground = Rect::from_min_max(Pos2::new(f.pt([stage.split * W, 0.0]).x, screen.min.y), screen.max);
+    painter.add(EShape::rect_filled(if stage.scene { ground } else { screen }, 0.0, c32(bg)));
     let snap = !stage.animating();
     let draws = stage.frame(stage.now);
     let mut out = Out {
@@ -479,7 +481,8 @@ pub fn paint(
     let mut tabs = Vec::new();
     for i in 0..n {
         let cx = W - 56.0 - (n - 1 - i) as f32 * 34.0 - 13.0;
-        let r = Rect::from_center_size(f.pt([cx, 40.0]), egui::vec2(26.0 * f.k, 26.0 * f.k));
+        let ty = H - 34.0;
+        let r = Rect::from_center_size(f.pt([cx, ty]), egui::vec2(26.0 * f.k, 26.0 * f.k));
         let current = i == stage.chapter;
         let fill = if current {
             accent
@@ -498,7 +501,7 @@ pub fn paint(
         let size = 15.0;
         let at = [
             cx - e.w * size / 2.0,
-            40.0 - (e.h - e.d) * size / 2.0 - e.h * size + e.h * size,
+            ty - (e.h - e.d) * size / 2.0 - e.h * size + e.h * size,
         ];
         text(
             stage,
@@ -507,7 +510,7 @@ pub fn paint(
             f,
             &label,
             current,
-            [at[0], 40.0 - e.h * size / 2.0 - 1.0],
+            [at[0], ty - e.h * size / 2.0 - 1.0],
             size,
             100.0,
             tc,
@@ -537,7 +540,7 @@ pub fn paint(
         f,
         &counter,
         false,
-        [W - 56.0 - e.w * 14.0, H - 40.0],
+        [W - 56.0 - n as f32 * 34.0 - 14.0 - e.w * 14.0, H - 42.0],
         14.0,
         400.0,
         dim,

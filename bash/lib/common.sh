@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "collection" "color" "convex_hull" "element" "file_encoders" "file_obj" "file_step" "graph" "history" "intersection" "file_xyz" "nurbsknot" "line" "instance_ref" "interaction" "matrix" "mesh" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "split" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_octree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform" "brep_assemble" "brep_boolean" "brep_classify" "brep_hollow" "brep_measure" "brep_offset" "brep_offset_inward" "brep_offset_mixed" "brep_section" "brep_thicken" "curve_intersection" "curve_self_intersection" "curve_surface_intersection" "native_tessellate" "nurbs_offset" "nurbs_surface_span" "split_direction" "split_parameter_contract" "surface_ray" "surface_section")
+CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "collection" "color" "convex_hull" "element" "file_encoders" "file_obj" "file_step" "graph" "history" "intersection" "file_xyz" "nurbsknot" "line" "instance_ref" "interaction" "matrix" "mesh" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "split" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_octree" "spatial_rtree" "tolerance" "text" "tree" "nurbssurface_trimmed" "vector" "viewer" "xform" "brep_assemble" "brep_boolean" "brep_classify" "brep_hollow" "brep_measure" "brep_offset" "brep_offset_inward" "brep_offset_mixed" "brep_section" "brep_thicken" "curve_intersection" "curve_self_intersection" "curve_surface_intersection" "native_tessellate" "nurbs_offset" "nurbs_surface_span" "split_direction" "split_parameter_contract" "surface_ray" "surface_section")
 
 # Classes with NO test source in a given language, so they legitimately produce no json.
 # These are reported as SKIP; every other class in CLASS_NAMES must still emit json or the
@@ -12,9 +12,9 @@ CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "collection" "color" "co
 # The native BRep kernel test classes (brep_boolean, curve_intersection, ...) exist in C++
 # only so far; they are listed for py and rust here until their ports land.
 # ("pdf" is not a class: the Rust-only PDF importer is covered by `cargo test --features pdf`.)
-NOT_IMPLEMENTED_cpp=""
+NOT_IMPLEMENTED_cpp="viewer"
 NOT_IMPLEMENTED_py="brep_assemble brep_boolean brep_classify brep_hollow brep_measure brep_offset brep_offset_inward brep_offset_mixed brep_section brep_thicken curve_intersection curve_self_intersection curve_surface_intersection native_tessellate nurbs_offset nurbs_surface_span split_direction split_parameter_contract surface_ray surface_section"
-NOT_IMPLEMENTED_rust="brep_assemble brep_boolean brep_classify brep_hollow brep_measure brep_offset brep_offset_inward brep_offset_mixed brep_section brep_thicken curve_intersection curve_self_intersection curve_surface_intersection native_tessellate nurbs_offset nurbs_surface_span split_direction split_parameter_contract surface_ray surface_section"
+NOT_IMPLEMENTED_rust="viewer brep_assemble brep_boolean brep_classify brep_hollow brep_measure brep_offset brep_offset_inward brep_offset_mixed brep_section brep_thicken curve_intersection curve_self_intersection curve_surface_intersection native_tessellate nurbs_offset nurbs_surface_span split_direction split_parameter_contract surface_ray surface_section"
 
 # Resolve repo root from script location
 resolve_repo_root() {

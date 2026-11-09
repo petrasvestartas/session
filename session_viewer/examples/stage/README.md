@@ -1,17 +1,29 @@
 # Stage decks: mathematical slides written in YAML
 
-A stage deck is a folder of YAML files and nothing else. The viewer reads it, typesets the TeX
+A stage deck is a folder of YAML files and nothing else. The viewer reads it, turns the 3D
+objects into kernel `Point`, `Line` and `Polyline` geometry in its own scene, typesets the TeX
 with its own OpenType-MATH layout (New Computer Modern), and animates every step. Python,
 protobuf files, MathJax and SVG are not involved.
 
+Two decks live here:
+
+- `force-density/`: the method in levels. One solve from the inputs, the five-node principles,
+  the matrices, several free nodes.
+- `force-density-derivations/`: Linkwitz 6.4.2-6.5 step by step. The bar and the nudge, the
+  tiny-nudge algebra A-G, the chain rule, the Jacobian row, the matrix form (6.25)-(6.33),
+  materialization, and a résumé.
+
 ```text
 https://petrasvestartas.github.io/session/?stage=force-density              published deck (R2: stage/force-density/index.yaml)
+https://petrasvestartas.github.io/session/?stage=force-density-derivations  the derivations deck
 http://127.0.0.1:8080/?stage=force-density/index.yaml&data=http://127.0.0.1:9000/  a deck served from a local folder
 &chapter=5&step=3                                                                  open at chapter 5, after its third step
 ```
 
-The slide is 1600 × 900. The left side is an orthographic 3D view that stays the same from slide
-to slide; the right side is a column of formulas, matrices and text. Blocks in the column are laid
+The slide is 1600 × 900. The left side is the viewer's own scene under its orthographic camera,
+and it stays the same from slide to slide; the right side is a column of formulas, matrices and
+text. The only decoration is the matrix cell: a rounded fill without a contour. Highlights
+recolour fills or pulse an object; nothing is framed. Blocks in the column are laid
 out automatically from the top. Equations marked `align: '='` share one column for their equals
 signs. Blocks wider than the column shrink to fit, and blocks move smoothly when others are added
 or removed, so nothing overlaps. Narration (`say`) sits under the column, and the slide title sits
@@ -26,8 +38,8 @@ numbered circle to change chapter.
 
 ```yaml
 # index.yaml
-title: Force density method, step by step
-chapters: [01-one-solve.yaml, 02-one-node.yaml]
+name: Force density method
+chapters: [01-one-solve.yaml, 02-five-nodes.yaml]
 ```
 
 ```yaml
@@ -35,7 +47,7 @@ chapters: [01-one-solve.yaml, 02-one-node.yaml]
 title: One linear solve
 grid: {center: [3.5, 3.5], size: 9, step: 1}   # optional floor grid
 axes: false                                     # optional x, y, z arrows at the origin
-camera: {yaw: -58, pitch: 26}                   # degrees; fits all points unless zoom/fit is given
+camera: {yaw: -58, pitch: 26}                   # degrees; fits all points unless zoom/fit is given (`view: iso` also works)
 split: 0.46                                     # width share of the 3D side
 palette: {cable: '#c9ced6'}                     # extra or replaced colours
 points:                                         # named positions; `move` animates them
@@ -117,8 +129,8 @@ action key or inside its map.
 | `set: {target: 'M[0,1]', tex: '4'}` | change one entry, morphing |
 | `show` / `hide: ['M[2,:]']` | reveal or hide entries, rows or parts |
 | `indicate: [ref, ...]` | pulse and tint briefly |
-| `box: {target: ref, color: accent}` | a rounded frame that follows the target; its id is `box:<ref>` |
-| `color: {target: ref, color: x}` | recolour; `color: reset` restores |
+| `color: {target: 'M[0,:]', color: accent}` | recolour cells, parts or 3D objects; `color: reset` restores. This is the highlight for a row times a column |
+| `box: {target: ref, color: accent}` | a rounded frame around the target (id `box:<ref>`); the example decks do not use it |
 | `dim` / `undim: [id, ...]` | fade to the background and back |
 | `move: {point: P0, to: [3, 3, 0.25]}` | animate a named point |
 | `camera: {view: front}` or `{yaw, pitch, zoom, fit: [P0, P1]}` | views: `front back top side left iso` |
@@ -135,13 +147,14 @@ Mistakes (unknown TeX commands, missing objects) are listed in red at the top of
 
 ```bash
 cd session/session_viewer
-cargo test --target x86_64-pc-windows-msvc --lib stage::     # every step of examples/stage/force-density: no errors, no overlaps
+cargo test --target x86_64-pc-windows-msvc --lib stage::     # every step of both decks: no errors, no overlaps
 bash ../../wood/tools/buildslot.sh stage env CARGO_BUILD_JOBS=8 trunk build
-aws s3 cp examples/stage/force-density s3://session-viewer-data/stage/force-density/ --recursive \
-  --exclude '*' --include '*.yaml' --profile r2 \
+aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete \
+  --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 \
   --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
 ```
 
 The runtime lives in `src/app/stage/`: `tex.rs` (TeX parser and MATH-table layout), `font.rs`,
-`deck.rs` (YAML), `eval.rs` (positions), `run.rs` (objects, layout, actions, morph matching)
-and `paint.rs` (glyph atlas and egui drawing).
+`deck.rs` (YAML), `eval.rs` (positions), `run.rs` (objects, layout, actions, morph matching),
+`spatial.rs` (kernel geometry in the scene, placement per frame, the real camera) and `paint.rs`
+(glyph atlas and egui drawing of the column and the 3D labels).

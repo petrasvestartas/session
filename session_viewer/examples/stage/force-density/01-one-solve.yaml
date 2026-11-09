@@ -37,24 +37,26 @@ slides:
       - say: 'Stack the anchor coordinates into a matrix, one row per anchor.'
         do:
           - add: {id: XF, matrix: {rows: [[0, 0, 0], [5, 0, 3], [0, 7, 3], [7, 5, 0]], name: '\mathbf{x}_F', rowlabels: [P_1, P_2, P_3, P_4], collabels: [x, y, z], empty: true}}
-          - add:
-              - {id: k1, label: P1, tex: '(0,\,0,\,0)', color: dim, size: 20}
-              - {id: k2, label: P2, tex: '(5,\,0,\,3)', color: dim, size: 20}
-              - {id: k3, label: P3, tex: '(0,\,7,\,3)', color: dim, size: 20}
-              - {id: k4, label: P4, tex: '(7,\,5,\,0)', color: dim, size: 20}
+          - morph: {target: n1.label, label: P1, tex: 'P_1\,(0,\,0,\,0)', dur: 0.8}
+          - morph: {target: n2.label, label: P2, tex: 'P_2\,(5,\,0,\,3)', dur: 0.8, with: true}
+          - morph: {target: n3.label, label: P3, tex: 'P_3\,(0,\,7,\,3)', dur: 0.8, with: true}
+          - morph: {target: n4.label, label: P4, tex: 'P_4\,(7,\,5,\,0)', dur: 0.8, with: true}
       - say: 'Plug them in: each anchor fills its own row.'
         do:
-          - fly: {from: k1, to: 'XF[0,:]', keep: false}
-          - fly: {from: k2, to: 'XF[1,:]', keep: false, with: true, delay: 0.25}
-          - fly: {from: k3, to: 'XF[2,:]', keep: false, with: true, delay: 0.25}
-          - fly: {from: k4, to: 'XF[3,:]', keep: false, with: true, delay: 0.25}
-          - remove: [k1, k2, k3, k4]
+          - fly: {from: n1.label, to: 'XF[0,:]'}
+          - fly: {from: n2.label, to: 'XF[1,:]', with: true, delay: 0.25}
+          - fly: {from: n3.label, to: 'XF[2,:]', with: true, delay: 0.25}
+          - fly: {from: n4.label, to: 'XF[3,:]', with: true, delay: 0.25}
+          - morph: {target: n1.label, label: P1, tex: 'P_1', dur: 0.6}
+          - morph: {target: n2.label, label: P2, tex: 'P_2', dur: 0.6, with: true}
+          - morph: {target: n3.label, label: P3, tex: 'P_3', dur: 0.6, with: true}
+          - morph: {target: n4.label, label: P4, tex: 'P_4', dur: 0.6, with: true}
           - indicate: ['XF[:,0]']
       - say: 'Each column is one coordinate direction. The solve treats $x$, $y$ and $z$ separately.'
         do:
-          - box: {target: 'XF[:,0]', color: x}
-          - box: {target: 'XF[:,1]', color: y, with: true}
-          - box: {target: 'XF[:,2]', color: z, with: true}
+          - color: {target: 'XF[:,0]', color: x}
+          - color: {target: 'XF[:,1]', color: y, with: true}
+          - color: {target: 'XF[:,2]', color: z, with: true}
 
   - title: 'Input 2 · how the cables connect'
     steps:
@@ -85,6 +87,7 @@ slides:
               map: {'[:,0]': 'CN[:,0]', '[:,1]': 'CF[:,0]', '[:,2]': 'CF[:,1]', '[:,3]': 'CF[:,2]', '[:,4]': 'CF[:,3]'}
               row:
                 - {id: CN, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{C}_N', rowlabels: [a, b, c, d], collabels: [P_0]}}
+                - '\quad'
                 - {id: CF, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], name: '\mathbf{C}_F', collabels: [P_1, P_2, P_3, P_4]}}
           - indicate: [n0]
 
@@ -105,10 +108,11 @@ slides:
           - add: {id: dn, row: ['\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N =', {id: cnt, matrix: [[1, 1, 1, 1]]}, {id: qq, matrix: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}, {id: cn, matrix: [[1], [1], [1], [1]]}, '=', {id: DN, matrix: {rows: [[4]], empty: true}}]}
       - say: 'Four cables meet at $P_0$, each with $q = 1$: $\mathbf{D}_N = 4$.'
         do:
-          - box: {target: 'cnt[0,:]', color: accent}
-          - box: {target: 'cn[:,0]', color: accent, with: true}
+          - color: {target: 'cnt[0,:]', color: accent}
+          - color: {target: 'cn[:,0]', color: accent, with: true}
           - show: ['DN[0,0]']
-          - remove: ['box:cnt[0,:]', 'box:cn[:,0]']
+          - color: {target: 'cnt[0,:]', color: reset}
+          - color: {target: 'cn[:,0]', color: reset}
       - say: 'The same product with $\mathbf{C}_F$ couples the free node to each anchor.'
         do:
           - add: {id: df, row: ['\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F =', {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [P_1, P_2, P_3, P_4], empty: true}}]}
@@ -130,4 +134,4 @@ slides:
         do:
           - move: {point: X, to: [3, 3, 0.25], dur: 2.0}
           - add: {id: res, tex: 'P_0 = (3,\ 3,\ 0.25)', color: free}
-          - box: {target: res, color: free}
+          - {indicate: [res], color: free}

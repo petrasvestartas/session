@@ -693,7 +693,7 @@ pub fn index(src: &str) -> Result<Index, String> {
         return err("index", "lists no chapters");
     }
     Ok(Index {
-        title: get(m, "title").and_then(text).unwrap_or_default(),
+        title: get(m, "title").or(get(m, "name")).and_then(text).unwrap_or_default(),
         chapters,
     })
 }
@@ -804,10 +804,10 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
         return err(name, "has no slides");
     }
     Ok(Chapter {
-        title: get(m, "title").and_then(text).unwrap_or_default(),
+        title: get(m, "title").or(get(m, "name")).and_then(text).unwrap_or_default(),
         palette,
         points,
-        camera: match get(m, "camera") {
+        camera: match get(m, "camera").or(get(m, "view")) {
             Some(c) => camera(c, name)?,
             None => CameraSpec::default(),
         },

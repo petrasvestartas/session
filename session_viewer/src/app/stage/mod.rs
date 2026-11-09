@@ -5,6 +5,7 @@ pub mod eval;
 pub mod font;
 pub mod paint;
 pub mod run;
+pub mod spatial;
 pub mod tex;
 #[cfg(test)]
 mod tests;
@@ -24,6 +25,7 @@ pub struct StageApp {
     pub atlas: paint::Atlas,
     pub frame: Option<paint::Frame>,
     pub tabs: Vec<(egui::Rect, usize)>,
+    pub scene3: spatial::Scene3,
     press: Option<([f32; 2], [f32; 2], bool)>,
     cursor: [f32; 2],
     last_click: f64,
@@ -46,6 +48,7 @@ impl StageApp {
             now,
         );
         StageApp {
+            scene3: spatial::Scene3::default(),
             stage,
             atlas,
             frame: None,
@@ -70,7 +73,7 @@ impl StageApp {
             Key::Named(NamedKey::ArrowUp) => s.slide(-1, now),
             Key::Named(NamedKey::Home) => s.chapter_go(s.chapter, now),
             Key::Character(c) if c == " " => s.next(now),
-            Key::Character(c) if c == "r" || c == "R" => s.user = [0.0, 0.0, 1.0],
+            Key::Character(c) if c == "r" || c == "R" => s.cam_serial += 1,
             Key::Character(c) => match c.parse::<usize>() {
                 Ok(d) if d >= 1 && d <= s.chapters.len() => s.chapter_go(d - 1, now),
                 _ => return false,
@@ -82,7 +85,7 @@ impl StageApp {
     }
 
     /// Pointer input in CSS pixels: drag the 3D side to orbit, wheel to zoom, click to advance.
-    pub fn pointer(&mut self, event: &winit::event::WindowEvent, scale: f64, now: f64) -> bool {
+    pub fn pointer(&mut self, event: &winit::event::WindowEvent, scale: f64, now: f64, camera: &mut crate::camera::Camera) -> bool {
         use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
         let Some(f) = self.frame else { return false };
         match event {
@@ -94,8 +97,7 @@ impl StageApp {
                 if let Some((start, _, orbit)) = &mut self.press {
                     let moved = (p[0] - start[0]).hypot(p[1] - start[1]);
                     if *orbit && moved > 3.0 {
-                        self.stage.user[0] -= dx as f64 * 0.35;
-                        self.stage.user[1] += dy as f64 * 0.3;
+                        camera.orbit(dx, dy);
                         self.stage.changed = true;
                         return true;
                     }
@@ -124,7 +126,7 @@ impl StageApp {
                         self.stage.chapter_go(c, now);
                     } else if orbit {
                         if now - self.last_click < 350.0 {
-                            self.stage.user = [0.0, 0.0, 1.0];
+                            self.stage.cam_serial += 1;
                         }
                         self.last_click = now;
                     } else if s[1] > 90.0 {
@@ -143,7 +145,7 @@ impl StageApp {
                     MouseScrollDelta::LineDelta(_, y) => *y as f64,
                     MouseScrollDelta::PixelDelta(p) => p.y / 60.0,
                 };
-                self.stage.user[2] = (self.stage.user[2] * (dy * 0.12).exp()).clamp(0.2, 6.0);
+                camera.zoom(dy as f32);
                 self.stage.changed = true;
                 true
             }
@@ -159,7 +161,7 @@ impl StageApp {
         ppp: f32,
         now: f64,
     ) -> bool {
-        self.stage.tick(now);
+        let _ = now;
         let f = paint::Frame::new(screen, ppp);
         self.frame = Some(f);
         self.atlas.overflowed = false;

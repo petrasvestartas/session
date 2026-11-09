@@ -25,7 +25,7 @@ slides:
           - add: {id: n0, point: P0, color: free, label: 'P_0'}
       - say: 'We know the stretched lengths, measured on the solved shape, and the forces $F_k = q_k\,l_k$.'
         do:
-          - add: {id: k1, tex: 'l_k = \sqrt{(x_i - x_k)^2 + (y_i - y_k)^2 + (z_i - z_k)^2}', align: '='}
+          - add: {id: k1, tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', align: '='}
           - add: {id: k2, tex: 'F_k = q_k\cdot l_k', align: '='}
           - add: {id: kv, row: [{id: lv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], rowlabels: [a, b, c, d], name: '\mathbf{l}\ \text{(m)}', signs: false}}, '\qquad', {id: fv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], name: '\mathbf{f}\ \text{(kN)}', signs: false}}]}
       - say: 'With $q = 1$ the force in kN equals the length in m. That is a coincidence of this example, not a rule.'
@@ -50,7 +50,7 @@ slides:
       - say: 'Per cable, it is the same force density as before: force over length.'
         do:
           - add: {id: qk, tex: 'q_k = \frac{e_k\, EA_k}{l_{0,k}\, l_k} = \frac{\big(EA_k\, e_k / l_{0,k}\big)}{l_k} = \frac{F_k}{l_k}', align: '='}
-          - box: {target: qk, color: free}
+          - {indicate: [qk], color: free}
 
   - title: 'Cut lengths · (6.36)–(6.37)'
     steps:
@@ -63,7 +63,7 @@ slides:
       - say: 'Every matrix here is diagonal, so each cable is computed on its own.'
         do:
           - add: {id: one, tex: 'l_0 = \frac{l}{1 + \frac{F}{EA}} = \frac{l}{1 + \frac{q\,l}{EA}}', color: accent}
-          - box: {target: one, color: accent}
+          - {indicate: [one], color: accent}
 
   - title: 'Worked example · cable $a$'
     steps:
@@ -80,4 +80,4 @@ slides:
       - say: 'Back to the whole net: one solve gave the shape, the forces, and now the cut list.'
         do:
           - camera: {fit: [P0, P1, P2, P3, P4], yaw: -58, pitch: 26}
-          - box: {target: w2, color: free, with: true}
+          - {indicate: [w2], color: free, with: true}

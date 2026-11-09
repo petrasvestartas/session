@@ -1,0 +1,38 @@
+# Derivations 4: (6.22)-(6.24). The derivatives of all four bars as one row, C_N^T U L^-1.
+title: The Jacobian row
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+points:
+  P0: [3, 3, 0.25]
+  X: [3, 3, 0.25]         # the node we nudge; it starts on P0
+  P1: [0, 0, 0]
+  P2: [5, 0, 3]
+  P3: [0, 7, 3]
+  P4: [7, 5, 0]
+slides:
+  - title: 'All four cables · (6.23)–(6.24)'
+    steps:
+      - say: 'Collect the derivative of every cable length into one row: the transposed Jacobian.'
+        do:
+          - add:
+              - {id: n1, point: P1, color: fixed, label: 'P_1'}
+              - {id: n2, point: P2, color: fixed, label: 'P_2'}
+              - {id: n3, point: P3, color: fixed, label: 'P_3'}
+              - {id: n4, point: P4, color: fixed, label: 'P_4'}
+              - {id: a, line: [P0, P1], label: 'a'}
+              - {id: b, line: [P0, P2], label: 'b'}
+              - {id: c, line: [P0, P3], label: 'c'}
+              - {id: d, line: [P0, P4], label: 'd'}
+              - {id: n0, point: P0, color: free, label: 'P_0'}
+            dur: 0.8
+          - add: {id: J, row: ['\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T} =', {id: Jm, matrix: {rows: [['\dfrac{-(x_1 - x_0)}{l_a}', '\dfrac{-(x_2 - x_0)}{l_b}', '\dfrac{-(x_3 - x_0)}{l_c}', '\dfrac{-(x_4 - x_0)}{l_d}']], collabels: [a, b, c, d]}}]}
+      - say: 'With the numbers of our net:'
+        do:
+          - add: {id: Jn, row: ['=', {id: Jv, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], collabels: [a, b, c, d]}}]}
+      - say: 'With $\mathbf{u} = \mathbf{C}\mathbf{x} = x_0 - x_k$, each entry is $u_k/l_k$: a diagonal $\mathbf{U}\mathbf{L}^{-1}$ summed by $\mathbf{C}_N^T$.'
+        do:
+          - add: {id: UL, row: ['\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1} =', {id: CNT, matrix: [[1, 1, 1, 1]]}, {id: ULm, matrix: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}]}
+      - say: 'Linkwitz writes the whole row compactly as equation (6.24).'
+        do:
+          - add: {id: e624, tex: '\Big(\frac{\partial \mathbf{f}(\mathbf{x})}{\partial \mathbf{x}}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \qquad (6.24)', color: accent}
+          - {indicate: [e624], color: accent}

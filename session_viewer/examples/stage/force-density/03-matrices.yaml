@@ -31,7 +31,7 @@ slides:
           - color: {target: a, color: reset}
       - say: '$\mathbf{C}$ stores only topology: which cable touches which node. No lengths, no forces.'
         do:
-          - box: {target: 'C[:,0]', color: free}
+          - color: {target: 'C[:,0]', color: free}
           - add: {id: t1, text: 'Column $P_0$ is the only free node: all four cables start there.', size: 23}
 
   - title: '$\mathbf{C}$ turns coordinates into differences'
@@ -41,11 +41,12 @@ slides:
           - add: {id: m, row: [{id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [a, b, c, d], name: '\mathbf{C}'}}, {id: xv, matrix: {rows: [[3], [0], [5], [0], [7]], rowlabels: [x_0, x_1, x_2, x_3, x_4], name: '\mathbf{x}'}}, '=', {id: uv, matrix: {rows: [[3], [-2], [3], [-4]], name: '\mathbf{u}', empty: true}}]}
       - say: 'Row $a$ times the column: only two entries survive, $u_a = x_0 - x_1$.'
         do:
-          - box: {target: 'Cm[0,:]', color: accent}
-          - box: {target: 'xv[:,0]', color: accent, with: true}
+          - color: {target: 'Cm[0,:]', color: accent}
+          - color: {target: 'xv[:,0]', color: accent, with: true}
           - add: {id: dot, tex: 'u_a = 1\cdot 3 + (-1)\cdot 0 + 0\cdot 5 + 0\cdot 0 + 0\cdot 7 = {{3}}'}
           - fly: {from: 'dot{3}', to: 'uv[0,0]'}
-          - remove: ['box:Cm[0,:]', 'box:xv[:,0]']
+          - color: {target: 'Cm[0,:]', color: reset}
+          - color: {target: 'xv[:,0]', color: reset}
       - say: 'The other rows give the other cables: $\mathbf{u} = \mathbf{C}\mathbf{x}$ holds every $x_0 - x_k$.'
         do:
           - morph: {target: dot, tex: 'u_k = x_0 - x_k'}
@@ -67,8 +68,8 @@ slides:
           - add: {id: s, row: ['\mathbf{u} =', {id: CN, matrix: {rows: [[1], [1], [1], [1]], name: '\mathbf{C}_N', rowlabels: [a, b, c, d]}}, {id: XN, matrix: {rows: [[3]], name: '\mathbf{x}_N'}}, '+', {id: CF, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], name: '\mathbf{C}_F'}}, {id: XF, matrix: {rows: [[0], [5], [0], [7]], name: '\mathbf{x}_F'}}]}
       - say: 'The unknown sits only in $\mathbf{x}_N$; everything in $\mathbf{C}_F\mathbf{x}_F$ is known.'
         do:
-          - box: {target: XN, color: free}
-          - box: {target: XF, color: fixed, with: true}
+          - {indicate: [XN], color: free}
+          - {indicate: [XF], color: fixed, with: true}
           - add: {id: f1, tex: '\mathbf{u} = \mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_F\,\mathbf{x}_F'}
 
   - title: Three diagonal matrices
@@ -81,7 +82,7 @@ slides:
           - add: {id: L, row: ['\mathbf{L} =', {id: Lm, matrix: {rows: [['4.250', 0, 0, 0], [0, '4.535', 0, 0], [0, 0, '5.706', 0], [0, 0, 0, '4.479']]}}, '\qquad\mathbf{Q} =', {id: Qm, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}}]}
       - say: '$\mathbf{U}$ and $\mathbf{L}$ change when the shape changes. $\mathbf{Q}$ does not: we choose it.'
         do:
-          - box: {target: Qm, color: free}
+          - {indicate: [Qm], color: free}
 
   - title: 'Stiffness of the free node $\mathbf{D}_N$'
     steps:
@@ -92,13 +93,14 @@ slides:
       - say: 'Then $\mathbf{C}_N^T$ times that column: a sum over the four cables.'
         do:
           - add: {id: s2, row: ['\mathbf{D}_N = \mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N) =', {id: CT, matrix: [[1, 1, 1, 1]]}, {id: QC2, matrix: [[1], [1], [1], [1]]}, '=', {id: DN, matrix: {rows: [[4]], empty: true}}]}
-          - box: {target: 'CT[0,:]', color: accent}
-          - box: {target: 'QC2[:,0]', color: accent, with: true}
+          - color: {target: 'CT[0,:]', color: accent}
+          - color: {target: 'QC2[:,0]', color: accent, with: true}
           - add: {id: dot, tex: '1\cdot 1 + 1\cdot 1 + 1\cdot 1 + 1\cdot 1 = {{4}}'}
           - fly: {from: 'dot{4}', to: 'DN[0,0]'}
       - say: '$\mathbf{D}_N$ adds up the force densities of all cables meeting at the free node: $q_a + q_b + q_c + q_d = 4$.'
         do:
-          - remove: ['box:CT[0,:]', 'box:QC2[:,0]']
+          - color: {target: 'CT[0,:]', color: reset}
+          - color: {target: 'QC2[:,0]', color: reset}
           - morph: {target: dot, tex: '\mathbf{D}_N = q_a + q_b + q_c + q_d = 4'}
 
   - title: 'Coupling to the anchors $\mathbf{D}_F$'

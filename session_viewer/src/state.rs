@@ -631,7 +631,10 @@ impl State {
             .view_proj_anchored(self.aspect(), &rebase.anchor);
         let input = FrameInput {
             view_proj,
-            clear: if self.presentation_dark() {
+            clear: if let Some(stage) = &self.stage {
+                let c = stage.stage.palette("bg");
+                wgpu::Color { r: c[0] as f64, g: c[1] as f64, b: c[2] as f64, a: 1.0 }
+            } else if self.presentation_dark() {
                 wgpu::Color::BLACK
             } else if self.presenting() {
                 wgpu::Color::WHITE

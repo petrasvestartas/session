@@ -102,8 +102,16 @@ fn expressions_resolve_points() {
 /// Every step of every chapter, at rest: no author errors, no overlapping blocks or labels,
 /// and every panel block inside the slide.
 #[test]
-fn force_density_deck_rests_cleanly_at_every_step() {
-    let (index, chapters) = deck("force-density");
+fn decks_rest_cleanly_at_every_step() {
+    for name in DECKS {
+        rests_cleanly(name);
+    }
+}
+
+const DECKS: [&str; 2] = ["force-density", "force-density-derivations"];
+
+fn rests_cleanly(name: &str) {
+    let (index, chapters) = deck(name);
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
     for c in 0..stage.chapters.len() {
         stage.rebuild(c, None);
@@ -111,7 +119,7 @@ fn force_density_deck_rests_cleanly_at_every_step() {
             stage.rebuild(c, Some(g));
             stage.frame(0.0);
             stage.frame(0.0);
-            let at = format!("chapter {} step {}", c + 1, g + 1);
+            let at = format!("{name} chapter {} step {}", c + 1, g + 1);
             assert!(stage.errors.is_empty(), "{at}: {:?}", stage.errors);
             assert!(
                 stage.overlaps().is_empty(),
@@ -130,8 +138,14 @@ fn force_density_deck_rests_cleanly_at_every_step() {
 
 /// Play every chapter forward in real time at 60 frames a second.
 #[test]
-fn force_density_deck_plays_through() {
-    let (index, chapters) = deck("force-density");
+fn decks_play_through() {
+    for name in DECKS {
+        plays_through(name);
+    }
+}
+
+fn plays_through(name: &str) {
+    let (index, chapters) = deck(name);
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
     let mut now = 0.0;
     for c in 0..stage.chapters.len() {

@@ -348,13 +348,29 @@ impl Ui {
         let ppp = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
         let now = crate::engine::performance::now_ms();
         let mut more = false;
-        let Some(stage) = state.stage.as_mut() else {
+        let Some(mut stage) = state.stage.take() else {
             return false;
         };
+        // the scene draws the 3D objects; its camera gives the labels their projection
+        let canvas = [logical[0], logical[1]];
+        let f = crate::app::stage::paint::Frame::new(screen, ppp);
+        stage.stage.tick(now);
+        stage.stage.scene = true;
+        state.gpu.view.dark = true;
+        state.gpu.view.show_grid = false; // the deck draws its own floor grid as kernel lines
+        let (cam, busy) = stage.stage.camera(now);
+        let (serial, origin) = (stage.stage.cam_serial, stage.stage.origin());
+        stage.scene3.camera(state, cam, busy, serial, origin, &f, canvas);
+        stage.stage.lens = Some(crate::app::stage::spatial::Scene3::lens(state, &f, canvas));
         let mut output = self.context.run_ui(input, &mut |root: &mut egui::Ui| {
             let painter = root.painter().with_clip_rect(screen);
             more = stage.paint(&painter, screen, ppp, now);
         });
+        let bg = stage.stage.palette("bg");
+        let (list, epoch) = (std::mem::take(&mut stage.stage.objects3), stage.stage.epoch);
+        stage.scene3.sync(state, &list, epoch, bg);
+        stage.stage.objects3 = list;
+        state.stage = Some(stage);
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));
         output.pixels_per_point = ppp;

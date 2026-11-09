@@ -52,7 +52,7 @@ slides:
           - derive: {from: a, id: uz, arrow: ['[x(P1), y(P1), z(P0)]', P1], color: z, width: 3.6}
           - add:
               - {id: ux.l, label: 'mid(P0, [x(P1), y(P0), z(P0)])', tex: 'x_1 - x_0', color: x, size: 21}
-              - {id: uy.l, label: 'mid([x(P1), y(P0), z(P0)], [x(P1), y(P1), z(P0)])', tex: 'y_1 - y_0', color: y, size: 21}
+              - {id: uy.l, label: 'mid([x(P1), y(P0), z(P0)], [x(P1), y(P1), z(P0)])', tex: 'y_1 - y_0', color: y, size: 21, dir: [-0.5, 1]}
       - say: 'Pythagoras in 3D gives the length of the cable.'
         do:
           - add: {id: la, tex: 'l_a = \sqrt{ {{(x_1 - x_0)^2}} + {{(y_1 - y_0)^2}} + {{(z_1 - z_0)^2}} } = 4.250', align: '='}
@@ -66,7 +66,7 @@ slides:
       - say: 'The force splits in exactly the same proportion: the $x$ part of $F_a$ is $F_a\cos\alpha_x$.'
         do:
           - add: {id: fx, tex: 'F_{a,x} = F_a\cos\alpha_x = F_a\,\frac{x_1 - x_0}{l_a}', align: '='}
-          - box: {target: fx, color: x}
+          - {indicate: [fx], color: x}
 
   - title: Sum the components
     steps:
@@ -101,12 +101,13 @@ slides:
       - say: 'So equilibrium along $x$ becomes **linear** in the unknown $x_0$.'
         do:
           - add: {id: lin, tex: 'q_a(x_1 - x_0) + q_b(x_2 - x_0) + q_c(x_3 - x_0) + q_d(x_4 - x_0) + p_x = 0', color: ink}
-          - box: {target: lin, color: free}
+          - {indicate: [lin], color: free}
 
   - title: Solve it by hand
     steps:
       - say: 'Collect $x_0$ on one side.'
         do:
+          - remove: [fa, fb, fc, fd]
           - add: {id: h1, tex: '(q_a + q_b + q_c + q_d)\,x_0 = q_a x_1 + q_b x_2 + q_c x_3 + q_d x_4 + p_x', align: '='}
       - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load.'
         do:
@@ -114,7 +115,7 @@ slides:
       - say: 'Without a load, $P_0$ would hang at the plain average of the anchor heights, $z = 1.5$.'
         do:
           - add: {id: hz, tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', align: '='}
-          - add: {id: u0, point: U, color: dim, label: 'p = 0'}
+          - add: {id: u0, point: U, color: dim, label: 'p = 0', dir: [-1, 0.2]}
           - add: {id: drop, line: [U, P0], color: dim, dash: true, with: true}
       - say: 'With $p_z = -5$ the average drops by $5/4$: $P_0$ settles at $z_0 = 0.25$.'
         do:
@@ -125,8 +126,14 @@ slides:
     steps:
       - say: 'With the shape known, each force is its density times its length: $F_k = q_k l_k$.'
         do:
+          - remove: [u0, drop]
+          - add:
+              - {id: fa, arrow: [P0, 'P0 + 0.5*(P1 - P0)'], color: accent, width: 3.4, label: 'F_a'}
+              - {id: fb, arrow: [P0, 'P0 + 0.5*(P2 - P0)'], color: accent, width: 3.4, label: 'F_b'}
+              - {id: fc, arrow: [P0, 'P0 + 0.5*(P3 - P0)'], color: accent, width: 3.4, label: 'F_c'}
+              - {id: fd, arrow: [P0, 'P0 + 0.5*(P4 - P0)'], color: accent, width: 3.4, label: 'F_d'}
           - add: {id: fl, row: ['\mathbf{f} = \mathbf{L}\,\mathbf{q}:\qquad', {id: F, matrix: {rows: ['4.250', '4.535', '5.706', '4.479'], rowlabels: [F_a, F_b, F_c, F_d], name: '\text{kN}'}}]}
       - say: 'Check along $z$: the cable pulls lift exactly the load.'
         do:
           - add: {id: ck, tex: '\sum_k q_k(z_k - z_0) = -0.25 + 2.75 + 2.75 - 0.25 = 5 = -p_z'}
-          - box: {target: ck, color: load}
+          - {indicate: [ck], color: load}
