@@ -56,23 +56,42 @@ slides:
           - eq: 'f_2 = 3.2 \,/\, 0.4 = 8\ \text{kN}'
           - eq: 'f_1 = 2.4 \,/\, 0.4 = 6\ \text{kN}'
 
-  - title: By computing · projections
+  - title: By computing · the cosines
     steps:
-      - say: 'The same without a ruler. Split each cable force into a part along $x$ and a part along $y$.'
+      - say: 'The same without a ruler. Look at cable 1 alone: from $n$ to $A$ it goes 4 to the left and 3 up.'
         do:
+          - dim: [f1, f2, f1.label, f2.label]
+          - project: {of: c1, parts: '\Delta %_1', axes: [x, y]}
+          - eq: '\Delta x_1 = -4, \qquad \Delta y_1 = 3'
+      - say: 'Its length follows from Pythagoras.'
+        eq: 'l_1 = \sqrt{(-4)^2 + 3^2} = 5'
+      - say: 'The **cosine** of the angle to an axis is the share of the length that lies along that axis.'
+        do:
+          - eq: {tex: '\cos\alpha_1 = \frac{\Delta x_1}{l_1} = \frac{-4}{5} = -0.8', color: x}
+          - eq: {tex: '\cos\beta_1 = \frac{\Delta y_1}{l_1} = \frac{3}{5} = 0.6', color: y}
+      - say: 'Cable 2 the same way: 3 to the right, 4 up, length 5.'
+        do:
+          - remove: [c1.box, c1.x, c1.y, c1.x.label, c1.y.label]
+          - project: {of: c2, parts: '\Delta %_2', axes: [x, y]}
+          - eq: {tex: '\cos\alpha_2 = \frac{3}{5} = 0.6, \qquad \cos\beta_2 = \frac{4}{5} = 0.8'}
+
+  - title: By computing · the projections
+    steps:
+      - say: 'A force points along its cable, so it splits in the same proportions: each part is the force times the cosine.'
+        do:
+          - remove: [c2.box, c2.x, c2.y, c2.x.label, c2.y.label]
+          - undim: [f1, f2, f1.label, f2.label]
           - project: {of: f1, parts: 'f_{1,%}', axes: [x, y]}
           - project: {of: f2, parts: 'f_{2,%}', axes: [x, y]}
-      - say: 'Each part is the force times a cosine, read from the cable: cable 1 goes 4 left and 3 up over a length of 5, cable 2 goes 3 right and 4 up.'
-        do:
-          - eq: 'f_{1,x} = -\tfrac{4}{5} f_1, \qquad f_{1,y} = \tfrac{3}{5} f_1'
-          - eq: 'f_{2,x} = \tfrac{3}{5} f_2, \qquad f_{2,y} = \tfrac{4}{5} f_2'
-      - say: 'Equilibrium, one axis at a time: the parts along $x$ cancel, and the parts along $y$ carry the load.'
+          - eq: 'f_{1,x} = f_1\cos\alpha_1 = -0.8\,f_1, \qquad f_{1,y} = f_1\cos\beta_1 = 0.6\,f_1'
+          - eq: 'f_{2,x} = f_2\cos\alpha_2 = 0.6\,f_2, \qquad f_{2,y} = f_2\cos\beta_2 = 0.8\,f_2'
+      - say: 'Equilibrium, one axis at a time: the parts along $x$ cancel, and the parts along $y$ carry the load of 10.'
         do:
           - eq: {tex: 'x:\quad -0.8\, f_1 + 0.6\, f_2 = 0', color: x}
           - eq: {tex: 'y:\quad 0.6\, f_1 + 0.8\, f_2 - 10 = 0', color: y}
       - say: 'Two equations, two unknowns. The first gives $f_1 = 0.75 f_2$; put that into the second.'
         eq: '0.45\, f_2 + 0.8\, f_2 = 10 \quad\Rightarrow\quad f_2 = 8, \quad f_1 = 6'
-      - say: 'The same 6 kN and 8 kN as the drawing. A closed force polygon and "every sum of projections is zero" are one statement, said twice.'
+      - say: 'Check with the numbers: along $x$, $-4.8 + 4.8 = 0$; along $y$, $3.6 + 6.4 - 10 = 0$. The same 6 kN and 8 kN as the drawing.'
         highlight: [t1, t2, Wa]
-      - say: 'With more cables in space there is a third sum along $z$. That is the next presentation.'
+      - say: 'A closed force polygon and "every sum of projections is zero" are one statement, said twice. With more cables in space there is a third sum along $z$: the next presentation.'
         text: '**Next:** Force density 1 · the equations of five nodes'
