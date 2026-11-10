@@ -44,7 +44,8 @@ fn over(c: Rgba, bg: Rgba) -> Color {
 /// Kernel geometry of one object; `scale` is the slide scale, so widths shrink with the slide.
 fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geometry> {
     let color = over(s.color, bg);
-    // on a small slide lines thin out more slowly than the picture shrinks, so they stay readable
+    // dots shrink with the slide; lines thin out more slowly, so they stay readable
+    let dot = scale;
     let scale = scale.powf(0.3);
     // `px` is the world size of one pixel, so dashes keep their screen length
     let dash = if s.dash {
@@ -57,7 +58,7 @@ fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geom
             let p = s.pts.first()?;
             let mut point = Point::new(p[0], p[1], p[2]);
             // dot sizes are device pixels, line widths are not
-            point.width = s.width as f64 * 3.4 * dpr * scale;
+            point.width = s.width as f64 * 3.4 * dpr * dot;
             point.pointcolor = color;
             Some(Geometry::Point(Rc::new(point)))
         }
