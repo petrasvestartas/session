@@ -1958,7 +1958,7 @@ mod snap_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 7.4 (49f-input)](../../screenshots/journey/49f-input.png)
+![Recorded visual output for Lesson 7.4 (49f-input)](../../screenshots/journey/49f-input-b54a77169648.png)
 
 ```sh
 cd workspace/journey

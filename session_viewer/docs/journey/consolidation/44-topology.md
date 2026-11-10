@@ -5302,7 +5302,7 @@ Replace it with:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 6.3 (44l-input)](../../screenshots/journey/44l-input.png)
+![Recorded visual output for Lesson 6.3 (44l-input)](../../screenshots/journey/44l-input-7dada61886fe.png)
 
 ```sh
 cd workspace/journey

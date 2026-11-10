@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-10T11:34:57.524Z",
+  "id": "50d-ownership",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-b2e89c9b64f972d0275a\\capture.json.gz",
+    "sha256": "e24920b0345792b0da2e9eff59a82867b22bc19f12cb67ad5d78c178548d56dc",
+    "bytes": 98192
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native50-53-slot-proposal-01\\case50\\capture-result.json",
+    "sha256": "f5f89f559ba695661006a0a2363fc5b61e62b4fa187e64fd9b97446eb49bf1fd"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native50-53-source19-e91310ae-50-execution.json",
+    "sha256": "4a58123629b45a045201a4ecf17fa8d2d8491d1b29c3e0ce5a9fb990e780b62c"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native50-53-slot-proposal-01\\case50\\bounded-terminal.json",
+    "sha256": "4804c63c9ef51abd836fc6a20d42f2847581c57e871cbc5d1585cbd898d2d9ef"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+    "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 519,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected all2560x1920 original pixels in four unfiltered1280x960 tiles. Two separate selected yellow ordinary mesh boxes appear in the temporary moved display, with continuous visible black edges and a yellow temporary segment ending at its circular cursor between them. Both boxes and the preview remain inside white margins. This accepts50 move-preview presentation only; stored-placement preservation follows the executed source assertions, not the image alone. No canonical640pixel, BRep or browser callback claim.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 33 historical aliases and their original pixels remain unchanged. Two selected ordinary mesh boxes in a temporary move preview; original stored placements remain unchanged. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native50-53-slot-proposal-01\\case50\\publication.json",
+    "sha256": "34165fee9abf50126540ae0c75346e3bbc6be0f47b2d4f6998f1ed0d72610ccd"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-b2e89c9b64f972d0275a\\publication.json",
+    "sha256": "7fadaf10e4f427a5395c7a8d0d1840fa9e0845a0d3b8b4c2b02e67aa19d4848d"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-b2e89c9b64f972d0275a\\retirement.json.gz",
+    "sha256": "262c7169324a07b9916ff6962913ec53c8a734e153b720192b38ec7f6351dede"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-b2e89c9b64f972d0275a\\retired.json",
+    "sha256": "54627cdcc596ff210af692ebdc70e8f16da83d3ffc0d41cde8ce1a24550cc74c"
+  }
+}

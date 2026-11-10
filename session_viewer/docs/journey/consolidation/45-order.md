@@ -3027,7 +3027,7 @@ Replace it with:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 6.4 (45c-input)](../../screenshots/journey/45c-input.png)
+![Recorded visual output for Lesson 6.4 (45c-input)](../../screenshots/journey/45c-input-77791d4fa1df.png)
 
 ```sh
 cd workspace/journey

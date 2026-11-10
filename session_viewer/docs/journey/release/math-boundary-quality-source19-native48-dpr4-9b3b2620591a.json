@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-10T11:29:25.339Z",
+  "id": "48d-input",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48d-input-62d63ee3926bba1bb05f\\capture.json.gz",
+    "sha256": "9905963b0d2ce76c3cee579cf54844045ea58fa0908bfa936c62971b0451e8de",
+    "bytes": 95832
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native44-49-slot-proposal-06\\case48\\capture-result.json",
+    "sha256": "6c1c40e96e61953175cd37214589e8793cbe53fd2fef0daa7997c2b9f9831589"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native44-49-source19-a5c09c57-48-execution.json",
+    "sha256": "4a6355e6517b98312e987e23423deda84fb33de64ad667bd8efe26db7bd8bc79"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native44-49-slot-proposal-06\\case48\\bounded-terminal.json",
+    "sha256": "5e3df17126bfebcf888bbb7c8692bab849cdbbd3bdc9a51ab3984149f31cf716"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+    "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 519,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\48d-input-9b3b2620591a.png",
+    "sha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\48d-input.png",
+    "sha256": "8c14a338047e50a6cdae1bc2bd72285e82a532a940ff32cff66e2d64f157f127"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected all2560x1920 original pixels in four unfiltered1280x960 tiles. A single yellow diagonal preview runs from the lower-left interior toward a yellow circular cursor in the upper-right interior. The preview is continuous, both endpoints are inside white margins, and no saved black line is present. This matches48 unfinished-line preview scope only; no saved geometry, canonical640pixel or browser callback claim.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 7 historical aliases and their original pixels remain unchanged. One unfinished line preview and cursor, with no saved line. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native44-49-slot-proposal-06\\case48\\publication.json",
+    "sha256": "829bf93cf29b679e17d70011fb1c5aba27547438e68b7de32d52e9ecd220f3ea"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48d-input-62d63ee3926bba1bb05f\\publication.json",
+    "sha256": "f005e2aab46123f0d76391e48584f117b5b3743ecf8886278e86dc2995521158"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48d-input-62d63ee3926bba1bb05f\\retirement.json.gz",
+    "sha256": "6e71a073b6763176832560437ab598337c6d916e0146478ff67617a43289c2c8"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-48d-input-62d63ee3926bba1bb05f\\retired.json",
+    "sha256": "fc182229f18be80bc55ac660e9438fdd2112db21b25456cbb0d98e4c38009a07"
+  }
+}

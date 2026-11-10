@@ -1365,7 +1365,7 @@ mod edit_preview_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 7.5 (50d-ownership)](../../screenshots/journey/50d-ownership.png)
+![Recorded visual output for Lesson 7.5 (50d-ownership)](../../screenshots/journey/50d-ownership-deb4457c6d33.png)
 
 ```sh
 cd workspace/journey

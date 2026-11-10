@@ -1828,7 +1828,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 7.3 (48d-input)](../../screenshots/journey/48d-input.png)
+![Recorded visual output for Lesson 7.3 (48d-input)](../../screenshots/journey/48d-input-9b3b2620591a.png)
 
 ```sh
 cd workspace/journey

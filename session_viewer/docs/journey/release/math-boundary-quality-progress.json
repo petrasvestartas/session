@@ -1,11 +1,11 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-06T08:28:53.773143+00:00",
+  "updatedUtc": "2026-11-10T11:34:59.322969+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-15-compat.json",
-    "frozenFiles": 473,
+    "maintainedSourceFreeze": "source-freeze-19-stage-pictures-handoff.json",
+    "frozenFiles": 519,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
@@ -185,24 +185,16 @@
       "sha256": "ae4406849a5d423b9f8288b5045a9fe91a0134e76235d4d63bad7ced8b6ba28d"
     },
     "currentDependencyQualification": {
+      "status": "ACTUAL_SOURCE19_NATIVE_IMAGES_ROOT_REVIEWED",
       "freeze": {
-        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
-        "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+        "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
       },
-      "delta": {
-        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\96y-source15-single-proposal-06\\freeze15-delta.json",
-        "sha256": "636490df362541ca0f98c500d453a4b2acbf95ba168a5f0ef5c7d9517f2d6aa2"
-      },
-      "sourceFiles": 473,
-      "productionInputCount": 460,
-      "suppliedHistoricalWoodInputCount": 13,
-      "renderingPipelineChangedFiles": 0,
-      "removedLiveWoodPins": 11,
-      "addedSuppliedPins": 13,
-      "acceptedImages": 14,
-      "status": "ACTUAL_CURRENT_DEPENDENCY_IMAGES_ROOT_REVIEWED",
+      "sourceFiles": 519,
+      "acceptedImages": 5,
       "historicalFreeze13AcceptedImages": 51,
-      "historicalScope": "Prior renderer13 runtime/test proofs remain as recorded; not rerun under freeze15 dependencies."
+      "historicalFreeze15AcceptedImages": 14,
+      "scope": "RawDPR4 IMAGE draw assertions only,519strict pre/post source pins,Root original-pixel review and normal retirement. No canonical640pixel or browser callback claim."
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -246,25 +238,47 @@
       "points": 196608,
       "meshDerivedSyntheticRgb": true,
       "runtimeRendered": false
+    },
+    "lastQualifiedSourceFreeze": "source-freeze-15-compat.json",
+    "historicalQualificationCounterScope": "Existing sourceQualification counters and runtime narrative record their original historical source versions; they are not fresh tests of current production.",
+    "historicalDependencyQualification": {
+      "freeze": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-15-compat.json",
+        "sha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5"
+      },
+      "delta": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\96y-source15-single-proposal-06\\freeze15-delta.json",
+        "sha256": "636490df362541ca0f98c500d453a4b2acbf95ba168a5f0ef5c7d9517f2d6aa2"
+      },
+      "sourceFiles": 473,
+      "productionInputCount": 460,
+      "suppliedHistoricalWoodInputCount": 13,
+      "renderingPipelineChangedFiles": 0,
+      "removedLiveWoodPins": 11,
+      "addedSuppliedPins": 13,
+      "acceptedImages": 14,
+      "status": "HISTORICAL_FREEZE15_DEPENDENCY_IMAGES_ROOT_REVIEWED",
+      "historicalFreeze13AcceptedImages": 51,
+      "historicalScope": "Prior renderer13 runtime/test proofs remain as recorded; not rerun under freeze15 dependencies."
     }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 70,
-    "remainingAffected": 1256,
-    "acceptedForFinalSource": 14,
-    "remainingFinalSourceAcceptance": 1312,
-    "qualificationNote": "14 images qualify freeze15 dependencies; 51 retain historical freeze13 proofs with unchanged rendering pipeline. 65 accepted renderer-lineage destinations. HTTP/browser scope remains separately recorded.",
+    "newPublishedReviewed": 75,
+    "remainingAffected": 1251,
+    "acceptedForFinalSource": 5,
+    "remainingFinalSourceAcceptance": 1321,
+    "qualificationNote": "Historical51freeze13 and14freeze15 accepted image destinations remain separate. Current519-input freeze19 has5 actual Native IMAGE acceptances with original-pixel Root review and normal retirement. Canonical640pixel callbacks and current website/browser acceptance are not inferred.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 65,
-    "remainingPlannedImageAcceptances": 1261,
-    "physicalJourneyPngs": 529,
-    "uniqueJourneyPngs": 529,
+    "acceptedAcrossRendererLineage": 70,
+    "remainingPlannedImageAcceptances": 1256,
+    "physicalJourneyPngs": 534,
+    "uniqueJourneyPngs": 534,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
       "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
@@ -367,16 +381,50 @@
       "rootOriginalPixelReview": true,
       "normalLedgerRetirement": true,
       "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 28 historical aliases and their original pixels remain unchanged. Three independently transformed placements sharing one original BRep box and one geometry upload; not a revolution screenshot. Current-stage true boundaries and selection features only; global contours are not promised before91."
-    }
+    },
+    "acceptedHistoricalFreeze15": 14,
+    "acceptedCurrentFreeze19": 5,
+    "source19ReviewedImages": [
+      {
+        "id": "44l-input",
+        "receipt": "docs/journey/release/math-boundary-quality-source19-native44-dpr4-7dada61886fe.json",
+        "sha256": "ca88c7332b68506047728597d7a7ed6b478ca86dafa5488603444ad4759ed95e",
+        "imageSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2"
+      },
+      {
+        "id": "45c-input",
+        "receipt": "docs/journey/release/math-boundary-quality-source19-native45-dpr4-77791d4fa1df.json",
+        "sha256": "c6233f2c770df45ccbc533715179e42158718444599c8dc4a73c280585b73613",
+        "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e"
+      },
+      {
+        "id": "48d-input",
+        "receipt": "docs/journey/release/math-boundary-quality-source19-native48-dpr4-9b3b2620591a.json",
+        "sha256": "bb9d99dcdb591d23fbe84c1439e7e3a1ed696c18f7e380c95106b095cce24030",
+        "imageSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce"
+      },
+      {
+        "id": "49f-input",
+        "receipt": "docs/journey/release/math-boundary-quality-source19-native49-dpr4-b54a77169648.json",
+        "sha256": "dc36f5982399452d1dcc58bc0bb5f356f2699cc4151b56c41f4bd6cf605faacd",
+        "imageSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624"
+      },
+      {
+        "id": "50d-ownership",
+        "receipt": "docs/journey/release/math-boundary-quality-source19-native50-dpr4-deb4457c6d33.json",
+        "sha256": "3b4dde5b60bb7e022ffdc7471b638212856721f867d8999eb395592e195bd33f",
+        "imageSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+      }
+    ]
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 36,
+    "pending": 31,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 6,
+    "published": 11,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
@@ -1518,6 +1566,66 @@
       "servedChromeVerified": false,
       "historicalChromeDecodeMatch": false,
       "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+    },
+    {
+      "id": "44l-input",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source19-native44-dpr4-7dada61886fe.json",
+      "receiptSha256": "ca88c7332b68506047728597d7a7ed6b478ca86dafa5488603444ad4759ed95e",
+      "image": "docs/screenshots/journey/44l-input-7dada61886fe.png",
+      "imageSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "45c-input",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source19-native45-dpr4-77791d4fa1df.json",
+      "receiptSha256": "c6233f2c770df45ccbc533715179e42158718444599c8dc4a73c280585b73613",
+      "image": "docs/screenshots/journey/45c-input-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "48d-input",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source19-native48-dpr4-9b3b2620591a.json",
+      "receiptSha256": "bb9d99dcdb591d23fbe84c1439e7e3a1ed696c18f7e380c95106b095cce24030",
+      "image": "docs/screenshots/journey/48d-input-9b3b2620591a.png",
+      "imageSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "49f-input",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source19-native49-dpr4-b54a77169648.json",
+      "receiptSha256": "dc36f5982399452d1dcc58bc0bb5f356f2699cc4151b56c41f4bd6cf605faacd",
+      "image": "docs/screenshots/journey/49f-input-b54a77169648.png",
+      "imageSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "50d-ownership",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source19-native50-dpr4-deb4457c6d33.json",
+      "receiptSha256": "3b4dde5b60bb7e022ffdc7471b638212856721f867d8999eb395592e195bd33f",
+      "image": "docs/screenshots/journey/50d-ownership-deb4457c6d33.png",
+      "imageSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
     }
   ],
   "stages": [
@@ -1699,5 +1807,11 @@
     "guardAdmission": "FIVE_REAL_WINDOWS_JOB_CHECKS_PASS",
     "capMsaa4": "OPT_IN_SOURCE_AND_FOUR_WGSL_MODULE_CHECKS_PASS_ACTUAL_RUST_PIPELINE_AND_IMAGE_QUALIFICATION_PENDING",
     "capMsaa4RuntimeAccepted": false
+  },
+  "historicalValidationLedger": {
+    "receipt": "docs/journey/release/math-boundary-validation-ledger-20261110.json",
+    "sha256": "2f84361a4573c9809c58bd2396bdca87a52843fbdf0a76b7ad85661e0b407895",
+    "scope": "Dated historical ledger snapshot; current freeze19 image acceptances are tracked separately in currentDependencyQualification and source19ReviewedImages.",
+    "newAcceptances": 0
   }
 }
