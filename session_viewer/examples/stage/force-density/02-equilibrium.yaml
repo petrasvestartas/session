@@ -22,19 +22,11 @@ slides:
       - say: 'The node stays where it is, so the three pulls cancel. That is **equilibrium**.'
         eq: '\mathbf{F}_1 + \mathbf{F}_2 + \mathbf{F}_3 = \mathbf{0}'
       - say: 'Check it by walking: put each arrow at the tip of the one before.'
-        do:
-          - move: {point: S2, to: [3, 0, 1]}
-          - move: {point: E2, to: [2, 0, 3], with: true}
-          - move: {point: S3, to: [2, 0, 3]}
-          - move: {point: E3, to: [0, 0, 0], with: true}
+        walk: [F1, F2, F3]
       - say: 'The walk ends where it began. A closed polygon of forces: nothing is left over to move the node.'
         highlight: [P]
       - say: 'Back to the node.'
-        do:
-          - move: {point: S2, to: [0, 0, 0]}
-          - move: {point: E2, to: [-1, 0, 2], with: true}
-          - move: {point: S3, to: [0, 0, 0], with: true}
-          - move: {point: E3, to: [-2, 0, -3], with: true}
+        walk: back
 
   - title: Project one force onto the axes
     steps:

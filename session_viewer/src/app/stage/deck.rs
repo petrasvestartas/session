@@ -815,6 +815,7 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
         _ => None,
     };
     let mut cx = Cx::default();
+    cx.home = points.iter().cloned().collect();
     if let Some(v) = get(m, "net") {
         let net = net(v, name)?;
         for (k, at) in net.names.iter().zip(&net.at) {
@@ -825,6 +826,7 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
             points.push((format!("{k}_rest"), at));
         }
         cx.net = Some(net);
+        cx.home = points.iter().cloned().collect();
     }
     let mut slides = Vec::new();
     let slide_values = get(m, "slides").map(list).unwrap_or_default();
@@ -885,6 +887,8 @@ struct Cx {
     net: Option<Net>,   // The chapter's net.
     eq: Option<String>, // Id of the last equation.
     ends: HashMap<String, (String, String)>, // Tail and tip of each line or arrow, as expressions.
+    home: HashMap<String, [f64; 3]>, // Where each named point starts.
+    walked: Vec<String>,             // Points the last `walk` moved.
 }
 
 impl Cx {
@@ -1187,9 +1191,93 @@ fn project(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     Ok(out)
 }
 
+/// `walk: [F1, F2, F3]` puts each arrow at the tip of the one before; `walk: back` returns them.
+/// The arrows must run between named points.
+fn walk(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let to = |point: &str, p: [f64; 3], with: bool| {
+        let mut a = act(Kind::Move {
+            point: point.into(),
+            to: Pos::Abs(p.map(Scalar::N)),
+        });
+        a.with = with;
+        a
+    };
+    let mut out = Vec::new();
+    if text(v).as_deref() == Some("back") {
+        for name in std::mem::take(&mut cx.walked) {
+            if let Some(p) = cx.home.get(&name) {
+                out.push(to(&name, *p, !out.is_empty()));
+            }
+        }
+        return Ok(out);
+    }
+    let mut reached: Option<[f64; 3]> = None;
+    for arrow in strings(v) {
+        let (tail, tip) = cx.ends.get(&arrow).cloned().ok_or_else(|| format!("{at}: no arrow {arrow}"))?;
+        let (Some(a), Some(b)) = (cx.home.get(&tail), cx.home.get(&tip)) else {
+            return err(at, format!("{arrow} must run between named points"));
+        };
+        let start = reached.unwrap_or(*a);
+        let end: [f64; 3] = std::array::from_fn(|i| start[i] + b[i] - a[i]);
+        if reached.is_some() {
+            out.push(to(&tail, start, false));
+            out.push(to(&tip, end, true));
+            cx.walked.extend([tail, tip]);
+        }
+        reached = Some(end);
+    }
+    Ok(out)
+}
+
+/// `node: {of: n4_4, row: DN}` lights a node of the net, its cables and its row in a matrix;
+/// `clear: true` puts the colours back.
+fn node(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let (name, row, clear) = match v {
+        Value::Mapping(m) => (
+            get(m, "of").and_then(text).unwrap_or_default(),
+            get(m, "row").and_then(text),
+            get(m, "clear").and_then(Value::as_bool).unwrap_or(false),
+        ),
+        other => (text(other).unwrap_or_default(), None, false),
+    };
+    let net = cx.net.as_ref().ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let i = net.find(&name).ok_or_else(|| format!("{at}: the net has no node {name}"))?;
+    let color = if clear { "reset" } else { "accent" };
+    let paint = |target: String| {
+        let mut a = act(Kind::Color {
+            target,
+            color: color.into(),
+        });
+        a.with = true;
+        a
+    };
+    let mut out = Vec::new();
+    let mark = format!("{name}.mark");
+    if clear {
+        out.push(act(Kind::Remove(vec![mark])));
+    } else {
+        let mut dot = plain(mark, Content::Point(Pos::Name(name.clone())));
+        dot.color = Some("accent".into());
+        out.push(act(Kind::Add(vec![dot])));
+    }
+    for (cable, a, b) in &net.cables {
+        if *a == i || *b == i {
+            out.push(paint(cable.clone()));
+        }
+    }
+    if let Some(matrix) = row
+        && let Some(k) = net.free().iter().position(|&f| f == i)
+    {
+        out.push(paint(format!("{matrix}[{k},:]")));
+    }
+    Ok(out)
+}
+
 /// Step keys that stand for a common action.
-const SHORT: [&str; 13] = [
+const SHORT: [&str; 15] = [
     "project",
+    "walk",
+    "node",
     "eq",
     "then",
     "becomes",
@@ -1286,6 +1374,8 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
             }
             "solve" => out.push(act(solve(v, at, cx)?)),
             "project" => out.extend(project(v, at, cx)?),
+            "walk" => out.extend(walk(v, at, cx)?),
+            "node" => out.extend(node(v, at, cx)?),
             _ if KINDS.contains(&key.as_str()) => out.push(action(&one, at, cx)?),
             _ => return err(at, "is not a step key"),
         }

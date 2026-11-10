@@ -35,24 +35,11 @@ slides:
       - say: '$\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ has one row and one column per free node. Pink is the diagonal, blue the neighbours.'
         matrix: DN
       - say: 'Take the inner node $n_{4,4}$. Four cables meet there.'
-        do:
-          - add: {id: pick, point: n4_4, color: accent}
-          - color: {target: h4_4, color: accent}
-          - color: {target: h4_3, color: accent, with: true}
-          - color: {target: v4_4, color: accent, with: true}
-          - color: {target: v3_4, color: accent, with: true}
+        node: {of: n4_4, row: DN}
       - say: 'Its row has five entries: $+4$ on the diagonal, the sum of its four force densities, and $-1$ for each neighbour.'
-        do:
-          - color: {target: 'DN[38,:]', color: accent}      # n4_4 is the 39th free node
-          - eq: '4\,z_{4,4} - z_{4,3} - z_{4,5} - z_{3,4} - z_{5,4} = p_z'
+        eq: '4\,z_{4,4} - z_{4,3} - z_{4,5} - z_{3,4} - z_{5,4} = p_z'
       - say: 'That row is the sum $\sum q_k (z_k - z_0) + p_z = 0$ of the single node, for this one node. The matrix stacks 77 such sums.'
-        do:
-          - color: {target: 'DN[38,:]', color: reset}
-          - color: {target: h4_4, color: reset, with: true}
-          - color: {target: h4_3, color: reset, with: true}
-          - color: {target: v4_4, color: reset, with: true}
-          - color: {target: v3_4, color: reset, with: true}
-          - remove: [pick]
+        node: {of: n4_4, row: DN, clear: true}
 
   - title: Solve
     steps:

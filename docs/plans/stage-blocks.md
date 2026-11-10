@@ -84,7 +84,7 @@ reported in red on the slide like any other mistake.
 
 ## Order of work
 
-1. `project` (*done 2026-11-10*, used in 02-equilibrium), then `node`, `walk` (3D side; they shorten four chapters most).
+1. `project` (*done 2026-11-10*, used in 02-equilibrium), `walk` (*done*, 02-equilibrium) and `node` (*done*, 10-net).
 2. `reveal`, `fill`, `cases` (pure expansions of existing actions).
 3. `multiply`, `eliminate` (need the net to hand out intermediate numbers: `net.rs` gains
    `product(a, b)` and `elimination_steps()`).
