@@ -3,18 +3,18 @@ title: The question
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 net:
-  fixed: {P1: [0, 0, 0], P2: [5, 0, 3], P3: [0, 7, 3], P4: [7, 5, 0]}
-  free: {P0: [3.6, 3.4, 1.9]}        # drawn at a guess; its true place is the answer
-  cables: {a: [P0, P1], b: [P0, P2], c: [P0, P3], d: [P0, P4]}
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3.6, 3.4, 1.9]}        # drawn at a guess; its true place is the answer
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
   q: 1
-  load: {P0: [0, 0, -5]}
+  load: {n0: [0, 0, -5]}
 slides:
   - title: Where does the free node come to rest?
     steps:
-      - say: 'Four fixed nodes $P_1,\dots,P_4$ hold one free node $P_0$ on four cables $a, b, c, d$. A load $p$ hangs on $P_0$.'
+      - say: 'Four fixed nodes $n_1,\dots,n_4$ hold one free node $n_0$ on four bars $e_0,\dots,e_3$. A load $p$ hangs on $n_0$.'
         show: net
-      - say: 'The question: given how hard each cable pulls, where is $P_0$?'
-        tex: 'P_0 = (x_0,\ y_0,\ z_0) = \ ?'
+      - say: 'The question: given how hard each cable pulls, where is $n_0$?'
+        tex: 'n_0 = (x_0,\ y_0,\ z_0) = \ ?'
       - say: 'Four things are given. We collect them one by one.'
         text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
 
@@ -23,38 +23,37 @@ slides:
       - say: 'The coordinates of the four fixed nodes, in metres.'
         do:
           - matrix: {of: xF, empty: true}
-          - morph: {target: P1.label, label: P1, tex: 'P_1\,(0,\,0,\,0)', dur: 0.6}
-          - morph: {target: P2.label, label: P2, tex: 'P_2\,(5,\,0,\,3)', dur: 0.6, with: true}
-          - morph: {target: P3.label, label: P3, tex: 'P_3\,(0,\,7,\,3)', dur: 0.6, with: true}
-          - morph: {target: P4.label, label: P4, tex: 'P_4\,(7,\,5,\,0)', dur: 0.6, with: true}
+          - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
+          - morph: {target: n2.label, label: n2, tex: 'n_2\,(5,\,0,\,3)', dur: 0.6, with: true}
+          - morph: {target: n3.label, label: n3, tex: 'n_3\,(0,\,7,\,3)', dur: 0.6, with: true}
+          - morph: {target: n4.label, label: n4, tex: 'n_4\,(7,\,5,\,0)', dur: 0.6, with: true}
       - say: 'One row per node, one column per axis.'
         do:
-          - fly: {from: P1.label, to: 'xF[0,:]'}
-          - fly: {from: P2.label, to: 'xF[1,:]', with: true, delay: 0.2}
-          - fly: {from: P3.label, to: 'xF[2,:]', with: true, delay: 0.2}
-          - fly: {from: P4.label, to: 'xF[3,:]', with: true, delay: 0.2}
-          - morph: {target: P1.label, label: P1, tex: 'P_1', dur: 0.5}
-          - morph: {target: P2.label, label: P2, tex: 'P_2', dur: 0.5, with: true}
-          - morph: {target: P3.label, label: P3, tex: 'P_3', dur: 0.5, with: true}
-          - morph: {target: P4.label, label: P4, tex: 'P_4', dur: 0.5, with: true}
+          - fly: {from: n1.label, to: 'xF[0,:]'}
+          - fly: {from: n2.label, to: 'xF[1,:]', with: true, delay: 0.2}
+          - fly: {from: n3.label, to: 'xF[2,:]', with: true, delay: 0.2}
+          - fly: {from: n4.label, to: 'xF[3,:]', with: true, delay: 0.2}
+          - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
+          - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
+          - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
+          - morph: {target: n4.label, label: n4, tex: 'n_4', dur: 0.5, with: true}
 
   - title: 'Given 2 · the load'
     steps:
       - say: 'The load on the free node: 5 kN straight down.'
-        do:
-          - highlight: [load_P0]
-          - matrix: p
+        highlight: [load_n0]
+        matrix: p
 
   - title: 'Given 3 · the connectivity matrix'
     steps:
       - say: '$\mathbf{C}$ records which cable joins which nodes: one row per cable, one column per node.'
         matrix: {of: C, empty: true}
-      - say: 'Cable $a$ runs from $P_0$ to $P_1$: $+1$ under $P_0$, $-1$ under $P_1$.'
+      - say: 'Bar $e_0$ runs from $n_0$ to $n_1$: $+1$ under $n_0$, $-1$ under $n_1$.'
         do:
-          - color: {target: a, color: accent}
+          - color: {target: e0, color: accent}
           - show: ['C[0,:]']
-          - color: {target: a, color: reset}
-      - say: 'The other cables follow the same rule.'
+          - color: {target: e0, color: reset}
+      - say: 'The other bars follow the same rule.'
         show: ['C[1,:]', 'C[2,:]', 'C[3,:]']
 
   - title: 'Given 4 · the force densities'

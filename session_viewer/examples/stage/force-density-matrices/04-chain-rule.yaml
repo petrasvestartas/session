@@ -1,52 +1,51 @@
 # Chapter 4: method 2, the chain rule, and what the derivative means.
 title: Method 2 · the chain rule
 grid: {center: [3.5, 3.5], size: 9, step: 1}
-camera: {yaw: -52, pitch: 22, fit: [P0, P1, '[5.4, 3.6, 0.25]']}
+camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}
 points:
-  P0: [3, 3, 0.25]
-  X: [3, 3, 0.25]         # the node we nudge; it starts on P0
-  P1: [0, 0, 0]
-  P2: [5, 0, 3]
-  P3: [0, 7, 3]
-  P4: [7, 5, 0]
+  n0: [3, 3, 0.25]
+  X: [3, 3, 0.25]         # the node we nudge; it starts on n0
+  n1: [0, 0, 0]
+  n2: [5, 0, 3]
+  n3: [0, 7, 3]
+  n4: [7, 5, 0]
 slides:
   - title: 'Method 2 · the chain rule'
     steps:
       - say: 'Write the length as a power of an inner function $u$.'
         do:
           - add:
-              - {id: o2, point: P2, color: fixed, opacity: 0.25}
-              - {id: o3, point: P3, color: fixed, opacity: 0.25}
-              - {id: o4, point: P4, color: fixed, opacity: 0.25}
-              - {id: b, line: [X, P2], opacity: 0.2}
-              - {id: c, line: [X, P3], opacity: 0.2}
-              - {id: d, line: [X, P4], opacity: 0.2}
-              - {id: k, line: [X, P1], label: 'l_k', width: 3.6}
-              - {id: nk, point: P1, color: fixed, label: 'P_k'}
-              - {id: n0, point: X, color: free, label: 'P_0'}
+              - {id: o2, point: n2, color: fixed, opacity: 0.25}
+              - {id: o3, point: n3, color: fixed, opacity: 0.25}
+              - {id: o4, point: n4, color: fixed, opacity: 0.25}
+              - {id: e1, line: [X, n2], opacity: 0.2}
+              - {id: e2, line: [X, n3], opacity: 0.2}
+              - {id: e3, line: [X, n4], opacity: 0.2}
+              - {id: k, line: [X, n1], label: 'l_k', width: 3.6}
+              - {id: nk, point: n1, color: fixed, label: 'n_k'}
+              - {id: n0, point: X, color: free, label: 'n_0'}
             dur: 0.8
-          - add: {id: c1, tex: 'l_k = u^{1/2}, \qquad u = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
-          - add: {id: c2, tex: '\frac{\partial l_k}{\partial x_0} = \frac{d l_k}{d u}\cdot\frac{\partial u}{\partial x_0}', align: '='}
+          - tex: 'l_k = u^{1/2}, \qquad u = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'
+          - eq: '\frac{\partial l_k}{\partial x_0} = \frac{d l_k}{d u}\cdot\frac{\partial u}{\partial x_0}'
       - say: '**Outer derivative.** The power rule, with $\sqrt{u} = l_k$.'
-        add: {id: c3, tex: '\frac{d l_k}{d u} = \tfrac{1}{2}u^{-1/2} = \frac{1}{2\sqrt{u}} = \frac{1}{2 l_k}', align: '='}
+        eq: '\frac{d l_k}{d u} = \tfrac{1}{2}u^{-1/2} = \frac{1}{2\sqrt{u}} = \frac{1}{2 l_k}'
       - say: '**Inner derivative.** Only the $x$-term contains $x_0$; the $y$ and $z$ terms differentiate to $0$.'
-        add: {id: c4, tex: '\frac{\partial u}{\partial x_0} = 2(x_k - x_0)\cdot(-1) = -2(x_k - x_0)', align: '='}
+        eq: '\frac{\partial u}{\partial x_0} = 2(x_k - x_0)\cdot(-1) = -2(x_k - x_0)'
       - say: 'Multiply outer and inner: the same result as method 1.'
-        do:
-          - add: {id: c5, tex: '\frac{\partial l_k}{\partial x_0} = \frac{1}{2 l_k}\cdot\big(-2(x_k - x_0)\big) = \frac{-(x_k - x_0)}{l_k}', align: '=', color: accent}
-          - {indicate: [c5], color: accent}
+        eq: {id: c5, tex: '\frac{\partial l_k}{\partial x_0} = \frac{1}{2 l_k}\cdot\big(-2(x_k - x_0)\big) = \frac{-(x_k - x_0)}{l_k}', color: accent}
+        highlight: [c5]
 
   - title: What the result means
     steps:
       - say: '$(x_k - x_0)/l_k$ is the direction cosine, so $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
         do:
-          - add: {id: m1, tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'}
-          - add: {id: unit, arrow: [P0, 'P0 + (P0 - P1)/len(P0, P1)*1.6'], color: accent, width: 3.6}
-          - derive: {from: unit, id: unitx, arrow: [P0, 'P0 + [(x(P0) - x(P1))/len(P0, P1)*1.6, 0, 0]'], color: x, width: 3.6}
-      - say: 'For cable $a$ ($P_k = P_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
-        add: {id: m2, tex: '\frac{\partial l_a}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706', align: '='}
-      - say: 'Moving $P_0$ right by 1 m lengthens cable $a$ by about 0.706 m: it points away from its anchor.'
+          - tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'
+          - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: accent, width: 3.6}
+          - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
+      - say: 'For bar $e_0$ ($n_k = n_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
+        eq: {id: m2, tex: '\frac{\partial l_1}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706'}
+      - say: 'Moving $n_0$ right by 1 m lengthens bar $e_0$ by about 0.706 m: it points away from its anchor.'
         do:
           - {indicate: [m2], color: x}
-          - indicate: [unitx]
+          - highlight: [unitx]
 

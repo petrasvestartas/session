@@ -1,69 +1,66 @@
 # Chapter 3: method 1, the tiny nudge, steps A to G of the notes.
 title: Method 1 · the tiny nudge
 grid: {center: [3.5, 3.5], size: 9, step: 1}
-camera: {yaw: -52, pitch: 22, fit: [P0, P1, '[5.4, 3.6, 0.25]']}
+camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}
 points:
-  P0: [3, 3, 0.25]
-  X: [3, 3, 0.25]         # the node we nudge; it starts on P0
-  P1: [0, 0, 0]
-  P2: [5, 0, 3]
-  P3: [0, 7, 3]
-  P4: [7, 5, 0]
+  n0: [3, 3, 0.25]
+  X: [3, 3, 0.25]         # the node we nudge; it starts on n0
+  n1: [0, 0, 0]
+  n2: [5, 0, 3]
+  n3: [0, 7, 3]
+  n4: [7, 5, 0]
 slides:
   - title: 'Method 1 · square, then nudge'
     steps:
       - say: '**Step A.** Square both sides of the distance formula to get rid of the root.'
         do:
           - add:
-              - {id: o2, point: P2, color: fixed, opacity: 0.25}
-              - {id: o3, point: P3, color: fixed, opacity: 0.25}
-              - {id: o4, point: P4, color: fixed, opacity: 0.25}
-              - {id: b, line: [X, P2], opacity: 0.2}
-              - {id: c, line: [X, P3], opacity: 0.2}
-              - {id: d, line: [X, P4], opacity: 0.2}
-              - {id: k, line: [X, P1], label: 'l_k', width: 3.6}
-              - {id: nk, point: P1, color: fixed, label: 'P_k'}
-              - {id: n0, point: X, color: free, label: 'P_0'}
+              - {id: o2, point: n2, color: fixed, opacity: 0.25}
+              - {id: o3, point: n3, color: fixed, opacity: 0.25}
+              - {id: o4, point: n4, color: fixed, opacity: 0.25}
+              - {id: e1, line: [X, n2], opacity: 0.2}
+              - {id: e2, line: [X, n3], opacity: 0.2}
+              - {id: e3, line: [X, n4], opacity: 0.2}
+              - {id: k, line: [X, n1], label: 'l_k', width: 3.6}
+              - {id: nk, point: n1, color: fixed, label: 'n_k'}
+              - {id: n0, point: X, color: free, label: 'n_0'}
             dur: 0.8
-          - add: {id: A, tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', align: '='}
-          - morph: {target: A, tex: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
+          - eq: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}'
+          - becomes: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'
       - say: '**Step B.** Shift $x_0$ to $x_0 + \Delta x_0$; the length becomes $l_k + \Delta l_k$. Only the $x$-term changes.'
-        do:
-          - derive: {from: A, id: B, tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2', align: '='}
-          - indicate: ['B']
+        then: {id: B, tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
+        highlight: [B]
 
   - title: 'Expand both sides'
     steps:
       - say: '**Step C.** Expand the left side with $(a + b)^2 = a^2 + 2ab + b^2$.'
-        add: {id: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + (\Delta l_k)^2', align: '='}
+        eq: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + (\Delta l_k)^2'
       - say: '$\Delta l_k$ is tiny, so its square is negligible: drop it.'
         do:
-          - morph: {target: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + \cancel{(\Delta l_k)^2}'}
-          - morph: {target: Cl, tex: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2 l_k \Delta l_k'}
+          - becomes: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + \cancel{(\Delta l_k)^2}'
+          - becomes: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2 l_k \Delta l_k'
       - say: '**Step D.** On the right, regroup the shifted $x$-term and expand it the same way.'
         do:
-          - add: {id: D, tex: '\big(x_k - (x_0 + \Delta x_0)\big)^2 = \big((x_k - x_0) - \Delta x_0\big)^2', align: '='}
-          - derive: {from: D, id: D2, tex: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (\Delta x_0)^2', align: '='}
+          - eq: '\big(x_k - (x_0 + \Delta x_0)\big)^2 = \big((x_k - x_0) - \Delta x_0\big)^2'
+          - then: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (\Delta x_0)^2'
       - say: 'Again $(\Delta x_0)^2 \approx 0$.'
         do:
-          - morph: {target: D2, tex: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + \cancel{(\Delta x_0)^2}'}
-          - morph: {target: D2, tex: '\big((x_k - x_0) - \Delta x_0\big)^2 \approx (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0'}
+          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + \cancel{(\Delta x_0)^2}'
+          - becomes: '\big((x_k - x_0) - \Delta x_0\big)^2 \approx (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0'
 
   - title: 'Subtract and divide'
     steps:
       - say: '**Step E.** Put both expanded sides together.'
-        add: {id: E, tex: 'l_k^2 + 2 l_k \Delta l_k = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2', align: '='}
+        eq: 'l_k^2 + 2 l_k \Delta l_k = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2'
       - say: '**Step F.** Subtract the original $l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2$ from both sides.'
         do:
-          - morph: {target: E, tex: '\cancel{l_k^2} + 2 l_k \Delta l_k = \cancel{(x_k - x_0)^2} - 2(x_k - x_0)\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'}
-          - morph: {target: E, tex: '2 l_k \Delta l_k = -2(x_k - x_0)\Delta x_0'}
+          - becomes: '\cancel{l_k^2} + 2 l_k \Delta l_k = \cancel{(x_k - x_0)^2} - 2(x_k - x_0)\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'
+          - becomes: '2 l_k \Delta l_k = -2(x_k - x_0)\Delta x_0'
       - say: '**Step G.** Divide both sides by $2 l_k \Delta x_0$.'
         do:
-          - add: {id: G, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2(x_k - x_0)\Delta x_0}{2 l_k \Delta x_0}', align: '='}
-          - morph: {target: G, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}(x_k - x_0)\cancel{\Delta x_0}}{\cancel{2} l_k \cancel{\Delta x_0}}'}
-          - morph: {target: G, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{-(x_k - x_0)}{l_k}'}
+          - eq: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2(x_k - x_0)\Delta x_0}{2 l_k \Delta x_0}'
+          - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}(x_k - x_0)\cancel{\Delta x_0}}{\cancel{2} l_k \cancel{\Delta x_0}}'
+          - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-(x_k - x_0)}{l_k}'
       - say: 'Taking the limit $\Delta x_0 \to 0$ gives the exact partial derivative.'
-        do:
-          - add: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}', align: '=', color: accent}
-          - {indicate: [R], color: accent}
-
+        eq: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}', color: accent}
+        highlight: [R]

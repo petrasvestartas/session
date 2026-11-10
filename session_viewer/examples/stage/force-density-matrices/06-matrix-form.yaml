@@ -4,49 +4,49 @@ title: The solution in matrix form
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 points:
-  P0: [3, 3, 0.25]
-  P1: [0, 0, 0]
-  P2: [5, 0, 3]
-  P3: [0, 7, 3]
-  P4: [7, 5, 0]
+  n0: [3, 3, 0.25]
+  n1: [0, 0, 0]
+  n2: [5, 0, 3]
+  n3: [0, 7, 3]
+  n4: [7, 5, 0]
 slides:
   - title: 'Equilibrium in matrix form · (6.25)–(6.26)'
     steps:
-      - say: 'Collect the cable forces in $\mathbf{f} = [F_a, F_b, F_c, F_d]^T$ and the load in $\mathbf{p}$.'
+      - say: 'Collect the cable forces in $\mathbf{f} = [f_1, f_2, f_3, f_4]^T$ and the load in $\mathbf{p}$.'
         do:
           - add:
-              - {id: n1, point: P1, color: fixed, label: 'P_1'}
-              - {id: n2, point: P2, color: fixed, label: 'P_2'}
-              - {id: n3, point: P3, color: fixed, label: 'P_3'}
-              - {id: n4, point: P4, color: fixed, label: 'P_4'}
-              - {id: a, line: [P0, P1]}
-              - {id: b, line: [P0, P2]}
-              - {id: c, line: [P0, P3]}
-              - {id: d, line: [P0, P4]}
+              - {id: n1, point: n1, color: fixed, label: 'n_1'}
+              - {id: n2, point: n2, color: fixed, label: 'n_2'}
+              - {id: n3, point: n3, color: fixed, label: 'n_3'}
+              - {id: n4, point: n4, color: fixed, label: 'n_4'}
+              - {id: e0, line: [n0, n1]}
+              - {id: e1, line: [n0, n2]}
+              - {id: e2, line: [n0, n3]}
+              - {id: e3, line: [n0, n4]}
           - add:
-              - {id: fa, arrow: [P0, 'P0 + 0.5*(P1 - P0)'], color: accent, width: 3.2, label: 'F_a'}
-              - {id: fb, arrow: [P0, 'P0 + 0.5*(P2 - P0)'], color: accent, width: 3.2, label: 'F_b'}
-              - {id: fc, arrow: [P0, 'P0 + 0.5*(P3 - P0)'], color: accent, width: 3.2, label: 'F_c'}
-              - {id: fd, arrow: [P0, 'P0 + 0.5*(P4 - P0)'], color: accent, width: 3.2, label: 'F_d'}
-              - {id: p, arrow: [P0, 'P0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
-          - add: {id: n0, point: P0, color: free, label: 'P_0'}
+              - {id: f1, arrow: [n0, 'n0 + 0.5*(n1 - n0)'], color: accent, width: 3.2, label: 'f_1'}
+              - {id: f2, arrow: [n0, 'n0 + 0.5*(n2 - n0)'], color: accent, width: 3.2, label: 'f_2'}
+              - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: accent, width: 3.2, label: 'f_3'}
+              - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.2, label: 'f_4'}
+              - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
+          - add: {id: n0, point: n0, color: free, label: 'n_0'}
       - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine, which is minus the Jacobian entry from chapter 5.'
-        add: {id: e625, tex: '-\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T}\mathbf{f} + p_x = 0 \qquad (6.25)', align: '='}
+        eq: '-\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T}\mathbf{f} + p_x = 0 \qquad (6.25)'
       - say: 'Replace the row by (6.24). With $\mathbf{u} = x_0 - x_k$ the minus sign moves the load to the right-hand side.'
-        do:
-          - derive: {from: e625, id: e626, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p} \qquad (6.26)', align: '='}
-          - add: {id: sign, text: 'The book prints $+\,\mathbf{p} = \mathbf{0}$ with the opposite sign of $\mathbf{u}$. Both conventions give the same solution (6.32).', size: 21, color: dim}
+        then: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p} \qquad (6.26)'
+        text: 'The book prints $+\,\mathbf{p} = \mathbf{0}$ with the opposite sign of $\mathbf{u}$. Both conventions give the same solution (6.32).'
+        size: 21
+        color: dim
 
   - title: 'Force density removes the lengths · (6.27)–(6.28)'
     steps:
       - say: 'Define the force densities: the forces divided by the lengths.'
         do:
-          - add: {id: e627, tex: '\mathbf{q} = \mathbf{L}^{-1}\,\mathbf{f} \qquad (6.27)', color: free}
-          - add: {id: qk, tex: 'q_k = \frac{F_k}{l_k}'}
+          - {tex: '\mathbf{q} = \mathbf{L}^{-1}\,\mathbf{f} \qquad (6.27)', color: free}
+          - tex: 'q_k = \frac{f_k}{l_k}'
       - say: 'In (6.26), $\mathbf{L}^{-1}\mathbf{f}$ is exactly $\mathbf{q}$.'
-        do:
-          - add: {id: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{L}^{-1}\,\mathbf{f}}} = \mathbf{p}', align: '='}
-          - color: {target: 's{\mathbf{L}^{-1}\,\mathbf{f}}', color: free}
+        eq: {id: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{L}^{-1}\,\mathbf{f}}} = \mathbf{p}'}
+        color: {target: 's{\mathbf{L}^{-1}\,\mathbf{f}}', color: free}
       - say: 'Substitute: the length matrix, and with it every square root, is gone. The equation is **linear**.'
         do:
           - color: {target: 's{\mathbf{L}^{-1}\,\mathbf{f}}', color: reset}
@@ -56,48 +56,56 @@ slides:
   - title: 'The factor swap · $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u}$'
     steps:
       - say: '$\mathbf{U}\mathbf{q}$: a diagonal matrix of differences times the vector of densities.'
-        do:
-          - add: {id: l1, row: ['\mathbf{U}\mathbf{q} =', {id: U, matrix: {rows: [[u_a, 0, 0, 0], [0, u_b, 0, 0], [0, 0, u_c, 0], [0, 0, 0, u_d]], signs: false}}, {id: q, matrix: {rows: [[q_a], [q_b], [q_c], [q_d]], signs: false}}, '=', {id: uq, matrix: {rows: [[u_a q_a], [u_b q_b], [u_c q_c], [u_d q_d]], signs: false, empty: true}}]}
-          - show: ['uq[:,0]']
+        row:
+          - '\mathbf{U}\mathbf{q} ='
+          - {matrix: {rows: [[u_1, 0, 0, 0], [0, u_2, 0, 0], [0, 0, u_3, 0], [0, 0, 0, u_4]], signs: false}}
+          - {matrix: {rows: [[q_1], [q_2], [q_3], [q_4]], signs: false}}
+          - '='
+          - {id: uq, matrix: {rows: [[u_1 q_1], [u_2 q_2], [u_3 q_3], [u_4 q_4]], signs: false, empty: true}}
+        show: ['uq[:,0]']
       - say: 'Each row is a product of two numbers. Swap the roles: a diagonal of densities times the vector of differences.'
-        do:
-          - add: {id: l2, row: ['\mathbf{Q}\mathbf{u} =', {id: Q, matrix: {rows: [[q_a, 0, 0, 0], [0, q_b, 0, 0], [0, 0, q_c, 0], [0, 0, 0, q_d]], signs: false}}, {id: u, matrix: {rows: [[u_a], [u_b], [u_c], [u_d]], signs: false}}, '=', {id: qu, matrix: {rows: [[q_a u_a], [q_b u_b], [q_c u_c], [q_d u_d]], signs: false, empty: true}}]}
-          - show: ['qu[:,0]']
-          - indicate: ['uq[:,0]', 'qu[:,0]']
+        row:
+          - '\mathbf{Q}\mathbf{u} ='
+          - {matrix: {rows: [[q_1, 0, 0, 0], [0, q_2, 0, 0], [0, 0, q_3, 0], [0, 0, 0, q_4]], signs: false}}
+          - {matrix: {rows: [[u_1], [u_2], [u_3], [u_4]], signs: false}}
+          - '='
+          - {id: qu, matrix: {rows: [[q_1 u_1], [q_2 u_2], [q_3 u_3], [q_4 u_4]], signs: false, empty: true}}
+        show: ['qu[:,0]']
+        highlight: ['uq[:,0]', 'qu[:,0]']
       - say: 'And $\mathbf{u} = \mathbf{C}\mathbf{x}$, so the unknown coordinates appear in plain sight.'
-        add: {id: sw, tex: '\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}', color: accent}
+        tex: '\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}'
+        color: accent
 
   - title: 'Isolate the coordinates · (6.29)–(6.30)'
     steps:
       - say: 'Put $\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}$ into (6.28).'
-        do:
-          - add: {id: f, tex: '\mathbf{C}_N^{T}\,{{\mathbf{U}\,\mathbf{q}}} = \mathbf{p}', align: '='}
-          - morph: {target: f, tex: '\mathbf{C}_N^{T}\,{{\mathbf{Q}\,\mathbf{C}\,\mathbf{x}}} = \mathbf{p} \qquad (6.29)', map: {'\mathbf{U}\,\mathbf{q}': '\mathbf{Q}\,\mathbf{C}\,\mathbf{x}'}}
+        eq: {id: e629, tex: '\mathbf{C}_N^{T}\,{{\mathbf{U}\,\mathbf{q}}} = \mathbf{p}'}
+        morph: {target: e629, tex: '\mathbf{C}_N^{T}\,{{\mathbf{Q}\,\mathbf{C}\,\mathbf{x}}} = \mathbf{p} \qquad (6.29)', map: {'\mathbf{U}\,\mathbf{q}': '\mathbf{Q}\,\mathbf{C}\,\mathbf{x}'}}
       - say: 'Split $\mathbf{C}\mathbf{x}$ into free and fixed parts, $\mathbf{C}_N\mathbf{x}_N + \mathbf{C}_F\mathbf{x}_F$.'
-        derive: {from: f, id: f2, tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)', align: '='}
+        then: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'
       - say: 'The first product multiplies the unknown $\mathbf{x}_N$; the second only contains known anchors.'
-        morph: {target: f2, tex: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N + \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'}
+        becomes: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N + \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'
 
   - title: 'Two matrices, one solve · (6.31)–(6.32)'
     steps:
       - say: 'Name them: the stiffness of the free nodes $\mathbf{D}_N$ and the coupling to the anchors $\mathbf{D}_F$.'
-        add: {id: dn, tex: '\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N, \qquad \mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F'}
+        tex: '\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N, \qquad \mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F'
       - say: 'Move the known part to the right-hand side.'
-        add: {id: e631, tex: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F \qquad (6.31)', align: '='}
+        eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F \qquad (6.31)'
       - say: 'Multiply by $\mathbf{D}_N^{-1}$: one linear step per coordinate direction.'
         do:
-          - add: {id: x, tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', align: '=', color: x}
-          - add: {id: y, tex: '\mathbf{y}_N = \mathbf{D}_N^{-1}(\mathbf{p}_y - \mathbf{D}_F\,\mathbf{y}_F) \qquad (6.32)', align: '=', color: y}
-          - add: {id: z, tex: '\mathbf{z}_N = \mathbf{D}_N^{-1}(\mathbf{p}_z - \mathbf{D}_F\,\mathbf{z}_F)', align: '=', color: z}
-          - indicate: [n0]
+          - eq: {tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', color: x}
+          - eq: {tex: '\mathbf{y}_N = \mathbf{D}_N^{-1}(\mathbf{p}_y - \mathbf{D}_F\,\mathbf{y}_F) \qquad (6.32)', color: y}
+          - eq: {tex: '\mathbf{z}_N = \mathbf{D}_N^{-1}(\mathbf{p}_z - \mathbf{D}_F\,\mathbf{z}_F)', color: z}
+          - highlight: [n0]
 
   - title: 'Forces and the whole chain · (6.33)'
     steps:
       - say: 'With the coordinates known, measure the lengths and recover the forces.'
-        do:
-          - add: {id: e633, tex: '\mathbf{f} = \mathbf{L}\,\mathbf{q} \qquad (6.33)', color: accent}
-          - indicate: [fa, fb, fc, fd]
+        tex: '\mathbf{f} = \mathbf{L}\,\mathbf{q} \qquad (6.33)'
+        color: accent
+        highlight: [f1, f2, f3, f4]
       - say: 'The whole of 6.4.3 in one line: two substitutions turn a non-linear equilibrium into a linear solve.'
-        do:
-          - add: {id: chain, tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p} \;\xrightarrow{\;\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}\;}\; \mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p} \;\xrightarrow{\;\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}\;}\; \mathbf{D}_N\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\mathbf{x}_F'}
-          - {indicate: [chain], color: accent}
+        tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p} \;\xrightarrow{\;\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}\;}\; \mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p} \;\xrightarrow{\;\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}\;}\; \mathbf{D}_N\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\mathbf{x}_F'
+        id: chain
+        highlight: [chain]

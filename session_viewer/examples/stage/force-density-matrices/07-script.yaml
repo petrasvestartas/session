@@ -3,28 +3,28 @@ title: The script
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
 net:
-  fixed: {P1: [0, 0, 0], P2: [5, 0, 3], P3: [0, 7, 3], P4: [7, 5, 0]}
-  free: {P0: [3.6, 3.4, 1.9]}
-  cables: {a: [P0, P1], b: [P0, P2], c: [P0, P3], d: [P0, P4]}
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3.6, 3.4, 1.9]}
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
   q: 1
-  load: {P0: [0, 0, -5]}
+  load: {n0: [0, 0, -5]}
 slides:
   - title: What is given, as arrays
     steps:
-      - say: 'The five nodes again, with $P_0$ at a guess. The script starts from the connectivity matrix and splits its columns into free and fixed.'
+      - say: 'The five nodes again, with $n_0$ at a guess. The script starts from the connectivity matrix and splits its columns into free and fixed.'
         show: net
         code: |
           import numpy as np
 
-          # connectivity: rows = cables a..d, columns = nodes P0..P4
+          # connectivity: rows = bars e0..e3, columns = nodes n0..n4
           C = np.array([
               [1, -1,  0,  0,  0],
               [1,  0, -1,  0,  0],
               [1,  0,  0, -1,  0],
               [1,  0,  0,  0, -1],
           ])
-          free  = [0]            # P0
-          fixed = [1, 2, 3, 4]   # P1..P4
+          free  = [0]            # n0
+          fixed = [1, 2, 3, 4]   # n1..n4
           C_N = C[:, free]
           C_F = C[:, fixed]
       - say: 'Then the fixed coordinates, the force densities on a diagonal, and the load.'
