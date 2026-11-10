@@ -106,6 +106,23 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 A matrix cell is a rounded fill: pink for positive, blue for negative, dark for zero. A matrix
 with more than 14 rows or columns is drawn as its pattern: one small square per non-zero entry.
 
+## Your own blocks
+
+A chapter can name a group of step keys and reuse it. `$name` is a hole the step fills:
+
+```yaml
+blocks:
+  given:
+    - text: '**Given.** $what'
+    - matrix: {id: $id, rows: $rows}
+    - highlight: [$id]
+slides:
+  - title: The load
+    steps:
+      - say: 'The load on the free node.'
+        given: {what: the load, id: p, rows: [[0, 0, -5]]}
+```
+
 ## The net
 
 ```yaml

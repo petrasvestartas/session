@@ -223,3 +223,26 @@ slides:
     stage.frame(0.0);
     assert!(stage.errors.is_empty(), "{:?}", stage.errors);
 }
+
+#[test]
+fn a_chapter_block_fills_its_holes() {
+    let src = "
+title: blocks
+blocks:
+  given:
+    - text: '**Given.** $what'
+    - matrix: {id: $id, rows: $rows}
+    - highlight: [$id]
+slides:
+  - title: one block
+    steps:
+      - given: {what: the load, id: p, rows: [[0, 0, -5]]}
+";
+    let chapter = deck::chapter(src, "blocks.yaml").unwrap();
+    assert_eq!(chapter.slides[0].steps[0].actions.len(), 3);
+    let index = deck::index("name: t\nchapters: [blocks.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, vec![chapter]);
+    stage.rebuild(0, Some(0));
+    stage.frame(0.0);
+    assert!(stage.errors.is_empty(), "{:?}", stage.errors);
+}

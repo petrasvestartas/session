@@ -824,6 +824,11 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
     };
     let mut cx = Cx::default();
     cx.home = points.iter().cloned().collect();
+    if let Some(Value::Mapping(blocks)) = get(m, "blocks") {
+        for (k, v) in blocks {
+            cx.blocks.insert(text(k).unwrap_or_default(), v.clone());
+        }
+    }
     if let Some(v) = get(m, "net") {
         let net = net(v, name)?;
         for (k, at) in net.names.iter().zip(&net.at) {
@@ -898,6 +903,7 @@ struct Cx {
     home: HashMap<String, [f64; 3]>, // Where each named point starts.
     walked: Vec<String>,             // Points the last `walk` moved.
     tables: HashMap<String, Vec<Vec<f64>>>, // Entries of each numeric matrix, as the slides have left it.
+    blocks: HashMap<String, Value>, // The chapter's own blocks: lists of step keys with `$name` holes.
 }
 
 impl Cx {
@@ -1352,6 +1358,39 @@ fn multiply(v: &Value, at: &str) -> Result<Vec<Action>, String> {
     ])
 }
 
+/// A block template with every `$name` replaced by what the step passed under `name`.
+fn filled(template: &Value, given: &Value) -> Value {
+    let lookup = |name: &str| match given {
+        Value::Mapping(m) => get(m, name).cloned(),
+        _ => None,
+    };
+    match template {
+        Value::String(s) => {
+            if let Some(whole) = s.strip_prefix('$').and_then(lookup) {
+                return whole;
+            }
+            let mut out = s.clone();
+            if let Value::Mapping(m) = given {
+                for (k, v) in m {
+                    if let (Some(k), Some(v)) = (text(k), text(v)) {
+                        out = out.replace(&format!("${k}"), &v);
+                    }
+                }
+            }
+            Value::String(out)
+        }
+        Value::Sequence(items) => Value::Sequence(items.iter().map(|item| filled(item, given)).collect()),
+        Value::Mapping(m) => {
+            let mut out = Mapping::new();
+            for (k, v) in m {
+                out.insert(k.clone(), filled(v, given));
+            }
+            Value::Mapping(out)
+        }
+        other => other.clone(),
+    }
+}
+
 /// Step keys that stand for a common action.
 const SHORT: [&str; 17] = [
     "eliminate",
@@ -1460,6 +1499,16 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
             "multiply" => out.extend(multiply(v, at)?),
             "node" => out.extend(node(v, at, cx)?),
             _ if KINDS.contains(&key.as_str()) => out.push(action(&one, at, cx)?),
+            _ if cx.blocks.contains_key(&key) => {
+                let template = filled(&cx.blocks[&key], v);
+                for (i, item) in list(&template).iter().enumerate() {
+                    let at = &format!("{at} {}", i + 1);
+                    match item {
+                        Value::Mapping(im) => out.extend(step(im, at, cx)?),
+                        _ => return err(at, "a block is a list of step keys"),
+                    }
+                }
+            }
             _ => return err(at, "is not a step key"),
         }
     }

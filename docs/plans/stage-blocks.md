@@ -88,7 +88,8 @@ reported in red on the slide like any other mistake.
 2. `reveal`, `fill`, `cases` (pure expansions of existing actions).
 3. `eliminate` (*done*, 09-solver; it computes on the matrix the slides typed) and `multiply`
    (*done*, with a test; no chapter uses it yet).
-4. `blocks:` templates and `outline`.
+4. `blocks:` templates (*done*, per chapter, with a test). `outline` and `cases` are dropped:
+   each saves a few lines once.
 5. Rewrite the eighteen chapters with the blocks; the native test that plays every step is the
    guard that nothing moved.
 
