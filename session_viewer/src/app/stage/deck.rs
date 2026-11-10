@@ -1041,9 +1041,41 @@ fn solvable(net: &Net, at: &str) -> Result<(), String> {
     }
 }
 
+/// One line per cable of the solved net, coloured from blue to pink and thickened by its force.
+fn force_lines(net: &Net) -> Vec<ObjSpec> {
+    let rest = net.solve();
+    let force = |k: usize| {
+        let (a, b) = (rest[net.cables[k].1], rest[net.cables[k].2]);
+        let length = (0..3).map(|d| (a[d] - b[d]).powi(2)).sum::<f64>().sqrt();
+        net.q[k] * length
+    };
+    let forces: Vec<f64> = (0..net.cables.len()).map(force).collect();
+    let low = forces.iter().copied().fold(f64::INFINITY, f64::min);
+    let high = forces.iter().copied().fold(0.0, f64::max);
+    let (cold, hot) = ([43.0, 111.0, 219.0], [220.0, 75.0, 141.0]);
+    let mut out = Vec::new();
+    for (k, (name, a, b)) in net.cables.iter().enumerate() {
+        let t = if high > low { (forces[k] - low) / (high - low) } else { 0.5 };
+        let mix = |i: usize| (cold[i] + t * (hot[i] - cold[i])).round() as u8;
+        let line = Content::Line {
+            a: Pos::Name(net.names[*a].clone()),
+            b: Pos::Name(net.names[*b].clone()),
+            arrow: false,
+        };
+        let mut o = plain(format!("force_{name}"), line);
+        o.color = Some(format!("#{:02x}{:02x}{:02x}", mix(0), mix(1), mix(2)));
+        o.width = Some(1.4 + 5.0 * t);
+        out.push(o);
+    }
+    out
+}
+
 /// The objects that draw one part of the net: `fixed`, `free`, `cables`, `loads` or `net`.
 fn net_objects(net: &Net, group: &str) -> Option<Vec<ObjSpec>> {
     let all = group == "net";
+    if group == "forces" {
+        return Some(force_lines(net));
+    }
     if !all && !["fixed", "free", "cables", "loads"].contains(&group) {
         return None;
     }

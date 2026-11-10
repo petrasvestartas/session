@@ -1,0 +1,36 @@
+# Chapter 3: a whole net materialized. Forces shown by colour and thickness, then one cut length per cable.
+title: A net, materialized
+grid: {center: [4, 4], size: 11, step: 1}
+camera: {yaw: -52, pitch: 30}
+net:
+  grid: [9, 9]            # the net of presentation 2: four fixed corners, two of them lifted
+  fixed: corners
+  lift: {n0_0: 4, n8_8: 4}
+  q: 1
+  rim: 10
+  load: [0, 0, -0.1]
+slides:
+  - title: The forces of a whole net
+    steps:
+      - say: 'The net of presentation 2: 81 nodes, 144 cables, four fixed corners. One linear solve gives its shape.'
+        do:
+          - show: [cables, fixed]
+          - solve: true
+      - say: 'Each cable carries $f = q\,l$. Draw every cable by its force: thin and blue for a small force, thick and pink for a large one.'
+        do:
+          - show: forces
+          - eq: '\mathbf{f} = \mathbf{L}\,\mathbf{q}'
+      - say: 'The rim carries the net. Its cables have ten times the force density and pull with 10.9 to 12.4; the inner cables with 0.8 to 1.0.'
+        do:
+          - eq: 'f_{\text{rim}} = 10.9 \dots 12.4, \qquad f_{\text{inner}} = 0.8 \dots 1.0'
+
+  - title: One cut length per cable
+    steps:
+      - say: 'Materialization, cable by cable: with the axial stiffness $EA$ the unstretched length follows from the force.'
+        eq: 'l_{0,k} = \frac{l_k}{1 + \frac{f_k}{EA}}'
+      - say: 'With $EA = 500$, the longest rim cable is 1.236 long in the net and must be cut to 1.206: it stretches by 2.4 %.'
+        eq: 'l_0 = \frac{1.236}{1 + \frac{12.36}{500}} = 1.206'
+      - say: 'An inner cable carries a twelfth of that force and stretches by only 0.2 %.'
+        eq: 'l_0 = \frac{1.000}{1 + \frac{1.0}{500}} = 0.998'
+      - say: 'The thicker and pinker a cable, the more it must be shortened before it is hung. 144 cables, 144 cut lengths, and the net takes the shape that was computed.'
+        text: 'shape $\rightarrow$ forces $\rightarrow$ cut lengths'

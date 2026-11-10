@@ -97,6 +97,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `matrix: DN` | a matrix of the net by name (table below), or `{rows: [[1, -1], [0, 1]]}` typed by hand |
 | `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line |
 | `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |
+| `show: forces` | one line per cable of the solved net, blue and thin for a small force, pink and thick for a large one |
 | `solve: true` | moves the free nodes to equilibrium; `solve: {load: [0, 0, 1], q: 2, rim: 6}` solves a changed net |
 | `project: {of: F1, parts: 'F_{1,%}'}` | the dashed box an arrow spans, the walk along its edges in x, y, z colours, and a label on each edge (`%` becomes the axis); `axes: [x, z]` for a flat case |
 | `walk: [F1, F2, F3]` | puts each arrow at the tip of the one before (the arrows run between named points); `walk: back` returns them |

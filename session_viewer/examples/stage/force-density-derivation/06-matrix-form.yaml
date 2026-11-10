@@ -24,10 +24,10 @@ slides:
               - {id: e2, line: [n0, n3]}
               - {id: e3, line: [n0, n4]}
           - add:
-              - {id: f1, arrow: [n0, 'n0 + 0.5*(n1 - n0)'], color: accent, width: 3.2, label: 'f_1'}
-              - {id: f2, arrow: [n0, 'n0 + 0.5*(n2 - n0)'], color: accent, width: 3.2, label: 'f_2'}
-              - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: accent, width: 3.2, label: 'f_3'}
-              - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.2, label: 'f_4'}
+              - {id: f1, arrow: [n0, 'n0 + 0.5*(n1 - n0)'], color: accent, width: 3.6, label: 'f_1'}
+              - {id: f2, arrow: [n0, 'n0 + 0.5*(n2 - n0)'], color: accent, width: 3.6, label: 'f_2'}
+              - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: accent, width: 3.6, label: 'f_3'}
+              - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.6, label: 'f_4'}
               - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
       - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine, which is minus the Jacobian entry from chapter 5.'

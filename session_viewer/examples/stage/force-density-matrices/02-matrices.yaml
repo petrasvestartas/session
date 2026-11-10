@@ -18,10 +18,10 @@ slides:
               - {id: n2, point: n2, color: fixed, label: 'n_2'}
               - {id: n3, point: n3, color: fixed, label: 'n_3'}
               - {id: n4, point: n4, color: fixed, label: 'n_4'}
-              - {id: e0, arrow: [n0, n1], label: 'e_0', width: 2.6}
-              - {id: e1, arrow: [n0, n2], label: 'e_1', width: 2.6}
-              - {id: e2, arrow: [n0, n3], label: 'e_2', width: 2.6}
-              - {id: e3, arrow: [n0, n4], label: 'e_3', width: 2.6}
+              - {id: e0, arrow: [n0, n1], label: 'e_0'}
+              - {id: e1, arrow: [n0, n2], label: 'e_1'}
+              - {id: e2, arrow: [n0, n3], label: 'e_2'}
+              - {id: e3, arrow: [n0, n4], label: 'e_3'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
 
   - title: '$\mathbf{C}$ turns coordinates into differences'
@@ -45,10 +45,10 @@ slides:
         show: ['uv[1,0]', 'uv[2,0]', 'uv[3,0]']
       - say: 'In 3D these are the $x$-extents of the cables, measured from each anchor to $n_0$.'
         add:
-          - {id: u1, arrow: [n1, '[x(n0), y(n1), z(n1)]'], color: x, width: 3.4}
-          - {id: u2, arrow: [n2, '[x(n0), y(n2), z(n2)]'], color: x, width: 3.4}
-          - {id: u3, arrow: [n3, '[x(n0), y(n3), z(n3)]'], color: x, width: 3.4}
-          - {id: u4, arrow: [n4, '[x(n0), y(n4), z(n4)]'], color: x, width: 3.4}
+          - {id: u1, arrow: [n1, '[x(n0), y(n1), z(n1)]'], color: x, width: 3.6}
+          - {id: u2, arrow: [n2, '[x(n0), y(n2), z(n2)]'], color: x, width: 3.6}
+          - {id: u3, arrow: [n3, '[x(n0), y(n3), z(n3)]'], color: x, width: 3.6}
+          - {id: u4, arrow: [n4, '[x(n0), y(n4), z(n4)]'], color: x, width: 3.6}
         highlight: ['uv[:,0]']
 
   - title: Free and fixed columns

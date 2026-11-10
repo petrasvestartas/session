@@ -5,3 +5,4 @@ name: Force density 4 · materialization
 chapters:
   - 01-materialization.yaml
   - 02-resume.yaml
+  - 03-net.yaml

@@ -12,10 +12,10 @@ points:
 blocks:
   forces:                 # the four cable forces, half way along their cables
     - add:
-        - {id: f1, arrow: [n0, 'n0 + 0.5*(n1 - n0)'], color: accent, width: 3.4, label: 'f_1'}
-        - {id: f2, arrow: [n0, 'n0 + 0.5*(n2 - n0)'], color: accent, width: 3.4, label: 'f_2'}
-        - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: accent, width: 3.4, label: 'f_3'}
-        - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.4, label: 'f_4'}
+        - {id: f1, arrow: [n0, 'n0 + 0.5*(n1 - n0)'], color: accent, width: 3.6, label: 'f_1'}
+        - {id: f2, arrow: [n0, 'n0 + 0.5*(n2 - n0)'], color: accent, width: 3.6, label: 'f_2'}
+        - {id: f3, arrow: [n0, 'n0 + 0.5*(n3 - n0)'], color: accent, width: 3.6, label: 'f_3'}
+        - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.6, label: 'f_4'}
 slides:
   - title: Five nodes, four cables
     steps:

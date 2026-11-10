@@ -44,7 +44,7 @@ slides:
         do:
           - remove: [k.x, qn]
           - add: {id: ghost, line: [n0, n1], color: dim, dash: true, width: 2}
-          - add: {id: dx, arrow: [n0, X], color: x, width: 3.4}
+          - add: {id: dx, arrow: [n0, X], color: x, width: 3.6}
           - eq: 'l_k = {=len(X,n1):.3}'
           - move: {point: X, to: [3.8, 3, 0.25], dur: 1.6}
       - say: 'Compare the change in length with the shift. For a big nudge the ratio is still inexact.'
