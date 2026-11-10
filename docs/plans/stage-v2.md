@@ -28,7 +28,7 @@ Redo of the first stage attempt (kept on the local branch `backup/stage-v1`). Wr
 |---|---|---|
 | viewer as it is | 3D drawn by an egui overlay with a private camera | kernel geometry in the real scene, real camera and orbit |
 | kernel functions | none | `lerp`/`morph` family in all three kernels, same tests |
-| separate deck | one deck, seven chapters | `force-density` (levels 1-3) and `force-density-derivations` |
+| separate deck | one deck, seven chapters | five decks, listed under *Decks* |
 | as static scenes | new dialect | the scene manifest, extended: `name`, `items`, `texts`, `view`, `grid` keep their meaning |
 | manim | skimmed | timing, Write, matching and layout follow the studied formulas (below) |
 
@@ -84,19 +84,21 @@ YAML deck ──parse──> Deck (slides, steps, objects)
                                    labels on 3D objects use the camera's projection
 ```
 
-Modules in `session_viewer/src/app/stage/`:
+Modules in `session_viewer/src/app/stage/`, as built:
 
 | file | job |
 |---|---|
 | `font.rs` | faces, MATH constants, glyph metrics, stretch constructions |
-| `tex.rs` | lexer, parser, TeX layout to glyphs and rules; parts `{{…}}`; prose with `$…$` |
-| `deck.rs` | YAML schema and validation; clear author errors with slide/step numbers |
-| `expr.rs` | positions and live values: `mid(A,B)`, `A + [..]`, `len(A,B)` |
-| `spatial.rs` | builds the kernel Session, owns scene rows, camera poses, per-frame geometry |
-| `column.rs` | the right-hand column: stacking, equals alignment, fitting, relayout |
-| `motion.rs` | clock, easing, scheduled actions, matching transforms |
-| `stage.rs` | state at a step, navigation, replay for stepping back |
-| `paint.rs` | glyph atlas and egui drawing of formulas, cells, frames and 3D labels |
+| `tex.rs` | lexer, parser, TeX layout to glyphs and rules; parts `{{…}}`; prose with `$…$`; code |
+| `deck.rs` | YAML schema, short step keys, blocks, author errors with slide and step numbers |
+| `net.rs` | a cable net: its matrices and the force-density solve |
+| `eval.rs` | positions: `mid(A, B)`, `A + [..]`, `lerp(A, B, t)`, `x(A)` |
+| `object.rs`, `layout.rs`, `matrix.rs` | objects, the right-hand column (stacking, equals alignment, fitting), matrices |
+| `geometry.rs`, `spatial.rs`, `view.rs` | 3D objects as kernel geometry, their scene rows, the camera |
+| `actions.rs`, `morph.rs`, `tween.rs` | what a step does, matching transforms, clock and easing |
+| `run.rs` | state at a step, navigation, replay for stepping back, the frame |
+| `check.rs` | overlaps between blocks and labels |
+| `paint.rs`, `draw.rs` | glyph atlas and egui drawing of formulas, cells, frames and 3D labels |
 | `tests.rs` | layout facts, parser facts, and every step of every example deck |
 
 ## YAML format (extends the scene manifest)
