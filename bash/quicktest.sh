@@ -54,7 +54,8 @@ if [[ "$RUN_PYTHON" == "true" ]]; then
 fi
 
 if [[ "$RUN_CPP" == "true" ]]; then
-    "${SCRIPT_DIR}/test_cpp.sh" --no-viewer
+    # only the tests of this class's file: the whole C++ suite takes more than ten minutes
+    SESSION_MINITEST_FILE="${CLASS_FILTER}_test" "${SCRIPT_DIR}/test_cpp.sh" --no-viewer
 fi
 
 if [[ "$RUN_RUST" == "true" ]]; then

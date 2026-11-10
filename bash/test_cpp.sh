@@ -96,6 +96,8 @@ PYTHON=$(get_python_path "$REPO_ROOT")
 # "1531 minitests" was 760 + 771 -- the same tests counted twice).
 CPP_AGG=$(grep -oE "\[cpp-minitest\] [0-9]+/[0-9]+" "$MINITEST_LOG" 2>/dev/null | tail -1 | grep -oE "[0-9]+" | tail -1)
 rm -f "$MINITEST_LOG"
+# a run filtered to one file only refreshes that class's json, so there is no total to reconcile
+[[ -n "${SESSION_MINITEST_FILE:-}" ]] && CPP_AGG=""
 print_class_summary "cpp" "${REPO_ROOT}/session_tests/session_cpp" "$PYTHON" "$CPP_AGG" || {
     log_lang "cpp" "class-summary reported stale/missing/failing classes (see above)"
     exit 1

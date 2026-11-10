@@ -41,7 +41,11 @@ JOBS=$(get_jobs)
 # x64) and bindgen finds libclang on the stock runners (Ubuntu installs libclang-dev in the
 # workflow). Its test is a `cargo test --features pdf` unit test in pdf_test.rs, not an Io test.
 PDF_FEATURE=()
-if [[ "${SESSION_PDF:-}" == "1" ]] || [[ -z "${CI:-}" && -z "${GITHUB_ACTIONS:-}" ]]; then
+# In Git Bash on Windows mupdf-sys does not compile (bindgen cannot find max_align_t), so the
+# feature is off there unless SESSION_PDF=1 asks for it; SESSION_PDF=0 switches it off anywhere.
+case "$(uname -s)" in MINGW*|MSYS*) PDF_LOCAL=0 ;; *) PDF_LOCAL=1 ;; esac
+if [[ "${SESSION_PDF:-}" == "1" ]] ||
+   [[ "${SESSION_PDF:-}" != "0" && "$PDF_LOCAL" == "1" && -z "${CI:-}" && -z "${GITHUB_ACTIONS:-}" ]]; then
     PDF_FEATURE=(--features pdf)
 
     # bindgen needs the host C standard headers on some Linux setups where libclang
