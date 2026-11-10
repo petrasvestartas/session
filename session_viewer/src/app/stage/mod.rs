@@ -18,6 +18,14 @@ pub struct Loaded {
     pub chapters: Vec<deck::Chapter>,
 }
 
+/// One finger on the screen: where it went down, where it is, and whether it orbits the 3D side.
+struct Touch {
+    id: u64,
+    start: [f32; 2],
+    at: [f32; 2],
+    orbit: bool,
+}
+
 /// The running deck with its painter and pointer state.
 pub struct StageApp {
     pub stage: run::Stage,
@@ -28,6 +36,7 @@ pub struct StageApp {
     press: Option<([f32; 2], [f32; 2], bool)>, // Press on screen and slide, and whether it orbits.
     cursor: [f32; 2],
     last_click: f64,
+    touch: Option<Touch>,
     #[cfg(target_arch = "wasm32")]
     published: String, // The state last written to the canvas.
 }
@@ -57,6 +66,7 @@ impl StageApp {
             press: None,
             cursor: [0.0; 2],
             last_click: 0.0,
+            touch: None,
             #[cfg(target_arch = "wasm32")]
             published: String::new(),
         }
@@ -127,27 +137,17 @@ impl StageApp {
                     false
                 }
                 ElementState::Released => {
-                    let Some((start, at, orbit)) = self.press.take() else {
+                    let Some((start, _, orbit)) = self.press.take() else {
                         return false;
                     };
                     if (self.cursor[0] - start[0]).hypot(self.cursor[1] - start[1]) > 4.0 {
                         return false;
                     }
-                    let p = egui::pos2(self.cursor[0], self.cursor[1]);
-                    if let Some(&(_, chapter)) = self.tabs.iter().find(|(r, _)| r.contains(p)) {
-                        self.stage.chapter_go(chapter, now);
-                    } else if orbit {
-                        if now - self.last_click < 350.0 {
-                            self.stage.cam_serial += 1;
-                        }
-                        self.last_click = now;
-                    } else if at[1] > 90.0 {
-                        self.stage.next(now);
-                    }
-                    self.stage.changed = true;
+                    self.tap(self.cursor, orbit, now);
                     true
                 }
             },
+            WindowEvent::Touch(touch) => self.finger(touch, scale, now, camera),
             WindowEvent::MouseWheel { delta, .. } => {
                 let at = frame.slide(egui::pos2(self.cursor[0], self.cursor[1]));
                 if at[0] >= self.stage.split * run::W {
@@ -162,6 +162,85 @@ impl StageApp {
                 true
             }
             _ => false,
+        }
+    }
+
+    /// A click or tap: a chapter tab, a double tap on the 3D side to reset the view, else the next step.
+    fn tap(&mut self, at: [f32; 2], orbit: bool, now: f64) {
+        let p = egui::pos2(at[0], at[1]);
+        if let Some(&(_, chapter)) = self.tabs.iter().find(|(r, _)| r.contains(p)) {
+            self.stage.chapter_go(chapter, now);
+        } else if orbit {
+            if now - self.last_click < 350.0 {
+                self.stage.cam_serial += 1;
+            }
+            self.last_click = now;
+        } else {
+            self.stage.next(now);
+        }
+        self.stage.changed = true;
+    }
+
+    /// One finger: swipe left for the next step and right for the one before, drag the 3D side to orbit.
+    fn finger(
+        &mut self,
+        touch: &winit::event::Touch,
+        scale: f64,
+        now: f64,
+        camera: &mut crate::camera::Camera,
+    ) -> bool {
+        use winit::event::TouchPhase;
+        let Some(frame) = self.frame else {
+            return false;
+        };
+        let p = [(touch.location.x / scale) as f32, (touch.location.y / scale) as f32];
+        match touch.phase {
+            TouchPhase::Started => {
+                let slide = frame.slide(egui::pos2(p[0], p[1]));
+                let inside = (0.0..run::H).contains(&slide[1]);
+                let orbit = inside && slide[0] < self.stage.split * run::W;
+                self.touch = Some(Touch {
+                    id: touch.id,
+                    start: p,
+                    at: p,
+                    orbit,
+                });
+                false
+            }
+            TouchPhase::Moved => {
+                let Some(finger) = self.touch.as_mut().filter(|f| f.id == touch.id) else {
+                    return false;
+                };
+                let (dx, dy) = (p[0] - finger.at[0], p[1] - finger.at[1]);
+                finger.at = p;
+                if !finger.orbit {
+                    return false;
+                }
+                camera.orbit(dx, dy);
+                self.stage.changed = true;
+                true
+            }
+            TouchPhase::Ended => {
+                let Some(finger) = self.touch.take().filter(|f| f.id == touch.id) else {
+                    return false;
+                };
+                let (dx, dy) = (p[0] - finger.start[0], p[1] - finger.start[1]);
+                if dx.hypot(dy) < 8.0 {
+                    self.tap(p, finger.orbit, now);
+                } else if !finger.orbit && dx.abs() > 40.0 && dx.abs() > 1.5 * dy.abs() {
+                    if dx < 0.0 {
+                        self.stage.next(now);
+                    } else {
+                        self.stage.prev(now);
+                    }
+                    self.stage.changed = true;
+                }
+                true
+            }
+            TouchPhase::Cancelled => {
+                self.touch = None;
+                false
+            }
         }
     }
 
