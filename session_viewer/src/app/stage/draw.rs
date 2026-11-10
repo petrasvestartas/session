@@ -9,9 +9,7 @@ use std::collections::HashMap;
 pub(super) fn fade(mut d: Draw, a: f32) -> Draw {
     match &mut d {
         Draw::Prim(p) => p.color[3] *= a,
-        Draw::Line { color, .. } | Draw::Path { color, .. } | Draw::Head { color, .. } => {
-            color[3] *= a
-        }
+        Draw::Line { color, .. } | Draw::Path { color, .. } => color[3] *= a,
         Draw::Disc { color, ring, .. } => {
             color[3] *= a;
             ring[3] *= a;

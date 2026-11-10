@@ -748,10 +748,10 @@ pub fn default_palette() -> HashMap<String, Rgba> {
         ("free", "#dc4b8d"),
         ("fixed", "#5b9cf6"),
         ("load", "#4fc775"),
-        ("x", "#ef7770"),
+        ("x", "#ee6fae"),
         ("y", "#62cc7c"),
         ("z", "#72a4ef"),
-        ("accent", "#f2c14e"),
+        ("accent", "#a98bf0"),
         ("bar", "#c9ced6"),
         ("pos", "#dc4b8d"),
         ("neg", "#2b6fdb"),
@@ -1050,12 +1050,18 @@ fn force_lines(net: &Net) -> Vec<ObjSpec> {
         net.q[k] * length
     };
     let forces: Vec<f64> = (0..net.cables.len()).map(force).collect();
-    let low = forces.iter().copied().fold(f64::INFINITY, f64::min);
-    let high = forces.iter().copied().fold(0.0, f64::max);
+    let high = forces.iter().copied().fold(1e-12, f64::max);
+    // colour by rank, so cables that differ a little still differ in colour; thickness by the force itself
+    let mut order: Vec<usize> = (0..forces.len()).collect();
+    order.sort_by(|a, b| forces[*a].total_cmp(&forces[*b]));
+    let mut rank = vec![0.0; forces.len()];
+    for (place, &k) in order.iter().enumerate() {
+        rank[k] = place as f64 / (forces.len().max(2) - 1) as f64;
+    }
     let (cold, hot) = ([43.0, 111.0, 219.0], [220.0, 75.0, 141.0]);
     let mut out = Vec::new();
     for (k, (name, a, b)) in net.cables.iter().enumerate() {
-        let t = if high > low { (forces[k] - low) / (high - low) } else { 0.5 };
+        let t = rank[k];
         let mix = |i: usize| (cold[i] + t * (hot[i] - cold[i])).round() as u8;
         let line = Content::Line {
             a: Pos::Name(net.names[*a].clone()),
@@ -1064,7 +1070,7 @@ fn force_lines(net: &Net) -> Vec<ObjSpec> {
         };
         let mut o = plain(format!("force_{name}"), line);
         o.color = Some(format!("#{:02x}{:02x}{:02x}", mix(0), mix(1), mix(2)));
-        o.width = Some(1.4 + 5.0 * t);
+        o.width = Some(1.2 + 4.8 * (forces[k] / high).sqrt());
         out.push(o);
     }
     out

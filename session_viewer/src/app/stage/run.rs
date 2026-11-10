@@ -57,10 +57,6 @@ pub enum Draw {
         width: f32,
         color: Rgba,
     },
-    Head {
-        pts: [[f32; 2]; 3],
-        color: Rgba,
-    },
 }
 
 /// A running effect.
@@ -628,16 +624,6 @@ impl Stage {
                 };
                 objects3.extend(self.geo_spatial(o, now, grow, alpha));
                 if self.scene {
-                    if grow >= 0.95
-                        && let Some((_, pts)) = self.arrow_head(o, now)
-                    {
-                        let base = o.colors.get(&usize::MAX).map_or(o.color, |c| c.at(now));
-                        let shown = alpha * o.opacity * (1.0 - 0.7 * o.dim.at(now));
-                        lines.push(Draw::Head {
-                            pts,
-                            color: with_alpha(base, shown),
-                        });
-                    }
                     continue;
                 }
                 let d = self.geo_draws(o, &view, now, grow, alpha);

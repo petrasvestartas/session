@@ -27,8 +27,23 @@ const HEAD_ASPECT: f32 = 0.55;
 const HEAD_SHARE: f32 = 0.6;
 // Half a pixel's diagonal: how far a pixel reaches from its center.
 const FILTER_REACH: f32 = 0.70711;
-// Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+.
-const CORNERS = array<u32, 6>(0u, 1u, 2u, 2u, 1u, 3u);
+// Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+. Branches, not a constant
+// array: some phone drivers read a constant array at a computed index wrongly, and no head is drawn.
+fn corner_of(k: u32) -> u32 {
+    if (k == 0u) {
+        return 0u;
+    }
+
+    if (k == 1u || k == 4u) {
+        return 1u;
+    }
+
+    if (k == 2u || k == 3u) {
+        return 2u;
+    }
+
+    return 3u;
+}
 
 // What the vertex shader hands the fragment shader.
 struct VsOut {
@@ -149,9 +164,9 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
         seam1 = seam0;
     }
 
-    let k = vid % 6u;
-    let part = vid / 6u;
-    let corner = CORNERS[k];
+    // which of the three quads, without dividing: 0 shaft, 1 end head, 2 start head
+    let part = select(select(0u, 1u, vid >= 6u), 2u, vid >= 12u);
+    let corner = corner_of(vid - part * 6u);
     let front = corner >= 2u;
     let side = select(-1.0, 1.0, (corner & 1u) == 1u);
     var along: f32;
