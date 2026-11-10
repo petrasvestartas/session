@@ -57,10 +57,6 @@ pub enum Draw {
         width: f32,
         color: Rgba,
     },
-    Head {
-        pts: [[f32; 2]; 3],
-        color: Rgba,
-    },
 }
 
 /// A running effect.
@@ -628,7 +624,6 @@ impl Stage {
                 };
                 objects3.extend(self.geo_spatial(o, now, grow, alpha));
                 if self.scene {
-                    lines.extend(self.arrow_head(o, &view, now, grow, alpha));
                     continue;
                 }
                 let d = self.geo_draws(o, &view, now, grow, alpha);

@@ -24,6 +24,7 @@ pub struct Spatial {
 pub enum SpatialKind {
     Point,
     Line,
+    Arrow,
     Polyline,
 }
 
@@ -151,8 +152,12 @@ impl Stage {
         match &o.content {
             Content::Point(_) => vec![one(SpatialKind::Point, pts, o.id.clone(), false)],
             Content::Line { arrow, .. } => {
-                let _ = arrow;
-                vec![one(SpatialKind::Line, pts, o.id.clone(), o.dash)]
+                let kind = if *arrow {
+                    SpatialKind::Arrow
+                } else {
+                    SpatialKind::Line
+                };
+                vec![one(kind, pts, o.id.clone(), o.dash)]
             }
             Content::Polyline { closed, .. } => {
                 let mut pts = pts;
@@ -171,41 +176,6 @@ impl Stage {
             }
             _ => Vec::new(),
         }
-    }
-
-    /// The solid head of an arrow drawn by the scene: a triangle at its tip, a fixed size on the slide.
-    pub(super) fn arrow_head(
-        &self,
-        o: &Obj,
-        view: &View,
-        now: f64,
-        grow: f32,
-        alpha: f32,
-    ) -> Option<Draw> {
-        if !matches!(o.content, Content::Line { arrow: true, .. }) || grow < 0.95 {
-            return None;
-        }
-        let pts = self.geo_points(o, now);
-        let (tail, tip) = (view.project(pts[0]), view.project(pts[1]));
-        let (dx, dy) = (tip[0] - tail[0], tip[1] - tail[1]);
-        let length = dx.hypot(dy);
-        if length < 1.0 {
-            return None;
-        }
-        let (ux, uy) = (dx / length, dy / length);
-        let head = (9.0 + 2.6 * o.width).min(0.6 * length);
-        let side = 0.36 * head;
-        let back = [tip[0] - ux * head, tip[1] - uy * head];
-        let base = o.colors.get(&usize::MAX).map_or(o.color, |c| c.at(now));
-        let color = with_alpha(base, alpha * o.opacity * (1.0 - 0.7 * o.dim.at(now)));
-        Some(Draw::Head {
-            pts: [
-                tip,
-                [back[0] - uy * side, back[1] + ux * side],
-                [back[0] + uy * side, back[1] - ux * side],
-            ],
-            color,
-        })
     }
 
     /// The lines and discs of a 3D object, grown to `grow` of its length.
