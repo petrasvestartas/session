@@ -31,7 +31,12 @@ force-density decks beside it are the worked examples; copy from them.
 - The 3D picture stays; only notation changes or objects move. Do not rebuild the scene per slide.
 - Numbers on a slide come from the net or are checked by hand; never invent them.
 - Same names everywhere: nodes `n0…`, cables `e0…`, forces `f_k`, force densities `q_k`.
-  Say "cable", not "bar" or "branch".
+  The load is `p`. Say "cable", not "bar" or "branch".
+- Projections, the same in every deck: `\Delta x_k = x_k - x_0`, length `l_k`, angles `lpha_k`,
+  `eta_k`, `\gamma_k` between cable k and its x, y, z part, each drawn as a small arc at the node
+  between the force and that part (one cable at a time). The cosine is the side over the length,
+  `\coslpha_k = |\Delta x_k| / l_k`, shown before it is used; the part is
+  `f_{k,x} = f_k \Delta x_k / l_k`, so the sign comes from the direction.
 - Colours: `free` pink, `fixed` blue, `load` green, `accent` violet, axes `x` pink, `y` green,
   `z` blue. No orange, no other hues.
 - A flat subject: `camera: {view: top}` with all points at z = 0, and call the axes x and y.

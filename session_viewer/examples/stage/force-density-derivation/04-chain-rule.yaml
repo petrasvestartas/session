@@ -37,9 +37,9 @@ slides:
 
   - title: What the result means
     steps:
-      - say: '$(x_k - x_0)/l_k$ is the direction cosine. So $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
+      - say: '$\Delta x_k / l_k$ is the direction cosine: the side along $x$ over the length, with its sign. So $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
         do:
-          - tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'
+          - tex: '\frac{\partial l_k}{\partial x_0} = -\frac{\Delta x_k}{l_k}, \qquad \Delta x_k = x_k - x_0'
           - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: accent, width: 3.6}
           - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
       - say: 'For cable $e_0$, $n_k = n_1$. The anchor is at $x_1 = 0$, left of $x_0 = 3$.'

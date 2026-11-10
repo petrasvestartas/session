@@ -54,27 +54,33 @@ slides:
           - derive: {from: e0, id: uy, arrow: ['[x(n1), y(n0), z(n0)]', '[x(n1), y(n1), z(n0)]'], color: y, width: 3.6}
           - derive: {from: e0, id: uz, arrow: ['[x(n1), y(n1), z(n0)]', n1], color: z, width: 3.6}
           - add:
-              - {id: ux.l, label: 'mid(n0, [x(n1), y(n0), z(n0)])', tex: 'x_1 - x_0', color: x, size: 21}
-              - {id: uy.l, label: 'mid([x(n1), y(n0), z(n0)], [x(n1), y(n1), z(n0)])', tex: 'y_1 - y_0', color: y, size: 21, dir: [-0.5, 1]}
+              - {id: ux.l, label: 'mid(n0, [x(n1), y(n0), z(n0)])', tex: '\Delta x_1 = x_1 - x_0', color: x, size: 21}
+              - {id: uy.l, label: 'mid([x(n1), y(n0), z(n0)], [x(n1), y(n1), z(n0)])', tex: '\Delta y_1 = y_1 - y_0', color: y, size: 21, dir: [-0.5, 1]}
       - say: 'Pythagoras in 3D gives the cable length.'
         do:
           - eq: {id: l1, tex: 'l_1 = \sqrt{ {{(x_1 - x_0)^2}} + {{(y_1 - y_0)^2}} + {{(z_1 - z_0)^2}} } = 4.250'}
           - color: {target: 'l1{(x_1 - x_0)^2}', color: x}
           - color: {target: 'l1{(y_1 - y_0)^2}', color: y, with: true}
           - color: {target: 'l1{(z_1 - z_0)^2}', color: z, with: true}
-      - say: 'The direction cosine is the share of the cable length that lies along $x$.'
-        eq: '\cos\alpha_x = \frac{x_1 - x_0}{l_1} = \frac{0 - 3}{4.250} = -0.706'
-        highlight: [ux]
-      - say: 'The force splits in the same proportion: the $x$ part of $f_1$ is $f_1\cos\alpha_x$.'
+      - say: 'As in presentation 0: $\alpha_1$ is the angle between the cable and its $x$ part. Its cosine is that side over the length.'
         do:
-          - eq: {id: fx, tex: 'f_{1,x} = f_1\cos\alpha_x = f_1\,\frac{x_1 - x_0}{l_1}'}
+          - add:
+              - {id: a1, polyline: [[2.000, 3.000, 0.250], [2.005, 2.902, 0.242], [2.019, 2.805, 0.234], [2.043, 2.710, 0.226], [2.076, 2.618, 0.218], [2.119, 2.529, 0.211], [2.169, 2.445, 0.204], [2.228, 2.367, 0.197], [2.294, 2.294, 0.191]], color: x, width: 2}
+              - {id: a1t, label: [1.661, 2.446, 0.204], tex: '\alpha_1', color: x}
+          - eq: {tex: '\cos\alpha_1 = \frac{|\Delta x_1|}{l_1} = \frac{3}{4.250} = 0.706', color: x}
+          - highlight: [ux]
+      - say: 'The force splits in the same proportion. Its $x$ part points backwards. The signed difference $x_1 - x_0 = -3$ carries that minus by itself.'
+        do:
+          - eq: {id: fx, tex: 'f_{1,x} = -f_1\cos\alpha_1 = f_1\,\frac{x_1 - x_0}{l_1}'}
           - {indicate: [fx], color: x}
+      - say: 'The same along $y$ and $z$, with the angles $\beta_1$ and $\gamma_1$.'
+        eq: 'f_{1,y} = f_1\,\frac{y_1 - y_0}{l_1}, \qquad f_{1,z} = f_1\,\frac{z_1 - z_0}{l_1}'
 
   - title: Sum the components
     steps:
       - say: 'Do this for all four cables and add the load: equilibrium along $x$.'
         undim: [e1, e2, e3, f2, f3, f4, p, n2, n3, n4, e1.label, e2.label, e3.label, f2.label, f3.label, f4.label, p.label, n2.label, n3.label, n4.label]
-        remove: [box, ux, uy, uz, ux.l, uy.l]
+        remove: [box, ux, uy, uz, ux.l, uy.l, a1, a1t]
         camera: {yaw: -58, pitch: 26, fit: [n0, n1, n2, n3, n4, U], with: true}
         eq: 'f_1\frac{x_1 - x_0}{l_1} + f_2\frac{x_2 - x_0}{l_2} + f_3\frac{x_3 - x_0}{l_3} + f_4\frac{x_4 - x_0}{l_4} + p_x = 0'
       - say: 'The same holds along $y$ and $z$: three equations for the three unknowns $x_0$, $y_0$, $z_0$.'

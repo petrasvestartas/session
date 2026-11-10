@@ -60,6 +60,10 @@ What to remember:
   touch end to end, give them the same named point.
 - Force and vector arrows use `width: 3.6`; cables and fixed points keep their defaults. Do not
   tune sizes per slide: lines, dots and heads already scale with the slide, phone included.
+- An angle mark is a `polyline` of about nine points on an arc around the node, from the
+  projection to the force, in the colour of that axis, plus a `label:` + `tex:` just outside its
+  middle. Keep its radius under the shorter side of the triangle; see
+  `equilibrium/01-equilibrium.yaml` (2D) and `force-density/03-projections.yaml` (3D).
 - Add points last in a step so they draw over the lines that meet there.
 - Pictures go in the column: `image: img/name.png`, files in the deck's `img/` folder.
 - The camera frames every named point, including where the net comes to rest. Add a named point
