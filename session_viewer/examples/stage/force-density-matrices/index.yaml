@@ -1,18 +1,14 @@
-# Force density method, presentation 2 of 4: the givens as matrices, matrices, the Jacobian (6.4.2), the solution in matrix form (6.4.3),
-# any net solved for its coordinates and its forces. A session_viewer stage deck.
-# Open: https://petrasvestartas.github.io/session/?stage=force-density-matrices
-name: Force density 2 · matrices and the Jacobian
+# Force density method, presentation 2 of 5: the method with matrices, used as a tool. The givens as arrays, C x = u,
+# C_N and C_F, Q, D_N and D_F, the three lines of the method, a script, any net solved for its coordinates and forces.
+# A session_viewer stage deck. Open: https://petrasvestartas.github.io/session/?stage=force-density-matrices
+# Next, presentation 3, where the formula comes from: ?stage=force-density-derivation
+name: Force density 2 · the method with matrices
 chapters:
-  - 00-givens.yaml
-  - 01-matrices.yaml
-  - 02-one-cable.yaml
-  - 03-tiny-nudge.yaml
-  - 04-chain-rule.yaml
-  - 05-jacobian.yaml
-  - 06-matrix-form.yaml
-  - 07-script.yaml
-  - 08-several-nodes.yaml
-  - 09-solver.yaml
-  - 10-net.yaml
-  - 11-pillow.yaml
-  - 12-forces.yaml
+  - 01-givens.yaml
+  - 02-matrices.yaml
+  - 03-script.yaml
+  - 04-several-nodes.yaml
+  - 05-solver.yaml
+  - 06-net.yaml
+  - 07-pillow.yaml
+  - 08-forces.yaml

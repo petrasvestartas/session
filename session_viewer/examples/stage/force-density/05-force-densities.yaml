@@ -40,3 +40,5 @@ slides:
         do:
           - color: {target: e0, color: reset}
           - solve: {load: {n0: [0, 0, 0]}}
+      - say: 'One free node by hand. For a whole net the same sums are written with matrices: the next presentation.'
+        text: '**Next:** Force density 2 · the method with matrices'

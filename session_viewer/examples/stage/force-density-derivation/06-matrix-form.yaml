@@ -1,4 +1,4 @@
-# Chapter 7: Linkwitz 6.4.3, the solution in matrix form, equation by equation (6.25)-(6.33).
+# Chapter 6: Linkwitz 6.4.3, the solution in matrix form, equation by equation (6.25)-(6.33), ending on the formula of presentation 2.
 # Sign convention: u = C x = x_0 - x_k, so the load enters as +p and (6.31) reads as printed.
 title: The solution in matrix form
 grid: {center: [3.5, 3.5], size: 9, step: 1}
@@ -30,7 +30,7 @@ slides:
               - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.2, label: 'f_4'}
               - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
-      - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine, which is minus the Jacobian entry from chapter 6.'
+      - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine, which is minus the Jacobian entry from chapter 5.'
         eq: '-\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T}\mathbf{f} + p_x = 0 \qquad (6.25)'
       - say: 'Replace the row by (6.24). With $\mathbf{u} = x_0 - x_k$ the minus sign moves the load to the right-hand side.'
         then: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p} \qquad (6.26)'
@@ -109,3 +109,12 @@ slides:
         tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p} \;\xrightarrow{\;\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}\;}\; \mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p} \;\xrightarrow{\;\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}\;}\; \mathbf{D}_N\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\mathbf{x}_F'
         id: chain
         highlight: [chain]
+
+  - title: 'The formula of presentation 2'
+    steps:
+      - say: 'Solve (6.31) for the free coordinates, along $x$.'
+        eq: {tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}\,(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', color: x}
+      - say: 'Write $\mathbf{D}_N$ and $\mathbf{D}_F$ out: this is exactly the line presentation 2 used as a tool, now derived.'
+        becomes: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)'
+      - say: 'The same for $y$ and $z$. The shape and the forces are known; what is left is the cable itself: how long to cut it.'
+        text: '**Next:** Force density 4 · materialization'

@@ -1,8 +1,9 @@
-# Force density method, presentation 1 of 4: the equations of five nodes (Linkwitz 6.2.2), no matrices. A session_viewer stage deck.
+# Force density method, presentation 1 of 5: the equations of five nodes (Linkwitz 6.2.2), no matrices. A session_viewer stage deck.
 # Open: https://petrasvestartas.github.io/session/?stage=force-density
 # Before it, presentation 0, the equilibrium of a node: ?stage=equilibrium
-# Presentation 2, matrices and the Jacobian: ?stage=force-density-matrices
-# Presentation 3, materialization: ?stage=force-density-materialization
+# Presentation 2, the method with matrices: ?stage=force-density-matrices
+# Presentation 3, where the formula comes from: ?stage=force-density-derivation
+# Presentation 4, materialization: ?stage=force-density-materialization
 name: Force density 1 · the equations of five nodes
 chapters:
   - 01-method.yaml

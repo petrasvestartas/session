@@ -1,4 +1,4 @@
-# Chapter 11: a net of 81 nodes. Four fixed corners, two of them lifted; the same matrices, larger.
+# Chapter 6: a net of 81 nodes. Four fixed corners, two of them lifted; the same matrices, larger.
 title: A net of 81 nodes
 grid: {center: [4, 4], size: 11, step: 1}
 camera: {yaw: -52, pitch: 30}

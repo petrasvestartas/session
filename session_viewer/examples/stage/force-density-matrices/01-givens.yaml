@@ -11,7 +11,7 @@ net:
 slides:
   - title: Where this presentation is heading
     steps:
-      - say: 'Presentation 1 solved one free node with plain sums. This one writes the same sums for any number of nodes, and ends in three lines, one per coordinate.'
+      - say: 'Presentation 1 solved one free node with plain sums. This one writes the same sums for any number of nodes, and ends in three lines, one per coordinate. Here we use them as a tool; presentation 3 derives them.'
         eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
       - say: 'The same line for $y$ and for $z$.'
         do:

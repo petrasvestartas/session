@@ -1,0 +1,78 @@
+# Equilibrium of one node in 2D: a load on two cables, solved by a force diagram and then by projections.
+title: Equilibrium of a node
+camera: {view: top}       # all points at z = 0: x to the right, y up
+points:
+  A: [-4, 3, 0]           # supports
+  B: [3, 4, 0]
+  n: [0, 0, 0]            # the node that carries the load
+  W1: [0, -4, 0]          # forces drawn at 0.4 units per kN
+  F1: [-1.92, 1.44, 0]
+  F2: [1.92, 2.56, 0]
+  Q0: [7, 2.4, 0]         # the force diagram, beside the structure
+  Q1: [7, -1.6, 0]
+  Q2: [8.92, 0.96, 0]
+slides:
+  - title: A load on two cables
+    steps:
+      - say: 'Two cables hang from the supports $A$ and $B$ and meet at a node $n$. A load of $W = 10$ kN hangs there.'
+        add:
+          - {id: A, point: A, color: fixed, label: 'A'}
+          - {id: B, point: B, color: fixed, label: 'B'}
+          - {id: c1, line: [n, A]}
+          - {id: c2, line: [n, B]}
+          - {id: W, arrow: [n, W1], color: load, width: 3.6, label: 'W'}
+          - {id: n, point: n, color: free, label: 'n'}
+      - say: 'A cable can only pull along itself. How hard does each one pull?'
+        do:
+          - add:
+              - {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
+              - {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
+          - tex: 'f_1 = \ ?\qquad f_2 = \ ?'
+      - say: 'The node does not move, so the three forces cancel. That is **equilibrium**.'
+        eq: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{W} = \mathbf{0}'
+
+  - title: By drawing · the force diagram
+    steps:
+      - say: 'Choose a scale, 0.4 units per kN, and draw the load beside the structure: 10 kN is 4 units long.'
+        do:
+          - add:
+              - {id: q0, point: Q0, color: dim, width: 1.2}
+              - {id: q1, point: Q1, color: dim, width: 1.2}
+          - derive: {from: W, id: Wd, line: [Q0, Q1], color: load, width: 2.2}
+      - say: 'Through its lower end draw a line parallel to cable 2, and through its upper end a line parallel to cable 1.'
+        do:
+          - derive: {from: c2, id: d2, line: [Q1, 'Q1 + 1.35*(Q2 - Q1)'], color: dim, width: 1.4}
+          - derive: {from: c1, id: d1, line: [Q0, 'Q0 + 1.45*(Q2 - Q0)'], color: dim, width: 1.4}
+      - say: 'The two lines cross in one point. The triangle is found.'
+        add: {id: q2, point: Q2, color: dim, width: 1.2}
+      - say: 'Now the arrows, tip to tail: the load, then $f_2$, then $f_1$ back to the start. The polygon is **closed**.'
+        do:
+          - remove: [Wd, d1, d2]
+          - add: {id: Wa, arrow: [Q0, Q1], color: load, width: 3.6, label: 'W'}
+          - add: {id: t2, arrow: [Q1, Q2], color: accent, width: 3.6, label: 'f_2'}
+          - add: {id: t1, arrow: [Q2, Q0], color: accent, width: 3.6, label: 'f_1'}
+      - say: 'Measure the sides and divide by the scale.'
+        do:
+          - eq: 'f_2 = 3.2 \,/\, 0.4 = 8\ \text{kN}'
+          - eq: 'f_1 = 2.4 \,/\, 0.4 = 6\ \text{kN}'
+
+  - title: By computing · projections
+    steps:
+      - say: 'The same without a ruler. Split each cable force into a part along $x$ and a part along $y$.'
+        do:
+          - project: {of: f1, parts: 'f_{1,%}', axes: [x, y]}
+          - project: {of: f2, parts: 'f_{2,%}', axes: [x, y]}
+      - say: 'Each part is the force times a cosine, read from the cable: cable 1 goes 4 left and 3 up over a length of 5, cable 2 goes 3 right and 4 up.'
+        do:
+          - eq: 'f_{1,x} = -\tfrac{4}{5} f_1, \qquad f_{1,y} = \tfrac{3}{5} f_1'
+          - eq: 'f_{2,x} = \tfrac{3}{5} f_2, \qquad f_{2,y} = \tfrac{4}{5} f_2'
+      - say: 'Equilibrium, one axis at a time: the parts along $x$ cancel, and the parts along $y$ carry the load.'
+        do:
+          - eq: {tex: 'x:\quad -0.8\, f_1 + 0.6\, f_2 = 0', color: x}
+          - eq: {tex: 'y:\quad 0.6\, f_1 + 0.8\, f_2 - 10 = 0', color: y}
+      - say: 'Two equations, two unknowns. The first gives $f_1 = 0.75 f_2$; put that into the second.'
+        eq: '0.45\, f_2 + 0.8\, f_2 = 10 \quad\Rightarrow\quad f_2 = 8, \quad f_1 = 6'
+      - say: 'The same 6 kN and 8 kN as the drawing. A closed force polygon and "every sum of projections is zero" are one statement, said twice.'
+        highlight: [t1, t2, Wa]
+      - say: 'With more cables in space there is a third sum along $z$. That is the next presentation.'
+        text: '**Next:** Force density 1 · the equations of five nodes'

@@ -1,4 +1,4 @@
-# Chapter 9: several free nodes. The example graph of Schek's paper: 5 free nodes, 4 fixed, 12 branches.
+# Chapter 4: several free nodes. The example graph of Schek's paper: 5 free nodes, 4 fixed, 12 branches.
 title: Several free nodes
 grid: {center: [0, 0], size: 14, step: 1, z: -2.5}
 camera: {yaw: -62, pitch: 32}

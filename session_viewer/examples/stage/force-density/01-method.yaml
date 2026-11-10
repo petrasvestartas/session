@@ -38,7 +38,7 @@ slides:
           - text: '**known:** $x_i, y_i, z_i$ the fixed nodes, $p$ the load, $q_i$ one number per cable'
           - text: '**wanted:** $x_0$, $y_0$, $z_0$, the free node'
 
-  - title: The way there, in four presentations
+  - title: The way there, in five presentations
     steps:
       - say: 'Presentation 0 comes first: the equilibrium of one node in 2D, with force diagrams and with projections.'
         text: '**0 · Equilibrium of a node**: equilibrium'
@@ -47,9 +47,12 @@ slides:
         do:
           - {text: '**1 · the equations of five nodes**', align: left}
           - {text: 'the question and what is given, forces as projections, force over length as one unknown, force density in 1D, playing with force densities', align: left}
-      - say: 'The second writes the same sums with matrices, derives the Jacobian, and solves any net for its coordinates and its forces (6.4.2, 6.4.3).'
-        text: '**2 · matrices and the Jacobian**: force-density-matrices'
+      - say: 'The second writes the same sums with matrices and uses the result as a tool: any net solved for its coordinates and its forces.'
+        text: '**2 · the method with matrices**: force-density-matrices'
         align: left
-      - say: 'The third turns the solved net into cables: elongations and unstretched lengths (6.5).'
-        text: '**3 · materialization**: force-density-materialization'
+      - say: 'The third shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).'
+        text: '**3 · where the formula comes from**: force-density-derivation'
+        align: left
+      - say: 'The fourth turns the solved net into cables: elongations and unstretched lengths (6.5).'
+        text: '**4 · materialization**: force-density-materialization'
         align: left

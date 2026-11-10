@@ -1,4 +1,4 @@
-# Chapter 13: the forces. With the shape solved, every cable force is its force density times its length.
+# Chapter 8: the forces. With the shape solved, every cable force is its force density times its length.
 title: The forces in every cable
 grid: {center: [0, 0], size: 14, step: 1, z: -2.5}
 camera: {yaw: -62, pitch: 32}
@@ -23,7 +23,7 @@ net:
 slides:
   - title: From coordinates to forces
     steps:
-      - say: 'The net of chapter 9, solved. The method gave the coordinates; the forces were never asked for.'
+      - say: 'The net of chapter 4, solved. The method gave the coordinates; the forces were never asked for.'
         do:
           - show: net
           - solve: true
@@ -35,5 +35,5 @@ slides:
         show: ['f[:,0]']
       - say: 'The four outer branches carry the most: they are not the longest, but they have three times the force density.'
         highlight: ['f[0,0]', 'f[1,0]', 'f[2,0]', 'f[3,0]']
-      - say: 'Shape first, forces second, and no iteration anywhere. What is still missing is the cable itself: how long to cut it. That is presentation 3.'
-        text: '**Next:** Force density 3 · materialization (6.5)'
+      - say: 'Shape first, forces second, and no iteration anywhere. What is still missing is the cable itself: how long to cut it. That is presentation 4; presentation 3 first shows where the formula comes from.'
+        text: '**Next:** Force density 3 · where the formula comes from'

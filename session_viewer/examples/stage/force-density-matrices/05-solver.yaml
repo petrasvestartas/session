@@ -1,4 +1,4 @@
-# Chapter 10: what a linear solver does. A chain of three free nodes, eliminated by hand.
+# Chapter 5: what a linear solver does. A chain of three free nodes, eliminated by hand.
 title: What a solver does
 grid: {center: [2, 0], size: 6, step: 1, z: -2.5}
 camera: {yaw: -75, pitch: 14}

@@ -1,4 +1,4 @@
-# Chapter 3: Linkwitz 6.4.2. One cable, its length, and the question of how it changes.
+# Chapter 2: Linkwitz 6.4.2. One cable, its length, and the question of how it changes.
 title: One cable, one question
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 24}

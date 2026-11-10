@@ -6,8 +6,9 @@ A deck is a folder of YAML files. The viewer draws the 3D side with kernel `Poin
 ```text
 https://petrasvestartas.github.io/session/?stage=equilibrium                    0 · equilibrium of a node in 2D: force diagram and projections
 https://petrasvestartas.github.io/session/?stage=force-density                  1 · the equations of five nodes (6.2.2), no matrices
-https://petrasvestartas.github.io/session/?stage=force-density-matrices         2 · the givens as matrices, the Jacobian, any net, its forces (6.4.2, 6.4.3)
-https://petrasvestartas.github.io/session/?stage=force-density-materialization  3 · elongations and unstretched lengths (6.5), résumé
+https://petrasvestartas.github.io/session/?stage=force-density-matrices         2 · the method with matrices: C, D_N, D_F, any net and its forces, as a tool
+https://petrasvestartas.github.io/session/?stage=force-density-derivation       3 · where the formula comes from: the Jacobian, the matrix form (6.4.2, 6.4.3)
+https://petrasvestartas.github.io/session/?stage=force-density-materialization  4 · elongations and unstretched lengths (6.5), résumé
 &chapter=7&step=3                                                           open at chapter 7, after its third step
 ```
 

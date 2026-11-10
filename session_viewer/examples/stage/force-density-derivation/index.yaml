@@ -1,0 +1,13 @@
+# Force density method, presentation 3 of 5: where the formula comes from. One cable and its length, how the length
+# changes when the free node moves (6.4.2), the Jacobian, equilibrium in matrix form and the force density substitution
+# (6.4.3), ending on the formula presentation 2 used. A session_viewer stage deck.
+# Open: https://petrasvestartas.github.io/session/?stage=force-density-derivation
+# Next, presentation 4, materialization: ?stage=force-density-materialization
+name: Force density 3 · where the formula comes from
+chapters:
+  - 01-why.yaml
+  - 02-one-cable.yaml
+  - 03-tiny-nudge.yaml
+  - 04-chain-rule.yaml
+  - 05-jacobian.yaml
+  - 06-matrix-form.yaml
