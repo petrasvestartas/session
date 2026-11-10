@@ -1,4 +1,4 @@
-# Derivations 7: the résumé. Every step of chapters 1-6 on one slide, then the method as a procedure.
+# Chapter 2: the résumé. Every step of chapters 1-6 on one slide, then the method as a procedure.
 title: Résumé
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}

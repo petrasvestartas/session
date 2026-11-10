@@ -2,7 +2,11 @@ use super::{deck, font, run, tex};
 use std::collections::HashMap;
 use std::rc::Rc;
 
-const DECKS: [&str; 2] = ["force-density", "force-density-derivations"];
+const DECKS: [&str; 3] = [
+    "force-density",
+    "force-density-matrices",
+    "force-density-materialization",
+];
 
 /// The stage fonts read from the crate's assets.
 fn fonts() -> font::Fonts {

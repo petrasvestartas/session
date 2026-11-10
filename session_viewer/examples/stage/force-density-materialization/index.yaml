@@ -1,0 +1,7 @@
+# Force density method, deck 3 of 3: materialization (Linkwitz 6.5), elongations and unstretched lengths,
+# and a résumé of all three decks. A session_viewer stage deck.
+# Open: https://petrasvestartas.github.io/session/?stage=force-density-materialization
+name: Force density 3 · materialization
+chapters:
+  - 01-materialization.yaml
+  - 02-resume.yaml

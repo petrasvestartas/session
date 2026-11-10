@@ -27,7 +27,7 @@ slides:
 
   - title: The result we are heading for
     steps:
-      - say: 'Everything in this deck leads to three lines, one per coordinate.'
+      - say: 'Everything in these three decks leads to three lines, one per coordinate.'
         eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
       - say: 'The same line for $y$ and for $z$.'
         do:
@@ -38,19 +38,15 @@ slides:
           - text: '**known:** $\mathbf{x}_F$ fixed nodes, $\mathbf{p}$ loads, $\mathbf{C}$ connectivity, $\mathbf{Q}$ force densities'
           - text: '**wanted:** $\mathbf{x}_N$, $\mathbf{y}_N$, $\mathbf{z}_N$, the free nodes'
 
-  - title: The way there
+  - title: The way there, in three decks
     steps:
-      - say: 'First with one free node and plain sums.'
+      - say: 'This deck: one free node, plain sums, no matrices yet (Linkwitz 6.2.2).'
         do:
-          - {text: '**1.** The method and its result', align: left}
-          - {text: '**2.** Equilibrium of a node', align: left}
-          - {text: '**3.** The question and what is given', align: left}
-          - {text: '**4.** Forces as projections, and the trick: force over length as one unknown', align: left}
-          - {text: '**5.** Force density in 1D', align: left}
-      - say: 'Then the same sums written with matrices, run as a script, and applied to larger nets.'
+          - {text: '**Deck 1 · the equations of five nodes**', align: left}
+          - {text: 'equilibrium of a node, the question and what is given, forces as projections, force over length as one unknown, force density in 1D, playing with force densities', align: left}
+      - say: 'The second deck writes the same sums with matrices, derives the Jacobian, and solves any net for its coordinates and its forces (6.4.2, 6.4.3).'
         do:
-          - {text: '**6.** The matrices: $\mathbf{C}$, $\mathbf{Q}$, $\mathbf{u} = \mathbf{C}\mathbf{x}$', align: left}
-          - {text: '**7.** The script and its output', align: left}
-          - {text: '**8-11.** Several free nodes, what a solver does, a net, a pillow', align: left}
-      - say: 'The second deck goes deeper into Linkwitz''s text: the Jacobian (6.4.2), the solution in matrix form (6.4.3) and materialization (6.5).'
-        text: '**Deeper:** the deck force-density-derivations'
+          - {text: '**Deck 2 · matrices and the Jacobian**: force-density-matrices', align: left}
+      - say: 'The third deck turns the solved net into cables: elongations and unstretched lengths (6.5).'
+        do:
+          - {text: '**Deck 3 · materialization**: force-density-materialization', align: left}

@@ -1,4 +1,4 @@
-# Chapter 7: Linkwitz 6.5, materialization (6.34)-(6.37): from force densities to factory cut lengths.
+# Chapter 1: Linkwitz 6.5, materialization (6.34)-(6.37): from force densities to factory cut lengths.
 title: Materialization
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}

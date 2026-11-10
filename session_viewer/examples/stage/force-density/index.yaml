@@ -1,16 +1,12 @@
-# Force density method, from one node in equilibrium to a net of 100 nodes: a session_viewer stage deck.
+# Force density method, deck 1 of 3: the equations of five nodes (Linkwitz 6.2.2). A session_viewer stage deck.
 # Open: https://petrasvestartas.github.io/session/?stage=force-density
-# The derivations (Jacobian, matrix form) are a separate deck: ?stage=force-density-derivations
-name: Force density method
+# Deck 2, matrices and the Jacobian: ?stage=force-density-matrices
+# Deck 3, materialization: ?stage=force-density-materialization
+name: Force density 1 · the equations of five nodes
 chapters:
   - 01-method.yaml
   - 02-equilibrium.yaml
   - 03-question.yaml
   - 04-projections.yaml
   - 05-one-dimension.yaml
-  - 06-matrices.yaml
-  - 07-script.yaml
-  - 08-several-nodes.yaml
-  - 09-solver.yaml
-  - 10-net.yaml
-  - 11-pillow.yaml
+  - 06-force-densities.yaml

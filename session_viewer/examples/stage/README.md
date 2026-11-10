@@ -4,8 +4,9 @@ A deck is a folder of YAML files. The viewer draws the 3D side with kernel `Poin
 `Polyline` geometry in its own scene, typesets the TeX itself, and animates every step.
 
 ```text
-https://petrasvestartas.github.io/session/?stage=force-density              the method, from one node in equilibrium to a net
-https://petrasvestartas.github.io/session/?stage=force-density-derivations  Linkwitz 6.4.2-6.5 step by step
+https://petrasvestartas.github.io/session/?stage=force-density                  1 · the equations of five nodes (6.2.2), no matrices
+https://petrasvestartas.github.io/session/?stage=force-density-matrices         2 · matrices, the Jacobian, any net, its forces (6.4.2, 6.4.3)
+https://petrasvestartas.github.io/session/?stage=force-density-materialization  3 · elongations and unstretched lengths (6.5), résumé
 &chapter=7&step=3                                                           open at chapter 7, after its third step
 ```
 
@@ -23,6 +24,7 @@ force-density/
   index.yaml             name and the list of chapter files
   01-method.yaml         one chapter = one 3D scene + its slides
   02-equilibrium.yaml
+  img/                   pictures the chapters show
 ```
 
 A chapter is a list of slides, a slide is a list of steps, and a step is one sentence plus what

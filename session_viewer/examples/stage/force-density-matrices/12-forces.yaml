@@ -1,0 +1,39 @@
+# Chapter 12: the forces. With the shape solved, every cable force is its force density times its length.
+title: The forces in every cable
+grid: {center: [0, 0], size: 14, step: 1, z: -2.5}
+camera: {yaw: -62, pitch: 32}
+net:
+  free: {N1: [-3, 0, 0], N2: [0, -3, 0], N3: [3, 0, 0], N4: [0, 3, 0], N5: [0, 0, 0]}
+  fixed: {N6: [-6, 0, 0], N7: [0, -6, 0], N8: [6, 0, 0], N9: [0, 6, 0]}
+  cables:
+    1: [N6, N1]
+    2: [N7, N2]
+    3: [N8, N3]
+    4: [N9, N4]
+    5: [N1, N4]
+    6: [N1, N2]
+    7: [N2, N3]
+    8: [N3, N4]
+    9: [N4, N5]
+    10: [N1, N5]
+    11: [N2, N5]
+    12: [N3, N5]
+  q: {1: 3, 2: 3, 3: 3, 4: 3}
+  load: [0, 0, -1]
+slides:
+  - title: From coordinates to forces
+    steps:
+      - say: 'The net of chapter 8, solved. The method gave the coordinates; the forces were never asked for.'
+        do:
+          - show: net
+          - solve: true
+      - say: 'They follow at once. The force density was defined as force over length, so each force is its force density times its length (6.33).'
+        eq: '\mathbf{f} = \mathbf{L}\,\mathbf{q}'
+      - say: 'The lengths are measured on the solved shape, one per branch, and stand beside the force densities.'
+        row: [{id: l, matrix: l}, {id: q, matrix: q}, '\Rightarrow', {id: f, matrix: {of: f, empty: true}}]
+      - say: 'Multiplied branch by branch: the force in every cable.'
+        show: ['f[:,0]']
+      - say: 'The four outer branches carry the most: they are not the longest, but they have three times the force density.'
+        highlight: ['f[0,0]', 'f[1,0]', 'f[2,0]', 'f[3,0]']
+      - say: 'Shape first, forces second, and no iteration anywhere. What is still missing is the cable itself: how long to cut it. That is the third deck.'
+        text: '**Next deck:** materialization (6.5)'
