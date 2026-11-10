@@ -97,6 +97,8 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `project: {of: F1, parts: 'F_{1,%}'}` | the dashed box an arrow spans, the walk along its edges in x, y, z colours, and a label on each edge (`%` becomes the axis); `axes: [x, z]` for a flat case |
 | `walk: [F1, F2, F3]` | puts each arrow at the tip of the one before (the arrows run between named points); `walk: back` returns them |
 | `node: {of: n4_4, row: DN}` | lights a node of the net, its cables and its row in a matrix; `clear: true` puts the colours back |
+| `eliminate: {matrix: M, row: 2, with: 1}` | adds the multiple of row 1 to row 2 that clears the entry under the pivot; rows count from 1 and the new entries are computed |
+| `multiply: {left: A, right: B, into: C, entry: [0, 1]}` | tints a row of `A` and a column of `B` and reveals that entry of `C` (added with `empty: true`) |
 | `highlight: [P0, 'M[2,:]']` | pulses an object, a matrix row, column or entry |
 | `add: {...}` | any object (next section) |
 | `do: [...]` | several of the above in a list, when one key is needed twice |

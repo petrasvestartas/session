@@ -29,19 +29,9 @@ slides:
       - say: 'Write matrix and right-hand side side by side. The goal: zeros below the diagonal.'
         matrix: {id: M, rows: [[2, -1, 0, -1], [-1, 2, -1, -1], [0, -1, 2, -1]], collabels: [z_1, z_2, z_3, p_z], rowlabels: ['1', '2', '3']}
       - say: 'Add half of row 1 to row 2. The $-1$ under the first diagonal entry becomes $0$: $z_1$ is gone from row 2.'
-        do:
-          - color: {target: 'M[0,:]', color: accent}
-          - set: {target: 'M[1,0]', tex: '0'}
-          - set: {target: 'M[1,1]', tex: '1.5', with: true}
-          - set: {target: 'M[1,3]', tex: '-1.5', with: true}
-          - color: {target: 'M[0,:]', color: reset}
+        eliminate: {matrix: M, row: 2, with: 1}
       - say: 'Add two thirds of row 2 to row 3. Now $z_2$ is gone from row 3.'
-        do:
-          - color: {target: 'M[1,:]', color: accent}
-          - set: {target: 'M[2,1]', tex: '0'}
-          - set: {target: 'M[2,2]', tex: '1.333', with: true}
-          - set: {target: 'M[2,3]', tex: '-2', with: true}
-          - color: {target: 'M[1,:]', color: reset}
+        eliminate: {matrix: M, row: 3, with: 2}
       - say: 'The matrix is triangular. The last row holds a single unknown.'
         highlight: ['M[2,:]']
 

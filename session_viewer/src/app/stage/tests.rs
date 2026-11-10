@@ -201,3 +201,25 @@ fn plays_through(name: &str) {
         );
     }
 }
+
+#[test]
+fn multiply_tints_a_row_and_a_column_and_fills_the_entry() {
+    let src = "
+title: product
+slides:
+  - title: one entry
+    steps:
+      - row:
+          - {id: A, matrix: [[1, 2]]}
+          - {id: B, matrix: [[3], [4]]}
+          - '='
+          - {id: C, matrix: {rows: [[11]], empty: true}}
+      - multiply: {left: A, right: B, into: C, entry: [0, 0]}
+";
+    let chapter = deck::chapter(src, "product.yaml").unwrap();
+    let index = deck::index("name: t\nchapters: [product.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, vec![chapter]);
+    stage.rebuild(0, Some(1));
+    stage.frame(0.0);
+    assert!(stage.errors.is_empty(), "{:?}", stage.errors);
+}

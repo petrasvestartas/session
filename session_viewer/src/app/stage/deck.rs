@@ -493,6 +493,14 @@ fn object(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     if let Content::Line { a, b, .. } = &content {
         cx.ends.insert(id.clone(), (written(a), written(b)));
     }
+    if let Content::Matrix(spec) = &content {
+        let number = |entry: &String| entry.replace('−', "-").trim().parse::<f64>().ok();
+        let rows: Option<Vec<Vec<f64>>> =
+            spec.rows.iter().map(|row| row.iter().map(number).collect()).collect();
+        if let Some(rows) = rows {
+            cx.tables.insert(id.clone(), rows);
+        }
+    }
     Ok(ObjSpec {
         id,
         content,
@@ -889,6 +897,7 @@ struct Cx {
     ends: HashMap<String, (String, String)>, // Tail and tip of each line or arrow, as expressions.
     home: HashMap<String, [f64; 3]>, // Where each named point starts.
     walked: Vec<String>,             // Points the last `walk` moved.
+    tables: HashMap<String, Vec<Vec<f64>>>, // Entries of each numeric matrix, as the slides have left it.
 }
 
 impl Cx {
@@ -1273,8 +1282,80 @@ fn node(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     Ok(out)
 }
 
+/// `eliminate: {matrix: M, row: 2, with: 1}` adds the multiple of row `with` to `row` that clears
+/// the entry under the pivot; rows count from 1 and the changed entries are computed.
+fn eliminate(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let Value::Mapping(m) = v else {
+        return err(at, "eliminate: {matrix: M, row: 2, with: 1}");
+    };
+    let name = get(m, "matrix").and_then(text).unwrap_or_default();
+    let index = |key: &str| get(m, key).and_then(num).map(|n| n as usize).filter(|n| *n > 0);
+    let (Some(row), Some(pivot)) = (index("row"), index("with")) else {
+        return err(at, "needs `row` and `with`, counted from 1");
+    };
+    let (row, pivot) = (row - 1, pivot - 1);
+    let table = cx.tables.get_mut(&name).ok_or_else(|| format!("{at}: no numeric matrix {name}"))?;
+    if row >= table.len() || pivot >= table.len() || table[pivot][pivot] == 0.0 {
+        return err(at, "has no such rows, or a zero pivot");
+    }
+    let factor = table[row][pivot] / table[pivot][pivot];
+    let mut out = vec![act(Kind::Color {
+        target: format!("{name}[{pivot},:]"),
+        color: "accent".into(),
+    })];
+    let mut first = true;
+    for col in 0..table[row].len() {
+        let value = table[row][col] - factor * table[pivot][col];
+        if (value - table[row][col]).abs() < 1e-12 {
+            continue;
+        }
+        table[row][col] = value;
+        let mut set = act(Kind::Set {
+            target: format!("{name}[{row},{col}]"),
+            tex: num_text(value),
+        });
+        set.with = !first;
+        first = false;
+        out.push(set);
+    }
+    out.push(act(Kind::Color {
+        target: format!("{name}[{pivot},:]"),
+        color: "reset".into(),
+    }));
+    Ok(out)
+}
+
+/// `multiply: {left: A, right: B, into: C, entry: [0, 1]}` tints a row of `A` and a column of `B`
+/// and reveals their product in `C`, which was added with `empty: true`.
+fn multiply(v: &Value, at: &str) -> Result<Vec<Action>, String> {
+    let Value::Mapping(m) = v else {
+        return err(at, "multiply: {left: A, right: B, into: C, entry: [0, 0]}");
+    };
+    let name = |key: &str| get(m, key).and_then(text).ok_or_else(|| format!("{at}: needs `{key}`"));
+    let (left, right, into) = (name("left")?, name("right")?, name("into")?);
+    let [r, c] = get(m, "entry").and_then(pair).ok_or_else(|| format!("{at}: needs `entry: [row, column]`"))?;
+    let (row, column) = (format!("{left}[{r},:]"), format!("{right}[:,{c}]"));
+    let paint = |target: &String, color: &str, with: bool| {
+        let mut a = act(Kind::Color {
+            target: target.clone(),
+            color: color.into(),
+        });
+        a.with = with;
+        a
+    };
+    Ok(vec![
+        paint(&row, "accent", false),
+        paint(&column, "accent", true),
+        act(Kind::Show(vec![format!("{into}[{r},{c}]")])),
+        paint(&row, "reset", false),
+        paint(&column, "reset", true),
+    ])
+}
+
 /// Step keys that stand for a common action.
-const SHORT: [&str; 15] = [
+const SHORT: [&str; 17] = [
+    "eliminate",
+    "multiply",
     "project",
     "walk",
     "node",
@@ -1375,6 +1456,8 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
             "solve" => out.push(act(solve(v, at, cx)?)),
             "project" => out.extend(project(v, at, cx)?),
             "walk" => out.extend(walk(v, at, cx)?),
+            "eliminate" => out.extend(eliminate(v, at, cx)?),
+            "multiply" => out.extend(multiply(v, at)?),
             "node" => out.extend(node(v, at, cx)?),
             _ if KINDS.contains(&key.as_str()) => out.push(action(&one, at, cx)?),
             _ => return err(at, "is not a step key"),
