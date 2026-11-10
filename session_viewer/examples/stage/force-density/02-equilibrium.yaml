@@ -47,7 +47,7 @@ slides:
           - derive: {from: F1, id: x1, arrow: [O, '[x(E1), 0, 0]'], color: x, width: 3.6}
           - derive: {from: F1, id: z1, arrow: ['[x(E1), 0, 0]', E1], color: z, width: 3.6}
           - add:
-              - {id: x1.l, label: 'mid(O, [x(E1), 0, 0])', tex: 'F_{1,x}', color: x, size: 22, dir: [0, 1]}
+              - {id: x1.l, label: 'mid(O, [x(E1), 0, 0])', tex: 'F_{1,x}', color: x, size: 22, dir: [0, -1]}
               - {id: z1.l, label: 'mid([x(E1), 0, 0], E1)', tex: 'F_{1,z}', color: z, size: 22, dir: [1, 0]}
       - say: 'Each part is the force times the cosine of its angle to that axis: the **direction cosine**. The force has length $\sqrt{3^2 + 1^2} = 3.162$.'
         do:

@@ -1,102 +1,89 @@
-# Chapter 8: several free nodes. The worked example of the study notes: 3 free nodes, 2 anchors, 5 cables.
+# Chapter 8: several free nodes. The example graph of Schek's paper: 5 free nodes, 4 fixed, 12 branches.
 title: Several free nodes
-grid: {center: [3, 2.5], size: 8, step: 1}
-camera: {yaw: -62, pitch: 30}
-points:
-  A: [0, 0, 0]
-  B: [6, 0, 0]
-  N1: [1.5, 2.5, 1.2]
-  N2: [4.5, 2.5, 1.2]
-  N3: [3, 5, 1.8]
+grid: {center: [0, 0], size: 14, step: 1, z: -2.5}
+camera: {yaw: -62, pitch: 32}
+net:
+  free: {N1: [-3, 0, 0], N2: [0, -3, 0], N3: [3, 0, 0], N4: [0, 3, 0], N5: [0, 0, 0]}
+  fixed: {N6: [-6, 0, 0], N7: [0, -6, 0], N8: [6, 0, 0], N9: [0, 6, 0]}
+  cables:
+    1: [N6, N1]
+    2: [N7, N2]
+    3: [N8, N3]
+    4: [N9, N4]
+    5: [N1, N4]
+    6: [N1, N2]
+    7: [N2, N3]
+    8: [N3, N4]
+    9: [N4, N5]
+    10: [N1, N5]
+    11: [N2, N5]
+    12: [N3, N5]
+  q: {1: 3, 2: 3, 3: 3, 4: 3}      # the four outer branches; every other branch has q = 1
+  load: [0, 0, -1]
 slides:
-  - title: Three free nodes, five cables
+  - title: The net of Schek's paper
     steps:
-      - say: 'Two anchors $A$, $B$ and three free nodes $N_1$, $N_2$, $N_3$, joined by five cables.'
-        do:
-          - add:
-              - {id: a, point: A, color: fixed, label: 'A'}
-              - {id: b, point: B, color: fixed, label: 'B', dir: [0.4, -1]}
-          - add:
-              - {id: e1, arrow: [N1, A], label: '1', width: 2.6}
-              - {id: e2, arrow: [N2, B], label: '2', width: 2.6}
-              - {id: e3, arrow: [N1, N2], label: '3', width: 2.6}
-              - {id: e4, arrow: [N3, N1], label: '4', width: 2.6}
-              - {id: e5, arrow: [N2, N3], label: '5', width: 2.6}
-          - add:
-              - {id: n1, point: N1, color: free, label: 'N_1'}
-              - {id: n2, point: N2, color: free, label: 'N_2'}
-              - {id: n3, point: N3, color: free, label: 'N_3'}
-      - say: 'Keep only the free columns of $\mathbf{C}$. Cable 3 runs from $N_1$ to $N_2$: $+1$ under $N_1$, $-1$ under $N_2$.'
-        do:
-          - add: {id: Cf, matrix: {rows: [[1, 0, 0], [0, 1, 0], [1, -1, 0], [-1, 0, 1], [0, 1, -1]], name: '\mathbf{C}_N', rowlabels: ['1', '2', '3', '4', '5'], collabels: [N_1, N_2, N_3], empty: true}}
-          - show: ['Cf[0,:]', 'Cf[1,:]']
-          - color: {target: e3, color: accent}
-          - show: ['Cf[2,:]']
-          - indicate: ['Cf[2,:]']
-          - color: {target: e3, color: reset}
-      - say: 'Cables 4 and 5 join two free nodes as well. Cables 1 and 2 end at an anchor, so their rows hold a single entry.'
-        show: ['Cf[3,:]', 'Cf[4,:]']
+      - say: 'The example graph from Schek''s paper of 1974: five free nodes $N_1,\dots,N_5$, four fixed nodes $N_6,\dots,N_9$ and twelve branches.'
+        show: [cables, fixed, free]
+      - say: 'Every free node carries a load of 1 downward. The four outer branches have $q = 3$, the eight inner ones $q = 1$.'
+        show: loads
+      - say: 'Five unknown nodes instead of one. The sums stay the same; the matrices keep them in order.'
+        eq: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)'
 
-  - title: 'Scale each row: $\mathbf{Q}\,\mathbf{C}_N$'
+  - title: The branch-node matrix
     steps:
-      - say: 'Every cable has its own force density $q_1,\dots,q_5$ on the diagonal of $\mathbf{Q}$.'
-        add: {id: s1, row: [{id: Q, matrix: {rows: [[q_1, 0, 0, 0, 0], [0, q_2, 0, 0, 0], [0, 0, q_3, 0, 0], [0, 0, 0, q_4, 0], [0, 0, 0, 0, q_5]], name: '\mathbf{Q}'}}, {id: C1, matrix: {rows: [[1, 0, 0], [0, 1, 0], [1, -1, 0], [-1, 0, 1], [0, 1, -1]], name: '\mathbf{C}_N'}}, '=', {id: QC, matrix: {rows: [[q_1, 0, 0], [0, q_2, 0], [q_3, -q_3, 0], [-q_4, 0, q_4], [0, q_5, -q_5]], name: '\mathbf{Q}\,\mathbf{C}_N', empty: true}}]}
-      - say: 'A diagonal matrix scales rows: row $k$ of $\mathbf{C}_N$ is multiplied by $q_k$ and nothing else.'
+      - say: 'One row per branch, one column per node: $+1$ where the branch starts, $-1$ where it ends. The free nodes come first.'
+        matrix: {of: C, cell: 0.95}
+      - say: 'Branch 1 joins $N_6$ and $N_1$. Its row has two entries and seven zeros.'
         do:
-          - color: {target: 'Q[2,:]', color: accent}
-          - color: {target: 'C1[2,:]', color: accent, with: true}
-          - show: ['QC[2,:]']
-          - color: {target: 'Q[2,:]', color: reset}
-          - color: {target: 'C1[2,:]', color: reset}
-      - say: 'The other rows follow.'
-        show: ['QC[0,:]', 'QC[1,:]', 'QC[3,:]', 'QC[4,:]']
+          - color: {target: '1', color: accent}
+          - color: {target: 'C[0,:]', color: accent, with: true}
+      - say: 'The first five columns are $\mathbf{C}_N$, the free nodes. The last four are $\mathbf{C}_F$, the fixed ones.'
+        do:
+          - color: {target: '1', color: reset}
+          - color: {target: 'C[0,:]', color: reset, with: true}
+          - highlight: ['C[:,0]', 'C[:,1]', 'C[:,2]', 'C[:,3]', 'C[:,4]']
 
-  - title: 'Assemble $\mathbf{D}_N = \mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N)$'
+  - title: 'What $\mathbf{D}_N$ says'
     steps:
-      - say: 'Multiply the transpose of $\mathbf{C}_N$ with $\mathbf{Q}\,\mathbf{C}_N$: a $3\times 5$ times a $5\times 3$ gives $3\times 3$.'
-        add: {id: s2, row: [{id: CT, matrix: {rows: [[1, 0, 1, -1, 0], [0, 1, -1, 0, 1], [0, 0, 0, 1, -1]], name: '\mathbf{C}_N^{T}'}}, {id: QC2, matrix: {rows: [[q_1, 0, 0], [0, q_2, 0], [q_3, -q_3, 0], [-q_4, 0, q_4], [0, q_5, -q_5]], name: '\mathbf{Q}\,\mathbf{C}_N'}}, '=', {id: Df, matrix: {rows: [['q_1 + q_3 + q_4', -q_3, -q_4], [-q_3, 'q_2 + q_3 + q_5', -q_5], [-q_4, -q_5, 'q_4 + q_5']], name: '\mathbf{D}_N', empty: true}}]}
-      - say: 'Entry $(1,1)$: row 1 of $\mathbf{C}_N^{T}$ against column 1 of $\mathbf{Q}\,\mathbf{C}_N$.'
+      - say: '$\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ has one row and one column per free node.'
+        matrix: DN
+      - say: 'A diagonal entry adds the force densities of every branch at that node. Four branches meet at $N_1$: 1, 5, 6 and 10, so $3 + 1 + 1 + 1 = 6$.'
         do:
-          - color: {target: 'CT[0,:]', color: accent}
-          - color: {target: 'QC2[:,0]', color: accent, with: true}
-          - add: {id: dot, tex: '1\cdot q_1 + 0 + 1\cdot q_3 + (-1)(-q_4) + 0 = {{q_1 + q_3 + q_4}}'}
-          - fly: {from: 'dot{q_1 + q_3 + q_4}', to: 'Df[0,0]'}
-      - say: 'Entry $(1,2)$: only cable 3 joins $N_1$ and $N_2$.'
+          - color: {target: 'DN[0,0]', color: accent}
+          - color: {target: '1', color: accent, with: true}
+          - color: {target: '5', color: accent, with: true}
+          - color: {target: '6', color: accent, with: true}
+          - color: {target: '10', color: accent, with: true}
+      - say: 'An off-diagonal entry is $-q$ of the branch joining two free nodes, here branch 6 between $N_1$ and $N_2$.'
         do:
-          - color: {target: 'QC2[:,0]', color: reset}
-          - color: {target: 'QC2[:,1]', color: accent}
-          - morph: {target: dot, tex: '1\cdot 0 + 0 + 1\cdot(-q_3) + 0 + 0 = {{-q_3}}'}
-          - fly: {from: 'dot{-q_3}', to: 'Df[0,1]'}
-      - say: 'The rest follows the same way.'
+          - color: {target: 'DN[0,0]', color: reset}
+          - color: {target: '1', color: reset, with: true}
+          - color: {target: '5', color: reset, with: true}
+          - color: {target: '10', color: reset, with: true}
+          - color: {target: 'DN[0,1]', color: accent}
+      - say: 'Where no branch joins two nodes the entry is 0: $N_1$ and $N_3$ only meet through $N_5$.'
         do:
-          - color: {target: 'CT[0,:]', color: reset}
-          - color: {target: 'QC2[:,1]', color: reset}
-          - remove: [dot]
-          - show: ['Df[0,2]', 'Df[1,:]', 'Df[2,:]']
+          - color: {target: 'DN[0,1]', color: reset}
+          - color: {target: '6', color: reset, with: true}
+          - highlight: ['DN[0,2]']
 
-  - title: What the entries mean
+  - title: The fixed nodes go to the right-hand side
     steps:
-      - say: 'A diagonal entry adds the force densities of every cable at that node. $N_1$ has cables 1, 3 and 4.'
+      - say: '$\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F$ couples each free node to the fixed node it hangs from. $N_5$ touches none: its row is zero.'
+        matrix: DF
+      - say: 'Times the fixed coordinates and subtracted from the loads, it gives the right-hand side: one column per axis.'
+        matrix: b
+
+  - title: One solve for all five
+    steps:
+      - say: 'The same line as before, now with a 5 × 5 matrix. All five nodes find their place at once.'
         do:
-          - add: {id: Dn, row: ['\mathbf{D}_N =', {id: D2, matrix: {rows: [['q_1 + q_3 + q_4', -q_3, -q_4], [-q_3, 'q_2 + q_3 + q_5', -q_5], [-q_4, -q_5, 'q_4 + q_5']], rowlabels: [N_1, N_2, N_3], collabels: [N_1, N_2, N_3]}}]}
-          - color: {target: e1, color: accent}
-          - color: {target: e3, color: accent, with: true}
-          - color: {target: e4, color: accent, with: true}
-          - color: {target: 'D2[0,0]', color: accent}
-      - say: 'An off-diagonal entry is $-q$ of the one cable joining two free nodes, or $0$ if none does.'
-        do:
-          - color: {target: e1, color: reset}
-          - color: {target: e4, color: reset, with: true}
-          - color: {target: 'D2[0,0]', color: reset}
-          - color: {target: 'D2[0,1]', color: accent}
-          - color: {target: 'D2[1,0]', color: accent, with: true}
-      - say: 'So $\mathbf{D}_N$ is symmetric. With $q = (2, 3, 4, 5, 6)$:'
-        do:
-          - color: {target: e3, color: reset}
-          - color: {target: 'D2[0,1]', color: reset}
-          - color: {target: 'D2[1,0]', color: reset}
-          - add: {id: num, row: ['\mathbf{D}_N =', {id: D3, matrix: {rows: [['2 + 4 + 5', '-4', '-5'], ['-4', '3 + 4 + 6', '-6'], ['-5', '-6', '5 + 6']]}}, '=', {id: D4, matrix: {rows: [[11, -4, -5], [-4, 13, -6], [-5, -6, 11]]}}]}
-      - say: 'One linear system $\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F$ now moves all three free nodes at once.'
-        do:
-          - add: {id: sys, tex: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F', color: free}
-          - indicate: [n1, n2, n3]
+          - eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F'
+          - solve: true
+      - say: 'The solved coordinates of the free nodes.'
+        matrix: xN
+      - say: 'Give the four inner branches $q = 4$. They shorten and pull the ring toward the centre.'
+        solve: {q: {9: 4, 10: 4, 11: 4, 12: 4}}
+      - say: 'Back to the first values. Every choice of force densities is one net.'
+        solve: true

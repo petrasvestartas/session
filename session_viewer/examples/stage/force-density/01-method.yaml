@@ -12,6 +12,8 @@ slides:
     steps:
       - say: 'Klaus Linkwitz and Hans-Jörg Schek, Stuttgart, 1971: a way to find the shape of a cable net.'
         show: [cables, fixed]
+      - say: 'Every free node carries a load, here pointing up like the air in a cushion.'
+        show: loads
       - say: 'Give the net its fixed points, its loads and one number per cable. One linear solve returns the shape in which every node is in equilibrium.'
         solve: true
       - say: 'Its best known application is the Multihalle Mannheim of 1975: a timber gridshell whose shape was computed as a hanging net and built upside down.'
