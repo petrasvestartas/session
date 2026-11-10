@@ -369,6 +369,10 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
 fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
     match d {
         Draw::Prim(p) => prim(out, atlas, f, p, snap),
+        Draw::Head { pts, color } => {
+            let corners = pts.iter().map(|p| f.pt(*p)).collect();
+            out.add(EShape::convex_polygon(corners, c32(*color), Stroke::NONE));
+        }
         Draw::Line {
             a,
             b,

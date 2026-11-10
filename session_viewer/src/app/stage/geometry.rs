@@ -24,7 +24,6 @@ pub struct Spatial {
 pub enum SpatialKind {
     Point,
     Line,
-    Arrow,
     Polyline,
 }
 
@@ -135,6 +134,31 @@ impl Stage {
         }
     }
 
+    /// The head of an arrow on the slide: the share of the arrow its shaft keeps, and the triangle.
+    pub(super) fn arrow_head(&self, o: &Obj, now: f64) -> Option<(f64, [[f32; 2]; 3])> {
+        if !matches!(o.content, Content::Line { arrow: true, .. }) {
+            return None;
+        }
+        let pts = self.geo_points(o, now);
+        let view = self.view(now);
+        let (tail, tip) = (view.project(pts[0]), view.project(pts[1]));
+        let (dx, dy) = (tip[0] - tail[0], tip[1] - tail[1]);
+        let length = dx.hypot(dy);
+        if length < 2.0 {
+            return None;
+        }
+        let (ux, uy) = (dx / length, dy / length);
+        let head = (9.0 + 3.2 * o.width).min(0.6 * length);
+        let side = 0.36 * head;
+        let back = [tip[0] - ux * head, tip[1] - uy * head];
+        let triangle = [
+            tip,
+            [back[0] - uy * side, back[1] + ux * side],
+            [back[0] + uy * side, back[1] - ux * side],
+        ];
+        Some((1.0 - 0.9 * (head / length) as f64, triangle))
+    }
+
     /// A 3D object in world space for the scene: cuboids become twelve dashed edges.
     pub(super) fn geo_spatial(&self, o: &Obj, now: f64, grow: f32, alpha: f32) -> Vec<Spatial> {
         let pts = self.geo_points(o, now);
@@ -152,12 +176,13 @@ impl Stage {
         match &o.content {
             Content::Point(_) => vec![one(SpatialKind::Point, pts, o.id.clone(), false)],
             Content::Line { arrow, .. } => {
-                let kind = if *arrow {
-                    SpatialKind::Arrow
-                } else {
-                    SpatialKind::Line
-                };
-                vec![one(kind, pts, o.id.clone(), o.dash)]
+                // the scene draws an arrow's shaft up to the base of its head; the head is painted over it
+                let mut pts = pts;
+                if *arrow && let Some((kept, _)) = self.arrow_head(o, now) {
+                    let (tail, tip) = (pts[0], pts[1]);
+                    pts[1] = std::array::from_fn(|i| tail[i] + kept * (tip[i] - tail[i]));
+                }
+                vec![one(SpatialKind::Line, pts, o.id.clone(), o.dash)]
             }
             Content::Polyline { closed, .. } => {
                 let mut pts = pts;
