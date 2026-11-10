@@ -26,6 +26,7 @@ pub struct Scene3 {
     serial: u64,
     canvas: [f64; 2],
     count: usize,
+    scale: f64, // Slide scale the widths were made for.
 }
 
 /// Colour `c` composited over the background `bg`, opaque.
@@ -40,11 +41,12 @@ fn over(c: Rgba, bg: Rgba) -> Color {
 }
 
 /// The kernel geometry of a stage object, with its pen.
-fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64) -> Option<Geometry> {
+/// Kernel geometry of one object; `scale` is the slide scale, so widths shrink with the slide.
+fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geometry> {
     let color = over(s.color, bg);
     // `px` is the world size of one pixel, so dashes keep their screen length
     let dash = if s.dash {
-        vec![7.0 * px, 5.0 * px]
+        vec![7.0 * px * scale, 5.0 * px * scale]
     } else {
         Vec::new()
     };
@@ -53,14 +55,14 @@ fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64) -> Option<Geometry> {
             let p = s.pts.first()?;
             let mut point = Point::new(p[0], p[1], p[2]);
             // dot sizes are device pixels, line widths are not
-            point.width = s.width as f64 * 3.4 * dpr;
+            point.width = s.width as f64 * 3.4 * dpr * scale;
             point.pointcolor = color;
             Some(Geometry::Point(Rc::new(point)))
         }
         SpatialKind::Line | SpatialKind::Arrow => {
             let (a, b) = (s.pts.first()?, s.pts.get(1)?);
             let mut line = Line::new(a[0], a[1], a[2], b[0], b[1], b[2]);
-            line.width = s.width as f64;
+            line.width = s.width as f64 * scale;
             line.linecolor = color;
             line.dash = dash;
             if s.kind == SpatialKind::Arrow {
@@ -74,7 +76,7 @@ fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64) -> Option<Geometry> {
             }
             let points = s.pts.iter().map(|p| Point::new(p[0], p[1], p[2])).collect();
             let mut poly = Polyline::new(points);
-            poly.width = s.width as f64;
+            poly.width = s.width as f64 * scale;
             poly.linecolor = color;
             poly.dash = dash;
             Some(Geometry::Polyline(Rc::new(poly)))
@@ -144,15 +146,25 @@ impl Scene3 {
     }
 
     /// Make the scene show `list`: append new objects, update changed ones, hide missing ones.
-    pub fn sync(&mut self, state: &mut State, list: &[Spatial], epoch: u64, bg: Rgba) {
+    pub fn sync(
+        &mut self,
+        state: &mut State,
+        list: &[Spatial],
+        epoch: u64,
+        bg: Rgba,
+        scale: f64,
+    ) {
         let logical = state.logical_size();
         let half_height = state.camera.distance * std::f64::consts::FRAC_PI_6.tan();
         let px = 2.0 * half_height / logical[1].max(1.0);
         let dpr = state.gpu.config.width as f64 / logical[0].max(1.0);
-        if epoch != self.epoch {
+        // a resized slide gets its lines, dots and arrowheads made again at the new scale
+        if epoch != self.epoch || (scale - self.scale).abs() > 0.02 * self.scale {
             self.reset(state);
             self.epoch = epoch;
+            self.scale = scale;
         }
+        state.gpu.view.thickness_px = scale as f32;
         let mut seen: Vec<&str> = Vec::with_capacity(list.len());
         for s in list {
             seen.push(&s.id);
@@ -206,7 +218,7 @@ impl Scene3 {
                     if segment && s.pts.len() == 2 && dist(s.pts[0], s.pts[1]) < 1e-9 {
                         baked.pts[1][0] += 1.0;
                     }
-                    let Some(g) = geometry(&baked, bg, px, dpr) else {
+                    let Some(g) = geometry(&baked, bg, px, dpr, self.scale) else {
                         continue;
                     };
                     let mut session = Session::new(&s.id);

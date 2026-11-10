@@ -370,7 +370,7 @@ impl Ui {
         });
         let bg = stage.stage.palette("bg");
         let (list, epoch) = (std::mem::take(&mut stage.stage.objects3), stage.stage.epoch);
-        stage.scene3.sync(state, &list, epoch, bg);
+        stage.scene3.sync(state, &list, epoch, bg, f.k as f64);
         stage.stage.objects3 = list;
         state.stage = Some(stage);
         self.input
