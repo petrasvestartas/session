@@ -126,6 +126,7 @@ pub enum Content {
     Tex(String),
     Text(String),
     Code(String),
+    Image { src: String, height: f32 },
     Matrix(MatrixSpec),
     Row(Vec<RowItem>),
 }
@@ -372,9 +373,9 @@ fn matrix(v: &Value, at: &str, cx: &Cx) -> Result<MatrixSpec, String> {
 }
 
 /// Keys that make an object, in the order they are looked for.
-const TYPES: [&str; 12] = [
+const TYPES: [&str; 13] = [
     "point", "line", "arrow", "polyline", "polygon", "cuboid", "label", "tex", "text", "code",
-    "matrix", "row",
+    "image", "matrix", "row",
 ];
 
 /// The geometry or formula of an object map.
@@ -424,6 +425,16 @@ fn content(m: &Mapping, at: &str, cx: &Cx) -> Result<Content, String> {
             "tex" => Content::Tex(text(v).unwrap_or_default()),
             "text" => Content::Text(text(v).unwrap_or_default()),
             "code" => Content::Code(text(v).unwrap_or_default()),
+            "image" => match v {
+                Value::Mapping(im) => Content::Image {
+                    src: get(im, "src").and_then(text).unwrap_or_default(),
+                    height: get(im, "height").and_then(num).unwrap_or(7.0) as f32,
+                },
+                other => Content::Image {
+                    src: text(other).unwrap_or_default(),
+                    height: 7.0,
+                },
+            },
             "matrix" => Content::Matrix(matrix(v, at, cx)?),
             "row" => {
                 let mut items = Vec::new();
@@ -1104,12 +1115,13 @@ fn solve(v: &Value, at: &str, cx: &Cx) -> Result<Kind, String> {
 }
 
 /// Step keys that stand for a common action.
-const SHORT: [&str; 11] = [
+const SHORT: [&str; 12] = [
     "eq",
     "then",
     "becomes",
     "text",
     "code",
+    "image",
     "matrix",
     "row",
     "tex",
@@ -1179,7 +1191,7 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                     map: Vec::new(),
                 }));
             }
-            "text" | "code" | "matrix" | "row" | "tex" => {
+            "text" | "code" | "image" | "matrix" | "row" | "tex" => {
                 out.push(act(Kind::Add(vec![object(&one, at, cx)?])))
             }
             "highlight" => out.push(act(Kind::Indicate(strings(v), None))),
@@ -1215,4 +1227,31 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
         }
     }
     Ok(out)
+}
+
+/// The picture files a chapter names with `image:`, in the order met.
+pub fn pictures(src: &str) -> Vec<String> {
+    fn walk(v: &Value, out: &mut Vec<String>) {
+        match v {
+            Value::Mapping(m) => {
+                for (k, v) in m {
+                    let file = match v {
+                        Value::Mapping(im) => get(im, "src").and_then(text),
+                        other => text(other),
+                    };
+                    match (k.as_str(), file) {
+                        (Some("image"), Some(file)) if !out.contains(&file) => out.push(file),
+                        _ => walk(v, out),
+                    }
+                }
+            }
+            Value::Sequence(items) => items.iter().for_each(|item| walk(item, out)),
+            _ => {}
+        }
+    }
+    let mut out = Vec::new();
+    if let Ok(v) = serde_yaml_ng::from_str::<Value>(src) {
+        walk(&v, &mut out);
+    }
+    out
 }

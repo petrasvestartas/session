@@ -24,6 +24,11 @@ pub enum Shape {
         dy: f32,
         width: f32,
     },
+    Image {
+        index: u16,
+        w: f32,
+        h: f32,
+    },
 }
 
 /// A shape at its position; `x, y` is the glyph pen point or the rect's top-left corner.
@@ -55,6 +60,7 @@ impl Shape {
             Shape::Glyph { font, gid, .. } => ((font as u64) << 16) | gid as u64,
             Shape::Rect { .. } => 1 << 40,
             Shape::Stroke { .. } => 2 << 40,
+            Shape::Image { index, .. } => (3 << 40) | index as u64,
         }
     }
 
@@ -83,6 +89,11 @@ impl Shape {
                 dx: dx * k,
                 dy: dy * k,
                 width: width * k,
+            },
+            Shape::Image { index, w, h } => Shape::Image {
+                index,
+                w: w * k,
+                h: h * k,
             },
         }
     }

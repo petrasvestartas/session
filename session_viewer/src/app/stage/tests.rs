@@ -112,10 +112,29 @@ fn decks_rest_cleanly_at_every_step() {
     }
 }
 
+/// Give a stage the pictures its chapters name, read from the example folder.
+fn pictures(stage: &mut run::Stage, name: &str) {
+    let dir = format!("{}/examples/stage/{name}/", env!("CARGO_MANIFEST_DIR"));
+    let chapters = deck::index(&std::fs::read_to_string(format!("{dir}index.yaml")).unwrap())
+        .unwrap()
+        .chapters;
+    for chapter in chapters {
+        let src = std::fs::read_to_string(format!("{dir}{chapter}")).unwrap();
+        for file in deck::pictures(&src) {
+            let bytes = std::fs::read(format!("{dir}{file}")).expect("picture file");
+            let picture = super::paint::picture(&bytes).expect("picture decodes");
+            let aspect = picture.size[0] as f32 / picture.size[1] as f32;
+            let index = stage.pictures.len() as u16;
+            stage.pictures.entry(file).or_insert((index, aspect));
+        }
+    }
+}
+
 /// Rebuild every step of a deck and check it at rest.
 fn rests_cleanly(name: &str) {
     let (index, chapters) = deck(name);
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
+    pictures(&mut stage, name);
     for c in 0..stage.chapters.len() {
         stage.rebuild(c, None);
         for g in 0..stage.steps() {
@@ -151,6 +170,7 @@ fn decks_play_through() {
 fn plays_through(name: &str) {
     let (index, chapters) = deck(name);
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
+    pictures(&mut stage, name);
     let mut now = 0.0;
     for c in 0..stage.chapters.len() {
         stage.chapter_go(c, now);

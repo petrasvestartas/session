@@ -343,6 +343,7 @@ impl Obj {
             Content::Tex(_)
                 | Content::Text(_)
                 | Content::Code(_)
+                | Content::Image { .. }
                 | Content::Matrix(_)
                 | Content::Row(_)
         ) && self.boxed.is_none()
@@ -475,6 +476,7 @@ pub struct Stage {
     labels: HashMap<String, [f32; 2]>,
     pub split: f32,     // Fraction of the slide width given to the 3D side.
     pub spatial: usize, // Draws before this index are clipped to the 3D side.
+    pub pictures: HashMap<String, (u16, f32)>, // Index and width over height of each picture.
     pub scene: bool,    // The viewer's scene draws the 3D objects and its camera supplies `lens`.
     pub lens: Option<Lens>,
     pub objects3: Vec<Spatial>,
@@ -780,6 +782,7 @@ impl Stage {
             scene: false,
             lens: None,
             objects3: Vec::new(),
+            pictures: HashMap::new(),
             ghosts: Vec::new(),
             cam_serial: 0,
             epoch: 0,
@@ -1386,6 +1389,26 @@ impl Stage {
                 self.typeset(s, 2, (x1 - x0) / size)
             }
             Content::Code(s) => Rc::new(tex::code(&self.fonts, s, &self.palette)),
+            Content::Image { src, height } => {
+                let mut picture = Expr::default();
+                match self.pictures.get(src) {
+                    Some(&(index, aspect)) => {
+                        let (w, h) = (aspect * height, *height);
+                        picture.prims.push(Prim {
+                            shape: Shape::Image { index, w, h },
+                            x: 0.0,
+                            y: -h / 2.0 - self.fonts.c.axis,
+                            color: None,
+                            part: None,
+                        });
+                        picture.w = w;
+                        picture.h = h / 2.0 + self.fonts.c.axis;
+                        picture.d = h / 2.0 - self.fonts.c.axis;
+                    }
+                    None => picture.unknown.push(format!("picture {src}")),
+                }
+                Rc::new(picture)
+            }
             Content::Matrix(spec) => {
                 let (e, g) = self.matrix(spec);
                 groups = g;
@@ -2198,7 +2221,7 @@ impl Stage {
                     p.y + m.depth * size,
                 ]
             }
-            Shape::Rect { w, h, .. } => [p.x, p.y, p.x + w, p.y + h],
+            Shape::Rect { w, h, .. } | Shape::Image { w, h, .. } => [p.x, p.y, p.x + w, p.y + h],
             Shape::Stroke { dx, dy, .. } => [
                 p.x.min(p.x + dx),
                 p.y.min(p.y + dy),

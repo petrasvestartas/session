@@ -19,9 +19,40 @@ struct Slot {
     h: u32,    // Bitmap height, pixels.
 }
 
+/// A decoded picture: its size in pixels and its RGBA bytes.
+pub struct Picture {
+    pub size: [usize; 2],
+    pub rgba: Vec<u8>,
+}
+
+/// Decode a PNG file.
+pub fn picture(bytes: &[u8]) -> Result<Picture, String> {
+    let mut decoder = png::Decoder::new(bytes);
+    decoder.set_transformations(png::Transformations::EXPAND | png::Transformations::STRIP_16);
+    let mut reader = decoder.read_info().map_err(|e| e.to_string())?;
+    let mut data = vec![0; reader.output_buffer_size()];
+    let info = reader.next_frame(&mut data).map_err(|e| e.to_string())?;
+    data.truncate(info.buffer_size());
+    let rgba: Vec<u8> = match info.color_type {
+        png::ColorType::Rgba => data,
+        png::ColorType::Rgb => data.chunks(3).flat_map(|p| [p[0], p[1], p[2], 255]).collect(),
+        png::ColorType::GrayscaleAlpha => {
+            data.chunks(2).flat_map(|p| [p[0], p[0], p[0], p[1]]).collect()
+        }
+        png::ColorType::Grayscale => data.iter().flat_map(|g| [*g, *g, *g, 255]).collect(),
+        png::ColorType::Indexed => return Err("indexed PNG did not expand".into()),
+    };
+    Ok(Picture {
+        size: [info.width as usize, info.height as usize],
+        rgba,
+    })
+}
+
 /// Rasterized glyphs in one egui texture.
 pub struct Atlas {
     tex: Option<TextureHandle>,
+    pub pictures: Vec<Picture>,              // The deck's pictures, by index.
+    picture_tex: Vec<Option<TextureHandle>>, // Their textures, made on first use.
     slots: HashMap<(u8, u16, u16), Option<Slot>>, // By font, glyph and pixel size; None for no ink.
     x: usize,                                     // Packing cursor.
     y: usize,                                     // Top of the current shelf.
@@ -36,6 +67,8 @@ impl Atlas {
     pub fn new(fonts: &Fonts) -> Self {
         Atlas {
             tex: None,
+            pictures: Vec::new(),
+            picture_tex: Vec::new(),
             slots: HashMap::new(),
             x: 1,
             y: 1,
@@ -248,6 +281,25 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
                 Stroke::NONE
             };
             out.add(EShape::convex_polygon(pts, fill_c, stroke));
+        }
+        Shape::Image { index, w, h } => {
+            let i = index as usize;
+            let Some(picture) = atlas.pictures.get(i) else {
+                return;
+            };
+            if atlas.picture_tex.len() <= i {
+                atlas.picture_tex.resize(i + 1, None);
+            }
+            let ctx = out.painter.ctx().clone();
+            let texture = atlas.picture_tex[i].get_or_insert_with(|| {
+                let image = egui::ColorImage::from_rgba_unmultiplied(picture.size, &picture.rgba);
+                ctx.load_texture(format!("stage-picture-{i}"), image, TextureOptions::LINEAR)
+            });
+            let rect = Rect::from_min_size(f.pt([p.x, p.y]), egui::vec2(w * f.k, h * f.k));
+            let uv = Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0));
+            out.flush();
+            let tint = c32([1.0, 1.0, 1.0, p.color[3]]);
+            out.painter.image(texture.id(), rect, uv, tint);
         }
         Shape::Stroke { dx, dy, width } => {
             let a = f.pt([p.x, p.y]);

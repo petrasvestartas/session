@@ -88,6 +88,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `then: 'c = d'` | writes the next line, grown out of the last equation |
 | `text: '...'` | a line of prose |
 | `code: \|` + indented lines | program text in a monospace face, `#` comments dimmed |
+| `image: img/portrait.png` | a PNG from the deck folder; `image: {src: img/a.png, height: 8}` sets its height in em. Publish pictures with the same `aws s3 sync`, using `--include '*.png' --content-type image/png` and no `--delete` |
 | `matrix: DN` | a matrix of the net by name (table below), or `{rows: [[1, -1], [0, 1]]}` typed by hand |
 | `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line |
 | `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |

@@ -16,6 +16,7 @@ pub struct Loaded {
     pub fonts: font::Fonts,
     pub index: deck::Index,
     pub chapters: Vec<deck::Chapter>,
+    pub pictures: Vec<(String, paint::Picture)>,
 }
 
 /// One finger on the screen: where it went down, where it is, and whether it orbits the 3D side.
@@ -45,8 +46,13 @@ impl StageApp {
     /// Open the deck at the chapter and step named in the page address.
     pub fn new(loaded: Loaded, now: f64) -> Self {
         let fonts = Rc::new(loaded.fonts);
-        let atlas = paint::Atlas::new(&fonts);
+        let mut atlas = paint::Atlas::new(&fonts);
         let mut stage = run::Stage::new(fonts, loaded.index, loaded.chapters);
+        for (name, picture) in loaded.pictures {
+            let aspect = picture.size[0] as f32 / picture.size[1].max(1) as f32;
+            stage.pictures.insert(name, (atlas.pictures.len() as u16, aspect));
+            atlas.pictures.push(picture);
+        }
         stage.now = now;
         #[cfg(target_arch = "wasm32")]
         let query = |key: &str| crate::app::route::query(key).and_then(|v| v.parse::<usize>().ok());
@@ -346,16 +352,32 @@ pub async fn open(url: String) {
             .rsplit_once('/')
             .map_or(String::new(), |(b, _)| format!("{b}/"));
         let mut chapters = Vec::new();
+        let mut files = Vec::new();
         for name in &index.chapters {
             let bytes = fetch_bytes(&format!("{base}{name}"))
                 .await
                 .map_err(|e| format!("{name}: {e}"))?;
-            chapters.push(deck::chapter(&text(bytes)?, name)?);
+            let src = text(bytes)?;
+            for file in deck::pictures(&src) {
+                if !files.contains(&file) {
+                    files.push(file);
+                }
+            }
+            chapters.push(deck::chapter(&src, name)?);
+        }
+        let mut pictures = Vec::new();
+        for file in files {
+            let bytes = fetch_bytes(&format!("{base}{file}"))
+                .await
+                .map_err(|e| format!("{file}: {e}"))?;
+            let picture = paint::picture(&bytes).map_err(|e| format!("{file}: {e}"))?;
+            pictures.push((file, picture));
         }
         Ok(Loaded {
             fonts,
             index,
             chapters,
+            pictures,
         })
     }
     .await;
