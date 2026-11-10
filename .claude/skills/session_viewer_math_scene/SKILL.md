@@ -43,7 +43,7 @@ slides:
         add:
           - {id: A, point: A, color: fixed, label: 'A'}
           - {id: c1, line: [n, A]}
-          - {id: W, arrow: [n, W1], color: load, width: 3.6, label: 'W'}
+          - {id: W, arrow: [n, W1], color: load, width: 3.6, label: 'p'}
           - {id: n, point: n, color: free, label: 'n'}
 ```
 
