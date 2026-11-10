@@ -490,6 +490,9 @@ fn object(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
         },
         _ => cx.auto(),
     };
+    if let Content::Line { a, b, .. } = &content {
+        cx.ends.insert(id.clone(), (written(a), written(b)));
+    }
     Ok(ObjSpec {
         id,
         content,
@@ -881,6 +884,7 @@ struct Cx {
     n: usize,           // Automatic ids handed out.
     net: Option<Net>,   // The chapter's net.
     eq: Option<String>, // Id of the last equation.
+    ends: HashMap<String, (String, String)>, // Tail and tip of each line or arrow, as expressions.
 }
 
 impl Cx {
@@ -1114,8 +1118,78 @@ fn solve(v: &Value, at: &str, cx: &Cx) -> Result<Kind, String> {
     Ok(Kind::Play(moves))
 }
 
+/// A position as the expression that names it.
+fn written(p: &Pos) -> String {
+    let scalar = |c: &Scalar| match c {
+        Scalar::N(n) => n.to_string(),
+        Scalar::E(e) => e.clone(),
+    };
+    match p {
+        Pos::Name(name) => name.clone(),
+        Pos::Expr(e) => format!("({e})"),
+        Pos::Abs(c) => format!("[{}, {}, {}]", scalar(&c[0]), scalar(&c[1]), scalar(&c[2])),
+    }
+}
+
+/// `project: {of: F1, parts: 'F_{1,%}', axes: [x, z]}`: the box an arrow spans, the walk along its
+/// edges, and a label on each edge; `%` in `parts` becomes the axis.
+fn project(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let Value::Mapping(m) = v else {
+        return err(at, "project: {of: arrow}");
+    };
+    let of = get(m, "of").and_then(text).unwrap_or_default();
+    let (tail, tip) = cx
+        .ends
+        .get(&of)
+        .cloned()
+        .ok_or_else(|| format!("{at}: no line or arrow {of} before it"))?;
+    let axes = get(m, "axes").map(strings).unwrap_or_else(|| vec!["x".into(), "y".into(), "z".into()]);
+    let parts = get(m, "parts").and_then(text);
+    let expr = |e: String| Pos::Expr(e);
+    let mut corner = [tail.clone(), tail.clone(), tail.clone()];
+    let mut out = Vec::new();
+    let mut cuboid = plain(format!("{of}.box"), Content::Cuboid { a: expr(tail), b: expr(tip.clone()) });
+    cuboid.color = Some("dim".into());
+    out.push(act(Kind::Add(vec![cuboid])));
+    let mut labels = Vec::new();
+    for axis in &axes {
+        let k = ["x", "y", "z"].iter().position(|a| a == axis).ok_or_else(|| format!("{at}: no axis {axis}"))?;
+        let from = format!("[x({}), y({}), z({})]", corner[0], corner[1], corner[2]);
+        corner[k] = tip.clone();
+        let to = format!("[x({}), y({}), z({})]", corner[0], corner[1], corner[2]);
+        let edge = Content::Line {
+            a: expr(from.clone()),
+            b: expr(to.clone()),
+            arrow: true,
+        };
+        let mut arrow = plain(format!("{of}.{axis}"), edge);
+        arrow.color = Some(axis.clone());
+        arrow.width = Some(3.6);
+        out.push(act(Kind::Derive {
+            from: of.clone(),
+            obj: arrow,
+            map: Vec::new(),
+        }));
+        if let Some(parts) = &parts {
+            let label = Content::Label {
+                at: expr(format!("mid({from}, {to})")),
+                tex: parts.replace('%', axis),
+            };
+            let mut text = plain(format!("{of}.{axis}.label"), label);
+            text.color = Some(axis.clone());
+            text.size = Some(22.0);
+            labels.push(text);
+        }
+    }
+    if !labels.is_empty() {
+        out.push(act(Kind::Add(labels)));
+    }
+    Ok(out)
+}
+
 /// Step keys that stand for a common action.
-const SHORT: [&str; 12] = [
+const SHORT: [&str; 13] = [
+    "project",
     "eq",
     "then",
     "becomes",
@@ -1211,6 +1285,7 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
                 }
             }
             "solve" => out.push(act(solve(v, at, cx)?)),
+            "project" => out.extend(project(v, at, cx)?),
             _ if KINDS.contains(&key.as_str()) => out.push(action(&one, at, cx)?),
             _ => return err(at, "is not a step key"),
         }

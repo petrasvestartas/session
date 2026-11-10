@@ -38,47 +38,35 @@ slides:
 
   - title: Project one force onto the axes
     steps:
-      - say: 'Arrows are hard to add, numbers are easy. Take $\mathbf{F}_1$ alone and draw the box it spans: the force is the diagonal.'
+      - say: 'Arrows are hard to add, numbers are easy. Take $\mathbf{F}_1$ alone, draw the box it spans and walk from its tail to its tip along $x$, then along $z$. The two edges are the parts of the force.'
         do:
           - dim: [F2, F3, F2.label, F3.label]
-          - add: {id: box1, polygon: [O, '[x(E1), 0, 0]', E1, '[0, 0, z(E1)]'], color: dim, dash: true}
-      - say: 'Walk from the tail to the tip along $x$, then along $z$. The two edges are the parts of the force.'
-        do:
-          - derive: {from: F1, id: x1, arrow: [O, '[x(E1), 0, 0]'], color: x, width: 3.6}
-          - derive: {from: F1, id: z1, arrow: ['[x(E1), 0, 0]', E1], color: z, width: 3.6}
-          - add:
-              - {id: x1.l, label: 'mid(O, [x(E1), 0, 0])', tex: 'F_{1,x}', color: x, size: 22, dir: [0, -1]}
-              - {id: z1.l, label: 'mid([x(E1), 0, 0], E1)', tex: 'F_{1,z}', color: z, size: 22, dir: [1, 0]}
+          - project: {of: F1, parts: 'F_{1,%}', axes: [x, z]}
       - say: 'Each part is the force times the cosine of its angle to that axis: the **direction cosine**. The force has length $\sqrt{3^2 + 1^2} = 3.162$.'
         do:
           - eq: {tex: 'F_{1,x} = F_1 \cos\alpha_1 = 3.162 \cdot 0.949 = 3', color: x}
-          - highlight: [x1]
+          - highlight: [F1.x]
       - say: 'The same along $z$, with the angle to the $z$ axis.'
         do:
           - eq: {tex: 'F_{1,z} = F_1 \cos\gamma_1 = 3.162 \cdot 0.316 = 1', color: z}
-          - highlight: [z1]
+          - highlight: [F1.z]
 
   - title: The same box for every force
     steps:
       - say: 'Every force gets its box. An edge that points backwards has a negative cosine.'
         do:
-          - remove: [x1.l, z1.l]
+          - remove: [F1.x.label, F1.z.label]
           - undim: [F2, F3, F2.label, F3.label]
-          - add:
-              - {id: box2, polygon: [O, '[x(E2), 0, 0]', E2, '[0, 0, z(E2)]'], color: dim, dash: true}
-              - {id: box3, polygon: [O, '[x(E3), 0, 0]', E3, '[0, 0, z(E3)]'], color: dim, dash: true}
-          - derive: {from: F2, id: x2, arrow: ['[0, 0, z(E2)]', E2], color: x, width: 3.6}
-          - derive: {from: F2, id: z2, arrow: [O, '[0, 0, z(E2)]'], color: z, width: 3.6}
-          - derive: {from: F3, id: x3, arrow: ['[0, 0, z(E3)]', E3], color: x, width: 3.6}
-          - derive: {from: F3, id: z3, arrow: [O, '[0, 0, z(E3)]'], color: z, width: 3.6}
+          - project: {of: F2, axes: [x, z]}
+          - project: {of: F3, axes: [x, z]}
       - say: 'Along $x$ the three parts are $3$, $-1$ and $-2$. They cancel.'
         do:
           - eq: {tex: 'x:\quad F_1\cos\alpha_1 + F_2\cos\alpha_2 + F_3\cos\alpha_3 = 3 - 1 - 2 = 0', color: x}
-          - highlight: [x1, x2, x3]
+          - highlight: [F1.x, F2.x, F3.x]
       - say: 'Along $z$ they are $1$, $2$ and $-3$. They cancel too.'
         do:
           - eq: {tex: 'z:\quad F_1\cos\gamma_1 + F_2\cos\gamma_2 + F_3\cos\gamma_3 = 1 + 2 - 3 = 0', color: z}
-          - highlight: [z1, z2, z3]
+          - highlight: [F1.z, F2.z, F3.z]
       - say: 'That is all equilibrium is: one sum per axis. In space there is a third sum, along $y$, and a load on the node is one more term in each.'
         highlight: [P]
       - say: 'Everything that follows only organises these sums: by hand for one node, then with matrices for a whole net.'

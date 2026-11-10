@@ -94,6 +94,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line |
 | `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |
 | `solve: true` | moves the free nodes to equilibrium; `solve: {load: [0, 0, 1], q: 2, rim: 6}` solves a changed net |
+| `project: {of: F1, parts: 'F_{1,%}'}` | the dashed box an arrow spans, the walk along its edges in x, y, z colours, and a label on each edge (`%` becomes the axis); `axes: [x, z]` for a flat case |
 | `highlight: [P0, 'M[2,:]']` | pulses an object, a matrix row, column or entry |
 | `add: {...}` | any object (next section) |
 | `do: [...]` | several of the above in a list, when one key is needed twice |
