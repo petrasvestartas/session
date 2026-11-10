@@ -1057,7 +1057,7 @@ fn net_objects(net: &Net, group: &str) -> Option<Vec<ObjSpec>> {
                 arrow: false,
             };
             let mut o = plain(name.clone(), line);
-            o.label = small.then(|| name.clone());
+            o.label = small.then(|| tex_name(name));
             o.width = (!small).then_some(1.6);
             out.push(o);
         }

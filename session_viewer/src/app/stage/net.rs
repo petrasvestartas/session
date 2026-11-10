@@ -178,7 +178,7 @@ impl Net {
         let coords = |nodes: &[usize], at: &[[f64; 3]]| -> Vec<Vec<f64>> {
             nodes.iter().map(|&i| at[i].to_vec()).collect()
         };
-        let cables: Vec<String> = self.cables.iter().map(|c| c.0.clone()).collect();
+        let cables: Vec<String> = self.cables.iter().map(|c| tex_name(&c.0)).collect();
         let node = |nodes: &[usize]| -> Vec<String> {
             nodes.iter().map(|&i| tex_name(&self.names[i])).collect()
         };
@@ -285,8 +285,8 @@ pub fn tex_name(name: &str) -> String {
         .find(|c: char| c.is_ascii_digit())
         .unwrap_or(name.len());
     let (head, tail) = name.split_at(split);
-    if tail.is_empty() {
-        return head.into();
+    if tail.is_empty() || head.is_empty() {
+        return name.into();
     }
     format!("{head}_{{{}}}", tail.replace('_', ","))
 }
