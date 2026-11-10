@@ -85,7 +85,7 @@ export function nativeDensityBridge(code: string, density: number, fixture: stri
     assert(supportedResize, 'Assembled Renderer must expose a supported physical resize');
     assert.equal(resize, supportedResize, 'Chosen resize must match the assembled Renderer signature');
     assert.equal(code.split(resize).length, 2, 'Exact outer resize boundary changed');
-    const constructors = [...fixture.matchAll(/let mut renderer=Renderer::new\(device,queue,format,&(?:editor\.scene|e\.scene|math_source)\);/g)];
+    const constructors = [...fixture.matchAll(/let mut renderer\s*=\s*Renderer::new\(\s*device\s*,\s*queue\s*,\s*format\s*,\s*&(?:editor\.scene|e\.scene|math_source)\s*\);/g)];
     assert.equal(constructors.length, 1, 'One source-bound mathematical renderer constructor required');
     assert(fixture.includes('fn draw(') && fixture.includes('fn verify_pixels('), 'Canonical draw and pixel assertion tails required');
     const before = constructors[0][0], constructor = fixture.indexOf(before), drain = fixture.indexOf('math_quality.drain_matrix(');

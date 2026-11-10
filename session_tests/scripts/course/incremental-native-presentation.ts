@@ -22,9 +22,13 @@ export function capturePolicy() {
     assert([2, 8].includes(processors), 'Capture processors must be 2 or 8');
     const imageLane = process.env.COURSE_CAPTURE_IMAGE_LANE || '0';
     assert(['0', '1'].includes(imageLane), 'Capture image lane must be 0 or 1');
+    const compileMemory = process.env.COURSE_NATIVE_COMPILE_MEMORY_MIB;
+    assert(compileMemory === undefined || compileMemory === '4096', 'Native compile memory override must be 4096 MiB');
+    if (compileMemory !== undefined) assert(processors === 2 && imageLane === '1', '4 GiB native compilation requires the two-processor image lane');
     const guard = fileURLToPath(new URL('capture-guard.ps1', import.meta.url));
-    return {processors, memoryMiB: processors === 8 ? 8192 : 6144, jobs: processors === 8 ? 8 : 1,
-        guard, guardSha256: sha(guard), ...(imageLane === '1' ? {imageLane: true} : {})};
+    return {processors, memoryMiB: compileMemory === '4096' ? 4096 : processors === 8 ? 8192 : 6144, jobs: processors === 8 ? 8 : 1,
+        guard, guardSha256: sha(guard), ...(imageLane === '1' ? {imageLane: true} : {}),
+        ...(compileMemory === '4096' ? {minimumAvailableMemoryMiB: 5120} : {})};
 }
 
 export function compiledDrawPolicy(memoryMiB = 2048) {
@@ -336,7 +340,8 @@ export function runIncremental(id: string, density = 2, drawMemoryMiB?: number) 
         const buildStart = Date.now();
         const command = runCaptureCommand(label + '-build', ['cargo', 'build', '--example', 'presentation', '--locked', '--offline',
             '--target', record.profile.host, '-j' + record.profile.capture.jobs, '--message-format=json-render-diagnostics'], workbench,
-            {CARGO_INCREMENTAL: '1', COURSE_MEMORY_MIB: '6144', COURSE_TIMEOUT_SECONDS: '1800'});
+            {CARGO_INCREMENTAL: '1', COURSE_MEMORY_MIB: String(record.profile.capture.memoryMiB), COURSE_TIMEOUT_SECONDS: '1800',
+                ...(record.profile.capture.minimumAvailableMemoryMiB ? {COURSE_CAPTURE_MIN_FREE_MIB: String(record.profile.capture.minimumAvailableMemoryMiB)} : {})}, record.profile.capture);
         checkSnapshot(record); checkWorkbench(record.inputs);
         const messages = read(buildLog).split(/\r?\n/).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } });
         const artifacts = messages.filter(message => message.reason === 'compiler-artifact' && message.target?.name === 'presentation'
@@ -350,7 +355,7 @@ export function runIncremental(id: string, density = 2, drawMemoryMiB?: number) 
         record.compilerArtifact = {path: artifactFile, sha256: sha(artifactFile), fresh: artifact.fresh};
         record.executable = {path: binary, sha256: sha(binary), compilerReportedPath: artifact.executable};
         const resources = json(path.join(viewer, 'target/course-checks', label + '-build.resources.json'));
-        assert.equal(resources.exitCode, 0); assert.equal(resources.processors, record.profile.capture.processors); assert.equal(resources.jobCommitLimitBytes, record.profile.capture.memoryMiB * 1048576);
+        verifyExecutionResources(resources, record.profile.capture);
         record.compile = {command, seconds: (Date.now() - buildStart) / 1000, log: buildLog, logSha256: sha(buildLog), resources};
         return executeIncremental(record, label, save, record.executionPolicy || record.profile.capture);
     } catch (error) {

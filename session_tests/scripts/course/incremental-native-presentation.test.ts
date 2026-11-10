@@ -5,7 +5,40 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 import {sealCapture, verifyCaptureLedger, retirePublishedCapture} from './capture-ledger.ts';
-import {compiledDrawPolicy, verifyCompiledArtifact, verifyExecutionResources} from './incremental-native-presentation.ts';
+import {capturePolicy, compiledDrawPolicy, verifyCompiledArtifact, verifyExecutionResources} from './incremental-native-presentation.ts';
+
+test('optional compile limit requires the image lane and a matching actual guard receipt', () => {
+    const names = ['COURSE_CAPTURE_PROCESSORS', 'COURSE_CAPTURE_IMAGE_LANE', 'COURSE_NATIVE_COMPILE_MEMORY_MIB'];
+    const previous = names.map(name => process.env[name]);
+    try {
+        process.env.COURSE_CAPTURE_PROCESSORS = '2';
+        process.env.COURSE_CAPTURE_IMAGE_LANE = '1';
+        delete process.env.COURSE_NATIVE_COMPILE_MEMORY_MIB;
+        const original = capturePolicy();
+        assert.equal(original.memoryMiB, 6144);
+        process.env.COURSE_NATIVE_COMPILE_MEMORY_MIB = '4096';
+        const policy = capturePolicy();
+        assert.equal(policy.memoryMiB, 4096);
+        const resources = {exitCode: 0, timedOut: false, processors: 2, jobCommitLimitBytes: 4096 * 1048576,
+            laneMutex: 'Local\\SessionViewerCourseImageJob', minimumAvailableMemoryMiB: 5120, availableMemoryMiBBeforeLaunch: 6000};
+        verifyExecutionResources(resources, policy);
+        for (const patch of [{jobCommitLimitBytes: 6144 * 1048576}, {minimumAvailableMemoryMiB: 3072}, {availableMemoryMiBBeforeLaunch: 5119}])
+            assert.throws(() => verifyExecutionResources({...resources, ...patch}, policy));
+        assert.equal(compiledDrawPolicy().memoryMiB, 2048);
+        for (const value of ['', '2048', '6144', '8192', '4096x']) {
+            process.env.COURSE_NATIVE_COMPILE_MEMORY_MIB = value;
+            assert.throws(() => capturePolicy());
+        }
+        process.env.COURSE_NATIVE_COMPILE_MEMORY_MIB = '4096';
+        process.env.COURSE_CAPTURE_IMAGE_LANE = '0';
+        assert.throws(() => capturePolicy());
+        process.env.COURSE_CAPTURE_IMAGE_LANE = '1';
+        process.env.COURSE_CAPTURE_PROCESSORS = '8';
+        assert.throws(() => capturePolicy());
+    } finally {
+        names.forEach((name, i) => { if (previous[i] === undefined) delete process.env[name]; else process.env[name] = previous[i]; });
+    }
+});
 
 function fixture() {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'compiled-native-'));
