@@ -69,12 +69,10 @@ slides:
               - {id: a1t, label: [1.661, 2.446, 0.204], tex: '\alpha_1', color: x}
           - eq: {tex: '\cos\alpha_1 = \frac{|\Delta x_1|}{l_1} = \frac{3}{4.250} = 0.706', color: x}
           - highlight: [ux]
-      - say: 'The force splits in the same proportion. Its $x$ part points backwards. The signed difference $x_1 - x_0 = -3$ carries that minus by itself.'
+      - say: 'The force splits in the same proportion. Its $x$ part points backwards. The signed difference $x_1 - x_0 = -3$ carries that minus by itself. The same holds along $y$ and $z$.'
         do:
           - eq: {id: fx, tex: 'f_{1,x} = -f_1\cos\alpha_1 = f_1\,\frac{x_1 - x_0}{l_1}'}
           - {indicate: [fx], color: x}
-      - say: 'The same along $y$ and $z$, with the angles $\beta_1$ and $\gamma_1$.'
-        eq: 'f_{1,y} = f_1\,\frac{y_1 - y_0}{l_1}, \qquad f_{1,z} = f_1\,\frac{z_1 - z_0}{l_1}'
 
   - title: Sum the components
     steps:
