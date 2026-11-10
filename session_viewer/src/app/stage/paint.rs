@@ -1,6 +1,8 @@
+use super::draw::rounded;
 use super::font::Fonts;
-use super::run::{DPrim, Draw, H, Stage, W, rounded, smooth};
+use super::run::{DPrim, Draw, H, Stage, W};
 use super::tex::{Rgba, Shape};
+use super::tween::smooth;
 use egui::{Color32, Pos2, Rect, Shape as EShape, Stroke, TextureHandle, TextureOptions};
 use std::collections::HashMap;
 use swash::scale::{Render, ScaleContext, Source, image::Content};

@@ -1,6 +1,7 @@
+use super::geometry::{Spatial, SpatialKind};
 use super::paint::Frame;
-use super::run::{Cam, Lens, Spatial, SpatialKind};
 use super::tex::Rgba;
+use super::view::{Cam, Lens};
 use crate::State;
 use crate::app::scene::FileDoc;
 use session_rust::{

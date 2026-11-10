@@ -211,6 +211,9 @@ aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete \
   --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
 ```
 
-The runtime is `src/app/stage/`: `deck.rs` (YAML), `net.rs` (the net, its matrices and the solve),
-`tex.rs` and `font.rs` (TeX and code layout), `run.rs` (objects, layout, actions), `spatial.rs` (kernel
-geometry in the scene) and `paint.rs` (drawing the column and the labels).
+The runtime is `src/app/stage/`: `deck.rs` (YAML, step keys, blocks), `net.rs` (the net, its
+matrices and the solve), `tex.rs` and `font.rs` (TeX and code layout), `run.rs` (the stage, its
+navigation and the frame), `object.rs`, `layout.rs`, `matrix.rs` (objects and the column),
+`geometry.rs`, `spatial.rs`, `view.rs` (the 3D side in the viewer's scene), `actions.rs`,
+`morph.rs`, `tween.rs` (what a step does and how it moves), `check.rs` (overlaps) and `paint.rs`,
+`draw.rs` (drawing the column and the labels).
