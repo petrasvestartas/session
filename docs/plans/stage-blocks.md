@@ -113,7 +113,7 @@ the one before.
 - *Done:* a deck's fonts, index and chapters now start downloading with the page, in parallel with
   the wasm (`index.html`), and the default scene is no longer fetched for a deck.
 - Next, in order of gain:
-  1. Subset the fonts to the glyphs TeX and the decks can reach (Latin, Greek, math operators,
+  1. *Done 2026-11-10: 3.1 MB to 1.1 MB, 49 of 50 compared frames pixel-identical.* Subset the fonts to the glyphs TeX and the decks can reach (Latin, Greek, math operators,
      delimiters and their size variants): about 3.1 MB to under 0.6 MB. Fetch the mono face only
      when a deck uses `code:`.
   2. Run `wasm-opt -Oz` on the release build (it is switched off: `data-wasm-opt="0"`); typical
