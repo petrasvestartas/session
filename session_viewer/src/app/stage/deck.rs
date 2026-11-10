@@ -3,6 +3,9 @@ use super::tex::{Rgba, hex};
 use serde_yaml_ng::{Mapping, Value};
 use std::collections::HashMap;
 
+/// Marks a label whose content is a picture: `<mark><file>:<height in em>`.
+pub const PINNED: &str = "\u{1}picture:";
+
 /// The deck index: its title and chapter files.
 #[derive(Clone, Debug)]
 pub struct Index {
@@ -470,10 +473,20 @@ fn object(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
         return err(at, "an object is a map");
     };
     // a `label` key next to `tex` makes a 3D label; next to point/line it names the attached label
-    let is_label = get(m, "label").is_some()
-        && get(m, "tex").is_some()
-        && TYPES[..6].iter().all(|k| get(m, k).is_none());
-    let content = if is_label {
+    let pinned = get(m, "label").is_some() && get(m, "image").is_some();
+    let is_label = pinned
+        || get(m, "label").is_some()
+            && get(m, "tex").is_some()
+            && TYPES[..6].iter().all(|k| get(m, k).is_none());
+    let content = if pinned {
+        // a picture pinned to a 3D position travels as a label whose text names the file
+        let height = get(m, "height").and_then(num).unwrap_or(7.0);
+        let file = get(m, "image").and_then(text).unwrap_or_default();
+        Content::Label {
+            at: pos(get(m, "label").unwrap(), at)?,
+            tex: format!("{PINNED}{file}:{height}"),
+        }
+    } else if is_label {
         Content::Label {
             at: pos(get(m, "label").unwrap(), at)?,
             tex: get(m, "tex").and_then(text).unwrap_or_default(),
@@ -1391,8 +1404,88 @@ fn filled(template: &Value, given: &Value) -> Value {
     }
 }
 
+/// A matrix of the net added with empty cells, under its own name.
+fn empty_matrix(name: &str, at: &str, cx: &Cx) -> Result<Action, String> {
+    let net = cx.net.as_ref().ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let mut spec = net.matrix(name).ok_or_else(|| format!("{at}: the net has no matrix {name}"))?;
+    spec.empty = true;
+    Ok(act(Kind::Add(vec![plain(name.into(), Content::Matrix(spec))])))
+}
+
+/// `fill: xF` shows the fixed coordinates empty, lets each node's label grow its coordinates and
+/// fly into its row, and puts the labels back.
+fn fill(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let name = text(v).unwrap_or_default();
+    let net = cx.net.clone().ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let nodes = match name.as_str() {
+        "xF" => net.anchors(),
+        _ => return err(at, "fills `xF`, the fixed coordinates"),
+    };
+    let label = |i: usize, tex: String, with: bool| {
+        let mut a = act(Kind::Morph {
+            target: format!("{}.label", net.names[i]),
+            to: Content::Label {
+                at: Pos::Name(net.names[i].clone()),
+                tex,
+            },
+            map: Vec::new(),
+        });
+        a.with = with;
+        a.dur = Some(0.6);
+        a
+    };
+    let mut out = vec![empty_matrix(&name, at, cx)?];
+    for (row, &i) in nodes.iter().enumerate() {
+        let p = net.at[i].map(num_text);
+        let grown = format!("{}\\,({},\\,{},\\,{})", tex_name(&net.names[i]), p[0], p[1], p[2]);
+        out.push(label(i, grown, row > 0));
+    }
+    for (row, &i) in nodes.iter().enumerate() {
+        let mut fly = act(Kind::Fly {
+            from: format!("{}.label", net.names[i]),
+            to: format!("{name}[{row},:]"),
+            keep: true,
+        });
+        fly.with = row > 0;
+        fly.delay = if row > 0 { 0.2 } else { 0.0 };
+        out.push(fly);
+    }
+    for (row, &i) in nodes.iter().enumerate() {
+        out.push(label(i, tex_name(&net.names[i]), row > 0));
+    }
+    Ok(out)
+}
+
+/// `reveal: C` shows a branch-node matrix empty and fills it row by row, each cable lit in turn.
+fn reveal(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let name = text(v).unwrap_or_default();
+    let net = cx.net.clone().ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    if !["C", "CN", "CF"].contains(&name.as_str()) {
+        return err(at, "reveals `C`, `CN` or `CF`");
+    }
+    let paint = |cable: &str, color: &str, with: bool| {
+        let mut a = act(Kind::Color {
+            target: cable.into(),
+            color: color.into(),
+        });
+        a.with = with;
+        a
+    };
+    let mut out = vec![empty_matrix(&name, at, cx)?];
+    for (row, (cable, ..)) in net.cables.iter().enumerate() {
+        out.push(paint(cable, "accent", false));
+        let mut show = act(Kind::Show(vec![format!("{name}[{row},:]")]));
+        show.with = true;
+        out.push(show);
+        out.push(paint(cable, "reset", false));
+    }
+    Ok(out)
+}
+
 /// Step keys that stand for a common action.
-const SHORT: [&str; 17] = [
+const SHORT: [&str; 19] = [
+    "fill",
+    "reveal",
     "eliminate",
     "multiply",
     "project",
@@ -1498,6 +1591,8 @@ fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
             "eliminate" => out.extend(eliminate(v, at, cx)?),
             "multiply" => out.extend(multiply(v, at)?),
             "node" => out.extend(node(v, at, cx)?),
+            "fill" => out.extend(fill(v, at, cx)?),
+            "reveal" => out.extend(reveal(v, at, cx)?),
             _ if KINDS.contains(&key.as_str()) => out.push(action(&one, at, cx)?),
             _ if cx.blocks.contains_key(&key) => {
                 let template = filled(&cx.blocks[&key], v);

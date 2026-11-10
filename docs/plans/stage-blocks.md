@@ -85,7 +85,7 @@ reported in red on the slide like any other mistake.
 ## Order of work
 
 1. `project` (*done 2026-11-10*, used in 02-equilibrium), `walk` (*done*, 02-equilibrium) and `node` (*done*, 10-net).
-2. `reveal`, `fill`, `cases` (pure expansions of existing actions).
+2. `reveal` and `fill` (*done*, with a test).
 3. `eliminate` (*done*, 09-solver; it computes on the matrix the slides typed) and `multiply`
    (*done*, with a test; no chapter uses it yet).
 4. `blocks:` templates (*done*, per chapter, with a test). `outline` and `cases` are dropped:
@@ -117,7 +117,9 @@ the one before.
   1. *Done 2026-11-10: 3.1 MB to 1.1 MB, 49 of 50 compared frames pixel-identical.* Subset the fonts to the glyphs TeX and the decks can reach (Latin, Greek, math operators,
      delimiters and their size variants): about 3.1 MB to under 0.6 MB. Fetch the mono face only
      when a deck uses `code:`.
-  2. Run `wasm-opt -Oz` on the release build (it is switched off: `data-wasm-opt="0"`); typical
+  2. *Measured 2026-11-10: the Pages workflow already runs wasm-opt -O3. Link-time optimisation
+     is now on (about 5 % smaller, no slower); a size-first build gave 18 % but slows the viewer.*
+     Run `wasm-opt -Oz` on the release build (it is switched off: `data-wasm-opt="0"`); typical
      gain 15-25 % of the wasm.
   3. A `deck` build of the viewer without the parts a deck never calls (BRep tessellation,
      command dock, selftests), behind a cargo feature, published as a second wasm that

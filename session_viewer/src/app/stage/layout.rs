@@ -1,4 +1,4 @@
-use super::deck::Content;
+use super::deck::{Content, PINNED};
 use super::object::Align;
 use super::run::{BOTTOM, H, MARGIN, RELAYOUT_MS, Stage, TOP, W};
 use super::tex::{self, Expr, Prim, Rgba, Shape};
@@ -45,6 +45,28 @@ impl Stage {
         e
     }
 
+    /// A picture of the deck, `height` em tall and centred on the math axis.
+    fn picture(&self, src: &str, height: f32) -> Expr {
+        let mut picture = Expr::default();
+        match self.pictures.get(src) {
+            Some(&(index, aspect)) => {
+                let (w, h) = (aspect * height, height);
+                picture.prims.push(Prim {
+                    shape: Shape::Image { index, w, h },
+                    x: 0.0,
+                    y: -h / 2.0 - self.fonts.c.axis,
+                    color: None,
+                    part: None,
+                });
+                picture.w = w;
+                picture.h = h / 2.0 + self.fonts.c.axis;
+                picture.d = h / 2.0 - self.fonts.c.axis;
+            }
+            None => picture.unknown.push(format!("picture {src}")),
+        }
+        picture
+    }
+
     /// Left and right edge of the column.
     fn panel(&self) -> (f32, f32) {
         (self.split * W + MARGIN * 0.6, W - MARGIN)
@@ -65,32 +87,19 @@ impl Stage {
         };
         let expr = match content {
             Content::Tex(s) => self.typeset(s, 0, 0.0),
-            Content::Label { tex, .. } => self.typeset(tex, 1, 0.0),
+            Content::Label { tex, .. } => match tex.strip_prefix(PINNED) {
+                Some(picture) => {
+                    let (src, height) = picture.rsplit_once(':').unwrap_or((picture, "7"));
+                    Rc::new(self.picture(src, height.parse().unwrap_or(7.0)))
+                }
+                None => self.typeset(tex, 1, 0.0),
+            },
             Content::Text(s) => {
                 let (x0, x1) = self.panel();
                 self.typeset(s, 2, (x1 - x0) / size)
             }
             Content::Code(s) => Rc::new(tex::code(&self.fonts, s, &self.palette)),
-            Content::Image { src, height } => {
-                let mut picture = Expr::default();
-                match self.pictures.get(src) {
-                    Some(&(index, aspect)) => {
-                        let (w, h) = (aspect * height, *height);
-                        picture.prims.push(Prim {
-                            shape: Shape::Image { index, w, h },
-                            x: 0.0,
-                            y: -h / 2.0 - self.fonts.c.axis,
-                            color: None,
-                            part: None,
-                        });
-                        picture.w = w;
-                        picture.h = h / 2.0 + self.fonts.c.axis;
-                        picture.d = h / 2.0 - self.fonts.c.axis;
-                    }
-                    None => picture.unknown.push(format!("picture {src}")),
-                }
-                Rc::new(picture)
-            }
+            Content::Image { src, height } => Rc::new(self.picture(src, *height)),
             Content::Matrix(spec) => {
                 let (e, g) = self.matrix(spec);
                 groups = g;

@@ -250,3 +250,28 @@ slides:
     stage.frame(0.0);
     assert!(stage.errors.is_empty(), "{:?}", stage.errors);
 }
+
+#[test]
+fn fill_and_reveal_build_the_given_matrices_from_the_net() {
+    let src = "
+title: given
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3]}
+  free: {n0: [2, 1, 1]}
+  cables: {e0: [n0, n1], e1: [n0, n2]}
+slides:
+  - title: the givens
+    steps:
+      - show: net
+      - fill: xF
+      - reveal: C
+";
+    let chapter = deck::chapter(src, "given.yaml").unwrap();
+    let index = deck::index("name: t\nchapters: [given.yaml]").unwrap();
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, vec![chapter]);
+    for step in 0..3 {
+        stage.rebuild(0, Some(step));
+        stage.frame(0.0);
+        assert!(stage.errors.is_empty(), "step {step}: {:?}", stage.errors);
+    }
+}

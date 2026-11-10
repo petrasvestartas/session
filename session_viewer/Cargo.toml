@@ -77,6 +77,8 @@ opt-level = 3
 
 [profile.release]
 strip = true
+lto = "fat"        # one optimisation unit across crates: about 5 % less to download, no slower
+codegen-units = 1
 
 [dev-dependencies]
 naga = { version = "=29.0.4", features = ["wgsl-in"] }

@@ -101,6 +101,8 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `node: {of: n4_4, row: DN}` | lights a node of the net, its cables and its row in a matrix; `clear: true` puts the colours back |
 | `eliminate: {matrix: M, row: 2, with: 1}` | adds the multiple of row 1 to row 2 that clears the entry under the pivot; rows count from 1 and the new entries are computed |
 | `multiply: {left: A, right: B, into: C, entry: [0, 1]}` | tints a row of `A` and a column of `B` and reveals that entry of `C` (added with `empty: true`) |
+| `fill: xF` | shows the fixed coordinates empty, lets each node's label grow its coordinates and fly into its row |
+| `reveal: C` | shows `C`, `CN` or `CF` empty and fills it row by row, each cable lit in turn |
 | `highlight: [P0, 'M[2,:]']` | pulses an object, a matrix row, column or entry |
 | `add: {...}` | any object (next section) |
 | `do: [...]` | several of the above in a list, when one key is needed twice |
@@ -170,6 +172,7 @@ Node and cable names are also object names: `color: {target: a, color: accent}`,
 | `polyline: [A, B, C]`, `polygon: [...]` | open or closed |
 | `cuboid: [P0, P1]` | the dashed box between two corners |
 | `label: P1` + `tex: '(0,\,0,\,0)'` | a formula at a 3D position |
+| `label: P1` + `image: img/a.png` | a picture pinned to a 3D position, `height` in em; it faces the screen and keeps its size |
 
 A position is a name from `points:` or the net, `[x, y, z]`, or an expression:
 `'P0 + [0, 0, -2]'`, `'mid(P0, P1)'`, `'lerp(P1, P0, 0.9)'`. Geometry follows a point while
