@@ -112,6 +112,10 @@ slides:
 
   - title: 'The formula of presentation 2'
     steps:
+      - say: 'Equilibrium of the free nodes along $x$, with $\mathbf{D}_N$ and $\mathbf{D}_F$ written out.'
+        eq: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p}_x'
+      - say: 'With the numbers of the five nodes this reads $4x_0 - 12 = 0$: the answer found by hand in presentation 1.'
+        eq: '4\,x_0 - 12 = 0 \quad\Rightarrow\quad x_0 = 3'
       - say: 'Solve (6.31) for the free coordinates, along $x$.'
         eq: {tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}\,(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', color: x}
       - say: 'Write $\mathbf{D}_N$ and $\mathbf{D}_F$ out: this is exactly the line presentation 2 used as a tool, now derived.'
