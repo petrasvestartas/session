@@ -10,7 +10,7 @@ net:
 slides:
   - title: The five nodes, no load
     steps:
-      - say: 'The five nodes again, this time without a load. Only the force densities decide where $n_0$ rests.'
+      - say: 'The five nodes again, now without a load. Only the force densities decide where $n_0$ rests.'
         show: net
       - say: 'Each coordinate of $n_0$ is the average of the fixed nodes, weighted by the force densities.'
         do:
@@ -21,11 +21,11 @@ slides:
   - title: Change one force density
     keep: true
     steps:
-      - say: 'With equal force densities the node rests at the plain average of the four fixed nodes.'
+      - say: 'With equal force densities, the node rests at the plain average of the four fixed nodes.'
         do:
           - solve: {load: {n0: [0, 0, 0]}}
           - eq: 'q = (1,\ 1,\ 1,\ 1):\quad n_0 = (3,\ 3,\ 1.5)'
-      - say: 'Give cable $e_2$ four times the force density. It weighs four times as much in the average and pulls the node toward $n_3$.'
+      - say: 'Give cable $e_2$ four times the force density. It counts four times as much and pulls the node toward $n_3$.'
         do:
           - color: {target: e2, color: accent}
           - solve: {load: {n0: [0, 0, 0]}, q: {e2: 4}}
@@ -36,9 +36,9 @@ slides:
           - color: {target: e0, color: accent, with: true}
           - solve: {load: {n0: [0, 0, 0]}, q: {e0: 4}}
           - eq: 'q = (4,\ 1,\ 1,\ 1):\quad n_0 = (1.714,\ 1.714,\ 0.857)'
-      - say: 'A force density is a weight: the denser a cable, the closer the node sits to its other end. No iteration, one solve each time.'
+      - say: 'A force density is a weight. The higher it is, the closer the node moves to that fixed node. No iteration: one solve each time.'
         do:
           - color: {target: e0, color: reset}
           - solve: {load: {n0: [0, 0, 0]}}
-      - say: 'One free node by hand. For a whole net the same sums are written with matrices: the next presentation.'
+      - say: 'One free node by hand. For a whole net, the same sums are written with matrices: the next presentation.'
         text: '**Next:** Force density 2 · the method with matrices'

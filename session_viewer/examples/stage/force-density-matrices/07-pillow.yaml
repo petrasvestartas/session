@@ -21,7 +21,7 @@ slides:
     steps:
       - say: '$\mathbf{D}_N$ is 64 × 64, with the same pattern as before: the diagonal and the four neighbours.'
         matrix: DN
-      - say: 'Along $x$ and $y$ there is no load. The right-hand side is only the pull of the fixed boundary, and the nodes stay on their regular grid.'
+      - say: 'Along $x$ and $y$ there is no load. The right-hand side is only the pull of the boundary, so the nodes stay on their grid.'
         eq: '\mathbf{D}_N\,\mathbf{x}_N = -\mathbf{D}_F\,\mathbf{x}_F'
       - say: 'Along $z$ the boundary sits at $z = 0$, so it adds nothing. The right-hand side is the load alone.'
         eq: '\mathbf{D}_N\,\mathbf{z}_N = \mathbf{p}_z'
@@ -30,14 +30,14 @@ slides:
     steps:
       - say: 'One factorisation, three substitutions. Each node rises until its four cables balance its load.'
         solve: true
-      - say: 'For an inner node: $4z_0 - z_1 - z_2 - z_3 - z_4 = p_z$. The node sits above the average of its neighbours by $p_z/4$.'
+      - say: 'For an inner node: $4z_0 - z_1 - z_2 - z_3 - z_4 = p_z$. It sits $p_z/4$ above the average of its neighbours.'
         eq: 'z_0 = \tfrac{1}{4}\,(z_1 + z_2 + z_3 + z_4) + \tfrac{1}{4}\,p_z'
 
   - title: A linear system answers linearly
     steps:
-      - say: 'Double the load. Every height doubles: the matrix did not change, only the right-hand side.'
+      - say: 'Double the load: every height doubles. The matrix stays; only the right-hand side changes.'
         solve: {load: [0, 0, 0.7]}
-      - say: 'Back to the first load, and double every force density instead. The matrix doubles, so the heights halve.'
+      - say: 'Back to the first load. Double every force density instead: the matrix doubles, so the heights halve.'
         solve: {q: 2}
-      - say: 'Loads set the right-hand side, force densities set the matrix, the fixed points set both. One solve gives the shape.'
+      - say: 'Loads set the right-hand side. Force densities set the matrix. Fixed points set both. One solve gives the shape.'
         solve: true

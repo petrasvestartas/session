@@ -17,42 +17,42 @@ slides:
           - '\quad'
           - {id: schek, image: {src: img/schek.png, height: 6.5}}
         text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
-      - say: 'Every free node carries a load, here pointing up like the air in a cushion.'
+      - say: 'Every free node carries a load. Here the loads point up.'
         show: loads
-      - say: 'Give the net its fixed points, its loads and one number per cable. One linear solve returns the shape in which every node is in equilibrium.'
+      - say: 'Give the net fixed points, loads and one number per cable. One linear solve gives the shape. Every node is in equilibrium.'
         solve: true
-      - say: 'Its best known application is the Multihalle Mannheim of 1975: a timber gridshell whose shape was computed as a hanging net and built upside down.'
+      - say: 'Its best-known use is the Multihalle Mannheim, 1975: a timber gridshell, computed as a hanging net and built upside down.'
         image: {src: img/multihalle.png, height: 8}
         text: '**Multihalle Mannheim**, Herzogenriedpark, 1975'
 
   - title: The result we are heading for
     steps:
-      - say: 'For one free node, everything in this presentation leads to one line per coordinate: the node sits at a weighted average of its neighbours, shifted by its load.'
+      - say: 'For one free node, this presentation ends in one line per coordinate. The node sits at a weighted average of its neighbours, shifted by its load.'
         eq: {tex: 'x_0 = \frac{\sum_i q_i\, x_i + p_x}{\sum_i q_i}', color: x}
       - say: 'The same line for $y_0$ and for $z_0$.'
         do:
           - eq: {tex: 'y_0 = \frac{\sum_i q_i\, y_i + p_y}{\sum_i q_i}', color: y}
           - eq: {tex: 'z_0 = \frac{\sum_i q_i\, z_i + p_z}{\sum_i q_i}', color: z}
-      - say: 'On the right stands what we know. On the left, what we want: the coordinates of the free node.'
+      - say: 'On the right is what we know. On the left is what we want: the free node.'
         do:
           - text: '**known:** $x_i, y_i, z_i$ the fixed nodes, $p$ the load, $q_i$ one number per cable'
           - text: '**wanted:** $x_0$, $y_0$, $z_0$, the free node'
 
   - title: The way there, in five presentations
     steps:
-      - say: 'Presentation 0 comes first: the equilibrium of one node in 2D, with force diagrams and with projections.'
+      - say: 'Presentation 0 comes first: one node in 2D, with force diagrams and projections.'
         text: '**0 · Equilibrium of a node**: equilibrium'
         align: left
       - say: 'This presentation: one free node in 3D, plain sums, no matrices yet (Linkwitz 6.2.2).'
         do:
           - {text: '**1 · the equations of five nodes**', align: left}
-          - {text: 'the question and what is given, forces as projections, force over length as one unknown, force density in 1D, playing with force densities', align: left}
-      - say: 'The second writes the same sums with matrices and uses the result as a tool: any net solved for its coordinates and its forces.'
+          - {text: 'the question and the givens, forces as projections, force over length as one chosen number, force density in 1D, playing with force densities', align: left}
+      - say: 'Presentation 2 writes the same sums with matrices. It uses the result as a tool for any net.'
         text: '**2 · the method with matrices**: force-density-matrices'
         align: left
-      - say: 'The third shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).'
+      - say: 'Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).'
         text: '**3 · where the formula comes from**: force-density-derivation'
         align: left
-      - say: 'The fourth turns the solved net into cables: elongations and unstretched lengths (6.5).'
+      - say: 'Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).'
         text: '**4 · materialization**: force-density-materialization'
         align: left

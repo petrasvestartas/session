@@ -11,18 +11,18 @@ net:
 slides:
   - title: The formula we used
     steps:
-      - say: 'The five nodes once more: four fixed nodes, one free node $n_0$ on four cables, a load of 5 kN.'
+      - say: 'The five nodes once more: four fixed nodes, one free node $n_0$, four cables, a load of 5 kN.'
         show: net
       - say: 'Presentation 2 found the free node with one line per coordinate, used as a tool.'
         eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
       - say: 'One solve, and the node rests at $(3,\ 3,\ 0.25)$.'
         solve: true
-      - say: 'But why is it true? The cables pull with forces along their lengths, and the lengths depend on where the node is. Where did the forces and the lengths go?'
+      - say: 'But why is it true? The cables pull along their lengths, and the lengths depend on the node. Where did forces and lengths go?'
         text: '**Why does a linear solve give equilibrium?**'
 
   - title: The plan
     steps:
-      - say: 'Start from geometry: the length of one cable between the free node and an anchor.'
+      - say: 'Start from geometry: the length of one cable from the free node to an anchor.'
         text: '**1.** the length of one cable $l_k$'
         align: left
       - say: 'Ask how that length changes when the free node moves a little (Linkwitz 6.4.2).'
@@ -31,9 +31,9 @@ slides:
       - say: 'Collect the derivatives of all cables into one matrix.'
         text: '**3.** all cables at once: the Jacobian'
         align: left
-      - say: 'Write equilibrium of the free node with that matrix (6.4.3).'
+      - say: 'Write the equilibrium of the free node with that matrix (6.4.3).'
         text: '**4.** equilibrium in matrix form'
         align: left
-      - say: 'Prescribe force over length instead of force: the lengths drop out and the formula appears.'
+      - say: 'Prescribe force over length instead of force. The lengths drop out and the formula appears.'
         text: '**5.** the force density substitution, and the formula of presentation 2'
         align: left

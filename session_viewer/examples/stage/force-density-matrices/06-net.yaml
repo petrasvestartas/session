@@ -12,7 +12,7 @@ net:
 slides:
   - title: The same script, more nodes
     steps:
-      - say: 'A grid of 9 × 9 nodes and 144 cables. The four corners are fixed, two of them lifted to $z = 4$. The flat grid is only a starting picture.'
+      - say: 'A grid of 9 × 9 nodes and 144 cables. The four corners are fixed; two are lifted to $z = 4$. The flat grid is only a start.'
         show: [cables, fixed]
       - say: '77 nodes are free. Each has an unknown $x$, $y$ and $z$: 231 numbers to find.'
         eq: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)'
@@ -21,7 +21,7 @@ slides:
 
   - title: The connectivity matrix
     steps:
-      - say: 'One row per cable, one column per node. Each row still holds a single $+1$ and a single $-1$; the rest is zero.'
+      - say: 'One row per cable, one column per node. Each row holds one $+1$ and one $-1$; the rest is zero.'
         matrix: C
       - say: 'Nobody types this matrix. A loop over the cables fills it.'
         code: |
@@ -36,28 +36,28 @@ slides:
         matrix: DN
       - say: 'Take the inner node $n_{4,4}$. Four cables meet there.'
         node: {of: n4_4, row: DN}
-      - say: 'Its row has five entries: $+4$ on the diagonal, the sum of its four force densities, and $-1$ for each neighbour.'
+      - say: 'Its row has five entries: $+4$ on the diagonal, the sum of its four force densities, and $-1$ per neighbour.'
         eq: '4\,z_{4,4} - z_{4,3} - z_{4,5} - z_{3,4} - z_{5,4} = p_z'
-      - say: 'That row is the sum $\sum q_k (z_k - z_0) + p_z = 0$ of the single node, for this one node. The matrix stacks 77 such sums.'
+      - say: 'That row is the sum $\sum q_k (z_k - z_0) + p_z = 0$ for this one node. The matrix stacks 77 such sums.'
         node: {of: n4_4, row: DN, clear: true}
 
   - title: Solve
     steps:
-      - say: 'Elimination, as with the chain of three, now with 77 rows. Below the diagonal everything becomes zero.'
+      - say: 'Elimination, as with the chain of three, now with 77 rows. Everything below the diagonal becomes zero.'
         row:
           - {id: D2, matrix: DN}
           - '\ \longrightarrow\ '
           - {id: U, matrix: U}
-      - say: 'Back substitution for $x$, $y$ and $z$ gives every free node its place. The net finds its shape.'
+      - say: 'Back substitution for $x$, $y$ and $z$ places every free node. The net finds its shape.'
         solve: true
-      - say: 'A saddle between two high and two low corners, with every node in equilibrium.'
+      - say: 'A saddle between two high and two low corners. Every node is in equilibrium.'
         highlight: [n0_0, n8_8]
 
   - title: Force densities shape the net
     steps:
       - say: 'Lower the force density of the rim cables from 10 to 1. They pull less, and the edges sag inward.'
         solve: {rim: 1}
-      - say: 'Raise it to 40: the rim tightens toward straight lines.'
+      - say: 'Raise it to 40: the rim pulls toward straight lines.'
         solve: {rim: 40}
       - say: 'Every choice of $\mathbf{q}$ gives one equilibrium shape, found by one linear solve.'
         solve: true

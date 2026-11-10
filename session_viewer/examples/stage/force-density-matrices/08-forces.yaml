@@ -23,17 +23,17 @@ net:
 slides:
   - title: From coordinates to forces
     steps:
-      - say: 'The net of chapter 4, solved. The method gave the coordinates; the forces were never asked for.'
+      - say: 'The net of chapter 4, solved. The method gave the coordinates, not the forces.'
         do:
           - show: net
           - solve: true
-      - say: 'They follow at once. The force density was defined as force over length, so each force is its force density times its length (6.33).'
+      - say: 'The forces follow at once. Force density is force over length, so force is force density times length (6.33).'
         eq: '\mathbf{f} = \mathbf{L}\,\mathbf{q}'
-      - say: 'The lengths are measured on the solved shape, one per branch, and stand beside the force densities.'
+      - say: 'The lengths are measured on the solved shape, one per branch. They stand beside the force densities.'
         row: [{id: l, matrix: l}, {id: q, matrix: q}, '\Rightarrow', {id: f, matrix: {of: f, empty: true}}]
-      - say: 'Multiplied branch by branch: the force in every cable.'
+      - say: 'Multiply branch by branch: the force in every cable.'
         show: ['f[:,0]']
-      - say: 'The four outer branches carry the most: they are not the longest, but they have three times the force density.'
+      - say: 'The four outer branches carry the most. They are not the longest, but their force density is three times higher.'
         highlight: ['f[0,0]', 'f[1,0]', 'f[2,0]', 'f[3,0]']
-      - say: 'Shape first, forces second, and no iteration anywhere. What is still missing is the cable itself: how long to cut it. That is presentation 4; presentation 3 first shows where the formula comes from.'
+      - say: 'Shape first, forces second, no iteration anywhere. Still missing: how long to cut each cable. That is presentation 4; presentation 3 first shows where the formula comes from.'
         text: '**Next:** Force density 3 · where the formula comes from'

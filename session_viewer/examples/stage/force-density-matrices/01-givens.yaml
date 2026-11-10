@@ -11,27 +11,27 @@ net:
 slides:
   - title: Where this presentation is heading
     steps:
-      - say: 'Presentation 1 solved one free node with plain sums. This one writes the same sums for any number of nodes, and ends in three lines, one per coordinate. Here we use them as a tool; presentation 3 derives them.'
+      - say: 'Presentation 1 solved one free node with plain sums. This one writes them for any number of nodes. It ends in three lines, one per coordinate. Here they are a tool; presentation 3 derives them.'
         eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
       - say: 'The same line for $y$ and for $z$.'
         do:
           - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
           - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}
-      - say: 'On the right stands what we know, on the left what we want. Every bold letter is an array; this chapter builds the arrays of the right-hand side.'
+      - say: 'On the right is what we know, on the left what we want. Every bold letter is an array. This chapter builds the arrays on the right.'
         do:
           - text: '**known:** $\mathbf{x}_F$ fixed nodes, $\mathbf{p}$ loads, $\mathbf{C}$ connectivity, $\mathbf{Q}$ force densities'
           - text: '**wanted:** $\mathbf{x}_N$, $\mathbf{y}_N$, $\mathbf{z}_N$, the free nodes'
 
   - title: The same five nodes
     steps:
-      - say: 'The five nodes of presentation 1: four fixed nodes $n_1,\dots,n_4$, one free node $n_0$ on four cables $e_0,\dots,e_3$, a load $p$ on $n_0$.'
+      - say: 'The five nodes of presentation 1: fixed nodes $n_1,\dots,n_4$, free node $n_0$, cables $e_0,\dots,e_3$, a load $p$ on $n_0$.'
         show: net
-      - say: 'Presentation 1 listed the givens as numbers. Here each becomes an array, the form a computer and the three lines of the method need.'
+      - say: 'Presentation 1 listed the givens as numbers. Here each becomes an array, as a computer needs.'
         text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
 
   - title: 'Given 1 · the fixed nodes'
     steps:
-      - say: 'The coordinates of the four fixed nodes, in metres, become the matrix $\mathbf{x}_F$.'
+      - say: 'The coordinates of the four fixed nodes, in metres, form the matrix $\mathbf{x}_F$.'
         do:
           - matrix: {of: xF, empty: true}
           - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
@@ -51,7 +51,7 @@ slides:
 
   - title: 'Given 2 · the load'
     steps:
-      - say: 'The load on the free node, 5 kN straight down, becomes $\mathbf{p}$: one row per free node.'
+      - say: 'The load on the free node, 5 kN down, becomes $\mathbf{p}$: one row per free node.'
         highlight: [load_n0]
         matrix: p
 
@@ -71,7 +71,7 @@ slides:
     steps:
       - say: 'For each cable we choose one number: its force divided by its length.'
         eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
-      - say: 'Here every cable gets $q = 1$ kN/m: one entry per cable in the column $\mathbf{q}$.'
+      - say: 'Every cable gets $q = 1$ kN/m: one entry per cable in the column $\mathbf{q}$.'
         matrix: q
-      - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio, exactly as in presentation 1.'
+      - say: 'We know neither the forces nor the lengths. We only fix their ratio, as in presentation 1.'
         highlight: [q]

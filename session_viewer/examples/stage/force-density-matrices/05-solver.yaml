@@ -11,24 +11,24 @@ net:
 slides:
   - title: Three unknown heights
     steps:
-      - say: 'A chain: two anchors $A$, $B$ and three free nodes. Every cable has $q = 1$, every free node carries a load of $1$ downward.'
+      - say: 'A chain: two anchors $A$, $B$ and three free nodes. Every cable has $q = 1$. Every free node carries a load of $1$, downward.'
         show: net
-      - say: 'Equilibrium along $z$ for each free node gives one row. Together: $\mathbf{D}_N\,\mathbf{z} = \mathbf{p}_z$.'
+      - say: 'Equilibrium along $z$ gives one row per free node. Together: $\mathbf{D}_N\,\mathbf{z} = \mathbf{p}_z$.'
         row:
           - {id: D, matrix: DN}
           - {id: z, matrix: {rows: [[z_1], [z_2], [z_3]], signs: false}}
           - '='
           - {id: p, matrix: [[-1], [-1], [-1]]}
-      - say: 'Row 1 reads $2z_1 - z_2 = -1$: node $N_1$ has two cables and one free neighbour. This is the sum $\sum q_k (z_k - z_0) + p_z = 0$ from before, nothing more.'
+      - say: 'Row 1 reads $2z_1 - z_2 = -1$. Node $N_1$ has two cables and one free neighbour. It is the sum $\sum q_k (z_k - z_0) + p_z = 0$ from before.'
         color: {target: 'D[0,:]', color: accent}
-      - say: 'In code this is one line: numpy.linalg.solve(D, p). Here is what happens inside it.'
+      - say: 'In code this is one line: numpy.linalg.solve(D, p). Here is what happens inside.'
         color: {target: 'D[0,:]', color: reset}
 
   - title: 'Phase 1 · elimination'
     steps:
-      - say: 'Write matrix and right-hand side side by side. The goal: zeros below the diagonal.'
+      - say: 'Write the matrix and the right-hand side side by side. The goal: zeros below the diagonal.'
         matrix: {id: M, rows: [[2, -1, 0, -1], [-1, 2, -1, -1], [0, -1, 2, -1]], collabels: [z_1, z_2, z_3, p_z], rowlabels: ['1', '2', '3']}
-      - say: 'Add half of row 1 to row 2. The $-1$ under the first diagonal entry becomes $0$: $z_1$ is gone from row 2.'
+      - say: 'Add half of row 1 to row 2. The $-1$ under the first diagonal entry becomes $0$. $z_1$ is gone from row 2.'
         eliminate: {matrix: M, row: 2, with: 1}
       - say: 'Add two thirds of row 2 to row 3. Now $z_2$ is gone from row 3.'
         eliminate: {matrix: M, row: 3, with: 2}
@@ -38,22 +38,22 @@ slides:
   - title: 'Phase 2 · back substitution'
     keep: true
     steps:
-      - say: 'Solve the last row, then walk upward: each row has only one unknown left.'
+      - say: 'Solve the last row, then walk upward. Each row has only one unknown left.'
         eq: 'z_3 = -2 \,/\, 1.333 = -1.5'
       - say: 'Row 2, with $z_3$ known.'
         eq: 'z_2 = (-1.5 + z_3) \,/\, 1.5 = -2'
       - say: 'Row 1, with $z_2$ known.'
         eq: 'z_1 = (-1 + z_2) \,/\, 2 = -1.5'
-      - say: 'The chain hangs: $-1.5$, $-2$, $-1.5$.'
+      - say: 'The chain hangs at $-1.5$, $-2$, $-1.5$.'
         solve: true
 
   - title: What numpy.linalg.solve does
     steps:
-      - say: 'The library does these same two phases.'
-        text: '**1. Factor.** Eliminate below the diagonal, row by row (LU factorisation; rows are swapped when a diagonal entry is too small).'
-      - say: 'Then the triangle is solved from the bottom up.'
+      - say: 'The library does the same two phases.'
+        text: '**1. Factor.** Eliminate below the diagonal, row by row (LU factorisation; rows are swapped when a pivot is too small).'
+      - say: 'Then it solves the triangle from the bottom up.'
         text: '**2. Substitute.** Solve the triangular system from the last row upward.'
-      - say: 'The three coordinates share the matrix. It is factored once and substituted three times.'
+      - say: 'The three coordinates share one matrix. It is factored once and used three times.'
         eq: '\mathbf{D}_N\,[\,\mathbf{x}_N\ \ \mathbf{y}_N\ \ \mathbf{z}_N\,] = [\,\mathbf{b}_x\ \ \mathbf{b}_y\ \ \mathbf{b}_z\,]'
-      - say: 'For a net, $\mathbf{D}_N$ is symmetric and mostly zeros: a node only meets its neighbours. Large nets use solvers that skip the zeros (Cholesky, sparse), but the idea is the one above.'
-        text: 'Nothing iterates and nothing is guessed: the answer is exact after one pass down and one pass up.'
+      - say: 'For a net, $\mathbf{D}_N$ is symmetric and mostly zeros: a node only meets its neighbours. Large nets use solvers that skip the zeros (Cholesky, sparse). The idea stays the same.'
+        text: 'Nothing iterates and nothing is guessed: one pass down and one pass up give the answer.'

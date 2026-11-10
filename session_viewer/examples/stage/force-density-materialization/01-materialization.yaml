@@ -11,7 +11,7 @@ points:
 slides:
   - title: What form-finding leaves us
     steps:
-      - say: 'Form-finding gave a shape without a material. Now: how long must each cable be cut, and how stiff must it be?'
+      - say: 'Form-finding gave a shape but no material. How long must each cable be cut? How stiff must it be?'
         do:
           - add:
               - {id: n1, point: n1, color: fixed, label: 'n_1'}
@@ -31,14 +31,14 @@ slides:
               - {id: lv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], rowlabels: [e_0, e_1, e_2, e_3], name: '\mathbf{l}\ \text{(m)}', signs: false}}
               - '\qquad'
               - {id: fv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], name: '\mathbf{f}\ \text{(kN)}', signs: false}}
-      - say: 'With $q = 1$ the force in kN equals the length in m. That is a coincidence of this example, not a rule.'
+      - say: 'With $q = 1$, the force in kN equals the length in m. That is a coincidence of this example.'
         highlight: ['lv[:,0]', 'fv[:,0]']
 
   - title: "Hooke's law · (6.34)"
     steps:
-      - say: 'A cable cut to length $l_0$ stretches by $\Delta l = l - l_0$ under a force $f$. Hooke: the force is the axial stiffness $EA/l_0$ times the stretch.'
+      - say: 'A cable cut to length $l_0$ stretches by $\Delta l = l - l_0$ under a force $f$. Hooke: force is the axial stiffness $EA/l_0$ times the stretch.'
         eq: 'f = \frac{EA}{l_0}\cdot \Delta l \quad\Longrightarrow\quad \Delta l = l - l_0 = \frac{f\,l_0}{EA}'
-      - say: 'For all cables at once, with the diagonal matrices $\mathbf{L}_0$ and $\mathbf{EA}$ and $\mathbf{f} = \mathbf{L}\mathbf{q}$:'
+      - say: 'For all cables at once, with the diagonal matrices $\mathbf{L}_0$, $\mathbf{EA}$ and $\mathbf{f} = \mathbf{L}\mathbf{q}$:'
         eq: '\Delta\mathbf{l} = \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{f} = \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{L}\,\mathbf{q} \qquad (6.34)'
         text: '$\Delta\mathbf{l}$ stretch (Linkwitz: $\mathbf{e}$), $\mathbf{l}$ stretched length, $\mathbf{l}_0$ cut length, $E$ Young modulus, $A$ cross-section.'
         size: 21
@@ -57,7 +57,7 @@ slides:
     steps:
       - say: 'Write the stretched length as cut length plus stretch, with $\mathbf{F} = \operatorname{diag}(\mathbf{f})$.'
         eq: '\mathbf{l} = \mathbf{l}_0 + \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{F}\big)\,\mathbf{l}_0 \qquad (6.36)'
-      - say: 'Invert the diagonal matrix to get the factory cut lengths.'
+      - say: 'Invert the diagonal matrix: the cut lengths.'
         eq: '\mathbf{l}_0 = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{F}\big)^{-1}\mathbf{l} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{Q}\mathbf{L}\big)^{-1}\mathbf{l} \qquad (6.37)'
       - say: 'Every matrix here is diagonal, so each cable is computed on its own.'
         tex: 'l_0 = \frac{l}{1 + \frac{f}{EA}} = \frac{l}{1 + \frac{q\,l}{EA}}'
@@ -71,7 +71,7 @@ slides:
         color: {target: e0, color: accent}
         camera: {fit: [n0, n1], yaw: -52, pitch: 22, with: true}
         eq: 'l_{0,1} = \frac{4.250}{1 + \frac{4.250}{500}} = \frac{4.250}{1.0085} = 4.214\ \text{m}'
-      - say: 'The stretch is $36$ mm. Cut the cable to 4.214 m and pulled into place it carries exactly 4.250 kN.'
+      - say: 'The stretch is $36$ mm. Cut to 4.214 m and pulled into place, the cable carries exactly 4.250 kN.'
         do:
           - eq: {id: w2, tex: '\Delta l_1 = l_1 - l_{0,1} = 4.250 - 4.214 = 0.036\ \text{m}'}
           - add: {id: cut, line: [n1, 'lerp(n1, n0, 4.214/4.250)'], color: free, width: 5}

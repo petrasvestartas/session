@@ -12,7 +12,7 @@ points:
 slides:
   - title: 'Method 1 · square, then nudge'
     steps:
-      - say: '**Step A.** Square both sides of the distance formula to get rid of the root.'
+      - say: '**Step A.** Square both sides of the distance formula. The root is gone.'
         do:
           - add:
               - {id: o2, point: n2, color: fixed, opacity: 0.25}
@@ -27,7 +27,7 @@ slides:
             dur: 0.8
           - eq: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}'
           - becomes: 'l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'
-      - say: '**Step B.** Shift $x_0$ to $x_0 + \Delta x_0$; the length becomes $l_k + \Delta l_k$. Only the $x$-term changes.'
+      - say: '**Step B.** Shift $x_0$ to $x_0 + \Delta x_0$. The length becomes $l_k + \Delta l_k$. Only the $x$-term changes.'
         then: {id: B, tex: '(l_k + \Delta l_k)^2 = \big(x_k - (x_0 + \Delta x_0)\big)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
         highlight: [B]
 
@@ -39,7 +39,7 @@ slides:
         do:
           - becomes: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + \cancel{(\Delta l_k)^2}'
           - becomes: '(l_k + \Delta l_k)^2 \approx l_k^2 + 2 l_k \Delta l_k'
-      - say: '**Step D.** On the right, regroup the shifted $x$-term and expand it the same way.'
+      - say: '**Step D.** On the right, regroup the shifted $x$-term. Expand it the same way.'
         do:
           - eq: '\big(x_k - (x_0 + \Delta x_0)\big)^2 = \big((x_k - x_0) - \Delta x_0\big)^2'
           - then: '\big((x_k - x_0) - \Delta x_0\big)^2 = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (\Delta x_0)^2'
@@ -61,6 +61,6 @@ slides:
           - eq: '\frac{\Delta l_k}{\Delta x_0} = \frac{-2(x_k - x_0)\Delta x_0}{2 l_k \Delta x_0}'
           - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-\cancel{2}(x_k - x_0)\cancel{\Delta x_0}}{\cancel{2} l_k \cancel{\Delta x_0}}'
           - becomes: '\frac{\Delta l_k}{\Delta x_0} = \frac{-(x_k - x_0)}{l_k}'
-      - say: 'Taking the limit $\Delta x_0 \to 0$ gives the exact partial derivative.'
+      - say: 'In the limit $\Delta x_0 \to 0$ the ratio is the exact partial derivative.'
         eq: {id: R, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}', color: accent}
         highlight: [R]

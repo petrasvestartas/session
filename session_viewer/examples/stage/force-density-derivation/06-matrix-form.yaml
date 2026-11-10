@@ -30,24 +30,24 @@ slides:
               - {id: f4, arrow: [n0, 'n0 + 0.5*(n4 - n0)'], color: accent, width: 3.6, label: 'f_4'}
               - {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
-      - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine, which is minus the Jacobian entry from chapter 5.'
+      - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine. That cosine is minus the Jacobian entry of chapter 5.'
         eq: '-\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T}\mathbf{f} + p_x = 0 \qquad (6.25)'
-      - say: 'Replace the row by (6.24). With $\mathbf{u} = x_0 - x_k$ the minus sign moves the load to the right-hand side.'
+      - say: 'Replace the row by (6.24). With $u_k = x_0 - x_k$, the minus sign moves the load to the right-hand side.'
         then: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p} \qquad (6.26)'
-        text: 'The book prints $+\,\mathbf{p} = \mathbf{0}$ with the opposite sign of $\mathbf{u}$. Both conventions give the same solution (6.32).'
+        text: 'The book has $+\,\mathbf{p} = \mathbf{0}$ and the opposite sign of $\mathbf{u}$. Both give the same solution (6.32).'
         size: 21
         color: dim
 
   - title: 'Force density removes the lengths · (6.27)–(6.28)'
     steps:
-      - say: 'Define the force densities: the forces divided by the lengths.'
+      - say: 'Define the force densities: forces divided by lengths.'
         do:
           - {tex: '\mathbf{q} = \mathbf{L}^{-1}\,\mathbf{f} \qquad (6.27)', color: free}
           - tex: 'q_k = \frac{f_k}{l_k}'
       - say: 'In (6.26), $\mathbf{L}^{-1}\mathbf{f}$ is exactly $\mathbf{q}$.'
         eq: {id: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{L}^{-1}\,\mathbf{f}}} = \mathbf{p}'}
         color: {target: 's{\mathbf{L}^{-1}\,\mathbf{f}}', color: free}
-      - say: 'Substitute: the length matrix, and with it every square root, is gone. The equation is **linear**.'
+      - say: 'Substitute. The length matrix is gone, and every square root with it. The equation is **linear**.'
         do:
           - color: {target: 's{\mathbf{L}^{-1}\,\mathbf{f}}', color: reset}
           - morph: {target: s, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,{{\mathbf{q}}} = \mathbf{p} \qquad (6.28)', map: {'\mathbf{L}^{-1}\,\mathbf{f}': '\mathbf{q}'}}
@@ -72,7 +72,7 @@ slides:
           - {id: qu, matrix: {rows: [[q_1 u_1], [q_2 u_2], [q_3 u_3], [q_4 u_4]], signs: false, empty: true}}
         show: ['qu[:,0]']
         highlight: ['uq[:,0]', 'qu[:,0]']
-      - say: 'And $\mathbf{u} = \mathbf{C}\mathbf{x}$, so the unknown coordinates appear in plain sight.'
+      - say: 'And $\mathbf{u} = \mathbf{C}\mathbf{x}$, so the unknown coordinates appear.'
         tex: '\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}'
         color: accent
 
@@ -83,16 +83,16 @@ slides:
         morph: {target: e629, tex: '\mathbf{C}_N^{T}\,{{\mathbf{Q}\,\mathbf{C}\,\mathbf{x}}} = \mathbf{p} \qquad (6.29)', map: {'\mathbf{U}\,\mathbf{q}': '\mathbf{Q}\,\mathbf{C}\,\mathbf{x}'}}
       - say: 'Split $\mathbf{C}\mathbf{x}$ into free and fixed parts, $\mathbf{C}_N\mathbf{x}_N + \mathbf{C}_F\mathbf{x}_F$.'
         then: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'
-      - say: 'The first product multiplies the unknown $\mathbf{x}_N$; the second only contains known anchors.'
+      - say: 'The first product holds the unknown $\mathbf{x}_N$. The second holds only known anchors.'
         becomes: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N + \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'
 
   - title: 'Two matrices, one solve · (6.31)–(6.32)'
     steps:
-      - say: 'Name them: the stiffness of the free nodes $\mathbf{D}_N$ and the coupling to the anchors $\mathbf{D}_F$.'
+      - say: 'Name them: $\mathbf{D}_N$, the stiffness of the free nodes, and $\mathbf{D}_F$, the coupling to the anchors.'
         tex: '\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N, \qquad \mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F'
       - say: 'Move the known part to the right-hand side.'
         eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F \qquad (6.31)'
-      - say: 'Multiply by $\mathbf{D}_N^{-1}$: one linear step per coordinate direction.'
+      - say: 'Multiply by $\mathbf{D}_N^{-1}$: one linear solve per coordinate direction.'
         do:
           - eq: {tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', color: x}
           - eq: {tex: '\mathbf{y}_N = \mathbf{D}_N^{-1}(\mathbf{p}_y - \mathbf{D}_F\,\mathbf{y}_F) \qquad (6.32)', color: y}
@@ -101,11 +101,11 @@ slides:
 
   - title: 'Forces and the whole chain · (6.33)'
     steps:
-      - say: 'With the coordinates known, measure the lengths and recover the forces.'
+      - say: 'With the coordinates known, measure the lengths and get the forces back.'
         tex: '\mathbf{f} = \mathbf{L}\,\mathbf{q} \qquad (6.33)'
         color: accent
         highlight: [f1, f2, f3, f4]
-      - say: 'The whole of 6.4.3 in one line: two substitutions turn a non-linear equilibrium into a linear solve.'
+      - say: 'All of 6.4.3 in one line: two substitutions turn non-linear equilibrium into a linear solve.'
         tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p} \;\xrightarrow{\;\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}\;}\; \mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p} \;\xrightarrow{\;\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{C}\mathbf{x}\;}\; \mathbf{D}_N\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\mathbf{x}_F'
         id: chain
         highlight: [chain]
@@ -114,11 +114,11 @@ slides:
     steps:
       - say: 'Equilibrium of the free nodes along $x$, with $\mathbf{D}_N$ and $\mathbf{D}_F$ written out.'
         eq: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p}_x'
-      - say: 'With the numbers of the five nodes this reads $4x_0 - 12 = 0$: the answer found by hand in presentation 1.'
+      - say: 'With the numbers of the five nodes: $4x_0 - 12 = 0$, the answer of presentation 1.'
         eq: '4\,x_0 - 12 = 0 \quad\Rightarrow\quad x_0 = 3'
       - say: 'Solve (6.31) for the free coordinates, along $x$.'
         eq: {tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}\,(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', color: x}
-      - say: 'Write $\mathbf{D}_N$ and $\mathbf{D}_F$ out: this is exactly the line presentation 2 used as a tool, now derived.'
+      - say: 'Write $\mathbf{D}_N$ and $\mathbf{D}_F$ out. This is the line presentation 2 used as a tool, now derived.'
         becomes: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)'
-      - say: 'The same for $y$ and $z$. The shape and the forces are known; what is left is the cable itself: how long to cut it.'
+      - say: 'The same holds for $y$ and $z$. Shape and forces are known. What is left: how long to cut each cable.'
         text: '**Next:** Force density 4 · materialization'

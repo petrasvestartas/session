@@ -29,22 +29,22 @@ slides:
           - eq: '\frac{\partial l_k}{\partial x_0} = \frac{d l_k}{d u}\cdot\frac{\partial u}{\partial x_0}'
       - say: '**Outer derivative.** The power rule, with $\sqrt{u} = l_k$.'
         eq: '\frac{d l_k}{d u} = \tfrac{1}{2}u^{-1/2} = \frac{1}{2\sqrt{u}} = \frac{1}{2 l_k}'
-      - say: '**Inner derivative.** Only the $x$-term contains $x_0$; the $y$ and $z$ terms differentiate to $0$.'
+      - say: '**Inner derivative.** Only the $x$-term contains $x_0$. The $y$ and $z$ terms give $0$.'
         eq: '\frac{\partial u}{\partial x_0} = 2(x_k - x_0)\cdot(-1) = -2(x_k - x_0)'
-      - say: 'Multiply outer and inner: the same result as method 1.'
+      - say: 'Multiply outer and inner. The result matches method 1.'
         eq: {id: c5, tex: '\frac{\partial l_k}{\partial x_0} = \frac{1}{2 l_k}\cdot\big(-2(x_k - x_0)\big) = \frac{-(x_k - x_0)}{l_k}', color: accent}
         highlight: [c5]
 
   - title: What the result means
     steps:
-      - say: '$(x_k - x_0)/l_k$ is the direction cosine, so $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
+      - say: '$(x_k - x_0)/l_k$ is the direction cosine. So $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
         do:
           - tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'
           - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: accent, width: 3.6}
           - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
-      - say: 'For cable $e_0$ ($n_k = n_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
+      - say: 'For cable $e_0$, $n_k = n_1$. The anchor is at $x_1 = 0$, left of $x_0 = 3$.'
         eq: {id: m2, tex: '\frac{\partial l_1}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706'}
-      - say: 'Moving $n_0$ right by 1 m lengthens cable $e_0$ by about 0.706 m: it points away from its anchor.'
+      - say: 'A small move of $n_0$ to the right lengthens $e_0$ by 0.706 times the move: $n_0$ moves away from its anchor.'
         do:
           - {indicate: [m2], color: x}
           - highlight: [unitx]

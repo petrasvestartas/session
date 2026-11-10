@@ -23,9 +23,9 @@ net:
 slides:
   - title: The net of Schek's paper
     steps:
-      - say: 'The example graph from Schek''s paper of 1974: five free nodes $N_1,\dots,N_5$, four fixed nodes $N_6,\dots,N_9$ and twelve branches.'
+      - say: 'The example from Schek''s 1974 paper: five free nodes $N_1,\dots,N_5$, four fixed nodes $N_6,\dots,N_9$, twelve branches.'
         show: [cables, fixed, free]
-      - say: 'Every free node carries a load of 1 downward. The four outer branches have $q = 3$, the eight inner ones $q = 1$.'
+      - say: 'Every free node carries a load of 1, downward. The four outer branches have $q = 3$, the eight inner ones $q = 1$.'
         show: loads
       - say: 'Five unknown nodes instead of one. The sums stay the same; the matrices keep them in order.'
         eq: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)'
@@ -48,21 +48,21 @@ slides:
     steps:
       - say: '$\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ has one row and one column per free node.'
         matrix: DN
-      - say: 'A diagonal entry adds the force densities of every branch at that node. Four branches meet at $N_1$: 1, 5, 6 and 10, so $3 + 1 + 1 + 1 = 6$.'
+      - say: 'A diagonal entry adds the force densities of all branches at that node. At $N_1$ meet branches 1, 5, 6 and 10: $3 + 1 + 1 + 1 = 6$.'
         do:
           - color: {target: 'DN[0,0]', color: accent}
           - color: {target: '1', color: accent, with: true}
           - color: {target: '5', color: accent, with: true}
           - color: {target: '6', color: accent, with: true}
           - color: {target: '10', color: accent, with: true}
-      - say: 'An off-diagonal entry is $-q$ of the branch joining two free nodes, here branch 6 between $N_1$ and $N_2$.'
+      - say: 'An off-diagonal entry is $-q$ of the branch between two free nodes. Here: branch 6, between $N_1$ and $N_2$.'
         do:
           - color: {target: 'DN[0,0]', color: reset}
           - color: {target: '1', color: reset, with: true}
           - color: {target: '5', color: reset, with: true}
           - color: {target: '10', color: reset, with: true}
           - color: {target: 'DN[0,1]', color: accent}
-      - say: 'Where no branch joins two nodes the entry is 0: $N_1$ and $N_3$ only meet through $N_5$.'
+      - say: 'Where no branch joins two nodes, the entry is 0. No branch joins $N_1$ and $N_3$.'
         do:
           - color: {target: 'DN[0,1]', color: reset}
           - color: {target: '6', color: reset, with: true}
@@ -70,9 +70,9 @@ slides:
 
   - title: The fixed nodes go to the right-hand side
     steps:
-      - say: '$\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F$ couples each free node to the fixed node it hangs from. $N_5$ touches none: its row is zero.'
+      - say: '$\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F$ couples each free node to the fixed node it hangs from. $N_5$ touches none, so its row is zero.'
         matrix: DF
-      - say: 'Times the fixed coordinates and subtracted from the loads, it gives the right-hand side: one column per axis.'
+      - say: 'Multiply by the fixed coordinates and subtract from the loads: the right-hand side, one column per axis.'
         matrix: b
 
   - title: One solve for all five
@@ -85,5 +85,5 @@ slides:
         matrix: xN
       - say: 'Give the four inner branches $q = 4$. They shorten and pull the ring toward the centre.'
         solve: {q: {9: 4, 10: 4, 11: 4, 12: 4}}
-      - say: 'Back to the first values. Every choice of force densities is one net.'
+      - say: 'Back to the first values. Each choice of force densities gives one net.'
         solve: true

@@ -19,9 +19,9 @@ blocks:
 slides:
   - title: Five nodes, four cables
     steps:
-      - say: 'In presentation 0 one node hung on two cables in a plane. Each force split into an $x$ and a $y$ part, and the parts summed to zero along each axis. Here we do exactly the same, with a third axis $z$.'
+      - say: 'In presentation 0, each force split into an $x$ and a $y$ part. Each axis summed to zero. Here we do the same, with a third axis $z$.'
         text: 'the same projections, now along $x$, $y$ and $z$'
-      - say: 'The five nodes of the question, drawn with $n_0$ where it will turn out to rest: $(3,\ 3,\ 0.25)$.'
+      - say: 'The five nodes of the question. $n_0$ is drawn where it will rest: $(3,\ 3,\ 0.25)$.'
         do:
           - add:
               - {id: n1, point: n1, color: fixed, label: 'n_1'}
@@ -34,13 +34,13 @@ slides:
               - {id: e3, line: [n0, n4], label: 'e_3'}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
           - add: {id: p, arrow: [n0, 'n0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
-      - say: 'Each cable pulls $n_0$ toward its anchor with a force $f_k$ along the cable.'
+      - say: 'Each cable pulls $n_0$ toward its anchor with a force $f_k$.'
         forces: true
-      - say: 'At rest, the four cable forces and the load add up to nothing.'
+      - say: 'At rest, the four cable forces and the load add up to zero.'
         do:
           - tex: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{f}_3 + \mathbf{f}_4 + \mathbf{p} = \mathbf{0}'
           - highlight: [p]
-          - {text: 'A vector equation: it holds separately along $x$, $y$ and $z$. To use it we need the $x$, $y$, $z$ parts of every force.', size: 23}
+          - {text: 'A vector equation: it holds along $x$, $y$ and $z$ separately. So we need the $x$, $y$, $z$ parts of every force.', size: 23}
 
   - title: Project one force onto the axes
     steps:
@@ -56,7 +56,7 @@ slides:
           - add:
               - {id: ux.l, label: 'mid(n0, [x(n1), y(n0), z(n0)])', tex: 'x_1 - x_0', color: x, size: 21}
               - {id: uy.l, label: 'mid([x(n1), y(n0), z(n0)], [x(n1), y(n1), z(n0)])', tex: 'y_1 - y_0', color: y, size: 21, dir: [-0.5, 1]}
-      - say: 'Pythagoras in 3D gives the length of the cable.'
+      - say: 'Pythagoras in 3D gives the cable length.'
         do:
           - eq: {id: l1, tex: 'l_1 = \sqrt{ {{(x_1 - x_0)^2}} + {{(y_1 - y_0)^2}} + {{(z_1 - z_0)^2}} } = 4.250'}
           - color: {target: 'l1{(x_1 - x_0)^2}', color: x}
@@ -65,7 +65,7 @@ slides:
       - say: 'The direction cosine is the share of the cable length that lies along $x$.'
         eq: '\cos\alpha_x = \frac{x_1 - x_0}{l_1} = \frac{0 - 3}{4.250} = -0.706'
         highlight: [ux]
-      - say: 'The force splits in exactly the same proportion: the $x$ part of $f_1$ is $f_1\cos\alpha_x$.'
+      - say: 'The force splits in the same proportion: the $x$ part of $f_1$ is $f_1\cos\alpha_x$.'
         do:
           - eq: {id: fx, tex: 'f_{1,x} = f_1\cos\alpha_x = f_1\,\frac{x_1 - x_0}{l_1}'}
           - {indicate: [fx], color: x}
@@ -81,7 +81,7 @@ slides:
         do:
           - then: 'f_1\frac{y_1 - y_0}{l_1} + f_2\frac{y_2 - y_0}{l_2} + f_3\frac{y_3 - y_0}{l_3} + f_4\frac{y_4 - y_0}{l_4} + p_y = 0'
           - then: 'f_1\frac{z_1 - z_0}{l_1} + f_2\frac{z_2 - z_0}{l_2} + f_3\frac{z_3 - z_0}{l_3} + f_4\frac{z_4 - z_0}{l_4} + p_z = 0'
-      - say: 'The catch: every length $l_k$ depends on where $n_0$ is. The unknowns sit under a square root, so the equations are **non-linear**.'
+      - say: 'The catch: every length $l_k$ depends on where $n_0$ is. The unknowns sit under a square root. The equations are **non-linear**.'
         tex: 'l_k = \sqrt{(x_k - {{x_0}})^2 + (y_k - {{y_0}})^2 + (z_k - {{z_0}})^2}'
         id: lk
         color: accent
@@ -89,7 +89,7 @@ slides:
 
   - title: 'The force density trick'
     steps:
-      - say: 'Linkwitz and Schek prescribe the ratio of force to length in each cable instead of the force: the **force density** $q$.'
+      - say: 'Linkwitz and Schek prescribe force over length in each cable, not the force: the **force density** $q$.'
         tex: 'q_k = \frac{f_k}{l_k} \qquad\Longrightarrow\qquad f_k = q_k\, l_k'
       - say: 'Substitute $f_k = q_k l_k$ into one term of the sum.'
         do:
@@ -106,18 +106,18 @@ slides:
 
   - title: Solve it by hand
     steps:
-      - say: 'Now forget where $n_0$ is: its three coordinates are the unknowns.'
+      - say: 'Now forget where $n_0$ is. Its three coordinates are the unknowns.'
         remove: [f1, f2, f3, f4]
         move: {point: n0, to: [3.6, 3.4, 1.9], dur: 1.2}
       - say: 'Collect $x_0$ on one side.'
         eq: '(q_1 + q_2 + q_3 + q_4)\,x_0 = q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4 + p_x'
       - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load. The same holds for $y_0$ and $z_0$.'
         then: 'x_0 = \frac{q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4 + p_x}{q_1 + q_2 + q_3 + q_4}'
-      - say: 'With every $q = 1$ and no load along $x$ or $y$, the numbers are plain averages of the anchors.'
+      - say: 'Every $q = 1$, and there is no load along $x$ or $y$. So the numbers are plain averages.'
         do:
           - eq: {tex: 'x_0 = \frac{0 + 5 + 0 + 7 + 0}{4} = 3', color: x}
           - eq: {tex: 'y_0 = \frac{0 + 0 + 7 + 5 + 0}{4} = 3', color: y}
-      - say: 'Without a load, $n_0$ would hang at the plain average of the anchor heights, $z = 1.5$.'
+      - say: 'Without a load, $n_0$ would hang at the average anchor height, $z = 1.5$.'
         do:
           - eq: {tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', color: z}
           - add: {id: u0, point: U, color: dim, label: 'p = 0', dir: [-1, 0.2]}
@@ -133,7 +133,7 @@ slides:
         remove: [u0]
         forces: true
         tex: 'f_1 = 4.250,\quad f_2 = 4.535,\quad f_3 = 5.706,\quad f_4 = 4.479\ \text{kN}'
-      - say: 'Check along $z$: the cable pulls lift exactly the load.'
+      - say: 'Check along $z$: the cables lift exactly the load.'
         do:
           - {tex: '\sum_k q_k(z_k - z_0) = -0.25 + 2.75 + 2.75 - 0.25 = 5 = -p_z', id: ck}
           - {indicate: [ck], color: load}

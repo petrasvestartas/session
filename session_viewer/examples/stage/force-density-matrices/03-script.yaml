@@ -11,7 +11,7 @@ net:
 slides:
   - title: What is given, as arrays
     steps:
-      - say: 'The five nodes again, with $n_0$ at a guess. The script starts from the connectivity matrix and splits its columns into free and fixed.'
+      - say: 'The five nodes again, with $n_0$ at a guess. The script builds the connectivity matrix and splits it into free and fixed columns.'
         show: net
         code: |
           import numpy as np
@@ -52,5 +52,5 @@ slides:
         do:
           - add: {id: out, code: '[3.] [3.] [0.25]', color: free, size: 26}
           - solve: true
-      - say: 'Nothing in the script knows that there are five nodes. A larger net only makes the arrays longer.'
+      - say: 'The script does not know there are five nodes. A larger net only makes the arrays longer.'
         highlight: [out]

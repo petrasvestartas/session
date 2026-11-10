@@ -13,9 +13,9 @@ slides:
     steps:
       - say: 'Four fixed nodes $n_1,\dots,n_4$ hold one free node $n_0$ on four cables $e_0,\dots,e_3$. A load $p$ hangs on $n_0$.'
         show: net
-      - say: 'The question: given how hard each cable pulls, where is $n_0$?'
+      - say: 'The question: where does $n_0$ come to rest?'
         tex: 'n_0 = (x_0,\ y_0,\ z_0) = \ ?'
-      - say: 'Four things are given. We collect them one by one.'
+      - say: 'Four things are given. We collect them one at a time.'
         text: 'fixed nodes $\quad$ load $\quad$ cables $\quad$ force densities'
 
   - title: 'Given 1 · the fixed nodes'
@@ -49,7 +49,7 @@ slides:
         do:
           - color: {target: e0, color: accent}
           - tex: 'e_0:\quad n_0 \to n_1'
-      - say: 'Each other cable joins $n_0$ to one more fixed node.'
+      - say: 'Each other cable joins $n_0$ to another fixed node.'
         do:
           - color: {target: e0, color: reset}
           - tex: 'e_1:\quad n_0 \to n_2'
@@ -61,7 +61,7 @@ slides:
     steps:
       - say: 'For each cable we choose one number: its force divided by its length.'
         eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
-      - say: 'Here every cable gets the same, 1 kN/m. The index is the fixed node the cable goes to.'
+      - say: 'Here every cable gets 1 kN/m. The index names the fixed node the cable goes to.'
         eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}'}
-      - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio. Why that is enough is the trick of this method.'
+      - say: 'We know neither the forces nor the lengths. We only fix their ratio. The next chapters show why that is enough.'
         highlight: [qs]

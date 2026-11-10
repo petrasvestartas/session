@@ -43,7 +43,7 @@ slides:
       - say: 'The other rows give the other cables: $\mathbf{u} = \mathbf{C}\mathbf{x}$ holds every $x_0 - x_k$.'
         morph: {target: dot, tex: 'u_k = x_0 - x_k'}
         show: ['uv[1,0]', 'uv[2,0]', 'uv[3,0]']
-      - say: 'In 3D these are the $x$-extents of the cables, measured from each anchor to $n_0$.'
+      - say: 'In 3D these are the $x$-extents of the cables, from each anchor to $n_0$.'
         add:
           - {id: u1, arrow: [n1, '[x(n0), y(n1), z(n1)]'], color: x, width: 3.6}
           - {id: u2, arrow: [n2, '[x(n0), y(n2), z(n2)]'], color: x, width: 3.6}
@@ -62,7 +62,7 @@ slides:
           - '+'
           - {id: CF, matrix: {rows: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], name: '\mathbf{C}_F'}}
           - {id: XF, matrix: {rows: [[0], [5], [0], [7]], name: '\mathbf{x}_F'}}
-      - say: 'The unknown sits only in $\mathbf{x}_N$; everything in $\mathbf{C}_F\mathbf{x}_F$ is known.'
+      - say: 'The unknown sits only in $\mathbf{x}_N$. Everything in $\mathbf{C}_F\mathbf{x}_F$ is known.'
         do:
           - {indicate: [XN], color: free}
           - {indicate: [XF], color: fixed, with: true}
@@ -70,7 +70,7 @@ slides:
 
   - title: Three diagonal matrices
     steps:
-      - say: 'Put one number per cable on a diagonal. A diagonal matrix scales each row on its own: one cable, one factor.'
+      - say: 'Put one number per cable on a diagonal. A diagonal matrix scales each row by its own factor.'
         row: ['\mathbf{U} = \operatorname{diag}(\mathbf{u}) =', {matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]], rowlabels: [e_0, e_1, e_2, e_3]}}]
       - say: 'The cable lengths form $\mathbf{L}$; the prescribed force densities form $\mathbf{Q}$.'
         row: ['\mathbf{L} =', {matrix: [['4.250', 0, 0, 0], [0, '4.535', 0, 0], [0, 0, '5.706', 0], [0, 0, 0, '4.479']]}, '\qquad\mathbf{Q} =', {id: Qm, matrix: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}]
@@ -90,7 +90,7 @@ slides:
           - color: {target: 'QC2[:,0]', color: accent, with: true}
           - {tex: '1\cdot 1 + 1\cdot 1 + 1\cdot 1 + 1\cdot 1 = {{4}}', id: dot}
           - fly: {from: 'dot{4}', to: 'DN[0,0]'}
-      - say: '$\mathbf{D}_N$ adds up the force densities of all cables meeting at the free node: $q_1 + q_2 + q_3 + q_4 = 4$.'
+      - say: '$\mathbf{D}_N$ adds up the force densities of all cables at the free node: $q_1 + q_2 + q_3 + q_4 = 4$.'
         do:
           - color: {target: 'CT[0,:]', color: reset}
           - color: {target: 'QC2[:,0]', color: reset}
@@ -98,22 +98,22 @@ slides:
 
   - title: 'Coupling to the anchors $\mathbf{D}_F$'
     steps:
-      - say: 'The same product with $\mathbf{C}_F$ couples the free node to every anchor. ($\mathbf{Q}$ is the identity here.)'
+      - say: 'The same product with $\mathbf{C}_F$ couples the free node to each anchor. ($\mathbf{Q}$ is the identity here.)'
         row: ['\mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F =', {matrix: [[1, 1, 1, 1]]}, {matrix: [[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]}, '=', {id: DF, matrix: {rows: [[-1, -1, -1, -1]], collabels: [n_1, n_2, n_3, n_4], empty: true}}]
         show: ['DF[0,:]']
-      - say: 'Each entry is $-q$ of the cable that joins the free node to that anchor.'
+      - say: 'Each entry is $-q$ of the cable from the free node to that anchor.'
         do:
           - color: {target: e1, color: accent}
           - highlight: ['DF[0,1]']
           - color: {target: e1, color: reset}
-      - say: 'Times the anchor coordinates, this is the known right-hand side of the solve.'
+      - say: 'Times the anchor coordinates, this is the known right-hand side.'
         do:
           - {row: ['\mathbf{D}_F\,\mathbf{x}_F =', {matrix: [[-1, -1, -1, -1]]}, {matrix: [[0], [5], [0], [7]]}, '= -12'], gap: 30}
           - {tex: 'x_0 = \mathbf{D}_N^{-1}(p_x - \mathbf{D}_F\,\mathbf{x}_F) = \tfrac{1}{4}(0 + 12) = 3', color: free}
 
   - title: The whole method in three lines
     steps:
-      - say: 'Put the pieces together: one line per coordinate gives every free node. Take it as a tool here; presentation 3 shows where it comes from.'
+      - say: 'Put the pieces together: one line per coordinate gives every free node. Here it is a tool; presentation 3 derives it.'
         do:
           - eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
           - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
