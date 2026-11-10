@@ -1,6 +1,7 @@
-use super::font::{BOLD, Construction, FontId, Fonts, MATH, TEXT};
+use super::font::{BOLD, Construction, FontId, Fonts, MATH, Part, TEXT};
 use std::collections::HashMap;
 
+/// A colour as red, green, blue and alpha in 0..1.
 pub type Rgba = [f32; 4];
 
 /// A drawable piece of a formula, em units, y down from the baseline.
@@ -56,6 +57,35 @@ impl Shape {
             Shape::Stroke { .. } => 2 << 40,
         }
     }
+
+    /// The shape `k` times larger, keeping a rect's corner radius and outline width.
+    pub fn resized(self, k: f32) -> Shape {
+        match self {
+            Shape::Glyph { font, gid, size } => Shape::Glyph {
+                font,
+                gid,
+                size: size * k,
+            },
+            Shape::Rect {
+                w,
+                h,
+                radius,
+                fill,
+                stroke,
+            } => Shape::Rect {
+                w: w * k,
+                h: h * k,
+                radius,
+                fill,
+                stroke,
+            },
+            Shape::Stroke { dx, dy, width } => Shape::Stroke {
+                dx: dx * k,
+                dy: dy * k,
+                width: width * k,
+            },
+        }
+    }
 }
 
 impl Expr {
@@ -77,6 +107,7 @@ impl Expr {
     }
 }
 
+/// TeX's atom classes, which decide the space between neighbours.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Class {
     Ord,
@@ -89,6 +120,7 @@ enum Class {
     Inner,
 }
 
+/// The math alphabet a letter is drawn from.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Variant {
     Italic,
@@ -97,10 +129,11 @@ enum Variant {
     BoldItalic,
 }
 
+/// TeX's math style.
 #[derive(Clone, Copy, Debug)]
 struct Style {
-    level: u8,
-    cramped: bool,
+    level: u8,     // 0 display, 1 text, 2 script, 3 scriptscript.
+    cramped: bool, // Superscripts sit lower.
 }
 
 impl Style {
@@ -133,7 +166,7 @@ impl Style {
     }
     fn num(self) -> Style {
         Style {
-            level: (self.level + 1).min(3).max(1),
+            level: (self.level + 1).clamp(1, 3),
             cramped: self.cramped,
         }
     }
@@ -154,6 +187,7 @@ impl Style {
     }
 }
 
+/// A parsed piece of a formula.
 #[derive(Clone, Debug)]
 enum Node {
     Char(char, Variant),
@@ -199,6 +233,7 @@ enum Node {
     Align,
 }
 
+/// A lexed TeX token.
 #[derive(Clone, Debug, PartialEq)]
 enum Tok {
     Cmd(String),
@@ -213,8 +248,10 @@ enum Tok {
     Raw(String),
 }
 
+/// Commands whose braced argument is kept as raw text.
 const RAW: [&str; 5] = ["text", "textrm", "textbf", "mbox", "operatorname"];
 
+/// Split TeX source into tokens.
 fn lex(src: &str) -> Vec<Tok> {
     let chars: Vec<char> = src.chars().collect();
     let mut out = Vec::new();
@@ -317,15 +354,16 @@ fn part_depth(toks: &[Tok]) -> i32 {
     }
 }
 
+/// Reads tokens into nodes, collecting part keys and unknown commands.
 struct Parser<'a> {
     toks: Vec<Tok>,
     pos: usize,
     palette: &'a HashMap<String, Rgba>,
     parts: Vec<String>,
-    src: Vec<char>,
     unknown: Vec<String>,
 }
 
+/// The character a symbol command stands for.
 fn symbol(name: &str) -> Option<char> {
     Some(match name {
         "alpha" => 'α',
@@ -427,6 +465,7 @@ fn symbol(name: &str) -> Option<char> {
     })
 }
 
+/// The width in em of a spacing command.
 fn space(name: &str) -> Option<f32> {
     Some(match name {
         "," | "thinspace" => 3.0 / 18.0,
@@ -440,6 +479,7 @@ fn space(name: &str) -> Option<f32> {
     })
 }
 
+/// The size and class of a `\big`-family command.
 fn big(name: &str) -> Option<(f32, Class)> {
     let (size, rest) = if let Some(r) = name.strip_prefix("Bigg") {
         (3.0, r)
@@ -477,7 +517,7 @@ pub fn hex(text: &str) -> Option<Rgba> {
     }
 }
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     fn peek(&self) -> Option<&Tok> {
         self.toks.get(self.pos)
     }
@@ -501,7 +541,6 @@ impl<'a> Parser<'a> {
                     let arg = self.arg(variant);
                     let base_at = out.iter().rposition(|n| !marker(n));
                     let base = match base_at {
-                        Some(i) if matches!(out[i], Node::Scripts { .. }) => out.remove(i),
                         Some(i) => out.remove(i),
                         None => Node::Group(Vec::new()),
                     };
@@ -525,39 +564,25 @@ impl<'a> Parser<'a> {
                             } else {
                                 out.insert(at, Node::Scripts { base, sup, sub });
                                 let empty = Box::new(Node::Group(Vec::new()));
-                                let s = Some(Box::new(arg));
-                                let n = if t == Tok::Sup {
+                                let (sup, sub) = script_slots(&t, arg);
+                                out.insert(
+                                    at + 1,
                                     Node::Scripts {
                                         base: empty,
-                                        sup: s,
-                                        sub: None,
-                                    }
-                                } else {
-                                    Node::Scripts {
-                                        base: empty,
-                                        sup: None,
-                                        sub: s,
-                                    }
-                                };
-                                out.insert(at + 1, n);
+                                        sup,
+                                        sub,
+                                    },
+                                );
                                 continue;
                             }
                             Node::Scripts { base, sup, sub }
                         }
                         base => {
-                            let s = Some(Box::new(arg));
-                            if t == Tok::Sup {
-                                Node::Scripts {
-                                    base: Box::new(base),
-                                    sup: s,
-                                    sub: None,
-                                }
-                            } else {
-                                Node::Scripts {
-                                    base: Box::new(base),
-                                    sup: None,
-                                    sub: s,
-                                }
+                            let (sup, sub) = script_slots(&t, arg);
+                            Node::Scripts {
+                                base: Box::new(base),
+                                sup,
+                                sub,
                             }
                         }
                     };
@@ -602,6 +627,7 @@ impl<'a> Parser<'a> {
         out
     }
 
+    /// A colour argument: a palette name or a hex colour, white when neither.
     fn color_arg(&mut self) -> Rgba {
         let name = self.raw_arg();
         self.palette
@@ -656,11 +682,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Raw text of a `\text{...}` argument with its spaces kept.
-    fn text_arg(&mut self) -> String {
-        self.raw_arg()
-    }
-
     /// A braced group or a single atom as one node.
     fn arg(&mut self, variant: Variant) -> Node {
         match self.peek() {
@@ -676,6 +697,7 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// An argument as a node list.
     fn arg_list(&mut self, variant: Variant) -> Vec<Node> {
         match self.arg(variant) {
             Node::Group(list) => list,
@@ -683,6 +705,7 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// A delimiter character, None for `.`.
     fn delim(&mut self) -> Option<char> {
         match self.next() {
             Some(Tok::Ch('.')) => None,
@@ -692,6 +715,7 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// One node, None for a token that ends a list.
     fn atom(&mut self, variant: Variant) -> Option<Node> {
         let t = self.next()?;
         Some(match t {
@@ -717,15 +741,15 @@ impl<'a> Parser<'a> {
                 let mut nodes = vec![Node::PartPush(id)];
                 nodes.extend(list);
                 nodes.push(Node::PartPop);
-                Node::Group(nodes).flatten_marker()
+                Node::Group(nodes)
             }
             Tok::Close | Tok::PartClose | Tok::Sup | Tok::Sub | Tok::Raw(_) => return None,
             Tok::Cmd(name) => return self.command(&name, variant),
         })
     }
 
+    /// The node of a `\name` command; unknown commands are reported and shown as text.
     fn command(&mut self, name: &str, variant: Variant) -> Option<Node> {
-        let _ = &self.src;
         if let Some(c) = symbol(name) {
             let v = if c.is_ascii() {
                 Variant::Upright
@@ -768,8 +792,8 @@ impl<'a> Parser<'a> {
             "boldsymbol" | "bm" => Node::Group(self.arg_list(Variant::BoldItalic)),
             "mathrm" | "mathup" => Node::Group(self.arg_list(Variant::Upright)),
             "mathit" => Node::Group(self.arg_list(Variant::Italic)),
-            "text" | "textrm" | "mbox" => Node::Text(self.text_arg(), false),
-            "textbf" => Node::Text(self.text_arg(), true),
+            "text" | "textrm" | "mbox" => Node::Text(self.raw_arg(), false),
+            "textbf" => Node::Text(self.raw_arg(), true),
             "operatorname" => Node::OpWord(self.raw_arg(), false),
             "sum" => Node::OpGlyph('∑', true),
             "prod" => Node::OpGlyph('∏', true),
@@ -813,7 +837,7 @@ impl<'a> Parser<'a> {
                 let mut nodes = vec![Node::ColorPush(rgba)];
                 nodes.extend(self.arg_list(variant));
                 nodes.push(Node::ColorPop);
-                Node::Group(nodes).flatten_marker()
+                Node::Group(nodes)
             }
             "limits" | "nolimits" | "notag" => Node::Space(0.0),
             "\\" => Node::Space(1.0),
@@ -825,13 +849,17 @@ impl<'a> Parser<'a> {
     }
 }
 
-impl Node {
-    /// A group made of markers stays transparent: its children join the parent list.
-    fn flatten_marker(self) -> Node {
-        self
+/// The sup and sub slots for a script token and its argument.
+fn script_slots(t: &Tok, arg: Node) -> (Option<Box<Node>>, Option<Box<Node>>) {
+    let script = Some(Box::new(arg));
+    if *t == Tok::Sup {
+        (script, None)
+    } else {
+        (None, script)
     }
 }
 
+/// Nodes that change state instead of drawing.
 fn marker(n: &Node) -> bool {
     matches!(
         n,
@@ -879,19 +907,22 @@ pub fn normalize_key(src: &str) -> String {
     key_of(&lex(src))
 }
 
-// ---------------------------------------------------------------- layout
+// ═══════════════════════════════════════════════════════════════════════════
+// Layout
+// ═══════════════════════════════════════════════════════════════════════════
 
+/// A laid-out box, em units, y down from the baseline.
 #[derive(Clone, Debug, Default)]
 struct MBox {
-    w: f32,
-    h: f32,
-    d: f32,
-    items: Vec<Prim>,
-    italic: f32,
-    single: Option<u16>,
-    class: Option<Class>,
-    align: Option<f32>,
-    rel: Option<f32>,
+    w: f32,               // Advance width.
+    h: f32,               // Height above the baseline.
+    d: f32,               // Depth below the baseline.
+    items: Vec<Prim>,     // Shapes, relative to the box origin.
+    italic: f32,          // Italic correction of the last glyph.
+    single: Option<u16>,  // The math glyph when the box is one glyph.
+    class: Option<Class>, // Atom class for spacing.
+    align: Option<f32>,   // x of the first `&`.
+    rel: Option<f32>,     // x of the first relation.
 }
 
 impl MBox {
@@ -920,10 +951,12 @@ impl MBox {
     }
 }
 
+/// The fonts layout reads from.
 struct Ctx<'a> {
     f: &'a Fonts,
 }
 
+/// A filled rule with its top `top_up` above the baseline.
 fn rect(x: f32, top_up: f32, w: f32, h: f32) -> Prim {
     Prim {
         shape: Shape::Rect {
@@ -940,6 +973,7 @@ fn rect(x: f32, top_up: f32, w: f32, h: f32) -> Prim {
     }
 }
 
+/// The math-alphabet character of `c` in variant `v`.
 fn map_char(c: char, v: Variant) -> char {
     let off = |base: u32, from: char| char::from_u32(base + (c as u32 - from as u32)).unwrap_or(c);
     match v {
@@ -974,6 +1008,7 @@ fn map_char(c: char, v: Variant) -> char {
     }
 }
 
+/// The atom class of a character.
 fn class_of(c: char) -> Class {
     match c {
         '+' | '−' | '×' | '⋅' | '±' | '∓' | '∗' | '∘' | '∧' | '∨' | '∩' | '∪' | '⊗' | '⊕' | '÷'
@@ -1014,7 +1049,7 @@ fn spacing(a: Class, b: Class) -> i8 {
     row[i]
 }
 
-impl<'a> Ctx<'a> {
+impl Ctx<'_> {
     fn glyph(&self, font: FontId, gid: u16, s: f32) -> MBox {
         let m = self.f.metrics(font, gid);
         MBox {
@@ -1125,7 +1160,6 @@ impl<'a> Ctx<'a> {
                 }
             }
         }
-        // reclassify binary operators
         let n = atoms.len();
         for i in 0..n {
             if atoms[i].0.class == Some(Class::Bin) {
@@ -1185,7 +1219,6 @@ impl<'a> Ctx<'a> {
         out
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn atoms(
         &self,
         nodes: &[Node],
@@ -1343,11 +1376,15 @@ impl<'a> Ctx<'a> {
             }
             Node::Big(ch, size, class) => {
                 let mut b = self.stretch_v(*ch, size * s, s, true);
-                // a bare ig takes its class from the delimiter, so ig( opens like (
-                b.class = Some(if *class == Class::Inner { class_of(*ch) } else { *class });
+                // a bare `\big` takes its class from its delimiter, so `\big(` opens like `(`
+                b.class = Some(if *class == Class::Inner {
+                    class_of(*ch)
+                } else {
+                    *class
+                });
                 b
             }
-            Node::OpGlyph(ch, limits) => {
+            Node::OpGlyph(ch, _) => {
                 let mut b = if st.level == 0 {
                     self.stretch_v(*ch, c.display_op_min * s, s, true)
                 } else {
@@ -1359,7 +1396,6 @@ impl<'a> Ctx<'a> {
                     b.d -= lift;
                     b
                 };
-                let _ = limits;
                 b.class = Some(Class::Op);
                 b.single = None;
                 b
@@ -1723,10 +1759,11 @@ impl<'a> Ctx<'a> {
         self.assemble(&con.parts, size, s, horizontal)
     }
 
-    fn assemble(&self, parts: &[super::font::Part], size: f32, s: f32, horizontal: bool) -> MBox {
+    /// Repeat the extenders of an assembly until it spans `size`, then shrink the overlaps to fit.
+    fn assemble(&self, parts: &[Part], size: f32, s: f32, horizontal: bool) -> MBox {
         let f = self.f;
         let o = f.overlap * s;
-        let mut seq: Vec<super::font::Part> = Vec::new();
+        let mut seq: Vec<Part> = Vec::new();
         let mut reps = 0;
         loop {
             seq.clear();
@@ -1736,16 +1773,12 @@ impl<'a> Ctx<'a> {
                     seq.push(*p);
                 }
             }
-            let full: f32 =
-                seq.iter().map(|p| p.advance * s).sum::<f32>() - o * (seq.len().max(1) - 1) as f32;
-            if full >= size || reps > 64 {
+            if span(&seq, s, o) >= size || reps > 64 {
                 break;
             }
             reps += 1;
         }
-        let max_len: f32 =
-            seq.iter().map(|p| p.advance * s).sum::<f32>() - o * (seq.len().max(1) - 1) as f32;
-        let mut excess = (max_len - size).max(0.0);
+        let mut excess = (span(&seq, s, o) - size).max(0.0);
         let room: Vec<f32> = seq
             .windows(2)
             .map(|w| (w[0].end.min(w[1].start) * s - o).max(0.0))
@@ -1787,10 +1820,17 @@ impl<'a> Ctx<'a> {
     }
 }
 
+/// The length of glyph parts laid end to end with overlap `o`.
+fn span(seq: &[Part], s: f32, o: f32) -> f32 {
+    seq.iter().map(|p| p.advance * s).sum::<f32>() - o * (seq.len().max(1) - 1) as f32
+}
+
+/// A part or colour group, whose children join the parent list.
 fn is_transparent(inner: &[Node]) -> bool {
     matches!(inner.first(), Some(Node::PartPush(_) | Node::ColorPush(_)))
 }
 
+/// The children of nested transparent groups, in order.
 fn flatten(inner: &[Node], out: &mut Vec<Node>) {
     for n in inner {
         match n {
@@ -1800,6 +1840,7 @@ fn flatten(inner: &[Node], out: &mut Vec<Node>) {
     }
 }
 
+/// The formula of a laid-out box.
 fn finish(b: MBox, parts: Vec<String>) -> Expr {
     Expr {
         prims: b.items,
@@ -1812,14 +1853,13 @@ fn finish(b: MBox, parts: Vec<String>) -> Expr {
     }
 }
 
-/// Lay out a TeX formula, display style unless `inline`.
-pub fn typeset(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>, inline: bool) -> Expr {
+/// Parse TeX into nodes, with its part keys and unknown commands.
+fn parse(src: &str, palette: &HashMap<String, Rgba>) -> (Vec<Node>, Vec<String>, Vec<String>) {
     let mut p = Parser {
         toks: lex(src),
         pos: 0,
         palette,
         parts: Vec::new(),
-        src: src.chars().collect(),
         unknown: Vec::new(),
     };
     let mut nodes = Vec::new();
@@ -1827,11 +1867,16 @@ pub fn typeset(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>, inline: bo
         nodes.extend(p.list(Variant::Italic));
         p.pos += 1;
     }
+    (nodes, p.parts, p.unknown)
+}
+
+/// Lay out a TeX formula, display style unless `inline`.
+pub fn typeset(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>, inline: bool) -> Expr {
+    let (nodes, parts, unknown) = parse(src, palette);
     let ctx = Ctx { f };
     let st = if inline { Style::TEXT } else { Style::DISPLAY };
     let b = ctx.list(&nodes, st);
-    let unknown = std::mem::take(&mut p.unknown);
-    let mut e = finish(b, p.parts);
+    let mut e = finish(b, parts);
     e.unknown = unknown;
     e
 }
@@ -1870,22 +1915,10 @@ pub fn prose(
                 .position(|&c| c == '$')
                 .map_or(chars.len(), |p| i + 1 + p);
             let tex: String = chars[i + 1..end].iter().collect();
-            let mut p = Parser {
-                toks: lex(&tex),
-                pos: 0,
-                palette,
-                parts: Vec::new(),
-                src: tex.chars().collect(),
-                unknown: Vec::new(),
-            };
-            let mut nodes = Vec::new();
-            while p.pos < p.toks.len() {
-                nodes.extend(p.list(Variant::Italic));
-                p.pos += 1;
-            }
+            let (nodes, tex_parts, tex_unknown) = parse(&tex, palette);
             let offset = parts.len() as u16;
-            unknown.extend(std::mem::take(&mut p.unknown));
-            parts.extend(p.parts);
+            unknown.extend(tex_unknown);
+            parts.extend(tex_parts);
             let mut b = ctx.list(&nodes, Style::TEXT);
             for prim in &mut b.items {
                 prim.part = prim.part.map(|id| id + offset);
@@ -1914,7 +1947,6 @@ pub fn prose(
     let gap = f
         .glyph(TEXT, ' ')
         .map_or(0.333, |(fo, g)| f.metrics(fo, g).advance);
-    // greedy lines
     let mut lines: Vec<Vec<(MBox, f32)>> = vec![Vec::new()];
     let mut x = 0.0;
     for (b, sp) in words {
@@ -1928,9 +1960,15 @@ pub fn prose(
         lines.last_mut().unwrap().push((b, x + lead));
         x += lead + w;
     }
-    let widths: Vec<f32> = lines.iter().map(|l| l.last().map_or(0.0, |(b, at)| at + b.w)).collect();
+    let widths: Vec<f32> = lines
+        .iter()
+        .map(|l| l.last().map_or(0.0, |(b, at)| at + b.w))
+        .collect();
     let full = widths.iter().copied().fold(0.0f32, f32::max);
-    let mut out = MBox { w: full, ..MBox::default() };
+    let mut out = MBox {
+        w: full,
+        ..MBox::default()
+    };
     let mut baseline = 0.0f32;
     let mut prev_d = 0.0f32;
     for (li, line) in lines.into_iter().enumerate() {
@@ -1941,7 +1979,11 @@ pub fn prose(
         } else {
             baseline += (prev_d + h + 0.28).max(1.3);
         }
-        let dx = if center { (full - widths[li]) / 2.0 } else { 0.0 };
+        let dx = if center {
+            (full - widths[li]) / 2.0
+        } else {
+            0.0
+        };
         for (b, at) in line {
             out.put(b, dx + at, -baseline);
         }
@@ -1950,6 +1992,37 @@ pub fn prose(
     }
     let mut e = finish(out, parts);
     e.unknown = unknown;
+    e.align = None;
+    e
+}
+
+/// Lay out program text in the monospace face: lines and indentation kept, `#` comments dimmed.
+pub fn code(f: &Fonts, src: &str, palette: &HashMap<String, Rgba>) -> Expr {
+    let ctx = Ctx { f };
+    let glyph = |c: char| f.glyph(super::font::MONO, c);
+    let advance = glyph('m').map_or(0.5, |(font, gid)| f.metrics(font, gid).advance);
+    let line_height = 1.3;
+    let mut out = MBox {
+        h: 0.75,
+        ..MBox::default()
+    };
+    let lines: Vec<&str> = src.trim_end().lines().collect();
+    for (row, line) in lines.iter().enumerate() {
+        let comment = line.find('#').unwrap_or(line.len());
+        for (col, c) in line.chars().enumerate() {
+            let Some((font, gid)) = glyph(c).filter(|_| c != ' ') else {
+                continue;
+            };
+            let mut cell = ctx.glyph(font, gid, 1.0);
+            if col >= line[..comment].chars().count() {
+                cell.tag(palette.get("dim").copied(), None);
+            }
+            out.put(cell, col as f32 * advance, -(row as f32) * line_height);
+        }
+        out.w = out.w.max(line.chars().count() as f32 * advance);
+    }
+    out.d = lines.len().saturating_sub(1) as f32 * line_height + 0.25;
+    let mut e = finish(out, Vec::new());
     e.align = None;
     e
 }

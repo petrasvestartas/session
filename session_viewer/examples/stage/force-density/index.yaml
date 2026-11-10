@@ -1,9 +1,16 @@
-# Force density method in three levels: a session_viewer stage deck.
+# Force density method, from one node in equilibrium to a net of 100 nodes: a session_viewer stage deck.
 # Open: https://petrasvestartas.github.io/session/?stage=force-density
 # The derivations (Jacobian, matrix form) are a separate deck: ?stage=force-density-derivations
 name: Force density method
 chapters:
-  - 01-one-solve.yaml
-  - 02-five-nodes.yaml
-  - 03-matrices.yaml
-  - 04-several-nodes.yaml
+  - 01-method.yaml
+  - 02-equilibrium.yaml
+  - 03-question.yaml
+  - 04-projections.yaml
+  - 05-one-dimension.yaml
+  - 06-matrices.yaml
+  - 07-script.yaml
+  - 08-several-nodes.yaml
+  - 09-solver.yaml
+  - 10-net.yaml
+  - 11-pillow.yaml

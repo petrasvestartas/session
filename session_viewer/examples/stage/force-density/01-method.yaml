@@ -1,0 +1,48 @@
+# Chapter 1: what the method gives. A net that finds its shape, and the three equations behind it.
+title: The force density method
+grid: {center: [4.5, 4.5], size: 12, step: 1}
+camera: {yaw: -52, pitch: 30}
+net:
+  grid: [10, 10]
+  fixed: boundary
+  q: 1
+  load: [0, 0, 0.35]
+slides:
+  - title: The force density method
+    steps:
+      - say: 'Klaus Linkwitz and Hans-Jörg Schek, Stuttgart, 1971: a way to find the shape of a cable net.'
+        show: [cables, fixed]
+      - say: 'Give the net its fixed points, its loads and one number per cable. One linear solve returns the shape in which every node is in equilibrium.'
+        solve: true
+      - say: 'Its best known application is the Multihalle Mannheim of 1975: a timber gridshell whose shape was computed as a hanging net and built upside down.'
+        text: '**Multihalle Mannheim**, Herzogenriedpark, 1975'
+
+  - title: The result we are heading for
+    steps:
+      - say: 'Everything in this deck leads to three lines, one per coordinate.'
+        eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
+      - say: 'The same line for $y$ and for $z$.'
+        do:
+          - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
+          - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}
+      - say: 'On the right of each line stands what we know. On the left, what we want: the coordinates of the free nodes.'
+        do:
+          - text: '**known:** $\mathbf{x}_F$ fixed nodes, $\mathbf{p}$ loads, $\mathbf{C}$ connectivity, $\mathbf{Q}$ force densities'
+          - text: '**wanted:** $\mathbf{x}_N$, $\mathbf{y}_N$, $\mathbf{z}_N$, the free nodes'
+
+  - title: The way there
+    steps:
+      - say: 'First with one free node and plain sums.'
+        do:
+          - {text: '**1.** The method and its result', align: left}
+          - {text: '**2.** Equilibrium of a node', align: left}
+          - {text: '**3.** The question and what is given', align: left}
+          - {text: '**4.** Forces as projections, and the trick: force over length as one unknown', align: left}
+          - {text: '**5.** Force density in 1D', align: left}
+      - say: 'Then the same sums written with matrices, run as a script, and applied to larger nets.'
+        do:
+          - {text: '**6.** The matrices: $\mathbf{C}$, $\mathbf{Q}$, $\mathbf{u} = \mathbf{C}\mathbf{x}$', align: left}
+          - {text: '**7.** The script and its output', align: left}
+          - {text: '**8-11.** Several free nodes, what a solver does, a net, a pillow', align: left}
+      - say: 'The second deck goes deeper into Linkwitz''s text: the Jacobian (6.4.2), the solution in matrix form (6.4.3) and materialization (6.5).'
+        text: '**Deeper:** the deck force-density-derivations'

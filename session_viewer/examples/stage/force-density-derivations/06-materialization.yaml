@@ -29,14 +29,12 @@ slides:
           - add: {id: k2, tex: 'F_k = q_k\cdot l_k', align: '='}
           - add: {id: kv, row: [{id: lv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], rowlabels: [a, b, c, d], name: '\mathbf{l}\ \text{(m)}', signs: false}}, '\qquad', {id: fv, matrix: {rows: [['4.250'], ['4.535'], ['5.706'], ['4.479']], name: '\mathbf{f}\ \text{(kN)}', signs: false}}]}
       - say: 'With $q = 1$ the force in kN equals the length in m. That is a coincidence of this example, not a rule.'
-        do:
-          - indicate: ['lv[:,0]', 'fv[:,0]']
+        indicate: ['lv[:,0]', 'fv[:,0]']
 
   - title: "Hooke's law · (6.34)"
     steps:
       - say: 'A cable cut to length $l_0$ stretches by $e = l - l_0$ under a force $F$. Hooke: the force is the axial stiffness $EA/l_0$ times the stretch.'
-        do:
-          - add: {id: h1, tex: 'F = \frac{EA}{l_0}\cdot e \quad\Longrightarrow\quad e = l - l_0 = \frac{F\,l_0}{EA}', align: '='}
+        add: {id: h1, tex: 'F = \frac{EA}{l_0}\cdot e \quad\Longrightarrow\quad e = l - l_0 = \frac{F\,l_0}{EA}', align: '='}
       - say: 'For all cables at once, with the diagonal matrices $\mathbf{L}_0$ and $\mathbf{EA}$ and $\mathbf{f} = \mathbf{L}\mathbf{q}$:'
         do:
           - add: {id: e634, tex: '\mathbf{e} = \mathbf{l} - \mathbf{l}_0 = \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{f} = \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{L}\,\mathbf{q} \qquad (6.34)', align: '='}
@@ -45,8 +43,7 @@ slides:
   - title: 'Force density from the material · (6.35)'
     steps:
       - say: 'Turn (6.34) around and solve for the force density.'
-        do:
-          - add: {id: e635, tex: '\mathbf{q} = \mathbf{e}\,\mathbf{EA}\,\mathbf{L}_0^{-1}\mathbf{L}^{-1} \qquad (6.35)', align: '='}
+        add: {id: e635, tex: '\mathbf{q} = \mathbf{e}\,\mathbf{EA}\,\mathbf{L}_0^{-1}\mathbf{L}^{-1} \qquad (6.35)', align: '='}
       - say: 'Per cable, it is the same force density as before: force over length.'
         do:
           - add: {id: qk, tex: 'q_k = \frac{e_k\, EA_k}{l_{0,k}\, l_k} = \frac{\big(EA_k\, e_k / l_{0,k}\big)}{l_k} = \frac{F_k}{l_k}', align: '='}
@@ -55,11 +52,9 @@ slides:
   - title: 'Cut lengths · (6.36)–(6.37)'
     steps:
       - say: 'Write the stretched length as cut length plus stretch, with $\mathbf{F} = \operatorname{diag}(\mathbf{f})$.'
-        do:
-          - add: {id: e636, tex: '\mathbf{l} = \mathbf{l}_0 + \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{F}\big)\,\mathbf{l}_0 \qquad (6.36)', align: '='}
+        add: {id: e636, tex: '\mathbf{l} = \mathbf{l}_0 + \mathbf{L}_0(\mathbf{EA})^{-1}\mathbf{f} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{F}\big)\,\mathbf{l}_0 \qquad (6.36)', align: '='}
       - say: 'Invert the diagonal matrix to get the factory cut lengths.'
-        do:
-          - add: {id: e637, tex: '\mathbf{l}_0 = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{F}\big)^{-1}\mathbf{l} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{Q}\mathbf{L}\big)^{-1}\mathbf{l} \qquad (6.37)', align: '='}
+        add: {id: e637, tex: '\mathbf{l}_0 = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{F}\big)^{-1}\mathbf{l} = \big(\mathbf{I} + (\mathbf{EA})^{-1}\mathbf{Q}\mathbf{L}\big)^{-1}\mathbf{l} \qquad (6.37)', align: '='}
       - say: 'Every matrix here is diagonal, so each cable is computed on its own.'
         do:
           - add: {id: one, tex: 'l_0 = \frac{l}{1 + \frac{F}{EA}} = \frac{l}{1 + \frac{q\,l}{EA}}', color: accent}

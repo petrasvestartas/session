@@ -6,7 +6,6 @@ struct Object {
     spacing: f32,
     padding: u32,
     effect: vec4<f32>,
-    end_color: vec4<f32>,
 };
 @group(0) @binding(3) var<storage,read> vertices: array<u32>;
 @group(0) @binding(4) var<storage,read> owners: array<u32>;

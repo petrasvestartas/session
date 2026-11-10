@@ -1,0 +1,44 @@
+# Chapter 5: force density in 1D. One free node on a line between two fixed nodes: q is a weight.
+title: Force density in 1D
+grid: {center: [5, 0], size: 12, step: 1, z: -1}
+camera: {yaw: -80, pitch: 18}
+net:
+  fixed: {A: [0, 0, 0], B: [10, 0, 0]}
+  free: {N: [2, 0, 0]}
+  cables: {a: [N, A], b: [N, B]}
+  q: 1
+slides:
+  - title: One free node on a line
+    steps:
+      - say: 'A free node $N$ at $x_0$ sits on a line between two fixed nodes: $A$ at $x_1 = 0$ and $B$ at $x_2 = 10$. Each cable pulls it toward its end.'
+        show: net
+      - say: 'Equilibrium along the line: the two pulls and the load cancel.'
+        eq: 'q_1\,(x_1 - x_0) + q_2\,(x_2 - x_0) + p = 0'
+      - say: 'Solve for $x_0$. The free node is the **weighted average** of its neighbours, with the force densities as weights, shifted by the load.'
+        eq: 'x_0 = \frac{q_1\,x_1 + q_2\,x_2 + p}{q_1 + q_2}'
+
+  - title: Three cases
+    keep: true
+    steps:
+      - say: 'Equal force densities, no load: the node rests in the middle.'
+        do:
+          - solve: true
+          - eq: 'q = (1,\ 1),\ p = 0:\quad x_0 = \frac{0 + 10}{2} = 5'
+      - say: 'The right cable gets three times the force density. It weighs three times as much, and the node moves toward $B$.'
+        do:
+          - solve: {q: {b: 3}}
+          - eq: 'q = (1,\ 3),\ p = 0:\quad x_0 = \frac{0 + 30}{4} = 7.5'
+      - say: 'Equal force densities again, and a load of 4 pushing to the right.'
+        do:
+          - add: {id: p, arrow: [N, 'N + [1.6, 0, 0]'], color: load, width: 3.6, label: 'p'}
+          - solve: {load: {N: [4, 0, 0]}}
+          - eq: 'q = (1,\ 1),\ p = 4:\quad x_0 = \frac{0 + 10 + 4}{2} = 7'
+
+  - title: Lengths and forces come afterwards
+    steps:
+      - say: 'With $x_0$ known, the lengths are read from the geometry.'
+        eq: 'l_1 = |x_1 - x_0| = 7, \qquad l_2 = |x_2 - x_0| = 3'
+      - say: 'And each force is its force density times its length.'
+        eq: 'f_1 = q_1\,l_1 = 7, \qquad f_2 = q_2\,l_2 = 3'
+      - say: 'Check: the left cable pulls with 7, the right cable with 3, the load pushes with 4. $-7 + 3 + 4 = 0$.'
+        highlight: [N]

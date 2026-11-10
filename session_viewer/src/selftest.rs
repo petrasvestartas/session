@@ -274,7 +274,6 @@ fn bench_labels(gpu: &Gpu, mixed: bool) -> Vec<TextLabel> {
         font_size: 14.0,
         line_height: 20.0,
         color: [0, 0, 0, 255],
-        outline: 0.0,
         placement,
         clip: None,
     };

@@ -35,8 +35,7 @@ slides:
   - title: 'Expand both sides'
     steps:
       - say: '**Step C.** Expand the left side with $(a + b)^2 = a^2 + 2ab + b^2$.'
-        do:
-          - add: {id: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + (\Delta l_k)^2', align: '='}
+        add: {id: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + (\Delta l_k)^2', align: '='}
       - say: '$\Delta l_k$ is tiny, so its square is negligible: drop it.'
         do:
           - morph: {target: Cl, tex: '(l_k + \Delta l_k)^2 = l_k^2 + 2 l_k \Delta l_k + \cancel{(\Delta l_k)^2}'}
@@ -53,8 +52,7 @@ slides:
   - title: 'Subtract and divide'
     steps:
       - say: '**Step E.** Put both expanded sides together.'
-        do:
-          - add: {id: E, tex: 'l_k^2 + 2 l_k \Delta l_k = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2', align: '='}
+        add: {id: E, tex: 'l_k^2 + 2 l_k \Delta l_k = (x_k - x_0)^2 - 2(x_k - x_0)\Delta x_0 + (y_k - y_0)^2 + (z_k - z_0)^2', align: '='}
       - say: '**Step F.** Subtract the original $l_k^2 = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2$ from both sides.'
         do:
           - morph: {target: E, tex: '\cancel{l_k^2} + 2 l_k \Delta l_k = \cancel{(x_k - x_0)^2} - 2(x_k - x_0)\Delta x_0 + \cancel{(y_k - y_0)^2} + \cancel{(z_k - z_0)^2}'}

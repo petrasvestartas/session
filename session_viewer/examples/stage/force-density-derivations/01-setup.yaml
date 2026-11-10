@@ -51,14 +51,12 @@ slides:
           - add: {id: lv, tex: 'l_k = {=len(X,P1):.3}', align: '='}
           - move: {point: X, to: [3.8, 3, 0.25], dur: 1.6}
       - say: 'Compare the change in length with the shift. For a big nudge the ratio is still inexact.'
-        do:
-          - add: {id: rv, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{ {=len(X,P1)-len(P0,P1):.3} }{ {=x(X)-x(P0):.3} } = {=(len(X,P1)-len(P0,P1))/(x(X)-x(P0)):.3}', align: '='}
+        add: {id: rv, tex: '\frac{\Delta l_k}{\Delta x_0} = \frac{ {=len(X,P1)-len(P0,P1):.3} }{ {=x(X)-x(P0):.3} } = {=(len(X,P1)-len(P0,P1))/(x(X)-x(P0)):.3}', align: '='}
       - say: 'Make the nudge smaller and smaller: the ratio settles on one number.'
         do:
           - move: {point: X, to: [3.3, 3, 0.25], dur: 1.4}
           - move: {point: X, to: [3.1, 3, 0.25], dur: 1.2}
           - move: {point: X, to: [3.02, 3, 0.25], dur: 1.2}
       - say: 'That limit is the partial derivative of the length with respect to $x_0$.'
-        do:
-          - add: {id: lim, tex: '\lim_{\Delta x_0 \to 0}\frac{\Delta l_k}{\Delta x_0} = \frac{\partial l_k}{\partial x_0}', color: accent}
+        add: {id: lim, tex: '\lim_{\Delta x_0 \to 0}\frac{\Delta l_k}{\Delta x_0} = \frac{\partial l_k}{\partial x_0}', color: accent}
 

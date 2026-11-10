@@ -27,11 +27,9 @@ slides:
             dur: 0.8
           - add: {id: J, row: ['\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T} =', {id: Jm, matrix: {rows: [['\dfrac{-(x_1 - x_0)}{l_a}', '\dfrac{-(x_2 - x_0)}{l_b}', '\dfrac{-(x_3 - x_0)}{l_c}', '\dfrac{-(x_4 - x_0)}{l_d}']], collabels: [a, b, c, d]}}]}
       - say: 'With the numbers of our net:'
-        do:
-          - add: {id: Jn, row: ['=', {id: Jv, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], collabels: [a, b, c, d]}}]}
+        add: {id: Jn, row: ['=', {id: Jv, matrix: {rows: [['0.706', '-0.441', '0.526', '-0.893']], collabels: [a, b, c, d]}}]}
       - say: 'With $\mathbf{u} = \mathbf{C}\mathbf{x} = x_0 - x_k$, each entry is $u_k/l_k$: a diagonal $\mathbf{U}\mathbf{L}^{-1}$ summed by $\mathbf{C}_N^T$.'
-        do:
-          - add: {id: UL, row: ['\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1} =', {id: CNT, matrix: [[1, 1, 1, 1]]}, {id: ULm, matrix: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}]}
+        add: {id: UL, row: ['\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1} =', {id: CNT, matrix: [[1, 1, 1, 1]]}, {id: ULm, matrix: [['0.706', 0, 0, 0], [0, '-0.441', 0, 0], [0, 0, '0.526', 0], [0, 0, 0, '-0.893']]}]}
       - say: 'Linkwitz writes the whole row compactly as equation (6.24).'
         do:
           - add: {id: e624, tex: '\Big(\frac{\partial \mathbf{f}(\mathbf{x})}{\partial \mathbf{x}}\Big)^{T} = \mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1} \qquad (6.24)', color: accent}

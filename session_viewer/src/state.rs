@@ -18,7 +18,6 @@ mod features; // register:features
 mod hydrate; // register:hydrate
 pub(crate) mod number_box; // register:number_box
 mod panel; // register:panel
-mod presentation;
 mod sheet_query; // register:sheet_query
 mod splitting; // register:splitting
 mod text; // register:text
@@ -46,7 +45,6 @@ pub struct State {
     pub view_frame: [f64; 4], // the canvas part the panels leave free: left, top, right, bottom in fractions
     load_camera: crate::camera::CameraPose, // the view before loading started
     pub scene: Scene,         // the loaded documents
-    pub(crate) presentation: Option<presentation::PresentationState>,
     pub(crate) stage: Option<Box<crate::app::stage::StageApp>>, // a running stage deck, painted by egui
     pub needs_frame: bool,        // draw again on the next redraw
     gpu_stopped: bool,            // failure handled; never submit again
@@ -86,7 +84,6 @@ impl State {
             load_camera: camera.pose(),
             camera,
             scene,
-            presentation: None,
             stage: None,
             needs_frame: true,
             gpu_stopped: false,
@@ -178,8 +175,6 @@ impl State {
 
     /// Turn the camera to the scene's view and show or hide the floor grid; the fit that follows still frames it.
     pub fn open_scene(&mut self, view: Option<crate::camera::View>, grid: bool) {
-        self.gpu.view.dark = false;
-        self.gpu.view.thickness_px = crate::engine::gpu::View::from_env().thickness_px;
         if let Some(view) = view {
             self.camera.set_view(view);
             self.load_camera = self.camera.pose();
@@ -257,9 +252,6 @@ impl State {
         self.last_resize_ms = now;
         self.gpu.resize(width, height);
         self.gpu.logical_size = self.logical_size();
-        if self.presenting() {
-            self.refit_presentation();
-        }
         self.upload_controls(); // register:controls
         self.touch();
         true
@@ -287,6 +279,7 @@ impl State {
     }
 
     /// Present the frame being drawn without asking for another.
+    #[cfg(any(target_arch = "wasm32", test))]
     pub(crate) fn redraw_once(&mut self) {
         self.dirty = true;
     }
@@ -567,8 +560,6 @@ impl State {
             return;
         }
 
-        self.tick_presentation();
-
         for hook in features::BEFORE_PICKS {
             hook(self);
         }
@@ -585,9 +576,7 @@ impl State {
 
         // apply a pick answer first, so this frame shows it
         if let Some(pick) = self.gpu.pick.poll() {
-            if !self.apply_presentation_pick_if_active(pick) {
-                self.apply_pick(pick);
-            }
+            self.apply_pick(pick);
         } else {
             self.cloud_query_lost(); // register:cloud_query
         }
@@ -634,10 +623,6 @@ impl State {
             clear: if let Some(stage) = &self.stage {
                 let c = stage.stage.palette("bg");
                 wgpu::Color { r: c[0] as f64, g: c[1] as f64, b: c[2] as f64, a: 1.0 }
-            } else if self.presentation_dark() {
-                wgpu::Color::BLACK
-            } else if self.presenting() {
-                wgpu::Color::WHITE
             } else {
                 CLEAR
             },
@@ -692,8 +677,7 @@ impl State {
             || self.gpu.view.spin
             || self.gpu.ambient_pending()
             || self.gpu.visibility_pending()
-            || self.gpu.performance.rough()
-            || self.presentation_animating();
+            || self.gpu.performance.rough();
         #[cfg(target_arch = "wasm32")]
         crate::app::inspection::publish(self);
     }

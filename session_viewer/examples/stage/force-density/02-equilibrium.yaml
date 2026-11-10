@@ -1,0 +1,71 @@
+# Chapter 2: what equilibrium means. One node, three forces, three sums that must be zero.
+title: What equilibrium means
+grid: {center: [0, 0], size: 6, step: 1, z: -2}
+camera: {yaw: -58, pitch: 26}
+points:
+  O: [0, 0, 0]
+  S2: [0, 0, 0]
+  S3: [0, 0, 0]
+  E1: [3, 0, 1]
+  E2: [-1, 2, 1]
+  E3: [-2, -2, -2]
+  X0: [-2.5, -2, -2]     # the x axis drawn on the floor, and the marks 0, 2, 3 on it
+  X1: [0, -2, -2]
+  X2: [2, -2, -2]
+  X3: [3, -2, -2]
+  X4: [4, -2, -2]
+slides:
+  - title: A node that does not move
+    steps:
+      - say: 'A node $P$ is held by three cables. Each cable pulls on it with a force.'
+        add:
+          - {id: F1, arrow: [O, E1], color: accent, width: 3.6, label: 'F_1'}
+          - {id: F2, arrow: [S2, E2], color: accent, width: 3.6, label: 'F_2'}
+          - {id: F3, arrow: [S3, E3], color: accent, width: 3.6, label: 'F_3'}
+          - {id: P, point: O, color: free, label: 'P'}
+      - say: 'The node stays where it is, so the three pulls cancel. That is **equilibrium**.'
+        eq: '\mathbf{F}_1 + \mathbf{F}_2 + \mathbf{F}_3 = \mathbf{0}'
+      - say: 'Check it by walking: put each arrow at the tip of the one before.'
+        do:
+          - move: {point: S2, to: [3, 0, 1]}
+          - move: {point: E2, to: [2, 2, 2], with: true}
+          - move: {point: S3, to: [2, 2, 2]}
+          - move: {point: E3, to: [0, 0, 0], with: true}
+      - say: 'The walk ends where it began. A closed polygon of forces: nothing is left over to move the node.'
+        highlight: [P]
+      - say: 'Back to the node.'
+        do:
+          - move: {point: S2, to: [0, 0, 0]}
+          - move: {point: E2, to: [-1, 2, 1], with: true}
+          - move: {point: S3, to: [0, 0, 0], with: true}
+          - move: {point: E3, to: [-2, -2, -2], with: true}
+
+  - title: One axis at a time
+    steps:
+      - say: 'Arrows are hard to add, numbers are easy. Look at $\mathbf{F}_1$ along the $x$ axis only: its shadow on the floor.'
+        do:
+          - add: {id: ax, line: [X0, X4], color: faint, label: 'x'}
+          - derive: {from: F1, id: X1, arrow: [X1, X3], color: x, width: 3.6, label: 'F_{1,x}'}
+      - say: 'The shadow is the force times the cosine of its angle to the axis: the **direction cosine**.'
+        eq: 'F_{1,x} = F_1 \cos\alpha_1 = 3.162 \cdot 0.949 = 3'
+      - say: 'The other two forces the same way. A force that points backwards has a negative cosine.'
+        do:
+          - derive: {from: F2, id: X2, arrow: ['X3 + [0, -0.4, 0]', 'X2 + [0, -0.4, 0]'], color: x, width: 3.6}
+          - eq: 'F_{2,x} = F_2 \cos\alpha_2 = 2.449 \cdot (-0.408) = -1'
+          - derive: {from: F3, id: X3, arrow: ['X2 + [0, -0.8, 0]', 'X1 + [0, -0.8, 0]'], color: x, width: 3.6}
+          - eq: 'F_{3,x} = F_3 \cos\alpha_3 = 3.464 \cdot (-0.577) = -2'
+      - say: 'Along $x$ the three shadows cancel: the walk on the axis returns to zero.'
+        eq: {tex: '\sum_k F_k \cos\alpha_k = 3 - 1 - 2 = 0', color: x}
+
+  - title: Three sums, one per axis
+    steps:
+      - say: 'Equilibrium along $x$: the sum of every force times its direction cosine is zero.'
+        eq: {tex: 'x:\quad F_1\cos\alpha_1 + F_2\cos\alpha_2 + F_3\cos\alpha_3 = 3 - 1 - 2 = 0', color: x}
+      - say: 'The same along $y$ and along $z$, each with its own angles.'
+        do:
+          - eq: {tex: 'y:\quad F_1\cos\beta_1 + F_2\cos\beta_2 + F_3\cos\beta_3 = 0 + 2 - 2 = 0', color: y}
+          - eq: {tex: 'z:\quad F_1\cos\gamma_1 + F_2\cos\gamma_2 + F_3\cos\gamma_3 = 1 + 1 - 2 = 0', color: z}
+      - say: 'That is all equilibrium is: three sums, one per axis. A load on the node is one more term in each sum.'
+        highlight: [P]
+      - say: 'Everything that follows only organises these sums: by hand for one node, then with matrices for a whole net.'
+        text: 'Next: the question, and what is given.'

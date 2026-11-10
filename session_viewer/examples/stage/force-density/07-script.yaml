@@ -1,0 +1,56 @@
+# Chapter 7: the method as a Python script, for the five nodes, with its output.
+title: The script
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+net:
+  fixed: {P1: [0, 0, 0], P2: [5, 0, 3], P3: [0, 7, 3], P4: [7, 5, 0]}
+  free: {P0: [3.6, 3.4, 1.9]}
+  cables: {a: [P0, P1], b: [P0, P2], c: [P0, P3], d: [P0, P4]}
+  q: 1
+  load: {P0: [0, 0, -5]}
+slides:
+  - title: What is given, as arrays
+    steps:
+      - say: 'The five nodes again, with $P_0$ at a guess. The script starts from the connectivity matrix and splits its columns into free and fixed.'
+        show: net
+        code: |
+          import numpy as np
+
+          # connectivity: rows = cables a..d, columns = nodes P0..P4
+          C = np.array([
+              [1, -1,  0,  0,  0],
+              [1,  0, -1,  0,  0],
+              [1,  0,  0, -1,  0],
+              [1,  0,  0,  0, -1],
+          ])
+          free  = [0]            # P0
+          fixed = [1, 2, 3, 4]   # P1..P4
+          C_N = C[:, free]
+          C_F = C[:, fixed]
+      - say: 'Then the fixed coordinates, the force densities on a diagonal, and the load.'
+        code: |
+          x_F = np.array([0, 5, 0, 7])
+          y_F = np.array([0, 0, 7, 5])
+          z_F = np.array([0, 3, 3, 0])
+
+          q = np.array([1, 1, 1, 1])
+          Q = np.diag(q)
+
+          p_x, p_y, p_z = np.array([0]), np.array([0]), np.array([-5])
+
+  - title: Three solves
+    steps:
+      - say: 'The three lines of the method, one per coordinate. A is $\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$.'
+        code: |
+          A = C_N.T @ Q @ C_N
+          x_N = np.linalg.solve(A, p_x - C_N.T @ Q @ C_F @ x_F)
+          y_N = np.linalg.solve(A, p_y - C_N.T @ Q @ C_F @ y_F)
+          z_N = np.linalg.solve(A, p_z - C_N.T @ Q @ C_F @ z_F)
+
+          print(x_N, y_N, z_N)
+      - say: 'The output: the free node rests at $(3,\ 3,\ 0.25)$.'
+        do:
+          - add: {id: out, code: '[3.] [3.] [0.25]', color: free, size: 26}
+          - solve: true
+      - say: 'Nothing in the script knows that there are five nodes. A larger net only makes the arrays longer.'
+        highlight: [out]

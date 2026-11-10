@@ -65,11 +65,7 @@
         var manifest = null;
         var whole = false;
 
-        if (query.presentation !== undefined) {
-          manifest = query.presentation.indexOf(".") >= 0 ? query.presentation : query.presentation + ".yaml";
-          base = manifest.slice(0, manifest.lastIndexOf("/") + 1);
-          whole = true;
-        } else if (live !== "off" && live !== "0" && (live !== undefined || scene === "view_live" || (!scene && !local))) {
+        if (live !== "off" && live !== "0" && (live !== undefined || scene === "view_live" || (!scene && !local))) {
           manifest = live && (/^https:\/\//.test(live) || LOCAL_URL.test(live)) ? live : BUCKET + "scenes/view_live.yaml";
           whole = true;
           if (!base || manifest.indexOf(base) !== 0)
@@ -213,6 +209,7 @@
     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
     <link data-trunk rel="copy-dir" href="assets/stage" data-target-path="stage"/>
+    <link data-trunk rel="copy-dir" href="examples/stage" data-target-path="decks"/>
     <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
     <!-- The docs site, built by the Trunk pre-build hook (session_tests/scripts/build-viewer-docs.sh). -->
     <link data-trunk rel="copy-dir" href="target/docs/vue" data-target-path="docs"/>

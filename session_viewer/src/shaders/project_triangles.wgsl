@@ -12,13 +12,15 @@ struct ProjectLine {
 @group(1) @binding(0) var<uniform> line: ProjectLine; // view settings
 @group(1) @binding(1) var<uniform> clipping: ClipUniform; // clipping planes
 
-// Instance under another name; field order must match the Rust row.
+// Instance under another name; field order and size must match the Rust row, or every row past the first is read from the wrong bytes.
 struct ProjectInstance {
     model: mat4x4<f32>, // rotation and scale
     color: vec4<f32>, // rgba tint
     flags: u32, // FLAG_* bits
     ao_radius: f32, // SSAO contact radius
     spacing: f32, // vertex spacing
+    edge_color: u32, // packed edge color
+    effect: vec4<f32>, // line reveal, point scale
 };
 
 @group(2) @binding(0) var<storage, read> instances: array<ProjectInstance>; // one row per object

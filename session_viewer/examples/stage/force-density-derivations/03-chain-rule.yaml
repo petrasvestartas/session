@@ -28,11 +28,9 @@ slides:
           - add: {id: c1, tex: 'l_k = u^{1/2}, \qquad u = (x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2'}
           - add: {id: c2, tex: '\frac{\partial l_k}{\partial x_0} = \frac{d l_k}{d u}\cdot\frac{\partial u}{\partial x_0}', align: '='}
       - say: '**Outer derivative.** The power rule, with $\sqrt{u} = l_k$.'
-        do:
-          - add: {id: c3, tex: '\frac{d l_k}{d u} = \tfrac{1}{2}u^{-1/2} = \frac{1}{2\sqrt{u}} = \frac{1}{2 l_k}', align: '='}
+        add: {id: c3, tex: '\frac{d l_k}{d u} = \tfrac{1}{2}u^{-1/2} = \frac{1}{2\sqrt{u}} = \frac{1}{2 l_k}', align: '='}
       - say: '**Inner derivative.** Only the $x$-term contains $x_0$; the $y$ and $z$ terms differentiate to $0$.'
-        do:
-          - add: {id: c4, tex: '\frac{\partial u}{\partial x_0} = 2(x_k - x_0)\cdot(-1) = -2(x_k - x_0)', align: '='}
+        add: {id: c4, tex: '\frac{\partial u}{\partial x_0} = 2(x_k - x_0)\cdot(-1) = -2(x_k - x_0)', align: '='}
       - say: 'Multiply outer and inner: the same result as method 1.'
         do:
           - add: {id: c5, tex: '\frac{\partial l_k}{\partial x_0} = \frac{1}{2 l_k}\cdot\big(-2(x_k - x_0)\big) = \frac{-(x_k - x_0)}{l_k}', align: '=', color: accent}
@@ -40,14 +38,13 @@ slides:
 
   - title: What the result means
     steps:
-      - say: '$(x_k - x_0)/l_k$ is the direction cosine from chapter 2, so $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
+      - say: '$(x_k - x_0)/l_k$ is the direction cosine, so $\partial l_k / \partial x_0$ is the **negative** direction cosine along $x$.'
         do:
           - add: {id: m1, tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'}
           - add: {id: unit, arrow: [P0, 'P0 + (P0 - P1)/len(P0, P1)*1.6'], color: accent, width: 3.6}
           - derive: {from: unit, id: unitx, arrow: [P0, 'P0 + [(x(P0) - x(P1))/len(P0, P1)*1.6, 0, 0]'], color: x, width: 3.6}
       - say: 'For cable $a$ ($P_k = P_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
-        do:
-          - add: {id: m2, tex: '\frac{\partial l_a}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706', align: '='}
+        add: {id: m2, tex: '\frac{\partial l_a}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706', align: '='}
       - say: 'Moving $P_0$ right by 1 m lengthens cable $a$ by about 0.706 m: it points away from its anchor.'
         do:
           - {indicate: [m2], color: x}

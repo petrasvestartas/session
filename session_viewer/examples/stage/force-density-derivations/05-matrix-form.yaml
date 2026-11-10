@@ -31,8 +31,7 @@ slides:
               - {id: p, arrow: [P0, 'P0 + [0, 0, -2.5]'], color: load, width: 3.6, label: 'p'}
           - add: {id: n0, point: P0, color: free, label: 'P_0'}
       - say: 'Each force pulls along its cable. Its $x$-part is the force times the direction cosine, which is minus the Jacobian entry from chapter 4.'
-        do:
-          - add: {id: e625, tex: '-\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T}\mathbf{f} + p_x = 0 \qquad (6.25)', align: '='}
+        add: {id: e625, tex: '-\Big(\frac{\partial \mathbf{f}(x_0)}{\partial x_0}\Big)^{T}\mathbf{f} + p_x = 0 \qquad (6.25)', align: '='}
       - say: 'Replace the row by (6.24). With $\mathbf{u} = x_0 - x_k$ the minus sign moves the load to the right-hand side.'
         do:
           - derive: {from: e625, id: e626, tex: '\mathbf{C}_N^{T}\,\mathbf{U}\,\mathbf{L}^{-1}\,\mathbf{f} = \mathbf{p} \qquad (6.26)', align: '='}
@@ -66,8 +65,7 @@ slides:
           - show: ['qu[:,0]']
           - indicate: ['uq[:,0]', 'qu[:,0]']
       - say: 'And $\mathbf{u} = \mathbf{C}\mathbf{x}$, so the unknown coordinates appear in plain sight.'
-        do:
-          - add: {id: sw, tex: '\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}', color: accent}
+        add: {id: sw, tex: '\mathbf{U}\mathbf{q} = \mathbf{Q}\mathbf{u} = \mathbf{Q}\,\mathbf{C}\,\mathbf{x}', color: accent}
 
   - title: 'Isolate the coordinates · (6.29)–(6.30)'
     steps:
@@ -76,20 +74,16 @@ slides:
           - add: {id: f, tex: '\mathbf{C}_N^{T}\,{{\mathbf{U}\,\mathbf{q}}} = \mathbf{p}', align: '='}
           - morph: {target: f, tex: '\mathbf{C}_N^{T}\,{{\mathbf{Q}\,\mathbf{C}\,\mathbf{x}}} = \mathbf{p} \qquad (6.29)', map: {'\mathbf{U}\,\mathbf{q}': '\mathbf{Q}\,\mathbf{C}\,\mathbf{x}'}}
       - say: 'Split $\mathbf{C}\mathbf{x}$ into free and fixed parts, $\mathbf{C}_N\mathbf{x}_N + \mathbf{C}_F\mathbf{x}_F$.'
-        do:
-          - derive: {from: f, id: f2, tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)', align: '='}
+        derive: {from: f, id: f2, tex: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)', align: '='}
       - say: 'The first product multiplies the unknown $\mathbf{x}_N$; the second only contains known anchors.'
-        do:
-          - morph: {target: f2, tex: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N + \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'}
+        morph: {target: f2, tex: '\underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N}_{\mathbf{D}_N}\,\mathbf{x}_N + \underbrace{\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F}_{\mathbf{D}_F}\,\mathbf{x}_F = \mathbf{p} \qquad (6.30)'}
 
   - title: 'Two matrices, one solve · (6.31)–(6.32)'
     steps:
       - say: 'Name them: the stiffness of the free nodes $\mathbf{D}_N$ and the coupling to the anchors $\mathbf{D}_F$.'
-        do:
-          - add: {id: dn, tex: '\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N, \qquad \mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F'}
+        add: {id: dn, tex: '\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N, \qquad \mathbf{D}_F = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F'}
       - say: 'Move the known part to the right-hand side.'
-        do:
-          - add: {id: e631, tex: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F \qquad (6.31)', align: '='}
+        add: {id: e631, tex: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F \qquad (6.31)', align: '='}
       - say: 'Multiply by $\mathbf{D}_N^{-1}$: one linear step per coordinate direction.'
         do:
           - add: {id: x, tex: '\mathbf{x}_N = \mathbf{D}_N^{-1}(\mathbf{p}_x - \mathbf{D}_F\,\mathbf{x}_F)', align: '=', color: x}

@@ -747,6 +747,18 @@ mod tests {
             )
             .validate(&module)
             .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(source)));
+            // the projection indexes the instance rows: its copy of the row must have their stride
+            for (_, ty) in module.types.iter() {
+                if ty.name.as_deref() == Some("ProjectInstance") {
+                    let naga::TypeInner::Struct { span, .. } = ty.inner else {
+                        panic!("ProjectInstance is a struct");
+                    };
+                    assert_eq!(
+                        span as usize,
+                        std::mem::size_of::<super::super::instance::Instance>()
+                    );
+                }
+            }
         }
     }
 

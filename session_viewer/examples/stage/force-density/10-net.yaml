@@ -1,0 +1,76 @@
+# Chapter 10: a net of 81 nodes. Four fixed corners, two of them lifted; the same matrices, larger.
+title: A net of 81 nodes
+grid: {center: [4, 4], size: 11, step: 1}
+camera: {yaw: -52, pitch: 30}
+net:
+  grid: [9, 9]            # nodes n<row>_<col>, cables h<row>_<col> (along the row) and v<row>_<col>
+  fixed: corners
+  lift: {n0_0: 4, n8_8: 4}
+  q: 1
+  rim: 10                 # the cables on the rim pull harder
+  load: [0, 0, -0.1]
+slides:
+  - title: The same script, more nodes
+    steps:
+      - say: 'A grid of 9 × 9 nodes and 144 cables. The four corners are fixed, two of them lifted to $z = 4$. The flat grid is only a starting picture.'
+        show: [cables, fixed]
+      - say: '77 nodes are free. Each has an unknown $x$, $y$ and $z$: 231 numbers to find.'
+        eq: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)'
+      - say: 'The line is the one from the five nodes. Only the sizes change.'
+        text: '$\mathbf{C}$: 144 × 81 $\qquad \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$: 77 × 77 $\qquad \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F$: 77 × 4'
+
+  - title: The connectivity matrix
+    steps:
+      - say: 'One row per cable, one column per node. Each row still holds a single $+1$ and a single $-1$; the rest is zero.'
+        matrix: C
+      - say: 'Nobody types this matrix. A loop over the cables fills it.'
+        code: |
+          C = np.zeros((len(edges), n * n))
+          for e, (a, b) in enumerate(edges):
+              C[e, a], C[e, b] = 1, -1
+          C_N, C_F = C[:, free], C[:, fixed]
+
+  - title: 'One row of $\mathbf{D}_N$ is one node'
+    steps:
+      - say: '$\mathbf{D}_N = \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N$ has one row and one column per free node. Pink is the diagonal, blue the neighbours.'
+        matrix: DN
+      - say: 'Take the inner node $n_{4,4}$. Four cables meet there.'
+        do:
+          - add: {id: pick, point: n4_4, color: accent}
+          - color: {target: h4_4, color: accent}
+          - color: {target: h4_3, color: accent, with: true}
+          - color: {target: v4_4, color: accent, with: true}
+          - color: {target: v3_4, color: accent, with: true}
+      - say: 'Its row has five entries: $+4$ on the diagonal, the sum of its four force densities, and $-1$ for each neighbour.'
+        do:
+          - color: {target: 'DN[38,:]', color: accent}      # n4_4 is the 39th free node
+          - eq: '4\,z_{4,4} - z_{4,3} - z_{4,5} - z_{3,4} - z_{5,4} = p_z'
+      - say: 'That row is the sum $\sum q_k (z_k - z_0) + p_z = 0$ of the single node, for this one node. The matrix stacks 77 such sums.'
+        do:
+          - color: {target: 'DN[38,:]', color: reset}
+          - color: {target: h4_4, color: reset, with: true}
+          - color: {target: h4_3, color: reset, with: true}
+          - color: {target: v4_4, color: reset, with: true}
+          - color: {target: v3_4, color: reset, with: true}
+          - remove: [pick]
+
+  - title: Solve
+    steps:
+      - say: 'Elimination, as with the chain of three, now with 77 rows. Below the diagonal everything becomes zero.'
+        row:
+          - {id: D2, matrix: DN}
+          - '\ \longrightarrow\ '
+          - {id: U, matrix: U}
+      - say: 'Back substitution for $x$, $y$ and $z$ gives every free node its place. The net finds its shape.'
+        solve: true
+      - say: 'A saddle between two high and two low corners, with every node in equilibrium.'
+        highlight: [n0_0, n8_8]
+
+  - title: Force densities shape the net
+    steps:
+      - say: 'Lower the force density of the rim cables from 10 to 1. They pull less, and the edges sag inward.'
+        solve: {rim: 1}
+      - say: 'Raise it to 40: the rim tightens toward straight lines.'
+        solve: {rim: 40}
+      - say: 'Every choice of $\mathbf{q}$ gives one equilibrium shape, found by one linear solve.'
+        solve: true

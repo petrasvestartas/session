@@ -1,5 +1,5 @@
 use super::deck::{
-    Action, CameraSpec, Chapter, Content, Index, Kind, MatrixSpec, ObjSpec, Pos,
+    Action, CameraSpec, Chapter, Content, Index, Kind, MatrixSpec, ObjSpec, Pos, plain,
 };
 use super::eval::{self, Points};
 use super::font::Fonts;
@@ -14,6 +14,12 @@ const TOP: f32 = 128.0;
 const BOTTOM: f32 = 150.0;
 const MARGIN: f32 = 56.0;
 const RELAYOUT_MS: f64 = 650.0;
+const START_CAM: Cam = Cam {
+    yaw: -60.0,
+    pitch: 25.0,
+    zoom: 60.0,
+    center: [0.0; 3],
+};
 
 /// A formula piece in slide pixels.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -50,16 +56,19 @@ pub enum Draw {
     },
 }
 
+/// Smootherstep easing of `t` in 0..1.
 pub fn smooth(t: f64) -> f64 {
     let t = t.clamp(0.0, 1.0);
     let s = 1.0 - t;
     t * t * t * (10.0 * s * s + 5.0 * s * t + t * t)
 }
 
+/// Ease up to 1 at the midpoint and back to 0.
 fn there_and_back(t: f64) -> f64 {
     smooth(if t < 0.5 { 2.0 * t } else { 2.0 * (1.0 - t) })
 }
 
+/// Blend two colours.
 fn mix(a: Rgba, b: Rgba, t: f32) -> Rgba {
     [
         a[0] + (b[0] - a[0]) * t,
@@ -69,10 +78,12 @@ fn mix(a: Rgba, b: Rgba, t: f32) -> Rgba {
     ]
 }
 
+/// Blend two numbers.
 fn lerp(a: f32, b: f32, t: f32) -> f32 {
     a + (b - a) * t
 }
 
+/// The colour with its alpha scaled by `a`.
 fn with_alpha(mut c: Rgba, a: f32) -> Rgba {
     c[3] *= a;
     c
@@ -87,6 +98,7 @@ pub struct Tween<T: Copy> {
     dur: f64,
 }
 
+/// Values a tween can blend.
 pub trait Lerp: Copy {
     fn lerp(a: Self, b: Self, t: f64) -> Self;
 }
@@ -120,6 +132,7 @@ impl Lerp for Rgba {
 }
 
 impl<T: Lerp> Tween<T> {
+    /// A value at rest.
     fn fixed(v: T) -> Self {
         Tween {
             from: v,
@@ -128,6 +141,8 @@ impl<T: Lerp> Tween<T> {
             dur: 0.0,
         }
     }
+
+    /// The value at time `now`.
     fn at(&self, now: f64) -> T {
         if self.dur <= 0.0 || now >= self.t0 + self.dur {
             return self.to;
@@ -137,16 +152,31 @@ impl<T: Lerp> Tween<T> {
         }
         T::lerp(self.from, self.to, smooth((now - self.t0) / self.dur))
     }
+
+    /// Move from the current value to `to` over `dur` milliseconds.
     fn set(&mut self, to: T, now: f64, dur: f64) {
         self.from = self.at(now);
         self.to = to;
         self.t0 = now;
         self.dur = dur;
     }
+
+    /// Move to `to` when `animate`, otherwise jump there.
+    fn retarget(&mut self, to: T, now: f64, dur: f64, animate: bool) {
+        if animate {
+            self.set(to, now, dur);
+        } else {
+            *self = Tween::fixed(to);
+        }
+    }
+
+    /// Jump to the end.
     fn snap(&mut self) {
         self.from = self.to;
         self.dur = 0.0;
     }
+
+    /// Whether the value is still moving at `now`.
     fn busy(&self, now: f64) -> bool {
         self.dur > 0.0 && now < self.t0 + self.dur
     }
@@ -175,11 +205,11 @@ impl Lerp for Cam {
 /// The projection of one frame.
 #[derive(Clone, Copy)]
 pub struct View {
-    right: [f64; 3],
-    up: [f64; 3],
-    cam: Cam,
-    origin: [f32; 2],
-    lens: Option<Lens>,
+    right: [f64; 3],    // World direction of slide x.
+    up: [f64; 3],       // World direction of slide up.
+    cam: Cam,           // The authored camera.
+    origin: [f32; 2],   // Slide point of the camera centre.
+    lens: Option<Lens>, // The real camera, used instead when set.
 }
 
 /// The real camera as an affine map from world to slide pixels: `a * p + b`.
@@ -201,6 +231,7 @@ pub struct Spatial {
     pub reveal: f32,
 }
 
+/// The kind of a scene object.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SpatialKind {
     Point,
@@ -209,11 +240,13 @@ pub enum SpatialKind {
     Polyline,
 }
 
+/// Dot product.
 fn dot(a: [f64; 3], b: [f64; 3]) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
 impl View {
+    /// The orthographic view of `cam` with its centre at slide point `origin`.
     fn new(cam: Cam, origin: [f32; 2]) -> Self {
         let (y, p) = (cam.yaw.to_radians(), cam.pitch.to_radians());
         let eye = [p.cos() * y.cos(), p.cos() * y.sin(), p.sin()];
@@ -231,9 +264,14 @@ impl View {
             lens: None,
         }
     }
+
+    /// A world point on the slide.
     pub fn project(&self, p: [f64; 3]) -> [f32; 2] {
         if let Some(l) = &self.lens {
-            return [(dot(l.a[0], p) + l.b[0]) as f32, (dot(l.a[1], p) + l.b[1]) as f32];
+            return [
+                (dot(l.a[0], p) + l.b[0]) as f32,
+                (dot(l.a[1], p) + l.b[1]) as f32,
+            ];
         }
         let d = [
             p[0] - self.cam.center[0],
@@ -247,6 +285,7 @@ impl View {
     }
 }
 
+/// How a panel block sits in the column.
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum Align {
     Center,
@@ -259,53 +298,70 @@ pub struct Obj {
     pub id: String,
     pub content: Content,
     color: Rgba,
-    size: f32,
-    width: f32,
+    size: f32,  // Pixels per em.
+    width: f32, // Line width, pixels.
     dash: bool,
-    expr: Rc<Expr>,
-    groups: HashMap<String, Vec<usize>>,
-    dynamic: Option<String>,
-    hidden: HashSet<usize>,
-    colors: HashMap<usize, Tween<Rgba>>,
+    expr: Rc<Expr>,                      // The laid-out formula, em units.
+    groups: HashMap<String, Vec<usize>>, // Named prim sets: cells, rows, parts, row items.
+    dynamic: Option<String>,             // TeX with `{=expr}` fields, refilled as points move.
+    hidden: HashSet<usize>,              // Prims drawn transparent.
+    colors: HashMap<usize, Tween<Rgba>>, // Colour per prim; `usize::MAX` for a 3D object.
     align: Align,
-    at: Option<[f32; 2]>,
-    gap: f32,
-    pos: Tween<[f32; 2]>,
-    placed: bool,
-    fit: f32,
-    dim: Tween<f32>,
+    at: Option<[f32; 2]>, // A fixed slide position instead of the column.
+    gap: f32,             // Space above the block, pixels.
+    pos: Tween<[f32; 2]>, // Top-left corner on the slide.
+    placed: bool,         // Whether `pos` has been laid out.
+    fit: f32,             // Shrink factor that fits the column.
+    dim: Tween<f32>,      // 0 normal, 1 dimmed.
     opacity: f32,
-    geo_from: Option<(Vec<[f64; 3]>, f64, f64)>,
-    dir: Option<[f32; 2]>,
-    attach: Option<String>,
-    boxed: Option<(String, f32)>,
-    label_dir: usize,
+    geo_from: Option<(Vec<[f64; 3]>, f64, f64)>, // Points a 3D morph starts from, start, duration.
+    dir: Option<[f32; 2]>,                       // Authored label direction.
+    attach: Option<String>,                      // Object a label follows.
+    boxed: Option<(String, f32)>,                // Target and padding of a box outline.
+    label_dir: usize,                            // Last chosen label placement.
+}
+
+/// Whether content is 3D geometry.
+fn is_geo(content: &Content) -> bool {
+    matches!(
+        content,
+        Content::Point(_)
+            | Content::Line { .. }
+            | Content::Polyline { .. }
+            | Content::Cuboid { .. }
+    )
 }
 
 impl Obj {
+    /// A formula, text, matrix or row in the column.
     fn block(&self) -> bool {
         matches!(
             self.content,
-            Content::Tex(_) | Content::Text(_) | Content::Matrix(_) | Content::Row(_)
+            Content::Tex(_)
+                | Content::Text(_)
+                | Content::Code(_)
+                | Content::Matrix(_)
+                | Content::Row(_)
         ) && self.boxed.is_none()
     }
+
+    /// A point, line, polyline or cuboid.
     fn geo(&self) -> bool {
-        matches!(
-            self.content,
-            Content::Point(_)
-                | Content::Line { .. }
-                | Content::Polyline { .. }
-                | Content::Cuboid { .. }
-        )
+        is_geo(&self.content)
     }
+
+    /// A 3D label.
     fn label(&self) -> bool {
         matches!(self.content, Content::Label { .. })
     }
+
+    /// Pixels per em after fitting.
     fn scale(&self) -> f32 {
         self.size * self.fit
     }
 }
 
+/// A running effect.
 #[derive(Clone, Debug)]
 enum Fx {
     Appear {
@@ -333,6 +389,7 @@ enum Fx {
     },
 }
 
+/// How an added object enters.
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Style {
     Write,
@@ -343,6 +400,7 @@ enum Style {
     None,
 }
 
+/// An effect with its start and duration, milliseconds.
 #[derive(Clone, Debug)]
 struct Anim {
     fx: Fx,
@@ -351,6 +409,7 @@ struct Anim {
 }
 
 impl Anim {
+    /// Progress at `now`, 0..1.
     fn p(&self, now: f64) -> f64 {
         if self.dur <= 0.0 {
             1.0
@@ -360,6 +419,7 @@ impl Anim {
     }
 }
 
+/// The named points and point objects at one time.
 struct PointSet<'a> {
     points: &'a HashMap<String, Tween<[f64; 3]>>,
     objs: &'a [Obj],
@@ -410,10 +470,9 @@ pub struct Stage {
     pub say: (String, String, f64),
     cache: HashMap<(String, u8, u32), Rc<Expr>>,
     labels: HashMap<String, [f32; 2]>,
-    pub split: f32,
-    pub spatial: usize,
-    /// True when the viewer's scene draws the 3D objects and its camera supplies `lens`.
-    pub scene: bool,
+    pub split: f32,     // Fraction of the slide width given to the 3D side.
+    pub spatial: usize, // Draws before this index are clipped to the 3D side.
+    pub scene: bool,    // The viewer's scene draws the 3D objects and its camera supplies `lens`.
     pub lens: Option<Lens>,
     pub objects3: Vec<Spatial>,
     ghosts: Vec<(Vec<Spatial>, f64, f64)>,
@@ -423,6 +482,7 @@ pub struct Stage {
     pub changed: bool,
 }
 
+/// Every step of a chapter as (slide, step).
 fn steps_of(ch: &Chapter) -> Vec<(usize, usize)> {
     let mut out = Vec::new();
     for (s, slide) in ch.slides.iter().enumerate() {
@@ -433,6 +493,7 @@ fn steps_of(ch: &Chapter) -> Vec<(usize, usize)> {
     out
 }
 
+/// Index pairs of a longest common subsequence.
 fn lcs(a: &[u64], b: &[u64]) -> Vec<(usize, usize)> {
     let (n, m) = (a.len(), b.len());
     let mut dp = vec![0u16; (n + 1) * (m + 1)];
@@ -461,15 +522,19 @@ fn lcs(a: &[u64], b: &[u64]) -> Vec<(usize, usize)> {
     out
 }
 
-/// Pair the pieces of two formulas: mapped parts, equal parts, then the longest common glyph run.
-/// Prims named by a morph map entry: `[r,c]`, `M[r,:]`, `{tex part}`, a row item id or a part's TeX.
+/// Prims named by a morph map key: `[r,c]`, `M[r,:]`, `{part}`, a row item id or a part's TeX.
 fn select(e: &Expr, groups: &HashMap<String, Vec<usize>>, key: &str) -> Vec<usize> {
     let k = key.trim();
     if let Some(sel) = k.strip_prefix('[') {
-        return groups.get(&sel.trim_end_matches(']').replace(' ', "")).cloned().unwrap_or_default();
+        let cells = sel.trim_end_matches(']').replace(' ', "");
+        return groups.get(&cells).cloned().unwrap_or_default();
     }
     if let Some((id, sel)) = k.split_once('[') {
-        return groups.get(&format!("{id}/{}", sel.trim_end_matches(']').replace(' ', ""))).cloned().unwrap_or_default();
+        let cells = sel.trim_end_matches(']').replace(' ', "");
+        return groups
+            .get(&format!("{id}/{cells}"))
+            .cloned()
+            .unwrap_or_default();
     }
     if let Some(part) = k.strip_prefix('{') {
         return e.part(&tex::normalize_key(part.strip_suffix('}').unwrap_or(part)));
@@ -480,7 +545,7 @@ fn select(e: &Expr, groups: &HashMap<String, Vec<usize>>, key: &str) -> Vec<usiz
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+/// Pair the pieces of two formulas: mapped parts, equal parts, then the longest common glyph run.
 fn match_prims(
     src: &Expr,
     sset: &[usize],
@@ -494,10 +559,10 @@ fn match_prims(
     let mut free_d: Vec<usize> = dset.to_vec();
     let mut pairs = Vec::new();
     let pair_sets = |a: Vec<usize>,
-                         b: Vec<usize>,
-                         free_s: &mut Vec<usize>,
-                         free_d: &mut Vec<usize>,
-                         pairs: &mut Vec<(usize, usize)>| {
+                     b: Vec<usize>,
+                     free_s: &mut Vec<usize>,
+                     free_d: &mut Vec<usize>,
+                     pairs: &mut Vec<(usize, usize)>| {
         let a: Vec<usize> = a.into_iter().filter(|i| free_s.contains(i)).collect();
         let b: Vec<usize> = b.into_iter().filter(|i| free_d.contains(i)).collect();
         let ia: Vec<u64> = a.iter().map(|&i| src.prims[i].shape.ident()).collect();
@@ -509,7 +574,8 @@ fn match_prims(
         }
     };
     for (a, b) in map {
-        pair_sets(select(src, sg, a), select(dst, dg, b), &mut free_s, &mut free_d, &mut pairs);
+        let (from, to) = (select(src, sg, a), select(dst, dg, b));
+        pair_sets(from, to, &mut free_s, &mut free_d, &mut pairs);
     }
     let mut seen = HashSet::new();
     for key in &src.parts {
@@ -545,13 +611,9 @@ fn match_prims(
     (pairs, outs, ins)
 }
 
+/// A formula piece in slide pixels: scaled by `k`, moved to (ox, oy), coloured.
 fn scaled(p: &Prim, k: f32, ox: f32, oy: f32, color: Rgba) -> DPrim {
     let shape = match p.shape {
-        Shape::Glyph { font, gid, size } => Shape::Glyph {
-            font,
-            gid,
-            size: size * k,
-        },
         Shape::Rect {
             w,
             h,
@@ -565,11 +627,7 @@ fn scaled(p: &Prim, k: f32, ox: f32, oy: f32, color: Rgba) -> DPrim {
             fill,
             stroke: stroke * k,
         },
-        Shape::Stroke { dx, dy, width } => Shape::Stroke {
-            dx: dx * k,
-            dy: dy * k,
-            width: width * k,
-        },
+        other => other.resized(k),
     };
     DPrim {
         shape,
@@ -579,6 +637,7 @@ fn scaled(p: &Prim, k: f32, ox: f32, oy: f32, color: Rgba) -> DPrim {
     }
 }
 
+/// Blend two pieces; the shape is the target's when the kinds differ.
 fn lerp_prim(a: &DPrim, b: &DPrim, t: f32) -> DPrim {
     let shape = match (a.shape, b.shape) {
         (
@@ -637,6 +696,7 @@ fn lerp_prim(a: &DPrim, b: &DPrim, t: f32) -> DPrim {
     }
 }
 
+/// The draw with its alpha scaled by `a`.
 fn fade(mut d: Draw, a: f32) -> Draw {
     match &mut d {
         Draw::Prim(p) => p.color[3] *= a,
@@ -649,7 +709,8 @@ fn fade(mut d: Draw, a: f32) -> Draw {
     d
 }
 
-fn rounded(x: f32, y: f32, w: f32, h: f32, r: f32) -> Vec<[f32; 2]> {
+/// Outline of a rounded rectangle, seven points per corner.
+pub fn rounded(x: f32, y: f32, w: f32, h: f32, r: f32) -> Vec<[f32; 2]> {
     let r = r.min(w / 2.0).min(h / 2.0).max(0.0);
     let mut pts = Vec::new();
     let corners = [
@@ -667,7 +728,28 @@ fn rounded(x: f32, y: f32, w: f32, h: f32, r: f32) -> Vec<[f32; 2]> {
     pts
 }
 
+/// The twelve edges of the box with opposite corners `a` and `b`.
+fn cuboid_edges(a: [f64; 3], b: [f64; 3]) -> Vec<([f64; 3], [f64; 3])> {
+    let corner = |i: usize| {
+        [
+            if i & 1 == 0 { a[0] } else { b[0] },
+            if i & 2 == 0 { a[1] } else { b[1] },
+            if i & 4 == 0 { a[2] } else { b[2] },
+        ]
+    };
+    let mut edges = Vec::new();
+    for i in 0..8usize {
+        for bit in [1usize, 2, 4] {
+            if i & bit == 0 {
+                edges.push((corner(i), corner(i | bit)));
+            }
+        }
+    }
+    edges
+}
+
 impl Stage {
+    /// A deck at the start of its first chapter.
     pub fn new(fonts: Rc<Fonts>, index: Index, chapters: Vec<Chapter>) -> Self {
         let mut s = Stage {
             fonts,
@@ -680,12 +762,7 @@ impl Stage {
             points: HashMap::new(),
             objs: Vec::new(),
             aliases: HashMap::new(),
-            cam: Tween::fixed(Cam {
-                yaw: -60.0,
-                pitch: 25.0,
-                zoom: 60.0,
-                center: [0.0; 3],
-            }),
+            cam: Tween::fixed(START_CAM),
             user: [0.0, 0.0, 1.0],
             anims: Vec::new(),
             pending: Vec::new(),
@@ -708,17 +785,22 @@ impl Stage {
         s
     }
 
-    // ------------------------------------------------------------ navigation
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Navigation
+    // ═══════════════════════════════════════════════════════════════════════════
 
+    /// Steps in the current chapter.
     pub fn steps(&self) -> usize {
         steps_of(&self.chapters[self.chapter]).len()
     }
 
+    /// The current (slide, step within the slide).
     pub fn position(&self) -> (usize, usize) {
         let st = steps_of(&self.chapters[self.chapter]);
         self.step.map_or((0, 0), |g| st[g])
     }
 
+    /// Whether anything is still moving.
     pub fn animating(&self) -> bool {
         !self.pending.is_empty()
             || !self.ghosts.is_empty()
@@ -755,13 +837,7 @@ impl Stage {
         self.title = (first, String::new(), 0.0);
         self.say = (String::new(), String::new(), 0.0);
         let spec = ch.camera.clone();
-        let base = Cam {
-            yaw: -60.0,
-            pitch: 25.0,
-            zoom: 60.0,
-            center: [0.0; 3],
-        };
-        let cam = self.camera_for(&spec, base, true);
+        let cam = self.camera_for(&spec, START_CAM, true);
         self.cam = Tween::fixed(cam);
         self.cam_serial += 1;
         self.epoch += 1;
@@ -775,7 +851,6 @@ impl Stage {
         self.now = now;
         if self.animating() {
             self.finish();
-            return;
         }
         let n = self.steps();
         let g = self.step.map_or(0, |g| g + 1);
@@ -787,6 +862,7 @@ impl Stage {
         }
     }
 
+    /// Show the end of the step before, without animation.
     pub fn prev(&mut self, now: f64) {
         self.now = now;
         match self.step {
@@ -805,13 +881,12 @@ impl Stage {
         self.now = now;
         let st = steps_of(&self.chapters[self.chapter]);
         let (s, _) = self.position();
-        let target = s as i32
-            + delta
-            + if self.step.is_none() && delta > 0 {
-                -1
-            } else {
-                0
-            };
+        let unopened = if self.step.is_none() && delta > 0 {
+            -1
+        } else {
+            0
+        };
+        let target = s as i32 + delta + unopened;
         if target < 0 {
             self.rebuild(self.chapter, None);
             return;
@@ -828,6 +903,7 @@ impl Stage {
         }
     }
 
+    /// Open chapter `c` and play its first step.
     pub fn chapter_go(&mut self, c: usize, now: f64) {
         self.now = now;
         self.reset(c);
@@ -858,6 +934,7 @@ impl Stage {
         }
     }
 
+    /// Apply every pending action and end every animation.
     fn finish(&mut self) {
         let pending = std::mem::take(&mut self.pending);
         for (_, a) in pending {
@@ -892,7 +969,7 @@ impl Stage {
         if t == 0 && s > 0 && !slide.keep {
             actions.push(Action {
                 kind: Kind::Clear,
-                dur: Some(0.55),
+                dur: Some(0.35),
                 with: false,
                 delay: 0.0,
             });
@@ -926,7 +1003,7 @@ impl Stage {
             self.finish();
             return;
         }
-        let mut t_end = now + 150.0;
+        let mut t_end = now + 60.0;
         let mut prev_start = t_end;
         for a in actions {
             let start = if a.with { prev_start } else { t_end } + a.delay * 1000.0;
@@ -938,6 +1015,7 @@ impl Stage {
         self.changed = true;
     }
 
+    /// How long an action takes, milliseconds.
     fn duration(&self, a: &Action) -> f64 {
         if let Some(d) = a.dur {
             return d * 1000.0;
@@ -949,28 +1027,28 @@ impl Stage {
                         .iter()
                         .all(|o| matches!(o.content, Content::Point(_) | Content::Label { .. }))
                     {
-                        0.6
+                        0.4
                     } else if objs
                         .iter()
                         .any(|o| matches!(o.content, Content::Matrix(_) | Content::Row(_)))
                     {
-                        1.3
+                        0.8
                     } else {
-                        1.0
+                        0.6
                     }
                 }
-                Kind::Remove(_) => 0.5,
-                Kind::Morph { .. } | Kind::Derive { .. } | Kind::Set { .. } => 1.3,
-                Kind::Fly { .. } => 1.2,
-                Kind::Indicate(..) => 0.9,
+                Kind::Remove(_) => 0.35,
+                Kind::Morph { .. } | Kind::Derive { .. } | Kind::Set { .. } => 0.8,
+                Kind::Fly { .. } => 0.8,
+                Kind::Indicate(..) => 0.6,
                 Kind::Box { .. } => 0.7,
-                Kind::Color { .. } => 0.6,
-                Kind::Move { .. } => 1.5,
-                Kind::Camera(_) => 1.6,
+                Kind::Color { .. } => 0.35,
+                Kind::Move { .. } => 1.0,
+                Kind::Camera(_) => 1.0,
                 Kind::Wait => 1.0,
-                Kind::Dim(_) | Kind::Undim(_) => 0.5,
-                Kind::Clear => 0.55,
-                Kind::Show(_) | Kind::Hide(_) => 0.6,
+                Kind::Dim(_) | Kind::Undim(_) => 0.3,
+                Kind::Clear => 0.35,
+                Kind::Show(_) | Kind::Hide(_) => 0.4,
                 Kind::Play(_) => 1.0,
             }
     }
@@ -991,8 +1069,11 @@ impl Stage {
         }
     }
 
-    // ------------------------------------------------------------ objects
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Objects
+    // ═══════════════════════════════════════════════════════════════════════════
 
+    /// A palette colour or hex colour, `fallback` when `name` is None.
     fn color(&self, name: Option<&str>, fallback: &str) -> Rgba {
         let name = name.unwrap_or(fallback);
         self.palette
@@ -1002,6 +1083,7 @@ impl Stage {
             .unwrap_or([1.0; 4])
     }
 
+    /// Cached layout: mode 0 display TeX, 1 inline TeX, 2 prose, 3 bold prose.
     fn typeset(&mut self, src: &str, mode: u8, width: f32) -> Rc<Expr> {
         let key = (src.to_string(), mode, width.to_bits());
         if let Some(e) = self.cache.get(&key) {
@@ -1029,6 +1111,7 @@ impl Stage {
         e
     }
 
+    /// Left and right edge of the column.
     fn panel(&self) -> (f32, f32) {
         (self.split * W + MARGIN * 0.6, W - MARGIN)
     }
@@ -1036,10 +1119,21 @@ impl Stage {
     /// A matrix as rounded cells with centered entries, em units.
     fn matrix(&mut self, spec: &MatrixSpec) -> (Expr, HashMap<String, Vec<usize>>) {
         let e = 0.8f32;
+        let blank = Rc::new(Expr::default());
         let entries: Vec<Vec<Rc<Expr>>> = spec
             .rows
             .iter()
-            .map(|r| r.iter().map(|t| self.typeset(t, 1, 0.0)).collect())
+            .map(|r| {
+                r.iter()
+                    .map(|t| {
+                        if spec.pattern {
+                            blank.clone()
+                        } else {
+                            self.typeset(t, 1, 0.0)
+                        }
+                    })
+                    .collect()
+            })
             .collect();
         let maxw = entries
             .iter()
@@ -1051,17 +1145,20 @@ impl Stage {
             .flatten()
             .map(|x| (x.h + x.d) * e)
             .fold(0.0f32, f32::max);
-        let base = spec
-            .cell
-            .map(|c| c as f32)
-            .unwrap_or(1.3f32.max(maxh + 0.5));
-        let ch = base;
-        let cw = if maxw + 0.45 > ch * 1.15 {
+        let longest = spec.rows.len().max(spec.rows[0].len()) as f32;
+        let ch = match spec.cell {
+            Some(c) => c as f32,
+            None if spec.pattern => 9.0 / longest,
+            None => 1.3f32.max(maxh + 0.5),
+        };
+        let cw = if spec.pattern {
+            ch
+        } else if maxw + 0.45 > ch * 1.15 {
             maxw + 0.5
         } else {
             ch.max(maxw + 0.45)
         };
-        let g = 0.13 * ch.min(cw);
+        let g = if spec.pattern { 0.0 } else { 0.07 * ch.min(cw) };
         let (rows, cols) = (spec.rows.len(), spec.rows[0].len());
         let mw = cols as f32 * cw + (cols - 1) as f32 * g;
         let mh = rows as f32 * ch + (rows - 1) as f32 * g;
@@ -1091,31 +1188,54 @@ impl Stage {
             out.prims.push(p);
             out.prims.len() - 1
         };
-        let neutral = self.color(Some("dim"), "dim");
-        let mut cell_idx = vec![vec![0usize; cols]; rows];
+        let neutral = self.color(Some("cell"), "cell");
+        let mut cell_idx = vec![vec![usize::MAX; cols]; rows];
+        if spec.pattern {
+            push(
+                &mut out,
+                Prim {
+                    shape: Shape::Rect {
+                        w: mw,
+                        h: mh,
+                        radius: 0.12,
+                        fill: 1.0,
+                        stroke: 0.0,
+                    },
+                    x: left,
+                    y: top,
+                    color: Some(neutral),
+                    part: None,
+                },
+            );
+        }
         for r in 0..rows {
             for c in 0..cols {
-                let value = spec.rows[r][c].replace('−', "-").trim().parse::<f64>().ok();
+                let ascii = spec.rows[r][c].replace('−', "-");
+                let value = ascii.trim().parse::<f64>().ok();
                 let named = spec
                     .colors
                     .get(r)
                     .and_then(|row| row.get(c))
                     .cloned()
                     .flatten();
-                let (color, fill) = match (named, value) {
-                    (Some(n), _) => (self.color(Some(&n), "dim"), 0.36),
-                    (None, Some(v)) if spec.signs && v > 1e-12 => {
-                        (self.color(Some("pos"), "pos"), 0.34)
-                    }
-                    (None, Some(v)) if spec.signs && v < -1e-12 => {
-                        (self.color(Some("neg"), "neg"), 0.34)
-                    }
-                    (None, Some(_)) => (self.color(Some("faint"), "faint"), 0.5),
-                    // a symbol takes its sign from a leading minus
-                    (None, None) if spec.signs && spec.rows[r][c].trim().starts_with('-') => (self.color(Some("neg"), "neg"), 0.28),
-                    (None, None) if spec.signs && !spec.rows[r][c].trim().is_empty() => (self.color(Some("pos"), "pos"), 0.28),
-                    (None, None) => (neutral, 0.3),
+                let entry = spec.rows[r][c].trim();
+                let sign = match value {
+                    Some(v) if v > 1e-12 => 1,
+                    Some(v) if v < -1e-12 => -1,
+                    Some(_) => 0,
+                    None if entry.is_empty() => 0,
+                    None if entry.starts_with('-') => -1,
+                    None => 1,
                 };
+                let color = match (named, sign) {
+                    (Some(n), _) => self.color(Some(&n), "cell"),
+                    (None, 1) if spec.signs => self.color(Some("pos"), "pos"),
+                    (None, -1) if spec.signs => self.color(Some("neg"), "neg"),
+                    _ => neutral,
+                };
+                if spec.pattern && sign == 0 {
+                    continue;
+                }
                 let x = left + c as f32 * (cw + g);
                 let y = top + r as f32 * (ch + g);
                 cell_idx[r][c] = push(
@@ -1124,8 +1244,8 @@ impl Stage {
                         shape: Shape::Rect {
                             w: cw,
                             h: ch,
-                            radius: 0.24 * ch.min(cw),
-                            fill,
+                            radius: if spec.pattern { 0.0 } else { 0.16 * ch.min(cw) },
+                            fill: 1.0,
                             stroke: 0.0,
                         },
                         x,
@@ -1136,49 +1256,20 @@ impl Stage {
                 );
             }
         }
-        let zero = self.color(Some("dim"), "dim");
         for r in 0..rows {
             for c in 0..cols {
                 let ex = &entries[r][c];
                 let x = left + c as f32 * (cw + g) + (cw - ex.w * e) / 2.0;
                 let y = top + r as f32 * (ch + g) + ch / 2.0 + (ex.h - ex.d) * e / 2.0;
-                let is_zero = spec.rows[r][c]
-                    .trim()
-                    .parse::<f64>()
-                    .is_ok_and(|v| v == 0.0);
+                if cell_idx[r][c] == usize::MAX {
+                    continue;
+                }
                 let mut ids = vec![cell_idx[r][c]];
                 for p in &ex.prims {
                     let mut q = *p;
                     q.x = x + p.x * e;
                     q.y = y + p.y * e;
-                    q.shape = match p.shape {
-                        Shape::Glyph { font, gid, size } => Shape::Glyph {
-                            font,
-                            gid,
-                            size: size * e,
-                        },
-                        Shape::Rect {
-                            w,
-                            h,
-                            radius,
-                            fill,
-                            stroke,
-                        } => Shape::Rect {
-                            w: w * e,
-                            h: h * e,
-                            radius,
-                            fill,
-                            stroke,
-                        },
-                        Shape::Stroke { dx, dy, width } => Shape::Stroke {
-                            dx: dx * e,
-                            dy: dy * e,
-                            width: width * e,
-                        },
-                    };
-                    if is_zero && q.color.is_none() {
-                        q.color = Some(zero);
-                    }
+                    q.shape = p.shape.resized(e);
                     q.part = None;
                     ids.push(push(&mut out, q));
                 }
@@ -1269,6 +1360,7 @@ impl Stage {
         (out, groups)
     }
 
+    /// Lay out content `size` pixels per em, with its named prim groups.
     fn compile(
         &mut self,
         content: &Content,
@@ -1288,6 +1380,7 @@ impl Stage {
                 let (x0, x1) = self.panel();
                 self.typeset(s, 2, (x1 - x0) / size)
             }
+            Content::Code(s) => Rc::new(tex::code(&self.fonts, s, &self.palette)),
             Content::Matrix(spec) => {
                 let (e, g) = self.matrix(spec);
                 groups = g;
@@ -1347,11 +1440,12 @@ impl Stage {
         (expr, groups)
     }
 
+    /// The index of the object `id`.
     fn find(&self, id: &str) -> Option<usize> {
         self.objs.iter().position(|o| o.id == id)
     }
 
-    /// `id`, `M[r,c]`, `M[r,:]`, `eq{x_k}` or a row item's id: the object and its prims, None for all.
+    /// The object and prims of `id`, `M[r,c]`, `M[r,:]`, `eq{x_k}` or a row item id; None for all.
     fn resolve(&self, r: &str) -> Option<(usize, Option<Vec<usize>>)> {
         let r = r.trim();
         let cut = r.find(['[', '{']).unwrap_or(r.len());
@@ -1383,35 +1477,20 @@ impl Stage {
         o.groups.get(&full).map(|g| (oi, Some(g.clone())))
     }
 
+    /// Build an object from its spec.
     fn make(&mut self, spec: &ObjSpec) -> Obj {
         let label = matches!(spec.content, Content::Label { .. });
-        let geo = matches!(
-            spec.content,
-            Content::Point(_)
-                | Content::Line { .. }
-                | Content::Polyline { .. }
-                | Content::Cuboid { .. }
-        );
+        let geo = is_geo(&spec.content);
         let size = spec.size.map(|s| s as f32).unwrap_or(match &spec.content {
             Content::Label { .. } => 24.0,
             Content::Text(_) => 25.0,
+            Content::Code(_) => 19.0,
             Content::Matrix(_) | Content::Row(_) => 30.0,
             _ => 34.0,
         });
         let fallback = if geo { "bar" } else { "ink" };
         let color = self.color(spec.color.as_deref(), fallback);
-        let dynamic = match &spec.content {
-            Content::Tex(s) | Content::Label { tex: s, .. } if s.contains("{=") => Some(s.clone()),
-            _ => None,
-        };
-        let content = match (&spec.content, &dynamic) {
-            (Content::Tex(_), Some(d)) => Content::Tex(self.fill(d)),
-            (Content::Label { at, .. }, Some(d)) => Content::Label {
-                at: at.clone(),
-                tex: self.fill(d),
-            },
-            (c, _) => c.clone(),
-        };
+        let (content, dynamic) = self.filled(&spec.content);
         let (expr, groups) = self.compile(&content, size, None);
         let mut hidden = HashSet::new();
         if let Content::Matrix(m) = &spec.content
@@ -1423,13 +1502,9 @@ impl Stage {
             for it in items {
                 if let (Some(id), Content::Matrix(m)) = (&it.id, &it.content)
                     && m.empty
+                    && let Some(entries) = groups.get(&format!("{id}/entries"))
                 {
-                    hidden.extend(
-                        groups
-                            .get(&format!("{id}/entries"))
-                            .cloned()
-                            .unwrap_or_default(),
-                    );
+                    hidden.extend(entries.iter().copied());
                 }
             }
         }
@@ -1455,6 +1530,7 @@ impl Stage {
             align: match spec.align.as_deref() {
                 Some("=") | Some("eq") | Some("equals") => Align::Equals,
                 Some("left") => Align::Left,
+                None if matches!(spec.content, Content::Code(_)) => Align::Left,
                 _ => Align::Center,
             },
             at: spec.at.map(|a| [a[0] as f32, a[1] as f32]),
@@ -1475,15 +1551,38 @@ impl Stage {
         }
     }
 
-    fn fill(&self, src: &str) -> String {
-        let ps = PointSet {
-            points: &self.points,
-            objs: &self.objs,
-            now: self.now,
+    /// Content with its `{=expr}` fields filled in, and its template when it has any.
+    fn filled(&self, content: &Content) -> (Content, Option<String>) {
+        let dynamic = match content {
+            Content::Tex(s) | Content::Label { tex: s, .. } if s.contains("{=") => Some(s.clone()),
+            _ => None,
         };
-        eval::fill(src, &ps)
+        let content = match (content, &dynamic) {
+            (Content::Tex(_), Some(d)) => Content::Tex(self.fill(d)),
+            (Content::Label { at, .. }, Some(d)) => Content::Label {
+                at: at.clone(),
+                tex: self.fill(d),
+            },
+            (c, _) => c.clone(),
+        };
+        (content, dynamic)
     }
 
+    /// TeX with its `{=expr}` fields filled at the current point values.
+    fn fill(&self, src: &str) -> String {
+        eval::fill(src, &self.points_at(self.now))
+    }
+
+    /// The named points and point objects at `now`.
+    fn points_at(&self, now: f64) -> PointSet<'_> {
+        PointSet {
+            points: &self.points,
+            objs: &self.objs,
+            now,
+        }
+    }
+
+    /// Add an object, replacing one with the same id but keeping its place.
     fn insert(&mut self, mut obj: Obj) {
         if let Some(i) = self.find(&obj.id) {
             let old = self.objs.remove(i);
@@ -1501,7 +1600,7 @@ impl Stage {
         self.objs.push(obj);
     }
 
-    /// Place every panel block: stacked from the top, equals signs aligned, wide blocks shrunk to fit.
+    /// Place every panel block: stacked from the top, equals aligned, wide blocks shrunk.
     fn relayout(&mut self, now: f64, animate: bool) {
         let (x0, x1) = self.panel();
         let pw = x1 - x0;
@@ -1524,9 +1623,14 @@ impl Stage {
                 {
                     end += 1;
                 }
-                // the group shares one equals column; if it is wider than the panel, all of it shrinks together
+                // the group shares one equals column and shrinks together when it is too wide
                 let measure = |s: &Stage| {
-                    let l = (k..end).map(|j| s.objs[idx[j]].expr.align.unwrap() * s.objs[idx[j]].scale()).fold(0.0f32, f32::max);
+                    let l = (k..end)
+                        .map(|j| {
+                            let o = &s.objs[idx[j]];
+                            o.expr.align.unwrap() * o.scale()
+                        })
+                        .fold(0.0f32, f32::max);
                     let r = (k..end)
                         .map(|j| {
                             let o = &s.objs[idx[j]];
@@ -1591,8 +1695,11 @@ impl Stage {
         }
     }
 
-    // ------------------------------------------------------------ geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
 
+    /// The authored camera with the user's orbit and zoom applied.
     fn view(&self, now: f64) -> View {
         let mut cam = self.cam.at(now);
         cam.yaw += self.user[0];
@@ -1613,6 +1720,7 @@ impl Stage {
         [self.split * W / 2.0, (TOP - 30.0 + H - 70.0) / 2.0]
     }
 
+    /// The camera a spec asks for from `cur`; `fit_all` frames every point by default.
     fn camera_for(&self, spec: &CameraSpec, cur: Cam, fit_all: bool) -> Cam {
         let mut cam = cur;
         if let Some(v) = &spec.view {
@@ -1633,11 +1741,7 @@ impl Stage {
         if let Some(p) = spec.pitch {
             cam.pitch = p;
         }
-        let ps = PointSet {
-            points: &self.points,
-            objs: &self.objs,
-            now: self.now,
-        };
+        let ps = self.points_at(self.now);
         let mut fit: Vec<[f64; 3]> = spec
             .fit
             .iter()
@@ -1691,11 +1795,7 @@ impl Stage {
 
     /// Control points of a 3D object at the current point values.
     fn ctrl(&self, o: &Obj, now: f64) -> Vec<[f64; 3]> {
-        let ps = PointSet {
-            points: &self.points,
-            objs: &self.objs,
-            now,
-        };
+        let ps = self.points_at(now);
         let p = |pos: &Pos| eval::position(pos, &ps).unwrap_or([0.0; 3]);
         match &o.content {
             Content::Point(a) => vec![p(a)],
@@ -1720,24 +1820,29 @@ impl Stage {
         }
     }
 
-    /// Control points during a morph, blended by the kernel: a point, a line, or polylines of any two counts.
+    /// Control points during a morph, blended by the kernel for points, lines and polylines.
     fn geo_points(&self, o: &Obj, now: f64) -> Vec<[f64; 3]> {
         use session_rust::{Line, Point, Polyline};
         let live = self.ctrl(o, now);
-        let Some((from, t0, dur)) = &o.geo_from else { return live };
+        let Some((from, t0, dur)) = &o.geo_from else {
+            return live;
+        };
         let t = smooth(((now - t0) / dur).clamp(0.0, 1.0));
         let pt = |p: &[f64; 3]| Point::new(p[0], p[1], p[2]);
         let xyz = |p: Point| [p[0], p[1], p[2]];
         match (from.as_slice(), live.as_slice()) {
             ([a], [b]) => vec![xyz(Point::lerp(&pt(a), &pt(b), t))],
             ([a0, a1], [b0, b1]) => {
-                let line = Line::lerp(&Line::from_points(&pt(a0), &pt(a1)), &Line::from_points(&pt(b0), &pt(b1)), t);
+                let from = Line::from_points(&pt(a0), &pt(a1));
+                let to = Line::from_points(&pt(b0), &pt(b1));
+                let line = Line::lerp(&from, &to, t);
                 vec![xyz(line.start()), xyz(line.end())]
             }
             (a, b) if a.len() >= 2 && b.len() >= 2 => {
                 let from = Polyline::new(a.iter().map(pt).collect());
                 let to = Polyline::new(b.iter().map(pt).collect());
-                Polyline::morph(&from, &to, t).get_points().into_iter().map(xyz).collect()
+                let morph = Polyline::morph(&from, &to, t);
+                morph.get_points().into_iter().map(xyz).collect()
             }
             _ => live,
         }
@@ -1760,7 +1865,11 @@ impl Stage {
         match &o.content {
             Content::Point(_) => vec![one(SpatialKind::Point, pts, o.id.clone(), false)],
             Content::Line { arrow, .. } => {
-                let kind = if *arrow { SpatialKind::Arrow } else { SpatialKind::Line };
+                let kind = if *arrow {
+                    SpatialKind::Arrow
+                } else {
+                    SpatialKind::Line
+                };
                 vec![one(kind, pts, o.id.clone(), o.dash)]
             }
             Content::Polyline { closed, .. } => {
@@ -1771,22 +1880,10 @@ impl Stage {
                 vec![one(SpatialKind::Polyline, pts, o.id.clone(), o.dash)]
             }
             Content::Cuboid { .. } => {
-                let (a, b) = (pts[0], pts[1]);
-                let c = |i: usize| {
-                    [
-                        if i & 1 == 0 { a[0] } else { b[0] },
-                        if i & 2 == 0 { a[1] } else { b[1] },
-                        if i & 4 == 0 { a[2] } else { b[2] },
-                    ]
-                };
                 let mut out = Vec::new();
-                for i in 0..8usize {
-                    for bit in [1usize, 2, 4] {
-                        if i & bit == 0 {
-                            let id = format!("{}#{}", o.id, out.len());
-                            out.push(one(SpatialKind::Line, vec![c(i), c(i | bit)], id, true));
-                        }
-                    }
+                for (k, (p, q)) in cuboid_edges(pts[0], pts[1]).into_iter().enumerate() {
+                    let id = format!("{}#{k}", o.id);
+                    out.push(one(SpatialKind::Line, vec![p, q], id, true));
                 }
                 out
             }
@@ -1804,20 +1901,12 @@ impl Stage {
         let mut out = Vec::new();
         match &o.content {
             Content::Point(_) => {
-                let r = o.width.max(2.0)
-                    * 2.0
-                    * (if g < 1.0 {
-                        (1.70158 + 1.0) * g * g * g - 1.70158 * g * g + 0.0
-                    } else {
-                        1.0
-                    })
-                    .max(0.0)
-                    .min(1.3)
-                    + 0.0;
+                let full = o.width.max(2.0) * 2.0;
                 let r = if g >= 1.0 {
-                    o.width.max(2.0) * 2.0
+                    full
                 } else {
-                    r.max(0.0)
+                    let ease = (1.70158 + 1.0) * g * g * g - 1.70158 * g * g;
+                    full * ease.clamp(0.0, 1.3)
                 };
                 out.push(Draw::Disc {
                     c: view.project(pts[0]),
@@ -1881,29 +1970,17 @@ impl Stage {
                 }
             }
             Content::Cuboid { .. } => {
-                let (a, b) = (pts[0], pts[1]);
-                let c = |i: usize| {
-                    [
-                        if i & 1 == 0 { a[0] } else { b[0] },
-                        if i & 2 == 0 { a[1] } else { b[1] },
-                        if i & 4 == 0 { a[2] } else { b[2] },
-                    ]
-                };
-                for i in 0..8usize {
-                    for bit in [1usize, 2, 4] {
-                        if i & bit == 0 {
-                            let (p, q) = (view.project(c(i)), view.project(c(i | bit)));
-                            let q = [lerp(p[0], q[0], g), lerp(p[1], q[1], g)];
-                            out.push(Draw::Line {
-                                a: p,
-                                b: q,
-                                width: o.width,
-                                color,
-                                arrow: false,
-                                dash: true,
-                            });
-                        }
-                    }
+                for (p, q) in cuboid_edges(pts[0], pts[1]) {
+                    let (p, q) = (view.project(p), view.project(q));
+                    let q = [lerp(p[0], q[0], g), lerp(p[1], q[1], g)];
+                    out.push(Draw::Line {
+                        a: p,
+                        b: q,
+                        width: o.width,
+                        color,
+                        arrow: false,
+                        dash: true,
+                    });
                 }
             }
             _ => {}
@@ -1919,7 +1996,8 @@ impl Stage {
             if !o.geo() {
                 continue;
             }
-            let pts: Vec<[f32; 2]> = self.geo_points(o, now).iter().map(|&p| view.project(p)).collect();
+            let world = self.geo_points(o, now);
+            let pts: Vec<[f32; 2]> = world.iter().map(|&p| view.project(p)).collect();
             match &o.content {
                 Content::Point(_) => discs.push(pts[0]),
                 Content::Line { .. } => segs.push((pts[0], pts[1])),
@@ -1930,7 +2008,9 @@ impl Stage {
         let right = self.split * W - 12.0;
         let mut boxes: Vec<[f32; 4]> = Vec::new();
         let mut placed = HashMap::new();
-        let ids: Vec<usize> = (0..self.objs.len()).filter(|&i| self.objs[i].label()).collect();
+        let ids: Vec<usize> = (0..self.objs.len())
+            .filter(|&i| self.objs[i].label())
+            .collect();
         for i in ids {
             let o = &self.objs[i];
             let anchor3 = self.ctrl(o, now).first().copied().unwrap_or([0.0; 3]);
@@ -1964,7 +2044,8 @@ impl Stage {
                     if (d[0] - a[0]).abs() < 0.5 && (d[1] - a[1]).abs() < 0.5 {
                         continue;
                     }
-                    if d[0] > b[0] - 9.0 && d[0] < b[2] + 9.0 && d[1] > b[1] - 9.0 && d[1] < b[3] + 9.0 {
+                    let inside_x = d[0] > b[0] - 9.0 && d[0] < b[2] + 9.0;
+                    if inside_x && d[1] > b[1] - 9.0 && d[1] < b[3] + 9.0 {
                         s += 500.0;
                     }
                 }
@@ -1974,9 +2055,15 @@ impl Stage {
                 s
             };
             let n = 16;
-            let angle = |k: usize| std::f32::consts::FRAC_PI_4 - k as f32 * std::f32::consts::TAU / n as f32;
+            let angle = |k: usize| {
+                std::f32::consts::FRAC_PI_4 - k as f32 * std::f32::consts::TAU / n as f32
+            };
             let chosen = if let Some(d) = o.dir {
-                if d[0] == 0.0 && d[1] == 0.0 { place(0.0, -w.max(h)) } else { place(d[1].atan2(d[0]), 10.0) }
+                if d[0] == 0.0 && d[1] == 0.0 {
+                    place(0.0, -w.max(h))
+                } else {
+                    place(d[1].atan2(d[0]), 10.0)
+                }
             } else {
                 let cur = o.label_dir;
                 let cand = |k: usize| place(angle(k % n), if k >= n { 22.0 } else { 9.0 });
@@ -1998,7 +2085,9 @@ impl Stage {
         self.labels = placed;
     }
 
-    // ------------------------------------------------------------ drawing
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Drawing
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The prims of a 2D object or label at rest, in slide pixels; hidden prims are transparent.
     fn prims_of(&self, i: usize, now: f64) -> Vec<DPrim> {
@@ -2036,14 +2125,31 @@ impl Stage {
                 scaled(p, k, ox, oy, with_alpha(base, a))
             })
             .collect::<Vec<_>>();
-        // a cell whose entry is still hidden stays neutral, so its colour does not give the value away
+        // a cell with a hidden entry stays neutral, so its colour does not give the value away
         if !o.hidden.is_empty() {
             let faint = with_alpha(self.color(Some("faint"), "faint"), alpha);
             for (rect, entries) in cells_of(&o.groups) {
                 if !entries.is_empty() && entries.iter().all(|e| o.hidden.contains(e)) {
-                    if let (Some(q), Shape::Rect { w, h, radius, stroke, .. }) = (out.get_mut(rect), o.expr.prims[rect].shape) {
+                    let shape = o.expr.prims[rect].shape;
+                    if let (
+                        Some(q),
+                        Shape::Rect {
+                            w,
+                            h,
+                            radius,
+                            stroke,
+                            ..
+                        },
+                    ) = (out.get_mut(rect), shape)
+                    {
                         q.color = faint;
-                        q.shape = Shape::Rect { w: w * k, h: h * k, radius: radius * k, fill: 0.5, stroke: stroke * k };
+                        q.shape = Shape::Rect {
+                            w: w * k,
+                            h: h * k,
+                            radius: radius * k,
+                            fill: 0.5,
+                            stroke: stroke * k,
+                        };
                     }
                 }
             }
@@ -2051,6 +2157,7 @@ impl Stage {
         out
     }
 
+    /// Ink box of a piece: min x, min y, max x, max y.
     pub fn bounds(&self, p: &DPrim) -> [f32; 4] {
         match p.shape {
             Shape::Glyph { font, gid, size } => {
@@ -2072,6 +2179,7 @@ impl Stage {
         }
     }
 
+    /// Ink box of the visible pieces, or of `subset` whether visible or not.
     fn bbox(&self, prims: &[DPrim], subset: Option<&[usize]>) -> Option<[f32; 4]> {
         let mut b = [f32::MAX, f32::MAX, f32::MIN, f32::MIN];
         let mut any = false;
@@ -2098,6 +2206,7 @@ impl Stage {
         any.then_some(b)
     }
 
+    /// What object `i` draws at rest, for its fade-out.
     fn snapshot(&self, i: usize, now: f64, view: &View) -> Vec<Draw> {
         let o = &self.objs[i];
         if o.geo() {
@@ -2109,6 +2218,7 @@ impl Stage {
         self.prims_of(i, now).into_iter().map(Draw::Prim).collect()
     }
 
+    /// The rounded outline of box object `i`, drawn to `grow` of its length.
     fn box_draws(&self, i: usize, now: f64, grow: f32) -> Vec<Draw> {
         let o = &self.objs[i];
         let Some((target, pad)) = &o.boxed else {
@@ -2169,51 +2279,57 @@ impl Stage {
         self.place_labels(&view, now);
         let mut out = Vec::new();
         let mut objects3: Vec<Spatial> = Vec::new();
-        if let Some(g) = self.chapters[self.chapter].grid.clone().filter(|_| self.scene) {
+        if let Some(g) = self.chapters[self.chapter]
+            .grid
+            .clone()
+            .filter(|_| self.scene)
+        {
             // the floor grid as thin kernel lines in the scene
             let color = with_alpha(self.color(Some("faint"), "faint"), 0.6);
             let n = (g.size / g.step).round() as i32;
             let h = g.size / 2.0;
             for i in 0..=n {
                 let t = -h + i as f64 * g.step;
-                for (k, pts) in [
-                    vec![[g.center[0] + t, g.center[1] - h, g.z], [g.center[0] + t, g.center[1] + h, g.z]],
-                    vec![[g.center[0] - h, g.center[1] + t, g.z], [g.center[0] + h, g.center[1] + t, g.z]],
-                ]
-                .into_iter()
-                .enumerate()
-                {
-                    objects3.push(Spatial { id: format!("grid#{k}/{i}"), kind: SpatialKind::Line, pts, color, width: 1.2, dash: false, reveal: 1.0 });
+                let (cx, cy) = (g.center[0], g.center[1]);
+                let along_y = vec![[cx + t, cy - h, g.z], [cx + t, cy + h, g.z]];
+                let along_x = vec![[cx - h, cy + t, g.z], [cx + h, cy + t, g.z]];
+                for (k, pts) in [along_y, along_x].into_iter().enumerate() {
+                    objects3.push(Spatial {
+                        id: format!("grid#{k}/{i}"),
+                        kind: SpatialKind::Line,
+                        pts,
+                        color,
+                        width: 1.2,
+                        dash: false,
+                        reveal: 1.0,
+                    });
                 }
             }
         }
-        if let Some(g) = self.chapters[self.chapter].grid.clone().filter(|_| !self.scene) {
+        if let Some(g) = self.chapters[self.chapter]
+            .grid
+            .clone()
+            .filter(|_| !self.scene)
+        {
             let tilt = (view.cam.pitch.to_radians().sin().abs() as f32 * 3.0).clamp(0.0, 1.0);
             let col = with_alpha(self.color(Some("faint"), "faint"), 0.55 * tilt);
             let n = (g.size / g.step).round() as i32;
             let h = g.size / 2.0;
+            let (cx, cy) = (g.center[0], g.center[1]);
             for i in 0..=n {
                 let t = -h + i as f64 * g.step;
-                let a = view.project([g.center[0] + t, g.center[1] - h, g.z]);
-                let b = view.project([g.center[0] + t, g.center[1] + h, g.z]);
-                out.push(Draw::Line {
-                    a,
-                    b,
-                    width: 1.0,
-                    color: col,
-                    arrow: false,
-                    dash: false,
-                });
-                let a = view.project([g.center[0] - h, g.center[1] + t, g.z]);
-                let b = view.project([g.center[0] + h, g.center[1] + t, g.z]);
-                out.push(Draw::Line {
-                    a,
-                    b,
-                    width: 1.0,
-                    color: col,
-                    arrow: false,
-                    dash: false,
-                });
+                let along_y = ([cx + t, cy - h, g.z], [cx + t, cy + h, g.z]);
+                let along_x = ([cx - h, cy + t, g.z], [cx + h, cy + t, g.z]);
+                for (a, b) in [along_y, along_x] {
+                    out.push(Draw::Line {
+                        a: view.project(a),
+                        b: view.project(b),
+                        width: 1.0,
+                        color: col,
+                        arrow: false,
+                        dash: false,
+                    });
+                }
             }
         }
         if self.chapters[self.chapter].axes && !self.scene {
@@ -2233,7 +2349,6 @@ impl Stage {
                 });
             }
         }
-        // per-object animation state
         let mut appear: HashMap<String, (Style, f64, f64, Option<Vec<usize>>)> = HashMap::new();
         let mut suppressed: HashMap<String, HashSet<usize>> = HashMap::new();
         let mut indicate: Vec<(String, Option<Vec<usize>>, Rgba, f64)> = Vec::new();
@@ -2341,29 +2456,12 @@ impl Stage {
                             q.x = cx + (q.x - cx) * s;
                             q.y = cy + (q.y - cy) * s;
                             q.shape = match q.shape {
-                                Shape::Glyph { font, gid, size } => Shape::Glyph {
-                                    font,
-                                    gid,
-                                    size: size * s,
-                                },
-                                Shape::Rect {
-                                    w,
-                                    h,
-                                    radius,
-                                    fill,
-                                    stroke,
-                                } => Shape::Rect {
-                                    w: w * s,
-                                    h: h * s,
-                                    radius,
-                                    fill,
-                                    stroke,
-                                },
                                 Shape::Stroke { dx, dy, width } => Shape::Stroke {
                                     dx: dx * s,
                                     dy: dy * s,
                                     width,
                                 },
+                                other => other.resized(s),
                             };
                             let a = q.color[3];
                             q.color = mix(q.color, *color, tb);
@@ -2372,7 +2470,10 @@ impl Stage {
                     }
                 }
             }
-            let visible = prims.into_iter().filter(|p| p.color[3] > 0.002).map(Draw::Prim);
+            let visible = prims
+                .into_iter()
+                .filter(|p| p.color[3] > 0.002)
+                .map(Draw::Prim);
             if o.label() {
                 labels.extend(visible);
             } else {
@@ -2465,11 +2566,13 @@ impl Stage {
         out
     }
 
-    // ------------------------------------------------------------ actions
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Actions
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    fn apply(&mut self, a: &Action, t: f64, animate: bool) {
-        let now = t;
-        self.now = now.max(self.now.min(now));
+    /// Run one action at time `now`, animated or applied at once.
+    fn apply(&mut self, a: &Action, now: f64, animate: bool) {
+        self.now = now;
         let dur = self.duration(a);
         let view = self.view(now);
         let push = |s: &mut Stage, fx: Fx| {
@@ -2500,27 +2603,14 @@ impl Stage {
                     let id = obj.id.clone();
                     let mut extra = Vec::new();
                     if let Some(l) = &spec.label {
-                        let mut lab = self.make(&ObjSpec {
-                            id: format!("{id}.label"),
-                            content: Content::Label {
-                                at: Pos::Name(id.clone()),
-                                tex: l.clone(),
-                            },
-                            color: spec.label_color.clone().or(spec.color.clone()),
-                            size: None,
-                            width: None,
-                            dash: false,
-                            align: None,
-                            at: None,
-                            anim: None,
-                            label: None,
-                            label_color: None,
-                            dir: spec.dir,
-                            lag: None,
-                            gap: None,
-                            panel: None,
-                            opacity: None,
-                        });
+                        let content = Content::Label {
+                            at: Pos::Name(id.clone()),
+                            tex: l.clone(),
+                        };
+                        let mut label = plain(format!("{id}.label"), content);
+                        label.color = spec.label_color.clone().or(spec.color.clone());
+                        label.dir = spec.dir;
+                        let mut lab = self.make(&label);
                         lab.attach = Some(id.clone());
                         extra.push(lab);
                     }
@@ -2622,7 +2712,7 @@ impl Stage {
                     self.errors.push(format!("morph: no object {target}"));
                     return;
                 };
-                self.morph_to(i, to.clone(), map, now, dur, animate, &view);
+                self.morph_to(i, to.clone(), map, now, dur, animate);
             }
             Kind::Set { target, tex: value } => {
                 let cut = target.find('[').unwrap_or(target.len());
@@ -2666,18 +2756,15 @@ impl Stage {
                     *cell = value.clone();
                 }
                 let hidden_before = self.objs[i].hidden.clone();
-                self.morph_to(i, content, &[], now, dur, animate, &view);
+                self.morph_to(i, content, &[], now, dur, animate);
+                let cell = match &item {
+                    Some(it) => format!("{it}/{},{}", rc[0], rc[1]),
+                    None => format!("{},{}", rc[0], rc[1]),
+                };
+                let shown = self.objs[i].groups.get(&cell);
                 let keep: HashSet<usize> = hidden_before
                     .into_iter()
-                    .filter(|j| {
-                        let o = &self.objs[i];
-                        !o.groups
-                            .get(&match &item {
-                                Some(it) => format!("{it}/{},{}", rc[0], rc[1]),
-                                None => format!("{},{}", rc[0], rc[1]),
-                            })
-                            .is_some_and(|g| g.contains(j))
-                    })
+                    .filter(|j| !shown.is_some_and(|g| g.contains(j)))
                     .collect();
                 self.objs[i].hidden = keep;
             }
@@ -2708,10 +2795,11 @@ impl Stage {
                         .filter(|j| !self.objs[si].hidden.contains(j))
                         .collect()
                 });
-                let dset: Vec<usize> = (0..self.objs[di].expr.prims.len()).collect();
-                let sg = self.objs[si].groups.clone();
-                let dg = self.objs[di].groups.clone();
-                let (pairs, _outs, ins) = match_prims(&src_expr, &sset, &self.objs[di].expr.clone(), &dset, map, &sg, &dg);
+                let dst = &self.objs[di];
+                let dset: Vec<usize> = (0..dst.expr.prims.len()).collect();
+                let sg = &self.objs[si].groups;
+                let (pairs, _, ins) =
+                    match_prims(&src_expr, &sset, &dst.expr, &dset, map, sg, &dst.groups);
                 push(
                     self,
                     Fx::Morph {
@@ -2742,7 +2830,8 @@ impl Stage {
                 }
                 let dst_expr = self.objs[di].expr.clone();
                 let none = HashMap::new();
-                let (pairs, _outs, ins) = match_prims(&src_expr, &sset, &dst_expr, &dset, &[], &none, &none);
+                let (pairs, _, ins) =
+                    match_prims(&src_expr, &sset, &dst_expr, &dset, &[], &none, &none);
                 let id = self.objs[di].id.clone();
                 if !keep {
                     for j in &sset {
@@ -2786,24 +2875,9 @@ impl Stage {
                     self.errors.push(format!("box: no {target}"));
                     return;
                 }
-                let mut o = self.make(&ObjSpec {
-                    id: id.clone(),
-                    content: Content::Tex(String::new()),
-                    color: None,
-                    size: None,
-                    width: Some(2.4),
-                    dash: false,
-                    align: None,
-                    at: None,
-                    anim: None,
-                    label: None,
-                    label_color: None,
-                    dir: None,
-                    lag: None,
-                    gap: None,
-                    panel: None,
-                    opacity: None,
-                });
+                let mut spec = plain(id.clone(), Content::Tex(String::new()));
+                spec.width = Some(2.4);
+                let mut o = self.make(&spec);
                 o.color = c;
                 o.width = 2.4;
                 o.boxed = Some((target.clone(), 7.0));
@@ -2831,36 +2905,37 @@ impl Stage {
                     let cur = o.colors.get(&usize::MAX).map_or(o.color, |t| t.at(now));
                     let to = if reset { o.color } else { c };
                     let mut tw = Tween::fixed(cur);
-                    if animate {
-                        tw.set(to, now, dur);
-                    } else {
-                        tw = Tween::fixed(to);
-                    }
+                    tw.retarget(to, now, dur, animate);
                     o.colors.insert(usize::MAX, tw);
                     return;
                 }
-                if o.label() && subset_is_all(&set, o) && !reset {
+                if o.label() && set.len() == o.expr.prims.len() && !reset {
                     o.color = c;
                 }
+                let cell = |p: &Prim| matches!(p.shape, Shape::Rect { fill, .. } if fill > 0.0);
+                let cells = set.iter().any(|&j| cell(&o.expr.prims[j]));
+                let bright = 0.3 * c[0] + 0.6 * c[1] + 0.1 * c[2] > 0.6;
+                let entry = if bright {
+                    self.palette["bg"]
+                } else {
+                    self.palette["ink"]
+                };
                 for j in set {
+                    let c = if cells && !cell(&o.expr.prims[j]) {
+                        entry
+                    } else {
+                        c
+                    };
                     let base = o.expr.prims[j].color.unwrap_or(o.color);
                     let cur = o.colors.get(&j).map(|t| t.at(now)).unwrap_or(base);
                     let to = if reset { base } else { with_alpha(c, base[3]) };
                     let mut tw = Tween::fixed(cur);
-                    if animate {
-                        tw.set(to, now, dur);
-                    } else {
-                        tw = Tween::fixed(to);
-                    }
+                    tw.retarget(to, now, dur, animate);
                     o.colors.insert(j, tw);
                 }
             }
             Kind::Move { point, to } => {
-                let ps = PointSet {
-                    points: &self.points,
-                    objs: &self.objs,
-                    now,
-                };
+                let ps = self.points_at(now);
                 let Ok(p) = eval::position(to, &ps) else {
                     self.errors.push(format!("move: bad target for {point}"));
                     return;
@@ -2869,20 +2944,12 @@ impl Stage {
                     .points
                     .entry(point.clone())
                     .or_insert_with(|| Tween::fixed(p));
-                if animate {
-                    tw.set(p, now, dur);
-                } else {
-                    *tw = Tween::fixed(p);
-                }
+                tw.retarget(p, now, dur, animate);
             }
             Kind::Camera(spec) => {
                 let cur = self.cam.to;
                 let cam = self.camera_for(spec, cur, false);
-                if animate {
-                    self.cam.set(cam, now, dur);
-                } else {
-                    self.cam = Tween::fixed(cam);
-                }
+                self.cam.retarget(cam, now, dur, animate);
                 self.cam_serial += 1;
             }
             Kind::Wait => {}
@@ -2894,11 +2961,7 @@ impl Stage {
                 };
                 for r in refs {
                     if let Some(i) = self.find(r) {
-                        if animate {
-                            self.objs[i].dim.set(v, now, dur);
-                        } else {
-                            self.objs[i].dim = Tween::fixed(v);
-                        }
+                        self.objs[i].dim.retarget(v, now, dur, animate);
                     }
                 }
             }
@@ -2950,7 +3013,7 @@ impl Stage {
         self.changed = true;
     }
 
-    #[allow(clippy::too_many_arguments)]
+    /// Change object `i` to new content, morphing its pieces when `animate`.
     fn morph_to(
         &mut self,
         i: usize,
@@ -2959,9 +3022,7 @@ impl Stage {
         now: f64,
         dur: f64,
         animate: bool,
-        view: &View,
     ) {
-        let _ = view;
         let o = &self.objs[i];
         if o.geo() {
             let from = self.geo_points(o, now);
@@ -2979,18 +3040,7 @@ impl Stage {
             .filter(|j| !o.hidden.contains(j))
             .collect();
         let size = o.size;
-        let dynamic = match &to {
-            Content::Tex(s) | Content::Label { tex: s, .. } if s.contains("{=") => Some(s.clone()),
-            _ => None,
-        };
-        let to = match (&to, &dynamic) {
-            (Content::Tex(_), Some(d)) => Content::Tex(self.fill(d)),
-            (Content::Label { at, .. }, Some(d)) => Content::Label {
-                at: at.clone(),
-                tex: self.fill(d),
-            },
-            _ => to,
-        };
+        let (to, dynamic) = self.filled(&to);
         let (expr, groups) = self.compile(&to, size, None);
         let id = self.objs[i].id.clone();
         {
@@ -3012,8 +3062,9 @@ impl Stage {
         self.relayout(now, animate);
         if animate {
             let dset: Vec<usize> = (0..expr.prims.len()).collect();
-            let dg = self.objs[i].groups.clone();
-            let (pairs, outs, ins) = match_prims(&src_expr, &sset, &expr, &dset, map, &old_groups, &dg);
+            let dg = &self.objs[i].groups;
+            let (pairs, outs, ins) =
+                match_prims(&src_expr, &sset, &expr, &dset, map, &old_groups, dg);
             self.anims.push(Anim {
                 fx: Fx::Morph {
                     dst: id,
@@ -3030,7 +3081,9 @@ impl Stage {
         }
     }
 
-    // ------------------------------------------------------------ inspection
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Inspection
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// Overlapping panel blocks and labels, for the browser checks.
     pub fn overlaps(&mut self) -> Vec<(String, String)> {
@@ -3060,6 +3113,7 @@ impl Stage {
         out
     }
 
+    /// Ink boxes of the panel blocks and labels, for the browser checks.
     pub fn item_boxes(&self) -> Vec<(String, [f32; 4])> {
         let now = self.now;
         (0..self.objs.len())
@@ -3074,10 +3128,12 @@ impl Stage {
             .collect()
     }
 
+    /// A palette colour, ink when unknown.
     pub fn palette(&self, name: &str) -> Rgba {
         self.color(Some(name), "ink")
     }
 
+    /// Chrome prose wrapped at `width` em.
     pub fn chrome(&mut self, text: &str, bold: bool, width: f32) -> Rc<Expr> {
         self.typeset(text, if bold { 3 } else { 2 }, width)
     }
@@ -3087,7 +3143,13 @@ impl Stage {
 fn clip_len(p: [f32; 2], q: [f32; 2], b: [f32; 4]) -> f32 {
     let (dx, dy) = (q[0] - p[0], q[1] - p[1]);
     let (mut t0, mut t1) = (0.0f32, 1.0f32);
-    for (pk, qk) in [(-dx, p[0] - b[0]), (dx, b[2] - p[0]), (-dy, p[1] - b[1]), (dy, b[3] - p[1])] {
+    let sides = [
+        (-dx, p[0] - b[0]),
+        (dx, b[2] - p[0]),
+        (-dy, p[1] - b[1]),
+        (dy, b[3] - p[1]),
+    ];
+    for (pk, qk) in sides {
         if pk.abs() < 1e-9 {
             if qk < 0.0 {
                 return 0.0;
@@ -3101,7 +3163,11 @@ fn clip_len(p: [f32; 2], q: [f32; 2], b: [f32; 4]) -> f32 {
             }
         }
     }
-    if t1 > t0 { (t1 - t0) * dx.hypot(dy) } else { 0.0 }
+    if t1 > t0 {
+        (t1 - t0) * dx.hypot(dy)
+    } else {
+        0.0
+    }
 }
 
 /// Matrix cells as (rect, entries) from the `r,c` groups.
@@ -3111,12 +3177,12 @@ fn cells_of(groups: &HashMap<String, Vec<usize>>) -> Vec<(usize, Vec<usize>)> {
         .filter(|(k, _)| {
             let last = k.rsplit('/').next().unwrap_or(k);
             let mut it = last.split(',');
-            matches!((it.next(), it.next(), it.next()), (Some(r), Some(c), None) if r.parse::<usize>().is_ok() && c.parse::<usize>().is_ok())
+            let index = |s: &str| s.parse::<usize>().is_ok();
+            match (it.next(), it.next(), it.next()) {
+                (Some(r), Some(c), None) => index(r) && index(c),
+                _ => false,
+            }
         })
         .filter_map(|(_, v)| v.split_first().map(|(r, e)| (*r, e.to_vec())))
         .collect()
-}
-
-fn subset_is_all(set: &[usize], o: &Obj) -> bool {
-    set.len() == o.expr.prims.len()
 }

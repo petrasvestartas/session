@@ -69,14 +69,8 @@ bash/view_live.sh scene.yaml scan.pb
 
 Every checkpoint of the course is a runnable crate under `docs/lessons/<id>/`; the lessons are in `docs/`.
 
-## Session presentations
-
-The [Linkwitz force-density example](examples/linkwitz/README.md) documents the 36-slide protobuf deck, its camera-aligned closed force polygon, pink free-node styling, regeneration, browser verification, and Teaching publication. For a minimal starting point, run [`one_slide.py`](examples/linkwitz/one_slide.py) or follow the [authoring guide](examples/linkwitz/AUTHORING.md#make-one-slide-and-open-it-in-chrome). Teaching also has a [one-slide guide](https://github.com/BRG-teaching/Teaching/blob/main/CAS/website/session-viewer-guide/one-slide.md).
-
-Presentation playback uses Session kernel objects serialized to protobuf, this Rust renderer, and the existing WGSL shaders. It does not require a second renderer or browser-side Python.
-
 ## Stage decks: mathematics in YAML
 
 `?stage=force-density` plays a deck written only in YAML. The left of the slide is the viewer's own scene: the deck's points, lines and arrows are kernel `Point`, `Line` and `Polyline` objects under the real orthographic camera, moved per frame by placement, and the view stays put between slides. The right is a column of TeX formulas and matrices (rounded filled cells, no contour), laid out without overlaps. Steps write, morph, derive and project formulas and geometry. The TeX layout reads the OpenType MATH table of New Computer Modern (`assets/stage/`).
 
-The format, the actions and the publishing commands are in [examples/stage/README.md](examples/stage/README.md). Two decks ship: [force-density](examples/stage/force-density/) (one solve from the inputs, the five-node principles, the matrices) and [force-density-derivations](examples/stage/force-density-derivations/) (the Jacobian by two methods, the matrix form (6.25)-(6.33), materialization, a résumé). `cargo test --lib stage::` plays every step of both.
+The format, the actions and the publishing commands are in [examples/stage/README.md](examples/stage/README.md). Two decks ship: [force-density](examples/stage/force-density/) (the result and the Multihalle, equilibrium of a node, the question, projections and the force density trick, 1D, the matrices, the script, then larger nets) and [force-density-derivations](examples/stage/force-density-derivations/) (the Jacobian by two methods, the matrix form (6.25)-(6.33), materialization, a résumé). `cargo test --lib stage::` plays every step of both.

@@ -93,13 +93,13 @@ fn clear_scene() {
     post(Msg::Clear);
 }
 
-/// Send one message to the event loop; false when it is gone.
 /// Hand a loaded stage deck to the event loop.
 pub(crate) fn post_stage(loaded: super::stage::Loaded) {
     post(Msg::Stage(Box::new(loaded)));
 }
 
-pub(crate) fn post(msg: Msg) -> bool {
+/// Send one message to the event loop; false when it is gone.
+pub(super) fn post(msg: Msg) -> bool {
     PROXY.with_borrow(|proxy| {
         proxy
             .as_ref()
@@ -137,22 +137,17 @@ fn sheet_budget_spend(n: u32) {
     SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
 }
 
-#[path = "presentation_loader.rs"]
-mod presentation;
-pub use presentation::spawn_presentation;
-
 /// Start the viewer, load the first scene, then keep polling.
 pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
-    let presentation = super::route::presentation_route();
     let staging = super::stage::route().is_some();
-    let mut live = if presentation.is_some() || staging {
+    let mut live = if staging {
         None
     } else {
         LiveSource::from_query()
     };
     // without a live source the manifest downloads while the GPU starts
-    let route = scene_route().filter(|_| live.is_none() && presentation.is_none() && !staging);
+    let route = scene_route().filter(|_| live.is_none() && !staging);
     let early = route.as_ref().map(prefetch);
     let mut state = match State::new(window, Scene::new()).await {
         Ok(state) => state,
@@ -170,11 +165,6 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     state.gpu.prewarm_initial();
     crate::engine::performance::mark("state ready");
     let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-
-    if let Some(route) = presentation {
-        presentation::open_presentation(route).await;
-        return;
-    }
 
     if let Some(url) = super::stage::route() {
         super::stage::open(url).await;

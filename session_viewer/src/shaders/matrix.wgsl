@@ -1,5 +1,5 @@
-// Matrices: one instance per matrix, one quad over all its cells. Ordinary matrices draw their values here;
-// presentation matrices draw rounded sign-coloured cells and use separately typeset glyph labels.
+// Matrices: one instance per matrix, one quad over all its cells; the fragment stage finds its cell, colours it from its
+// value, draws the cell edges and writes the value in white.
 
 // One matrix in the word table: a header of HEADER_WORDS words, then rows * cols values of VALUE_WORDS words, row by row;
 // matches matrices.rs. A value is its f32 for the colour, then exactly: its whole part, and its thousandths with the sign
@@ -75,12 +75,9 @@ fn vs_matrix(@builtin(vertex_index) vid: u32, @builtin(instance_index) block: u3
     }
 
     let cell = float_at(block, CELL);
-    let presentation = (inst.flags & 131072u) != 0u;
     let at = QUAD[vid] * vec2<f32>(f32(cols), f32(rows));
-    // Cell (0, 0) is centred on the object origin. Presentation text rows already use
-    // slide coordinates, so their cell rows advance in the opposite local-Y direction.
-    let row_y = select(0.5 - at.y, at.y - 0.5, (inst.flags & 131072u) != 0u);
-    let local = vec3<f32>((at.x - 0.5) * cell, row_y * cell, 0.0);
+    // cell (0, 0) is centred on the object origin
+    let local = vec3<f32>((at.x - 0.5) * cell, (0.5 - at.y) * cell, 0.0);
     let world = place(id, local);
 
     if (clip_active() && clip_cut(inst.flags, world)) {
@@ -243,40 +240,17 @@ fn matrix_color(block: u32, uv: vec2<f32>, px: vec2<f32>, selected: bool) -> vec
     let high = float_at(block, HIGH);
     let t = select(1.0, clamp((value - low) / (high - low), 0.0, 1.0), high > low);
     var color = mix(unpack4x8unorm(words[block + MIN]).rgb, unpack4x8unorm(words[block + MAX]).rgb, t);
-    let inst = instances[words[block + INSTANCE]];
-    let packed = (row << 16u) | col;
-    let linear = row * cols + col;
-    var authored = false;
-    if (linear < 64u) {
-        authored = (bitcast<u32>(inst.end_color[2u + linear / 32u]) & (1u << (linear % 32u))) != 0u;
-    }
-    let marked = authored ||
-        (packed >= bitcast<u32>(inst.effect.z) && packed <= bitcast<u32>(inst.effect.w)) ||
-        (packed >= bitcast<u32>(inst.end_color.x) && packed <= bitcast<u32>(inst.end_color.y));
-    if ((inst.flags & 131072u) != 0u) {
+
+    if (abs(value) < 1e-12) {
         color = unpack4x8unorm(words[block + ZERO]).rgb;
-        let large = words[block + ROWS] * words[block + COLS] > 64u;
-        if ((marked || large) && abs(value) >= 1e-12) {
-            color = select(vec3<f32>(0.8627451, 0.29411765, 0.5529412), vec3<f32>(0.165, 0.435, 0.859), value < 0.0);
-        }
-    } else if (marked) {
-        color = select(vec3<f32>(0.839, 0.157, 0.157), vec3<f32>(0.165, 0.435, 0.859), value < 0.0);
+    } else {
+        color = mix(color, unpack4x8unorm(words[block + TEXT]).rgb, value_coverage(words[at + 1u], words[at + 2u], inside, px.y));
     }
 
-    if ((inst.flags & 131072u) == 0u) {
-        if (marked) {
-            color = mix(color, vec3<f32>(0.0), value_coverage(words[at + 1u], words[at + 2u], inside, px.y));
-        } else if (abs(value) < 1e-12) {
-            color = unpack4x8unorm(words[block + ZERO]).rgb;
-        } else {
-            color = mix(color, unpack4x8unorm(words[block + TEXT]).rgb, value_coverage(words[at + 1u], words[at + 2u], inside, px.y));
-        }
-        // the edges, half of each in the two cells it parts
-        let edge = min(min(inside.x, 1.0 - inside.x) * px.x, min(inside.y, 1.0 - inside.y) * px.y);
-        let pen = select(unpack4x8unorm(words[block + LINE]).rgb, SELECT_COLOR, selected);
-        return mix(color, pen, clamp(LINE_PX * 0.5 + 0.5 - edge, 0.0, 1.0));
-    }
-    return color;
+    // the edges, half of each in the two cells it parts
+    let edge = min(min(inside.x, 1.0 - inside.x) * px.x, min(inside.y, 1.0 - inside.y) * px.y);
+    let pen = select(unpack4x8unorm(words[block + LINE]).rgb, SELECT_COLOR, selected);
+    return mix(color, pen, clamp(LINE_PX * 0.5 + 0.5 - edge, 0.0, 1.0));
 }
 
 // True where something nearer than the matrix was drawn: depth is reversed, nearer is larger.
@@ -295,27 +269,7 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
         discard;
     }
 
-    let inst = instances[words[in.block + INSTANCE]];
-    if ((inst.flags & 131072u) != 0u) {
-        let rows = words[in.block + ROWS];
-        let cols = words[in.block + COLS];
-        var color = vec3<f32>(0.0);
-        var alpha = 0.0;
-        if (in.uv.x >= 0.0 && in.uv.y >= 0.0 && in.uv.x <= f32(cols) && in.uv.y <= f32(rows)) {
-            let cell = min(u32(in.uv.x), cols - 1u);
-            let row = min(u32(in.uv.y), rows - 1u);
-            let inside = in.uv - vec2<f32>(f32(cell), f32(row));
-            let gap = min(3.0, min(px.x, px.y) * 0.16);
-            let half = px * 0.5 - vec2<f32>(gap * 0.5);
-            let radius = min(6.0, max(0.5, min(half.x, half.y)));
-            let q = abs((inside - 0.5) * px) - (half - vec2<f32>(radius));
-            let distance = length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
-            color = matrix_color(in.block, in.uv, px, false);
-            alpha = clamp(0.5 - distance, 0.0, 1.0);
-        }
-        return InkColor(vec4<f32>(color, alpha));
-    }
-    let selected = (inst.flags & FLAG_SELECTED) != 0u;
+    let selected = (instances[words[in.block + INSTANCE]].flags & FLAG_SELECTED) != 0u;
     return InkColor(vec4<f32>(matrix_color(in.block, in.uv, px, selected), 1.0));
 }
 
@@ -326,7 +280,5 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
         discard;
     }
 
-    let col = min(u32(in.uv.x), words[in.block + COLS] - 1u);
-    let row = min(u32(in.uv.y), words[in.block + ROWS] - 1u);
-    return vec2<u32>(words[in.block + INSTANCE] + 1u, ((row << 16u) | col) + 1u);
+    return vec2<u32>(words[in.block + INSTANCE] + 1u, 0u);
 }

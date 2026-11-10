@@ -143,7 +143,6 @@ fn label(text: &str, point: &Point, right: [f64; 3], up: [f64; 3], height: f64) 
         font_size: FONT_SIZE,
         line_height: LINE_HEIGHT,
         color: [255; 4],
-        outline: 0.0,
         placement: TextPlacement::WorldPlane {
             world: [0, 1, 2].map(|axis| point[axis] + up[axis] * lift),
             right,

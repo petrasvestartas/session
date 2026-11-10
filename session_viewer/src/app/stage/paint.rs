@@ -1,35 +1,38 @@
 use super::font::Fonts;
-use super::run::{DPrim, Draw, H, Stage, W};
+use super::run::{DPrim, Draw, H, Stage, W, rounded, smooth};
 use super::tex::{Rgba, Shape};
 use egui::{Color32, Pos2, Rect, Shape as EShape, Stroke, TextureHandle, TextureOptions};
 use std::collections::HashMap;
 use swash::scale::{Render, ScaleContext, Source, image::Content};
 use swash::zeno::Format;
 
+/// Side of the glyph atlas texture, pixels.
 const N: usize = 2048;
 
+/// Where one rasterized glyph sits in the atlas.
 #[derive(Clone, Copy)]
 struct Slot {
-    uv: Rect,
-    left: i32,
-    top: i32,
-    w: u32,
-    h: u32,
+    uv: Rect,  // Texture coordinates.
+    left: i32, // Bitmap offset from the pen point, pixels.
+    top: i32,  // Bitmap top above the baseline, pixels.
+    w: u32,    // Bitmap width, pixels.
+    h: u32,    // Bitmap height, pixels.
 }
 
 /// Rasterized glyphs in one egui texture.
 pub struct Atlas {
     tex: Option<TextureHandle>,
-    slots: HashMap<(u8, u16, u16), Option<Slot>>,
-    x: usize,
-    y: usize,
-    row: usize,
+    slots: HashMap<(u8, u16, u16), Option<Slot>>, // By font, glyph and pixel size; None for no ink.
+    x: usize,                                     // Packing cursor.
+    y: usize,                                     // Top of the current shelf.
+    row: usize,                                   // Height of the current shelf.
     ctx: ScaleContext,
     faces: Vec<swash::FontRef<'static>>,
-    pub overflowed: bool,
+    pub overflowed: bool, // The atlas was cleared this frame, so it must be painted again.
 }
 
 impl Atlas {
+    /// An empty atlas over the stage fonts.
     pub fn new(fonts: &Fonts) -> Self {
         Atlas {
             tex: None,
@@ -47,6 +50,7 @@ impl Atlas {
         }
     }
 
+    /// Forget every glyph and start packing again.
     fn clear(&mut self) {
         self.slots.clear();
         self.x = 1;
@@ -55,8 +59,10 @@ impl Atlas {
         self.overflowed = true;
     }
 
+    /// The atlas slot of a glyph at `px` pixels, rasterized on first use.
     fn slot(&mut self, ctx: &egui::Context, font: u8, gid: u16, px: u16) -> Option<Slot> {
-        if let Some(s) = self.slots.get(&(font, gid, px)) {
+        let key = (font, gid, px);
+        if let Some(s) = self.slots.get(&key) {
             return *s;
         }
         let tex = self.tex.get_or_insert_with(|| {
@@ -74,7 +80,7 @@ impl Atlas {
         let Some(image) = image.filter(|i| {
             i.content == Content::Mask && i.placement.width > 0 && i.placement.height > 0
         }) else {
-            self.slots.insert((font, gid, px), None);
+            self.slots.insert(key, None);
             return None;
         };
         let (w, h) = (
@@ -82,7 +88,7 @@ impl Atlas {
             image.placement.height as usize,
         );
         if w + 2 > N || h + 2 > N {
-            self.slots.insert((font, gid, px), None);
+            self.slots.insert(key, None);
             return None;
         }
         if self.x + w + 1 > N {
@@ -117,11 +123,12 @@ impl Atlas {
         };
         self.x += w + 1;
         self.row = self.row.max(h);
-        self.slots.insert((font, gid, px), Some(slot));
+        self.slots.insert(key, Some(slot));
         Some(slot)
     }
 }
 
+/// An egui colour from an RGBA in 0..1.
 fn c32(c: Rgba) -> Color32 {
     let b = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
     Color32::from_rgba_unmultiplied(b(c[0]), b(c[1]), b(c[2]), b(c[3]))
@@ -137,6 +144,7 @@ pub struct Frame {
 }
 
 impl Frame {
+    /// The largest letterboxed slide that fits `screen`.
     pub fn new(screen: Rect, ppp: f32) -> Self {
         let k = (screen.width() / W).min(screen.height() / H);
         Frame {
@@ -146,9 +154,13 @@ impl Frame {
             ppp,
         }
     }
+
+    /// A slide point on screen.
     pub fn pt(&self, p: [f32; 2]) -> Pos2 {
         Pos2::new(self.ox + p[0] * self.k, self.oy + p[1] * self.k)
     }
+
+    /// A screen point on the slide.
     pub fn slide(&self, p: Pos2) -> [f32; 2] {
         [(p.x - self.ox) / self.k, (p.y - self.oy) / self.k]
     }
@@ -168,12 +180,14 @@ impl Out<'_> {
             self.painter.add(EShape::mesh(m));
         }
     }
+
     fn add(&mut self, s: EShape) {
         self.flush();
         self.painter.add(s);
     }
 }
 
+/// Paint one formula piece; `snap` puts unscaled glyphs on whole pixels.
 fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
     if p.color[3] <= 0.002 {
         return;
@@ -221,16 +235,13 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
             stroke,
         } => {
             let r = Rect::from_min_size(f.pt([p.x, p.y]), egui::vec2(w * f.k, h * f.k));
+            let fill_c = c32([p.color[0], p.color[1], p.color[2], p.color[3] * fill]);
             if radius <= 0.0 && stroke <= 0.0 {
-                out.add(EShape::rect_filled(
-                    r,
-                    0.0,
-                    c32([p.color[0], p.color[1], p.color[2], p.color[3] * fill]),
-                ));
+                out.add(EShape::rect_filled(r, 0.0, fill_c));
                 return;
             }
-            let pts: Vec<Pos2> = rounded_pts(r, radius * f.k);
-            let fill_c = c32([p.color[0], p.color[1], p.color[2], p.color[3] * fill]);
+            let corners = rounded(r.min.x, r.min.y, r.width(), r.height(), radius * f.k);
+            let pts: Vec<Pos2> = corners.iter().map(|q| Pos2::new(q[0], q[1])).collect();
             let stroke = if stroke > 0.0 {
                 Stroke::new((stroke * f.k).max(1.0 / f.ppp), c32(p.color))
             } else {
@@ -249,24 +260,7 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
     }
 }
 
-fn rounded_pts(r: Rect, radius: f32) -> Vec<Pos2> {
-    let rad = radius.min(r.width() / 2.0).min(r.height() / 2.0).max(0.0);
-    let mut pts = Vec::new();
-    let corners = [
-        (r.max.x - rad, r.min.y + rad, -90.0f32),
-        (r.max.x - rad, r.max.y - rad, 0.0),
-        (r.min.x + rad, r.max.y - rad, 90.0),
-        (r.min.x + rad, r.min.y + rad, 180.0),
-    ];
-    for (cx, cy, a0) in corners {
-        for i in 0..=6 {
-            let a = (a0 + 15.0 * i as f32).to_radians();
-            pts.push(Pos2::new(cx + rad * a.cos(), cy + rad * a.sin()));
-        }
-    }
-    pts
-}
-
+/// Paint one draw item.
 fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
     match d {
         Draw::Prim(p) => prim(out, atlas, f, p, snap),
@@ -341,6 +335,7 @@ fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
     }
 }
 
+/// Paint chrome text at `at`, `size` pixels per em; returns its width and height.
 fn text(
     stage: &mut Stage,
     out: &mut Out,
@@ -361,33 +356,8 @@ fn text(
         let c = p
             .color
             .map_or(color, |c| [c[0], c[1], c[2], c[3] * color[3]]);
-        let shape = match p.shape {
-            Shape::Glyph { font, gid, size: s } => Shape::Glyph {
-                font,
-                gid,
-                size: s * size,
-            },
-            Shape::Rect {
-                w,
-                h,
-                radius,
-                fill,
-                stroke,
-            } => Shape::Rect {
-                w: w * size,
-                h: h * size,
-                radius,
-                fill,
-                stroke,
-            },
-            Shape::Stroke { dx, dy, width } => Shape::Stroke {
-                dx: dx * size,
-                dy: dy * size,
-                width: width * size,
-            },
-        };
         let d = DPrim {
-            shape,
+            shape: p.shape.resized(size),
             x: at[0] + p.x * size,
             y: at[1] + e.h * size + p.y * size,
             color: c,
@@ -407,8 +377,10 @@ pub fn paint(
 ) -> Vec<(Rect, usize)> {
     let bg = stage.palette("bg");
     // the scene shows through on the 3D side; the column gets an opaque ground
-    let ground = Rect::from_min_max(Pos2::new(f.pt([stage.split * W, 0.0]).x, screen.min.y), screen.max);
-    painter.add(EShape::rect_filled(if stage.scene { ground } else { screen }, 0.0, c32(bg)));
+    let divider = f.pt([stage.split * W, 0.0]).x;
+    let ground = Rect::from_min_max(Pos2::new(divider, screen.min.y), screen.max);
+    let backdrop = if stage.scene { ground } else { screen };
+    painter.add(EShape::rect_filled(backdrop, 0.0, c32(bg)));
     let snap = !stage.animating();
     let draws = stage.frame(stage.now);
     let mut out = Out {
@@ -424,12 +396,16 @@ pub fn paint(
     // the 3D layer stays left of the divider, whatever the camera does
     let clip = Rect::from_min_max(f.pt([0.0, 0.0]), f.pt([x, H]));
     let spatial = painter.with_clip_rect(clip.intersect(screen));
-    let mut left = Out { painter: &spatial, mesh: None };
-    for d in &draws[..stage.spatial.min(draws.len())] {
+    let mut left = Out {
+        painter: &spatial,
+        mesh: None,
+    };
+    let (spatial_draws, panel_draws) = draws.split_at(stage.spatial.min(draws.len()));
+    for d in spatial_draws {
         draw(&mut left, atlas, f, d, snap);
     }
     left.flush();
-    for d in &draws[stage.spatial.min(draws.len())..] {
+    for d in panel_draws {
         draw(&mut out, atlas, f, d, snap);
     }
     // chrome: chapter, title, narration, tabs, progress
@@ -437,8 +413,8 @@ pub fn paint(
     let dim = stage.palette("dim");
     let accent = stage.palette("accent");
     let now = stage.now;
-    let ch = stage.chapters[stage.chapter].title.clone();
-    let head = format!("{} · {}", stage.chapter + 1, ch);
+    let chapter_title = &stage.chapters[stage.chapter].title;
+    let head = format!("{} · {}", stage.chapter + 1, chapter_title);
     text(
         stage,
         &mut out,
@@ -455,14 +431,39 @@ pub fn paint(
     let pw = W - 56.0 - x0;
     // the old text leaves first, then the new one rises in: they never overlap
     let fade = |t0: f64| (((now - t0) / 650.0).clamp(0.0, 1.0)) as f32;
-    let out_a = |t: f32| 1.0 - super::run::smooth((t / 0.4) as f64) as f32;
-    let in_a = |t: f32| super::run::smooth(((t - 0.4) / 0.6) as f64) as f32;
+    let out_a = |t: f32| 1.0 - smooth((t / 0.4) as f64) as f32;
+    let in_a = |t: f32| smooth(((t - 0.4) / 0.6) as f64) as f32;
     let (title, old_title, t_title) = stage.title.clone();
     let ft = fade(t_title);
     if ft < 1.0 {
-        text(stage, &mut out, atlas, f, &old_title, true, [x0, 46.0], 30.0, pw, [ink[0], ink[1], ink[2], out_a(ft)]);
+        let leaving = [ink[0], ink[1], ink[2], out_a(ft)];
+        text(
+            stage,
+            &mut out,
+            atlas,
+            f,
+            &old_title,
+            true,
+            [x0, 46.0],
+            30.0,
+            pw,
+            leaving,
+        );
     }
-    text(stage, &mut out, atlas, f, &title, true, [x0, 46.0 + (1.0 - in_a(ft)) * 8.0], 30.0, pw, [ink[0], ink[1], ink[2], in_a(ft)]);
+    let rise = (1.0 - in_a(ft)) * 8.0;
+    let entering = [ink[0], ink[1], ink[2], in_a(ft)];
+    text(
+        stage,
+        &mut out,
+        atlas,
+        f,
+        &title,
+        true,
+        [x0, 46.0 + rise],
+        30.0,
+        pw,
+        entering,
+    );
     let (say, old_say, t_say) = stage.say.clone();
     let fs = fade(t_say);
     let say_color = [
@@ -472,11 +473,34 @@ pub fn paint(
         1.0,
     ];
     if fs < 1.0 {
-        text(stage, &mut out, atlas, f, &old_say, false, [x0, H - 128.0], 23.0, pw, [say_color[0], say_color[1], say_color[2], out_a(fs)]);
+        let leaving = [say_color[0], say_color[1], say_color[2], out_a(fs)];
+        text(
+            stage,
+            &mut out,
+            atlas,
+            f,
+            &old_say,
+            false,
+            [x0, H - 128.0],
+            23.0,
+            pw,
+            leaving,
+        );
     }
     let rise = (1.0 - in_a(fs)) * 6.0;
-    text(stage, &mut out, atlas, f, &say, false, [x0, H - 128.0 + rise], 23.0, pw, [say_color[0], say_color[1], say_color[2], in_a(fs)]);
-    // chapter tabs
+    let entering = [say_color[0], say_color[1], say_color[2], in_a(fs)];
+    text(
+        stage,
+        &mut out,
+        atlas,
+        f,
+        &say,
+        false,
+        [x0, H - 128.0 + rise],
+        23.0,
+        pw,
+        entering,
+    );
     let n = stage.chapters.len();
     let mut tabs = Vec::new();
     for i in 0..n {
@@ -499,25 +523,12 @@ pub fn paint(
         let tc = if current { stage.palette("bg") } else { dim };
         let e = stage.chrome(&label, current, 100.0);
         let size = 15.0;
-        let at = [
-            cx - e.w * size / 2.0,
-            ty - (e.h - e.d) * size / 2.0 - e.h * size + e.h * size,
-        ];
+        let at = [cx - e.w * size / 2.0, ty - e.h * size / 2.0 - 1.0];
         text(
-            stage,
-            &mut out,
-            atlas,
-            f,
-            &label,
-            current,
-            [at[0], ty - e.h * size / 2.0 - 1.0],
-            size,
-            100.0,
-            tc,
+            stage, &mut out, atlas, f, &label, current, at, size, 100.0, tc,
         );
         tabs.push((r, i));
     }
-    // progress along the chapter
     let steps = stage.steps().max(1);
     let done = stage.step.map_or(0, |g| g + 1);
     let y = H - 6.0;

@@ -30,10 +30,8 @@ mod live_revision;
 #[cfg(target_arch = "wasm32")] // register:loader
 pub mod loader; // register:loader
 pub mod manifest; // register:manifest
-pub mod math;
 pub mod mesh_preview; // register:mesh_preview
-pub mod modeling;
-pub mod presentation; // register:modeling
+pub mod modeling; // register:modeling
 pub mod stage;
 #[cfg(any(target_arch = "wasm32", test))] // register:range_gate
 pub mod range_gate; // register:range_gate

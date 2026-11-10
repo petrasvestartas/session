@@ -1,4 +1,4 @@
-# Chapter 2: the first principles at one free node. Forces, direction cosines, force density.
+# Chapter 4: the first principles at one free node. Forces, direction cosines, force density.
 title: Equilibrium of one node
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -12,7 +12,7 @@ points:
 slides:
   - title: Five nodes, four cables
     steps:
-      - say: 'The solved shape from chapter 1: $P_0 = (3,\ 3,\ 0.25)$ hangs from four anchors.'
+      - say: 'The five nodes of the question, drawn with $P_0$ where it will turn out to rest: $(3,\ 3,\ 0.25)$.'
         do:
           - add:
               - {id: n1, point: P1, color: fixed, label: 'P_1'}
@@ -88,8 +88,7 @@ slides:
   - title: 'The force density trick'
     steps:
       - say: 'Linkwitz and Schek prescribe the ratio of force to length in each cable instead of the force: the **force density** $q$.'
-        do:
-          - add: {id: qd, tex: 'q_k = \frac{F_k}{l_k} \qquad\Longrightarrow\qquad F_k = q_k\, l_k'}
+        add: {id: qd, tex: 'q_k = \frac{F_k}{l_k} \qquad\Longrightarrow\qquad F_k = q_k\, l_k'}
       - say: 'Substitute $F_k = q_k l_k$ into one term of the sum.'
         do:
           - add: {id: t, tex: '{{F_k}}\,\frac{x_k - x_0}{l_k}', align: '='}
@@ -110,8 +109,7 @@ slides:
           - remove: [fa, fb, fc, fd]
           - add: {id: h1, tex: '(q_a + q_b + q_c + q_d)\,x_0 = q_a x_1 + q_b x_2 + q_c x_3 + q_d x_4 + p_x', align: '='}
       - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load.'
-        do:
-          - derive: {from: h1, id: h2, tex: 'x_0 = \frac{q_a x_1 + q_b x_2 + q_c x_3 + q_d x_4 + p_x}{q_a + q_b + q_c + q_d}', align: '='}
+        derive: {from: h1, id: h2, tex: 'x_0 = \frac{q_a x_1 + q_b x_2 + q_c x_3 + q_d x_4 + p_x}{q_a + q_b + q_c + q_d}', align: '='}
       - say: 'Without a load, $P_0$ would hang at the plain average of the anchor heights, $z = 1.5$.'
         do:
           - add: {id: hz, tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', align: '='}

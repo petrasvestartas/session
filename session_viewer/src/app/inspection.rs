@@ -145,11 +145,6 @@ pub fn publish(state: &State) {
         "limited_rows": limited_rows,
     });
     snapshot["preview_cache_bytes"] = serde_json::json!(state.scene.preview_cache_bytes()); // register:editing
-    snapshot["spatial_view"] =
-        serde_json::json!(state.gpu.spatial.as_ref().map(|view| {
-            serde_json::json!({"matrix": view.view_proj.m, "split_x": view.split_x})
-        }));
-    snapshot["presentation_effects"] = state.presentation_effect_diagnostics();
     let docs = &state.scene.docs;
     let slots = &state.gpu.arena.source_faces.slots;
     snapshot["instancing"] = serde_json::json!({
@@ -199,16 +194,11 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
             "id": run.label.id,
             "object": run.label.object.map(|object| object.row),
             "text": run.label.text,
-            "name": run.label.object.and_then(|object| state.scene.text_link_name(object.row)),
             "font_size": run.label.font_size,
             "line_height": run.label.line_height,
             "color": run.label.ink_color(),
             "placement": kind,
             "world": world,
-            "offset": match run.label.placement {
-                TextPlacement::Anchor { offset, .. } => Some(offset),
-                _ => None,
-            },
             "world_height": match run.label.placement {
                 TextPlacement::WorldBillboard { world_height, .. } => Some(world_height),
                 _ => None,

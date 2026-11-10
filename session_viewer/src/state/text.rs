@@ -43,10 +43,9 @@ impl State {
     }
 
     /// Draw the labels with the whole fonts, main font first.
-    pub fn use_fonts(&mut self, faces: &[&'static [u8]]) {
+    pub fn use_fonts(&mut self, faces: [&'static [u8]; 3]) {
         let sources = faces
-            .iter()
-            .copied()
+            .into_iter()
             .map(|face| glyphon::fontdb::Source::Binary(std::sync::Arc::new(face)))
             .collect();
 
@@ -185,7 +184,6 @@ fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
         font_size: 18.0 * scale,
         line_height,
         color: [255; 4],
-        outline: 0.0,
         placement: TextPlacement::Nameplate {
             world,
             padding: [horizontal_padding, vertical_padding],

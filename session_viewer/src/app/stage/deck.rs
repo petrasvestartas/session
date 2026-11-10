@@ -1,3 +1,4 @@
+use super::net::{Net, tex_name};
 use super::tex::{Rgba, hex};
 use serde_yaml_ng::{Mapping, Value};
 use std::collections::HashMap;
@@ -22,6 +23,7 @@ pub struct Chapter {
     pub slides: Vec<Slide>,
 }
 
+/// A square floor grid in the plane `z`.
 #[derive(Clone, Debug)]
 pub struct Grid {
     pub center: [f64; 2],
@@ -30,6 +32,7 @@ pub struct Grid {
     pub z: f64,
 }
 
+/// An authored view: a named view, angles, zoom, centre or points to frame.
 #[derive(Clone, Debug, Default)]
 pub struct CameraSpec {
     pub yaw: Option<f64>,
@@ -40,6 +43,7 @@ pub struct CameraSpec {
     pub view: Option<String>,
 }
 
+/// One slide: a title and its steps; `keep` carries the panel over from the slide before.
 #[derive(Clone, Debug)]
 pub struct Slide {
     pub title: String,
@@ -47,6 +51,7 @@ pub struct Slide {
     pub steps: Vec<Step>,
 }
 
+/// One click: the narration and the actions it plays.
 #[derive(Clone, Debug)]
 pub struct Step {
     pub say: Option<String>,
@@ -62,6 +67,7 @@ pub struct Action {
     pub delay: f64,
 }
 
+/// What an action does.
 #[derive(Clone, Debug)]
 pub enum Kind {
     Add(Vec<ObjSpec>),
@@ -119,10 +125,12 @@ pub enum Content {
     Label { at: Pos, tex: String },
     Tex(String),
     Text(String),
+    Code(String),
     Matrix(MatrixSpec),
     Row(Vec<RowItem>),
 }
 
+/// One formula or matrix of a row, optionally named and coloured.
 #[derive(Clone, Debug)]
 pub struct RowItem {
     pub id: Option<String>,
@@ -130,16 +138,18 @@ pub struct RowItem {
     pub color: Option<String>,
 }
 
+/// A matrix of rounded cells.
 #[derive(Clone, Debug, Default)]
 pub struct MatrixSpec {
-    pub rows: Vec<Vec<String>>,
-    pub name: Option<String>,
-    pub rowlabels: Vec<String>,
-    pub collabels: Vec<String>,
-    pub empty: bool,
-    pub signs: bool,
-    pub cell: Option<f64>,
-    pub colors: Vec<Vec<Option<String>>>,
+    pub rows: Vec<Vec<String>>,           // Entries as TeX.
+    pub name: Option<String>,             // TeX written under the matrix.
+    pub rowlabels: Vec<String>,           // TeX left of each row.
+    pub collabels: Vec<String>,           // TeX above each column.
+    pub empty: bool,                      // Entries start hidden.
+    pub signs: bool,                      // Cells are coloured by the sign of their entry.
+    pub cell: Option<f64>,                // Cell size in em.
+    pub colors: Vec<Vec<Option<String>>>, // Named cell colours.
+    pub pattern: bool,                    // Only the nonzero cells, without entries.
 }
 
 /// An object to create.
@@ -171,16 +181,19 @@ pub enum Pos {
     Expr(String),
 }
 
+/// A coordinate: a number or an expression.
 #[derive(Clone, Debug)]
 pub enum Scalar {
     N(f64),
     E(String),
 }
 
+/// An error at a place in the deck.
 fn err<T>(at: &str, msg: impl std::fmt::Display) -> Result<T, String> {
     Err(format!("{at}: {msg}"))
 }
 
+/// A scalar value as text.
 fn text(v: &Value) -> Option<String> {
     match v {
         Value::String(s) => Some(s.clone()),
@@ -202,6 +215,7 @@ pub fn num_text(x: f64) -> String {
     s
 }
 
+/// A number, also written as a string.
 fn num(v: &Value) -> Option<f64> {
     match v {
         Value::Number(n) => n.as_f64(),
@@ -210,10 +224,12 @@ fn num(v: &Value) -> Option<f64> {
     }
 }
 
+/// The value of `key` in a map.
 fn get<'a>(m: &'a Mapping, key: &str) -> Option<&'a Value> {
     m.get(Value::String(key.into()))
 }
 
+/// A sequence, a single value as a one-item list, or nothing for null.
 fn list(v: &Value) -> Vec<Value> {
     match v {
         Value::Sequence(s) => s.clone(),
@@ -222,10 +238,12 @@ fn list(v: &Value) -> Vec<Value> {
     }
 }
 
+/// A list of scalars as text.
 fn strings(v: &Value) -> Vec<String> {
     list(v).iter().filter_map(text).collect()
 }
 
+/// A position: a point name, `[x, y, z]` or an expression.
 pub fn pos(v: &Value, at: &str) -> Result<Pos, String> {
     match v {
         Value::String(s) => {
@@ -254,6 +272,7 @@ pub fn pos(v: &Value, at: &str) -> Result<Pos, String> {
     }
 }
 
+/// Two numbers.
 fn pair(v: &Value) -> Option<[f64; 2]> {
     match v {
         Value::Sequence(s) if s.len() == 2 => Some([num(&s[0])?, num(&s[1])?]),
@@ -261,6 +280,7 @@ fn pair(v: &Value) -> Option<[f64; 2]> {
     }
 }
 
+/// A camera: a view name or a map.
 fn camera(v: &Value, at: &str) -> Result<CameraSpec, String> {
     let mut c = CameraSpec::default();
     let Value::Mapping(m) = v else {
@@ -285,13 +305,34 @@ fn camera(v: &Value, at: &str) -> Result<CameraSpec, String> {
     Ok(c)
 }
 
-fn matrix(v: &Value, at: &str) -> Result<MatrixSpec, String> {
+/// A matrix: a net matrix by name, `of:` one with overrides, or rows written out.
+fn matrix(v: &Value, at: &str, cx: &Cx) -> Result<MatrixSpec, String> {
+    let named = |name: &str| {
+        cx.net
+            .as_ref()
+            .and_then(|net| net.matrix(name))
+            .ok_or_else(|| format!("{at}: the net has no matrix {name}"))
+    };
+    if let Value::String(name) = v {
+        return named(name);
+    }
     let mut spec = MatrixSpec {
         signs: true,
         ..MatrixSpec::default()
     };
     let rows_value = match v {
         Value::Mapping(m) => {
+            if let Some(name) = get(m, "of").and_then(text) {
+                spec = named(&name)?;
+                spec.pattern = get(m, "pattern")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(spec.pattern);
+                spec.name = get(m, "name").and_then(text).or(spec.name);
+                spec.empty = get(m, "empty").and_then(Value::as_bool).unwrap_or(false);
+                spec.cell = get(m, "cell").and_then(num);
+                return Ok(spec);
+            }
+            spec.pattern = get(m, "pattern").and_then(Value::as_bool).unwrap_or(false);
             spec.name = get(m, "name").and_then(text);
             spec.rowlabels = get(m, "rowlabels").map(strings).unwrap_or_default();
             spec.collabels = get(m, "collabels").map(strings).unwrap_or_default();
@@ -330,12 +371,14 @@ fn matrix(v: &Value, at: &str) -> Result<MatrixSpec, String> {
     Ok(spec)
 }
 
-const TYPES: [&str; 11] = [
-    "point", "line", "arrow", "polyline", "polygon", "cuboid", "label", "tex", "text", "matrix",
-    "row",
+/// Keys that make an object, in the order they are looked for.
+const TYPES: [&str; 12] = [
+    "point", "line", "arrow", "polyline", "polygon", "cuboid", "label", "tex", "text", "code",
+    "matrix", "row",
 ];
 
-fn content(m: &Mapping, at: &str) -> Result<Content, String> {
+/// The geometry or formula of an object map.
+fn content(m: &Mapping, at: &str, cx: &Cx) -> Result<Content, String> {
     for key in TYPES {
         let Some(v) = get(m, key) else { continue };
         let at = &format!("{at} {key}");
@@ -378,14 +421,10 @@ fn content(m: &Mapping, at: &str) -> Result<Content, String> {
                     tex,
                 }
             }
-            "tex" => {
-                if get(m, "label").is_some() && get(m, "tex").is_some() && false {
-                    unreachable!()
-                }
-                Content::Tex(text(v).unwrap_or_default())
-            }
+            "tex" => Content::Tex(text(v).unwrap_or_default()),
             "text" => Content::Text(text(v).unwrap_or_default()),
-            "matrix" => Content::Matrix(matrix(v, at)?),
+            "code" => Content::Code(text(v).unwrap_or_default()),
+            "matrix" => Content::Matrix(matrix(v, at, cx)?),
             "row" => {
                 let mut items = Vec::new();
                 for (i, item) in list(v).iter().enumerate() {
@@ -393,7 +432,7 @@ fn content(m: &Mapping, at: &str) -> Result<Content, String> {
                     items.push(match item {
                         Value::Mapping(im) => RowItem {
                             id: get(im, "id").and_then(text),
-                            content: content(im, at)?,
+                            content: content(im, at, cx)?,
                             color: get(im, "color").and_then(text),
                         },
                         other => RowItem {
@@ -411,11 +450,11 @@ fn content(m: &Mapping, at: &str) -> Result<Content, String> {
     err(at, format!("an object needs one of {}", TYPES.join(", ")))
 }
 
-fn object(v: &Value, at: &str, n: &mut usize) -> Result<ObjSpec, String> {
+/// An object to add; plain text becomes a formula with an automatic id.
+fn object(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     let Value::Mapping(m) = v else {
         if let Some(t) = text(v) {
-            *n += 1;
-            return Ok(plain(format!("_auto{n}"), Content::Tex(t)));
+            return Ok(plain(cx.auto(), Content::Tex(t)));
         }
         return err(at, "an object is a map");
     };
@@ -429,14 +468,16 @@ fn object(v: &Value, at: &str, n: &mut usize) -> Result<ObjSpec, String> {
             tex: get(m, "tex").and_then(text).unwrap_or_default(),
         }
     } else {
-        content(m, at)?
+        content(m, at, cx)?
     };
-    let id = match get(m, "id").and_then(text) {
-        Some(id) => id,
-        None => {
-            *n += 1;
-            format!("_auto{n}")
-        }
+    let id = match (get(m, "id").and_then(text), get(m, "matrix")) {
+        (Some(id), _) => id,
+        (None, Some(Value::String(name))) => name.clone(),
+        (None, Some(Value::Mapping(mm))) => match get(mm, "id").or(get(mm, "of")).and_then(text) {
+            Some(id) => id,
+            None => cx.auto(),
+        },
+        _ => cx.auto(),
     };
     Ok(ObjSpec {
         id,
@@ -462,7 +503,8 @@ fn object(v: &Value, at: &str, n: &mut usize) -> Result<ObjSpec, String> {
     })
 }
 
-fn plain(id: String, content: Content) -> ObjSpec {
+/// An object with every option left at its default.
+pub fn plain(id: String, content: Content) -> ObjSpec {
     ObjSpec {
         id,
         content,
@@ -483,6 +525,7 @@ fn plain(id: String, content: Content) -> ObjSpec {
     }
 }
 
+/// A morph map as pairs of source and target references.
 fn mapping(v: Option<&Value>) -> Vec<(String, String)> {
     match v {
         Some(Value::Mapping(m)) => m
@@ -493,25 +536,20 @@ fn mapping(v: Option<&Value>) -> Vec<(String, String)> {
     }
 }
 
+/// Keys that make an action.
 const KINDS: [&str; 19] = [
     "add", "remove", "morph", "derive", "fly", "indicate", "box", "color", "move", "camera",
     "wait", "set", "dim", "undim", "clear", "show", "hide", "play", "write",
 ];
 
-fn action(v: &Value, at: &str, n: &mut usize) -> Result<Action, String> {
+/// One action; `clear` and `wait` may be written bare.
+fn action(v: &Value, at: &str, cx: &mut Cx) -> Result<Action, String> {
     let Value::Mapping(m) = v else {
         return match text(v).as_deref() {
-            Some("clear") => Ok(Action {
-                kind: Kind::Clear,
-                dur: None,
-                with: false,
-                delay: 0.0,
-            }),
+            Some("clear") => Ok(act(Kind::Clear)),
             Some("wait") => Ok(Action {
-                kind: Kind::Wait,
                 dur: Some(1.0),
-                with: false,
-                delay: 0.0,
+                ..act(Kind::Wait)
             }),
             _ => err(at, "an action is a map such as `add: {...}`"),
         };
@@ -526,7 +564,7 @@ fn action(v: &Value, at: &str, n: &mut usize) -> Result<Action, String> {
         "add" | "write" => {
             let mut objs = Vec::new();
             for o in list(v) {
-                objs.push(object(&o, at, n)?);
+                objs.push(object(&o, at, cx)?);
             }
             Kind::Add(objs)
         }
@@ -540,7 +578,7 @@ fn action(v: &Value, at: &str, n: &mut usize) -> Result<Action, String> {
                 .ok_or_else(|| format!("{at}: needs `target`"))?;
             Kind::Morph {
                 target,
-                to: content(mm, at)?,
+                to: content(mm, at, cx)?,
                 map: mapping(get(mm, "map")),
             }
         }
@@ -553,7 +591,7 @@ fn action(v: &Value, at: &str, n: &mut usize) -> Result<Action, String> {
                 .ok_or_else(|| format!("{at}: needs `from`"))?;
             Kind::Derive {
                 from,
-                obj: object(v, at, n)?,
+                obj: object(v, at, cx)?,
                 map: mapping(get(mm, "map")),
             }
         }
@@ -636,7 +674,7 @@ fn action(v: &Value, at: &str, n: &mut usize) -> Result<Action, String> {
         "play" => {
             let mut acts = Vec::new();
             for (i, a) in list(v).iter().enumerate() {
-                let mut a = action(a, &format!("{at}[{i}]"), n)?;
+                let mut a = action(a, &format!("{at}[{i}]"), cx)?;
                 a.with = i > 0;
                 acts.push(a);
             }
@@ -645,11 +683,18 @@ fn action(v: &Value, at: &str, n: &mut usize) -> Result<Action, String> {
         _ => unreachable!(),
     };
     // timing may sit beside the action key or inside its map
-    let inner = |k: &str| get(m, k).or(match v {
-        Value::Mapping(vm) => get(vm, k),
-        _ => None,
-    });
-    let dur = inner("dur").and_then(num).or(if *key == "wait" { num(v).or(Some(1.0)) } else { None });
+    let inner = |k: &str| {
+        get(m, k).or(match v {
+            Value::Mapping(vm) => get(vm, k),
+            _ => None,
+        })
+    };
+    let wait = if *key == "wait" {
+        num(v).or(Some(1.0))
+    } else {
+        None
+    };
+    let dur = inner("dur").and_then(num).or(wait);
     Ok(Action {
         kind,
         dur,
@@ -674,7 +719,8 @@ pub fn default_palette() -> HashMap<String, Rgba> {
         ("accent", "#f2c14e"),
         ("bar", "#c9ced6"),
         ("pos", "#dc4b8d"),
-        ("neg", "#5b9cf6"),
+        ("neg", "#2b6fdb"),
+        ("cell", "#252b36"),
         ("bg", "#0e1013"),
     ] {
         p.insert(k.to_string(), hex(v).unwrap());
@@ -693,7 +739,10 @@ pub fn index(src: &str) -> Result<Index, String> {
         return err("index", "lists no chapters");
     }
     Ok(Index {
-        title: get(m, "title").or(get(m, "name")).and_then(text).unwrap_or_default(),
+        title: get(m, "title")
+            .or(get(m, "name"))
+            .and_then(text)
+            .unwrap_or_default(),
         chapters,
     })
 }
@@ -751,41 +800,35 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
         }),
         _ => None,
     };
-    let mut n = 0;
+    let mut cx = Cx::default();
+    if let Some(v) = get(m, "net") {
+        let net = net(v, name)?;
+        for (k, at) in net.names.iter().zip(&net.at) {
+            points.push((k.clone(), *at));
+        }
+        // the camera frames every point, so the solved shape is in view before it is reached
+        for (k, at) in net.names.iter().zip(net.solve()) {
+            points.push((format!("{k}_rest"), at));
+        }
+        cx.net = Some(net);
+    }
     let mut slides = Vec::new();
-    for (si, s) in get(m, "slides")
-        .map(list)
-        .unwrap_or_default()
-        .iter()
-        .enumerate()
-    {
+    let slide_values = get(m, "slides").map(list).unwrap_or_default();
+    for (si, s) in slide_values.iter().enumerate() {
         let Value::Mapping(sm) = s else {
             return err(name, format!("slide {} is not a map", si + 1));
         };
         let title = get(sm, "title").and_then(text).unwrap_or_default();
         let mut steps = Vec::new();
-        for (ti, t) in get(sm, "steps")
-            .map(list)
-            .unwrap_or_default()
-            .iter()
-            .enumerate()
-        {
+        let step_values = get(sm, "steps").map(list).unwrap_or_default();
+        for (ti, t) in step_values.iter().enumerate() {
             let at = format!("{name} slide {} step {}", si + 1, ti + 1);
             let Value::Mapping(tm) = t else {
                 return err(&at, "a step is a map with `say` and `do`");
             };
-            let mut actions = Vec::new();
-            for (ai, a) in get(tm, "do")
-                .map(list)
-                .unwrap_or_default()
-                .iter()
-                .enumerate()
-            {
-                actions.push(action(a, &format!("{at} action {}", ai + 1), &mut n)?);
-            }
             steps.push(Step {
                 say: get(tm, "say").and_then(text),
-                actions,
+                actions: step(tm, &at, &mut cx)?,
             });
         }
         if steps.is_empty() {
@@ -804,7 +847,10 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
         return err(name, "has no slides");
     }
     Ok(Chapter {
-        title: get(m, "title").or(get(m, "name")).and_then(text).unwrap_or_default(),
+        title: get(m, "title")
+            .or(get(m, "name"))
+            .and_then(text)
+            .unwrap_or_default(),
         palette,
         points,
         camera: match get(m, "camera").or(get(m, "view")) {
@@ -816,4 +862,357 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
         axes: get(m, "axes").and_then(Value::as_bool).unwrap_or(false),
         slides,
     })
+}
+
+/// What a chapter's steps share while they are read.
+#[derive(Default)]
+struct Cx {
+    n: usize,           // Automatic ids handed out.
+    net: Option<Net>,   // The chapter's net.
+    eq: Option<String>, // Id of the last equation.
+}
+
+impl Cx {
+    /// A fresh automatic id.
+    fn auto(&mut self) -> String {
+        self.n += 1;
+        format!("_auto{}", self.n)
+    }
+}
+
+/// Three numbers.
+fn triple(v: &Value) -> Option<[f64; 3]> {
+    match v {
+        Value::Sequence(s) if s.len() == 3 => Some([num(&s[0])?, num(&s[1])?, num(&s[2])?]),
+        _ => None,
+    }
+}
+
+/// Force densities, rim densities, lifted supports and loads written onto a net.
+fn net_values(net: &mut Net, m: &Mapping, at: &str) -> Result<(), String> {
+    let node = |net: &Net, k: &Value| {
+        let name = text(k).unwrap_or_default();
+        net.find(&name)
+            .ok_or_else(|| format!("{at}: the net has no node {name}"))
+    };
+    match get(m, "q") {
+        Some(Value::Mapping(q)) => {
+            for (k, v) in q {
+                let name = text(k).unwrap_or_default();
+                let cable = net.cables.iter().position(|c| c.0 == name);
+                let i = cable.ok_or_else(|| format!("{at}: the net has no cable {name}"))?;
+                net.q[i] = num(v).unwrap_or(1.0);
+            }
+        }
+        Some(v) => net.q = vec![num(v).unwrap_or(1.0); net.q.len()],
+        None => {}
+    }
+    if let Some(rim) = get(m, "rim").and_then(num) {
+        for k in 0..net.cables.len() {
+            let (a, b) = (net.cables[k].1, net.cables[k].2);
+            if net.degree(a) < 4 && net.degree(b) < 4 {
+                net.q[k] = rim;
+            }
+        }
+    }
+    if let Some(Value::Mapping(lift)) = get(m, "lift") {
+        for (k, v) in lift {
+            let i = node(net, k)?;
+            net.fixed[i] = true;
+            net.at[i][2] = num(v).unwrap_or(0.0);
+        }
+    }
+    let load = |v: &Value| triple(v).ok_or_else(|| format!("{at}: a load is [x, y, z]"));
+    match get(m, "load") {
+        Some(Value::Mapping(loads)) => {
+            for (k, v) in loads {
+                let i = node(net, k)?;
+                net.load[i] = load(v)?;
+            }
+        }
+        Some(v) => {
+            for i in net.free() {
+                net.load[i] = load(v)?;
+            }
+        }
+        None => {}
+    }
+    Ok(())
+}
+
+/// The chapter's `net:`: named nodes and cables, or a grid.
+fn net(v: &Value, at: &str) -> Result<Net, String> {
+    let at = &format!("{at} net");
+    let Value::Mapping(m) = v else {
+        return err(at, "expected a map");
+    };
+    let mut net = Net::default();
+    if let Some(size) = get(m, "grid").and_then(pair) {
+        net = Net::grid(size[0] as usize, size[1] as usize);
+        let fixed = get(m, "fixed").map(strings).unwrap_or_default();
+        for i in 0..net.names.len() {
+            net.fixed[i] = match fixed.first().map(String::as_str) {
+                Some("corners") => net.degree(i) == 2,
+                Some("boundary") => net.degree(i) < 4,
+                _ => fixed.contains(&net.names[i]),
+            };
+        }
+    } else {
+        for (key, fixed) in [("free", false), ("fixed", true)] {
+            let Some(Value::Mapping(nodes)) = get(m, key) else {
+                continue;
+            };
+            for (k, v) in nodes {
+                let name = text(k).unwrap_or_default();
+                let p = triple(v).ok_or_else(|| format!("{at}: node {name} needs [x, y, z]"))?;
+                net.node(&name, p, fixed);
+            }
+        }
+        let Some(Value::Mapping(cables)) = get(m, "cables") else {
+            return err(at, "needs `cables` or `grid`");
+        };
+        for (k, v) in cables {
+            let name = text(k).unwrap_or_default();
+            let ends: Vec<usize> = strings(v).iter().filter_map(|n| net.find(n)).collect();
+            if ends.len() != 2 {
+                return err(at, format!("cable {name} needs two node names"));
+            }
+            net.cable(&name, ends[0], ends[1], 1.0);
+        }
+    }
+    net_values(&mut net, m, at)?;
+    solvable(&net, at)?;
+    Ok(net)
+}
+
+/// An error when a free node hangs on no cable, so the net has no equilibrium.
+fn solvable(net: &Net, at: &str) -> Result<(), String> {
+    let finite = |p: &[f64; 3]| p.iter().all(|c| c.is_finite());
+    match net.solve().iter().position(|p| !finite(p)) {
+        Some(i) => err(at, format!("node {} is not held by any cable with q above 0", net.names[i])),
+        None => Ok(()),
+    }
+}
+
+/// The objects that draw one part of the net: `fixed`, `free`, `cables`, `loads` or `net`.
+fn net_objects(net: &Net, group: &str) -> Option<Vec<ObjSpec>> {
+    let all = group == "net";
+    if !all && !["fixed", "free", "cables", "loads"].contains(&group) {
+        return None;
+    }
+    let small = net.names.len() <= 12;
+    let mut out = Vec::new();
+    if all || group == "cables" {
+        for (name, a, b) in &net.cables {
+            let line = Content::Line {
+                a: Pos::Name(net.names[*a].clone()),
+                b: Pos::Name(net.names[*b].clone()),
+                arrow: false,
+            };
+            let mut o = plain(name.clone(), line);
+            o.label = small.then(|| name.clone());
+            o.width = (!small).then_some(1.6);
+            out.push(o);
+        }
+    }
+    for (key, fixed) in [("fixed", true), ("free", false)] {
+        if !(all || group == key) {
+            continue;
+        }
+        for (i, name) in net.names.iter().enumerate() {
+            if net.fixed[i] != fixed || (!small && !fixed) {
+                continue;
+            }
+            let mut o = plain(name.clone(), Content::Point(Pos::Name(name.clone())));
+            o.color = Some(key.into());
+            o.label = small.then(|| tex_name(name));
+            out.push(o);
+        }
+    }
+    if all || group == "loads" {
+        let size = |p: &[f64; 3]| p.iter().map(|c| c * c).sum::<f64>().sqrt();
+        let longest = net.load.iter().map(size).fold(1e-9, f64::max);
+        let scale = if small { 1.0 } else { 0.5 } / longest;
+        let free = net.free().into_iter();
+        let loaded: Vec<usize> = free.filter(|&i| size(&net.load[i]) > 0.0).collect();
+        for &i in &loaded {
+            let (name, p) = (&net.names[i], net.load[i]);
+            let tip = format!(
+                "{name} + [{}, {}, {}]",
+                p[0] * scale,
+                p[1] * scale,
+                p[2] * scale
+            );
+            let arrow = Content::Line {
+                a: Pos::Name(name.clone()),
+                b: Pos::Expr(tip),
+                arrow: true,
+            };
+            let mut o = plain(format!("load_{name}"), arrow);
+            o.color = Some("load".into());
+            o.width = Some(if small { 3.6 } else { 1.8 });
+            o.label = (loaded.len() == 1).then(|| "p".to_string());
+            out.push(o);
+        }
+    }
+    Some(out)
+}
+
+/// An action with default timing.
+fn act(kind: Kind) -> Action {
+    Action {
+        kind,
+        dur: None,
+        with: false,
+        delay: 0.0,
+    }
+}
+
+/// An equation written by `eq` or `then`: named `eq<n>` and aligned on its equals sign.
+fn equation(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
+    let mut o = match v {
+        Value::Mapping(_) => object(v, at, cx)?,
+        _ => plain(cx.auto(), Content::Tex(text(v).unwrap_or_default())),
+    };
+    if o.id.starts_with("_auto") {
+        o.id = o.id.replace("_auto", "eq");
+    }
+    o.align = o.align.or(Some("=".into()));
+    Ok(o)
+}
+
+/// The moves that bring every free node to rest, after changes to q, rim, lift or load.
+fn solve(v: &Value, at: &str, cx: &Cx) -> Result<Kind, String> {
+    let net = cx.net.clone();
+    let mut net = net.ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    if let Value::Mapping(changes) = v {
+        net_values(&mut net, changes, at)?;
+        solvable(&net, at)?;
+    }
+    let rest = net.solve();
+    let mut moves = Vec::new();
+    for i in net.free() {
+        let to = Pos::Abs(rest[i].map(Scalar::N));
+        let mut a = act(Kind::Move {
+            point: net.names[i].clone(),
+            to,
+        });
+        a.dur = Some(2.0);
+        moves.push(a);
+    }
+    Ok(Kind::Play(moves))
+}
+
+/// Step keys that stand for a common action.
+const SHORT: [&str; 11] = [
+    "eq",
+    "then",
+    "becomes",
+    "text",
+    "code",
+    "matrix",
+    "row",
+    "tex",
+    "highlight",
+    "show",
+    "solve",
+];
+
+/// True for a key that styles the object written beside it: `id`, `align`, `size`, `gap`, `color: name`.
+fn looks(key: &Value, value: &Value) -> bool {
+    match key.as_str() {
+        Some("id" | "align" | "size" | "gap") => true,
+        Some("color") => !value.is_mapping(),
+        _ => false,
+    }
+}
+
+/// The actions of one step, in the order its keys are written.
+fn step(m: &Mapping, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
+    let mut out = Vec::new();
+    for (k, v) in m {
+        let key = text(k).unwrap_or_default();
+        let at = &format!("{at} {key}");
+        let mut one = Mapping::new();
+        one.insert(k.clone(), v.clone());
+        for (name, value) in m {
+            if looks(name, value) {
+                one.insert(name.clone(), value.clone());
+            }
+        }
+        let one = Value::Mapping(one);
+        match key.as_str() {
+            "say" | "with" | "dur" | "delay" => {}
+            _ if looks(k, v) => {}
+            "do" => {
+                for (i, a) in list(v).iter().enumerate() {
+                    let at = &format!("{at} {}", i + 1);
+                    match a {
+                        Value::Mapping(am) if SHORT.iter().any(|k| get(am, k).is_some()) => {
+                            out.extend(step(am, at, cx)?)
+                        }
+                        _ => out.push(action(a, at, cx)?),
+                    }
+                }
+            }
+            "eq" => {
+                let o = equation(v, at, cx)?;
+                cx.eq = Some(o.id.clone());
+                out.push(act(Kind::Add(vec![o])));
+            }
+            "then" => {
+                let obj = equation(v, at, cx)?;
+                let from = cx.eq.replace(obj.id.clone());
+                let from = from.ok_or_else(|| format!("{at}: no equation before it"))?;
+                out.push(act(Kind::Derive {
+                    from,
+                    obj,
+                    map: Vec::new(),
+                }));
+            }
+            "becomes" => {
+                let last = cx.eq.clone();
+                let target = last.ok_or_else(|| format!("{at}: no equation before it"))?;
+                out.push(act(Kind::Morph {
+                    target,
+                    to: Content::Tex(text(v).unwrap_or_default()),
+                    map: Vec::new(),
+                }));
+            }
+            "text" | "code" | "matrix" | "row" | "tex" => {
+                out.push(act(Kind::Add(vec![object(&one, at, cx)?])))
+            }
+            "highlight" => out.push(act(Kind::Indicate(strings(v), None))),
+            "show" => {
+                let (mut objs, mut refs) = (Vec::new(), Vec::new());
+                for name in strings(v) {
+                    match cx.net.as_ref().and_then(|net| net_objects(net, &name)) {
+                        Some(o) => objs.extend(o),
+                        None => refs.push(name),
+                    }
+                }
+                if !objs.is_empty() {
+                    out.push(act(Kind::Add(objs)));
+                }
+                if !refs.is_empty() {
+                    out.push(act(Kind::Show(refs)));
+                }
+            }
+            "solve" => out.push(act(solve(v, at, cx)?)),
+            _ if KINDS.contains(&key.as_str()) => out.push(action(&one, at, cx)?),
+            _ => return err(at, "is not a step key"),
+        }
+    }
+    if let Some(first) = out.first_mut() {
+        first.with = get(m, "with")
+            .and_then(Value::as_bool)
+            .unwrap_or(first.with);
+        first.delay = get(m, "delay").and_then(num).unwrap_or(first.delay);
+    }
+    if let Some(dur) = get(m, "dur").and_then(num) {
+        for a in &mut out {
+            a.dur = Some(dur);
+        }
+    }
+    Ok(out)
 }

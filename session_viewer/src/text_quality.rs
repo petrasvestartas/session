@@ -221,7 +221,6 @@ impl TextQuality {
                 font_size: 13.5,
                 line_height: 19.5,
                 color: [255; 4],
-                outline: 0.0,
                 placement: TextPlacement::Nameplate {
                     world: [0.0, 0.0, 0.5],
                     padding: [12.75, 3.0],
@@ -236,10 +235,6 @@ impl TextQuality {
             mvp: [
                 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
             ],
-            spatial_mvp: [
-                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-            ],
-            spatial_split: -1.0,
             origin: [0.0; 3],
             framebuffer: size,
             logical,
@@ -325,7 +320,6 @@ fn fixture_labels(selected: bool) -> Vec<TextLabel> {
             } else {
                 [255; 4] // white
             },
-            outline: 0.0,
             placement: TextPlacement::Screen { left: 12.25, top },
             clip: None,
         });

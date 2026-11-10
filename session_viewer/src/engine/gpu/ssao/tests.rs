@@ -619,8 +619,7 @@ fn shader_validates_for_both_depth_sample_counts() {
                         offset_of!(Instance, ao_radius),
                         offset_of!(Instance, spacing),
                         offset_of!(Instance, _pad),
-                        offset_of!(Instance, effect),
-                        offset_of!(Instance, end_color)
+                        offset_of!(Instance, effect)
                     ]
                 );
             }

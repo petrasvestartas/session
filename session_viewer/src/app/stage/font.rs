@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use ttf_parser::{Face, GlyphId};
 
 /// Which face a glyph comes from.
@@ -6,9 +7,15 @@ pub type FontId = u8;
 pub const MATH: FontId = 0;
 pub const TEXT: FontId = 1;
 pub const BOLD: FontId = 2;
+pub const MONO: FontId = 3;
 
 /// Font files beside the viewer, in `FontId` order.
-pub const FILES: [&str; 3] = ["NewCMMath-Book.otf", "NewCM10-Book.otf", "NewCM10-Bold.otf"];
+pub const FILES: [&str; 4] = [
+    "NewCMMath-Book.otf",
+    "NewCM10-Book.otf",
+    "NewCM10-Bold.otf",
+    "NewCMMono10-Book.otf",
+];
 
 /// MATH table constants in em.
 #[derive(Clone, Copy, Default, Debug)]
@@ -96,7 +103,7 @@ pub struct Fonts {
     pub faces: Vec<Font>,
     pub c: Constants,
     pub overlap: f32,
-    metrics: RefCell<std::collections::HashMap<(FontId, u16), Metrics>>,
+    metrics: RefCell<HashMap<(FontId, u16), Metrics>>,
 }
 
 impl Font {
@@ -121,55 +128,55 @@ impl Fonts {
             .tables()
             .math
             .ok_or("the math font has no MATH table")?;
-        let k = table.constants.ok_or("the MATH table has no constants")?;
-        let u = math.upem;
-        let v = |value: ttf_parser::math::MathValue| value.value as f32 / u;
+        let consts = table.constants.ok_or("the MATH table has no constants")?;
+        let upem = math.upem;
+        let em = |value: ttf_parser::math::MathValue| value.value as f32 / upem;
         let c = Constants {
-            script: k.script_percent_scale_down() as f32 / 100.0,
-            script_script: k.script_script_percent_scale_down() as f32 / 100.0,
-            delimited_min: k.delimited_sub_formula_min_height() as f32 / u,
-            display_op_min: k.display_operator_min_height() as f32 / u,
-            axis: v(k.axis_height()),
-            accent_base: v(k.accent_base_height()),
-            sub_down: v(k.subscript_shift_down()),
-            sub_top_max: v(k.subscript_top_max()),
-            sub_drop_min: v(k.subscript_baseline_drop_min()),
-            sup_up: v(k.superscript_shift_up()),
-            sup_up_cramped: v(k.superscript_shift_up_cramped()),
-            sup_bottom_min: v(k.superscript_bottom_min()),
-            sup_drop_max: v(k.superscript_baseline_drop_max()),
-            sub_sup_gap: v(k.sub_superscript_gap_min()),
-            sup_bottom_max_with_sub: v(k.superscript_bottom_max_with_subscript()),
-            space_after_script: v(k.space_after_script()),
-            upper_gap: v(k.upper_limit_gap_min()),
-            upper_rise: v(k.upper_limit_baseline_rise_min()),
-            lower_gap: v(k.lower_limit_gap_min()),
-            lower_drop: v(k.lower_limit_baseline_drop_min()),
-            num_up: v(k.fraction_numerator_shift_up()),
-            num_up_display: v(k.fraction_numerator_display_style_shift_up()),
-            den_down: v(k.fraction_denominator_shift_down()),
-            den_down_display: v(k.fraction_denominator_display_style_shift_down()),
-            num_gap: v(k.fraction_numerator_gap_min()),
-            num_gap_display: v(k.fraction_num_display_style_gap_min()),
-            rule: v(k.fraction_rule_thickness()),
-            den_gap: v(k.fraction_denominator_gap_min()),
-            den_gap_display: v(k.fraction_denom_display_style_gap_min()),
-            overbar_gap: v(k.overbar_vertical_gap()),
-            overbar_rule: v(k.overbar_rule_thickness()),
-            overbar_extra: v(k.overbar_extra_ascender()),
-            underbar_gap: v(k.underbar_vertical_gap()),
-            underbar_rule: v(k.underbar_rule_thickness()),
-            underbar_extra: v(k.underbar_extra_descender()),
-            radical_gap: v(k.radical_vertical_gap()),
-            radical_gap_display: v(k.radical_display_style_vertical_gap()),
-            radical_rule: v(k.radical_rule_thickness()),
-            radical_extra: v(k.radical_extra_ascender()),
-            stretch_gap_above: v(k.stretch_stack_gap_above_min()),
-            stretch_gap_below: v(k.stretch_stack_gap_below_min()),
+            script: consts.script_percent_scale_down() as f32 / 100.0,
+            script_script: consts.script_script_percent_scale_down() as f32 / 100.0,
+            delimited_min: consts.delimited_sub_formula_min_height() as f32 / upem,
+            display_op_min: consts.display_operator_min_height() as f32 / upem,
+            axis: em(consts.axis_height()),
+            accent_base: em(consts.accent_base_height()),
+            sub_down: em(consts.subscript_shift_down()),
+            sub_top_max: em(consts.subscript_top_max()),
+            sub_drop_min: em(consts.subscript_baseline_drop_min()),
+            sup_up: em(consts.superscript_shift_up()),
+            sup_up_cramped: em(consts.superscript_shift_up_cramped()),
+            sup_bottom_min: em(consts.superscript_bottom_min()),
+            sup_drop_max: em(consts.superscript_baseline_drop_max()),
+            sub_sup_gap: em(consts.sub_superscript_gap_min()),
+            sup_bottom_max_with_sub: em(consts.superscript_bottom_max_with_subscript()),
+            space_after_script: em(consts.space_after_script()),
+            upper_gap: em(consts.upper_limit_gap_min()),
+            upper_rise: em(consts.upper_limit_baseline_rise_min()),
+            lower_gap: em(consts.lower_limit_gap_min()),
+            lower_drop: em(consts.lower_limit_baseline_drop_min()),
+            num_up: em(consts.fraction_numerator_shift_up()),
+            num_up_display: em(consts.fraction_numerator_display_style_shift_up()),
+            den_down: em(consts.fraction_denominator_shift_down()),
+            den_down_display: em(consts.fraction_denominator_display_style_shift_down()),
+            num_gap: em(consts.fraction_numerator_gap_min()),
+            num_gap_display: em(consts.fraction_num_display_style_gap_min()),
+            rule: em(consts.fraction_rule_thickness()),
+            den_gap: em(consts.fraction_denominator_gap_min()),
+            den_gap_display: em(consts.fraction_denom_display_style_gap_min()),
+            overbar_gap: em(consts.overbar_vertical_gap()),
+            overbar_rule: em(consts.overbar_rule_thickness()),
+            overbar_extra: em(consts.overbar_extra_ascender()),
+            underbar_gap: em(consts.underbar_vertical_gap()),
+            underbar_rule: em(consts.underbar_rule_thickness()),
+            underbar_extra: em(consts.underbar_extra_descender()),
+            radical_gap: em(consts.radical_vertical_gap()),
+            radical_gap_display: em(consts.radical_display_style_vertical_gap()),
+            radical_rule: em(consts.radical_rule_thickness()),
+            radical_extra: em(consts.radical_extra_ascender()),
+            stretch_gap_above: em(consts.stretch_stack_gap_above_min()),
+            stretch_gap_below: em(consts.stretch_stack_gap_below_min()),
         };
         let overlap = table
             .variants
-            .map_or(0.0, |variants| variants.min_connector_overlap as f32 / u);
+            .map_or(0.0, |variants| variants.min_connector_overlap as f32 / upem);
         Ok(Self {
             faces,
             c,

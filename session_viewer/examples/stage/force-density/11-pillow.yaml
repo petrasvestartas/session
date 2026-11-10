@@ -1,0 +1,43 @@
+# Chapter 11: a pillow. The whole boundary is fixed and every free node carries a load.
+title: A pillow
+grid: {center: [4.5, 4.5], size: 12, step: 1}
+camera: {yaw: -52, pitch: 30}
+net:
+  grid: [10, 10]
+  fixed: boundary
+  q: 1
+  load: [0, 0, 0.35]
+slides:
+  - title: Fixed boundary, loaded nodes
+    steps:
+      - say: 'The same grid. Now all 36 boundary nodes are fixed, and the 64 inner nodes are free.'
+        show: [cables, fixed]
+      - say: 'Every free node carries the same upward load, like air pressure inside a cushion.'
+        show: loads
+      - say: 'The unknowns: 64 nodes, three coordinates each.'
+        eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F'
+
+  - title: The three right-hand sides
+    steps:
+      - say: '$\mathbf{D}_N$ is 64 × 64, with the same pattern as before: the diagonal and the four neighbours.'
+        matrix: DN
+      - say: 'Along $x$ and $y$ there is no load. The right-hand side is only the pull of the fixed boundary, and the nodes stay on their regular grid.'
+        eq: '\mathbf{D}_N\,\mathbf{x}_N = -\mathbf{D}_F\,\mathbf{x}_F'
+      - say: 'Along $z$ the boundary sits at $z = 0$, so it adds nothing. The right-hand side is the load alone.'
+        eq: '\mathbf{D}_N\,\mathbf{z}_N = \mathbf{p}_z'
+
+  - title: Solve
+    steps:
+      - say: 'One factorisation, three substitutions. Each node rises until its four cables balance its load.'
+        solve: true
+      - say: 'For an inner node: $4z_0 - z_1 - z_2 - z_3 - z_4 = p_z$. The node sits above the average of its neighbours by $p_z/4$.'
+        eq: 'z_0 = \tfrac{1}{4}\,(z_1 + z_2 + z_3 + z_4) + \tfrac{1}{4}\,p_z'
+
+  - title: A linear system answers linearly
+    steps:
+      - say: 'Double the load. Every height doubles: the matrix did not change, only the right-hand side.'
+        solve: {load: [0, 0, 0.7]}
+      - say: 'Back to the first load, and double every force density instead. The matrix doubles, so the heights halve.'
+        solve: {q: 2}
+      - say: 'Loads set the right-hand side, force densities set the matrix, the fixed points set both. One solve gives the shape.'
+        solve: true

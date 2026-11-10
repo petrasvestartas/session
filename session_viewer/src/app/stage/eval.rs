@@ -12,12 +12,14 @@ pub trait Points {
     fn point(&self, name: &str) -> Option<[f64; 3]>;
 }
 
-struct P<'a, T: Points> {
-    s: Vec<char>,
-    i: usize,
+/// A recursive-descent reader of one expression over named points.
+struct Parser<'a, T: Points> {
+    chars: Vec<char>,
+    at: usize,
     pts: &'a T,
 }
 
+/// `a + sign * b` for two numbers or two points.
 fn add(a: Val, b: Val, sign: f64) -> Result<Val, String> {
     match (a, b) {
         (Val::S(a), Val::S(b)) => Ok(Val::S(a + sign * b)),
@@ -30,6 +32,7 @@ fn add(a: Val, b: Val, sign: f64) -> Result<Val, String> {
     }
 }
 
+/// `a * b`, or `a / b` when `div`, for numbers and a point scaled by a number.
 fn mul(a: Val, b: Val, div: bool) -> Result<Val, String> {
     let f = |x: f64, y: f64| if div { x / y } else { x * y };
     match (a, b) {
@@ -40,17 +43,17 @@ fn mul(a: Val, b: Val, div: bool) -> Result<Val, String> {
     }
 }
 
-impl<'a, T: Points> P<'a, T> {
-    fn ws(&mut self) {
-        while self.i < self.s.len() && self.s[self.i].is_whitespace() {
-            self.i += 1;
+impl<T: Points> Parser<'_, T> {
+    fn skip_space(&mut self) {
+        while self.at < self.chars.len() && self.chars[self.at].is_whitespace() {
+            self.at += 1;
         }
     }
 
     fn eat(&mut self, c: char) -> bool {
-        self.ws();
-        if self.s.get(self.i) == Some(&c) {
-            self.i += 1;
+        self.skip_space();
+        if self.chars.get(self.at) == Some(&c) {
+            self.at += 1;
             true
         } else {
             false
@@ -91,7 +94,6 @@ impl<'a, T: Points> P<'a, T> {
     }
 
     fn factor(&mut self) -> Result<Val, String> {
-        self.ws();
         if self.eat('-') {
             return mul(Val::S(-1.0), self.factor()?, false);
         }
@@ -109,24 +111,25 @@ impl<'a, T: Points> P<'a, T> {
             self.eat(']');
             return Ok(Val::V([x, y, z]));
         }
-        self.ws();
-        let start = self.i;
-        let c = *self.s.get(self.i).ok_or("unexpected end")?;
+        let start = self.at;
+        let c = *self.chars.get(self.at).ok_or("unexpected end")?;
         if c.is_ascii_digit() || c == '.' {
-            while self.i < self.s.len()
-                && (self.s[self.i].is_ascii_digit()
-                    || self.s[self.i] == '.'
-                    || self.s[self.i] == 'e')
+            while self.at < self.chars.len()
+                && (self.chars[self.at].is_ascii_digit()
+                    || self.chars[self.at] == '.'
+                    || self.chars[self.at] == 'e')
             {
-                self.i += 1;
+                self.at += 1;
             }
-            let t: String = self.s[start..self.i].iter().collect();
+            let t: String = self.chars[start..self.at].iter().collect();
             return t.parse().map(Val::S).map_err(|_| format!("bad number {t}"));
         }
-        while self.i < self.s.len() && (self.s[self.i].is_alphanumeric() || self.s[self.i] == '_') {
-            self.i += 1;
+        while self.at < self.chars.len()
+            && (self.chars[self.at].is_alphanumeric() || self.chars[self.at] == '_')
+        {
+            self.at += 1;
         }
-        let name: String = self.s[start..self.i].iter().collect();
+        let name: String = self.chars[start..self.at].iter().collect();
         if name.is_empty() {
             return Err(format!("unexpected `{c}`"));
         }
@@ -198,15 +201,16 @@ impl<'a, T: Points> P<'a, T> {
 
 /// Evaluate an expression such as `mid(P0,P1) + [0,0,0.3]` or `len(P0,P1)`.
 pub fn eval<T: Points>(src: &str, pts: &T) -> Result<Val, String> {
-    let mut p = P {
-        s: src.chars().collect(),
-        i: 0,
+    let mut parser = Parser {
+        chars: src.chars().collect(),
+        at: 0,
         pts,
     };
-    let v = p.expr()?;
-    p.ws();
-    if p.i < p.s.len() {
-        return Err(format!("unexpected `{}` in `{src}`", p.s[p.i]));
+    let v = parser.expr()?;
+    parser.skip_space();
+    if parser.at < parser.chars.len() {
+        let rest = parser.chars[parser.at];
+        return Err(format!("unexpected `{rest}` in `{src}`"));
     }
     Ok(v)
 }

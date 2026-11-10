@@ -53,7 +53,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
         return dead_dot();
     }
 
-    let clip = view_mvp(g.instance_id) * vec4<f32>(world, 1.0);
+    let clip = mvp * vec4<f32>(world, 1.0);
 
     // behind the camera
     if (clip.z - clip.w > 0.0) {
@@ -127,9 +127,6 @@ fn coverage(in: VsOut) -> f32 {
 @fragment
 // Color: the disc, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
-    if (spatial_clipped(in.inst_id, in.pos.xy)) {
-        discard;
-    }
     let covered = coverage(in);
 
     // no coverage: no depth reads
@@ -150,7 +147,7 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 @fragment
 // Pick id: object row + 1 and a marker tag.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
+    if (non_pickable(in.inst_id) || coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
         discard;
     }
 
@@ -174,7 +171,7 @@ fn vs_source(@builtin(vertex_index) vid: u32) -> VsOut {
 @fragment
 // Pick id: object row + 1 and point row + 1.
 fn fs_source_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || coverage(in) < 0.5) {
+    if (non_pickable(in.inst_id) || coverage(in) < 0.5) {
         discard;
     }
 

@@ -2,6 +2,9 @@ use super::{deck, font, run, tex};
 use std::collections::HashMap;
 use std::rc::Rc;
 
+const DECKS: [&str; 2] = ["force-density", "force-density-derivations"];
+
+/// The stage fonts read from the crate's assets.
 fn fonts() -> font::Fonts {
     let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/stage/");
     let files = font::FILES
@@ -11,15 +14,17 @@ fn fonts() -> font::Fonts {
     font::Fonts::new(files).expect("fonts parse")
 }
 
+/// The index and chapters of an example deck.
 fn deck(name: &str) -> (deck::Index, Vec<deck::Chapter>) {
     let dir = format!("{}/examples/stage/{name}/", env!("CARGO_MANIFEST_DIR"));
-    let index = deck::index(&std::fs::read_to_string(format!("{dir}index.yaml")).unwrap()).unwrap();
+    let src = std::fs::read_to_string(format!("{dir}index.yaml")).unwrap();
+    let index = deck::index(&src).unwrap();
     let chapters = index
         .chapters
         .iter()
         .map(|c| {
-            deck::chapter(&std::fs::read_to_string(format!("{dir}{c}")).unwrap(), c)
-                .unwrap_or_else(|e| panic!("{e}"))
+            let src = std::fs::read_to_string(format!("{dir}{c}")).unwrap();
+            deck::chapter(&src, c).unwrap_or_else(|e| panic!("{e}"))
         })
         .collect();
     (index, chapters)
@@ -80,27 +85,26 @@ fn text_keeps_its_spaces() {
 
 #[test]
 fn expressions_resolve_points() {
-    struct P;
-    impl super::eval::Points for P {
-        fn point(&self, n: &str) -> Option<[f64; 3]> {
-            match n {
+    struct Named;
+    impl super::eval::Points for Named {
+        fn point(&self, name: &str) -> Option<[f64; 3]> {
+            match name {
                 "A" => Some([0.0, 0.0, 0.0]),
                 "B" => Some([3.0, 4.0, 0.0]),
                 _ => None,
             }
         }
     }
-    let p = deck::pos(
-        &serde_yaml_ng::Value::String("mid(A, B) + [0, 0, 1]".into()),
-        "t",
-    )
-    .unwrap();
-    assert_eq!(super::eval::position(&p, &P).unwrap(), [1.5, 2.0, 1.0]);
-    assert_eq!(super::eval::fill("l = {=len(A,B):.2}", &P), "l = 5.00");
+    let value = serde_yaml_ng::Value::String("mid(A, B) + [0, 0, 1]".into());
+    let pos = deck::pos(&value, "t").unwrap();
+    assert_eq!(
+        super::eval::position(&pos, &Named).unwrap(),
+        [1.5, 2.0, 1.0]
+    );
+    assert_eq!(super::eval::fill("l = {=len(A,B):.2}", &Named), "l = 5.00");
 }
 
-/// Every step of every chapter, at rest: no author errors, no overlapping blocks or labels,
-/// and every panel block inside the slide.
+/// Every step at rest: no author errors, no overlapping blocks or labels, every block on the slide.
 #[test]
 fn decks_rest_cleanly_at_every_step() {
     for name in DECKS {
@@ -108,8 +112,7 @@ fn decks_rest_cleanly_at_every_step() {
     }
 }
 
-const DECKS: [&str; 2] = ["force-density", "force-density-derivations"];
-
+/// Rebuild every step of a deck and check it at rest.
 fn rests_cleanly(name: &str) {
     let (index, chapters) = deck(name);
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
@@ -144,6 +147,7 @@ fn decks_play_through() {
     }
 }
 
+/// Play a deck forward until every step has settled.
 fn plays_through(name: &str) {
     let (index, chapters) = deck(name);
     let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);

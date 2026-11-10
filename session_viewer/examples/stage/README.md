@@ -1,160 +1,189 @@
 # Stage decks: mathematical slides written in YAML
 
-A stage deck is a folder of YAML files and nothing else. The viewer reads it, turns the 3D
-objects into kernel `Point`, `Line` and `Polyline` geometry in its own scene, typesets the TeX
-with its own OpenType-MATH layout (New Computer Modern), and animates every step. Python,
-protobuf files, MathJax and SVG are not involved.
-
-Two decks live here:
-
-- `force-density/`: the method in levels. One solve from the inputs, the five-node principles,
-  the matrices, several free nodes.
-- `force-density-derivations/`: Linkwitz 6.4.2-6.5 step by step. The bar and the nudge, the
-  tiny-nudge algebra A-G, the chain rule, the Jacobian row, the matrix form (6.25)-(6.33),
-  materialization, and a résumé.
+A deck is a folder of YAML files. The viewer draws the 3D side with kernel `Point`, `Line` and
+`Polyline` geometry in its own scene, typesets the TeX itself, and animates every step.
 
 ```text
-https://petrasvestartas.github.io/session/?stage=force-density              published deck (R2: stage/force-density/index.yaml)
-https://petrasvestartas.github.io/session/?stage=force-density-derivations  the derivations deck
-http://127.0.0.1:8080/?stage=force-density/index.yaml&data=http://127.0.0.1:9000/  a deck served from a local folder
-&chapter=5&step=3                                                                  open at chapter 5, after its third step
+https://petrasvestartas.github.io/session/?stage=force-density              the method, from one node in equilibrium to a net
+https://petrasvestartas.github.io/session/?stage=force-density-derivations  Linkwitz 6.4.2-6.5 step by step
+&chapter=7&step=3                                                           open at chapter 7, after its third step
 ```
 
-The slide is 1600 × 900. The left side is the viewer's own scene under its orthographic camera,
-and it stays the same from slide to slide; the right side is a column of formulas, matrices and
-text. The only decoration is the matrix cell: a rounded fill without a contour. Highlights
-recolour fills or pulse an object; nothing is framed. Blocks in the column are laid
-out automatically from the top. Equations marked `align: '='` share one column for their equals
-signs. Blocks wider than the column shrink to fit, and blocks move smoothly when others are added
-or removed, so nothing overlaps. Narration (`say`) sits under the column, and the slide title sits
-above it.
+Keys: **→ / Space** next step, **←** back, **↓ / ↑** next and previous slide, **1–9** chapter,
+**R** reset view. Drag the 3D side to orbit, wheel to zoom.
 
-Keys: **→ / Space / PageDown** next step (a running step first finishes); **←** back;
-**↓ / ↑** next and previous slide; **1–9** jump to a chapter; **R** resets the view. Drag the 3D
-side to orbit, use the wheel to zoom, and double-click to reset. Click the column to advance or a
-numbered circle to change chapter.
+## The shape of a deck
 
-## Files
-
-```yaml
-# index.yaml
-name: Force density method
-chapters: [01-one-solve.yaml, 02-five-nodes.yaml]
+```text
+force-density/
+  index.yaml             name and the list of chapter files
+  01-method.yaml         one chapter = one 3D scene + its slides
+  02-equilibrium.yaml
 ```
 
+A chapter is a list of slides, a slide is a list of steps, and a step is one sentence plus what
+appears with it. The 3D scene stays while the slides of a chapter change the right-hand column.
+
 ```yaml
-# 01-one-solve.yaml: one chapter, with one 3D scene shared by all of its slides
-title: One linear solve
-grid: {center: [3.5, 3.5], size: 9, step: 1}   # optional floor grid
-axes: false                                     # optional x, y, z arrows at the origin
-camera: {yaw: -58, pitch: 26}                   # degrees; fits all points unless zoom/fit is given (`view: iso` also works)
-split: 0.46                                     # width share of the 3D side
-palette: {cable: '#c9ced6'}                     # extra or replaced colours
-points:                                         # named positions; `move` animates them
-  P0: [3, 3, 0.25]
-  P1: [0, 0, 0]
+title: A pillow
+net:                              # the structure, once per chapter
+  grid: [10, 10]
+  fixed: boundary
+  q: 1
+  load: [0, 0, 0.35]
 slides:
-  - title: What we know
-    keep: false                                 # true keeps the previous slide's formulas
+  - title: Fixed boundary, loaded nodes
     steps:
-      - say: 'Narration with inline $\mathbf{x}_F$ and **bold**.'
-        do: [ ...actions, played one after another... ]
+      - say: 'All 36 boundary nodes are fixed.'
+        show: [cables, fixed]
+      - say: 'Every free node carries the same load.'
+        show: loads
+      - say: 'The unknowns: 64 nodes.'
+        eq: '\mathbf{D}_N\,\mathbf{x}_N = \mathbf{p} - \mathbf{D}_F\,\mathbf{x}_F'
+      - say: 'One solve gives the shape.'
+        solve: true
 ```
 
-Write TeX in **single quotes**: YAML then leaves backslashes alone (`'\frac{a}{b}'`).
+Write TeX and sentences in **single quotes**, so YAML leaves backslashes alone. Inside `say` and
+`text`, `$...$` is math and `**...**` is bold.
 
-Default colours: `ink dim faint free fixed load x y z accent bar pos neg bg`. Any `#rrggbb`
-also works.
+## Add a slide
 
-## Objects (`add:`)
+Open the chapter file, go to the place in `slides:` where the slide belongs, and add:
 
-`add` takes one object or a list of objects. Every object can have an `id`, used by later actions.
+```yaml
+  - title: Double the load
+    steps:
+      - say: 'Double the load. Every height doubles.'
+        solve: {load: [0, 0, 0.7]}
+      - say: 'In numbers:'
+        eq: 'z_{max} = 2 \cdot 2.1 = 4.2'
+```
+
+That is a complete slide. Then look at it (see *Look at a deck* below).
+
+## Change a slide
+
+Find the slide by its `title:` and edit the step:
+
+- change the sentence: edit `say:`;
+- change a formula: edit the TeX after `eq:`;
+- add a step: add another `- say: ...` block where it belongs;
+- remove a step: delete its block.
+
+Steps play in the order written, so nothing else has to be renumbered.
+
+## What a step can do
+
+Each key is one thing that happens with the sentence. Keys play top to bottom.
+
+| key | what happens |
+|---|---|
+| `say: '...'` | the sentence under the column |
+| `eq: 'a = b'` | writes an equation; equations of a slide line up on their `=` |
+| `becomes: 'a = c'` | rewrites the last equation in place (equal symbols travel, the rest fades) |
+| `then: 'c = d'` | writes the next line, grown out of the last equation |
+| `text: '...'` | a line of prose |
+| `code: \|` + indented lines | program text in a monospace face, `#` comments dimmed |
+| `matrix: DN` | a matrix of the net by name (table below), or `{rows: [[1, -1], [0, 1]]}` typed by hand |
+| `row: ['\mathbf{u} =', {id: C, matrix: C}, ...]` | formulas and matrices on one line |
+| `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |
+| `solve: true` | moves the free nodes to equilibrium; `solve: {load: [0, 0, 1], q: 2, rim: 6}` solves a changed net |
+| `highlight: [P0, 'M[2,:]']` | pulses an object, a matrix row, column or entry |
+| `add: {...}` | any object (next section) |
+| `do: [...]` | several of the above in a list, when one key is needed twice |
+
+A matrix cell is a rounded fill: pink for positive, blue for negative, dark for zero. A matrix
+with more than 14 rows or columns is drawn as its pattern: one small square per non-zero entry.
+
+## The net
+
+```yaml
+net:                                   # named nodes and cables
+  fixed: {P1: [0, 0, 0], P2: [5, 0, 3]}
+  free: {P0: [3.6, 3.4, 1.9]}          # where it is drawn before `solve`
+  cables: {a: [P0, P1], b: [P0, P2]}
+  q: 1                                 # one number, or {a: 2, b: 1}
+  load: {P0: [0, 0, -5]}               # per node, or [x, y, z] for every free node
+```
+
+```yaml
+net:                                   # a grid: nodes n<row>_<col>, cables h<row>_<col> and v<row>_<col>
+  grid: [10, 10]
+  fixed: corners                       # corners, boundary, or a list of node names
+  lift: {n0_0: 4, n9_9: 4}             # these nodes are fixed at this height
+  q: 1
+  rim: 6                               # force density of the rim cables
+  load: [0, 0, 0.35]
+```
+
+Matrices the net gives by name:
+
+| name | matrix |
+|---|---|
+| `C`, `CN`, `CF` | branch-node matrix; its free and fixed columns |
+| `q`, `Q` | force densities as a column and as a diagonal |
+| `DN`, `DF` | `C_N^T Q C_N` and `C_N^T Q C_F` |
+| `xF`, `p`, `b` | fixed coordinates, loads, and the right-hand side `p - D_F x_F` (columns x, y, z) |
+| `xN` | the solved free coordinates |
+| `l`, `L`, `f` | solved lengths (column, diagonal) and forces `L q` |
+| `U` | `D_N` after elimination: the triangle a solver works with |
+
+Node and cable names are also object names: `color: {target: a, color: accent}`,
+`highlight: [P0]`, `'P0 + [0, 0, -2]'`.
+
+## Other objects (`add:`)
 
 | 3D, drawn on the left | |
 |---|---|
-| `point: P0` | a disc; `label: 'P_0'` attaches a label placed clear of lines and other labels |
+| `point: P0` | a dot; `label: 'P_0'` attaches a label placed clear of lines |
 | `line: [P0, P1]`, `arrow: [P0, P1]` | `width`, `dash: true`, `label` at the midpoint |
 | `polyline: [A, B, C]`, `polygon: [...]` | open or closed |
-| `cuboid: [P0, P1]` | the dashed box spanned by two corners |
-| `label: P1` + `tex: '(0,\,0,\,0)'` | a formula at a 3D position; `dir: [0, -1]` forces a side |
+| `cuboid: [P0, P1]` | the dashed box between two corners |
+| `label: P1` + `tex: '(0,\,0,\,0)'` | a formula at a 3D position |
 
-A position is a point name, `[x, y, z]`, or an expression:
-`'P0 + [0, 0, -2]'`, `'mid(P0, P1)'`, `'lerp(P1, P0, 0.9)'`, `'P0 + 0.5*(P1 - P0)'`,
-`'[x(P1), y(P0), z(P0)]'`, and `len(A, B)`, `unit(v)`, `norm(v)`. Positions are evaluated
-every frame, so geometry follows a point while `move` animates it.
+A position is a name from `points:` or the net, `[x, y, z]`, or an expression:
+`'P0 + [0, 0, -2]'`, `'mid(P0, P1)'`, `'lerp(P1, P0, 0.9)'`. Geometry follows a point while
+`move: {point: P0, to: [3, 3, 0.25]}` animates it.
 
-| 2D, stacked on the right | |
-|---|---|
-| `tex: 'l_k = \sqrt{\cdots}'` | display-style formula; `align: '='` joins the equals column |
-| `text: 'Prose with $math$ and **bold**.'` | wrapped to the column |
-| `matrix: {rows: [[1, -1], [0, 1]]}` | rounded square cells; sign colours (`pos`/`neg`), zeros faint |
-| `row: ['\mathbf{u} =', {id: C, matrix: ...}, {id: x, matrix: ...}]` | formulas and matrices on one axis |
+Every object takes `id` (to refer to it later), `color` (`ink dim faint free fixed load x y z
+accent pos neg cell` or `#rrggbb`) and `size`.
 
-Matrix options: `name` (TeX under it), `rowlabels`, `collabels`, `empty: true` (cells without
-values, filled later by `show`, `fly` or `set`), `signs: false`, `cell` (size in em), and `colors`
-(per-cell palette names). An entry may be a number or TeX (`'\dfrac{-(x_1-x_0)}{l_a}'`).
-
-Common options: `color`, `size` (px: formulas 34, matrices 30, text 25, labels 24), `opacity`,
-`gap` (px above a block), `at: [x, y]` (fixed slide position instead of the column), and
-`anim: write | fade | grow | pop | none`.
-
-A live value: `tex: 'l_k = {=len(X, P1):.3}'` is recomputed every frame.
-
-## Parts and references
-
-Wrap a sub-formula in double braces to make it a part: `'\sqrt{ {{(x_1 - x_0)^2}} + \cdots}'`.
-Parts are matched first when one formula morphs into another, and they can be targeted. References
-used by actions:
-
-| reference | means |
-|---|---|
-| `eq` | the whole object |
-| `eq{(x_1 - x_0)^2}` | a part, written as its TeX |
-| `M[1,2]`, `M[1,:]`, `M[:,0]` | a matrix entry, row or column, also for matrices inside a `row` |
-| `n0.label` | the label attached to object `n0` |
-
-## Actions (`do:`)
-
-Actions run one after the other. `with: true` starts an action together with the previous one,
-`delay: 0.3` waits (seconds) and `dur: 1.5` sets the duration. These keys may sit beside the
-action key or inside its map.
+## Other actions
 
 | action | effect |
 |---|---|
-| `add: {...}` | create, written glyph by glyph (3D lines grow, points pop) |
-| `remove: [id, ...]` | fade out; the column closes the gap |
-| `morph: {target: eq, tex: '...'}` | transform in place: equal glyphs and parts travel, the rest fades; any content key (`row`, `matrix`, `arrow`, ...) works |
-| `derive: {from: eq, id: eq2, tex: '...'}` | a new object built from a copy of another; with 3D geometry it moves from the source shape (a projection) |
-| `fly: {from: label, to: 'M[0,:]', keep: false}` | copies matching glyphs into hidden cells and reveals them |
-| `set: {target: 'M[0,1]', tex: '4'}` | change one entry, morphing |
-| `show` / `hide: ['M[2,:]']` | reveal or hide entries, rows or parts |
-| `indicate: [ref, ...]` | pulse and tint briefly |
-| `color: {target: 'M[0,:]', color: accent}` | recolour cells, parts or 3D objects; `color: reset` restores. This is the highlight for a row times a column |
-| `box: {target: ref, color: accent}` | a rounded frame around the target (id `box:<ref>`); the example decks do not use it |
-| `dim` / `undim: [id, ...]` | fade to the background and back |
-| `move: {point: P0, to: [3, 3, 0.25]}` | animate a named point |
-| `camera: {view: front}` or `{yaw, pitch, zoom, fit: [P0, P1]}` | views: `front back top side left iso` |
-| `wait: 1.0`, `clear` | pause; clear the column |
-| `play: [action, action]` | run actions together |
+| `remove: [id, ...]` | fade out |
+| `morph: {target: id, tex: '...'}` | `becomes` for an object named by id |
+| `derive: {from: id, id: new, tex: '...'}` | `then` for an object named by id; with 3D geometry the new shape moves out of the old one |
+| `fly: {from: P1.label, to: 'M[0,:]'}` | copies glyphs into empty matrix cells (`matrix: {..., empty: true}`) |
+| `set: {target: 'M[0,1]', tex: '4'}` | change one matrix entry |
+| `show` / `hide: ['M[2,:]']` | reveal or hide entries of a matrix |
+| `color: {target: 'M[0,:]', color: accent}` | recolour until `color: reset` |
+| `dim` / `undim: [id, ...]` | fade back and forth |
+| `move`, `camera: {yaw: -50, pitch: 30}`, `wait: 1` | animate a point, the camera, or pause |
 
-`map` on `morph`/`derive` pairs pieces explicitly; keys and values are parts or references, for
-example when a matrix splits into blocks:
-`map: {'[:,0]': 'CN[:,0]', '[:,1]': 'CF[:,0]'}`.
+`with: true` beside an action starts it together with the one before; `dur: 2` sets its seconds.
+Mistakes (an unknown name, an unknown TeX command) are listed in red at the top of the slide.
 
-Mistakes (unknown TeX commands, missing objects) are listed in red at the top of the slide.
-
-## Check and publish
+## Look at a deck
 
 ```bash
 cd session/session_viewer
-cargo test --target x86_64-pc-windows-msvc --lib stage::     # every step of both decks: no errors, no overlaps
-bash ../../wood/tools/buildslot.sh stage env CARGO_BUILD_JOBS=8 trunk build
+cargo test --target x86_64-pc-windows-msvc --lib stage::     # plays every step: no errors, no overlaps
+bash ../../wood/tools/buildslot.sh stage env CARGO_BUILD_JOBS=8 trunk serve
+# then open http://127.0.0.1:8080/?stage=decks/force-density/index.yaml&data=off
+# trunk copies examples/stage into the site as decks/ and reloads the page when a YAML file is saved
+```
+
+Publish (the live site reads the decks from R2, no rebuild needed for a YAML change):
+
+```bash
 aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete \
   --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 \
   --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
 ```
 
-The runtime lives in `src/app/stage/`: `tex.rs` (TeX parser and MATH-table layout), `font.rs`,
-`deck.rs` (YAML), `eval.rs` (positions), `run.rs` (objects, layout, actions, morph matching),
-`spatial.rs` (kernel geometry in the scene, placement per frame, the real camera) and `paint.rs`
-(glyph atlas and egui drawing of the column and the 3D labels).
+The runtime is `src/app/stage/`: `deck.rs` (YAML), `net.rs` (the net, its matrices and the solve),
+`tex.rs` and `font.rs` (TeX and code layout), `run.rs` (objects, layout, actions), `spatial.rs` (kernel
+geometry in the scene) and `paint.rs` (drawing the column and the labels).

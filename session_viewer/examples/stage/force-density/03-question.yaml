@@ -1,0 +1,67 @@
+# Chapter 3: the question and what is given. Fixed nodes, load, connectivity, force densities.
+title: The question
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+net:
+  fixed: {P1: [0, 0, 0], P2: [5, 0, 3], P3: [0, 7, 3], P4: [7, 5, 0]}
+  free: {P0: [3.6, 3.4, 1.9]}        # drawn at a guess; its true place is the answer
+  cables: {a: [P0, P1], b: [P0, P2], c: [P0, P3], d: [P0, P4]}
+  q: 1
+  load: {P0: [0, 0, -5]}
+slides:
+  - title: Where does the free node come to rest?
+    steps:
+      - say: 'Four fixed nodes $P_1,\dots,P_4$ hold one free node $P_0$ on four cables $a, b, c, d$. A load $p$ hangs on $P_0$.'
+        show: net
+      - say: 'The question: given how hard each cable pulls, where is $P_0$?'
+        tex: 'P_0 = (x_0,\ y_0,\ z_0) = \ ?'
+      - say: 'Four things are given. We collect them one by one.'
+        text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
+
+  - title: 'Given 1 · the fixed nodes'
+    steps:
+      - say: 'The coordinates of the four fixed nodes, in metres.'
+        do:
+          - matrix: {of: xF, empty: true}
+          - morph: {target: P1.label, label: P1, tex: 'P_1\,(0,\,0,\,0)', dur: 0.6}
+          - morph: {target: P2.label, label: P2, tex: 'P_2\,(5,\,0,\,3)', dur: 0.6, with: true}
+          - morph: {target: P3.label, label: P3, tex: 'P_3\,(0,\,7,\,3)', dur: 0.6, with: true}
+          - morph: {target: P4.label, label: P4, tex: 'P_4\,(7,\,5,\,0)', dur: 0.6, with: true}
+      - say: 'One row per node, one column per axis.'
+        do:
+          - fly: {from: P1.label, to: 'xF[0,:]'}
+          - fly: {from: P2.label, to: 'xF[1,:]', with: true, delay: 0.2}
+          - fly: {from: P3.label, to: 'xF[2,:]', with: true, delay: 0.2}
+          - fly: {from: P4.label, to: 'xF[3,:]', with: true, delay: 0.2}
+          - morph: {target: P1.label, label: P1, tex: 'P_1', dur: 0.5}
+          - morph: {target: P2.label, label: P2, tex: 'P_2', dur: 0.5, with: true}
+          - morph: {target: P3.label, label: P3, tex: 'P_3', dur: 0.5, with: true}
+          - morph: {target: P4.label, label: P4, tex: 'P_4', dur: 0.5, with: true}
+
+  - title: 'Given 2 · the load'
+    steps:
+      - say: 'The load on the free node: 5 kN straight down.'
+        do:
+          - highlight: [load_P0]
+          - matrix: p
+
+  - title: 'Given 3 · the connectivity matrix'
+    steps:
+      - say: '$\mathbf{C}$ records which cable joins which nodes: one row per cable, one column per node.'
+        matrix: {of: C, empty: true}
+      - say: 'Cable $a$ runs from $P_0$ to $P_1$: $+1$ under $P_0$, $-1$ under $P_1$.'
+        do:
+          - color: {target: a, color: accent}
+          - show: ['C[0,:]']
+          - color: {target: a, color: reset}
+      - say: 'The other cables follow the same rule.'
+        show: ['C[1,:]', 'C[2,:]', 'C[3,:]']
+
+  - title: 'Given 4 · the force densities'
+    steps:
+      - say: 'For each cable we choose one number: its force divided by its length.'
+        eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
+      - say: 'Here every cable gets $q = 1$ kN/m.'
+        matrix: q
+      - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio. Why that is enough is the trick of this method.'
+        highlight: [q]

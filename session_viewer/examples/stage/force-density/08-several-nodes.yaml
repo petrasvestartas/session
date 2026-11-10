@@ -1,4 +1,4 @@
-# Chapter 4: several free nodes. The worked example of the study notes: 3 free nodes, 2 anchors, 5 cables.
+# Chapter 8: several free nodes. The worked example of the study notes: 3 free nodes, 2 anchors, 5 cables.
 title: Several free nodes
 grid: {center: [3, 2.5], size: 8, step: 1}
 camera: {yaw: -62, pitch: 30}
@@ -35,14 +35,12 @@ slides:
           - indicate: ['Cf[2,:]']
           - color: {target: e3, color: reset}
       - say: 'Cables 4 and 5 join two free nodes as well. Cables 1 and 2 end at an anchor, so their rows hold a single entry.'
-        do:
-          - show: ['Cf[3,:]', 'Cf[4,:]']
+        show: ['Cf[3,:]', 'Cf[4,:]']
 
   - title: 'Scale each row: $\mathbf{Q}\,\mathbf{C}_N$'
     steps:
       - say: 'Every cable has its own force density $q_1,\dots,q_5$ on the diagonal of $\mathbf{Q}$.'
-        do:
-          - add: {id: s1, row: [{id: Q, matrix: {rows: [[q_1, 0, 0, 0, 0], [0, q_2, 0, 0, 0], [0, 0, q_3, 0, 0], [0, 0, 0, q_4, 0], [0, 0, 0, 0, q_5]], name: '\mathbf{Q}'}}, {id: C1, matrix: {rows: [[1, 0, 0], [0, 1, 0], [1, -1, 0], [-1, 0, 1], [0, 1, -1]], name: '\mathbf{C}_N'}}, '=', {id: QC, matrix: {rows: [[q_1, 0, 0], [0, q_2, 0], [q_3, -q_3, 0], [-q_4, 0, q_4], [0, q_5, -q_5]], name: '\mathbf{Q}\,\mathbf{C}_N', empty: true}}]}
+        add: {id: s1, row: [{id: Q, matrix: {rows: [[q_1, 0, 0, 0, 0], [0, q_2, 0, 0, 0], [0, 0, q_3, 0, 0], [0, 0, 0, q_4, 0], [0, 0, 0, 0, q_5]], name: '\mathbf{Q}'}}, {id: C1, matrix: {rows: [[1, 0, 0], [0, 1, 0], [1, -1, 0], [-1, 0, 1], [0, 1, -1]], name: '\mathbf{C}_N'}}, '=', {id: QC, matrix: {rows: [[q_1, 0, 0], [0, q_2, 0], [q_3, -q_3, 0], [-q_4, 0, q_4], [0, q_5, -q_5]], name: '\mathbf{Q}\,\mathbf{C}_N', empty: true}}]}
       - say: 'A diagonal matrix scales rows: row $k$ of $\mathbf{C}_N$ is multiplied by $q_k$ and nothing else.'
         do:
           - color: {target: 'Q[2,:]', color: accent}
@@ -51,14 +49,12 @@ slides:
           - color: {target: 'Q[2,:]', color: reset}
           - color: {target: 'C1[2,:]', color: reset}
       - say: 'The other rows follow.'
-        do:
-          - show: ['QC[0,:]', 'QC[1,:]', 'QC[3,:]', 'QC[4,:]']
+        show: ['QC[0,:]', 'QC[1,:]', 'QC[3,:]', 'QC[4,:]']
 
   - title: 'Assemble $\mathbf{D}_N = \mathbf{C}_N^{T}(\mathbf{Q}\,\mathbf{C}_N)$'
     steps:
       - say: 'Multiply the transpose of $\mathbf{C}_N$ with $\mathbf{Q}\,\mathbf{C}_N$: a $3\times 5$ times a $5\times 3$ gives $3\times 3$.'
-        do:
-          - add: {id: s2, row: [{id: CT, matrix: {rows: [[1, 0, 1, -1, 0], [0, 1, -1, 0, 1], [0, 0, 0, 1, -1]], name: '\mathbf{C}_N^{T}'}}, {id: QC2, matrix: {rows: [[q_1, 0, 0], [0, q_2, 0], [q_3, -q_3, 0], [-q_4, 0, q_4], [0, q_5, -q_5]], name: '\mathbf{Q}\,\mathbf{C}_N'}}, '=', {id: Df, matrix: {rows: [['q_1 + q_3 + q_4', -q_3, -q_4], [-q_3, 'q_2 + q_3 + q_5', -q_5], [-q_4, -q_5, 'q_4 + q_5']], name: '\mathbf{D}_N', empty: true}}]}
+        add: {id: s2, row: [{id: CT, matrix: {rows: [[1, 0, 1, -1, 0], [0, 1, -1, 0, 1], [0, 0, 0, 1, -1]], name: '\mathbf{C}_N^{T}'}}, {id: QC2, matrix: {rows: [[q_1, 0, 0], [0, q_2, 0], [q_3, -q_3, 0], [-q_4, 0, q_4], [0, q_5, -q_5]], name: '\mathbf{Q}\,\mathbf{C}_N'}}, '=', {id: Df, matrix: {rows: [['q_1 + q_3 + q_4', -q_3, -q_4], [-q_3, 'q_2 + q_3 + q_5', -q_5], [-q_4, -q_5, 'q_4 + q_5']], name: '\mathbf{D}_N', empty: true}}]}
       - say: 'Entry $(1,1)$: row 1 of $\mathbf{C}_N^{T}$ against column 1 of $\mathbf{Q}\,\mathbf{C}_N$.'
         do:
           - color: {target: 'CT[0,:]', color: accent}

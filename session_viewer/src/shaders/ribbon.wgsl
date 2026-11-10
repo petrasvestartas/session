@@ -75,7 +75,7 @@ const NO_CUT: vec2<f32> = vec2<f32>(0.0, 3.0e38);
 
 // Object point `q` of row `id` in screen px, with clip w; w is 0 when the near plane cuts it.
 fn screen_of(id: u32, q: vec3<f32>) -> vec3<f32> {
-    let c = view_mvp(id) * vec4<f32>(place(id, q), 1.0);
+    let c = mvp * vec4<f32>(place(id, q), 1.0);
 
     if (c.w <= 0.0 || c.z > c.w) {
         return vec3<f32>(0.0);
@@ -100,9 +100,7 @@ fn head_plane(iid: u32, forward: bool, near: vec3<f32>, far: vec3<f32>, radius: 
             // the head the vector lane draws on this segment: tip at `at`, aimed from `back`
             let hw_tip = max(half_width_px(radius, at.z), floor_hw);
             let hw = max(hw_tip, max(half_width_px(radius, back.z), floor_hw));
-            let effect = instances[segments[row].instance_id].effect;
-            let head_scale = select(1.0, effect.z, effect.z > 0.0 && effect.z < 1.0);
-            let head = head_scale * head_px(HEAD_PENS, hw_tip, 3.0e38);
+            let head = head_px(HEAD_PENS, hw_tip, 3.0e38);
             let under = head - tuck(head, head * HEAD_ASPECT, hw);
             let run = at.xy - back.xy;
 
@@ -274,7 +272,7 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
 // roundoff: in depth and screen px. A zero-sag crease and its adjacent triangles
 // take different f32 arithmetic paths. Allow for rounding in rebased scene units,
 // rather than adding a fixed physical gap that would overwhelm a tiny model.
-fn sag_terms(id: u32, w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
+fn sag_terms(w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
     let toward = toward_eye(w);
     // an orthographic view has no eye, only a direction: its stand-in point lies 1e9 away and would make the slack metres wide
     let eye_distance = select(length(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - w), 0.0, line.ortho_h > 0.0);
@@ -285,7 +283,7 @@ fn sag_terms(id: u32, w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
         return vec2<f32>(0.0);
     }
 
-    let lifted = view_mvp(id) * vec4<f32>(w + normalize(toward) * rise, 1.0);
+    let lifted = mvp * vec4<f32>(w + normalize(toward) * rise, 1.0);
 
     if (lifted.w <= 0.0) {
         return vec2<f32>(0.0);
@@ -349,10 +347,9 @@ fn join_plane(before: u32, after: u32) -> vec4<f32> {
         return vec4<f32>(0.0);
     }
 
-    let camera = view_mvp(a.instance_id);
-    let c0 = camera * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x, a.p0y, a.p0z)), 1.0);
-    let c1 = camera * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x, a.p1y, a.p1z)), 1.0);
-    let c2 = camera * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x, b.p1y, b.p1z)), 1.0);
+    let c0 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x, a.p0y, a.p0z)), 1.0);
+    let c1 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x, a.p1y, a.p1z)), 1.0);
+    let c2 = mvp * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x, b.p1y, b.p1z)), 1.0);
 
     if (c0.w <= 0.0 || c1.w <= 0.0 || c2.w <= 0.0 || c0.z > c0.w || c1.z > c1.w || c2.z > c2.w) {
         return vec4<f32>(0.0);
@@ -438,9 +435,8 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
         return dead_vertex();
     }
 
-    let camera = view_mvp(seg.instance_id);
-    var c0 = camera * vec4<f32>(w0, 1.0);
-    var c1 = camera * vec4<f32>(w1, 1.0);
+    var c0 = mvp * vec4<f32>(w0, 1.0);
+    var c1 = mvp * vec4<f32>(w1, 1.0);
     let contact = seg.color == 0x01000000u;
     if (contact && seg.facing != FACING_UNKNOWN) {
         let normal = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
@@ -475,7 +471,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
         return dead_vertex();
     }
     // the stroke's rise off its faces, as the farther end sees it
-    let sag = max(sag_terms(seg.instance_id, w0, c0, abs(seg.sag)), sag_terms(seg.instance_id, w1, c1, abs(seg.sag)));
+    let sag = max(sag_terms(w0, c0, abs(seg.sag)), sag_terms(w1, c1, abs(seg.sag)));
 
     // one triangle in front of both ends hides it all: no fragment need ask
     if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w, sag)) {
@@ -487,7 +483,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let dir = select(vec2<f32>(1.0, 0.0), original / original_length, original_length > 1e-6);
     let trim0 = select(0.0, half_width_px(seg.start_trim, e0.w) + FILTER_REACH, seg.start_trim != 0.0);
     let trim1 = select(0.0, half_width_px(seg.end_trim, e1.w) + FILTER_REACH, seg.end_trim != 0.0);
-    if (original_length <= trim0 + trim1 + 2.0) {
+    if (trim0 + trim1 > 0.0 && original_length <= trim0 + trim1 + 2.0) {
         return dead_vertex();
     }
     s0 += dir * trim0;
@@ -506,10 +502,6 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = edge_color(unpack4x8unorm(seg.color), inst);
-    if ((inst.flags & 65536u) != 0u) {
-        let along = clamp(dot(p - s0, d) / max(dot(d, d), 1e-6), 0.0, 1.0);
-        color = mix(color, inst.end_color, along);
-    }
 
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
@@ -711,9 +703,6 @@ fn axis_cut(in: VsOut) -> bool {
 @fragment
 // Color: the stroke, faded where geometry hides it.
 fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
-    if (spatial_clipped(in.inst_id, in.pos.xy)) {
-        discard;
-    }
     let covered = coverage(in);
 
     // no coverage: no depth reads
@@ -779,7 +768,7 @@ const SEGMENT_BIT: u32 = 0x80000000u;
 @fragment
 // Pick id: object row + 1 and tagged segment row + 1.
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (non_pickable(in.inst_id) || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 
@@ -789,7 +778,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
 // Pick id for edge picks; segments without a source edge are skipped.
 @fragment
 fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (non_pickable(in.inst_id) || spatial_clipped(in.inst_id, in.pos.xy) || in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
+    if (non_pickable(in.inst_id) || in.source_edge == 0xffffffffu || coverage(in) <= 0.0 || axis_cut(in) || !ink_visible(in.pos.xy, ink_axis(in), 0u, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u)) {
         discard;
     }
 

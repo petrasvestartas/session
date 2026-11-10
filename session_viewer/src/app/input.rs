@@ -188,10 +188,8 @@ impl Input {
                     let dy = ((at.1 - from.1) / device_pixel_ratio()) as f32;
 
                     if self.panning || self.ctrl {
-                        if !state.pan_presentation_spatial(dx, dy) {
-                            state.camera.pan(dx, dy);
-                        }
-                    } else if !state.orbit_presentation_spatial(dx, dy) {
+                        state.camera.pan(dx, dy);
+                    } else {
                         state.camera.orbit(dx, dy);
                     }
                 }
@@ -214,9 +212,7 @@ impl Input {
                     .gpu
                     .performance
                     .wheel(crate::engine::performance::now_ms());
-                if !state.zoom_presentation_spatial(amount, self.last_cursor, viewport) {
-                    state.camera.zoom_at(amount, self.last_cursor, viewport);
-                }
+                state.camera.zoom_at(amount, self.last_cursor, viewport);
                 true
             }
             WindowEvent::ModifiersChanged(mods) => {

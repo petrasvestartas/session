@@ -1,4 +1,4 @@
-# Chapter 3: the matrices of the method, built from the five-node example and multiplied step by step.
+# Chapter 6: the matrices of the method, built from the five-node example and multiplied step by step.
 title: The matrices we use
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -37,8 +37,7 @@ slides:
   - title: '$\mathbf{C}$ turns coordinates into differences'
     steps:
       - say: 'Multiply $\mathbf{C}$ by the $x$-coordinates of all five nodes.'
-        do:
-          - add: {id: m, row: [{id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [a, b, c, d], name: '\mathbf{C}'}}, {id: xv, matrix: {rows: [[3], [0], [5], [0], [7]], rowlabels: [x_0, x_1, x_2, x_3, x_4], name: '\mathbf{x}'}}, '=', {id: uv, matrix: {rows: [[3], [-2], [3], [-4]], name: '\mathbf{u}', empty: true}}]}
+        add: {id: m, row: [{id: Cm, matrix: {rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], rowlabels: [a, b, c, d], name: '\mathbf{C}'}}, {id: xv, matrix: {rows: [[3], [0], [5], [0], [7]], rowlabels: [x_0, x_1, x_2, x_3, x_4], name: '\mathbf{x}'}}, '=', {id: uv, matrix: {rows: [[3], [-2], [3], [-4]], name: '\mathbf{u}', empty: true}}]}
       - say: 'Row $a$ times the column: only two entries survive, $u_a = x_0 - x_1$.'
         do:
           - color: {target: 'Cm[0,:]', color: accent}
@@ -75,11 +74,9 @@ slides:
   - title: Three diagonal matrices
     steps:
       - say: 'Put one number per cable on a diagonal. A diagonal matrix scales each row on its own: one cable, one factor.'
-        do:
-          - add: {id: U, row: ['\mathbf{U} = \operatorname{diag}(\mathbf{u}) =', {id: Um, matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]], rowlabels: [a, b, c, d]}}]}
+        add: {id: U, row: ['\mathbf{U} = \operatorname{diag}(\mathbf{u}) =', {id: Um, matrix: {rows: [[3, 0, 0, 0], [0, -2, 0, 0], [0, 0, 3, 0], [0, 0, 0, -4]], rowlabels: [a, b, c, d]}}]}
       - say: 'The cable lengths form $\mathbf{L}$; the prescribed force densities form $\mathbf{Q}$.'
-        do:
-          - add: {id: L, row: ['\mathbf{L} =', {id: Lm, matrix: {rows: [['4.250', 0, 0, 0], [0, '4.535', 0, 0], [0, 0, '5.706', 0], [0, 0, 0, '4.479']]}}, '\qquad\mathbf{Q} =', {id: Qm, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}}]}
+        add: {id: L, row: ['\mathbf{L} =', {id: Lm, matrix: {rows: [['4.250', 0, 0, 0], [0, '4.535', 0, 0], [0, 0, '5.706', 0], [0, 0, 0, '4.479']]}}, '\qquad\mathbf{Q} =', {id: Qm, matrix: {rows: [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]}}]}
       - say: '$\mathbf{U}$ and $\mathbf{L}$ change when the shape changes. $\mathbf{Q}$ does not: we choose it.'
         do:
           - {indicate: [Qm], color: free}
@@ -118,3 +115,15 @@ slides:
         do:
           - add: {id: rhs, row: ['\mathbf{D}_F\,\mathbf{x}_F =', {id: DF2, matrix: [[-1, -1, -1, -1]]}, {id: XF2, matrix: [[0], [5], [0], [7]]}, '= -12'], gap: 30}
           - add: {id: sol, tex: 'x_0 = \mathbf{D}_N^{-1}(p_x - \mathbf{D}_F\,\mathbf{x}_F) = \tfrac{1}{4}(0 + 12) = 3', color: free}
+
+  - title: The whole method in three lines
+    steps:
+      - say: 'Put the pieces together. Equilibrium of the free nodes along $x$, with $\mathbf{u} = \mathbf{C}_N\mathbf{x}_N + \mathbf{C}_F\mathbf{x}_F$:'
+        eq: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p}_x'
+      - say: 'With the numbers of the five nodes this reads $4x_0 - 12 = 0$.'
+        eq: '4\,x_0 - 12 = 0 \quad\Rightarrow\quad x_0 = 3'
+      - say: 'Solved for the unknown coordinates, with the same line for $y$ and $z$: the result announced in chapter 1.'
+        do:
+          - eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
+          - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
+          - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}

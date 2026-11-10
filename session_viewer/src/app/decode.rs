@@ -882,29 +882,22 @@ mod tests {
         );
     }
 
-    /// Animation and relationship attributes survive the protobuf graph decoder.
+    /// Vertex and edge attributes survive the protobuf graph decoder.
     #[test]
     fn window_decode_keeps_graph_attributes() {
-        let mut s = Session::new("animated");
+        let mut s = Session::new("attributed");
         let point = p(0.0, 0.0, 0.0);
         let guid = point.guid().to_string();
         s.add_point(point, None);
-        s.animate_xform(&guid, Xform::translation(1.0, 0.0, 0.0), 900.0, 150.0);
-        s.add_edge(&guid, "matrix", "morph");
+        s.graph.set_vertex_attribute(&guid, "weight", 900.0);
+        s.add_edge(&guid, "matrix", "link");
         s.graph
-            .set_edge_attribute((&guid, "matrix"), "duration_ms", 1100.0);
-        s.graph
-            .set_edge_attribute((&guid, "matrix"), "delay_ms", 200.0);
+            .set_edge_attribute((&guid, "matrix"), "weight", 200.0);
         let d = decoded(s.pb_dumps(), true).unwrap();
 
-        assert_eq!(d.graph.vertex_attribute(&guid, "xform_ms"), Some(900.0));
-        assert_eq!(d.graph.vertex_attribute(&guid, "delay_ms"), Some(150.0));
+        assert_eq!(d.graph.vertex_attribute(&guid, "weight"), Some(900.0));
         assert_eq!(
-            d.graph.edge_attribute((&guid, "matrix"), "duration_ms"),
-            Some(1100.0)
-        );
-        assert_eq!(
-            d.graph.edge_attribute((&guid, "matrix"), "delay_ms"),
+            d.graph.edge_attribute((&guid, "matrix"), "weight"),
             Some(200.0)
         );
     }

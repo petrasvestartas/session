@@ -54,8 +54,7 @@ slides:
           - move: {point: X, to: P0, dur: 2.0}
           - {indicate: [r7], color: free}
       - say: 'Then the forces, and for a chosen material the lengths to cut.'
-        do:
-          - add: {id: r8, tex: '\mathbf{f} = \mathbf{L}\mathbf{q}, \qquad l_0 = \frac{l}{1 + \frac{q\,l}{EA}}', align: '=', size: 28}
+        add: {id: r8, tex: '\mathbf{f} = \mathbf{L}\mathbf{q}, \qquad l_0 = \frac{l}{1 + \frac{q\,l}{EA}}', align: '=', size: 28}
 
   - title: The method as a procedure
     steps:

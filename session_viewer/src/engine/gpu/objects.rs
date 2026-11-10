@@ -537,32 +537,6 @@ impl InstanceTable {
         true
     }
 
-    /// Move a row's placement without changing the authored local geometry.
-    pub fn set_translation(&mut self, ctx: &GpuCtx, row: u32, at: [f64; 3]) -> bool {
-        let Some(mut place) = self.placement(row) else {
-            return false;
-        };
-        place.m[12..15].copy_from_slice(&at);
-        self.set_placement(ctx, row, &place)
-    }
-
-    /// Scale a row about a world point, preserving that point on screen.
-    pub fn scale_about(&mut self, ctx: &GpuCtx, row: u32, about: [f64; 3], factor: f64) -> bool {
-        if !factor.is_finite() || factor <= 0.0 || about.iter().any(|v| !v.is_finite()) {
-            return false;
-        }
-        let Some(mut place) = self.placement(row) else {
-            return false;
-        };
-        for axis in 0..3 {
-            for component in 0..3 {
-                place.m[axis * 4 + component] *= factor;
-            }
-            place.m[12 + axis] = about[axis] + (place.m[12 + axis] - about[axis]) * factor;
-        }
-        self.set_placement(ctx, row, &place)
-    }
-
     /// Set a row's box and spacing after its geometry changed.
     pub(crate) fn set_geometry_bounds(
         &mut self,
@@ -952,63 +926,6 @@ impl InstanceTable {
         }
     }
 
-    /// Scale arrowheads independently of shaft width; matrices use this slot for cell spans.
-    pub fn set_head_scale(&mut self, ctx: &GpuCtx, row: u32, scale: f32) {
-        if let Some(instance) = self.rows.get_mut(row as usize) {
-            instance.effect[2] = scale;
-            self.buffer
-                .write_at(ctx, row, std::slice::from_ref(instance));
-        }
-    }
-
-    /// Set up to two inclusive matrix-cell spans; None clears both.
-    pub fn set_cells(
-        &mut self,
-        ctx: &GpuCtx,
-        row: u32,
-        cells: Option<((u32, u32), Option<(u32, u32)>)>,
-    ) {
-        if let Some(instance) = self.rows.get_mut(row as usize) {
-            let (first, second) = cells.unwrap_or(((u32::MAX, u32::MAX), None));
-            let second = second.unwrap_or((u32::MAX, u32::MAX));
-            instance.effect[2] = f32::from_bits(first.0);
-            instance.effect[3] = f32::from_bits(first.1);
-            instance.end_color[0] = f32::from_bits(second.0);
-            instance.end_color[1] = f32::from_bits(second.1);
-            self.buffer
-                .write_at(ctx, row, std::slice::from_ref(instance));
-        }
-    }
-
-    /// Set the independently colored cells of a presentation matrix, up to 64 entries.
-    pub fn set_colored_cells(&mut self, ctx: &GpuCtx, row: u32, mask: [u32; 2]) {
-        if let Some(instance) = self.rows.get_mut(row as usize) {
-            instance.end_color[2] = f32::from_bits(mask[0]);
-            instance.end_color[3] = f32::from_bits(mask[1]);
-            self.buffer
-                .write_at(ctx, row, std::slice::from_ref(instance));
-        }
-    }
-
-    /// Set both colors of a line gradient.
-    pub fn set_gradient(&mut self, ctx: &GpuCtx, row: u32, start: [u8; 4], end: [u8; 4]) {
-        if let Some(instance) = self.rows.get_mut(row as usize) {
-            let linear = |rgba: [u8; 4]| {
-                [
-                    f32::from(rgba[0]) / 255.0,
-                    f32::from(rgba[1]) / 255.0,
-                    f32::from(rgba[2]) / 255.0,
-                    f32::from(rgba[3]) / 255.0,
-                ]
-            };
-            instance.color = linear(start);
-            instance.end_color = linear(end);
-            instance.flags |= Instance::FLAG_GRADIENT | Instance::FLAG_COLOR;
-            self.buffer
-                .write_at(ctx, row, std::slice::from_ref(instance));
-        }
-    }
-
     /// Note that geometry changed without a row edit.
     pub(crate) fn geometry_changed(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
@@ -1221,32 +1138,6 @@ mod tests {
         // the rebase never saw the edit
         let second = Point::new(1.0e3, 0.0, 0.0);
         assert_eq!(anchored(base, &second)[0], 9.0e3);
-    }
-
-    #[test]
-    fn scaling_keeps_its_world_pivot_fixed() {
-        use crate::engine::gpu::{Gpu, Upload};
-        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(64, 64)) else {
-            return;
-        };
-        let mut upload = Upload::default();
-        let mut row = ObjectRow::new(Xform::identity(), 0);
-        row.bounds = AABB::new(5.0, -2.5, 0.0, 5.0, 0.0, 0.0);
-        upload.obj.rows.push(row);
-        gpu.set_scene(&upload);
-        assert!(gpu.scale_about(0, [5.0, -2.5, 0.0], 3.0));
-        let bounds = gpu.objects.row_bounds(0).unwrap();
-        assert_eq!(bounds.min_point(), Point::new(-10.0, -2.5, 0.0));
-        assert_eq!(bounds.max_point(), Point::new(20.0, -2.5, 0.0));
-        let place = gpu.objects.placement(0).unwrap();
-        assert_eq!(
-            place.transform_point(&Point::new(5.0, -2.5, 0.0)),
-            Point::new(5.0, -2.5, 0.0)
-        );
-        assert!(gpu.set_translation(0, [10.0, 20.0, 30.0]));
-        let place = gpu.objects.placement(0).unwrap();
-        assert_eq!(&place.m[12..15], &[10.0, 20.0, 30.0]);
-        assert_eq!(place.m[0], 3.0);
     }
 }
 
