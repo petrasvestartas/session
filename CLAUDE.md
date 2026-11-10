@@ -67,6 +67,8 @@ Each list below is explicit; a class missing from one silently runs no tests or 
   templates and field/method/operator/serialization notes live under `new-class/`
 - `/build [class]`, `/ci`, `/test-rules`, `/recipe <desc>`, `/publish <what>` (asks first; R2 keeps no history)
 - `/step-format`, `/docstrings`, `/highlighting` — reference skills
+- `/session_viewer_math <request>` — make or change a stage deck (YAML math slides in the viewer);
+  its parts: `/session_viewer_math_scene`, `/session_viewer_math_steps`, `/session_viewer_math_publish`
 - Path-scoped rules in `.claude/rules/` (viewer lesson docs load only when `session_viewer/` is touched)
 - Cross-repo skills (session-viewer-wgpu, session-comments, session-format,
   session-polyline-rectangle) live in github.com/petrasvestartas/skills — clone it into
