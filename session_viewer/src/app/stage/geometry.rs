@@ -1,9 +1,9 @@
 use super::deck::{Content, Pos};
 use super::eval;
 use super::object::Obj;
-use super::run::{Draw, H, Stage, TOP, W};
+use super::run::{H, Stage, TOP, W};
 use super::tex::Rgba;
-use super::tween::{lerp, smooth, with_alpha};
+use super::tween::{smooth, with_alpha};
 use super::view::View;
 use std::collections::HashMap;
 
@@ -176,110 +176,6 @@ impl Stage {
             }
             _ => Vec::new(),
         }
-    }
-
-    /// The lines and discs of a 3D object, grown to `grow` of its length.
-    pub(super) fn geo_draws(
-        &self,
-        o: &Obj,
-        view: &View,
-        now: f64,
-        grow: f32,
-        alpha: f32,
-    ) -> Vec<Draw> {
-        let pts = self.geo_points(o, now);
-        let base = o.colors.get(&usize::MAX).map_or(o.color, |c| c.at(now));
-        let color = with_alpha(base, alpha * o.opacity * (1.0 - 0.7 * o.dim.at(now)));
-        let bg = with_alpha(self.color(Some("bg"), "bg"), alpha);
-        let g = grow.clamp(0.0, 1.0);
-        let mut out = Vec::new();
-        match &o.content {
-            Content::Point(_) => {
-                let full = o.width.max(2.0) * 2.0;
-                let r = if g >= 1.0 {
-                    full
-                } else {
-                    let ease = (1.70158 + 1.0) * g * g * g - 1.70158 * g * g;
-                    full * ease.clamp(0.0, 1.3)
-                };
-                out.push(Draw::Disc {
-                    c: view.project(pts[0]),
-                    r,
-                    color,
-                    ring: bg,
-                });
-            }
-            Content::Line { arrow, .. } => {
-                let (a, b) = (view.project(pts[0]), view.project(pts[1]));
-                let b = [lerp(a[0], b[0], g), lerp(a[1], b[1], g)];
-                out.push(Draw::Line {
-                    a,
-                    b,
-                    width: o.width,
-                    color,
-                    arrow: *arrow,
-                    dash: o.dash,
-                });
-            }
-            Content::Polyline { closed, .. } => {
-                let mut sp: Vec<[f32; 2]> = pts.iter().map(|&p| view.project(p)).collect();
-                if *closed && !sp.is_empty() {
-                    sp.push(sp[0]);
-                }
-                let total: f32 = sp
-                    .windows(2)
-                    .map(|w| (w[1][0] - w[0][0]).hypot(w[1][1] - w[0][1]))
-                    .sum();
-                let mut left = total * g;
-                let mut path = vec![sp[0]];
-                for w in sp.windows(2) {
-                    let l = (w[1][0] - w[0][0]).hypot(w[1][1] - w[0][1]);
-                    if left >= l {
-                        path.push(w[1]);
-                        left -= l;
-                    } else {
-                        let t = left / l.max(1e-6);
-                        path.push([lerp(w[0][0], w[1][0], t), lerp(w[0][1], w[1][1], t)]);
-                        break;
-                    }
-                }
-                if o.dash {
-                    for w in path.windows(2) {
-                        out.push(Draw::Line {
-                            a: w[0],
-                            b: w[1],
-                            width: o.width,
-                            color,
-                            arrow: false,
-                            dash: true,
-                        });
-                    }
-                } else {
-                    out.push(Draw::Path {
-                        pts: path,
-                        closed: false,
-                        width: o.width,
-                        color,
-                    });
-                }
-            }
-            Content::Cuboid { .. } => {
-                for (p, q) in cuboid_edges(pts[0], pts[1]) {
-                    let (p, q) = (view.project(p), view.project(q));
-                    let q = [lerp(p[0], q[0], g), lerp(p[1], q[1], g)];
-                    out.push(Draw::Line {
-                        a: p,
-                        b: q,
-                        width: o.width,
-                        color,
-                        arrow: false,
-                        dash: true,
-                    });
-                }
-            }
-            _ => {}
-        }
-        out
     }
 
     /// Screen anchor of a 3D label, offset so the label avoids lines, points and other labels.

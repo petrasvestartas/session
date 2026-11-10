@@ -149,14 +149,7 @@ impl Scene3 {
     }
 
     /// Make the scene show `list`: append new objects, update changed ones, hide missing ones.
-    pub fn sync(
-        &mut self,
-        state: &mut State,
-        list: &[Spatial],
-        epoch: u64,
-        bg: Rgba,
-        scale: f64,
-    ) {
+    pub fn sync(&mut self, state: &mut State, list: &[Spatial], epoch: u64, bg: Rgba, scale: f64) {
         let logical = state.logical_size();
         let half_height = state.camera.distance * std::f64::consts::FRAC_PI_6.tan();
         let px = 2.0 * half_height / logical[1].max(1.0);

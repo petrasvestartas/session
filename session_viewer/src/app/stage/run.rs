@@ -37,20 +37,6 @@ pub struct DPrim {
 #[derive(Clone, Debug)]
 pub enum Draw {
     Prim(DPrim),
-    Line {
-        a: [f32; 2],
-        b: [f32; 2],
-        width: f32,
-        color: Rgba,
-        arrow: bool,
-        dash: bool,
-    },
-    Disc {
-        c: [f32; 2],
-        r: f32,
-        color: Rgba,
-        ring: Rgba,
-    },
     Path {
         pts: Vec<[f32; 2]>,
         closed: bool,
@@ -140,7 +126,6 @@ pub struct Stage {
     pub split: f32,     // Fraction of the slide width given to the 3D side.
     pub spatial: usize, // Draws before this index are clipped to the 3D side.
     pub pictures: HashMap<String, (u16, f32)>, // Index and width over height of each picture.
-    pub scene: bool,    // The viewer's scene draws the 3D objects and its camera supplies `lens`.
     pub lens: Option<Lens>,
     pub objects3: Vec<Spatial>,
     pub(super) ghosts: Vec<(Vec<Spatial>, f64, f64)>,
@@ -185,7 +170,6 @@ impl Stage {
             labels: HashMap::new(),
             split: 0.46,
             spatial: 0,
-            scene: false,
             lens: None,
             objects3: Vec::new(),
             pictures: HashMap::new(),
@@ -512,11 +496,7 @@ impl Stage {
         self.place_labels(&view, now);
         let mut out = Vec::new();
         let mut objects3: Vec<Spatial> = Vec::new();
-        if let Some(g) = self.chapters[self.chapter]
-            .grid
-            .clone()
-            .filter(|_| self.scene)
-        {
+        if let Some(g) = self.chapters[self.chapter].grid.clone() {
             // the floor grid as thin kernel lines in the scene
             let color = with_alpha(self.color(Some("faint"), "faint"), 0.6);
             let n = (g.size / g.step).round() as i32;
@@ -537,49 +517,6 @@ impl Stage {
                         reveal: 1.0,
                     });
                 }
-            }
-        }
-        if let Some(g) = self.chapters[self.chapter]
-            .grid
-            .clone()
-            .filter(|_| !self.scene)
-        {
-            let tilt = (view.cam.pitch.to_radians().sin().abs() as f32 * 3.0).clamp(0.0, 1.0);
-            let col = with_alpha(self.color(Some("faint"), "faint"), 0.55 * tilt);
-            let n = (g.size / g.step).round() as i32;
-            let h = g.size / 2.0;
-            let (cx, cy) = (g.center[0], g.center[1]);
-            for i in 0..=n {
-                let t = -h + i as f64 * g.step;
-                let along_y = ([cx + t, cy - h, g.z], [cx + t, cy + h, g.z]);
-                let along_x = ([cx - h, cy + t, g.z], [cx + h, cy + t, g.z]);
-                for (a, b) in [along_y, along_x] {
-                    out.push(Draw::Line {
-                        a: view.project(a),
-                        b: view.project(b),
-                        width: 1.0,
-                        color: col,
-                        arrow: false,
-                        dash: false,
-                    });
-                }
-            }
-        }
-        if self.chapters[self.chapter].axes && !self.scene {
-            for (k, name) in ["x", "y", "z"].iter().enumerate() {
-                let mut e = [0.0; 3];
-                e[k] = 1.0;
-                let a = view.project([0.0; 3]);
-                let b = view.project(e);
-                let color = with_alpha(self.color(Some(name), "ink"), 0.9);
-                out.push(Draw::Line {
-                    a,
-                    b,
-                    width: 2.0,
-                    color,
-                    arrow: true,
-                    dash: false,
-                });
             }
         }
         let mut appear: HashMap<String, (Style, f64, f64, Option<Vec<usize>>)> = HashMap::new();
@@ -608,8 +545,6 @@ impl Stage {
                 Fx::Vanish { .. } => {}
             }
         }
-        let mut lines = Vec::new();
-        let mut discs = Vec::new();
         let mut texts = Vec::new();
         let mut labels = Vec::new();
         let mut boxes = Vec::new();
@@ -623,15 +558,6 @@ impl Stage {
                     Some((_, p, ..)) => (smooth(*p) as f32, if *p > 0.0 { 1.0 } else { 0.0 }),
                 };
                 objects3.extend(self.geo_spatial(o, now, grow, alpha));
-                if self.scene {
-                    continue;
-                }
-                let d = self.geo_draws(o, &view, now, grow, alpha);
-                if matches!(o.content, Content::Point(_)) {
-                    discs.extend(d);
-                } else {
-                    lines.extend(d);
-                }
                 continue;
             }
             if o.boxed.is_some() {
@@ -724,8 +650,6 @@ impl Stage {
             }
         }
         self.objects3 = objects3;
-        out.extend(lines);
-        out.extend(discs);
         out.extend(labels);
         self.spatial = out.len();
         out.extend(texts);

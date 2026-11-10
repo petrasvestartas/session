@@ -11,7 +11,6 @@ impl Stage {
     pub(super) fn apply(&mut self, a: &Action, now: f64, animate: bool) {
         self.now = now;
         let dur = self.duration(a);
-        let view = self.view(now);
         let push = |s: &mut Stage, fx: Fx| {
             if animate {
                 s.anims.push(Anim { fx, t0: now, dur });
@@ -110,7 +109,7 @@ impl Stage {
                 gone.extend(boxed);
                 for id in gone {
                     if let Some(i) = self.find(&id) {
-                        if self.scene && self.objs[i].geo() {
+                        if self.objs[i].geo() {
                             // the scene fades its own copy of the object
                             let ghost = self.geo_spatial(&self.objs[i], now, 1.0, 1.0);
                             self.objs.remove(i);
@@ -119,7 +118,7 @@ impl Stage {
                             }
                             continue;
                         }
-                        let draws = self.snapshot(i, now, &view);
+                        let draws = self.snapshot(i, now);
                         self.objs.remove(i);
                         push(self, Fx::Vanish { draws });
                     }
@@ -135,7 +134,7 @@ impl Stage {
                     .collect();
                 for id in ids {
                     if let Some(i) = self.find(&id) {
-                        let draws = self.snapshot(i, now, &view);
+                        let draws = self.snapshot(i, now);
                         self.objs.remove(i);
                         push(self, Fx::Vanish { draws });
                     }

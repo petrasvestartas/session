@@ -37,10 +37,14 @@ pub fn picture(bytes: &[u8]) -> Result<Picture, String> {
     data.truncate(info.buffer_size());
     let rgba: Vec<u8> = match info.color_type {
         png::ColorType::Rgba => data,
-        png::ColorType::Rgb => data.chunks(3).flat_map(|p| [p[0], p[1], p[2], 255]).collect(),
-        png::ColorType::GrayscaleAlpha => {
-            data.chunks(2).flat_map(|p| [p[0], p[0], p[0], p[1]]).collect()
-        }
+        png::ColorType::Rgb => data
+            .chunks(3)
+            .flat_map(|p| [p[0], p[1], p[2], 255])
+            .collect(),
+        png::ColorType::GrayscaleAlpha => data
+            .chunks(2)
+            .flat_map(|p| [p[0], p[0], p[0], p[1]])
+            .collect(),
         png::ColorType::Grayscale => data.iter().flat_map(|g| [*g, *g, *g, 255]).collect(),
         png::ColorType::Indexed => return Err("indexed PNG did not expand".into()),
     };
@@ -53,12 +57,12 @@ pub fn picture(bytes: &[u8]) -> Result<Picture, String> {
 /// Rasterized glyphs in one egui texture.
 pub struct Atlas {
     tex: Option<TextureHandle>,
-    pub pictures: Vec<Picture>,              // The deck's pictures, by index.
+    pub pictures: Vec<Picture>, // The deck's pictures, by index.
     picture_tex: Vec<Option<TextureHandle>>, // Their textures, made on first use.
     slots: HashMap<(u8, u16, u16), Option<Slot>>, // By font, glyph and pixel size; None for no ink.
-    x: usize,                                     // Packing cursor.
-    y: usize,                                     // Top of the current shelf.
-    row: usize,                                   // Height of the current shelf.
+    x: usize,                   // Packing cursor.
+    y: usize,                   // Top of the current shelf.
+    row: usize,                 // Height of the current shelf.
     ctx: ScaleContext,
     faces: Vec<swash::FontRef<'static>>,
     pub overflowed: bool, // The atlas was cleared this frame, so it must be painted again.
@@ -369,57 +373,6 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
 fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
     match d {
         Draw::Prim(p) => prim(out, atlas, f, p, snap),
-        Draw::Line {
-            a,
-            b,
-            width,
-            color,
-            arrow,
-            dash,
-        } => {
-            if color[3] <= 0.002 {
-                return;
-            }
-            let (pa, pb) = (f.pt(*a), f.pt(*b));
-            let w = (width * f.k).max(0.8);
-            let stroke = Stroke::new(w, c32(*color));
-            let v = pb - pa;
-            let len = v.length();
-            if len < 0.5 {
-                return;
-            }
-            let dir = v / len;
-            let mut end = pb;
-            if *arrow {
-                let head = (7.0 + width * 2.6) * f.k;
-                let head = head.min(len * 0.6);
-                let side = head * 0.58;
-                let base = pb - dir * head;
-                let n = egui::vec2(-dir.y, dir.x);
-                end = pb - dir * head * 0.8;
-                out.add(EShape::convex_polygon(
-                    vec![pb, base + n * side * 0.5, base - n * side * 0.5],
-                    c32(*color),
-                    Stroke::NONE,
-                ));
-            }
-            if *dash {
-                let dl = 7.0 * f.k;
-                for s in EShape::dashed_line(&[pa, end], stroke, dl, dl * 0.8) {
-                    out.add(s);
-                }
-            } else {
-                out.add(EShape::line_segment([pa, end], stroke));
-            }
-        }
-        Draw::Disc { c, r, color, ring } => {
-            let p = f.pt(*c);
-            if *r <= 0.0 {
-                return;
-            }
-            out.add(EShape::circle_filled(p, (r + 2.5) * f.k, c32(*ring)));
-            out.add(EShape::circle_filled(p, r * f.k, c32(*color)));
-        }
         Draw::Path {
             pts,
             closed,
@@ -490,8 +443,7 @@ pub fn paint(
     } else {
         Rect::from_min_max(Pos2::new(corner.x, screen.min.y), screen.max)
     };
-    let backdrop = if stage.scene { ground } else { screen };
-    painter.add(EShape::rect_filled(backdrop, 0.0, c32(bg)));
+    painter.add(EShape::rect_filled(ground, 0.0, c32(bg)));
     let snap = !stage.animating();
     let draws = stage.frame(stage.now);
     let mut out = Out {
@@ -647,7 +599,11 @@ pub fn paint(
     let bottom = screen.bottom();
     let reached = screen.left() + screen.width() * done as f32 / steps as f32;
     let track = Rect::from_min_max(Pos2::new(screen.left(), bottom - strip), screen.max);
-    out.add(EShape::rect_filled(track, 0.0, c32([faint[0], faint[1], faint[2], 0.6])));
+    out.add(EShape::rect_filled(
+        track,
+        0.0,
+        c32([faint[0], faint[1], faint[2], 0.6]),
+    ));
     let filled = Rect::from_min_max(track.min, Pos2::new(reached, bottom));
     out.add(EShape::rect_filled(filled, 0.0, c32(ink)));
     let (s, _) = stage.position();

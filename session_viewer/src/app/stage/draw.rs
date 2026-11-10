@@ -2,18 +2,13 @@ use super::morph::scaled;
 use super::run::{DPrim, Draw, Stage, TOP};
 use super::tex::Shape;
 use super::tween::with_alpha;
-use super::view::View;
 use std::collections::HashMap;
 
 /// The draw with its alpha scaled by `a`.
 pub(super) fn fade(mut d: Draw, a: f32) -> Draw {
     match &mut d {
         Draw::Prim(p) => p.color[3] *= a,
-        Draw::Line { color, .. } | Draw::Path { color, .. } => color[3] *= a,
-        Draw::Disc { color, ring, .. } => {
-            color[3] *= a;
-            ring[3] *= a;
-        }
+        Draw::Path { color, .. } => color[3] *= a,
     }
     d
 }
@@ -123,13 +118,9 @@ impl Stage {
         out
     }
 
-    /// What object `i` draws at rest, for its fade-out.
-    pub(super) fn snapshot(&self, i: usize, now: f64, view: &View) -> Vec<Draw> {
-        let o = &self.objs[i];
-        if o.geo() {
-            return self.geo_draws(o, view, now, 1.0, 1.0);
-        }
-        if o.boxed.is_some() {
+    /// What column object `i` draws at rest, for its fade-out.
+    pub(super) fn snapshot(&self, i: usize, now: f64) -> Vec<Draw> {
+        if self.objs[i].boxed.is_some() {
             return self.box_draws(i, now, 1.0);
         }
         self.prims_of(i, now).into_iter().map(Draw::Prim).collect()

@@ -184,7 +184,8 @@ impl Stage {
             }
         }
         // a fixed node is a small dot: half the radius of a free one
-        let fixed_dot = matches!(spec.content, Content::Point(_)) && spec.color.as_deref() == Some("fixed");
+        let fixed_dot =
+            matches!(spec.content, Content::Point(_)) && spec.color.as_deref() == Some("fixed");
         let width = spec.width.map(|w| w as f32).unwrap_or(
             if matches!(spec.content, Content::Cuboid { .. }) || fixed_dot {
                 1.6

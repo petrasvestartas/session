@@ -357,7 +357,6 @@ impl Ui {
             .stacked(screen, stage.stage.split)
             .side(0.0);
         stage.stage.tick(now);
-        stage.stage.scene = true;
         state.gpu.view.dark = true;
         state.gpu.view.show_grid = false; // the deck draws its own floor grid as kernel lines
         let (cam, busy) = stage.stage.camera(now);

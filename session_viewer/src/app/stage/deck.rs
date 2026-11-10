@@ -22,7 +22,6 @@ pub struct Chapter {
     pub camera: CameraSpec,
     pub split: f32,
     pub grid: Option<Grid>,
-    pub axes: bool,
     pub slides: Vec<Slide>,
 }
 
@@ -508,8 +507,11 @@ fn object(v: &Value, at: &str, cx: &mut Cx) -> Result<ObjSpec, String> {
     }
     if let Content::Matrix(spec) = &content {
         let number = |entry: &String| entry.replace('−', "-").trim().parse::<f64>().ok();
-        let rows: Option<Vec<Vec<f64>>> =
-            spec.rows.iter().map(|row| row.iter().map(number).collect()).collect();
+        let rows: Option<Vec<Vec<f64>>> = spec
+            .rows
+            .iter()
+            .map(|row| row.iter().map(number).collect())
+            .collect();
         if let Some(rows) = rows {
             cx.tables.insert(id.clone(), rows);
         }
@@ -901,7 +903,6 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
         },
         split: get(m, "split").and_then(num).unwrap_or(0.46) as f32,
         grid,
-        axes: get(m, "axes").and_then(Value::as_bool).unwrap_or(false),
         slides,
     })
 }
@@ -909,12 +910,12 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
 /// What a chapter's steps share while they are read.
 #[derive(Default)]
 struct Cx {
-    n: usize,           // Automatic ids handed out.
-    net: Option<Net>,   // The chapter's net.
-    eq: Option<String>, // Id of the last equation.
+    n: usize,                                // Automatic ids handed out.
+    net: Option<Net>,                        // The chapter's net.
+    eq: Option<String>,                      // Id of the last equation.
     ends: HashMap<String, (String, String)>, // Tail and tip of each line or arrow, as expressions.
-    home: HashMap<String, [f64; 3]>, // Where each named point starts.
-    walked: Vec<String>,             // Points the last `walk` moved.
+    home: HashMap<String, [f64; 3]>,         // Where each named point starts.
+    walked: Vec<String>,                     // Points the last `walk` moved.
     tables: HashMap<String, Vec<Vec<f64>>>, // Entries of each numeric matrix, as the slides have left it.
     blocks: HashMap<String, Value>, // The chapter's own blocks: lists of step keys with `$name` holes.
 }
@@ -1036,7 +1037,13 @@ fn net(v: &Value, at: &str) -> Result<Net, String> {
 fn solvable(net: &Net, at: &str) -> Result<(), String> {
     let finite = |p: &[f64; 3]| p.iter().all(|c| c.is_finite());
     match net.solve().iter().position(|p| !finite(p)) {
-        Some(i) => err(at, format!("node {} is not held by any cable with q above 0", net.names[i])),
+        Some(i) => err(
+            at,
+            format!(
+                "node {} is not held by any cable with q above 0",
+                net.names[i]
+            ),
+        ),
         None => Ok(()),
     }
 }
@@ -1213,17 +1220,28 @@ fn project(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
         .get(&of)
         .cloned()
         .ok_or_else(|| format!("{at}: no line or arrow {of} before it"))?;
-    let axes = get(m, "axes").map(strings).unwrap_or_else(|| vec!["x".into(), "y".into(), "z".into()]);
+    let axes = get(m, "axes")
+        .map(strings)
+        .unwrap_or_else(|| vec!["x".into(), "y".into(), "z".into()]);
     let parts = get(m, "parts").and_then(text);
     let expr = |e: String| Pos::Expr(e);
     let mut corner = [tail.clone(), tail.clone(), tail.clone()];
     let mut out = Vec::new();
-    let mut cuboid = plain(format!("{of}.box"), Content::Cuboid { a: expr(tail), b: expr(tip.clone()) });
+    let mut cuboid = plain(
+        format!("{of}.box"),
+        Content::Cuboid {
+            a: expr(tail),
+            b: expr(tip.clone()),
+        },
+    );
     cuboid.color = Some("dim".into());
     out.push(act(Kind::Add(vec![cuboid])));
     let mut labels = Vec::new();
     for axis in &axes {
-        let k = ["x", "y", "z"].iter().position(|a| a == axis).ok_or_else(|| format!("{at}: no axis {axis}"))?;
+        let k = ["x", "y", "z"]
+            .iter()
+            .position(|a| a == axis)
+            .ok_or_else(|| format!("{at}: no axis {axis}"))?;
         let from = format!("[x({}), y({}), z({})]", corner[0], corner[1], corner[2]);
         corner[k] = tip.clone();
         let to = format!("[x({}), y({}), z({})]", corner[0], corner[1], corner[2]);
@@ -1279,7 +1297,11 @@ fn walk(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     }
     let mut reached: Option<[f64; 3]> = None;
     for arrow in strings(v) {
-        let (tail, tip) = cx.ends.get(&arrow).cloned().ok_or_else(|| format!("{at}: no arrow {arrow}"))?;
+        let (tail, tip) = cx
+            .ends
+            .get(&arrow)
+            .cloned()
+            .ok_or_else(|| format!("{at}: no arrow {arrow}"))?;
         let (Some(a), Some(b)) = (cx.home.get(&tail), cx.home.get(&tip)) else {
             return err(at, format!("{arrow} must run between named points"));
         };
@@ -1306,8 +1328,13 @@ fn node(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
         ),
         other => (text(other).unwrap_or_default(), None, false),
     };
-    let net = cx.net.as_ref().ok_or_else(|| format!("{at}: the chapter has no net"))?;
-    let i = net.find(&name).ok_or_else(|| format!("{at}: the net has no node {name}"))?;
+    let net = cx
+        .net
+        .as_ref()
+        .ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let i = net
+        .find(&name)
+        .ok_or_else(|| format!("{at}: the net has no node {name}"))?;
     let color = if clear { "reset" } else { "accent" };
     let paint = |target: String| {
         let mut a = act(Kind::Color {
@@ -1346,12 +1373,20 @@ fn eliminate(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
         return err(at, "eliminate: {matrix: M, row: 2, with: 1}");
     };
     let name = get(m, "matrix").and_then(text).unwrap_or_default();
-    let index = |key: &str| get(m, key).and_then(num).map(|n| n as usize).filter(|n| *n > 0);
+    let index = |key: &str| {
+        get(m, key)
+            .and_then(num)
+            .map(|n| n as usize)
+            .filter(|n| *n > 0)
+    };
     let (Some(row), Some(pivot)) = (index("row"), index("with")) else {
         return err(at, "needs `row` and `with`, counted from 1");
     };
     let (row, pivot) = (row - 1, pivot - 1);
-    let table = cx.tables.get_mut(&name).ok_or_else(|| format!("{at}: no numeric matrix {name}"))?;
+    let table = cx
+        .tables
+        .get_mut(&name)
+        .ok_or_else(|| format!("{at}: no numeric matrix {name}"))?;
     if row >= table.len() || pivot >= table.len() || table[pivot][pivot] == 0.0 {
         return err(at, "has no such rows, or a zero pivot");
     }
@@ -1388,9 +1423,15 @@ fn multiply(v: &Value, at: &str) -> Result<Vec<Action>, String> {
     let Value::Mapping(m) = v else {
         return err(at, "multiply: {left: A, right: B, into: C, entry: [0, 0]}");
     };
-    let name = |key: &str| get(m, key).and_then(text).ok_or_else(|| format!("{at}: needs `{key}`"));
+    let name = |key: &str| {
+        get(m, key)
+            .and_then(text)
+            .ok_or_else(|| format!("{at}: needs `{key}`"))
+    };
     let (left, right, into) = (name("left")?, name("right")?, name("into")?);
-    let [r, c] = get(m, "entry").and_then(pair).ok_or_else(|| format!("{at}: needs `entry: [row, column]`"))?;
+    let [r, c] = get(m, "entry")
+        .and_then(pair)
+        .ok_or_else(|| format!("{at}: needs `entry: [row, column]`"))?;
     let (row, column) = (format!("{left}[{r},:]"), format!("{right}[:,{c}]"));
     let paint = |target: &String, color: &str, with: bool| {
         let mut a = act(Kind::Color {
@@ -1430,7 +1471,9 @@ fn filled(template: &Value, given: &Value) -> Value {
             }
             Value::String(out)
         }
-        Value::Sequence(items) => Value::Sequence(items.iter().map(|item| filled(item, given)).collect()),
+        Value::Sequence(items) => {
+            Value::Sequence(items.iter().map(|item| filled(item, given)).collect())
+        }
         Value::Mapping(m) => {
             let mut out = Mapping::new();
             for (k, v) in m {
@@ -1444,17 +1487,28 @@ fn filled(template: &Value, given: &Value) -> Value {
 
 /// A matrix of the net added with empty cells, under its own name.
 fn empty_matrix(name: &str, at: &str, cx: &Cx) -> Result<Action, String> {
-    let net = cx.net.as_ref().ok_or_else(|| format!("{at}: the chapter has no net"))?;
-    let mut spec = net.matrix(name).ok_or_else(|| format!("{at}: the net has no matrix {name}"))?;
+    let net = cx
+        .net
+        .as_ref()
+        .ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let mut spec = net
+        .matrix(name)
+        .ok_or_else(|| format!("{at}: the net has no matrix {name}"))?;
     spec.empty = true;
-    Ok(act(Kind::Add(vec![plain(name.into(), Content::Matrix(spec))])))
+    Ok(act(Kind::Add(vec![plain(
+        name.into(),
+        Content::Matrix(spec),
+    )])))
 }
 
 /// `fill: xF` shows the fixed coordinates empty, lets each node's label grow its coordinates and
 /// fly into its row, and puts the labels back.
 fn fill(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     let name = text(v).unwrap_or_default();
-    let net = cx.net.clone().ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let net = cx
+        .net
+        .clone()
+        .ok_or_else(|| format!("{at}: the chapter has no net"))?;
     let nodes = match name.as_str() {
         "xF" => net.anchors(),
         _ => return err(at, "fills `xF`, the fixed coordinates"),
@@ -1475,7 +1529,13 @@ fn fill(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     let mut out = vec![empty_matrix(&name, at, cx)?];
     for (row, &i) in nodes.iter().enumerate() {
         let p = net.at[i].map(num_text);
-        let grown = format!("{}\\,({},\\,{},\\,{})", tex_name(&net.names[i]), p[0], p[1], p[2]);
+        let grown = format!(
+            "{}\\,({},\\,{},\\,{})",
+            tex_name(&net.names[i]),
+            p[0],
+            p[1],
+            p[2]
+        );
         out.push(label(i, grown, row > 0));
     }
     for (row, &i) in nodes.iter().enumerate() {
@@ -1497,7 +1557,10 @@ fn fill(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
 /// `reveal: C` shows a branch-node matrix empty and fills it row by row, each cable lit in turn.
 fn reveal(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     let name = text(v).unwrap_or_default();
-    let net = cx.net.clone().ok_or_else(|| format!("{at}: the chapter has no net"))?;
+    let net = cx
+        .net
+        .clone()
+        .ok_or_else(|| format!("{at}: the chapter has no net"))?;
     if !["C", "CN", "CF"].contains(&name.as_str()) {
         return err(at, "reveals `C`, `CN` or `CF`");
     }

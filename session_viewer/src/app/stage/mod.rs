@@ -61,7 +61,9 @@ impl StageApp {
         let mut stage = run::Stage::new(fonts, loaded.index, loaded.chapters);
         for (name, picture) in loaded.pictures {
             let aspect = picture.size[0] as f32 / picture.size[1].max(1) as f32;
-            stage.pictures.insert(name, (atlas.pictures.len() as u16, aspect));
+            stage
+                .pictures
+                .insert(name, (atlas.pictures.len() as u16, aspect));
             atlas.pictures.push(picture);
         }
         stage.now = now;
@@ -210,7 +212,10 @@ impl StageApp {
         let Some(frame) = self.frame else {
             return false;
         };
-        let p = [(touch.location.x / scale) as f32, (touch.location.y / scale) as f32];
+        let p = [
+            (touch.location.x / scale) as f32,
+            (touch.location.y / scale) as f32,
+        ];
         match touch.phase {
             TouchPhase::Started => {
                 let slide = frame.slide(egui::pos2(p[0], p[1]));
