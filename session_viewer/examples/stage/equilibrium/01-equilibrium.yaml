@@ -56,35 +56,35 @@ slides:
           - eq: 'f_2 = 3.2 \,/\, 0.4 = 8\ \text{kN}'
           - eq: 'f_1 = 2.4 \,/\, 0.4 = 6\ \text{kN}'
 
-  - title: By computing · the cosines
-    steps:
-      - say: 'Now the same without a ruler. Cable 1 goes from $n$ to $A$: 4 to the left and 3 up.'
-        do:
-          - dim: [f1, f2, f1.label, f2.label]
-          - project: {of: c1, parts: '\Delta %_1', axes: [x, y]}
-          - eq: '\Delta x_1 = -4, \qquad \Delta y_1 = 3'
-      - say: 'Pythagoras gives its length.'
-        eq: 'l_1 = \sqrt{(-4)^2 + 3^2} = 5'
-      - say: 'The **cosine** to an axis is the share of the length along that axis.'
-        do:
-          - eq: {tex: '\cos\alpha_1 = \frac{\Delta x_1}{l_1} = \frac{-4}{5} = -0.8', color: x}
-          - eq: {tex: '\cos\beta_1 = \frac{\Delta y_1}{l_1} = \frac{3}{5} = 0.6', color: y}
-      - say: 'Cable 2 works the same way: 3 to the right, 4 up, length 5.'
-        do:
-          - remove: [c1.box, c1.x, c1.y, c1.x.label, c1.y.label]
-          - project: {of: c2, parts: '\Delta %_2', axes: [x, y]}
-          - eq: {tex: '\cos\alpha_2 = \frac{3}{5} = 0.6, \qquad \cos\beta_2 = \frac{4}{5} = 0.8'}
-
   - title: By computing · the projections
     steps:
-      - say: 'A force points along its cable, so it splits in the same shares: each part is force times cosine.'
+      - say: 'Now the same without a ruler. Measure the angle $\alpha$ of each force from the $x$ axis.'
         do:
-          - remove: [c2.box, c2.x, c2.y, c2.x.label, c2.y.label]
-          - undim: [f1, f2, f1.label, f2.label]
+          - add:
+              - {id: ax, line: [n, '[4.1, 0, 0]'], color: dim, dash: true, width: 1.2}
+              - {id: a2, polyline: [[3.600, 0.000, 0], [3.585, 0.333, 0], [3.538, 0.664, 0], [3.462, 0.989, 0], [3.355, 1.305, 0], [3.220, 1.610, 0], [3.057, 1.901, 0], [2.868, 2.176, 0], [2.654, 2.432, 0], [2.417, 2.668, 0], [2.160, 2.880, 0]], color: x, width: 2}
+              - {id: a1, polyline: [[2.800, 0.000, 0], [2.778, 0.349, 0], [2.713, 0.692, 0], [2.606, 1.025, 0], [2.458, 1.341, 0], [2.271, 1.637, 0], [2.050, 1.907, 0], [1.796, 2.148, 0], [1.515, 2.355, 0], [1.209, 2.525, 0], [0.885, 2.656, 0], [0.548, 2.746, 0], [0.201, 2.793, 0], [-0.148, 2.796, 0], [-0.495, 2.756, 0], [-0.835, 2.673, 0], [-1.161, 2.548, 0], [-1.470, 2.383, 0], [-1.755, 2.182, 0], [-2.013, 1.946, 0], [-2.240, 1.680, 0]], color: x, width: 2}
+              - {id: a2t, label: [3.58, 1.67, 0], tex: '\alpha_2', color: x}
+              - {id: a1t, label: [-1.08, 2.96, 0], tex: '\alpha_1', color: x}
+          - eq: {tex: '\cos\alpha_1 = \frac{-4}{5} = -0.8, \qquad \cos\alpha_2 = \frac{3}{5} = 0.6', color: x}
+      - say: 'Cable 1 runs 4 left and 3 up, so its length is 5. The cosine is the run along $x$ over the length.'
+        highlight: [c1, a1, a1t]
+      - say: 'The $x$ part of a force is the force times that cosine.'
+        do:
           - project: {of: f1, parts: 'f_{1,%}', axes: [x, y]}
           - project: {of: f2, parts: 'f_{2,%}', axes: [x, y]}
-          - eq: 'f_{1,x} = f_1\cos\alpha_1 = -0.8\,f_1, \qquad f_{1,y} = f_1\cos\beta_1 = 0.6\,f_1'
-          - eq: 'f_{2,x} = f_2\cos\alpha_2 = 0.6\,f_2, \qquad f_{2,y} = f_2\cos\beta_2 = 0.8\,f_2'
+          - eq: 'f_{1,x} = f_1\cos\alpha_1 = -0.8\,f_1, \qquad f_{2,x} = f_2\cos\alpha_2 = 0.6\,f_2'
+      - say: 'For the $y$ parts, measure the angle $\beta$ from the $y$ axis instead.'
+        do:
+          - remove: [a1, a2, a1t, a2t, ax]
+          - add:
+              - {id: ay, line: [n, '[0, 4.0, 0]'], color: dim, dash: true, width: 1.2}
+              - {id: b2, polyline: [[0.000, 3.600, 0], [0.289, 3.588, 0], [0.577, 3.554, 0], [0.860, 3.496, 0], [1.138, 3.415, 0], [1.409, 3.313, 0], [1.671, 3.189, 0], [1.922, 3.044, 0], [2.160, 2.880, 0]], color: y, width: 2}
+              - {id: b1, polyline: [[0.000, 2.800, 0], [-0.259, 2.788, 0], [-0.516, 2.752, 0], [-0.769, 2.692, 0], [-1.015, 2.610, 0], [-1.252, 2.504, 0], [-1.479, 2.378, 0], [-1.693, 2.231, 0], [-1.892, 2.064, 0], [-2.075, 1.880, 0], [-2.240, 1.680, 0]], color: y, width: 2}
+              - {id: b2t, label: [1.22, 3.76, 0], tex: '\beta_2', color: y}
+              - {id: b1t, label: [-1.33, 2.85, 0], tex: '\beta_1', color: y}
+          - eq: {tex: '\cos\beta_1 = \frac{3}{5} = 0.6, \qquad \cos\beta_2 = \frac{4}{5} = 0.8', color: y}
+          - eq: 'f_{1,y} = f_1\cos\beta_1 = 0.6\,f_1, \qquad f_{2,y} = f_2\cos\beta_2 = 0.8\,f_2'
       - say: 'Equilibrium, one axis at a time: the $x$ parts cancel, and the $y$ parts carry the load of 10.'
         do:
           - eq: {tex: 'x:\quad -0.8\, f_1 + 0.6\, f_2 = 0', color: x}
