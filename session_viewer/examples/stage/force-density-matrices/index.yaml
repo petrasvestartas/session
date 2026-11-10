@@ -5,7 +5,7 @@ name: Force density 2 · matrices and the Jacobian
 chapters:
   - 00-givens.yaml
   - 01-matrices.yaml
-  - 02-one-bar.yaml
+  - 02-one-cable.yaml
   - 03-tiny-nudge.yaml
   - 04-chain-rule.yaml
   - 05-jacobian.yaml

@@ -1,5 +1,5 @@
-# Chapter 3: Linkwitz 6.4.2. One bar, its length, and the question of how it changes.
-title: One bar, one question
+# Chapter 3: Linkwitz 6.4.2. One cable, its length, and the question of how it changes.
+title: One cable, one question
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 24}
 points:
@@ -12,7 +12,7 @@ points:
 slides:
   - title: The physical setup
     steps:
-      - say: 'A free node $n_0 = (x_0, y_0, z_0)$ and one anchor $n_k = (x_k, y_k, z_k)$, joined by a bar of length $l_k$.'
+      - say: 'A free node $n_0 = (x_0, y_0, z_0)$ and one anchor $n_k = (x_k, y_k, z_k)$, joined by a cable of length $l_k$.'
         do:
           - add:
               - {id: o2, point: n2, color: fixed, opacity: 0.25}
@@ -40,7 +40,7 @@ slides:
 
   - title: A tiny nudge
     steps:
-      - say: 'Keep the old bar as a ghost and push $n_0$ to the right.'
+      - say: 'Keep the old cable as a ghost and push $n_0$ to the right.'
         do:
           - remove: [k.x, qn]
           - add: {id: ghost, line: [n0, n1], color: dim, dash: true, width: 2}

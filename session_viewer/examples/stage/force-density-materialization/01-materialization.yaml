@@ -65,9 +65,9 @@ slides:
         color: accent
         highlight: [one]
 
-  - title: 'Worked example · bar $e_0$'
+  - title: 'Worked example · cable $e_0$'
     steps:
-      - say: 'Bar $e_0$: stretched length $4.250$ m, force $4.250$ kN, steel with $EA = 500$ kN.'
+      - say: 'Cable $e_0$: stretched length $4.250$ m, force $4.250$ kN, steel with $EA = 500$ kN.'
         color: {target: e0, color: accent}
         camera: {fit: [n0, n1], yaw: -52, pitch: 22, with: true}
         eq: 'l_{0,1} = \frac{4.250}{1 + \frac{4.250}{500}} = \frac{4.250}{1.0085} = 4.214\ \text{m}'

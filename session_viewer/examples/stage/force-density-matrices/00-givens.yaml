@@ -24,7 +24,7 @@ slides:
 
   - title: The same five nodes
     steps:
-      - say: 'The five nodes of presentation 1: four fixed nodes $n_1,\dots,n_4$, one free node $n_0$ on four bars $e_0,\dots,e_3$, a load $p$ on $n_0$.'
+      - say: 'The five nodes of presentation 1: four fixed nodes $n_1,\dots,n_4$, one free node $n_0$ on four cables $e_0,\dots,e_3$, a load $p$ on $n_0$.'
         show: net
       - say: 'Presentation 1 listed the givens as numbers. Here each becomes an array, the form a computer and the three lines of the method need.'
         text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
@@ -59,19 +59,19 @@ slides:
     steps:
       - say: '$\mathbf{C}$ records which cable joins which nodes: one row per cable, one column per node.'
         matrix: {of: C, empty: true}
-      - say: 'Bar $e_0$ runs from $n_0$ to $n_1$: $+1$ under $n_0$, $-1$ under $n_1$.'
+      - say: 'Cable $e_0$ runs from $n_0$ to $n_1$: $+1$ under $n_0$, $-1$ under $n_1$.'
         do:
           - color: {target: e0, color: accent}
           - show: ['C[0,:]']
           - color: {target: e0, color: reset}
-      - say: 'The other bars follow the same rule.'
+      - say: 'The other cables follow the same rule.'
         show: ['C[1,:]', 'C[2,:]', 'C[3,:]']
 
   - title: 'Given 4 · the force densities'
     steps:
       - say: 'For each cable we choose one number: its force divided by its length.'
         eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
-      - say: 'Here every bar gets $q = 1$ kN/m: one entry per bar in the column $\mathbf{q}$.'
+      - say: 'Here every cable gets $q = 1$ kN/m: one entry per cable in the column $\mathbf{q}$.'
         matrix: q
       - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio, exactly as in presentation 1.'
         highlight: [q]

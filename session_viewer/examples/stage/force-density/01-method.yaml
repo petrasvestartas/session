@@ -35,7 +35,7 @@ slides:
           - eq: {tex: 'z_0 = \frac{\sum_i q_i\, z_i + p_z}{\sum_i q_i}', color: z}
       - say: 'On the right stands what we know. On the left, what we want: the coordinates of the free node.'
         do:
-          - text: '**known:** $x_i, y_i, z_i$ the fixed nodes, $p$ the load, $q_i$ one number per bar'
+          - text: '**known:** $x_i, y_i, z_i$ the fixed nodes, $p$ the load, $q_i$ one number per cable'
           - text: '**wanted:** $x_0$, $y_0$, $z_0$, the free node'
 
   - title: The way there, in four presentations

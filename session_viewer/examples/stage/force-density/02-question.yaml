@@ -1,4 +1,4 @@
-# Chapter 2: the question and what is given, written as plain numbers on the picture: fixed nodes, load, bars, force densities.
+# Chapter 2: the question and what is given, written as plain numbers on the picture: fixed nodes, load, cables, force densities.
 title: The question
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -11,12 +11,12 @@ net:
 slides:
   - title: Where does the free node come to rest?
     steps:
-      - say: 'Four fixed nodes $n_1,\dots,n_4$ hold one free node $n_0$ on four bars $e_0,\dots,e_3$. A load $p$ hangs on $n_0$.'
+      - say: 'Four fixed nodes $n_1,\dots,n_4$ hold one free node $n_0$ on four cables $e_0,\dots,e_3$. A load $p$ hangs on $n_0$.'
         show: net
-      - say: 'The question: given how hard each bar pulls, where is $n_0$?'
+      - say: 'The question: given how hard each cable pulls, where is $n_0$?'
         tex: 'n_0 = (x_0,\ y_0,\ z_0) = \ ?'
       - say: 'Four things are given. We collect them one by one.'
-        text: 'fixed nodes $\quad$ load $\quad$ bars $\quad$ force densities'
+        text: 'fixed nodes $\quad$ load $\quad$ cables $\quad$ force densities'
 
   - title: 'Given 1 · the fixed nodes'
     steps:
@@ -43,13 +43,13 @@ slides:
         highlight: [load_n0]
         eq: 'p = (0,\ 0,\ -5)\ \text{kN}'
 
-  - title: 'Given 3 · the bars'
+  - title: 'Given 3 · the cables'
     steps:
-      - say: 'Bar $e_0$ joins the free node $n_0$ to the fixed node $n_1$.'
+      - say: 'Cable $e_0$ joins the free node $n_0$ to the fixed node $n_1$.'
         do:
           - color: {target: e0, color: accent}
           - tex: 'e_0:\quad n_0 \to n_1'
-      - say: 'Each other bar joins $n_0$ to one more fixed node.'
+      - say: 'Each other cable joins $n_0$ to one more fixed node.'
         do:
           - color: {target: e0, color: reset}
           - tex: 'e_1:\quad n_0 \to n_2'
@@ -59,9 +59,9 @@ slides:
 
   - title: 'Given 4 · the force densities'
     steps:
-      - say: 'For each bar we choose one number: its force divided by its length.'
-        eq: 'q = \frac{\text{force in the bar}}{\text{length of the bar}}'
-      - say: 'Here every bar gets the same, 1 kN/m. The index is the fixed node the bar goes to.'
+      - say: 'For each cable we choose one number: its force divided by its length.'
+        eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
+      - say: 'Here every cable gets the same, 1 kN/m. The index is the fixed node the cable goes to.'
         eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}'}
       - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio. Why that is enough is the trick of this method.'
         highlight: [qs]

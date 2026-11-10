@@ -9,9 +9,9 @@ points:
   n3: [0, 7, 3]
   n4: [7, 5, 0]
 slides:
-  - title: 'Branch–node matrix $\mathbf{C}$'
+  - title: The five nodes, solved
     steps:
-      - say: 'Number the nodes $n_0,\dots,n_4$ and the bars $e_0,\dots,e_3$. Each bar runs from the free node to an anchor.'
+      - say: 'Number the nodes $n_0,\dots,n_4$ and the cables $e_0,\dots,e_3$. Each cable runs from the free node to an anchor.'
         do:
           - add:
               - {id: n1, point: n1, color: fixed, label: 'n_1'}
@@ -23,16 +23,6 @@ slides:
               - {id: e2, arrow: [n0, n3], label: 'e_2', width: 2.6}
               - {id: e3, arrow: [n0, n4], label: 'e_3', width: 2.6}
           - add: {id: n0, point: n0, color: free, label: 'n_0'}
-      - say: 'A row per cable, a column per node: $+1$ where the cable starts, $-1$ where it ends, $0$ elsewhere.'
-        do:
-          - matrix: {id: C, rows: [[1, -1, 0, 0, 0], [1, 0, -1, 0, 0], [1, 0, 0, -1, 0], [1, 0, 0, 0, -1]], name: '\mathbf{C}', rowlabels: [e_0, e_1, e_2, e_3], collabels: [n_0, n_1, n_2, n_3, n_4]}
-          - color: {target: e0, color: accent}
-          - highlight: ['C[0,:]', n0, n1]
-          - color: {target: e0, color: reset}
-      - say: '$\mathbf{C}$ stores only topology: which cable touches which node. No lengths, no forces.'
-        color: {target: 'C[:,0]', color: free}
-        text: 'Column $n_0$ is the only free node: all four cables start there.'
-        size: 23
 
   - title: '$\mathbf{C}$ turns coordinates into differences'
     steps:

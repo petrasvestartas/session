@@ -16,7 +16,7 @@ slides:
         code: |
           import numpy as np
 
-          # connectivity: rows = bars e0..e3, columns = nodes n0..n4
+          # connectivity: rows = cables e0..e3, columns = nodes n0..n4
           C = np.array([
               [1, -1,  0,  0,  0],
               [1,  0, -1,  0,  0],

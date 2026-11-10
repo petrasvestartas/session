@@ -25,12 +25,12 @@ slides:
         do:
           - solve: {load: {n0: [0, 0, 0]}}
           - eq: 'q = (1,\ 1,\ 1,\ 1):\quad n_0 = (3,\ 3,\ 1.5)'
-      - say: 'Give bar $e_2$ four times the force density. It weighs four times as much in the average and pulls the node toward $n_3$.'
+      - say: 'Give cable $e_2$ four times the force density. It weighs four times as much in the average and pulls the node toward $n_3$.'
         do:
           - color: {target: e2, color: accent}
           - solve: {load: {n0: [0, 0, 0]}, q: {e2: 4}}
           - eq: 'q = (1,\ 1,\ 4,\ 1):\quad n_0 = (1.714,\ 4.714,\ 2.143)'
-      - say: 'Now bar $e_0$ instead. The node moves toward $n_1$.'
+      - say: 'Now cable $e_0$ instead. The node moves toward $n_1$.'
         do:
           - color: {target: e2, color: reset}
           - color: {target: e0, color: accent, with: true}

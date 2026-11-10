@@ -42,9 +42,9 @@ slides:
           - tex: '\frac{\partial l_k}{\partial x_0} = -\cos\alpha_{x}, \qquad \cos\alpha_x = \frac{x_k - x_0}{l_k}'
           - add: {id: unit, arrow: [n0, 'n0 + (n0 - n1)/len(n0, n1)*1.6'], color: accent, width: 3.6}
           - derive: {from: unit, id: unitx, arrow: [n0, 'n0 + [(x(n0) - x(n1))/len(n0, n1)*1.6, 0, 0]'], color: x, width: 3.6}
-      - say: 'For bar $e_0$ ($n_k = n_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
+      - say: 'For cable $e_0$ ($n_k = n_1$): the anchor lies at $x_1 = 0$, left of $x_0 = 3$.'
         eq: {id: m2, tex: '\frac{\partial l_1}{\partial x_0} = \frac{-(0 - 3)}{4.250} = \frac{+3}{4.250} = +0.706'}
-      - say: 'Moving $n_0$ right by 1 m lengthens bar $e_0$ by about 0.706 m: it points away from its anchor.'
+      - say: 'Moving $n_0$ right by 1 m lengthens cable $e_0$ by about 0.706 m: it points away from its anchor.'
         do:
           - {indicate: [m2], color: x}
           - highlight: [unitx]

@@ -14,9 +14,9 @@ blocks:
     - dim: [$prev]
     - eq: {id: $id, tex: $tex, size: 28}
 slides:
-  - title: From one bar to one linear solve
+  - title: From one cable to one linear solve
     steps:
-      - say: 'Start from geometry: the length of one bar between the free node and an anchor.'
+      - say: 'Start from geometry: the length of one cable between the free node and an anchor.'
         do:
           - add:
               - {id: n1, point: n1, color: fixed, label: 'n_1'}
@@ -33,9 +33,9 @@ slides:
           - eq: {id: r1, tex: 'l_k = \sqrt{(x_k - x_0)^2 + (y_k - y_0)^2 + (z_k - z_0)^2}', size: 28}
       - say: 'Nudge the node: the length changes by the negative direction cosine.'
         next: {prev: r1, id: r2, tex: '\frac{\partial l_k}{\partial x_0} = \frac{-(x_k - x_0)}{l_k}'}
-      - say: 'All bars at once: the transposed Jacobian, written with the branch–node matrix.'
+      - say: 'All cables at once: the transposed Jacobian, written with the branch–node matrix.'
         next: {prev: r2, id: r3, tex: '\Big(\frac{\partial \mathbf{f}}{\partial \mathbf{x}}\Big)^{T} = \mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}'}
-      - say: 'Equilibrium of the free node: the bar forces, projected, balance the load.'
+      - say: 'Equilibrium of the free node: the cable forces, projected, balance the load.'
         next: {prev: r3, id: r4, tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{L}^{-1}\mathbf{f} = \mathbf{p}'}
       - say: 'Prescribe force densities $\mathbf{q} = \mathbf{L}^{-1}\mathbf{f}$: the lengths drop out.'
         next: {prev: r4, id: r5, tex: '\mathbf{C}_N^{T}\mathbf{U}\mathbf{q} = \mathbf{p}'}
