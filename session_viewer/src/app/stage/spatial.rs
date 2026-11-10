@@ -4,7 +4,7 @@ use super::tex::Rgba;
 use crate::State;
 use crate::app::scene::FileDoc;
 use session_rust::{
-    Arrowhead, Color, Geometry, Line, Point, Polyline, Quaternion, Session, Vector, Xform,
+    Color, Geometry, Line, Point, Polyline, Quaternion, Session, Vector, Xform,
 };
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -56,15 +56,12 @@ fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64) -> Option<Geometry> {
             point.pointcolor = color;
             Some(Geometry::Point(Rc::new(point)))
         }
-        SpatialKind::Line | SpatialKind::Arrow => {
+        SpatialKind::Line => {
             let (a, b) = (s.pts.first()?, s.pts.get(1)?);
             let mut line = Line::new(a[0], a[1], a[2], b[0], b[1], b[2]);
             line.width = s.width as f64;
             line.linecolor = color;
             line.dash = dash;
-            if s.kind == SpatialKind::Arrow {
-                line.arrowhead = Arrowhead::END;
-            }
             Some(Geometry::Line(Rc::new(line)))
         }
         SpatialKind::Polyline => {
@@ -201,7 +198,7 @@ impl Scene3 {
                 None => {
                     // a line born with no length is baked as a unit segment and placed
                     let mut baked = s.clone();
-                    let segment = matches!(s.kind, SpatialKind::Line | SpatialKind::Arrow);
+                    let segment = s.kind == SpatialKind::Line;
                     if segment && s.pts.len() == 2 && dist(s.pts[0], s.pts[1]) < 1e-9 {
                         baked.pts[1][0] += 1.0;
                     }

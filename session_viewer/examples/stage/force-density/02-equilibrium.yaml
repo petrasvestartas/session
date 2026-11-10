@@ -1,14 +1,15 @@
-# Chapter 2: what equilibrium means. One node, three forces, three sums that must be zero.
+# Chapter 2: what equilibrium means. One node, three forces in a plane, sums that must be zero.
 title: What equilibrium means
-grid: {center: [0, 0], size: 8, step: 1, z: -2}
-camera: {yaw: -58, pitch: 26}
+camera: {view: front}     # a flat case: the plane of the forces faces the camera, x right and z up
 points:
   O: [0, 0, 0]
   S2: [0, 0, 0]           # tails of F2 and F3: they move for the tip-to-tail walk
   S3: [0, 0, 0]
-  E1: [3, 1, 1]           # tips: F1 = (3, 1, 1), F2 = (-1, 2, 1), F3 = (-2, -3, -2)
-  E2: [-1, 2, 1]
-  E3: [-2, -3, -2]
+  E1: [3, 0, 1]           # tips: F1 = (3, 1), F2 = (-1, 2), F3 = (-2, -3) in x and z
+  E2: [-1, 0, 2]
+  E3: [-2, 0, -3]
+  W: [3.6, 0, 3.4]        # corners that keep the whole walk in view
+  V: [-2.6, 0, -3.4]
 slides:
   - title: A node that does not move
     steps:
@@ -22,63 +23,63 @@ slides:
         eq: '\mathbf{F}_1 + \mathbf{F}_2 + \mathbf{F}_3 = \mathbf{0}'
       - say: 'Check it by walking: put each arrow at the tip of the one before.'
         do:
-          - move: {point: S2, to: [3, 1, 1]}
-          - move: {point: E2, to: [2, 3, 2], with: true}
-          - move: {point: S3, to: [2, 3, 2]}
+          - move: {point: S2, to: [3, 0, 1]}
+          - move: {point: E2, to: [2, 0, 3], with: true}
+          - move: {point: S3, to: [2, 0, 3]}
           - move: {point: E3, to: [0, 0, 0], with: true}
       - say: 'The walk ends where it began. A closed polygon of forces: nothing is left over to move the node.'
         highlight: [P]
       - say: 'Back to the node.'
         do:
           - move: {point: S2, to: [0, 0, 0]}
-          - move: {point: E2, to: [-1, 2, 1], with: true}
+          - move: {point: E2, to: [-1, 0, 2], with: true}
           - move: {point: S3, to: [0, 0, 0], with: true}
-          - move: {point: E3, to: [-2, -3, -2], with: true}
+          - move: {point: E3, to: [-2, 0, -3], with: true}
 
   - title: Project one force onto the axes
     steps:
       - say: 'Arrows are hard to add, numbers are easy. Take $\mathbf{F}_1$ alone and draw the box it spans: the force is the diagonal.'
         do:
           - dim: [F2, F3, F2.label, F3.label]
-          - camera: {fit: [O, E1], yaw: -50, pitch: 22, with: true}
-          - add: {id: box1, cuboid: [O, E1], color: dim}
-      - say: 'Walk from the tail to the tip along $x$, then $y$, then $z$. The three edges are the parts of the force.'
+          - add: {id: box1, polygon: [O, '[x(E1), 0, 0]', E1, '[0, 0, z(E1)]'], color: dim, dash: true}
+      - say: 'Walk from the tail to the tip along $x$, then along $z$. The two edges are the parts of the force.'
         do:
-          - derive: {from: F1, id: x1, arrow: [O, '[x(E1), y(O), z(O)]'], color: x, width: 3.6}
-          - derive: {from: F1, id: y1, arrow: ['[x(E1), y(O), z(O)]', '[x(E1), y(E1), z(O)]'], color: y, width: 3.6}
-          - derive: {from: F1, id: z1, arrow: ['[x(E1), y(E1), z(O)]', E1], color: z, width: 3.6}
+          - derive: {from: F1, id: x1, arrow: [O, '[x(E1), 0, 0]'], color: x, width: 3.6}
+          - derive: {from: F1, id: z1, arrow: ['[x(E1), 0, 0]', E1], color: z, width: 3.6}
           - add:
-              - {id: x1.l, label: 'mid(O, [x(E1), y(O), z(O)])', tex: 'F_{1,x}', color: x, size: 22, dir: [0, 1]}
-              - {id: y1.l, label: 'mid([x(E1), y(O), z(O)], [x(E1), y(E1), z(O)])', tex: 'F_{1,y}', color: y, size: 22, dir: [0.4, 1]}
-              - {id: z1.l, label: 'mid([x(E1), y(E1), z(O)], E1)', tex: 'F_{1,z}', color: z, size: 22, dir: [1, 0]}
-      - say: 'Each part is the force times the cosine of its angle to that axis: the **direction cosine**. The force has length $\sqrt{3^2 + 1^2 + 1^2} = 3.317$.'
+              - {id: x1.l, label: 'mid(O, [x(E1), 0, 0])', tex: 'F_{1,x}', color: x, size: 22, dir: [0, 1]}
+              - {id: z1.l, label: 'mid([x(E1), 0, 0], E1)', tex: 'F_{1,z}', color: z, size: 22, dir: [1, 0]}
+      - say: 'Each part is the force times the cosine of its angle to that axis: the **direction cosine**. The force has length $\sqrt{3^2 + 1^2} = 3.162$.'
         do:
-          - eq: {tex: 'F_{1,x} = F_1 \cos\alpha_1 = 3.317 \cdot 0.905 = 3', color: x}
+          - eq: {tex: 'F_{1,x} = F_1 \cos\alpha_1 = 3.162 \cdot 0.949 = 3', color: x}
           - highlight: [x1]
-      - say: 'The same along $y$ and $z$, each with its own angle.'
+      - say: 'The same along $z$, with the angle to the $z$ axis.'
         do:
-          - eq: {tex: 'F_{1,y} = F_1 \cos\beta_1 = 3.317 \cdot 0.302 = 1', color: y}
-          - eq: {tex: 'F_{1,z} = F_1 \cos\gamma_1 = 3.317 \cdot 0.302 = 1', color: z}
+          - eq: {tex: 'F_{1,z} = F_1 \cos\gamma_1 = 3.162 \cdot 0.316 = 1', color: z}
+          - highlight: [z1]
 
   - title: The same box for every force
     steps:
-      - say: 'Every force gets its box. Here are the $x$ edges of all three: $3$, $-1$ and $-2$. An edge that points backwards has a negative cosine.'
+      - say: 'Every force gets its box. An edge that points backwards has a negative cosine.'
         do:
-          - remove: [y1, z1, x1.l, y1.l, z1.l]
+          - remove: [x1.l, z1.l]
           - undim: [F2, F3, F2.label, F3.label]
-          - camera: {yaw: -58, pitch: 26, fit: [O, E1, E2, E3, '[2, 3, 2]'], with: true}
           - add:
-              - {id: box2, cuboid: [O, E2], color: dim}
-              - {id: box3, cuboid: [O, E3], color: dim}
-          - derive: {from: F2, id: x2, arrow: [O, '[x(E2), y(O), z(O)]'], color: x, width: 3.6}
-          - derive: {from: F3, id: x3, arrow: ['[0, -0.25, 0]', '[x(E3), -0.25, 0]'], color: x, width: 3.6}
-      - say: 'Along $x$ the three parts cancel.'
-        eq: {tex: 'x:\quad F_1\cos\alpha_1 + F_2\cos\alpha_2 + F_3\cos\alpha_3 = 3 - 1 - 2 = 0', color: x}
-      - say: 'The same along $y$ and along $z$.'
+              - {id: box2, polygon: [O, '[x(E2), 0, 0]', E2, '[0, 0, z(E2)]'], color: dim, dash: true}
+              - {id: box3, polygon: [O, '[x(E3), 0, 0]', E3, '[0, 0, z(E3)]'], color: dim, dash: true}
+          - derive: {from: F2, id: x2, arrow: ['[0, 0, z(E2)]', E2], color: x, width: 3.6}
+          - derive: {from: F2, id: z2, arrow: [O, '[0, 0, z(E2)]'], color: z, width: 3.6}
+          - derive: {from: F3, id: x3, arrow: ['[0, 0, z(E3)]', E3], color: x, width: 3.6}
+          - derive: {from: F3, id: z3, arrow: [O, '[0, 0, z(E3)]'], color: z, width: 3.6}
+      - say: 'Along $x$ the three parts are $3$, $-1$ and $-2$. They cancel.'
         do:
-          - eq: {tex: 'y:\quad F_1\cos\beta_1 + F_2\cos\beta_2 + F_3\cos\beta_3 = 1 + 2 - 3 = 0', color: y}
-          - eq: {tex: 'z:\quad F_1\cos\gamma_1 + F_2\cos\gamma_2 + F_3\cos\gamma_3 = 1 + 1 - 2 = 0', color: z}
-      - say: 'That is all equilibrium is: three sums, one per axis. A load on the node is one more term in each sum.'
+          - eq: {tex: 'x:\quad F_1\cos\alpha_1 + F_2\cos\alpha_2 + F_3\cos\alpha_3 = 3 - 1 - 2 = 0', color: x}
+          - highlight: [x1, x2, x3]
+      - say: 'Along $z$ they are $1$, $2$ and $-3$. They cancel too.'
+        do:
+          - eq: {tex: 'z:\quad F_1\cos\gamma_1 + F_2\cos\gamma_2 + F_3\cos\gamma_3 = 1 + 2 - 3 = 0', color: z}
+          - highlight: [z1, z2, z3]
+      - say: 'That is all equilibrium is: one sum per axis. In space there is a third sum, along $y$, and a load on the node is one more term in each.'
         highlight: [P]
       - say: 'Everything that follows only organises these sums: by hand for one node, then with matrices for a whole net.'
         text: 'Next: the question, and what is given.'

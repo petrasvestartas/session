@@ -236,7 +236,6 @@ pub struct Spatial {
 pub enum SpatialKind {
     Point,
     Line,
-    Arrow,
     Polyline,
 }
 
@@ -1865,12 +1864,14 @@ impl Stage {
         match &o.content {
             Content::Point(_) => vec![one(SpatialKind::Point, pts, o.id.clone(), false)],
             Content::Line { arrow, .. } => {
-                let kind = if *arrow {
-                    SpatialKind::Arrow
-                } else {
-                    SpatialKind::Line
-                };
-                vec![one(kind, pts, o.id.clone(), o.dash)]
+                let mut out = vec![one(SpatialKind::Line, pts.clone(), o.id.clone(), o.dash)];
+                if *arrow && grow >= 0.95 {
+                    for (k, barb) in self.arrow_barbs(pts[0], pts[1], o.width).into_iter().enumerate() {
+                        let id = format!("{}#head{k}", o.id);
+                        out.push(one(SpatialKind::Line, vec![pts[1], barb], id, false));
+                    }
+                }
+                out
             }
             Content::Polyline { closed, .. } => {
                 let mut pts = pts;
@@ -1889,6 +1890,33 @@ impl Stage {
             }
             _ => Vec::new(),
         }
+    }
+
+    /// The two back ends of an arrowhead at `tip`: short lines in the screen plane, a fixed size on screen.
+    fn arrow_barbs(&self, tail: [f64; 3], tip: [f64; 3], width: f32) -> Vec<[f64; 3]> {
+        let Some(lens) = &self.lens else {
+            return Vec::new();
+        };
+        let per_unit = dot(lens.a[0], lens.a[0]).sqrt();
+        let right = lens.a[0].map(|c| c / per_unit);
+        let up = lens.a[1].map(|c| c / per_unit);
+        let along: [f64; 3] = std::array::from_fn(|i| tip[i] - tail[i]);
+        let (u, v) = (dot(along, right), dot(along, up));
+        let on_screen = u.hypot(v);
+        if on_screen * per_unit < 1.0 {
+            return Vec::new();
+        }
+        let (u, v) = (u / on_screen, v / on_screen);
+        let length = (8.0 + 3.0 * width as f64) / per_unit;
+        let (back, side) = (0.9 * length, 0.42 * length);
+        let barb = |sign: f64| -> [f64; 3] {
+            std::array::from_fn(|i| {
+                let back_i = u * right[i] + v * up[i];
+                let side_i = -v * right[i] + u * up[i];
+                tip[i] - back * back_i + sign * side * side_i
+            })
+        };
+        vec![barb(1.0), barb(-1.0)]
     }
 
     /// The lines and discs of a 3D object, grown to `grow` of its length.
