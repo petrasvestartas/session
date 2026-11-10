@@ -44,6 +44,8 @@ fn over(c: Rgba, bg: Rgba) -> Color {
 /// Kernel geometry of one object; `scale` is the slide scale, so widths shrink with the slide.
 fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geometry> {
     let color = over(s.color, bg);
+    // on a small slide lines thin out more slowly than the picture shrinks, so they stay readable
+    let scale = scale.powf(0.6);
     // `px` is the world size of one pixel, so dashes keep their screen length
     let dash = if s.dash {
         vec![7.0 * px * scale, 5.0 * px * scale]

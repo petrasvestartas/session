@@ -148,7 +148,7 @@ impl Stage {
             return None;
         }
         let (ux, uy) = (dx / length, dy / length);
-        let head = (9.0 + 3.2 * o.width).min(0.6 * length);
+        let head = (11.0 + 3.6 * o.width).min(0.6 * length);
         let side = 0.36 * head;
         let back = [tip[0] - ux * head, tip[1] - uy * head];
         let triangle = [
