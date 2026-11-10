@@ -1,4 +1,4 @@
-# Chapter 3: method 1, the tiny nudge, steps A to G of the notes.
+# Chapter 4: method 1, the tiny nudge, steps A to G of the notes.
 title: Method 1 · the tiny nudge
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}

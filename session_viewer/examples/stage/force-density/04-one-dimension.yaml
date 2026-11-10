@@ -1,4 +1,4 @@
-# Chapter 5: force density in 1D. One free node on a line between two fixed nodes: q is a weight.
+# Chapter 4: force density in 1D. One free node on a line between two fixed nodes: q is a weight.
 title: Force density in 1D
 grid: {center: [5, 0], size: 12, step: 1, z: -1}
 camera: {yaw: -80, pitch: 18}

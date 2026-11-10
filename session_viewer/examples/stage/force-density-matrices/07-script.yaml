@@ -1,4 +1,4 @@
-# Chapter 7: the method as a Python script, for the five nodes, with its output.
+# Chapter 8: the method as a Python script, for the five nodes, with its output.
 title: The script
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}

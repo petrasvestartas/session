@@ -1,4 +1,4 @@
-# Chapter 3: the question and what is given. Fixed nodes, load, connectivity, force densities.
+# Chapter 2: the question and what is given, written as plain numbers on the picture: fixed nodes, load, bars, force densities.
 title: The question
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -13,26 +13,25 @@ slides:
     steps:
       - say: 'Four fixed nodes $n_1,\dots,n_4$ hold one free node $n_0$ on four bars $e_0,\dots,e_3$. A load $p$ hangs on $n_0$.'
         show: net
-      - say: 'The question: given how hard each cable pulls, where is $n_0$?'
+      - say: 'The question: given how hard each bar pulls, where is $n_0$?'
         tex: 'n_0 = (x_0,\ y_0,\ z_0) = \ ?'
       - say: 'Four things are given. We collect them one by one.'
-        text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
+        text: 'fixed nodes $\quad$ load $\quad$ bars $\quad$ force densities'
 
   - title: 'Given 1 · the fixed nodes'
     steps:
       - say: 'The coordinates of the four fixed nodes, in metres.'
         do:
-          - matrix: {of: xF, empty: true}
           - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
           - morph: {target: n2.label, label: n2, tex: 'n_2\,(5,\,0,\,3)', dur: 0.6, with: true}
           - morph: {target: n3.label, label: n3, tex: 'n_3\,(0,\,7,\,3)', dur: 0.6, with: true}
           - morph: {target: n4.label, label: n4, tex: 'n_4\,(7,\,5,\,0)', dur: 0.6, with: true}
-      - say: 'One row per node, one column per axis.'
+      - say: 'Written down, one line per node.'
         do:
-          - fly: {from: n1.label, to: 'xF[0,:]'}
-          - fly: {from: n2.label, to: 'xF[1,:]', with: true, delay: 0.2}
-          - fly: {from: n3.label, to: 'xF[2,:]', with: true, delay: 0.2}
-          - fly: {from: n4.label, to: 'xF[3,:]', with: true, delay: 0.2}
+          - eq: 'n_1 = (0,\ 0,\ 0)'
+          - eq: 'n_2 = (5,\ 0,\ 3)'
+          - eq: 'n_3 = (0,\ 7,\ 3)'
+          - eq: 'n_4 = (7,\ 5,\ 0)'
           - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
           - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
           - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
@@ -42,25 +41,27 @@ slides:
     steps:
       - say: 'The load on the free node: 5 kN straight down.'
         highlight: [load_n0]
-        matrix: p
+        eq: 'p = (0,\ 0,\ -5)\ \text{kN}'
 
-  - title: 'Given 3 · the connectivity matrix'
+  - title: 'Given 3 · the bars'
     steps:
-      - say: '$\mathbf{C}$ records which cable joins which nodes: one row per cable, one column per node.'
-        matrix: {of: C, empty: true}
-      - say: 'Bar $e_0$ runs from $n_0$ to $n_1$: $+1$ under $n_0$, $-1$ under $n_1$.'
+      - say: 'Bar $e_0$ joins the free node $n_0$ to the fixed node $n_1$.'
         do:
           - color: {target: e0, color: accent}
-          - show: ['C[0,:]']
+          - tex: 'e_0:\quad n_0 \to n_1'
+      - say: 'Each other bar joins $n_0$ to one more fixed node.'
+        do:
           - color: {target: e0, color: reset}
-      - say: 'The other bars follow the same rule.'
-        show: ['C[1,:]', 'C[2,:]', 'C[3,:]']
+          - tex: 'e_1:\quad n_0 \to n_2'
+          - tex: 'e_2:\quad n_0 \to n_3'
+          - tex: 'e_3:\quad n_0 \to n_4'
+          - highlight: [e1, e2, e3]
 
   - title: 'Given 4 · the force densities'
     steps:
-      - say: 'For each cable we choose one number: its force divided by its length.'
-        eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
-      - say: 'Here every cable gets $q = 1$ kN/m.'
-        matrix: q
+      - say: 'For each bar we choose one number: its force divided by its length.'
+        eq: 'q = \frac{\text{force in the bar}}{\text{length of the bar}}'
+      - say: 'Here every bar gets the same, 1 kN/m. The index is the fixed node the bar goes to.'
+        eq: {id: qs, tex: 'q_1 = q_2 = q_3 = q_4 = 1\ \text{kN/m}'}
       - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio. Why that is enough is the trick of this method.'
-        highlight: [q]
+        highlight: [qs]

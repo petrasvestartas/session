@@ -1,0 +1,37 @@
+# Chapter 1: a load hanging on two cables, the question, and what equilibrium means. A flat case in x and y.
+title: A hanging load
+camera: {view: top}       # all points at z = 0: x to the right, y up
+points:
+  A: [-4, 3, 0]           # supports
+  B: [3, 4, 0]
+  n: [0, 0, 0]            # the node that carries the load
+  W1: [0, -4, 0]          # forces drawn at 0.4 units per kN
+  F1: [-1.92, 1.44, 0]
+  F2: [1.92, 2.56, 0]
+slides:
+  - title: A load on two cables
+    steps:
+      - say: 'Two cables hang from two supports, $A$ and $B$, and meet at a node $n$. Cable 1 runs to $A$, cable 2 to $B$.'
+        add:
+          - {id: A, point: A, color: fixed, label: 'A'}
+          - {id: B, point: B, color: fixed, label: 'B'}
+          - {id: c1, line: [n, A], label: '1', labelcolor: dim}
+          - {id: c2, line: [n, B], label: '2', labelcolor: dim}
+          - {id: n, point: n, color: free, label: 'n'}
+      - say: 'A load of $W = 10$ kN hangs at the node.'
+        add: {id: W, arrow: [n, W1], color: load, width: 3.6, label: 'W'}
+      - say: 'The question: how hard does each cable pull?'
+        tex: 'f_1 = \ ?\qquad f_2 = \ ?'
+
+  - title: What equilibrium means
+    steps:
+      - say: 'A cable can only pull, and only along itself. Cable 1 pulls the node toward $A$, cable 2 toward $B$.'
+        add:
+          - {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
+          - {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
+      - say: 'The node does not move. So the three forces on it cancel: that is **equilibrium**.'
+        eq: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{W} = \mathbf{0}'
+      - say: 'We know $\mathbf{W}$ and the directions of the cables. We do not know how long $\mathbf{f}_1$ and $\mathbf{f}_2$ are: two unknowns.'
+        highlight: [f1, f2]
+      - say: 'The next two chapters find them twice: first by drawing, then by computing.'
+        text: 'force diagram $\qquad$ projections'

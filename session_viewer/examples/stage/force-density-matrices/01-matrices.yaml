@@ -1,4 +1,4 @@
-# Chapter 1: the matrices of the method, built from the five-node example and multiplied step by step.
+# Chapter 2: the matrices of the method, built from the five-node example and multiplied step by step.
 title: The matrices we use
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -127,7 +127,7 @@ slides:
         eq: '\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N\,\mathbf{x}_N + \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F = \mathbf{p}_x'
       - say: 'With the numbers of the five nodes this reads $4x_0 - 12 = 0$.'
         eq: '4\,x_0 - 12 = 0 \quad\Rightarrow\quad x_0 = 3'
-      - say: 'Solved for the unknown coordinates, with the same line for $y$ and $z$: the result announced at the start of the first deck.'
+      - say: 'Solved for the unknown coordinates, with the same line for $y$ and $z$: the result announced at the start of this presentation.'
         do:
           - eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
           - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}

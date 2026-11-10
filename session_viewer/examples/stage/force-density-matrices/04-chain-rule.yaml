@@ -1,4 +1,4 @@
-# Chapter 4: method 2, the chain rule, and what the derivative means.
+# Chapter 5: method 2, the chain rule, and what the derivative means.
 title: Method 2 · the chain rule
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -52, pitch: 22, fit: [n0, n1, '[5.4, 3.6, 0.25]']}

@@ -1,0 +1,57 @@
+# Chapter 2: the graphical solution of graphic statics. The load to scale, two parallels, a closed force triangle.
+title: The force diagram
+camera: {view: top}       # all points at z = 0: x to the right, y up
+points:
+  A: [-4, 3, 0]
+  B: [3, 4, 0]
+  n: [0, 0, 0]
+  W1: [0, -4, 0]          # forces drawn at 0.4 units per kN
+  F1: [-1.92, 1.44, 0]
+  F2: [1.92, 2.56, 0]
+  Q0: [7, 2, 0]           # the force diagram, beside the structure
+  Q1: [7, -2, 0]
+  Q2: [8.92, 0.56, 0]
+slides:
+  - title: Draw what is known
+    steps:
+      - say: 'The node of the last chapter. The cables give the directions of $f_1$ and $f_2$; their sizes are what we look for, so they are drawn faint.'
+        do:
+          - add:
+              - {id: A, point: A, color: fixed, label: 'A'}
+              - {id: B, point: B, color: fixed, label: 'B'}
+              - {id: c1, line: [n, A], label: '1', labelcolor: dim}
+              - {id: c2, line: [n, B], label: '2', labelcolor: dim}
+              - {id: n, point: n, color: free, label: 'n'}
+              - {id: W, arrow: [n, W1], color: load, width: 3.6, label: 'W'}
+              - {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
+              - {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
+          - dim: [f1, f2, f1.label, f2.label]
+      - say: 'Choose a scale: 0.4 units per kN. The load of 10 kN becomes an arrow 4 units long, drawn beside the structure.'
+        do:
+          - derive: {from: W, id: Wd, arrow: [Q0, Q1], color: load, width: 3.6}
+          - add: {id: Wd.l, label: 'mid(Q0, Q1)', tex: 'W', color: load, dir: [-1, 0]}
+      - say: 'Through the tip of $W$, draw a line parallel to cable 2.'
+        derive: {from: c2, id: d2, line: ['Q1 - 0.2*(B - n)', 'Q1 + 0.9*(B - n)'], color: dim, dash: true}
+      - say: 'Through the tail of $W$, draw a line parallel to cable 1.'
+        derive: {from: c1, id: d1, line: ['Q0 + 0.25*(A - n)', 'Q0 - 0.75*(A - n)'], color: dim, dash: true}
+      - say: 'The two lines cross at one point. Only there can $f_2$ end and $f_1$ begin.'
+        add: {id: Q2, point: Q2, color: accent}
+
+  - title: The closed triangle
+    steps:
+      - say: '$f_2$ runs from the tip of $W$ to the crossing, parallel to cable 2.'
+        do:
+          - derive: {from: f2, id: t2, arrow: [Q1, Q2], color: accent, width: 3.6}
+          - add: {id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2', color: accent}
+      - say: '$f_1$ runs from the crossing back to the tail of $W$, parallel to cable 1. The triangle closes.'
+        do:
+          - derive: {from: f1, id: t1, arrow: [Q2, Q0], color: accent, width: 3.6}
+          - add: {id: t1.l, label: 'mid(Q2, Q0)', tex: 'f_1', color: accent}
+      - say: 'Measure the sides and divide by the scale.'
+        do:
+          - eq: 'f_2 = 3.2 \,/\, 0.4 = 8\ \text{kN}'
+          - eq: 'f_1 = 2.4 \,/\, 0.4 = 6\ \text{kN}'
+      - say: 'These are the forces at the node: 6 kN in cable 1, 8 kN in cable 2.'
+        undim: [f1, f2, f1.label, f2.label]
+      - say: 'The arrows run tip to tail and end where they began. A **closed polygon** of forces is equilibrium: nothing is left over to move the node.'
+        highlight: [Wd, t2, t1]

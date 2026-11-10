@@ -1,4 +1,4 @@
-# Chapter 4: the first principles at one free node. Forces, direction cosines, force density.
+# Chapter 3: the projections of presentation 0, now in 3D at one free node. Direction cosines, force density, x0, y0, z0 by hand.
 title: Equilibrium of one node
 grid: {center: [3.5, 3.5], size: 9, step: 1}
 camera: {yaw: -58, pitch: 26}
@@ -19,6 +19,8 @@ blocks:
 slides:
   - title: Five nodes, four cables
     steps:
+      - say: 'In presentation 0 one node hung on two cables in a plane. Each force split into an $x$ and a $y$ part, and the parts summed to zero along each axis. Here we do exactly the same, with a third axis $z$.'
+        text: 'the same projections, now along $x$, $y$ and $z$'
       - say: 'The five nodes of the question, drawn with $n_0$ where it will turn out to rest: $(3,\ 3,\ 0.25)$.'
         do:
           - add:
@@ -104,26 +106,33 @@ slides:
 
   - title: Solve it by hand
     steps:
-      - say: 'Collect $x_0$ on one side.'
+      - say: 'Now forget where $n_0$ is: its three coordinates are the unknowns.'
         remove: [f1, f2, f3, f4]
+        move: {point: n0, to: [3.6, 3.4, 1.9], dur: 1.2}
+      - say: 'Collect $x_0$ on one side.'
         eq: '(q_1 + q_2 + q_3 + q_4)\,x_0 = q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4 + p_x'
-      - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load.'
+      - say: 'Divide: $x_0$ is a weighted average of the anchors, shifted by the load. The same holds for $y_0$ and $z_0$.'
         then: 'x_0 = \frac{q_1 x_1 + q_2 x_2 + q_3 x_3 + q_4 x_4 + p_x}{q_1 + q_2 + q_3 + q_4}'
+      - say: 'With every $q = 1$ and no load along $x$ or $y$, the numbers are plain averages of the anchors.'
+        do:
+          - eq: {tex: 'x_0 = \frac{0 + 5 + 0 + 7 + 0}{4} = 3', color: x}
+          - eq: {tex: 'y_0 = \frac{0 + 0 + 7 + 5 + 0}{4} = 3', color: y}
       - say: 'Without a load, $n_0$ would hang at the plain average of the anchor heights, $z = 1.5$.'
         do:
-          - eq: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5'
+          - eq: {tex: 'z_0 = \frac{0 + 3 + 3 + 0 + 0}{4} = 1.5', color: z}
           - add: {id: u0, point: U, color: dim, label: 'p = 0', dir: [-1, 0.2]}
-          - add: {id: drop, line: [U, n0], color: dim, dash: true, with: true}
-      - say: 'With $p_z = -5$ the average drops by $5/4$: $n_0$ settles at $z_0 = 0.25$.'
+      - say: 'With $p_z = -5$ the average drops by $5/4$: $z_0 = 0.25$.'
         becomes: 'z_0 = \frac{0 + 3 + 3 + 0 - 5}{4} = 0.25'
+      - say: 'The node moves to $(3,\ 3,\ 0.25)$, where it was drawn at the start.'
+        move: {point: n0, to: [3, 3, 0.25], dur: 1.6}
         highlight: [n0]
 
   - title: The forces come back
     steps:
       - say: 'With the shape known, each force is its density times its length: $f_k = q_k l_k$.'
-        remove: [u0, drop]
+        remove: [u0]
         forces: true
-        row: ['\mathbf{f} = \mathbf{L}\,\mathbf{q}:\qquad', {id: F, matrix: {rows: ['4.250', '4.535', '5.706', '4.479'], rowlabels: [f_1, f_2, f_3, f_4], name: '\text{kN}'}}]
+        tex: 'f_1 = 4.250,\quad f_2 = 4.535,\quad f_3 = 5.706,\quad f_4 = 4.479\ \text{kN}'
       - say: 'Check along $z$: the cable pulls lift exactly the load.'
         do:
           - {tex: '\sum_k q_k(z_k - z_0) = -0.25 + 2.75 + 2.75 - 0.25 = 5 = -p_z', id: ck}

@@ -1,4 +1,4 @@
-# Chapter 1: what the method gives. A net that finds its shape, and the three equations behind it.
+# Chapter 1: what the method gives. A net that finds its shape, and the result for one free node in plain algebra.
 title: The force density method
 grid: {center: [4.5, 4.5], size: 12, step: 1}
 camera: {yaw: -52, pitch: 30}
@@ -27,26 +27,29 @@ slides:
 
   - title: The result we are heading for
     steps:
-      - say: 'Everything in these three decks leads to three lines, one per coordinate.'
-        eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
-      - say: 'The same line for $y$ and for $z$.'
+      - say: 'For one free node, everything in this presentation leads to one line per coordinate: the node sits at a weighted average of its neighbours, shifted by its load.'
+        eq: {tex: 'x_0 = \frac{\sum_i q_i\, x_i + p_x}{\sum_i q_i}', color: x}
+      - say: 'The same line for $y_0$ and for $z_0$.'
         do:
-          - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
-          - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}
-      - say: 'On the right of each line stands what we know. On the left, what we want: the coordinates of the free nodes.'
+          - eq: {tex: 'y_0 = \frac{\sum_i q_i\, y_i + p_y}{\sum_i q_i}', color: y}
+          - eq: {tex: 'z_0 = \frac{\sum_i q_i\, z_i + p_z}{\sum_i q_i}', color: z}
+      - say: 'On the right stands what we know. On the left, what we want: the coordinates of the free node.'
         do:
-          - text: '**known:** $\mathbf{x}_F$ fixed nodes, $\mathbf{p}$ loads, $\mathbf{C}$ connectivity, $\mathbf{Q}$ force densities'
-          - text: '**wanted:** $\mathbf{x}_N$, $\mathbf{y}_N$, $\mathbf{z}_N$, the free nodes'
+          - text: '**known:** $x_i, y_i, z_i$ the fixed nodes, $p$ the load, $q_i$ one number per bar'
+          - text: '**wanted:** $x_0$, $y_0$, $z_0$, the free node'
 
-  - title: The way there, in three decks
+  - title: The way there, in four presentations
     steps:
-      - say: 'This deck: one free node, plain sums, no matrices yet (Linkwitz 6.2.2).'
+      - say: 'Presentation 0 comes first: the equilibrium of one node in 2D, with force diagrams and with projections.'
+        text: '**0 · Equilibrium of a node**: equilibrium'
+        align: left
+      - say: 'This presentation: one free node in 3D, plain sums, no matrices yet (Linkwitz 6.2.2).'
         do:
-          - {text: '**Deck 1 · the equations of five nodes**', align: left}
-          - {text: 'equilibrium of a node, the question and what is given, forces as projections, force over length as one unknown, force density in 1D, playing with force densities', align: left}
-      - say: 'The second deck writes the same sums with matrices, derives the Jacobian, and solves any net for its coordinates and its forces (6.4.2, 6.4.3).'
-        do:
-          - {text: '**Deck 2 · matrices and the Jacobian**: force-density-matrices', align: left}
-      - say: 'The third deck turns the solved net into cables: elongations and unstretched lengths (6.5).'
-        do:
-          - {text: '**Deck 3 · materialization**: force-density-materialization', align: left}
+          - {text: '**1 · the equations of five nodes**', align: left}
+          - {text: 'the question and what is given, forces as projections, force over length as one unknown, force density in 1D, playing with force densities', align: left}
+      - say: 'The second writes the same sums with matrices, derives the Jacobian, and solves any net for its coordinates and its forces (6.4.2, 6.4.3).'
+        text: '**2 · matrices and the Jacobian**: force-density-matrices'
+        align: left
+      - say: 'The third turns the solved net into cables: elongations and unstretched lengths (6.5).'
+        text: '**3 · materialization**: force-density-materialization'
+        align: left

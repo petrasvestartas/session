@@ -1,0 +1,9 @@
+# Force density method, presentation 0 of 4: the equilibrium of one node in 2D, by force diagram and by projections.
+# A session_viewer stage deck. Open: https://petrasvestartas.github.io/session/?stage=equilibrium
+# Next, the equations of five nodes: ?stage=force-density
+name: 0 · Equilibrium of a node
+chapters:
+  - 01-hanging-load.yaml
+  - 02-force-diagram.yaml
+  - 03-projections.yaml
+  - 04-next.yaml

@@ -1,0 +1,77 @@
+# Chapter 1: where this presentation is heading, and the givens of the five nodes written as matrices for the first time.
+title: The givens as matrices
+grid: {center: [3.5, 3.5], size: 9, step: 1}
+camera: {yaw: -58, pitch: 26}
+net:
+  fixed: {n1: [0, 0, 0], n2: [5, 0, 3], n3: [0, 7, 3], n4: [7, 5, 0]}
+  free: {n0: [3.6, 3.4, 1.9]}        # drawn at a guess; its true place is the answer
+  cables: {e0: [n0, n1], e1: [n0, n2], e2: [n0, n3], e3: [n0, n4]}
+  q: 1
+  load: {n0: [0, 0, -5]}
+slides:
+  - title: Where this presentation is heading
+    steps:
+      - say: 'Presentation 1 solved one free node with plain sums. This one writes the same sums for any number of nodes, and ends in three lines, one per coordinate.'
+        eq: {tex: '\mathbf{x}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_x - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{x}_F)', color: x}
+      - say: 'The same line for $y$ and for $z$.'
+        do:
+          - eq: {tex: '\mathbf{y}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_y - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{y}_F)', color: y}
+          - eq: {tex: '\mathbf{z}_N = (\mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_N)^{-1}\,(\mathbf{p}_z - \mathbf{C}_N^{T}\mathbf{Q}\,\mathbf{C}_F\,\mathbf{z}_F)', color: z}
+      - say: 'On the right stands what we know, on the left what we want. Every bold letter is an array; this chapter builds the arrays of the right-hand side.'
+        do:
+          - text: '**known:** $\mathbf{x}_F$ fixed nodes, $\mathbf{p}$ loads, $\mathbf{C}$ connectivity, $\mathbf{Q}$ force densities'
+          - text: '**wanted:** $\mathbf{x}_N$, $\mathbf{y}_N$, $\mathbf{z}_N$, the free nodes'
+
+  - title: The same five nodes
+    steps:
+      - say: 'The five nodes of presentation 1: four fixed nodes $n_1,\dots,n_4$, one free node $n_0$ on four bars $e_0,\dots,e_3$, a load $p$ on $n_0$.'
+        show: net
+      - say: 'Presentation 1 listed the givens as numbers. Here each becomes an array, the form a computer and the three lines of the method need.'
+        text: 'fixed nodes $\quad$ load $\quad$ connectivity $\quad$ force densities'
+
+  - title: 'Given 1 · the fixed nodes'
+    steps:
+      - say: 'The coordinates of the four fixed nodes, in metres, become the matrix $\mathbf{x}_F$.'
+        do:
+          - matrix: {of: xF, empty: true}
+          - morph: {target: n1.label, label: n1, tex: 'n_1\,(0,\,0,\,0)', dur: 0.6}
+          - morph: {target: n2.label, label: n2, tex: 'n_2\,(5,\,0,\,3)', dur: 0.6, with: true}
+          - morph: {target: n3.label, label: n3, tex: 'n_3\,(0,\,7,\,3)', dur: 0.6, with: true}
+          - morph: {target: n4.label, label: n4, tex: 'n_4\,(7,\,5,\,0)', dur: 0.6, with: true}
+      - say: 'One row per node, one column per axis.'
+        do:
+          - fly: {from: n1.label, to: 'xF[0,:]'}
+          - fly: {from: n2.label, to: 'xF[1,:]', with: true, delay: 0.2}
+          - fly: {from: n3.label, to: 'xF[2,:]', with: true, delay: 0.2}
+          - fly: {from: n4.label, to: 'xF[3,:]', with: true, delay: 0.2}
+          - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
+          - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
+          - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
+          - morph: {target: n4.label, label: n4, tex: 'n_4', dur: 0.5, with: true}
+
+  - title: 'Given 2 · the load'
+    steps:
+      - say: 'The load on the free node, 5 kN straight down, becomes $\mathbf{p}$: one row per free node.'
+        highlight: [load_n0]
+        matrix: p
+
+  - title: 'Given 3 · the connectivity matrix'
+    steps:
+      - say: '$\mathbf{C}$ records which cable joins which nodes: one row per cable, one column per node.'
+        matrix: {of: C, empty: true}
+      - say: 'Bar $e_0$ runs from $n_0$ to $n_1$: $+1$ under $n_0$, $-1$ under $n_1$.'
+        do:
+          - color: {target: e0, color: accent}
+          - show: ['C[0,:]']
+          - color: {target: e0, color: reset}
+      - say: 'The other bars follow the same rule.'
+        show: ['C[1,:]', 'C[2,:]', 'C[3,:]']
+
+  - title: 'Given 4 · the force densities'
+    steps:
+      - say: 'For each cable we choose one number: its force divided by its length.'
+        eq: 'q = \frac{\text{force in the cable}}{\text{length of the cable}}'
+      - say: 'Here every bar gets $q = 1$ kN/m: one entry per bar in the column $\mathbf{q}$.'
+        matrix: q
+      - say: 'We do not know the forces and we do not know the lengths. We only fix their ratio, exactly as in presentation 1.'
+        highlight: [q]

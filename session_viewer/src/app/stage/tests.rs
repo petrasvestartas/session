@@ -2,7 +2,8 @@ use super::{deck, font, run, tex};
 use std::collections::HashMap;
 use std::rc::Rc;
 
-const DECKS: [&str; 3] = [
+const DECKS: [&str; 4] = [
+    "equilibrium",
     "force-density",
     "force-density-matrices",
     "force-density-materialization",

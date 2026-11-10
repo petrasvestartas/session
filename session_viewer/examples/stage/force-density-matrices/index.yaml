@@ -1,8 +1,9 @@
-# Force density method, deck 2 of 3: matrices, the Jacobian (6.4.2), the solution in matrix form (6.4.3),
+# Force density method, presentation 2 of 4: the givens as matrices, matrices, the Jacobian (6.4.2), the solution in matrix form (6.4.3),
 # any net solved for its coordinates and its forces. A session_viewer stage deck.
 # Open: https://petrasvestartas.github.io/session/?stage=force-density-matrices
 name: Force density 2 · matrices and the Jacobian
 chapters:
+  - 00-givens.yaml
   - 01-matrices.yaml
   - 02-one-bar.yaml
   - 03-tiny-nudge.yaml
