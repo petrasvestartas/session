@@ -54,3 +54,26 @@ slides:
           - solve: true
       - say: 'Nothing in the script knows that there are five nodes. A larger net only makes the arrays longer.'
         highlight: [out]
+
+  - title: Play with the force densities
+    steps:
+      - say: 'Take the load away. With equal force densities the node rests at the plain average of the four fixed nodes.'
+        do:
+          - remove: [load_P0]
+          - solve: {load: {P0: [0, 0, 0]}}
+          - eq: 'q = (1,\ 1,\ 1,\ 1):\quad P_0 = (3,\ 3,\ 1.5)'
+      - say: 'Give cable $c$ four times the force density. It weighs four times as much in the average and pulls the node toward $P_3$.'
+        do:
+          - color: {target: c, color: accent}
+          - solve: {load: {P0: [0, 0, 0]}, q: {c: 4}}
+          - eq: 'q = (1,\ 1,\ 4,\ 1):\quad P_0 = (1.714,\ 4.714,\ 2.143)'
+      - say: 'Now cable $a$ instead. The node moves toward $P_1$.'
+        do:
+          - color: {target: c, color: reset}
+          - color: {target: a, color: accent, with: true}
+          - solve: {load: {P0: [0, 0, 0]}, q: {a: 4}}
+          - eq: 'q = (4,\ 1,\ 1,\ 1):\quad P_0 = (1.714,\ 1.714,\ 0.857)'
+      - say: 'A force density is a weight: the denser a cable, the closer the node sits to its other end. No iteration, one solve each time.'
+        do:
+          - color: {target: a, color: reset}
+          - solve: {load: {P0: [0, 0, 0]}}

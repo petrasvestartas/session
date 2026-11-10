@@ -1,8 +1,8 @@
 # Stage fonts
 
-`NewCMMath-Book.otf`, `NewCM10-Book.otf`, `NewCM10-Bold.otf` and `NewCMMono10-Book.otf` are New Computer Modern 8.1.1
-by Antonis Tsolomitis, from CTAN (`fonts/newcomputermodern/otf`). The Book weights are distributed
-under the GUST Font License (https://www.gust.org.pl/projects/e-foundry/licenses). They are used
-unchanged: the math font's OpenType MATH table drives the stage TeX layout, the two text fonts set
-prose and `\text{}`.
-`NewCMMono10-Book.otf` sets `code:` blocks.
+`FiraMath-Regular.otf` is Fira Math 0.3.4 (github.com/firamath/firamath); `FiraSans-Regular.ttf`,
+`FiraSans-SemiBold.ttf` and `FiraMono-Regular.ttf` are Fira Sans and Fira Mono from the Google
+Fonts repository. All four are under the SIL Open Font License 1.1 and are used unchanged.
+
+The math font's OpenType MATH table drives the stage TeX layout, the two text fonts set prose,
+titles and `\text{}`, and the mono font sets `code:` blocks.

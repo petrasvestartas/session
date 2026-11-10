@@ -54,6 +54,10 @@ pub enum Draw {
         width: f32,
         color: Rgba,
     },
+    Head {
+        pts: [[f32; 2]; 3],
+        color: Rgba,
+    },
 }
 
 /// Smootherstep easing of `t` in 0..1.
@@ -699,7 +703,9 @@ fn lerp_prim(a: &DPrim, b: &DPrim, t: f32) -> DPrim {
 fn fade(mut d: Draw, a: f32) -> Draw {
     match &mut d {
         Draw::Prim(p) => p.color[3] *= a,
-        Draw::Line { color, .. } | Draw::Path { color, .. } => color[3] *= a,
+        Draw::Line { color, .. } | Draw::Path { color, .. } | Draw::Head { color, .. } => {
+            color[3] *= a
+        }
         Draw::Disc { color, ring, .. } => {
             color[3] *= a;
             ring[3] *= a;
@@ -1864,14 +1870,8 @@ impl Stage {
         match &o.content {
             Content::Point(_) => vec![one(SpatialKind::Point, pts, o.id.clone(), false)],
             Content::Line { arrow, .. } => {
-                let mut out = vec![one(SpatialKind::Line, pts.clone(), o.id.clone(), o.dash)];
-                if *arrow && grow >= 0.95 {
-                    for (k, barb) in self.arrow_barbs(pts[0], pts[1], o.width).into_iter().enumerate() {
-                        let id = format!("{}#head{k}", o.id);
-                        out.push(one(SpatialKind::Line, vec![pts[1], barb], id, false));
-                    }
-                }
-                out
+                let _ = arrow;
+                vec![one(SpatialKind::Line, pts, o.id.clone(), o.dash)]
             }
             Content::Polyline { closed, .. } => {
                 let mut pts = pts;
@@ -1892,31 +1892,32 @@ impl Stage {
         }
     }
 
-    /// The two back ends of an arrowhead at `tip`: short lines in the screen plane, a fixed size on screen.
-    fn arrow_barbs(&self, tail: [f64; 3], tip: [f64; 3], width: f32) -> Vec<[f64; 3]> {
-        let Some(lens) = &self.lens else {
-            return Vec::new();
-        };
-        let per_unit = dot(lens.a[0], lens.a[0]).sqrt();
-        let right = lens.a[0].map(|c| c / per_unit);
-        let up = lens.a[1].map(|c| c / per_unit);
-        let along: [f64; 3] = std::array::from_fn(|i| tip[i] - tail[i]);
-        let (u, v) = (dot(along, right), dot(along, up));
-        let on_screen = u.hypot(v);
-        if on_screen * per_unit < 1.0 {
-            return Vec::new();
+    /// The solid head of an arrow drawn by the scene: a triangle at its tip, a fixed size on the slide.
+    fn arrow_head(&self, o: &Obj, view: &View, now: f64, grow: f32, alpha: f32) -> Option<Draw> {
+        if !matches!(o.content, Content::Line { arrow: true, .. }) || grow < 0.95 {
+            return None;
         }
-        let (u, v) = (u / on_screen, v / on_screen);
-        let length = (8.0 + 3.0 * width as f64) / per_unit;
-        let (back, side) = (0.9 * length, 0.42 * length);
-        let barb = |sign: f64| -> [f64; 3] {
-            std::array::from_fn(|i| {
-                let back_i = u * right[i] + v * up[i];
-                let side_i = -v * right[i] + u * up[i];
-                tip[i] - back * back_i + sign * side * side_i
-            })
-        };
-        vec![barb(1.0), barb(-1.0)]
+        let pts = self.geo_points(o, now);
+        let (tail, tip) = (view.project(pts[0]), view.project(pts[1]));
+        let (dx, dy) = (tip[0] - tail[0], tip[1] - tail[1]);
+        let length = dx.hypot(dy);
+        if length < 1.0 {
+            return None;
+        }
+        let (ux, uy) = (dx / length, dy / length);
+        let head = (9.0 + 2.6 * o.width).min(0.6 * length);
+        let side = 0.36 * head;
+        let back = [tip[0] - ux * head, tip[1] - uy * head];
+        let base = o.colors.get(&usize::MAX).map_or(o.color, |c| c.at(now));
+        let color = with_alpha(base, alpha * o.opacity * (1.0 - 0.7 * o.dim.at(now)));
+        Some(Draw::Head {
+            pts: [
+                tip,
+                [back[0] - uy * side, back[1] + ux * side],
+                [back[0] + uy * side, back[1] - ux * side],
+            ],
+            color,
+        })
     }
 
     /// The lines and discs of a 3D object, grown to `grow` of its length.
@@ -2419,6 +2420,7 @@ impl Stage {
                 };
                 objects3.extend(self.geo_spatial(o, now, grow, alpha));
                 if self.scene {
+                    lines.extend(self.arrow_head(o, &view, now, grow, alpha));
                     continue;
                 }
                 let d = self.geo_draws(o, &view, now, grow, alpha);

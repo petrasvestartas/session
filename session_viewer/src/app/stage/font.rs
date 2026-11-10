@@ -11,10 +11,10 @@ pub const MONO: FontId = 3;
 
 /// Font files beside the viewer, in `FontId` order.
 pub const FILES: [&str; 4] = [
-    "NewCMMath-Book.otf",
-    "NewCM10-Book.otf",
-    "NewCM10-Bold.otf",
-    "NewCMMono10-Book.otf",
+    "FiraMath-Regular.otf",
+    "FiraSans-Regular.ttf",
+    "FiraSans-SemiBold.ttf",
+    "FiraMono-Regular.ttf",
 ];
 
 /// MATH table constants in em.

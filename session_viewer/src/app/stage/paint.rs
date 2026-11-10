@@ -264,6 +264,10 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
 fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
     match d {
         Draw::Prim(p) => prim(out, atlas, f, p, snap),
+        Draw::Head { pts, color } => {
+            let corners = pts.iter().map(|p| f.pt(*p)).collect();
+            out.add(EShape::convex_polygon(corners, c32(*color), Stroke::NONE));
+        }
         Draw::Line {
             a,
             b,
@@ -411,7 +415,6 @@ pub fn paint(
     // chrome: chapter, title, narration, tabs, progress
     let ink = stage.palette("ink");
     let dim = stage.palette("dim");
-    let accent = stage.palette("accent");
     let now = stage.now;
     let chapter_title = &stage.chapters[stage.chapter].title;
     let head = format!("{} · {}", stage.chapter + 1, chapter_title);
@@ -509,7 +512,7 @@ pub fn paint(
         let r = Rect::from_center_size(f.pt([cx, ty]), egui::vec2(26.0 * f.k, 26.0 * f.k));
         let current = i == stage.chapter;
         let fill = if current {
-            accent
+            ink
         } else {
             [faint[0], faint[1], faint[2], 0.0]
         };
@@ -517,7 +520,7 @@ pub fn paint(
         out.add(EShape::circle_stroke(
             r.center(),
             13.0 * f.k,
-            Stroke::new(1.2, c32(if current { accent } else { dim })),
+            Stroke::new(1.2, c32(if current { ink } else { dim })),
         ));
         let label = format!("{}", i + 1);
         let tc = if current { stage.palette("bg") } else { dim };
@@ -531,15 +534,13 @@ pub fn paint(
     }
     let steps = stage.steps().max(1);
     let done = stage.step.map_or(0, |g| g + 1);
-    let y = H - 6.0;
-    out.add(EShape::line_segment(
-        [f.pt([0.0, y]), f.pt([W, y])],
-        Stroke::new(2.0 * f.k, c32([faint[0], faint[1], faint[2], 0.6])),
-    ));
-    out.add(EShape::line_segment(
-        [f.pt([0.0, y]), f.pt([W * done as f32 / steps as f32, y])],
-        Stroke::new(2.0 * f.k, c32(accent)),
-    ));
+    let strip = 3.0 * f.k;
+    let bottom = screen.bottom();
+    let reached = screen.left() + screen.width() * done as f32 / steps as f32;
+    let track = Rect::from_min_max(Pos2::new(screen.left(), bottom - strip), screen.max);
+    out.add(EShape::rect_filled(track, 0.0, c32([faint[0], faint[1], faint[2], 0.6])));
+    let filled = Rect::from_min_max(track.min, Pos2::new(reached, bottom));
+    out.add(EShape::rect_filled(filled, 0.0, c32(ink)));
     let (s, _) = stage.position();
     let slides = stage.chapters[stage.chapter].slides.len();
     let counter = format!("slide {} of {}", s + 1, slides);
