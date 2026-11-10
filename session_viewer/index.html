@@ -49,6 +49,31 @@
           return reply;
         }
 
+        // A stage deck: its fonts, index and chapters download while the wasm does. The URLs follow
+        // app/stage/mod.rs; no scene is fetched.
+        if (query.stage !== undefined) {
+          ["NewCMMath-Book.otf", "NewCM10-Book.otf", "NewCM10-Bold.otf", "NewCMMono10-Book.otf"].forEach(function (name) {
+            start("stage/" + name, "stage/" + name, false);
+          });
+          var from = query.data;
+          var root = from === undefined ? BUCKET : from === "off" || from === "" ? "" :
+            /^https:\/\//.test(from) || LOCAL_URL.test(from) ? from : BUCKET;
+          if (root && root.slice(-1) !== "/")
+            root += "/";
+          var deck = query.stage || "";
+          var index = root + (/\.yaml$/.test(deck) ? deck : "stage/" + deck.replace(/^\/+|\/+$/g, "") + "/index.yaml");
+          start(index, index, false).then(function (reply) {
+            return reply.ok ? reply.clone().text() : "";
+          }).then(function (text) {
+            var folder = index.slice(0, index.lastIndexOf("/") + 1);
+            (text.match(/^\s*-\s*\S+\.yaml\s*$/gm) || []).forEach(function (line) {
+              var file = folder + line.replace(/^\s*-\s*/, "").trim();
+              start(file, file, false);
+            });
+          }).catch(function () {});
+          return;
+        }
+
         var local = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/.test(location.hostname);
         var scene = query.scene;
         if (scene !== undefined && (!scene || scene[0] === "/" || /\/\/|:/.test(scene) || scene.split("/").indexOf("..") >= 0))
