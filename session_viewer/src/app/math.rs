@@ -2311,7 +2311,7 @@ mod tests {
 
     #[test]
     fn billboard_math_uses_one_camera_facing_baseline() {
-        let mut item = label("tag", true);
+        let mut item = label("tag", false);
         item.text = "x_0".into();
         item.at = [4.0, 5.0, 6.0];
         item.right = [0.0, 1.0, 0.0];

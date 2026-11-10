@@ -840,6 +840,10 @@ mod tests {
             "previous",
             "next",
             "sag",
+            "start_trim",
+            "dash",
+            "dash_offset",
+            "end_trim",
         ];
 
         for (name, src) in SHADERS {
@@ -851,7 +855,7 @@ mod tests {
         }
 
         assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
-        assert_eq!(std::mem::size_of::<StrokeSegment>(), 52);
+        assert_eq!(std::mem::size_of::<StrokeSegment>(), 72);
         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
     }
 
