@@ -174,6 +174,7 @@ pub struct Frame {
     pub ox: f32,
     pub oy: f32,
     pub ppp: f32,
+    below: Option<(f32, [f32; 3])>, // On a tall screen: the split and the column's own scale and offset.
 }
 
 impl Frame {
@@ -185,7 +186,54 @@ impl Frame {
             ox: screen.min.x + (screen.width() - W * k) / 2.0,
             oy: screen.min.y + (screen.height() - H * k) / 2.0,
             ppp,
+            below: None,
         }
+    }
+
+    /// On a screen taller than wide, the 3D side fills the top and the column sits below it.
+    pub fn stacked(self, screen: Rect, split: f32) -> Self {
+        if screen.height() < 1.1 * screen.width() {
+            return self;
+        }
+        let (left, right) = (split * W, (1.0 - split) * W);
+        let fit = (screen.height() / (H * screen.width() * (1.0 / left + 1.0 / right))).min(1.0);
+        let (top, bottom) = (fit * screen.width() / left, fit * screen.width() / right);
+        Frame {
+            k: top,
+            ox: screen.min.x + (screen.width() - left * top) / 2.0,
+            oy: screen.min.y,
+            ppp: self.ppp,
+            below: Some((
+                left,
+                [
+                    bottom,
+                    screen.min.x + (screen.width() - right * bottom) / 2.0 - left * bottom,
+                    screen.min.y + H * top,
+                ],
+            )),
+        }
+    }
+
+    /// The frame that draws what sits at slide `x`: the 3D side or the column.
+    pub fn side(&self, x: f32) -> Frame {
+        match self.below {
+            Some((split, [k, ox, oy])) if x >= split => Frame {
+                k,
+                ox,
+                oy,
+                ppp: self.ppp,
+                below: None,
+            },
+            _ => Frame {
+                below: None,
+                ..*self
+            },
+        }
+    }
+
+    /// True when the column is stacked under the 3D side.
+    pub fn is_stacked(&self) -> bool {
+        self.below.is_some()
     }
 
     /// A slide point on screen.
@@ -195,7 +243,10 @@ impl Frame {
 
     /// A screen point on the slide.
     pub fn slide(&self, p: Pos2) -> [f32; 2] {
-        [(p.x - self.ox) / self.k, (p.y - self.oy) / self.k]
+        match self.below {
+            Some((_, [k, ox, oy])) if p.y >= oy => [(p.x - ox) / k, (p.y - oy) / k],
+            _ => [(p.x - self.ox) / self.k, (p.y - self.oy) / self.k],
+        }
     }
 }
 
@@ -433,8 +484,14 @@ pub fn paint(
 ) -> Vec<(Rect, usize)> {
     let bg = stage.palette("bg");
     // the scene shows through on the 3D side; the column gets an opaque ground
-    let divider = f.pt([stage.split * W, 0.0]).x;
-    let ground = Rect::from_min_max(Pos2::new(divider, screen.min.y), screen.max);
+    let whole = f;
+    let (scene_side, f) = (&whole.side(0.0), &whole.side(W));
+    let corner = f.pt([stage.split * W, 0.0]);
+    let ground = if whole.is_stacked() {
+        Rect::from_min_max(Pos2::new(screen.min.x, corner.y), screen.max)
+    } else {
+        Rect::from_min_max(Pos2::new(corner.x, screen.min.y), screen.max)
+    };
     let backdrop = if stage.scene { ground } else { screen };
     painter.add(EShape::rect_filled(backdrop, 0.0, c32(bg)));
     let snap = !stage.animating();
@@ -445,12 +502,14 @@ pub fn paint(
     };
     let faint = stage.palette("faint");
     let x = stage.split * W;
-    out.add(EShape::line_segment(
-        [f.pt([x, 96.0]), f.pt([x, H - 56.0])],
-        Stroke::new(1.0, c32([faint[0], faint[1], faint[2], 0.5])),
-    ));
-    // the 3D layer stays left of the divider, whatever the camera does
-    let clip = Rect::from_min_max(f.pt([0.0, 0.0]), f.pt([x, H]));
+    if !whole.is_stacked() {
+        out.add(EShape::line_segment(
+            [f.pt([x, 96.0]), f.pt([x, H - 56.0])],
+            Stroke::new(1.0, c32([faint[0], faint[1], faint[2], 0.5])),
+        ));
+    }
+    // the 3D layer stays on its side of the divider, whatever the camera does
+    let clip = Rect::from_min_max(scene_side.pt([0.0, 0.0]), scene_side.pt([x, H]));
     let spatial = painter.with_clip_rect(clip.intersect(screen));
     let mut left = Out {
         painter: &spatial,
@@ -458,7 +517,7 @@ pub fn paint(
     };
     let (spatial_draws, panel_draws) = draws.split_at(stage.spatial.min(draws.len()));
     for d in spatial_draws {
-        draw(&mut left, atlas, f, d, snap);
+        draw(&mut left, atlas, scene_side, d, snap);
     }
     left.flush();
     for d in panel_draws {
@@ -474,7 +533,7 @@ pub fn paint(
         stage,
         &mut out,
         atlas,
-        f,
+        scene_side,
         &head,
         false,
         [40.0, 30.0],
@@ -613,7 +672,7 @@ pub fn paint(
         stage,
         &mut out,
         atlas,
-        f,
+        scene_side,
         "← → step   ↑ ↓ slide   drag to orbit",
         false,
         [40.0, H - 40.0],
@@ -635,7 +694,7 @@ pub fn paint(
             stage,
             &mut out,
             atlas,
-            f,
+            scene_side,
             &msg.replace('$', ""),
             false,
             [40.0, 70.0],

@@ -25,6 +25,7 @@ struct Touch {
     start: [f32; 2],
     at: [f32; 2],
     orbit: bool,
+    down: f64, // When it went down, ms.
 }
 
 /// The running deck with its painter and pointer state.
@@ -187,7 +188,7 @@ impl StageApp {
         self.stage.changed = true;
     }
 
-    /// One finger: swipe left for the next step and right for the one before, drag the 3D side to orbit.
+    /// One finger: swipe left for the next step and right for the one before; a slow drag on the 3D side orbits.
     fn finger(
         &mut self,
         touch: &winit::event::Touch,
@@ -210,6 +211,7 @@ impl StageApp {
                     start: p,
                     at: p,
                     orbit,
+                    down: now,
                 });
                 false
             }
@@ -219,7 +221,8 @@ impl StageApp {
                 };
                 let (dx, dy) = (p[0] - finger.at[0], p[1] - finger.at[1]);
                 finger.at = p;
-                if !finger.orbit {
+                // a quick flick steps the slides, so the view only turns once the finger has stayed
+                if !finger.orbit || now - finger.down < 220.0 {
                     return false;
                 }
                 camera.orbit(dx, dy);
@@ -233,7 +236,10 @@ impl StageApp {
                 let (dx, dy) = (p[0] - finger.start[0], p[1] - finger.start[1]);
                 if dx.hypot(dy) < 8.0 {
                     self.tap(p, finger.orbit, now);
-                } else if !finger.orbit && dx.abs() > 40.0 && dx.abs() > 1.5 * dy.abs() {
+                } else if (!finger.orbit || now - finger.down < 350.0)
+                    && dx.abs() > 40.0
+                    && dx.abs() > 1.5 * dy.abs()
+                {
                     if dx < 0.0 {
                         self.stage.next(now);
                     } else {
@@ -258,7 +264,7 @@ impl StageApp {
         ppp: f32,
         _now: f64,
     ) -> bool {
-        let frame = paint::Frame::new(screen, ppp);
+        let frame = paint::Frame::new(screen, ppp).stacked(screen, self.stage.split);
         self.frame = Some(frame);
         self.atlas.overflowed = false;
         self.tabs = paint::paint(&mut self.stage, &mut self.atlas, painter, &frame, screen);

@@ -353,7 +353,9 @@ impl Ui {
         };
         // the scene draws the 3D objects; its camera gives the labels their projection
         let canvas = [logical[0], logical[1]];
-        let f = crate::app::stage::paint::Frame::new(screen, ppp);
+        let f = crate::app::stage::paint::Frame::new(screen, ppp)
+            .stacked(screen, stage.stage.split)
+            .side(0.0);
         stage.stage.tick(now);
         stage.stage.scene = true;
         state.gpu.view.dark = true;

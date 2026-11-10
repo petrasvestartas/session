@@ -12,8 +12,9 @@ https://petrasvestartas.github.io/session/?stage=force-density-derivations  Link
 Keys: **→ / Space** next step, **←** back, **↓ / ↑** next and previous slide, **1–9** chapter,
 **R** reset view. Drag the 3D side to orbit, wheel to zoom.
 
-On a phone: swipe left for the next step and right for the one before, tap to advance, drag the
-3D side to orbit, double tap it to reset the view. Landscape shows the slide largest.
+On a phone: swipe left for the next step and right for the one before, tap to advance, hold and
+drag the 3D side to orbit, double tap it to reset the view. Held upright, the 3D side fills the
+top of the screen and the column sits below it.
 
 ## The shape of a deck
 
