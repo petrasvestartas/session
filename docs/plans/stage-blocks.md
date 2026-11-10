@@ -1,7 +1,6 @@
 # Stage blocks: reusable pieces of animation
 
-Written 2026-11-10, from the eighteen chapters of the two force-density decks. Status: plan.
-Nothing here is built yet except where marked *done*.
+Written 2026-11-10, from the eighteen chapters of the two force-density decks. Status: built; each item below says so. `multiply` is tested but no chapter uses it yet.
 
 ## Why
 
@@ -132,7 +131,8 @@ through the 81- and 100-node chapters. GPU memory was not measured.
 ## What draws what
 
 - 3D side: the session viewer's own scene and wgpu pipeline. Points, lines and polylines are
-  kernel geometry; arrowheads are two kernel lines.
+  kernel geometry; an arrow is a kernel line whose head the viewer's `arrow.wgsl` draws. Nothing
+  3D is painted over the scene: the painted fallback was removed on 2026-11-10.
 - Formula column, titles, labels: laid out by `stage/tex.rs` from the fonts' OpenType tables and
   painted as glyph quads through egui, the same Rust library that draws the viewer's own panels.
 - JavaScript on the page: the glue that wasm-bindgen generates from our Rust, `diagnostics.js`

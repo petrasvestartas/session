@@ -123,20 +123,17 @@ A deck folder holds `index.yaml` (`name`, `chapters`) and one file per chapter.
 
 ## Decks
 
-`examples/stage/force-density/` — the method in three levels
-1. `01-one-solve.yaml` inputs plugged in, one linear solve, the node moves to equilibrium
-2. `02-five-nodes.yaml` forces, direction cosines as projections, force density, linearity
-3. `03-matrices.yaml` C, u = Cx, C_N | C_F, U, L, Q, D_N, D_F, the solve in matrices
-4. `04-several-nodes.yaml` the 5x3 example of the study PDF: Q C_f, D_f, its structure
+Five presentations, as built (the two-deck split above was the first plan):
 
-`examples/stage/force-density-derivations/` — the note screenshots
-1. `01-setup.yaml` one bar, Pythagoras, the question, the nudge that converges
-2. `02-tiny-nudge.yaml` method 1, steps A to G
-3. `03-chain-rule.yaml` method 2; the meaning as a negative direction cosine; +0.706
-4. `04-jacobian.yaml` (6.22)-(6.24): the row for four bars, C_N^T U L^-1
-5. `05-matrix-form.yaml` (6.25)-(6.33): equilibrium, q = L^-1 f, Uq = Qu, split, D_N, D_F, solve
-6. `06-materialization.yaml` (6.34)-(6.37) and the worked cable
-7. `07-resume.yaml` the whole chain on one slide
+0. `equilibrium/` one node in 2D: a load on two cables, the force diagram, cosines, projections
+1. `force-density/` the equations of five nodes (6.2.2): result first, the question, projections,
+   one dimension, force densities. No matrices.
+2. `force-density-matrices/` the method as a tool: givens, C, D_N, D_F, the script, the Schek net,
+   what a solver does, a 9x9 net, a pillow, forces
+3. `force-density-derivation/` where the formula comes from: one cable, the tiny nudge, the chain
+   rule, the Jacobian (6.4.2), the matrix form (6.4.3)
+4. `force-density-materialization/` elongations and unstretched lengths (6.5), the resume, a net
+   with its cables coloured and thickened by force
 
 Sign convention throughout: `u = Cx = x_0 - x_k`, so equilibrium reads `C_N^T U L^-1 f = p` and
 (6.31) is as printed; one line on the slide says the book prints `+ p = 0` with the other sign of u.
@@ -154,7 +151,7 @@ Sign convention throughout: `u = Cx = x_0 - x_k`, so equilibrium reads `C_N^T U 
 
 ## Checks
 
-- `cargo test --lib stage::` plays every step of both decks: no author errors, no overlapping
+- `cargo test --lib stage::` plays every step of all five decks: no author errors, no overlapping
   blocks or labels, nothing outside the slide, every animation settles.
 - Browser: Playwright run per chapter, forward, back, chapter jumps, orbit; screenshots reviewed.
 - Kernel: `quicktest` for vector, color, line, polyline, xform in cpp, py, rust.
