@@ -85,49 +85,75 @@ fn merge(up: &mut Upload, other: &mut Upload) {
     }
 }
 
-/// The vector shader with parts switched off by `?arrowprobe=<bits>`, to find what a driver draws wrongly:
-/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 8 no huge constant, 16 a plain square at each end.
+/// The vector shader changed by `?arrowprobe=<bits>`, to find what a driver draws wrongly:
+/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 8 no huge constant, 16 a white square
+/// at each end, 32 a square coloured by what the real corner code returned, 64 by the row's fields.
 fn probed(source: &str) -> String {
     let bits = super::view::knob("VIEWER_ARROWPROBE", "arrowprobe")
         .and_then(|v| v.parse::<u32>().ok())
         .unwrap_or(0);
-    let swaps = [
-        (
-            1,
+    let mut out = source.to_owned();
+    let square = bits & (16 | 32 | 64) != 0;
+    if bits & 1 != 0 || square {
+        out = out.replace(
             "let covered = coverage(in);",
-            "if (true) { return InkColor(vec4<f32>(in.color.rgb, 1.0)); }
-let covered = coverage(in);",
-        ),
-        (
-            2,
+            "if (true) { return InkColor(vec4<f32>(in.color.rgb, 1.0)); }\nlet covered = coverage(in);",
+        );
+    }
+    if bits & 2 != 0 {
+        out = out.replace(
             "let hidden = !over && !ink_visible(",
             "let hidden = false && !ink_visible(",
-        ),
-        (
-            4,
+        );
+    }
+    if bits & 4 != 0 {
+        out = out.replace(
             "if (trim0 + trim1 > 0.0 && len <= trim0 + trim1 + 2.0) {",
             "if (false) {",
-        ),
-        (8, "3.0e38", "100000.0"),
-        (
-            16,
-            "return arrow_corner(vectors[row], vid, false);",
-            "if (vid >= 6u) { return dead_vertex(); }
-let v = vectors[row];
-let c = mvp * vec4<f32>(place(v.instance_id, v.end), 1.0);
-let k = corner_of(vid);
-let off = vec2<f32>(select(-9.0, 9.0, k >= 2u), select(-9.0, 9.0, (k & 1u) == 1u));
-var o: VsOut;
-o.pos = vec4<f32>(c.xy / c.w + off * 2.0 / vec2<f32>(line.vp_w, line.vp_h), 0.5, 1.0);
-o.color = vec4<f32>(1.0, 1.0, 1.0, 2.0);
-return o;",
-        ),
-    ];
-    let mut out = source.to_owned();
-    for (bit, from, to) in swaps {
-        if bits & bit != 0 {
-            out = out.replace(from, to);
+        );
+    }
+    if bits & 8 != 0 {
+        out = out.replace("3.0e38", "100000.0");
+    }
+    if square {
+        // each early exit of the corner code carries its number in the colour
+        let mut code = 0;
+        while let Some(at) = out.find("return dead_vertex();") {
+            code += 1;
+            out.replace_range(
+                at..at + "return dead_vertex();".len(),
+                &format!("return dead_code({code}.0);"),
+            );
         }
+        out = out.replace(
+            "fn dead_vertex() -> VsOut {",
+            "fn dead_code(code: f32) -> VsOut {\nvar dead: VsOut;\ndead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);\ndead.color = vec4<f32>(code, 0.0, 0.0, 0.0);\nreturn dead;\n}\nfn dead_vertex() -> VsOut {",
+        );
+        let colour = if bits & 32 != 0 {
+            r#"let r = arrow_corner(vectors[row], vid + 6u, false);
+var col = vec3<f32>(0.0, 1.0, 0.0);
+if (!(abs(r.pos.x) <= 100.0) || !(abs(r.pos.y) <= 100.0)) { col = vec3<f32>(1.0, 0.0, 0.0); }
+if (r.pos.x == 3.0 && r.pos.y == 3.0) {
+col = vec3<f32>(0.5, 0.5, 0.5);
+if (r.color.r == 1.0) { col = vec3<f32>(1.0, 0.0, 1.0); }
+if (r.color.r == 2.0) { col = vec3<f32>(0.0, 1.0, 1.0); }
+if (r.color.r == 3.0) { col = vec3<f32>(0.0, 0.0, 1.0); }
+if (r.color.r == 4.0) { col = vec3<f32>(1.0, 1.0, 0.0); }
+if (r.color.r == 5.0) { col = vec3<f32>(1.0, 1.0, 1.0); }
+if (r.color.r == 6.0) { col = vec3<f32>(1.0, 0.5, 0.0); }
+}"#
+        } else if bits & 64 != 0 {
+            r#"var col = vec3<f32>(0.0, 0.0, 0.0);
+if ((v.heads & 1u) != 0u) { col.x = 1.0; }
+if ((v.heads & 4u) != 0u) { col.y = 1.0; }
+if (v.head >= 0.0 && v.head < 100.0 && v.radius > -100.0 && v.radius < 100.0) { col.z = 1.0; }"#
+        } else {
+            "let col = vec3<f32>(1.0, 1.0, 1.0);"
+        };
+        let body = format!(
+            "if (vid >= 6u) {{ return dead_code(0.0); }}\nlet v = vectors[row];\n{colour}\nlet c = mvp * vec4<f32>(place(v.instance_id, v.end), 1.0);\nlet k = corner_of(vid);\nlet off = vec2<f32>(select(-9.0, 9.0, k >= 2u), select(-9.0, 9.0, (k & 1u) == 1u));\nvar o: VsOut;\no.pos = vec4<f32>(c.xy / c.w + off * 2.0 / vec2<f32>(line.vp_w, line.vp_h), 0.5, 1.0);\no.color = vec4<f32>(col, 2.0);\nreturn o;"
+        );
+        out = out.replace("return arrow_corner(vectors[row], vid, false);", &body);
     }
     out
 }
