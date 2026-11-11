@@ -52,32 +52,29 @@ slides:
 
   - title: By computing · the projections
     steps:
-      - say: 'Now without a ruler. Cable 1 runs 4 across and 3 up, so its length is 5.'
+      - say: 'Now without a ruler. On the left is the geometry: cable 1 runs 4 across and 3 up, so its length is 5.'
         do:
           - remove: [f1, f2]
           - project: {of: c1, parts: '\Delta %_1', axes: [x, y]}
           - eq: 'l_1 = \sqrt{\Delta x_1^2 + \Delta y_1^2} = \sqrt{4^2 + 3^2} = 5'
-      - say: '$\alpha_1$ is the angle between the cable and the $x$ direction. Its cosine is the side along $x$ over the length.'
+      - say: 'Its angles to the $x$ and $y$ directions. A cosine is the side along that direction over the length.'
         do:
           - add:
               - {id: a1, polyline: [[-0.800, 0.000, 0], [-0.797, 0.064, 0], [-0.790, 0.128, 0], [-0.777, 0.191, 0], [-0.759, 0.253, 0], [-0.736, 0.313, 0], [-0.709, 0.371, 0], [-0.676, 0.427, 0], [-0.640, 0.480, 0]], color: x, width: 2}
-              - {id: a1t, label: [-1.27, 0.29, 0], tex: '\alpha_1', color: x}
-          - eq: {tex: '\cos\alpha_1 = \frac{\Delta x_1}{l_1} = \frac{4}{5} = 0.8', color: x}
-      - say: '$\beta_1$ is the angle between the cable and the $y$ direction. Its cosine is the side along $y$ over the length.'
-        do:
-          - add:
+              - {id: a1t, label: [-1.15, 0.35, 0], tex: '\alpha_1', color: x}
               - {id: b1, polyline: [[0.000, 1.400, 0], [-0.162, 1.391, 0], [-0.322, 1.363, 0], [-0.477, 1.316, 0], [-0.626, 1.252, 0], [-0.767, 1.171, 0], [-0.897, 1.075, 0], [-1.015, 0.964, 0], [-1.120, 0.840, 0]], color: y, width: 2}
               - {id: b1t, label: [-0.52, 0.94, 0], tex: '\beta_1', color: y}
+          - eq: {tex: '\cos\alpha_1 = \frac{\Delta x_1}{l_1} = \frac{4}{5} = 0.8', color: x}
           - eq: {tex: '\cos\beta_1 = \frac{\Delta y_1}{l_1} = \frac{3}{5} = 0.6', color: y}
-      - say: 'The force lies on the cable, so the same angles split it. Its $x$ part points left: minus.'
+      - say: 'On the right is the force diagram. $f_1$ is parallel to cable 1, so the same angles split it. Its $x$ part points left: minus.'
         do:
-          - remove: [c1.box, c1.x, c1.y, c1.x.label, c1.y.label]
-          - add: {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
-          - project: {of: f1, parts: 'f_{1,%}', axes: [x, y]}
+          - project: {of: t1, parts: 'f_{1,%}', axes: [y, x]}
+          - add:
+              - {id: a1f, polyline: [[7.550, 2.400, 0], [7.548, 2.356, 0], [7.543, 2.312, 0], [7.534, 2.269, 0], [7.522, 2.226, 0], [7.506, 2.185, 0], [7.487, 2.145, 0], [7.465, 2.106, 0], [7.440, 2.070, 0]], color: x, width: 2}
+              - {id: b1f, polyline: [[8.920, 1.510, 0], [8.856, 1.506, 0], [8.794, 1.495, 0], [8.733, 1.477, 0], [8.674, 1.452, 0], [8.619, 1.420, 0], [8.568, 1.382, 0], [8.521, 1.339, 0], [8.480, 1.290, 0]], color: y, width: 2}
           - eq: 'f_{1,x} = -f_1\cos\alpha_1 = -0.8\,f_1, \qquad f_{1,y} = f_1\cos\beta_1 = 0.6\,f_1'
       - say: 'Cable 2 the same way: 3 across, 4 up, length 5.'
         do:
-          - remove: [a1, a1t, b1, b1t]
           - project: {of: c2, parts: '\Delta %_2', axes: [x, y]}
           - add:
               - {id: a2, polyline: [[0.800, 0.000, 0], [0.795, 0.093, 0], [0.779, 0.184, 0], [0.752, 0.273, 0], [0.716, 0.358, 0], [0.669, 0.438, 0], [0.614, 0.513, 0], [0.551, 0.580, 0], [0.480, 0.640, 0]], color: x, width: 2}
@@ -85,20 +82,24 @@ slides:
               - {id: b2, polyline: [[0.000, 1.400, 0], [0.112, 1.395, 0], [0.224, 1.382, 0], [0.335, 1.359, 0], [0.443, 1.328, 0], [0.548, 1.288, 0], [0.650, 1.240, 0], [0.747, 1.184, 0], [0.840, 1.120, 0]], color: y, width: 2}
               - {id: b2t, label: [0.39, 1.01, 0], tex: '\beta_2', color: y}
           - eq: '\cos\alpha_2 = \frac{\Delta x_2}{l_2} = \frac{3}{5} = 0.6, \qquad \cos\beta_2 = \frac{\Delta y_2}{l_2} = \frac{4}{5} = 0.8'
-      - say: 'Both parts of $f_2$ point the positive way: right and up.'
+      - say: 'In the force diagram, both parts of $f_2$ point the positive way: right and up.'
         do:
-          - remove: [c2.box, c2.x, c2.y, c2.x.label, c2.y.label]
-          - add: {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
-          - project: {of: f2, parts: 'f_{2,%}', axes: [x, y]}
+          - project: {of: t2, parts: 'f_{2,%}', axes: [x, y]}
+          - add:
+              - {id: a2f, polyline: [[7.550, -1.600, 0], [7.546, -1.536, 0], [7.535, -1.474, 0], [7.517, -1.413, 0], [7.492, -1.354, 0], [7.460, -1.299, 0], [7.422, -1.248, 0], [7.379, -1.201, 0], [7.330, -1.160, 0]], color: x, width: 2}
+              - {id: b2f, polyline: [[8.920, 0.410, 0], [8.876, 0.412, 0], [8.832, 0.417, 0], [8.789, 0.426, 0], [8.746, 0.438, 0], [8.705, 0.454, 0], [8.665, 0.473, 0], [8.626, 0.495, 0], [8.590, 0.520, 0]], color: y, width: 2}
           - eq: 'f_{2,x} = f_2\cos\alpha_2 = 0.6\,f_2, \qquad f_{2,y} = f_2\cos\beta_2 = 0.8\,f_2'
 
   - title: By computing · equilibrium
     steps:
-      - say: 'Equilibrium, one axis at a time: the $x$ parts cancel, and the $y$ parts carry the load of 10.'
+      - say: 'Along $x$ the two parts are equal and opposite: they cancel.'
         do:
-          - remove: [a2, a2t, b2, b2t]
           - eq: {tex: 'x:\quad -0.8\, f_1 + 0.6\, f_2 = 0', color: x}
+          - highlight: [t1.x, t2.x]
+      - say: 'Along $y$ the two parts stack up to the height of the load.'
+        do:
           - eq: {tex: 'y:\quad 0.6\, f_1 + 0.8\, f_2 - 10 = 0', color: y}
+          - highlight: [t1.y, t2.y, Wa]
       - say: 'Two equations, two unknowns. The first gives $f_1 = 0.75 f_2$. Put that into the second.'
         eq: '0.45\, f_2 + 0.8\, f_2 = 10 \quad\Rightarrow\quad f_2 = 8, \quad f_1 = 6'
       - say: 'Check along $x$: $-4.8 + 4.8 = 0$. Along $y$: $3.6 + 6.4 - 10 = 0$. The drawing gave the same 6 kN and 8 kN.'

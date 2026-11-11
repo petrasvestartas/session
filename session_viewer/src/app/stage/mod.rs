@@ -43,7 +43,6 @@ pub struct StageApp {
     pub stage: run::Stage,
     pub atlas: paint::Atlas,
     pub frame: Option<paint::Frame>,
-    pub tabs: Vec<(egui::Rect, usize)>, // Chapter tab rectangles and their chapters.
     pub scene3: spatial::Scene3,
     press: Option<([f32; 2], [f32; 2], bool)>, // Press on screen and slide, and whether it orbits.
     cursor: [f32; 2],
@@ -81,7 +80,6 @@ impl StageApp {
             stage,
             atlas,
             frame: None,
-            tabs: Vec::new(),
             press: None,
             cursor: [0.0; 2],
             last_click: 0.0,
@@ -162,7 +160,7 @@ impl StageApp {
                     if (self.cursor[0] - start[0]).hypot(self.cursor[1] - start[1]) > 4.0 {
                         return false;
                     }
-                    self.tap(self.cursor, orbit, now);
+                    self.tap(orbit, now);
                     true
                 }
             },
@@ -184,12 +182,9 @@ impl StageApp {
         }
     }
 
-    /// A click or tap: a chapter tab, a double tap on the 3D side to reset the view, else the next step.
-    fn tap(&mut self, at: [f32; 2], orbit: bool, now: f64) {
-        let p = egui::pos2(at[0], at[1]);
-        if let Some(&(_, chapter)) = self.tabs.iter().find(|(r, _)| r.contains(p)) {
-            self.stage.chapter_go(chapter, now);
-        } else if orbit {
+    /// A click or tap: a double tap on the 3D side to reset the view, else the next step.
+    fn tap(&mut self, orbit: bool, now: f64) {
+        if orbit {
             if now - self.last_click < 350.0 {
                 self.stage.cam_serial += 1;
             }
@@ -250,7 +245,7 @@ impl StageApp {
                 };
                 let (dx, dy) = (p[0] - finger.start[0], p[1] - finger.start[1]);
                 if dx.hypot(dy) < 8.0 {
-                    self.tap(p, finger.orbit, now);
+                    self.tap(finger.orbit, now);
                 } else if (!finger.orbit || now - finger.down < 350.0)
                     && dx.abs() > 40.0
                     && dx.abs() > 1.5 * dy.abs()
@@ -282,7 +277,7 @@ impl StageApp {
         let frame = paint::Frame::new(screen, ppp).stacked(screen, self.stage.split);
         self.frame = Some(frame);
         self.atlas.overflowed = false;
-        self.tabs = paint::paint(&mut self.stage, &mut self.atlas, painter, &frame, screen);
+        paint::paint(&mut self.stage, &mut self.atlas, painter, &frame, screen);
         let more = self.stage.animating() || self.stage.changed || self.atlas.overflowed;
         self.stage.changed = false;
         #[cfg(target_arch = "wasm32")]

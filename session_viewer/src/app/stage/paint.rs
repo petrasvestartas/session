@@ -428,14 +428,14 @@ fn text(
 /// Where the step's sentence starts, above the column.
 const SAY: f32 = 40.0;
 
-/// Paint the stage; returns the chapter tabs for clicks.
+/// Paint the stage.
 pub fn paint(
     stage: &mut Stage,
     atlas: &mut Atlas,
     painter: &egui::Painter,
     f: &Frame,
     screen: Rect,
-) -> Vec<(Rect, usize)> {
+) {
     let bg = stage.palette("bg");
     // the scene shows through on the 3D side; the column gets an opaque ground
     let whole = f;
@@ -476,7 +476,7 @@ pub fn paint(
     for d in panel_draws {
         draw(&mut out, atlas, f, d, snap);
     }
-    // chrome: chapter and slide, the step's sentence, tabs, progress
+    // chrome: chapter and slide, the step's sentence, progress
     let ink = stage.palette("ink");
     let dim = stage.palette("dim");
     let now = stage.now;
@@ -542,37 +542,9 @@ pub fn paint(
         pw,
         entering,
     );
-    let n = stage.chapters.len();
-    let mut tabs = Vec::new();
-    for i in 0..n {
-        let cx = W - 56.0 - (n - 1 - i) as f32 * 34.0 - 13.0;
-        let ty = H - 34.0;
-        let r = Rect::from_center_size(f.pt([cx, ty]), egui::vec2(26.0 * f.k, 26.0 * f.k));
-        let current = i == stage.chapter;
-        let fill = if current {
-            ink
-        } else {
-            [faint[0], faint[1], faint[2], 0.0]
-        };
-        out.add(EShape::circle_filled(r.center(), 13.0 * f.k, c32(fill)));
-        out.add(EShape::circle_stroke(
-            r.center(),
-            13.0 * f.k,
-            Stroke::new(1.2, c32(if current { ink } else { dim })),
-        ));
-        let label = format!("{}", i + 1);
-        let tc = if current { stage.palette("bg") } else { dim };
-        let e = stage.chrome(&label, current, 100.0);
-        let size = 15.0;
-        let at = [cx - e.w * size / 2.0, ty - e.h * size / 2.0 - 1.0];
-        text(
-            stage, &mut out, atlas, f, &label, current, at, size, 100.0, tc,
-        );
-        tabs.push((r, i));
-    }
     let steps = stage.steps().max(1);
     let done = stage.step.map_or(0, |g| g + 1);
-    let strip = 3.0 * f.k;
+    let strip = 7.0 * f.k;
     let bottom = screen.bottom();
     let reached = screen.left() + screen.width() * done as f32 / steps as f32;
     let track = Rect::from_min_max(Pos2::new(screen.left(), bottom - strip), screen.max);
@@ -583,22 +555,6 @@ pub fn paint(
     ));
     let filled = Rect::from_min_max(track.min, Pos2::new(reached, bottom));
     out.add(EShape::rect_filled(filled, 0.0, c32(ink)));
-    let (s, _) = stage.position();
-    let slides = stage.chapters[stage.chapter].slides.len();
-    let counter = format!("slide {} of {}", s + 1, slides);
-    let e = stage.chrome(&counter, false, 400.0);
-    text(
-        stage,
-        &mut out,
-        atlas,
-        f,
-        &counter,
-        false,
-        [W - 56.0 - n as f32 * 34.0 - 14.0 - e.w * 14.0, H - 42.0],
-        14.0,
-        400.0,
-        dim,
-    );
     text(
         stage,
         &mut out,
@@ -635,5 +591,4 @@ pub fn paint(
         );
     }
     out.flush();
-    tabs
 }
