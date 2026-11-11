@@ -1208,8 +1208,8 @@ fn written(p: &Pos) -> String {
     }
 }
 
-/// `project: {of: F1, parts: 'F_{1,%}', axes: [x, z]}`: the box an arrow spans, the walk along its
-/// edges, and a label on each edge; `%` in `parts` becomes the axis.
+/// `project: {of: F1, parts: 'F_{1,%}', axes: [x, z]}`: the box an arrow spans, its projection on the
+/// first axis, the walk on along the other edges, and a label on each edge; `%` in `parts` becomes the axis.
 fn project(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
     let Value::Mapping(m) = v else {
         return err(at, "project: {of: arrow}");
@@ -1253,10 +1253,15 @@ fn project(v: &Value, at: &str, cx: &mut Cx) -> Result<Vec<Action>, String> {
         let mut arrow = plain(format!("{of}.{axis}"), edge);
         arrow.color = Some(axis.clone());
         arrow.width = Some(3.6);
-        out.push(act(Kind::Derive {
-            from: of.clone(),
-            obj: arrow,
-            map: Vec::new(),
+        // the first part drops out of the arrow onto its axis; the others are drawn on from there
+        out.push(act(if out.len() == 1 {
+            Kind::Derive {
+                from: of.clone(),
+                obj: arrow,
+                map: Vec::new(),
+            }
+        } else {
+            Kind::Add(vec![arrow])
         }));
         if let Some(parts) = &parts {
             let label = Content::Label {

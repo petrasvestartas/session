@@ -32,16 +32,17 @@ slides:
           - eq: 'n_2 = (5,\ 0,\ 3)'
           - eq: 'n_3 = (0,\ 7,\ 3)'
           - eq: 'n_4 = (7,\ 5,\ 0)'
-          - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
-          - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
-          - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
-          - morph: {target: n4.label, label: n4, tex: 'n_4', dur: 0.5, with: true}
 
   - title: 'Given 2 · the load'
     steps:
       - say: 'The load on the free node: 5 kN straight down.'
-        highlight: [load_n0]
-        eq: 'p = (0,\ 0,\ -5)\ \text{kN}'
+        do:
+          - morph: {target: n1.label, label: n1, tex: 'n_1', dur: 0.5}
+          - morph: {target: n2.label, label: n2, tex: 'n_2', dur: 0.5, with: true}
+          - morph: {target: n3.label, label: n3, tex: 'n_3', dur: 0.5, with: true}
+          - morph: {target: n4.label, label: n4, tex: 'n_4', dur: 0.5, with: true}
+          - highlight: [load_n0]
+          - eq: 'p = (0,\ 0,\ -5)\ \text{kN}'
 
   - title: 'Given 3 · the cables'
     steps:
