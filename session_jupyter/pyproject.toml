@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "session_jupyter"
+version = "0.1.0"
+description = "Show session geometry in Jupyter notebooks with the session viewer"
+authors = [{name = "Petras Vestartas", email = "petrasvestartas@gmail.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "ipython>=8.0",
+    "session-py>=0.301.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/petrasvestartas/session"
+Repository = "https://github.com/petrasvestartas/session"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/session_jupyter"]
+
+# local development: the kernel from the sibling checkout in the session monorepo
+[tool.uv.sources]
+session-py = { path = "../session_py", editable = true }
