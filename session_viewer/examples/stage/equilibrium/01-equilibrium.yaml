@@ -35,17 +35,12 @@ slides:
     steps:
       - say: 'Draw the load to scale: 10 kN is 4 units.'
         do:
-          - add:
-              - {id: q0, point: Q0, color: dim}
-              - {id: q1, point: Q1, color: dim}
           - derive: {from: W, id: Wa, arrow: [Q0, Q1], color: load, width: 3.6}
           - add: {id: Wa.l, label: 'mid(Q0, Q1)', tex: 'p', color: load}
       - say: 'From its tip, draw $f_2$ parallel to cable 2.'
         do:
           - derive: {from: f2, id: t2, arrow: [Q1, Q2], color: accent, width: 3.6}
-          - add:
-              - {id: q2, point: Q2, color: dim}
-              - {id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2', color: accent}
+          - add: {id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2', color: accent}
       - say: 'Then $f_1$, parallel to cable 1, back to the start. The polygon is **closed**.'
         do:
           - derive: {from: f1, id: t1, arrow: [Q2, Q0], color: accent, width: 3.6}
