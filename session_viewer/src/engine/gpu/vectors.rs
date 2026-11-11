@@ -5,7 +5,8 @@ use super::lane::{Lane, Registered, RowLane};
 use super::upload::Upload;
 use super::view::View;
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
+    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_source,
+    module,
 };
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -84,10 +85,48 @@ fn merge(up: &mut Upload, other: &mut Upload) {
     }
 }
 
+/// The vector shader with parts switched off by `?arrowprobe=<bits>`, to find what a driver draws wrongly:
+/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 8 no huge constant.
+fn probed(source: &str) -> String {
+    let bits = super::view::knob("VIEWER_ARROWPROBE", "arrowprobe")
+        .and_then(|v| v.parse::<u32>().ok())
+        .unwrap_or(0);
+    let swaps = [
+        (
+            1,
+            "let covered = coverage(in);",
+            "if (true) { return InkColor(vec4<f32>(in.color.rgb, 1.0)); }
+let covered = coverage(in);",
+        ),
+        (
+            2,
+            "let hidden = !over && !ink_visible(",
+            "let hidden = false && !ink_visible(",
+        ),
+        (
+            4,
+            "if (trim0 + trim1 > 0.0 && len <= trim0 + trim1 + 2.0) {",
+            "if (false) {",
+        ),
+        (8, "3.0e38", "100000.0"),
+    ];
+    let mut out = source.to_owned();
+    for (bit, from, to) in swaps {
+        if bits & bit != 0 {
+            out = out.replace(from, to);
+        }
+    }
+    out
+}
+
 impl VectorLane {
     /// Create the lane: shader, pipelines, an empty table.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let shader = ink_module(ctx, "vector.shader", shader!("vector.wgsl"));
+        let shader = module(
+            ctx,
+            "vector.shader",
+            &probed(&ink_source(shader!("vector.wgsl"))),
+        );
         let (color, id) = build_pipelines(ctx, l, &shader, target);
         let buf = GrowBuf::new(
             ctx,
@@ -974,4 +1013,3 @@ mod shell_tests {
         assert_eq!(ink(&empty), 0, "released vectors are gone");
     }
 }
-
