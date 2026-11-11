@@ -86,7 +86,7 @@ fn merge(up: &mut Upload, other: &mut Upload) {
 }
 
 /// The vector shader changed by `?arrowprobe=<bits>`, to find what a driver draws wrongly:
-/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 8 no huge constant, 16 a white square
+/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 16 a white square
 /// at each end, 32 a square coloured by what the real corner code returned, 64 by the row's fields.
 fn probed(source: &str) -> String {
     let bits = super::view::knob("VIEWER_ARROWPROBE", "arrowprobe")
@@ -112,9 +112,6 @@ fn probed(source: &str) -> String {
             "if (false) {",
         );
     }
-    if bits & 8 != 0 {
-        out = out.replace("3.0e38", "100000.0");
-    }
     if square {
         // each early exit of the corner code carries its number in the colour
         let mut code = 0;
@@ -125,6 +122,13 @@ fn probed(source: &str) -> String {
                 &format!("return dead_code({code}.0);"),
             );
         }
+        // the "no head" exit also says which quad it was, whether an end head was wanted and its length
+        out = out.replace(
+            "return dead_code(6.0);",
+            "var none = dead_code(6.0);
+none.color = vec4<f32>(6.0, f32(part), f32(at_end), head1);
+return none;",
+        );
         out = out.replace(
             "fn dead_vertex() -> VsOut {",
             "fn dead_code(code: f32) -> VsOut {\nvar dead: VsOut;\ndead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);\ndead.color = vec4<f32>(code, 0.0, 0.0, 0.0);\nreturn dead;\n}\nfn dead_vertex() -> VsOut {",
@@ -140,7 +144,7 @@ if (r.color.r == 2.0) { col = vec3<f32>(0.0, 1.0, 1.0); }
 if (r.color.r == 3.0) { col = vec3<f32>(0.0, 0.0, 1.0); }
 if (r.color.r == 4.0) { col = vec3<f32>(1.0, 1.0, 0.0); }
 if (r.color.r == 5.0) { col = vec3<f32>(1.0, 1.0, 1.0); }
-if (r.color.r == 6.0) { col = vec3<f32>(1.0, 0.5, 0.0); }
+if (r.color.r == 6.0) { col = vec3<f32>(f32(r.color.g == 1.0), r.color.b, f32(r.color.a > 0.0)) * 0.8 + vec3<f32>(0.2, 0.0, 0.0); }
 }"#
         } else if bits & 64 != 0 {
             r#"var col = vec3<f32>(0.0, 0.0, 0.0);

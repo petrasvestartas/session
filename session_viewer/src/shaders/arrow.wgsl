@@ -25,6 +25,8 @@ const HEAD_PENS: f32 = 12.0;
 const HEAD_ASPECT: f32 = 0.55;
 // Share of the vector the heads may take together.
 const HEAD_SHARE: f32 = 0.6;
+// The longest head of a vector that has no shaft to share with, px.
+const HEAD_ANY: f32 = 1.0e6;
 // Half a pixel's diagonal: how far a pixel reaches from its center.
 const FILTER_REACH: f32 = 0.70711;
 // Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+. Branches, not a constant
@@ -144,20 +146,44 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     let only = (v.heads & HEAD_ONLY) != 0u;
     let at_end = (v.heads & HEAD_END) != 0u && f1 <= 0.0;
     let at_start = (v.heads & HEAD_START) != 0u && f0 <= 0.0;
-    let most = select(len * HEAD_SHARE / select(1.0, 2.0, at_end && at_start), 3.0e38, only);
-    let pens = select(HEAD_PENS, v.head, v.head > 0.0);
-    let head1 = select(0.0, head_px(pens, hw1, most), at_end);
-    let head0 = select(0.0, head_px(pens, hw0, most), at_start);
+    // branches, not select: a phone driver picked the wrong side here and drew no head (2026-11-11)
+    var most = len * HEAD_SHARE;
+    if (at_end && at_start) {
+        most = most * 0.5;
+    }
+    if (only) {
+        most = HEAD_ANY;
+    }
+    var pens = HEAD_PENS;
+    if (v.head > 0.0) {
+        pens = v.head;
+    }
+    var head1 = 0.0;
+    if (at_end) {
+        head1 = head_px(pens, hw1, most);
+    }
+    var head0 = 0.0;
+    if (at_start) {
+        head0 = head_px(pens, hw0, most);
+    }
     let half1 = head1 * HEAD_ASPECT;
     let half0 = head0 * HEAD_ASPECT;
 
     // the shaft ends flat on a bare point and just under a head's base, px from the start
-    let t0 = head0 - select(0.0, tuck(head0, half0, hw), at_start);
-    let t1 = len - head1 + select(0.0, tuck(head1, half1, hw), at_end);
+    var t0 = 0.0;
+    var t1 = len;
 
     // the three quads meet at seams, so no pixel is blended twice
-    var seam0 = select(-FILTER_REACH, head0 + FILTER_REACH, at_start);
-    var seam1 = select(len + FILTER_REACH, len - head1 - FILTER_REACH, at_end);
+    var seam0 = -FILTER_REACH;
+    var seam1 = len + FILTER_REACH;
+    if (at_start) {
+        t0 = head0 - tuck(head0, half0, hw);
+        seam0 = head0 + FILTER_REACH;
+    }
+    if (at_end) {
+        t1 = len - head1 + tuck(head1, half1, hw);
+        seam1 = len - head1 - FILTER_REACH;
+    }
 
     if (at_start && at_end && seam0 > seam1) {
         seam0 = (seam0 + seam1) * 0.5;
@@ -165,7 +191,13 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     }
 
     // which of the three quads, without dividing: 0 shaft, 1 end head, 2 start head
-    let part = select(select(0u, 1u, vid >= 6u), 2u, vid >= 12u);
+    var part = 0u;
+    if (vid >= 6u) {
+        part = 1u;
+    }
+    if (vid >= 12u) {
+        part = 2u;
+    }
     let corner = corner_of(vid - part * 6u);
     let front = corner >= 2u;
     let side = select(-1.0, 1.0, (corner & 1u) == 1u);
@@ -182,10 +214,17 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
         }
 
         along = select(seam0, seam1, front);
-        across = select(select(narrow, wide, at_start), select(narrow, wide, at_end), front);
+        across = narrow;
+        if ((front && at_end) || (!front && at_start)) {
+            across = wide;
+        }
     } else {
-        let head = select(head0, head1, part == 1u);
-        let half = select(half0, half1, part == 1u);
+        var head = head0;
+        var half = half0;
+        if (part == 1u) {
+            head = head1;
+            half = half1;
+        }
 
         if (head <= 0.0) {
             return dead_vertex();
@@ -193,7 +232,10 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
 
         // a sharp tip antialiases past itself by the reach over the tip half-angle's sine
         let past = FILTER_REACH * sqrt(head * head + half * half) / max(half, 1e-3);
-        let span = select(vec2<f32>(-past, seam0), vec2<f32>(seam1, len + past), part == 1u);
+        var span = vec2<f32>(-past, seam0);
+        if (part == 1u) {
+            span = vec2<f32>(seam1, len + past);
+        }
         along = select(span.x, span.y, front);
         across = wide;
     }
@@ -215,7 +257,10 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     o.color = color;
     o.p = p;
     o.ends = vec4<f32>(s0, s1);
-    o.shaft = select(vec4<f32>(s0 + dir * t0, s0 + dir * t1), vec4<f32>(s0, s0), only);
+    o.shaft = vec4<f32>(s0 + dir * t0, s0 + dir * t1);
+    if (only) {
+        o.shaft = vec4<f32>(s0, s0);
+    }
     o.head_end = vec4<f32>(s1 - dir * head1, n * half1);
     o.head_start = vec4<f32>(s0 + dir * head0, n * half0);
     o.widths = vec4<f32>(hw0, hw1, e0.z / e0.w, e1.z / e1.w);
