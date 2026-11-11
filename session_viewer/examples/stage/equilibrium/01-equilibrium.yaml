@@ -33,24 +33,23 @@ slides:
 
   - title: By drawing · the force diagram
     steps:
-      - say: 'Choose a scale of 0.4 units per kN. Draw the load beside the structure: 10 kN is 4 units.'
+      - say: 'Draw the load to scale: 10 kN is 4 units.'
         do:
           - add:
               - {id: q0, point: Q0, color: dim}
               - {id: q1, point: Q1, color: dim}
-          - derive: {from: W, id: Wd, line: [Q0, Q1], color: load, width: 2.2}
-      - say: 'Through its lower end, draw a line parallel to cable 2. Through its upper end, one parallel to cable 1.'
+          - derive: {from: W, id: Wa, arrow: [Q0, Q1], color: load, width: 3.6}
+          - add: {id: Wa.l, label: 'mid(Q0, Q1)', tex: 'p', color: load}
+      - say: 'From its tip, draw $f_2$ parallel to cable 2.'
         do:
-          - derive: {from: c2, id: d2, line: [Q1, 'Q1 + 1.35*(Q2 - Q1)'], color: dim, width: 1.4}
-          - derive: {from: c1, id: d1, line: [Q0, 'Q0 + 1.45*(Q2 - Q0)'], color: dim, width: 1.4}
-      - say: 'The two lines cross at one point. That point closes the triangle.'
-        add: {id: q2, point: Q2, color: dim}
-      - say: 'Draw the arrows tip to tail: the load, $f_2$, then $f_1$ back to the start. The polygon is **closed**.'
+          - derive: {from: f2, id: t2, arrow: [Q1, Q2], color: accent, width: 3.6}
+          - add:
+              - {id: q2, point: Q2, color: dim}
+              - {id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2', color: accent}
+      - say: 'Then $f_1$, parallel to cable 1, back to the start. The polygon is **closed**.'
         do:
-          - remove: [Wd, d1, d2]
-          - add: {id: Wa, arrow: [Q0, Q1], color: load, width: 3.6, label: 'p'}
-          - add: {id: t2, arrow: [Q1, Q2], color: accent, width: 3.6, label: 'f_2'}
-          - add: {id: t1, arrow: [Q2, Q0], color: accent, width: 3.6, label: 'f_1'}
+          - derive: {from: f1, id: t1, arrow: [Q2, Q0], color: accent, width: 3.6}
+          - add: {id: t1.l, label: 'mid(Q2, Q0)', tex: 'f_1', color: accent}
       - say: 'Measure the sides and divide by the scale.'
         do:
           - eq: 'f_2 = 3.2 \,/\, 0.4 = 8\ \text{kN}'
@@ -58,9 +57,9 @@ slides:
 
   - title: By computing · the projections
     steps:
-      - say: 'Now the same without a ruler. Cable 1 runs 4 across and 3 up, so its length is 5.'
+      - say: 'Now without a ruler. Cable 1 runs 4 across and 3 up, so its length is 5.'
         do:
-          - dim: [f2, f2.label]
+          - remove: [f1, f2]
           - project: {of: c1, parts: '\Delta %_1', axes: [x, y]}
           - eq: 'l_1 = \sqrt{\Delta x_1^2 + \Delta y_1^2} = \sqrt{4^2 + 3^2} = 5'
       - say: '$\alpha_1$ is the angle between the cable and the $x$ direction. Its cosine is the side along $x$ over the length.'
@@ -78,12 +77,12 @@ slides:
       - say: 'The force lies on the cable, so the same angles split it. Its $x$ part points left: minus.'
         do:
           - remove: [c1.box, c1.x, c1.y, c1.x.label, c1.y.label]
+          - add: {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
           - project: {of: f1, parts: 'f_{1,%}', axes: [x, y]}
           - eq: 'f_{1,x} = -f_1\cos\alpha_1 = -0.8\,f_1, \qquad f_{1,y} = f_1\cos\beta_1 = 0.6\,f_1'
       - say: 'Cable 2 the same way: 3 across, 4 up, length 5.'
         do:
           - remove: [a1, a1t, b1, b1t]
-          - undim: [f2, f2.label]
           - project: {of: c2, parts: '\Delta %_2', axes: [x, y]}
           - add:
               - {id: a2, polyline: [[0.800, 0.000, 0], [0.795, 0.093, 0], [0.779, 0.184, 0], [0.752, 0.273, 0], [0.716, 0.358, 0], [0.669, 0.438, 0], [0.614, 0.513, 0], [0.551, 0.580, 0], [0.480, 0.640, 0]], color: x, width: 2}
@@ -94,6 +93,7 @@ slides:
       - say: 'Both parts of $f_2$ point the positive way: right and up.'
         do:
           - remove: [c2.box, c2.x, c2.y, c2.x.label, c2.y.label]
+          - add: {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
           - project: {of: f2, parts: 'f_{2,%}', axes: [x, y]}
           - eq: 'f_{2,x} = f_2\cos\alpha_2 = 0.6\,f_2, \qquad f_{2,y} = f_2\cos\beta_2 = 0.8\,f_2'
 

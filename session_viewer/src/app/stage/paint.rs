@@ -425,6 +425,9 @@ fn text(
     [e.w * size, (e.h + e.d) * size]
 }
 
+/// Where the step's sentence starts, above the column.
+const SAY: f32 = 40.0;
+
 /// Paint the stage; returns the chapter tabs for clicks.
 pub fn paint(
     stage: &mut Stage,
@@ -473,12 +476,17 @@ pub fn paint(
     for d in panel_draws {
         draw(&mut out, atlas, f, d, snap);
     }
-    // chrome: chapter, title, narration, tabs, progress
+    // chrome: chapter and slide, the step's sentence, tabs, progress
     let ink = stage.palette("ink");
     let dim = stage.palette("dim");
     let now = stage.now;
     let chapter_title = &stage.chapters[stage.chapter].title;
-    let head = format!("{} · {}", stage.chapter + 1, chapter_title);
+    let head = format!(
+        "{} · {} · {}",
+        stage.chapter + 1,
+        chapter_title,
+        stage.title.0
+    );
     text(
         stage,
         &mut out,
@@ -497,37 +505,6 @@ pub fn paint(
     let fade = |t0: f64| (((now - t0) / 650.0).clamp(0.0, 1.0)) as f32;
     let out_a = |t: f32| 1.0 - smooth((t / 0.4) as f64) as f32;
     let in_a = |t: f32| smooth(((t - 0.4) / 0.6) as f64) as f32;
-    let (title, old_title, t_title) = stage.title.clone();
-    let ft = fade(t_title);
-    if ft < 1.0 {
-        let leaving = [ink[0], ink[1], ink[2], out_a(ft)];
-        text(
-            stage,
-            &mut out,
-            atlas,
-            f,
-            &old_title,
-            true,
-            [x0, 46.0],
-            30.0,
-            pw,
-            leaving,
-        );
-    }
-    let rise = (1.0 - in_a(ft)) * 8.0;
-    let entering = [ink[0], ink[1], ink[2], in_a(ft)];
-    text(
-        stage,
-        &mut out,
-        atlas,
-        f,
-        &title,
-        true,
-        [x0, 46.0 + rise],
-        30.0,
-        pw,
-        entering,
-    );
     let (say, old_say, t_say) = stage.say.clone();
     let fs = fade(t_say);
     let say_color = [
@@ -545,7 +522,7 @@ pub fn paint(
             f,
             &old_say,
             false,
-            [x0, H - 128.0],
+            [x0, SAY],
             23.0,
             pw,
             leaving,
@@ -560,7 +537,7 @@ pub fn paint(
         f,
         &say,
         false,
-        [x0, H - 128.0 + rise],
+        [x0, SAY + rise],
         23.0,
         pw,
         entering,

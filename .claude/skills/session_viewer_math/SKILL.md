@@ -26,7 +26,8 @@ force-density decks beside it are the worked examples; copy from them.
 
 ## Rules that keep decks good
 
-- One sentence per step, about 15 words, plain words, present tense. TeX and sentences in
+- One sentence per step, about 15 words, plain words, present tense. It is the only running text:
+  it shows at the top of the column, and the slide title is a small line at the top left. TeX and sentences in
   **single quotes**.
 - The 3D picture stays; only notation changes or objects move. Do not rebuild the scene per slide.
 - Numbers on a slide come from the net or are checked by hand; never invent them.

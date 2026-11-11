@@ -87,7 +87,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 
 | key | what happens |
 |---|---|
-| `say: '...'` | the sentence under the column |
+| `say: '...'` | the step's sentence, at the top of the column (the slide `title` is the small line at the top left) |
 | `eq: 'a = b'` | writes an equation; equations of a slide line up on their `=` |
 | `becomes: 'a = c'` | rewrites the last equation in place (equal symbols travel, the rest fades) |
 | `then: 'c = d'` | writes the next line, grown out of the last equation |

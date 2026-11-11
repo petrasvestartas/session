@@ -13,8 +13,8 @@ use std::rc::Rc;
 /// The slide design space; the canvas shows it letterboxed.
 pub const W: f32 = 1600.0;
 pub const H: f32 = 900.0;
-pub(super) const TOP: f32 = 128.0;
-pub(super) const BOTTOM: f32 = 150.0;
+pub(super) const TOP: f32 = 150.0; // under three lines of the step's sentence
+pub(super) const BOTTOM: f32 = 70.0;
 pub(super) const MARGIN: f32 = 56.0;
 pub(super) const RELAYOUT_MS: f64 = 650.0;
 const START_CAM: Cam = Cam {
