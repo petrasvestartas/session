@@ -36,7 +36,7 @@ Blocks, one line for a whole idea:
 
 | block | does |
 |---|---|
-| `project: {of: F1, parts: 'f_{1,%}', axes: [x, y]}` | the dashed box of an arrow, its edges as coloured arrows, a label per edge |
+| `project: {of: F1, parts: 'f_{1,%}', axes: [x, y]}` | the dashed box of an arrow or line; its first part drops onto the axis, the others are drawn on in the order of `axes`; a label per part (ids `F1.box`, `F1.x`, `F1.x.label`) |
 | `walk: [W, F2, F1]`, `walk: back` | arrows tip to tail (a force polygon), and home again |
 | `node: {of: n4_4, row: DN}`, `clear: true` | a node, its cables and its matrix row lit together |
 | `fill: xF` | fixed coordinates fly from the node labels into their matrix |
@@ -61,9 +61,12 @@ slides:
 Habits:
 
 - Give an `id` only to what a later step refers to.
+- `say` is shown at the top of the column and is the only running text; the slide `title` is a
+  small grey line, so do not lean on it.
+- `derive` takes no `label`: add the label as its own object, `{id: t2.l, label: 'mid(Q1, Q2)', tex: 'f_2'}`.
 - Inside `say` and `text`, `$...$` is math and `**...**` is bold.
 - Show the calculation, not only its result: `\cos\alpha = \frac{4}{5} = 0.8` before using 0.8.
 - A matrix with more than 14 rows or columns draws as a pattern of small squares: talk about
   its shape, not its entries.
 - Long forms (`add`, `derive`, `morph`, `fly`, `move`, `set`, `camera`) cover what the keys do
-  not; the README lists them. Reach for them last.
+  not; the README lists them. Reach for them last, and read `/session_viewer_math_motion` first.

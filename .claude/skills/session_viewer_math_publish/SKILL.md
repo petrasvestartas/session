@@ -27,6 +27,7 @@ bash ../../wood/tools/buildslot.sh stage env CARGO_BUILD_JOBS=8 trunk serve
 Trunk copies `examples/stage` into the site as `decks/` and reloads on save. Step through every
 slide you wrote or changed: a passing test does not show a label sitting on a line or a sentence
 that reads badly. Check a phone-sized upright window too (about 400 x 800): the 3D side is on top.
+A sentence longer than three lines at the top of the column runs into the equations: shorten it.
 
 ## 3. Publish the slides (only when asked)
 

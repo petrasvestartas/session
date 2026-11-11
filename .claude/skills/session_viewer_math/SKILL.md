@@ -10,6 +10,10 @@ a slide is a list of steps; a step is one sentence (`say`) plus what appears wit
 format is `session_viewer/examples/stage/README.md`: read it before writing. The five
 force-density decks beside it are the worked examples; copy from them.
 
+What the viewer shows: the picture on the left, the column on the right, the step's sentence at
+the top of the column, a small grey line at the top left (chapter number, chapter title, slide
+title) and one progress bar along the bottom. Nothing else: no slide counter, no caption below.
+
 ## Do this, in order
 
 1. **Outline first.** One presentation = one idea a student can hold. More than about 8 chapters
@@ -19,27 +23,34 @@ force-density decks beside it are the worked examples; copy from them.
    matrix and the solved shape), named `points:` otherwise. See `/session_viewer_math_scene`.
 3. **Write the steps** with the short keys and blocks, not raw actions. See
    `/session_viewer_math_steps`.
-4. **Check and look.** Run the test, open the chapter, step through it. See
+4. **Check every movement** against `/session_viewer_math_motion`: a thing moves only when the
+   movement is the idea.
+5. **Check and look.** Run the test, open the chapter, step through it. See
    `/session_viewer_math_publish`. A chapter is not done until you have looked at it.
-5. **Publish** only when asked: upload the YAML (and pictures) to R2. The viewer itself needs a
+6. **Publish** only when asked: upload the YAML (and pictures) to R2. The viewer itself needs a
    push only when Rust changed.
 
 ## Rules that keep decks good
 
-- One sentence per step, about 15 words, plain words, present tense. It is the only running text:
-  it shows at the top of the column, and the slide title is a small line at the top left. TeX and sentences in
-  **single quotes**.
+- One sentence per step, about 15 words, plain words, present tense. It is the only running text
+  on the slide, so it must say what the step shows. TeX and sentences in **single quotes**.
 - The 3D picture stays; only notation changes or objects move. Do not rebuild the scene per slide.
+- Go straight to the construction. No step that only prepares the next one (helper lines, helper
+  points, "choose a scale"): fold what it says into the step that draws the thing.
 - Numbers on a slide come from the net or are checked by hand; never invent them.
 - Same names everywhere: nodes `n0…`, cables `e0…`, forces `f_k`, force densities `q_k`.
   The load is `p`. Say "cable", not "bar" or "branch".
+- Geometry and forces are two drawings. Lengths and their parts (`\Delta x_k`, `l_k`, the angles
+  that give the cosines) are measured on the structure; force parts (`f_{k,x}`) are measured on
+  the force diagram, never on force arrows laid over the cables. Say which drawing a step reads.
+- A projection box always belongs to the arrow or line it is drawn on, and has its size.
 - Projections, the same in every deck: `\Delta x_k = x_k - x_0`, length `l_k`, angles `\alpha_k`,
-  `\beta_k`, `\gamma_k` between cable k and its x, y, z part, each drawn as a small arc at the node
-  between the force and that part (one cable at a time). The cosine is the side over the length,
+  `\beta_k`, `\gamma_k` between cable k and its x, y, z part, each a small arc between the cable
+  (or force) and that part. The cosine is the side over the length,
   `\cos\alpha_k = |\Delta x_k| / l_k`, shown before it is used; the part is
   `f_{k,x} = f_k \Delta x_k / l_k`, so the sign comes from the direction.
 - Colours: `free` pink, `fixed` blue, `load` green, `accent` blue, axes `x` pink, `y` green,
-  `z` blue. No orange, no other hues.
+  `z` blue. No orange, no violet, no other hues.
 - A flat subject: `camera: {view: top}` with all points at z = 0, and call the axes x and y.
 - No duplicated slides: if two slides show the same picture with the same sentence, cut one.
 - Mistakes (unknown name, unknown TeX command, overlapping blocks) fail the test with the
@@ -52,3 +63,9 @@ in `session_viewer/src/app/stage/deck.rs` that expands to existing actions, plus
 `tests.rs` and one row in the README. Drawing stays in the viewer's own wgpu pipelines (points,
 lines and arrows go into the scene through `spatial.rs`; arrowheads are `arrow.wgsl`): never
 paint 3D geometry over the scene.
+
+A shader that draws on the desktop but not on a phone is a driver fault, not a logic fault: do
+not guess. Add a temporary `?name=` switch that draws plain squares coloured by the shader's own
+intermediate values, get one screenshot from the phone, fix, then remove the switch. Known fault
+(2026-11-11): an Android driver corrupts a WGSL struct with a scalar packed behind a `vec3` when
+it is passed to a function, so shader functions take such rows field by field.

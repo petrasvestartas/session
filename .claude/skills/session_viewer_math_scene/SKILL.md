@@ -59,10 +59,14 @@ What to remember:
 - An arrow runs between two positions and its head ends exactly on the second: to make arrows
   touch end to end, give them the same named point.
 - Force and vector arrows use `width: 3.6`; cables keep their default and every point is the same
-  dot (never give a point a `width`). Do not
-  tune sizes per slide: lines, dots and heads already scale with the slide, phone included.
-- An angle mark is a `polyline` of about nine points on an arc around the node, from the
-  projection to the force, in the colour of that axis, plus a `label:` + `tex:` just outside its
+  dot (never give a point a `width`). Do not tune sizes per slide: lines, dots and heads already
+  scale with the slide, phone included.
+- A force diagram stands beside the structure, at named points of its own (`Q0`, `Q1`, ...), with
+  no dots at its corners: the arrows meet tip to tail. Force parts are drawn there, with the walk
+  order chosen so the parts lie outside the polygon (`axes: [y, x]` for one force, `[x, y]` for
+  the next); see `equilibrium/01-equilibrium.yaml`.
+- An angle mark is a `polyline` of about nine points on an arc, from the projection to the cable
+  or force, in the colour of that axis, plus a `label:` + `tex:` just outside its
   middle. Keep its radius under the shorter side of the triangle; see
   `equilibrium/01-equilibrium.yaml` (2D) and `force-density/03-projections.yaml` (3D).
 - Add points last in a step so they draw over the lines that meet there.

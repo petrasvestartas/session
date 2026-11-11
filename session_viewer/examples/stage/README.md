@@ -99,7 +99,7 @@ Each key is one thing that happens with the sentence. Keys play top to bottom.
 | `show: [cables, fixed]` | draws parts of the net: `fixed`, `free`, `cables`, `loads` or `net` (all of it) |
 | `show: forces` | one line per cable of the solved net, blue and thin for a small force, pink and thick for a large one |
 | `solve: true` | moves the free nodes to equilibrium; `solve: {load: [0, 0, 1], q: 2, rim: 6}` solves a changed net |
-| `project: {of: F1, parts: 'F_{1,%}'}` | the dashed box an arrow spans, the walk along its edges in x, y, z colours, and a label on each edge (`%` becomes the axis); `axes: [x, z]` for a flat case |
+| `project: {of: F1, parts: 'F_{1,%}'}` | the dashed box an arrow spans; its first part drops out of the arrow onto its axis and the others are drawn on in order, in x, y, z colours, with a label on each (`%` becomes the axis); `axes: [x, z]` for a flat case |
 | `walk: [F1, F2, F3]` | puts each arrow at the tip of the one before (the arrows run between named points); `walk: back` returns them |
 | `node: {of: n4_4, row: DN}` | lights a node of the net, its cables and its row in a matrix; `clear: true` puts the colours back |
 | `eliminate: {matrix: M, row: 2, with: 1}` | adds the multiple of row 1 to row 2 that clears the entry under the pivot; rows count from 1 and the new entries are computed |
