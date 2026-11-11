@@ -744,21 +744,21 @@ fn action(v: &Value, at: &str, cx: &mut Cx) -> Result<Action, String> {
 pub fn default_palette() -> HashMap<String, Rgba> {
     let mut p = HashMap::new();
     for (k, v) in [
-        ("ink", "#e8ecf2"),
-        ("dim", "#7d8796"),
-        ("faint", "#3a414c"),
-        ("free", "#dc4b8d"),
-        ("fixed", "#5b9cf6"),
-        ("load", "#4fc775"),
-        ("x", "#ee6fae"),
-        ("y", "#62cc7c"),
-        ("z", "#72a4ef"),
-        ("accent", "#5b9cf6"),
-        ("bar", "#c9ced6"),
-        ("pos", "#dc4b8d"),
-        ("neg", "#2b6fdb"),
-        ("cell", "#252b36"),
-        ("bg", "#0e1013"),
+        ("ink", "#f4f6fa"),
+        ("dim", "#8d97a8"),
+        ("faint", "#2b313b"),
+        ("free", "#ff2d8a"),
+        ("fixed", "#2f8bff"),
+        ("load", "#17e06c"),
+        ("x", "#ff4fa3"),
+        ("y", "#2ee67c"),
+        ("z", "#4da0ff"),
+        ("accent", "#2f8bff"),
+        ("bar", "#dfe3ea"),
+        ("pos", "#ff2d8a"),
+        ("neg", "#1f6bff"),
+        ("cell", "#171c26"),
+        ("bg", "#000000"),
     ] {
         p.insert(k.to_string(), hex(v).unwrap());
     }
