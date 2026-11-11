@@ -192,6 +192,14 @@ impl Stage {
         steps_of(&self.chapters[self.chapter]).len()
     }
 
+    /// Steps done and steps in all, over every chapter of the deck.
+    pub fn progress(&self) -> (usize, usize) {
+        let counts: Vec<usize> = self.chapters.iter().map(|ch| steps_of(ch).len()).collect();
+        let before: usize = counts[..self.chapter].iter().sum();
+        let total: usize = counts.iter().sum();
+        (before + self.step.map_or(0, |g| g + 1), total.max(1))
+    }
+
     /// The current (slide, step within the slide).
     pub fn position(&self) -> (usize, usize) {
         let st = steps_of(&self.chapters[self.chapter]);

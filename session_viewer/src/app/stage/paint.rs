@@ -427,6 +427,8 @@ fn text(
 
 /// Where the step's sentence starts, above the column.
 const SAY: f32 = 40.0;
+/// The size of every line of running text on the slide, pixels per em.
+const TEXT: f32 = 23.0;
 
 /// Paint the stage.
 pub fn paint(
@@ -481,12 +483,12 @@ pub fn paint(
     let dim = stage.palette("dim");
     let now = stage.now;
     let chapter_title = &stage.chapters[stage.chapter].title;
-    let head = format!(
-        "{} · {} · {}",
-        stage.chapter + 1,
-        chapter_title,
-        stage.title.0
-    );
+    // where we are, in the size of every other line of text on the slide
+    let head = if *chapter_title == stage.title.0 {
+        chapter_title.clone()
+    } else {
+        format!("{} · {}", chapter_title, stage.title.0)
+    };
     text(
         stage,
         &mut out,
@@ -494,9 +496,9 @@ pub fn paint(
         scene_side,
         &head,
         false,
-        [40.0, 30.0],
-        17.0,
-        900.0,
+        [40.0, SAY],
+        TEXT,
+        stage.split * W - 80.0,
         dim,
     );
     let x0 = stage.split * W + 33.6;
@@ -523,7 +525,7 @@ pub fn paint(
             &old_say,
             false,
             [x0, SAY],
-            23.0,
+            TEXT,
             pw,
             leaving,
         );
@@ -538,12 +540,12 @@ pub fn paint(
         &say,
         false,
         [x0, SAY + rise],
-        23.0,
+        TEXT,
         pw,
         entering,
     );
-    let steps = stage.steps().max(1);
-    let done = stage.step.map_or(0, |g| g + 1);
+    // one bar for the whole presentation: chapters follow each other without a break
+    let (done, steps) = stage.progress();
     let strip = 7.0 * f.k;
     let bottom = screen.bottom();
     let reached = screen.left() + screen.width() * done as f32 / steps as f32;
@@ -560,10 +562,10 @@ pub fn paint(
         &mut out,
         atlas,
         scene_side,
-        "← → step   ↑ ↓ slide   drag to orbit",
+        "← → step   drag to orbit",
         false,
-        [40.0, H - 40.0],
-        14.0,
+        [40.0, H - 52.0],
+        TEXT,
         600.0,
         [dim[0], dim[1], dim[2], 0.7],
     );
