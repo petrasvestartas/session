@@ -1,0 +1,64 @@
+# Test session_jupyter and release it to PyPI as session-jupyter whenever it changes on main.
+# The version is 0.<run number>.0, set in the build only: nothing is committed back to this repo.
+# PyPI side: a trusted publisher for project session_jupyter, owner petrasvestartas, repository session,
+# workflow session-jupyter-publish.yml, environment pypi.
+name: session-jupyter-publish
+run-name: "session_jupyter v0.${{ github.run_number }}.0"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'session_jupyter/**'
+      - '.github/workflows/session-jupyter-publish.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install and test
+        working-directory: session_jupyter
+        run: |
+          pip install -e ".[dev]"
+          pytest
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/session_jupyter
+    permissions:
+      id-token: write   # PyPI trusted publisher
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set the version
+        working-directory: session_jupyter
+        run: sed -i "s/^version = .*/version = \"0.${{ github.run_number }}.0\"/" pyproject.toml
+
+      - name: Build
+        working-directory: session_jupyter
+        run: |
+          pip install build
+          python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: session_jupyter/dist

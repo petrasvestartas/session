@@ -28,7 +28,12 @@ viewer reloads.
 
 ## Install
 
-Inside the `session` monorepo, beside `session_py`:
+```bash
+pip install session-jupyter
+```
+
+Every change to `session_jupyter/` on `main` is released by `.github/workflows/session-jupyter-publish.yml`.
+For development inside the `session` monorepo, beside `session_py`:
 
 ```bash
 uv pip install -e session_jupyter
