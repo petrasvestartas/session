@@ -749,7 +749,7 @@ pub fn default_palette() -> HashMap<String, Rgba> {
         ("faint", "#2b313b"),
         ("free", "#7cc4ff"),
         ("fixed", "#2f8bff"),
-        ("load", "#17e06c"),
+        ("load", "#00f5b0"),
         ("x", "#ff4fa3"),
         ("y", "#ff4fa3"),
         ("z", "#ff4fa3"),
