@@ -753,7 +753,7 @@ pub fn default_palette() -> HashMap<String, Rgba> {
         ("x", "#ee6fae"),
         ("y", "#62cc7c"),
         ("z", "#72a4ef"),
-        ("accent", "#a98bf0"),
+        ("accent", "#5b9cf6"),
         ("bar", "#c9ced6"),
         ("pos", "#dc4b8d"),
         ("neg", "#2b6fdb"),

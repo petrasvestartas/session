@@ -183,16 +183,12 @@ impl Stage {
                 }
             }
         }
-        // a fixed node is a small dot: half the radius of a free one
-        let fixed_dot =
-            matches!(spec.content, Content::Point(_)) && spec.color.as_deref() == Some("fixed");
-        let width = spec.width.map(|w| w as f32).unwrap_or(
-            if matches!(spec.content, Content::Cuboid { .. }) || fixed_dot {
-                1.6
-            } else {
-                3.2
-            },
-        );
+        // every point is the same dot, whatever it stands for
+        let width = spec.width.map(|w| w as f32).unwrap_or(match spec.content {
+            Content::Cuboid { .. } => 1.6,
+            Content::Point(_) => 2.6,
+            _ => 3.2,
+        });
         Obj {
             id: spec.id.clone(),
             content,

@@ -58,7 +58,8 @@ What to remember:
   `'mid(A, B)'`, `'lerp(A, B, 0.9)'`, `'[x(n1), y(n0), z(n0)]'`.
 - An arrow runs between two positions and its head ends exactly on the second: to make arrows
   touch end to end, give them the same named point.
-- Force and vector arrows use `width: 3.6`; cables and fixed points keep their defaults. Do not
+- Force and vector arrows use `width: 3.6`; cables keep their default and every point is the same
+  dot (never give a point a `width`). Do not
   tune sizes per slide: lines, dots and heads already scale with the slide, phone included.
 - An angle mark is a `polyline` of about nine points on an arc around the node, from the
   projection to the force, in the colour of that axis, plus a `label:` + `tex:` just outside its

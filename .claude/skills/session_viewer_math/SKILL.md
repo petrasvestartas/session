@@ -37,7 +37,7 @@ force-density decks beside it are the worked examples; copy from them.
   between the force and that part (one cable at a time). The cosine is the side over the length,
   `\cos\alpha_k = |\Delta x_k| / l_k`, shown before it is used; the part is
   `f_{k,x} = f_k \Delta x_k / l_k`, so the sign comes from the direction.
-- Colours: `free` pink, `fixed` blue, `load` green, `accent` violet, axes `x` pink, `y` green,
+- Colours: `free` pink, `fixed` blue, `load` green, `accent` blue, axes `x` pink, `y` green,
   `z` blue. No orange, no other hues.
 - A flat subject: `camera: {view: top}` with all points at z = 0, and call the axes x and y.
 - No duplicated slides: if two slides show the same picture with the same sentence, cut one.
