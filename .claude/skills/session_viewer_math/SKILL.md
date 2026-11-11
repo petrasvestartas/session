@@ -49,8 +49,9 @@ title) and one progress bar along the bottom. Nothing else: no slide counter, no
   (or force) and that part. The cosine is the side over the length,
   `\cos\alpha_k = |\Delta x_k| / l_k`, shown before it is used; the part is
   `f_{k,x} = f_k \Delta x_k / l_k`, so the sign comes from the direction.
-- Colours: green is for loads only. `free` pink, `fixed` blue, `accent` blue, axes `x` pink,
-  `y` yellow, `z` light blue. Yellow only where a third colour is needed. No orange, no violet.
+- Colours: green is for loads only. `free` pink, `fixed` blue, `accent` (forces) blue. Every
+  projection, along x, y or z, is the one pink of `x`: the keys `x`, `y`, `z` are the same colour.
+  Yellow only if a further colour is truly needed. No orange, no violet.
 - A flat subject: `camera: {view: top}` with all points at z = 0, and call the axes x and y.
 - No duplicated slides: if two slides show the same picture with the same sentence, cut one.
 - Mistakes (unknown name, unknown TeX command, overlapping blocks) fail the test with the
