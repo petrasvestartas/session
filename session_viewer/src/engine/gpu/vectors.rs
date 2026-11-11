@@ -116,7 +116,7 @@ var<private> dbg_py: f32 = 2e30;
 const PROBE_NOTES: [(&str, &str); 6] = [
     (
         "let f1 = c1.z - c1.w;",
-        "dbg_f0 = f0; dbg_f1 = f1; dbg_fx = instances[v.instance_id].effect.x; dbg_w1 = c1.w; dbg_he = f32(v.heads & 1u); dbg_end = v.end.x; dbg_start = v.start.x + v.start.y + v.start.z;",
+        "dbg_f0 = f0; dbg_f1 = f1; dbg_fx = instances[instance_id].effect.x; dbg_w1 = c1.w; dbg_he = f32(heads & 1u); dbg_end = end.x; dbg_start = start.x + start.y + start.z;",
     ),
     ("len -= trim0 + trim1;", "dbg_len = len; dbg_trim = 1.0;"),
     ("let hw = max(hw0, hw1);", "dbg_hw1 = hw1;"),
@@ -173,14 +173,19 @@ fn probed(source: &str, bits: u32) -> String {
             &format!("{PROBE_VARS}fn dead_vertex() -> VsOut {{"),
         );
         noted = format!(
-            "let r = arrow_corner(v, 6u, false);\nvar col = vec3<f32>(0.0, 0.0, 0.0);\n{facts}"
+            "let r = arrow_corner(v.start, v.end, v.radius, v.instance_id, v.color, v.head, v.heads, v.start_trim, v.end_trim, 6u, false);\nvar col = vec3<f32>(0.0, 0.0, 0.0);\n{facts}"
         );
     }
     let single = facts.is_none();
     let body = format!(
         "let v = vectors[row];\nvar q = 0u;\nif (vid >= 6u) {{ q = 1u; }}\nif (vid >= 12u) {{ q = 2u; }}\n{noted}\nlet c = mvp * vec4<f32>(place(v.instance_id, v.end), 1.0);\nlet k = corner_of(vid - q * 6u);\nvar off = vec2<f32>(-9.0, -9.0);\nif (k >= 2u) {{ off.x = 9.0; }}\nif ((k & 1u) == 1u) {{ off.y = 9.0; }}\noff.x += (f32(q) - 1.0) * 24.0;\nif (q != 1u && {single}) {{ return dead_vertex(); }}\nvar o: VsOut;\no.pos = vec4<f32>(c.xy / c.w + off * 2.0 / vec2<f32>(line.vp_w, line.vp_h), 0.5, 1.0);\no.color = vec4<f32>(col, 2.0);\nreturn o;"
     );
-    out.replace("return arrow_corner(vectors[row], vid, false);", &body)
+    let call = out
+        .find("return arrow_corner(\nvectors[row].start,")
+        .expect("the vertex entry's call");
+    let end = call + out[call..].find(");").expect("the call closes") + 2;
+    out.replace_range(call..end, &body);
+    out
 }
 
 impl VectorLane {

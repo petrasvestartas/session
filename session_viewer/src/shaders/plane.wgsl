@@ -25,9 +25,6 @@ const PLANE_AXES = array<u32, 3>(0xff8b47e8u, 0xff32cd9au, 0xffea9621u);
 fn vs_plane(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -> VsOut {
     let p = planes[row];
     let size = line.plane_size; // half side, the arrows' length
-    var v: VectorRow;
-    v.instance_id = p.instance_id;
-    v.radius = p.radius;
 
     // a grid line runs edge to edge, at one of eleven steps across
     if (vid < PLANE_LINES * 6u) {
@@ -36,19 +33,15 @@ fn vs_plane(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) 
         let runs = select(p.x, p.y, across);
         let steps = select(p.y, p.x, across);
         let t = (f32(k % 11u) / 5.0 - 1.0) * size;
-        v.start = p.origin + steps * t - runs * size;
-        v.end = p.origin + steps * t + runs * size;
-        v.color = PLANE_GREY;
-        return arrow_corner(v, vid % 6u, false);
+        let tail = p.origin + steps * t - runs * size;
+        let head = p.origin + steps * t + runs * size;
+        return arrow_corner(tail, head, p.radius, p.instance_id, PLANE_GREY, 0.0, 0u, 0.0, 0.0, vid % 6u, false);
     }
 
     let i = vid - PLANE_LINES * 6u;
     let axis = i / 18u;
     var axes = array<vec3<f32>, 3>(p.x, p.y, cross(p.x, p.y));
     var colors = PLANE_AXES;
-    v.start = p.origin;
-    v.end = p.origin + axes[axis] * size;
-    v.color = colors[axis];
-    v.heads = HEAD_END;
-    return arrow_corner(v, i % 18u, true);
+    let tip = p.origin + axes[axis] * size;
+    return arrow_corner(p.origin, tip, p.radius, p.instance_id, colors[axis], 0.0, HEAD_END, 0.0, 0.0, i % 18u, true);
 }

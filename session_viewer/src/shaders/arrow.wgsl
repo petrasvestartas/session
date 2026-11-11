@@ -91,22 +91,36 @@ fn dead_vertex() -> VsOut {
     return dead;
 }
 
-// Corner `vid` of 18 of vector `v`: 0-5 the shaft, 6-11 the end head, 12-17 the start head; drawn over every solid when `over`.
-fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
-    let inst = instances[v.instance_id];
+// Corner `vid` of 18 of a vector: 0-5 the shaft, 6-11 the end head, 12-17 the start head; drawn over every solid when `over`.
+// The row arrives field by field: a phone driver hands a struct with a scalar packed behind a vec3 to a function wrongly,
+// `end` and `heads` came out changed and no head was drawn (2026-11-11).
+fn arrow_corner(
+    start: vec3<f32>,
+    end: vec3<f32>,
+    radius: f32,
+    instance_id: u32,
+    ink: u32,
+    head_pens: f32,
+    heads: u32,
+    start_trim: f32,
+    end_trim: f32,
+    vid: u32,
+    over: bool,
+) -> VsOut {
+    let inst = instances[instance_id];
 
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_vertex();
     }
 
     // one clipping plane cuts the whole vector away
-    if (clip_active() && clip_cut_both(inst.flags, place(v.instance_id, v.start), place(v.instance_id, v.end))) {
+    if (clip_active() && clip_cut_both(inst.flags, place(instance_id, start), place(instance_id, end))) {
         return dead_vertex();
     }
 
-    let c0 = mvp * vec4<f32>(place(v.instance_id, v.start), 1.0);
-    let revealed_end = mix(v.start, v.end, instances[v.instance_id].effect.x);
-    let c1 = mvp * vec4<f32>(place(v.instance_id, revealed_end), 1.0);
+    let c0 = mvp * vec4<f32>(place(instance_id, start), 1.0);
+    let revealed_end = mix(start, end, instances[instance_id].effect.x);
+    let c1 = mvp * vec4<f32>(place(instance_id, revealed_end), 1.0);
 
     // clip to the near plane before dividing by w
     let f0 = c0.z - c0.w;
@@ -138,12 +152,12 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
         dir = d / len;
     }
     var trim0 = 0.0;
-    if (v.start_trim != 0.0) {
-        trim0 = half_width_px(v.start_trim, e0.w) + FILTER_REACH;
+    if (start_trim != 0.0) {
+        trim0 = half_width_px(start_trim, e0.w) + FILTER_REACH;
     }
     var trim1 = 0.0;
-    if (v.end_trim != 0.0) {
-        trim1 = half_width_px(v.end_trim, e1.w) + FILTER_REACH;
+    if (end_trim != 0.0) {
+        trim1 = half_width_px(end_trim, e1.w) + FILTER_REACH;
     }
     if (trim0 + trim1 > 0.0 && len <= trim0 + trim1 + 2.0) {
         return dead_vertex();
@@ -159,14 +173,14 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     if (selected) {
         floor_hw = line.thickness;
     }
-    let hw0 = max(half_width_px(v.radius, e0.w), floor_hw);
-    let hw1 = max(half_width_px(v.radius, e1.w), floor_hw);
+    let hw0 = max(half_width_px(radius, e0.w), floor_hw);
+    let hw1 = max(half_width_px(radius, e1.w), floor_hw);
     let hw = max(hw0, hw1);
 
     // tips on the points, no head at an end the near plane cut; the heads share part of the vector
-    let only = (v.heads & HEAD_ONLY) != 0u;
-    let at_end = (v.heads & HEAD_END) != 0u && f1 <= 0.0;
-    let at_start = (v.heads & HEAD_START) != 0u && f0 <= 0.0;
+    let only = (heads & HEAD_ONLY) != 0u;
+    let at_end = (heads & HEAD_END) != 0u && f1 <= 0.0;
+    let at_start = (heads & HEAD_START) != 0u && f0 <= 0.0;
     // branches, not select: a phone driver picked the wrong side here and drew no head (2026-11-11)
     var most = len * HEAD_SHARE;
     if (at_end && at_start) {
@@ -176,8 +190,8 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
         most = HEAD_ANY;
     }
     var pens = HEAD_PENS;
-    if (v.head > 0.0) {
-        pens = v.head;
+    if (head_pens > 0.0) {
+        pens = head_pens;
     }
     var head1 = 0.0;
     if (at_end) {
@@ -266,7 +280,7 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
 
     var o: VsOut;
     o.pos = vec4<f32>((p / vp - 0.5) * 2.0, depth, 1.0);
-    var color = edge_color(unpack4x8unorm(v.color), inst);
+    var color = edge_color(unpack4x8unorm(ink), inst);
 
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
@@ -285,7 +299,7 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     o.head_end = vec4<f32>(s1 - dir * head1, n * half1);
     o.head_start = vec4<f32>(s0 + dir * head0, n * half0);
     o.widths = vec4<f32>(hw0, hw1, e0.z / e0.w, e1.z / e1.w);
-    o.inst_id = v.instance_id;
+    o.inst_id = instance_id;
     return o;
 }
 
