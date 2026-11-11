@@ -86,7 +86,7 @@ fn merge(up: &mut Upload, other: &mut Upload) {
 }
 
 /// The vector shader with parts switched off by `?arrowprobe=<bits>`, to find what a driver draws wrongly:
-/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 8 no huge constant.
+/// 1 a solid fragment, 2 no hidden-line test, 4 no trim cut, 8 no huge constant, 16 a plain square at each end.
 fn probed(source: &str) -> String {
     let bits = super::view::knob("VIEWER_ARROWPROBE", "arrowprobe")
         .and_then(|v| v.parse::<u32>().ok())
@@ -109,6 +109,19 @@ let covered = coverage(in);",
             "if (false) {",
         ),
         (8, "3.0e38", "100000.0"),
+        (
+            16,
+            "return arrow_corner(vectors[row], vid, false);",
+            "if (vid >= 6u) { return dead_vertex(); }
+let v = vectors[row];
+let c = mvp * vec4<f32>(place(v.instance_id, v.end), 1.0);
+let k = corner_of(vid);
+let off = vec2<f32>(select(-9.0, 9.0, k >= 2u), select(-9.0, 9.0, (k & 1u) == 1u));
+var o: VsOut;
+o.pos = vec4<f32>(c.xy / c.w + off * 2.0 / vec2<f32>(line.vp_w, line.vp_h), 0.5, 1.0);
+o.color = vec4<f32>(1.0, 1.0, 1.0, 2.0);
+return o;",
+        ),
     ];
     let mut out = source.to_owned();
     for (bit, from, to) in swaps {
