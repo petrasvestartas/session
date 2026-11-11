@@ -105,7 +105,7 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     }
 
     let c0 = mvp * vec4<f32>(place(v.instance_id, v.start), 1.0);
-    let revealed_end = mix(v.start, v.end, inst.effect.x);
+    let revealed_end = mix(v.start, v.end, instances[v.instance_id].effect.x);
     let c1 = mvp * vec4<f32>(place(v.instance_id, revealed_end), 1.0);
 
     // clip to the near plane before dividing by w
@@ -116,8 +116,16 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
         return dead_vertex();
     }
 
-    let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
-    let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
+    // branches from here on, not select: an end that is not cut must never see the division, since
+    // some phone drivers blend both sides of a select and a value that is not a number spreads
+    var e0 = c0;
+    var e1 = c1;
+    if (f0 > 0.0) {
+        e0 = mix(c0, c1, f0 / (f0 - f1));
+    }
+    if (f1 > 0.0) {
+        e1 = mix(c1, c0, f1 / (f1 - f0));
+    }
 
     // Both ends in screen pixels. Move the complete vector to visible point boundaries.
     let vp = vec2<f32>(line.vp_w, line.vp_h);
@@ -125,9 +133,18 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
     var s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
     let d = s1 - s0;
     var len = length(d);
-    let dir = select(vec2<f32>(1.0, 0.0), d / len, len > 1e-6);
-    let trim0 = select(0.0, half_width_px(v.start_trim, e0.w) + FILTER_REACH, v.start_trim != 0.0);
-    let trim1 = select(0.0, half_width_px(v.end_trim, e1.w) + FILTER_REACH, v.end_trim != 0.0);
+    var dir = vec2<f32>(1.0, 0.0);
+    if (len > 1e-6) {
+        dir = d / len;
+    }
+    var trim0 = 0.0;
+    if (v.start_trim != 0.0) {
+        trim0 = half_width_px(v.start_trim, e0.w) + FILTER_REACH;
+    }
+    var trim1 = 0.0;
+    if (v.end_trim != 0.0) {
+        trim1 = half_width_px(v.end_trim, e1.w) + FILTER_REACH;
+    }
     if (trim0 + trim1 > 0.0 && len <= trim0 + trim1 + 2.0) {
         return dead_vertex();
     }
@@ -138,8 +155,12 @@ fn arrow_corner(v: VectorRow, vid: u32, over: bool) -> VsOut {
 
     // a selected shaft is at least a full pen wide
     let selected = (inst.flags & FLAG_SELECTED) != 0u;
-    let hw0 = max(half_width_px(v.radius, e0.w), select(0.0, line.thickness, selected));
-    let hw1 = max(half_width_px(v.radius, e1.w), select(0.0, line.thickness, selected));
+    var floor_hw = 0.0;
+    if (selected) {
+        floor_hw = line.thickness;
+    }
+    let hw0 = max(half_width_px(v.radius, e0.w), floor_hw);
+    let hw1 = max(half_width_px(v.radius, e1.w), floor_hw);
     let hw = max(hw0, hw1);
 
     // tips on the points, no head at an end the near plane cut; the heads share part of the vector
