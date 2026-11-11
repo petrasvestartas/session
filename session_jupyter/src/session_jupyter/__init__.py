@@ -4,17 +4,24 @@
 
     show(session, "my_scene")
 
-show() uploads the session to the viewer's storage and returns a frame with the viewer page.
+show() returns a frame with the viewer page:
+
+    with upload rights (the [r2] profile in ~/.aws/credentials)   upload as the scene `name`, a lasting address
+    without them, also in a browser notebook (JupyterLite)       send it to the upload service: no keys needed,
+                                                                 stored once by content, deleted after one day
+    if the service cannot be reached                             the geometry travels inside the frame's address
 """
 
 from __future__ import annotations
 
+import base64
 import gzip
 import hashlib
 import hmac
 import json
 import os
 import re
+import sys
 import urllib.error
 import urllib.request
 from configparser import ConfigParser
@@ -33,6 +40,10 @@ R2_ENDPOINT = os.environ.get("R2_ENDPOINT", f"https://{R2_ACCOUNT}.r2.cloudflare
 R2_PUBLIC = os.environ.get("R2_PUBLIC", "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev")
 R2_PROFILE = os.environ.get("R2_PROFILE", "r2")
 R2_NOTIFY = os.environ.get("R2_NOTIFY", "https://ntfy.sh/wood-live-84eaac4a04729911")
+# The upload service anyone may use (session_jupyter/worker): files live one day, each content once.
+UPLOAD = os.environ.get("SESSION_UPLOAD", "https://session-upload.petrasvestartas.workers.dev/upload")
+# The viewer that reads a scene from its own address (#session=...), so nothing has to be uploaded.
+INLINE_VIEWER = os.environ.get("INLINE_VIEWER", "https://brg-teaching.github.io/Teaching/CAS/website/session-viewer/")
 
 VIEWS = ("top", "bottom", "front", "back", "left", "right", "iso", "isoback")
 
@@ -40,6 +51,74 @@ VIEWS = ("top", "bottom", "front", "back", "left", "right", "iso", "isoback")
 def url(name: str) -> str:
     """The viewer address of the published scene `name`."""
     return f"{SESSION_VIEWER.rstrip('/')}/?scene=view_{name}.yaml"
+
+
+def inline_url(session: Session) -> str:
+    """The viewer address that carries the session itself; it is drawn in the page, nothing is uploaded."""
+    payload = base64.b64encode(session.pb_dumps()).decode("ascii")
+    return f"{INLINE_VIEWER.rstrip('/')}/?scene=notebook.yaml&data=off&live=off#session={payload}"
+
+
+def share(session: Session, view: str = "iso", grid: bool = False) -> str:
+    """Send the session to the upload service and return its viewer address. No keys; kept for one day."""
+    if not UPLOAD:
+        raise OSError("No upload service is set (SESSION_UPLOAD)")
+    if view not in VIEWS:
+        raise ValueError(f"view must be one of {', '.join(VIEWS)}")
+    body = gzip.compress(canonical(session.pb_dumps()), compresslevel=6, mtime=0)
+    address = f"{UPLOAD}?view={view}&grid={int(grid)}"
+    return json.loads(_post(address, body))["url"]
+
+
+_GUID = re.compile(rb"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+
+
+def canonical(data: bytes) -> bytes:
+    """The session bytes with its random object ids replaced by ids numbered in order of appearance.
+
+    Every run of a notebook makes new random ids, so the same geometry gave different bytes, and a stored
+    copy for every run. Each id keeps its length, so the encoding stays valid, and equal ids stay equal,
+    so the links between objects are kept.
+    """
+    numbers: dict[bytes, bytes] = {}
+
+    def number(match: re.Match) -> bytes:
+        found = match.group(0)
+        if found not in numbers:
+            numbers[found] = f"{len(numbers):08x}-0000-4000-8000-000000000000".encode()
+        return numbers[found]
+
+    numbered = _GUID.sub(number, data)
+    # Some parts are written in the order of their ids: written again, that order follows the new ids.
+    return _GUID.sub(number, Session.pb_loads(numbered).pb_dumps())
+
+
+def _post(address: str, body: bytes) -> str:
+    """POST bytes and return the reply text; in a browser notebook through the browser itself."""
+    if sys.platform == "emscripten":
+        from js import Uint8Array, XMLHttpRequest  # the kernel runs in a web worker, where a blocking request is allowed
+
+        request = XMLHttpRequest.new()
+        request.open("POST", address, False)
+        request.send(Uint8Array.new(body))
+        if request.status != 200:
+            raise OSError(f"Upload answered HTTP {request.status}: {request.responseText}")
+        return request.responseText
+
+    request = urllib.request.Request(address, data=body, method="POST", headers={"Content-Type": "application/octet-stream", "User-Agent": "session_jupyter"})  # Cloudflare refuses Python's default agent
+    with urllib.request.urlopen(request, timeout=60) as reply:
+        return reply.read().decode()
+
+
+def can_upload() -> bool:
+    """Whether this notebook may upload: not in a browser notebook, and the [r2] profile is present."""
+    if sys.platform == "emscripten":
+        return False
+    try:
+        _credentials()
+    except (PermissionError, KeyError):
+        return False
+    return True
 
 
 def publish(session: Session, name: str, view: str = "iso", grid: bool = False) -> str:
@@ -89,13 +168,24 @@ def show(
     view: str = "iso",
     grid: bool = False,
     height: int = 600,
-    upload: bool = True,
+    upload: bool | None = None,
 ) -> IFrame:
-    """Publish the session as the scene `name` and return the viewer in a notebook frame.
+    """Show the session in a notebook frame.
 
-    upload=False only shows the scene that is already published under that name.
+    upload=None (default): upload as the scene `name` with upload rights (can_upload()); else send it to the
+    upload service (share()); if that cannot be reached, draw it from the frame's address (inline_url()).
+    upload=True always uploads as `name`; upload=False only shows the scene already published under `name`.
     """
-    address = publish(session, name, view, grid) if upload else url(name)
+    if upload is None:
+        if can_upload():
+            address = publish(session, name, view, grid)
+        else:
+            try:
+                address = share(session, view, grid)
+            except (OSError, ValueError, KeyError):
+                address = inline_url(session)
+    else:
+        address = publish(session, name, view, grid) if upload else url(name)
 
     return IFrame(src=address, width="100%", height=height)
 

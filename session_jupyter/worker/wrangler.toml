@@ -1,0 +1,13 @@
+# Anyone may upload a scene here, without keys. Deploy: wrangler deploy (from this folder).
+# The bucket deletes tmp/ after one day: wrangler r2 bucket lifecycle add session-viewer-data tmp-one-day tmp/ --expire-days 1
+name = "session-upload"
+main = "upload.js"
+compatibility_date = "2026-10-01"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "session-viewer-data"
+
+[vars]
+VIEWER = "https://petrasvestartas.github.io/session/"
+MAX_BYTES = "10000000"

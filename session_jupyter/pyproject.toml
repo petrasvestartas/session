@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "ipython>=8.0",
-    "session-py>=0.301.0",
+    "session-py>=0.310.0",
 ]
 
 [project.optional-dependencies]
