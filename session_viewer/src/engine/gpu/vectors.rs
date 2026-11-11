@@ -5,8 +5,7 @@ use super::lane::{Lane, Registered, RowLane};
 use super::upload::Upload;
 use super::view::View;
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_source,
-    module,
+    ColorWrite, DepthMode, Layouts, Pipeline, PipelineDesc, Shader, Target, build, ink_module,
 };
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -85,117 +84,10 @@ fn merge(up: &mut Upload, other: &mut Upload) {
     }
 }
 
-/// The `?arrowprobe=` number: which probe the vector shader is built with, 0 for none.
-fn probe_bits() -> u32 {
-    super::view::knob("VIEWER_ARROWPROBE", "arrowprobe")
-        .and_then(|v| v.parse::<u32>().ok())
-        .unwrap_or(0)
-}
-
-/// Values the corner code leaves behind for a probe to read.
-const PROBE_VARS: &str = "var<private> dbg_f0: f32 = 2e30;
-var<private> dbg_f1: f32 = 2e30;
-var<private> dbg_fx: f32 = -7.0;
-var<private> dbg_w1: f32 = 0.0;
-var<private> dbg_he: f32 = -7.0;
-var<private> dbg_end: f32 = 2e30;
-var<private> dbg_start: f32 = 2e30;
-var<private> dbg_len: f32 = -7.0;
-var<private> dbg_trim: f32 = 0.0;
-var<private> dbg_hw1: f32 = -7.0;
-var<private> dbg_at: f32 = 0.0;
-var<private> dbg_head1: f32 = -7.0;
-var<private> dbg_most: f32 = -7.0;
-var<private> dbg_pens: f32 = -7.0;
-var<private> dbg_part: f32 = -7.0;
-var<private> dbg_px: f32 = 2e30;
-var<private> dbg_py: f32 = 2e30;
-";
-
-/// Lines of the corner code and what a probe notes after each.
-const PROBE_NOTES: [(&str, &str); 6] = [
-    (
-        "let f1 = c1.z - c1.w;",
-        "dbg_f0 = f0; dbg_f1 = f1; dbg_fx = instances[instance_id].effect.x; dbg_w1 = c1.w; dbg_he = f32(heads & 1u); dbg_end = end.x; dbg_start = start.x + start.y + start.z;",
-    ),
-    ("len -= trim0 + trim1;", "dbg_len = len; dbg_trim = 1.0;"),
-    ("let hw = max(hw0, hw1);", "dbg_hw1 = hw1;"),
-    (
-        "let half1 = head1 * HEAD_ASPECT;",
-        "dbg_at = f32(at_end); dbg_head1 = head1; dbg_most = most; dbg_pens = pens;",
-    ),
-    (
-        "let corner = corner_of(vid - part * 6u);",
-        "dbg_part = f32(part);",
-    ),
-    (
-        "let p = s0 + dir * along + n * side * across;",
-        "dbg_px = p.x; dbg_py = p.y;",
-    ),
-];
-
-/// Three squares per vector, each channel one fact about the corner code; all white when all hold.
-const PROBE_FACTS: [&str; 2] = [
-    "if (q == 0u) { col = vec3<f32>(f32(abs(dbg_f0) < 1e30), f32(abs(dbg_f1) < 1e30), f32(dbg_f1 <= 0.0)); }
-if (q == 1u) { col = vec3<f32>(dbg_at, f32(dbg_head1 > 0.0 && dbg_head1 < 1e5), f32(dbg_part == 1.0)); }
-if (q == 2u) { col = vec3<f32>(f32(dbg_len > 0.0 && dbg_len < 1e6), f32(dbg_hw1 > 0.0 && dbg_hw1 < 1e4), f32(abs(dbg_px) < 1e5 && abs(dbg_py) < 1e5)); }",
-    "if (q == 0u) { col = vec3<f32>(f32(dbg_fx >= 0.0 && dbg_fx <= 1.001), f32(abs(dbg_w1) > 1e-6 && abs(dbg_w1) < 1e6), f32(dbg_he == 1.0)); }
-if (q == 1u) { col = vec3<f32>(f32(dbg_end == v.end.x), f32(dbg_start == v.start.x + v.start.y + v.start.z), f32(dbg_most > 0.0 && dbg_most < 1e7)); }
-if (q == 2u) { col = vec3<f32>(f32(dbg_pens > 0.0 && dbg_pens < 1e3), f32(line.thickness > 0.0 && line.thickness < 100.0), dbg_trim); }",
-];
-
-/// The vector shader built for probe `bits`, to find what a driver computes wrongly: 1 a solid
-/// fragment; 16 a white square at each end; 128 and 256 three squares that report on the corner code.
-fn probed(source: &str, bits: u32) -> String {
-    let mut out = source.to_owned();
-    let facts = match bits {
-        128 => Some(PROBE_FACTS[0]),
-        256 => Some(PROBE_FACTS[1]),
-        _ => None,
-    };
-    let squares = bits == 16 || facts.is_some();
-    if bits == 1 || squares {
-        out = out.replace(
-            "let covered = coverage(in);",
-            "if (true) { return InkColor(vec4<f32>(in.color.rgb, 1.0)); }\nlet covered = coverage(in);",
-        );
-    }
-    if !squares {
-        return out;
-    }
-    let mut noted = String::from("var col = vec3<f32>(1.0, 1.0, 1.0);");
-    if let Some(facts) = facts {
-        for (line, note) in PROBE_NOTES {
-            out = out.replace(line, &format!("{line}\n{note}"));
-        }
-        out = out.replace(
-            "fn dead_vertex() -> VsOut {",
-            &format!("{PROBE_VARS}fn dead_vertex() -> VsOut {{"),
-        );
-        noted = format!(
-            "let r = arrow_corner(v.start, v.end, v.radius, v.instance_id, v.color, v.head, v.heads, v.start_trim, v.end_trim, 6u, false);\nvar col = vec3<f32>(0.0, 0.0, 0.0);\n{facts}"
-        );
-    }
-    let single = facts.is_none();
-    let body = format!(
-        "let v = vectors[row];\nvar q = 0u;\nif (vid >= 6u) {{ q = 1u; }}\nif (vid >= 12u) {{ q = 2u; }}\n{noted}\nlet c = mvp * vec4<f32>(place(v.instance_id, v.end), 1.0);\nlet k = corner_of(vid - q * 6u);\nvar off = vec2<f32>(-9.0, -9.0);\nif (k >= 2u) {{ off.x = 9.0; }}\nif ((k & 1u) == 1u) {{ off.y = 9.0; }}\noff.x += (f32(q) - 1.0) * 24.0;\nif (q != 1u && {single}) {{ return dead_vertex(); }}\nvar o: VsOut;\no.pos = vec4<f32>(c.xy / c.w + off * 2.0 / vec2<f32>(line.vp_w, line.vp_h), 0.5, 1.0);\no.color = vec4<f32>(col, 2.0);\nreturn o;"
-    );
-    let call = out
-        .find("return arrow_corner(\nvectors[row].start,")
-        .expect("the vertex entry's call");
-    let end = call + out[call..].find(");").expect("the call closes") + 2;
-    out.replace_range(call..end, &body);
-    out
-}
-
 impl VectorLane {
     /// Create the lane: shader, pipelines, an empty table.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let shader = module(
-            ctx,
-            "vector.shader",
-            &probed(&ink_source(shader!("vector.wgsl")), probe_bits()),
-        );
+        let shader = ink_module(ctx, "vector.shader", shader!("vector.wgsl"));
         let (color, id) = build_pipelines(ctx, l, &shader, target);
         let buf = GrowBuf::new(
             ctx,
@@ -408,21 +300,6 @@ mod tests {
                 "VectorRow.{:?}",
                 member.name
             );
-        }
-    }
-
-    /// Every probe build of the shader still parses, and the reporting probes found their lines.
-    #[test]
-    fn vector_probes_parse() {
-        let (_, src) = SHADERS[0];
-        let source = crate::engine::pipelines::ink_source(src);
-        for line in PROBE_NOTES.map(|(line, _)| line) {
-            assert_eq!(source.matches(line).count(), 1, "{line}");
-        }
-        for bits in [0, 1, 16, 128, 256] {
-            let built = crate::engine::pipelines::shared(&probed(&source, bits));
-            naga::front::wgsl::parse_str(&built)
-                .unwrap_or_else(|error| panic!("probe {bits}: {}", error.emit_to_string(&built)));
         }
     }
 

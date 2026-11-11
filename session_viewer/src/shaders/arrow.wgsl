@@ -29,8 +29,7 @@ const HEAD_SHARE: f32 = 0.6;
 const HEAD_ANY: f32 = 1.0e6;
 // Half a pixel's diagonal: how far a pixel reaches from its center.
 const FILTER_REACH: f32 = 0.70711;
-// Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+. Branches, not a constant
-// array: some phone drivers read a constant array at a computed index wrongly, and no head is drawn.
+// Quad corner of vertex `k` of 6: 0 back-, 1 back+, 2 front-, 3 front+.
 fn corner_of(k: u32) -> u32 {
     if (k == 0u) {
         return 0u;
@@ -92,8 +91,8 @@ fn dead_vertex() -> VsOut {
 }
 
 // Corner `vid` of 18 of a vector: 0-5 the shaft, 6-11 the end head, 12-17 the start head; drawn over every solid when `over`.
-// The row arrives field by field: a phone driver hands a struct with a scalar packed behind a vec3 to a function wrongly,
-// `end` and `heads` came out changed and no head was drawn (2026-11-11).
+// The row arrives field by field, never as a VectorRow: an Android phone's driver hands a struct with a scalar packed
+// behind a vec3 to a function wrongly; `end` and `heads` came out changed and no head was drawn (2026-11-11).
 fn arrow_corner(
     start: vec3<f32>,
     end: vec3<f32>,
@@ -130,8 +129,7 @@ fn arrow_corner(
         return dead_vertex();
     }
 
-    // branches from here on, not select: an end that is not cut must never see the division, since
-    // some phone drivers blend both sides of a select and a value that is not a number spreads
+    // by branch, so an end that is not cut never sees the division
     var e0 = c0;
     var e1 = c1;
     if (f0 > 0.0) {
@@ -181,7 +179,6 @@ fn arrow_corner(
     let only = (heads & HEAD_ONLY) != 0u;
     let at_end = (heads & HEAD_END) != 0u && f1 <= 0.0;
     let at_start = (heads & HEAD_START) != 0u && f0 <= 0.0;
-    // branches, not select: a phone driver picked the wrong side here and drew no head (2026-11-11)
     var most = len * HEAD_SHARE;
     if (at_end && at_start) {
         most = most * 0.5;
