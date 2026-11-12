@@ -1,0 +1,106 @@
+{
+  "checkpoint": "03-triangle",
+  "sourceFingerprint": "5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61",
+  "browser": {
+    "load": {
+      "browser": "156.0.8078.79",
+      "renderer": "Vulkan SwiftShader software WebGPU",
+      "cases": [
+        {
+          "width": 1280,
+          "height": 720,
+          "deviceScaleFactor": 1,
+          "colour": "load",
+          "errors": [],
+          "file": "load-1280x720.png",
+          "sha256": "2a99eb5e63057f205c12a5b16ff33e353ad686d1658442ff8348d6437e3b8f07"
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "deviceScaleFactor": 2,
+          "colour": "load",
+          "errors": [],
+          "file": "load-390x844.png",
+          "sha256": "63709fa75a482e7441994a96de1c48857245f5e766634a16f71b825354a7be19"
+        }
+      ]
+    },
+    "clear": {
+      "browser": "156.0.8078.79",
+      "renderer": "Vulkan SwiftShader software WebGPU",
+      "cases": [
+        {
+          "width": 1280,
+          "height": 720,
+          "deviceScaleFactor": 1,
+          "colour": "clear",
+          "errors": [],
+          "file": "clear-1280x720.png",
+          "sha256": "dd70717e0a045facdfae894d86b54bb879f5741ea068d7441bb806e7867de4d5"
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "deviceScaleFactor": 2,
+          "colour": "clear",
+          "errors": [],
+          "file": "clear-390x844.png",
+          "sha256": "f7b552b0fe0908f43115e65a9344d1fbdcdd9160ceb7a3fffd2c497e42f2c9ea"
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Software WebGPU; no hardware or real-phone acceptance.",
+    "The native harness checks the scene; the browser checks text painting.",
+    "Later renderer and panel ownership consolidation remains unfinished."
+  ],
+  "nativeAndWasm": {
+    "source": "9bd1d07feb51c4ef40530d4842b9f316ce2e4dc5deff580438de852fff7b867e",
+    "commands": [
+      {
+        "name": "03-triangle-wasm",
+        "args": [
+          "cargo",
+          "build",
+          "--lib",
+          "--locked",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j1"
+        ],
+        "returncode": 0
+      },
+      {
+        "name": "03-triangle-web",
+        "args": [
+          "trunk",
+          "build",
+          "--release",
+          "--public-url",
+          "./"
+        ],
+        "returncode": 0
+      },
+      {
+        "name": "03-triangle-frame",
+        "args": [
+          "cargo",
+          "run",
+          "--example",
+          "frame",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-j1"
+        ],
+        "returncode": 0
+      }
+    ],
+    "browser": "not verified",
+    "pixels": {
+      "sha256": "4e747d2c92c9e2b215985fb2e33d339b1f74d17cafcd234f442d9104f469d972"
+    }
+  }
+}

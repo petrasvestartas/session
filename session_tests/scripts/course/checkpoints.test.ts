@@ -337,7 +337,7 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     const reading = readingBook(data.steps, plan);
     assert.equal(reading.chapters.length, 22);
     const pilot = reading.chapters[0].sections.flatMap(section => section.lessons);
-    assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3']);
+    assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3', '1.4']);
     const consolidated = plan.chapters.flatMap((chapter: {consolidated?: {steps: string[]}[]}) => chapter.consolidated || []);
     assert.equal(reading.aliases.size, consolidated.reduce((count: number, lesson: {steps: string[]}) => count + lesson.steps.length, 0));
     assert.equal(reading.aliases.get('01-canvas')?.page, 'journey/consolidation/01-canvas.md');
@@ -345,6 +345,9 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     assert(!original.byId.has('01a-gpu'));
     assert.deepEqual(expected('01a-gpu'), expected('01-canvas'));
     assert.deepEqual(expected('02-clear'), expected('01-canvas'));
+    assert.deepEqual(expected('03a-fonts'), expected('03-triangle'));
+    assert.deepEqual(expected('03a-paint'), expected('03-triangle'));
+    assert.equal(fingerprint(expected('03-triangle')), '5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61');
     for (const lesson of consolidated) {
         const page = read(path.join(viewer, 'docs', lesson.page));
         for (const id of lesson.steps) assert(page.includes(`id="checkpoint-${id}"`));

@@ -62,7 +62,7 @@ test('the first GPU subject replaces three checkpoints with five final files', (
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(result.files, expected('01-canvas'));
     assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
-    assert.equal(course().steps.length, 1359);
+    assert.equal(course().steps.length, 1357);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));
@@ -73,4 +73,13 @@ test('named first-frame listings reconstruct the same canonical source', () => {
     const files = Object.fromEntries(plan.edits.map((edit: {path: string; snippet: string}) =>
         [edit.path, snippetSource(edit.snippet)]));
     assert.deepEqual(files, expected('02-clear'));
+});
+
+test('shader, font preparation and painting collapse to the exact runnable endpoint', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/painting/checkpoints.json'), 'utf8'));
+    const result = collapseSubject(expected('01-canvas'), archived.steps,
+        name => fs.readFileSync(path.join(docs, name), 'utf8'));
+    assert.deepEqual(result.files, archived.endpoint);
+    assert.deepEqual(expected('03-triangle'), archived.endpoint);
+    assert.equal(course().steps.filter(step => ['03-triangle', '03a-fonts', '03a-paint'].includes(step.id)).length, 1);
 });

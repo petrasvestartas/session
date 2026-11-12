@@ -1,246 +1,107 @@
-# 1.2.1 · Give the GPU three corners
+# Shaders and first egui painting
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
+<a id="checkpoint-03-triangle"></a>
 
-**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+Draw a pink triangle and a crisp Command label in two ordered passes on one GPU surface.
 
-Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.
+## Prerequisites and ownership
 
-## Type
+Complete [Rust and the first GPU frame](consolidation/01-canvas.md). This subject introduces `triangle.wgsl`, `panel.rs`, and the shared command font/theme module, and connects them to the existing renderer and browser. It combines shader setup, font preparation and actual painting into one runnable checkpoint.
 
-Continue from [Rust and the first GPU frame](01-canvas.md). [Save or recover your work](recovery.md).
+The next mathematics subject uses this same distinction between measured UI coordinates and GPU pixels. The command dock subsequently adds editing and input. Later renderer and panel ownership still needs consolidation; this checkpoint does not claim that those files are finished throughout the current course.
 
-### 1. `src/triangle.wgsl`
+## Build
 
-Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink.
+Use these complete files in the first-frame checkpoint; copy the bundled Noto fonts through the dependency command.
 
-Create the file and type:
+### Corners, coverage and colour
+
+Type the shader in `src/triangle.wgsl`:
 
 ```wgsl
---8<-- "journey/code/03-triangle-01.wgsl"
+--8<-- "journey/code/03-paint-1.wgsl"
 ```
 
-### 2. `src/renderer.rs`
+The vertex index selects one of three clip-space corners. Dividing clip x and y by w maps the visible square to −1 through +1; w is one here. Rasterization finds the covered pixels, then the fragment shader supplies their linear colour. Moving a corner changes coverage; changing only the fragment result changes colour.
 
-Create and retain the triangle shader pipeline. Bind the pipeline and draw its three vertices.
-
-<details>
-<summary>Locate the existing block</summary>
+Type the pipeline setup and draw in `src/renderer.rs`:
 
 ```rust
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-}
-
-impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
-        Self { device, queue }
-    }
-
-    pub fn draw(&self, view: &wgpu::TextureView) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
+--8<-- "journey/code/03-paint-2.rs"
 ```
 
-</details>
+A pipeline joins the shader entry points, target format and primitive state. Keep it between frames. The shader supplies positions, so no vertex buffer is needed yet. `draw(0..3, 0..1)` requests three vertices and one instance. The first pass clears white, then records the triangle.
 
-Edit the existing block to match this code; keep unchanged lines:
+### Fonts and logical coordinates
+
+Add the egui dependencies in `Cargo.toml` and register the new modules in `src/lib.rs`:
+
+```toml
+--8<-- "journey/code/03-paint-4.toml"
+```
 
 ```rust
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-}
-
-impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: None,
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        Self { device, queue, pipeline }
-    }
-
-    pub fn draw(&self, view: &wgpu::TextureView) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.draw(0..3, 0..1);
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
+--8<-- "journey/code/03-paint-6.rs"
 ```
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/03-triangle-fullscreen-2.rs"
-```
-
-```text
---8<-- "journey/code/03-triangle-fullscreen-3.rs"
-```
-
-</details>
-
-### 3. `src/browser.rs`
-
-Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.
-
-<details>
-<summary>Locate the existing block</summary>
+Copy the shared font configuration into `src/command_dock/theme.rs` and its module declaration into `src/command_dock/mod.rs`:
 
 ```rust
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue);
-    present(&surface, &renderer)?;
-    report("The GPU painted the canvas.");
-    Ok(())
-}
+--8<-- "journey/code/03-paint-7.rs"
 ```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03-triangle-window-1.rs"
+--8<-- "journey/code/03-paint-8.rs"
 ```
 
-## Run and check
+`include_bytes!` supplies font bytes for the lifetime of the program; `Arc` shares that allocation. Family order supplies fallback glyphs. Keep the font licenses beside the assets.
 
-In your project:
+Type `src/panel.rs`:
+
+```rust
+--8<-- "journey/code/03-paint-5.rs"
+```
+
+`RawInput.screen_rect` uses logical points. Divide the physical target dimensions by display density: a 780-pixel image at density two is 390 points wide. The same density belongs in `ScreenDescriptor`; otherwise text size and pointer coordinates disagree.
+
+`run_ui` measures and lays out the label, returning shapes and texture changes. Glyph coverage lives in a font atlas. Upload changed atlas pixels before drawing the meshes that sample them, then tessellate shapes and upload the mesh buffers.
+
+### Two passes, one presentation
+
+Connect the scene and panel in `src/browser.rs`:
+
+```rust
+--8<-- "journey/code/03-paint-3.rs"
+```
+
+Both painters use the same device and sRGB view format. The UI pass uses `Load`: its untouched pixels retain the triangle. `forget_lifetime` releases the pass's compile-time borrow of the encoder, but the pass still must end before finishing that encoder. Submit the UI buffers before presenting, and free retired atlas textures after their drawing work is submitted.
+
+## Run and observe
+
+From `session_viewer`, materialize a fresh checkpoint outside your handwritten project:
 
 ```sh
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+npm --prefix ../session_tests run course -- reference 03-triangle --output target/first-painting
+cd target/first-painting
+trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+The canvas contains a pink triangle with a white Command label panel at the bottom. The label is painted on the GPU; it is not an HTML input. Keyboard editing belongs to the next subject.
 
-A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
+## Predict and try
 
-### Recorded visual result
+Predict the result of replacing only the UI pass's `Load` with `Clear(wgpu::Color::WHITE)`. Run the experiment: the triangle disappears, while the label remains. Restore `Load` before continuing.
 
-**Previous native render — current verification pending.**
+## Question and answer
 
-![Native renderer output for give the gpu three corners.](../screenshots/journey/03-triangle.png)
+Why must atlas uploads happen before the text draw?
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+The mesh carries glyph positions and texture coordinates, not the glyph's coverage pixels. Drawing before uploading the referenced atlas region would sample absent or stale coverage.
 
-<details>
-<summary>Code explanation and diagram</summary>
+## Validation
 
-The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
+This executable checkpoint preserves the exact endpoint of the former shader, font and painting sequence. Their [original checkpoints](../archived/painting/checkpoints.json) remain available; the full subsequent course endpoint is unchanged. Desktop and upright browser checks pass for triangle coverage, Noto label ink and the Load/Clear experiment. The experiment preserves every dock pixel. These captures use software WebGPU; hardware and real-phone acceptance are not claimed. Locked wasm compilation, optimized browser bundling and native scene-pixel verification pass. See the [recorded browser evidence](painting-evidence.json).
 
-A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
+![The triangle remains behind the Command label when the UI loads the target.](../screenshots/first-painting/load-1280x720.png)
 
-Three shader positions → triangle coverage → fragment colour → canvas.
-
-![Three corner positions form a triangle; a fragment shader colours its covered pixels.](../illustrations/journey-03.svg)
-
-If you change the top vertex, which part of the picture changes, and which stays the same?
-
-The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
-
-Study estimate, including typing and experiments: 1–2 hours.
-
-</details>
-
-<details>
-<summary>Optional experiment</summary>
-
-Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`. Run it: the top should move right while the base stays still. Then change only the fragment colour. Explain why that changes the inside colour but not the silhouette. Restore both edits.
-
-</details>
-
-<details>
-<summary>Check and save your work</summary>
-
-Restore experimental edits, then run from `session_viewer`:
-
-```sh
-npm --prefix ../session_tests run course -- check 1.3.1
-npm --prefix ../session_tests run course -- save 1.3.1
-```
-
-Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
-
-</details>
-
-<details>
-<summary>Viewer coverage and verification</summary>
-
-The production viewer also separates shader programs, pipeline setup and frame recording. Later mesh buffers replace the shader’s three hard-coded positions. We will make that replacement explicitly, after understanding what the positions do.
-
-
-
-[Full validation scope](release.md).
-
-</details>
+![Clearing in the UI pass removes the triangle while preserving the label.](../screenshots/first-painting/clear-1280x720.png)

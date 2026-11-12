@@ -56,155 +56,79 @@
     },
     {
       "id": "03-triangle",
-      "title": "Give the GPU three corners",
+      "title": "Shaders and first egui painting",
       "page": "journey/03-triangle.md",
       "hours": [
-        1,
-        2
+        2,
+        4
       ],
-      "goal": "Draw a pink triangle on the white background.",
-      "trace": "Three shader positions → triangle coverage → fragment colour → canvas",
-      "question": "If you change the top vertex, which part of the picture changes, and which stays the same?",
-      "answer": "The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.",
-      "edits": [
-        {
-          "path": "src/triangle.wgsl",
-          "snippet": "journey/code/03-triangle-01.wgsl",
-          "before": null,
-          "why": "Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/03-triangle-fullscreen-2.rs",
-          "before": "pub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {\n        Self { device, queue }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView) {\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n",
-          "why": "Create and retain the triangle shader pipeline."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/03-triangle-fullscreen-3.rs",
-          "before": "                })],\n                ..Default::default()\n            });\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n",
-          "why": "Bind the pipeline and draw its three vertices."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/03-triangle-window-1.rs",
-          "before": "        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue);\n    present(&surface, &renderer)?;\n    report(\"The GPU painted the canvas.\");\n    Ok(())\n}\n\n",
-          "why": "Pass the surface format to the renderer; a pipeline must agree with the texture it draws into."
-        }
-      ],
-      "story": "Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.\n\nThe vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.\n\nA pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.\n\n![Three corner positions form a triangle; a fragment shader colours its covered pixels.](../illustrations/journey-03.svg)",
-      "result": "A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.",
-      "experiment": "Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`. Run it: the top should move right while the base stays still. Then change only the fragment colour. Explain why that changes the inside colour but not the silhouette. Restore both edits.",
-      "production": "The production viewer also separates shader programs, pipeline setup and frame recording. Later mesh buffers replace the shader’s three hard-coded positions. We will make that replacement explicitly, after understanding what the positions do.",
-      "browser_status": "Three corners became a triangle."
-    },
-    {
-      "id": "03a-fonts",
-      "title": "Prepare the command fonts and painter",
-      "page": "journey/03a-fonts.md",
-      "hours": [
-        1,
-        2
-      ],
-      "goal": "Create the font and GPU painter owner while keeping the triangle.",
-      "trace": "Embedded font bytes → shared font definitions → egui context → GPU painter",
-      "question": "Why can the font configuration keep the embedded byte slices?",
-      "answer": "include_bytes! supplies bytes with a static lifetime, so FontData can retain those slices. Arc lets egui share the same font data allocation; both families refer to its registered name.",
-      "story": "Prepare one owner for the command drawing. It keeps an `egui::Context` and a GPU painter. The browser constructs this owner now; the triangle stays unchanged until we connect drawing.\n\n`include_bytes!` embeds the three Noto font files in the program. Their static lifetime lets the font definitions retain them. `Arc` gives egui shared ownership of the font data; both families list the same font names. The `fonts` helper returns that configuration; `new` installs it, chooses the light theme and creates a painter using the existing device.\n\nThe painter records interface work on our GPU. It does not need a second canvas or HTML controls.\n\n![The current command drawing step.](../illustrations/journey-03a-fonts.svg)",
-      "result": "The triangle stays visible in the full window. The font and painter owner is constructed, but no interface drawing is connected yet.",
-      "experiment": "Change visuals.window_fill and rebuild. Predict why the triangle stays unchanged before the painter is called, then restore the colour.",
-      "production": "This is the same Noto font setup and GPU painter used by the finished command dock.",
-      "browser_status": "Three corners became a triangle.",
-      "browser_caption": "Chrome observes creation of the actual egui GPU shader and pipeline while the triangle stays unchanged. No interface is drawn yet.",
-      "image_result": "The native image checks the scene renderer; actual Chrome separately checks the interface drawing.",
-      "assets": [
-        "assets/text/NotoSans-Regular.subset.ttf",
-        "assets/text/NotoSansSymbols2-Regular.subset.ttf",
-        "assets/text/NotoSansSymbols-Regular.subset.ttf"
-      ],
-      "lock": "journey/release/03a-panel.lock",
-      "edits": [
-        {
-          "path": "Cargo.toml",
-          "before": "wasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
-          "snippet": "journey/code/03a-fonts-01.toml",
-          "why": "Add egui and its GPU painter."
-        },
-        {
-          "path": "src/panel.rs",
-          "before": null,
-          "snippet": "journey/code/03a-fonts-02.rs",
-          "why": "Keep the context and painter together."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    present(&surface, &renderer)?;\n    report(\"Three corners became a triangle.\");\n    Ok(())\n",
-          "snippet": "journey/code/03a-fonts-03.rs",
-          "why": "Create the painter owner before presenting the scene."
-        },
-        {
-          "path": "src/lib.rs",
-          "before": "        }\n    });\n}\n",
-          "snippet": "journey/code/03a-fonts-04.rs",
-          "why": "Register the browser-only drawing modules."
-        },
-        {
-          "path": "src/command_dock/theme.rs",
-          "before": null,
-          "snippet": "journey/code/03a-fonts-05.rs",
-          "why": "Configure Noto fonts and the light theme."
-        },
-        {
-          "path": "src/command_dock/mod.rs",
-          "before": null,
-          "snippet": "journey/code/03a-fonts-06.rs",
-          "why": "Register the shared styling module."
-        }
-      ],
-      "browser_check": "journey/checks/browser/03a-fonts.cjs",
-      "image_same_as": "03-triangle"
-    },
-    {
-      "id": "03a-paint",
-      "title": "Paint command text over the scene",
-      "page": "journey/03a-paint.md",
-      "hours": [
-        1,
-        2
-      ],
-      "goal": "Draw a Command label over the triangle using the same GPU.",
+      "goal": "Draw a pink triangle and a crisp Command label in two passes on one GPU surface.",
       "trace": "RawInput → egui shapes and font atlas → GPU upload → Load pass → present",
-      "question": "Why does the interface pass use Load?",
-      "answer": "The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.",
-      "story": "Draw the Command label after the triangle and before presenting the image. `RawInput` gives egui the available canvas size. `run_ui` calls our layout closure and returns shapes plus changed font-atlas pixels.\n\nUpload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.\n\n`forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.\n\n![The current command drawing step.](../illustrations/journey-03a-paint.svg)",
+      "question": "Why does the second pass load the target instead of clearing it?",
+      "answer": "The first pass has already written the triangle. Load preserves those pixels while egui adds text; Clear would erase them.",
+      "story": "A vertex shader positions three corners, a fragment shader colours covered pixels, and egui draws text over the same target. Upload the font atlas before submitting the UI pass. The UI pass loads the scene colour; presenting happens only after both passes.",
       "result": "Command: appears at the bottom of the full-window canvas. The triangle remains unchanged above it. Keyboard input is not connected yet.",
-      "experiment": "Change only Load to a white Clear, rebuild and see which earlier drawing disappears. Restore Load.",
-      "production": "This introduces the interface upload and second GPU pass that the full command dock keeps.",
+      "experiment": "Predict what happens when only the UI pass changes Load to a white Clear. The triangle disappears while the Command label remains. Restore Load.",
+      "production": "The viewer uses the same shader, pipeline, atlas upload and ordered pass mechanisms. Later renderer ownership consolidation remains unfinished.",
       "browser_status": "Our command line is drawn. Input comes next.",
       "browser_caption": "Chrome verifies visible Noto label ink, white panel pixels and exact preservation of the scene above the dock. Keyboard input is not connected.",
       "image_result": "The native image checks the scene renderer; actual Chrome separately checks the interface drawing.",
       "edits": [
         {
+          "path": "src/triangle.wgsl",
+          "snippet": "journey/code/03-paint-1.wgsl",
+          "before": null,
+          "why": "Complete the shader and first egui painting in this subject."
+        },
+        {
+          "path": "src/renderer.rs",
+          "snippet": "journey/code/03-paint-2.rs",
+          "before": "pub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {\n        Self { device, queue }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView) {\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n                    depth_slice: None,\n                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n                })],\n                ..Default::default()\n            });\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n}\n",
+          "why": "Complete the shader and first egui painting in this subject."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03-paint-3.rs",
+          "before": "use crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n        if let Some(status) = document.get_element_by_id(\"status\") {\n            status.set_text_content(Some(message));\n            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n        }\n    }\n}\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n        memory_budget_thresholds: Default::default(),\n        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {\n        compatible_surface: Some(&surface),\n        ..Default::default()\n    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())\n        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface.get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue);\n    present(&surface, &renderer)?;\n    report(\"The GPU painted the canvas.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => return Err(JsValue::from_str(&format!(\"Surface unavailable: {other:?}\"))),\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view);\n    frame.present();\n    Ok(())\n}\n",
+          "why": "Complete the shader and first egui painting in this subject."
+        },
+        {
+          "path": "Cargo.toml",
+          "snippet": "journey/code/03-paint-4.toml",
+          "before": "[package]\nname = \"viewer_journey\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\ncrate-type = [\"cdylib\", \"rlib\"]\n\n[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
+          "why": "Complete the shader and first egui painting in this subject."
+        },
+        {
           "path": "src/panel.rs",
-          "before": "        Self { context, painter }\n    }\n\n}\n",
-          "snippet": "journey/code/03a-paint-01.rs",
-          "why": "Lay out the label, upload its font atlas and draw over the scene."
+          "snippet": "journey/code/03-paint-5.rs",
+          "before": null,
+          "why": "Complete the shader and first egui painting in this subject."
         },
         {
-          "path": "src/browser.rs",
-          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let _panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer)?;\n    report(\"Three corners became a triangle.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n",
-          "snippet": "journey/code/03a-paint-02.rs",
-          "why": "Create the panel and pass it into presentation."
+          "path": "src/lib.rs",
+          "snippet": "journey/code/03-paint-6.rs",
+          "before": "pub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n",
+          "why": "Complete the shader and first egui painting in this subject."
         },
         {
-          "path": "src/browser.rs",
-          "before": "        ..Default::default()\n    });\n    renderer.draw(&view);\n    frame.present();\n    Ok(())\n}\n",
-          "snippet": "journey/code/03a-paint-03.rs",
-          "why": "Draw the panel over the scene before presenting."
+          "path": "src/command_dock/theme.rs",
+          "snippet": "journey/code/03-paint-7.rs",
+          "before": null,
+          "why": "Complete the shader and first egui painting in this subject."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03-paint-8.rs",
+          "before": null,
+          "why": "Complete the shader and first egui painting in this subject."
         }
       ],
-      "browser_check": "journey/checks/browser/03a-paint.cjs",
-      "image_same_as": "03-triangle"
+      "assets": [
+        "assets/text/NotoSans-Regular.subset.ttf",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf"
+      ],
+      "lock": "journey/release/03a-panel.lock"
     },
     {
       "id": "03a-panel",
@@ -92074,6 +91998,8 @@
   "inventory": "journey/current-viewer-2026-11-05.json",
   "aliases": {
     "01a-gpu": "01-canvas",
-    "02-clear": "01-canvas"
+    "02-clear": "01-canvas",
+    "03a-fonts": "03-triangle",
+    "03a-paint": "03-triangle"
   }
 }

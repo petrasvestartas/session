@@ -8,8 +8,12 @@
           "first": "01-canvas"
         },
         {
-          "title": "Shaders and the command dock",
+          "title": "Shaders and first egui painting",
           "first": "03-triangle"
+        },
+        {
+          "title": "The command dock",
+          "first": "03a-panel"
         },
         {
           "title": "Commands that change the view",
@@ -28,12 +32,18 @@
         },
         {
           "id": "03-triangle",
-          "title": "Shaders and the command dock",
-          "page": "journey/consolidation/03-triangle.md",
+          "title": "Shaders and first egui painting",
+          "page": "journey/03-triangle.md",
           "steps": [
-            "03-triangle",
-            "03a-fonts",
-            "03a-paint",
+            "03-triangle"
+          ],
+          "checkpoint": "03-triangle"
+        },
+        {
+          "id": "03a-panel",
+          "title": "The command dock",
+          "page": "journey/consolidation/03a-panel.md",
+          "steps": [
             "03a-panel",
             "03b-memory",
             "03b-state",
