@@ -302,7 +302,7 @@
     "uniqueJourneyPngs": 541,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
-      "sha256": "4fc30dee8562fef611ea415f0b02fe90ca37e8818df624f22b49575e5322b2c6",
+      "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
       "acceptedSupplementalFigures": 1,
       "points": 196608,
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
