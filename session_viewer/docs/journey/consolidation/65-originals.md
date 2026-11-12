@@ -1444,7 +1444,7 @@ pub fn auto_grid(index: usize, count: usize, cell: [f64; 2]) -> Xform {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 11.4 (65zb-validate-original-manifest-text-and-source-keys)](../../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png)
+![Recorded visual output for Lesson 11.4 (65zb-validate-original-manifest-text-and-source-keys)](../../screenshots/journey/65zb-validate-original-manifest-text-and-source-keys-713353f65147.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 11.4
