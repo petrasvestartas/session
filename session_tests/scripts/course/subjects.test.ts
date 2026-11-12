@@ -62,7 +62,7 @@ test('the first GPU subject replaces three checkpoints with five final files', (
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(result.files, expected('01-canvas'));
     assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
-    assert.equal(course().steps.length, 1357);
+    assert.equal(course().steps.length, 1336);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));
@@ -82,4 +82,18 @@ test('shader, font preparation and painting collapse to the exact runnable endpo
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(expected('03-triangle'), archived.endpoint);
     assert.equal(course().steps.filter(step => ['03-triangle', '03a-fonts', '03a-paint'].includes(step.id)).length, 1);
+});
+
+test('the dock owns its complete focus adapter before layers are introduced', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/command-dock/checkpoints.json'), 'utf8'));
+    const files = {...archived.result.files};
+    assert.equal(archived.steps.length, 22);
+    assert.equal(archived.focus.length, 3);
+    for (const edit of archived.focus) {
+        assert.equal(files[edit.path].split(edit.before).length, 2);
+        files[edit.path] = files[edit.path].replace(edit.before, fs.readFileSync(path.join(docs, edit.snippet), 'utf8'));
+    }
+    assert.deepEqual(expected('03d-input'), files);
+    assert.equal(course().steps.filter(step => archived.steps.some((old: {id: string}) => old.id === step.id)).length, 1);
+    assert(!course().steps.find(step => step.id === '53u-layers')!.edits.some(edit => edit.path.startsWith('src/command_dock/')));
 });

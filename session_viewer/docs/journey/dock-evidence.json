@@ -1,0 +1,102 @@
+{
+  "checkpoint": "03d-input",
+  "sourceFingerprint": "c6aaa5ef4939eebbc79bab4de1626431086990a44fd75df8f039eed2ee91f150",
+  "browser": {
+    "browser": "156.0.8078.79",
+    "renderer": "Vulkan SwiftShader software WebGPU",
+    "cases": [
+      {
+        "width": 1280,
+        "height": 720,
+        "deviceScaleFactor": 1,
+        "errors": [],
+        "file": "dock-1280x720.png",
+        "sha256": "c87fefadbddef178069456e1ffacc60cb976ec5cd1220b49969207f6cd1ca866"
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 2,
+        "errors": [],
+        "file": "dock-390x844.png",
+        "sha256": "b123c94696d04a5dfd154c689b76b38aac65265b1a348a95b281fff6085b55b5"
+      }
+    ]
+  },
+  "nativeAndWasm": {
+    "source": "75998ec4b661dce55d43d817c5f0341ae7b6ae94f4b340a9723e86ad7adc1c65",
+    "commands": [
+      {
+        "name": "03d-input-wasm",
+        "args": [
+          "cargo",
+          "build",
+          "--lib",
+          "--locked",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j1"
+        ],
+        "returncode": 0
+      },
+      {
+        "name": "03d-input-web",
+        "args": [
+          "trunk",
+          "build",
+          "--release",
+          "--public-url",
+          "./"
+        ],
+        "returncode": 0
+      },
+      {
+        "name": "03d-input-frame",
+        "args": [
+          "cargo",
+          "run",
+          "--example",
+          "frame",
+          "--locked",
+          "--target",
+          "x86_64-unknown-linux-gnu",
+          "-j1"
+        ],
+        "returncode": 0
+      }
+    ],
+    "browser": "not verified",
+    "pixels": {
+      "sha256": "4e747d2c92c9e2b215985fb2e33d339b1f74d17cafcd234f442d9104f469d972"
+    }
+  },
+  "nativeRegressions": {
+    "passed": 4,
+    "failed": 0,
+    "locked": true
+  },
+  "courseTooling": {
+    "passed": 24,
+    "failed": 0
+  },
+  "consolidationTests": {
+    "passed": 9,
+    "failed": 0
+  },
+  "ownership": {
+    "passed": false,
+    "checkpoints": 1336,
+    "subjects": 111,
+    "laterSubjectRewrites": 4961,
+    "affectedFiles": 305,
+    "moduleRegistrations": 442
+  },
+  "structure": {
+    "passed": false,
+    "reason": "20 production stage files are absent from the historical inventory."
+  },
+  "limitations": [
+    "Software WebGPU, not hardware or real-phone acceptance.",
+    "Cumulative mathematics integration, scene integration and full course ownership/coverage remain unfinished."
+  ]
+}

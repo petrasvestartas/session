@@ -69,6 +69,8 @@ Generate the [four kernel fixtures](https://github.com/petrasvestartas/session/b
 
 The historical checkpoint test keeps its original fingerprints. The separate `math-quality-and-dock-delta.json` fixture records exact inverse edits against commit `bff184faa`; its own hash is pinned. This isolates the existing finite-quality implementation and dock comment alignment without replacing historical acceptance with a new fingerprint.
 
+The same native runner accepts `dock` as its final argument. It reconstructs `03d-input` and runs the two option-button tests plus focus-ownership and one-shot focus-request regressions.
+
 ## Browser evidence
 
 The [November 12 coverage audit](journey/coverage-audit-2026-11-12.json) distinguishes source references, exact edit paths and verified teaching. It records the working tree used for the audit; do not treat its unresolved statuses as completed coverage or silently refresh its source hashes.

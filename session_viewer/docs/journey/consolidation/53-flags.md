@@ -5454,73 +5454,7 @@ pub fn context_key(
 }
 ```
 
-### 2. `src/command_dock/mod.rs`
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
-
-```rust
-        model.inline_suffix = false;
-        model.focus_command = true;
-    }
-    let focused = model.command_open || response.has_focus() || response.lost_focus();
-    if focused
-```
-
-Replace it with:
-
-```rust
-        model.inline_suffix = false;
-        model.focus_command = true;
-    }
-    let focused = response.has_focus() || response.lost_focus();
-    if focused
-```
-
-**Locate this block:**
-
-```rust
-    if keys.browse != 0 || keys.tab {
-        model.completion_visible = true;
-    }
-    let focused = model.command_open || response.has_focus() || response.lost_focus();
-    // a running command takes values, not other commands
-    if !focused
-        || !model.completion_visible
-```
-
-Replace it with:
-
-```rust
-    if keys.browse != 0 || keys.tab {
-        model.completion_visible = true;
-    }
-    let focused = response.has_focus() || response.lost_focus();
-    // a running command takes values, not other commands
-    if !focused
-        || !model.completion_visible
-```
-
-**Locate this block:**
-
-```rust
-) -> Keys {
-    if model.focus_command || model.command_open {
-        ui.memory_mut(|memory| memory.request_focus(id));
-        if model.focus_command {
-            command_cursor_end(ui.ctx(), id, &model.command);
-```
-
-Replace it with:
-
-```rust
-) -> Keys {
-    if model.focus_command {
-        ui.memory_mut(|memory| memory.request_focus(id));
-        if model.focus_command {
-            command_cursor_end(ui.ctx(), id, &model.command);
-```
+The [command dock](../03d-input.md) already owns its focus behavior. Keep that implementation unchanged while adding layer controls.
 
 ### 3. `src/view_flags_tests.rs`
 

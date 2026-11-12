@@ -13,7 +13,7 @@
         },
         {
           "title": "The command dock",
-          "first": "03a-panel"
+          "first": "03d-input"
         },
         {
           "title": "Commands that change the view",
@@ -40,31 +40,10 @@
           "checkpoint": "03-triangle"
         },
         {
-          "id": "03a-panel",
+          "id": "03d-input",
           "title": "The command dock",
-          "page": "journey/consolidation/03a-panel.md",
+          "page": "journey/03d-input.md",
           "steps": [
-            "03a-panel",
-            "03b-memory",
-            "03b-state",
-            "03c-history",
-            "03ca-typing",
-            "03cb-submit",
-            "03cc-edit",
-            "03cd-vocabulary",
-            "03ce-complete",
-            "03cf-accept",
-            "03cg-keys",
-            "03ch-popup",
-            "03ci-browse",
-            "03cj-prepare",
-            "03ck-rects",
-            "03ck-pointer",
-            "03cl-wheel",
-            "03c-layout",
-            "03co-align",
-            "03cp-options",
-            "03cn-handoff",
             "03d-input"
           ],
           "checkpoint": "03d-input"

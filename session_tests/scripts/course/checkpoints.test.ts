@@ -249,8 +249,8 @@ test('a reference exported at another depth still finds the geometry kernel', ()
 
 test('interactive lessons retain the shared dock and its documented layer-focus adapter', () => withExpectedSequence(() => {
     const steps = course().steps;
-    const focusAt = steps.findIndex(step => step.id === '53u-layers');
-    const focusEdits = steps[focusAt].edits.filter(edit => edit.snippet.includes('focus-adapter'));
+    const focusEdits = JSON.parse(read(path.join(viewer, 'docs/archived/command-dock/checkpoints.json'))).focus;
+    assert(!steps.find(step => step.id === '53u-layers')!.edits.some(edit => edit.path === 'src/command_dock/mod.rs'));
     assert.equal(focusEdits.length, 3);
     for (const step of steps.filter(step => parseInt(step.id) >= 4)) {
         const files = expected(step.id);
@@ -258,7 +258,7 @@ test('interactive lessons retain the shared dock and its documented layer-focus 
         assert((step.browser_actions || []).every(action => !('button' in action)), step.id);
         for (const name of ['mod.rs', 'theme.rs', 'view.rs']) {
             let shared = read(path.join(viewer, 'src/command_dock', name));
-            if (name === 'mod.rs' && steps.indexOf(step) >= focusAt) {
+            if (name === 'mod.rs') {
                 for (const edit of focusEdits) {
                     assert.equal(shared.split(edit.before!).length, 2, 'Focus adapter must match the maintained dock exactly once');
                     shared = shared.replace(edit.before!, () => read(path.join(viewer, 'docs', edit.snippet)));

@@ -1,371 +1,125 @@
-# 1.2.25 · Hand commands to the application
+# The command dock
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
+<a id="checkpoint-03d-input"></a>
 
-**Typing: 22–44 minutes.** [Estimate](typing-load.md).
+Type, complete and submit Help in a GPU command dock while keeping the scene unchanged.
 
-Listen on the canvas and hand events to Panel.update. Prepare the dock again after input, then paint one frame. Typing after a scene click focuses the field immediately.
+## Prerequisites and ownership
 
-## Type
+Complete [Shaders and first egui painting](03-triangle.md). This subject owns command text, retained history, completion, option buttons and keyboard/pointer ownership. It supplies `command_dock/{mod,theme,view}.rs`, `command_vocabulary.rs`, the panel adapter, browser event wiring and option-button tests.
 
-Continue from [Return accepted application commands](03cn-handoff.md). [Save or recover your work](recovery.md).
+The shared dock receives a `Commands` implementation instead of importing application commands. This checkpoint supplies Help; later subjects supply their own vocabulary. The focus adapter is completed here, before another editor needs keyboard focus. Adding layer controls must not rewrite the dock.
 
-### 1. `src/browser.rs`
+## Build
 
-Import the retained Closure type. Keep canvas acquisition ready for canvas-owned input. Keep GPU setup with the final browser event owner. Remove the intermediate event callback setup. Keep surface configuration before the canvas input owner. Handle command update errors in the canvas callback. Stop the callback after a layout failure. Present after preparing the final command layout. Register drawing and keyboard events on the canvas. Retain the wheel callback for the page lifetime. Give surface presentation its complete function. Return a useful error when the surface is unavailable.
+Copy the complete files below; type the model, vocabulary and event-routing sections as you study them.
 
-<details>
-<summary>Locate the existing block</summary>
+### Retained state and application vocabulary
 
-```rust
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas").ok_or("Missing canvas")?.dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-        compatible_surface: Some(&surface),
-        ..Default::default()
-    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())
-        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface.get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    panel.update(None, &canvas)?;
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Err(error) = panel.update(Some(&event), &input_canvas) {
-            report(&format!("Cannot read command: {error:?}"));
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-        }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options("wheel", redraw.as_ref().unchecked_ref(), &options)?;
-    redraw.forget();
-    report("Panel returns accepted application commands.");
-    Ok(())
-}
-
-fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => return Err(JsValue::from_str(&format!("Surface unavailable: {other:?}"))),
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
+Use `src/command_dock/mod.rs`:
 
 ```rust
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    panel.update(None, &canvas)?;
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let _line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        };
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        click.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Type Help in the command field and press Enter.");
-    Ok(())
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
+--8<-- "journey/code/03-dock-3.rs"
 ```
 
-<details>
-<summary>Optional patch references</summary>
+Start with `CommandLine`: drawing happens repeatedly, so text, history and the selected completion must survive between frames. Visibility is separate state. Collapsing history does not delete its entries. `take_command` transfers one submitted string to the caller; an empty Enter must not manufacture a command.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+`Commands` defines the application's boundary: canonical names, whether an option is being chosen, acceptance, completion and browsing. The dock paints and edits; its caller decides what a command means.
 
-```text
---8<-- "journey/code/03d-input-direct-01.rs"
+Use `src/command_vocabulary.rs`:
+
+```rust
+--8<-- "journey/code/03-dock-7.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-02.rs"
+Prefix matching is case-insensitive for this ASCII vocabulary. Rank an exact match first, then a complete word followed by a space, then longer prefixes. The visible selection stays predictable as the application grows its command list.
+
+### Completion, selection and focus
+
+Follow `refresh`, `browse`, `popup` and the cursor helpers in the dock source. A suggested suffix is selected text, not a second command string. Backspace rejects that selected suffix; Tab accepts a completion and leaves space for another word. Egui cursor positions count characters, so the cursor helpers must not confuse UTF-8 bytes with character positions.
+
+`command_open` controls visibility. `focus_command` requests focus once. Thereafter completions and Escape follow the actual field response, including focus lost during the current frame. Continually requesting focus because a dock is open would prevent a layer-name field from retaining it.
+
+The widget rectangles are interaction data. Record the input, completion and option rectangles after layout so later pointer events use the positions actually drawn. History and completion can both be visible without sharing one scrolling policy.
+
+### Layout and option buttons
+
+Use `src/command_dock/view.rs` and `src/command_dock/theme.rs`:
+
+```rust
+--8<-- "journey/code/03-dock-4.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-03.rs"
+```rust
+--8<-- "journey/code/03-dock-2.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-04.rs"
+`view.rs` measures and places the field and retained history. The theme owns font registration and palette choices. Option buttons belong to the running command: their labels and submitted strings are separate values. Measure button widths before deciding how much space remains for the text field. The command itself still goes through the same submission boundary.
+
+Copy the option-button checks into `src/command_dock/tool_buttons_tests.rs`:
+
+```rust
+--8<-- "journey/code/03-dock-9.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-05.rs"
+### Browser events and pointer ownership
+
+Use `src/panel.rs`:
+
+```rust
+--8<-- "journey/code/03-dock-1.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-06.rs"
+Keyboard events produce egui key and text events. Skip an event while the browser reports composition; do not turn an unfinished composed character into a command. The adapter distinguishes key-down from key-up and preserves modifiers and repeat information.
+
+Pointer coordinates are CSS points relative to the canvas. Do not multiply them by display density: egui layout uses the same logical points. A press over the dock owns the interaction until release, even after the pointer leaves its rectangle. Both cancellation and lost capture release all pressed buttons; otherwise a disappearing browser gesture can leave the interface dragging forever.
+
+Wheel deltas carry pixel, line or page units. Preserve that unit when translating the event. Prevent the browser's default behavior only when the dock consumes the input; scene gestures need the remaining events.
+
+### Draw after input, present after drawing
+
+Use `src/browser.rs`, `src/lib.rs` and `Cargo.toml`:
+
+```rust
+--8<-- "journey/code/03-dock-5.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-07.rs"
+```rust
+--8<-- "journey/code/03-dock-8.rs"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-08.rs"
+```toml
+--8<-- "journey/code/03-dock-6.toml"
 ```
 
-```text
---8<-- "journey/code/03d-input-direct-09.rs"
-```
+The browser retains the panel with the renderer, routes input into it, and presents the resulting frame. It uses the existing scene and egui passes. A command may change retained UI state without changing a single scene pixel.
 
-```text
---8<-- "journey/code/03d-input-direct-10.rs"
-```
+## Run and observe
 
-```text
---8<-- "journey/code/03d-input-direct-11.rs"
-```
-
-```text
---8<-- "journey/code/03d-input-direct-12.rs"
-```
-
-</details>
-
-## Run and check
-
-In your project:
+From `session_viewer`:
 
 ```sh
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+npm --prefix ../session_tests run course -- reference 03d-input --output target/command-dock
+cd target/command-dock
+trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+Click the scene and type `He`: the dock opens and suggests Help. Backspace rejects the selected suffix; Tab accepts it. Enter submits once and adds one history entry. Clicking a completion submits it through the same path. Collapsing history retains its contents.
 
-Click the scene, type Help and press Enter. One answer appears in the real dock.
+## Predict and try
 
-### Recorded visual result
+Predict whether collapsing history deletes it. Submit Help twice, collapse the dock, then expand it. The same entries remain because layout visibility and retained history are different state.
 
-**Previous native render — current verification pending.**
+## Question and answer
 
-![Native renderer output for hand commands to the application.](../screenshots/journey/03-triangle.png)
+Why must pointer cancellation release ownership even when no normal pointer-up arrives?
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+The browser can interrupt a gesture or lose capture. Retaining the pressed state would let subsequent motion act like a drag, even though the user has already ended the gesture.
 
-This reference image is shared with [1.3.1 · Give the GPU three corners](03-triangle.md). It does not demonstrate a new feature by itself.
+## Validation
 
-<details>
-<summary>Code explanation and diagram</summary>
+The [original checkpoints and exact focus adapter](../archived/command-dock/checkpoints.json) are retained. Their 22 executable steps are consolidated into one subject; the complete course endpoint remains unchanged. The layer lesson now uses the completed focus behavior without rewriting it. The corrected checkpoint passes desktop and upright browser tests for typing, completion, history, pointer cancellation, lost capture and unchanged scene pixels. Four locked native tests cover option buttons and focus ownership; locked wasm compilation, optimized bundling and native scene-pixel verification also pass. See the [evidence](dock-evidence.json).
 
+![The command dock completes Help without repainting the scene differently.](../screenshots/command-dock/dock-1280x720.png)
 
-
-Return accepted commands while keeping editing inside Panel.
-
-![Hand commands to the application](../illustrations/journey-direct-03d-input.svg)
-
-Why prepare again before painting?
-
-Input can change layout or history; the final frame must show the updated model.
-
-Study estimate, including typing and experiments: 0.5–1 hours.
-
-</details>
-
-<details>
-<summary>Optional experiment</summary>
-
-Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
-
-</details>
-
-<details>
-<summary>Check and save your work</summary>
-
-Restore experimental edits, then run from `session_viewer`:
-
-```sh
-npm --prefix ../session_tests run course -- check 1.3.25
-npm --prefix ../session_tests run course -- save 1.3.25
-```
-
-Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
-
-</details>
-
-<details>
-<summary>Viewer coverage and verification</summary>
-
-This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.
-
-
-
-[Full validation scope](release.md).
-
-To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
-
-```sh
-npm --prefix ../session_tests run course -- capture 1.3.25
-```
-
-This uses the verified reference bundle; it does not check or change your typed project.
-
-</details>
+Later panel and browser ownership remains unfinished. The course does not yet satisfy the finished-subject rule globally.

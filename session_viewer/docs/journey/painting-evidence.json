@@ -57,7 +57,7 @@
     "Later renderer and panel ownership consolidation remains unfinished."
   ],
   "nativeAndWasm": {
-    "source": "9bd1d07feb51c4ef40530d4842b9f316ce2e4dc5deff580438de852fff7b867e",
+    "source": "6aa5604b0552263dcc495a97c8ab08492e7834081eaf1701c1c702b4dae58c24",
     "commands": [
       {
         "name": "03-triangle-wasm",
