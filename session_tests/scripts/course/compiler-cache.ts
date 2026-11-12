@@ -76,14 +76,17 @@ export function cleanCompilerTransition(options: {previous: any; prepared: any; 
     if (before.overlay.dependencyPaths.some((item: any) => path.resolve(item.absolute) === path.resolve(viewer, '../session_rust'))) packages.push('session_rust');
     const cargo = p.toolFiles.cargo; assert.equal(reference(cargo.path).sha256, cargo.sha256);
     const attempts: any[] = [];
-    const command = (args: string[]) => {
+    const command = (args: string[], retainOnLockRefusal = false) => {
         quiescent();
         assert.equal(reference(cargo.path).sha256, cargo.sha256);
         const result = runtime.run(cargo.path, args, {cwd: g.workbench, encoding: 'utf8', windowsHide: true, shell: false,
             maxBuffer: 32 * 1024 * 1024, env: {...process.env, CARGO_TARGET_DIR: cache, CARGO_NET_OFFLINE: 'true', CARGO_TERM_COLOR: 'never'}});
         const record = {executable: cargo.path, arguments: args, stdout: String(result.stdout), stderr: String(result.stderr), exitCode: result.status, error: result.error ? String(result.error) : null};
         attempts.push(record);
-        assert(!result.error, String(result.error)); assert.equal(result.status, 0, String(result.stderr));
+        assert(!result.error, String(result.error));
+        const lockRefused = retainOnLockRefusal && result.status === 101 && String(result.stdout) === ''
+            && /cannot update the lock file [^\r\n]+ because --locked was passed to prevent this/.test(String(result.stderr));
+        assert(result.status === 0 || lockRefused, String(result.stderr));
         return record;
     };
     const validate = (text: string, allowed: string) => {
@@ -106,7 +109,23 @@ export function cleanCompilerTransition(options: {previous: any; prepared: any; 
         const targetDirectory = path.join(cache, target), allowed = path.join(targetDirectory, 'debug');
         const args = ['clean', '--locked', '--offline', '--manifest-path', path.join(g.workbench, 'Cargo.toml'),
             '--profile', 'dev', '--target-dir', targetDirectory, '--package', name];
-        const dryRun = command([...args, '--dry-run', '--verbose']), paths = validate(dryRun.stdout, allowed);
+        const dryRun = command([...args, '--dry-run', '--verbose'], true);
+        const lockGraphChanges = /^\s*Locking \d+ packages to /m.test(dryRun.stderr)
+            && /^\s*(?:Adding|Updating|Removing|Downgrading) /m.test(dryRun.stderr);
+        if (dryRun.exitCode !== 0 || lockGraphChanges) {
+            quiescent();
+            const file = path.join(p.folder, 'compiler-cache-transition.json');
+            const report = {status: dryRun.exitCode !== 0 ? 'CACHE_RETAINED_IMMUTABLE_LOCK_REFUSAL' : 'CACHE_RETAINED_IMMUTABLE_LOCK_GRAPH_DRIFT', previousBuild: reference(previous.completedReceipt),
+                previousIdentity: before.group.identity, nextIdentity: g.identity, predecessors: predecessor.map(item => item.reference),
+                plans, attempts, commands: [], scope: 'No cleanup or lockfile mutation. Storage guard still bounds the fresh build.'};
+            const output = Buffer.from(JSON.stringify(report, null, 2) + '\n'), fd = io.openSync(file, 'wx');
+            try {
+                for (let at = 0; at < output.length;) { const written = io.writeSync(fd, output, at, output.length - at, at); assert(written > 0); at += written; }
+                io.ftruncateSync(fd, output.length); io.fsyncSync(fd);
+            } finally { io.closeSync(fd); }
+            return reference(file);
+        }
+        const paths = validate(dryRun.stdout, allowed);
         plans.push({target, package: name, allowed, args, dryRun, paths});
     }
     const file = path.join(p.folder, 'compiler-cache-transition.json'); assert(!io.existsSync(file), 'Preserve the prior cleanup attempt');

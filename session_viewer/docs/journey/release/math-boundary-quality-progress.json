@@ -1,11 +1,11 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-12T04:35:30.746587+00:00",
+  "updatedUtc": "2026-11-12T05:10:27.935354+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-23-native-refinement-profile.json",
-    "frozenFiles": 542,
+    "maintainedSourceFreeze": "source-freeze-26-browser-cache-graph-retention.json",
+    "frozenFiles": 548,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
@@ -290,9 +290,9 @@
     "affected": 1326,
     "newPublishedReviewed": 98,
     "remainingAffected": 1228,
-    "acceptedForFinalSource": 2,
-    "remainingFinalSourceAcceptance": 1324,
-    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19,6freeze20 and15freeze22 retain their exact recorded source/helper scopes. Current source23 has2 expanded-refinement Native78/79 IMAGE acceptances with542pins, rawDPR4, original quality/draw assertions, Root original-pixel review and normal retirement. Default generated files/drivers remain unchanged; no default-profile/canonical640/browser/full-suite acceptance is inferred. DenseSource22 supplement remains separate. Visible34/42.",
+    "acceptedForFinalSource": 0,
+    "remainingFinalSourceAcceptance": 1326,
+    "qualificationNote": "Source26 browser policy/cache-graph-retention548pins;93 historical Native lineage acceptances retain exact receipts. Current primary-case acceptances0; separate2mm measurement supporting figure1 actualNVIDIA/browser/Root-reviewed/published/retired. Renderer/kernel/callbacks unchanged. No full85aycanonical acceptance.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
@@ -619,20 +619,33 @@
       "sourceFreeze": "source-freeze-23-native-refinement-profile.json",
       "acceptedListedNativeImages": 2,
       "defaultProfileGpuAcceptance": false
+    },
+    "acceptedHistoricalFreeze23": 2,
+    "measurementSupportingIllustration": {
+      "id": "85ay-exercise-current-original-commands-together",
+      "status": "ROOT_REVIEWED_PUBLISHED_NORMALLY_RETIRED",
+      "sourceFreeze": "source-freeze-26-browser-cache-graph-retention.json",
+      "receipt": "docs/journey/release/math-boundary-quality-source26-browser85ay-measurement-98aee8bf1e8c.json",
+      "receiptSha256": "64de0870bceb1e8eb5f488d7a2b7542206c121407f326dbc41e2ff563674dd10",
+      "image": "docs/journey/release/current85ay-visible-two-mm-98aee8bf1e8c.png",
+      "sha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
+      "canonicalBehaviorExecuted": false,
+      "scope": "Separate original2mm supporting recipe; no full85aycanonical callback or Native84 acceptance. Not added to1326primary-case acceptance count."
     }
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 8,
+    "pending": 7,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 34,
+    "published": 35,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
-    "native77Published": 1
+    "native77Published": 1,
+    "measurementPublished": 1
   },
   "published": [
     {
@@ -2139,6 +2152,20 @@
         "originalMathSha256": "3d2db0497790c7a783c19365a491cc95e25f70629b53df69548cba6078c389ff",
         "adaptedMathSha256": "6e2d5aa2e1d1d2e9c62d7776f3bba5277a35de406173973abb62ff7074bd6bb8"
       },
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "85ay-exercise-current-original-commands-together",
+      "lane": "browser",
+      "kind": "supporting-measurement-recipe",
+      "receipt": "docs/journey/release/math-boundary-quality-source26-browser85ay-measurement-98aee8bf1e8c.json",
+      "receiptSha256": "64de0870bceb1e8eb5f488d7a2b7542206c121407f326dbc41e2ff563674dd10",
+      "image": "docs/journey/release/current85ay-visible-two-mm-98aee8bf1e8c.png",
+      "imageSha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
+      "sourceFreeze": "source-freeze-26-browser-cache-graph-retention.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": false,
       "servedChromeVerified": false,

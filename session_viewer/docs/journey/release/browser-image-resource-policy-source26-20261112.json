@@ -1,0 +1,247 @@
+{
+  "status": "PASS_ACTUAL_COMPILE_BROWSER_MEASUREMENT_POLICY_NOT_WHOLE_COURSE",
+  "recordedUtc": "2026-11-12T05:10:27.935354+00:00",
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-26-browser-cache-graph-retention.json",
+    "sha256": "e8ba8a815e2efb86bac778f051660d23efafe7b4f71a29f2c893b8eb3909e36d"
+  },
+  "sourcePins": 548,
+  "files": [
+    {
+      "path": "session_tests/scripts/course/incremental-browser-image-build.ts",
+      "beforeSha256": "8bf120a9deeb6b29b76ba6b3192685010adf7c6d82a7d186e78e8a711145f5b9",
+      "afterSha256": "1735586512dabecf7200d668b56ad22e5fb0321decff56c6fce7443a2ae13200"
+    },
+    {
+      "path": "session_tests/scripts/course/image-low-disk.ts",
+      "beforeSha256": "6388bd103100043280adb3bed66f41f8abcf865aed76c8d99a0b5282a110e8ed",
+      "afterSha256": "717ce256ee17e60ff06a18ba2da0b713477775e1b537a8058f8edf87dfb84d0d"
+    },
+    {
+      "path": "session_tests/scripts/course/parallel-image-guard.ps1",
+      "beforeSha256": "4198224491414dc53e961d0cf4f4370b842b898a53f911a9f9c533b7511745f8",
+      "afterSha256": "f8c084cfe24e5d2a67fdfd895145be11bf05b931d033d3997255298f86369a0e"
+    },
+    {
+      "path": "session_tests/scripts/course/image-low-disk.test.ts",
+      "beforeSha256": "8bd582185713c533f9debf581e114b3a7c415c2188278c2cea7a83490a9daaa5",
+      "afterSha256": "cdda41301fbe01031f465464791539aa41455613364a165754de4fab476e5547"
+    },
+    {
+      "path": "session_tests/scripts/course/compiler-cache.ts",
+      "beforeSha256": "bcfed73c37f25541191fa548c8e5f9c8ba0940a8187893708c72e996062f4d55",
+      "afterSha256": "abd04a79e38056a72577e452bf3e58286828f4e3258d12f31dc6d53b70b4cba3"
+    },
+    {
+      "path": "session_tests/scripts/course/compiler-cache.test.ts",
+      "beforeSha256": "eab98512c74b9e538f89db3bab34c03d45fca4335328d166f97c52b4556695ab",
+      "afterSha256": "4d23414cafa266532deac83935e7093e802786fcebb68952e2237c332be908e8"
+    }
+  ],
+  "compilerPolicy": {
+    "processors": 2,
+    "memoryMiB": 6144,
+    "minimumAvailableMemoryMiB": 7168,
+    "jobs": 2,
+    "affinityMask": "0x300",
+    "phaseCapSeconds": 600,
+    "actualTotalCapSeconds": 600
+  },
+  "focusedTests": {
+    "lowDisk": 34,
+    "cacheTransition": 27,
+    "allPassed": true
+  },
+  "actualCompilerPhases": [
+    {
+      "label": "sample",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-12T05:07:48.5641640Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "run",
+          "--example",
+          "sample",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j2",
+          "--message-format=json-render-diagnostics"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-ib\\compact-browser-v1\\workspace",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 27.505,
+        "peakJobCommitBytes": 1593659392,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 16184,
+        "descendantsAtCleanup": 2
+      },
+      "logSha256": "263f24024f055d40652265aa56b55ca8a72c1761a33f62add8194c5cac88338a",
+      "resourcesSha256": "312efb3886f3f36b9570f1467d5feb9488a1bf15c2fca00ecfb52f23951bdf4c"
+    },
+    {
+      "label": "wasm",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-12T05:08:21.9953691Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "build",
+          "--lib",
+          "--locked",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j2",
+          "-vv",
+          "--message-format=json-render-diagnostics"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-ib\\compact-browser-v1\\workspace",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 0.323,
+        "peakJobCommitBytes": 59736064,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 22416,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "da087727cae30cfc6f55c13048c595f5d60cb6ed4d7e93dabb1deeaccaf18ddc",
+      "resourcesSha256": "ed2e8dc34ddd9f3c56c415c59335bc271f5f908c32f63c9bdf3a1d5a220df7a5"
+    },
+    {
+      "label": "bindgen",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-12T05:08:23.8545924Z",
+        "executable": "C:\\Users\\Petras\\AppData\\Local\\trunkrs\\trunk\\cache\\wasm-bindgen-0.2.128\\wasm-bindgen.exe",
+        "arguments": [
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-cargo\\wasm32-unknown-unknown\\debug\\viewer_journey.wasm",
+          "--target",
+          "web",
+          "--out-dir",
+          "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\85ay-exercise-current-original-commands-together-200afe57aafa8c421750\\workspace\\target\\course-checks\\85ay-exercise-current-original-commands-together\\dist",
+          "--out-name",
+          "viewer_journey"
+        ],
+        "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-ib\\compact-browser-v1\\workspace",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.483,
+        "peakJobCommitBytes": 1675501568,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 30616,
+        "descendantsAtCleanup": 0
+      },
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "resourcesSha256": "2c8bd5f0f9fab7649e644db106f8cd4317245ccf130e685916d3ad41a1d04b06"
+    }
+  ],
+  "actualBrowserResources": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-11-12T05:08:30.5514322Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\warp-browser-timeout.cjs",
+      "--import",
+      "file:///C:/pc/3_code/code_rust/wood_research/session/session_tests/scripts/typescript.mjs",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\supplemental-presentation.ts",
+      "--worker",
+      "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\85ay-exercise-current-original-commands-together-200afe57aafa8c421750\\measurement-30b6893b9826f2369880\\config.json"
+    ],
+    "workingDirectory": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\85ay-exercise-current-original-commands-together-200afe57aafa8c421750\\workspace",
+    "timeoutSeconds": 2400,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 7.451,
+    "peakJobCommitBytes": 987430912,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 6744,
+    "descendantsAtCleanup": 1
+  },
+  "measurementQualification": {
+    "path": "docs/journey/release/math-boundary-quality-source26-browser85ay-measurement-98aee8bf1e8c.json",
+    "sha256": "64de0870bceb1e8eb5f488d7a2b7542206c121407f326dbc41e2ff563674dd10"
+  },
+  "freshGpu": {
+    "metadata": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\adapter-metadata-20261112-04.json",
+      "sha256": "6dd9a3f159f5ba5c9efd2588daee80326d1918cd2337041f17db9892def782d5"
+    },
+    "probe": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\browser-nvidia-admission-probe-02\\result.json",
+      "sha256": "0aa4c4a2aba3592cbe23cad78c2ffdc836beb9a3fb39809a7773713ae0db79e8"
+    },
+    "actualSelectedLuid": "0,88454",
+    "strictActualNvidiaNonfallbackAssertionsPassed": true
+  },
+  "cacheTransition": {
+    "oldGraphDryRunAnnouncesLockingChanges": "Retain all caches before an actual clean; never relax --locked.",
+    "unrelatedFailures": "Still block compilation.",
+    "existingOwnershipAndRetirementGates": "Retained."
+  },
+  "historicalFailures": {
+    "source24and25": "Cargo clean immutable-lock refusal beforecompile.",
+    "source26_03and05": "CompilePASS, strictIntel rejection.",
+    "source26_04": "7GiB generated admission refusal beforeprepare.",
+    "imageAcceptances": 0
+  },
+  "scope": "Actual guarded current2mm browser recipe, native fixture generation andWASM/bindgen compilation. No renderer/kernel algorithm or callback assertion changes; no capMSAA4, full85aycanonical, fullcourse or finalwebsite acceptance."
+}

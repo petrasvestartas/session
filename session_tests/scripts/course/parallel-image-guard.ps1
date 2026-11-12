@@ -1,7 +1,7 @@
 param(
     [int]$TimeoutSeconds = 600,
-    [ValidateSet(8)] [int]$ProcessorCount = 8,
-    [ValidateSet(8192)] [int]$MemoryLimitMiB = 8192,
+    [ValidateSet(2, 8)] [int]$ProcessorCount = 8,
+    [ValidateSet(6144, 8192)] [int]$MemoryLimitMiB = 8192,
     [string]$ManifestPath = (Join-Path (Get-Location) 'guarded-job.json'),
     [string]$WorkingDirectory = (Get-Location).Path,
     [string]$CommandFile,
@@ -10,6 +10,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if (($ProcessorCount -eq 2) -ne ($MemoryLimitMiB -eq 6144)) { throw 'Use paired image policies:2CPU/6GiB or8CPU/8GiB.' }
+if ($ProcessorCount -eq 2) {
+    if ($TimeoutSeconds -gt 600) { throw 'The two-processor policy caps each phase at600seconds.' }
+    $available = [uint64](Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory * 1024
+    if ($available -lt 7516192768) { throw 'The6GiB compiler requires at least7GiB available physical RAM.' }
+}
 if ($CommandFile) {
     $commandSpec = [IO.File]::ReadAllText((Resolve-Path -LiteralPath $CommandFile).Path) | ConvertFrom-Json
     $Executable = [string]$commandSpec.executable
@@ -123,7 +129,8 @@ public static class GuardedJob {
                 ulong flag = 1UL << bit;
                 if ((allowed & flag) != 0) { chosen |= flag; result.processors++; }
             }
-            if (chosen != 0xFF00UL || result.processors != 8) throw new InvalidOperationException("The image lane requires all eight logical processors8..15.");
+            ulong required = processorCount == 2 ? 0x300UL : 0xFF00UL;
+            if (chosen != required || result.processors != processorCount) throw new InvalidOperationException("The requested image processors are unavailable.");
             result.affinityMask = chosen;
             job = CreateJobObject(IntPtr.Zero, null);
             Check(job != IntPtr.Zero);
@@ -195,11 +202,11 @@ $record = [ordered]@{
     scope = 'Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only'
     laneMutex = 'Local\SessionViewerCourseImageJob'
     affinityOffset = 8
-    requiredAffinityMask = '0xFF00'
+    requiredAffinityMask = $(if ($ProcessorCount -eq 2) { '0x300' } else { '0xFF00' })
     maximumOtherLaneProcessors = 8
     maximumOtherLaneMemoryMiB = 8192
-    maximumAggregateOurProcessors = 16
-    maximumAggregateOurMemoryMiB = 16384
+    maximumAggregateOurProcessors = (8 + $ProcessorCount)
+    maximumAggregateOurMemoryMiB = (8192 + $MemoryLimitMiB)
     imageGuardBaseSha256 = '9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974'
     requestedProcessors = $ProcessorCount
     baseGuardSha256 = '967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb'

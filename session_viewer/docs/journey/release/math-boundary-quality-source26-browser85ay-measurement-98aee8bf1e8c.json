@@ -1,0 +1,58 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T05:09:40.637Z",
+  "id": "85ay-exercise-current-original-commands-together",
+  "lane": "browser",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-85ay-exercise-current-original-commands-together-09a7294ad7e550d4c639\\capture.json.gz",
+    "sha256": "af00fd7bdea7abf7d85bc6146a3cafbf849d2eb860ec63c4c0176ad6a5cc96d7",
+    "bytes": 269678
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measurement85ay-source26-06\\capture-result.json",
+    "sha256": "59952d924804220d31e65b86e2eb429b75c1106128152f2f68726a06e5271951"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measurement85ay-source26-06-execution.json",
+    "sha256": "3ca37f0e8bbccb5380d3afb0150144735617f14b0cbc93b6470d3142016404e2"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measurement85ay-source26-06\\bounded-terminal.json",
+    "sha256": "591eff388ccff5c4f80e81fc171c8de1281ed7428ba3bd3e14467b1d108eb5ac"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-26-browser-cache-graph-retention.json",
+    "sha256": "e8ba8a815e2efb86bac778f051660d23efafe7b4f71a29f2c893b8eb3909e36d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 548
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\current85ay-visible-two-mm-98aee8bf1e8c.png",
+    "sha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\current85ay-visible-two-mm.png",
+    "sha256": "b38940eafb5b3ad3ffb741d0353bd13ebb06ecf6305283cbe091a98486d186fc"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected every original1800x1520 pixel in four unfiltered900x760 tiles. The grey original solid is fully framed with black source borders; the temporary distance annotation sits above it with both square endpoints visible and a clearly legible white2 mm label on black. Bottom command feedback also reports Distance2mm/dX2/dY0/dZ0. Original measurement points,exact2objects,source/history/metadata/selection invariants and framing margins passed, as did strict actualNVIDIA/nonfallback/GPU/page-error assertions after freshLUID enumeration. Separate supporting measurement recipe only; no full85aycanonical callback or Native84 acceptance. OldreleasePNG retained unchanged.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Separate original85ay2mm measurement recipe. Fresh compiled native sample/WASM/browser GPU; original exact endpoints,2objects,source/history/metadata/selection invariant,framing,DPR2 andNVIDIA/nonfallback/error assertions retained. Not the full85aycanonical callback or Native84 figure. OldreleasePNG preserved.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\measurement85ay-source26-06\\publication.json",
+    "sha256": "9e6b581b277d0b28fc3d2c2944b28256cab3e49e396b528b72c9d4be7a696f17"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-85ay-exercise-current-original-commands-together-09a7294ad7e550d4c639\\publication.json",
+    "sha256": "52489d849b2f2b57fe752f127ddcacc63a931251d539404fa2ee86d8797c335c"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-85ay-exercise-current-original-commands-together-09a7294ad7e550d4c639\\retirement.json.gz",
+    "sha256": "f7e4af3a47f95ee9c3019fd888439195547563bc1a422399170d7b513778a5d0"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-85ay-exercise-current-original-commands-together-09a7294ad7e550d4c639\\retired.json",
+    "sha256": "f25affedc58e0a08b6765d6f3fcf96dd7bc253d6452707ffe89024581cff5150"
+  }
+}

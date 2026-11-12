@@ -2357,7 +2357,7 @@ pub struct Renderer {
 
 `Measure Distance w-1,0,1 w1,0,1` creates the temporary 2 mm mark above the solid. Zoom out to keep both endpoints and the label visible. Escape removes the mark without changing the original geometry.
 
-![Temporary 2 mm distance annotation above the original solid](../release/current85ay-visible-two-mm.png)
+![Temporary 2 mm distance annotation above the original solid](../release/current85ay-visible-two-mm-98aee8bf1e8c.png)
 
 ### 1. `src/browser.rs`
 
