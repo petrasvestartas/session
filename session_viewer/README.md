@@ -1,12 +1,13 @@
 # Session Viewer
 
-A browser CAD viewer written in Rust, compiled to WebAssembly and rendered with WebGPU. It displays meshes, BReps, NURBS, lines, points, streamed point clouds and text while retaining original source identities.
+A browser CAD viewer in Rust, compiled to WebAssembly and rendered with WebGPU. It shows meshes, BReps, NURBS, lines, points, point clouds and text, and keeps the identity of each original object.
 
-Start with the [course](docs/README.md), where you type the complete viewer in one cumulative project, beginning with Rust foundations, or read the [architecture reference](ARCHITECTURE.md).
+- [Course](docs/README.md): type the viewer step by step.
+- [Architecture](ARCHITECTURE.md): reference.
 
 ## Run
 
-The verified toolchain is Rust/Cargo 1.97.1 and Trunk 0.21.14. Run these commands from the crate folder; Cargo writes its lockfile.
+Toolchain: Rust/Cargo 1.97.1 and Trunk 0.21.14. Run from this folder.
 
 ```sh
 rustup target add --toolchain 1.97.1 wasm32-unknown-unknown
@@ -16,50 +17,38 @@ cargo check --lib
 trunk serve
 ```
 
-Open <http://localhost:8770/> in a browser exposing WebGPU. The local route loads `assets/view_local.yaml` and its local PB files. A named route such as `/view_mixed` resolves the corresponding public scene manifest. The current working session also exposes the viewer through <http://localhost:8771/view_mixed>.
+Open <http://localhost:8770/> in a browser with WebGPU. Tested: Chrome on Linux with Vulkan. If WebGPU is missing, run `./docs/open-chrome.sh` after starting the server. Diagnostics: [docs/debugging.md](docs/debugging.md).
 
-Chrome on Linux with Vulkan is the tested browser. Other browsers and hardware are not implied to have passed.
+## Controls
 
-If Chrome reports that WebGPU is unavailable, use `./docs/open-chrome.sh` after starting the server. See [browser setup and diagnostic reports](docs/debugging.md) for the checks, Firefox crash reports and interaction geometry ownership.
-
-## Interaction
-
-| Input | Behavior |
+| Input | Action |
 | --- | --- |
-| Left click | Select the original object; visible geometry turns yellow. |
-| Shift + left click | Add objects to the selection; one gumball transforms the selected set. |
-| Ctrl + left click | Select an original mesh, BRep or NURBS boundary edge. |
-| F10 | Show and select the current parent's original vertices or control points. |
-| Escape | Clear sub-selection and controls while retaining the parent. |
-| T | Toggle centered white-on-black selected names; enabled by default. |
-| H / S | Hide the selected object / show hidden objects. |
-| D | Toggle the headlight (off by default: flat colours; `?lit=1`). |
-| G | Toggle soft ambient lighting and contact shadows (off by default); uses two R16Float textures at display resolution, capped at 1920 pixels on the longest side. |
-| O | Toggle black surface silhouettes (off by default; two extra mask passes over the solid geometry). |
-| P | Toggle x-ray: every mesh, NURBS and BRep face disappears, only edges, points and text remain. |
-| B | Toggle red back faces (off by default; `?backface=1`). |
+| Left click | Select an object |
+| Shift + left click | Add to the selection |
+| Ctrl + left click | Select a mesh, BRep or NURBS boundary edge |
+| F10 | Show the vertices or control points of the selected parent |
+| Escape | Clear the sub-selection |
+| H / S | Hide the selection / show hidden objects |
+| T | Toggle names |
+| D | Toggle the headlight |
+| G | Toggle soft shadows (Arctic) |
+| O | Toggle black silhouettes |
+| P | Toggle x-ray |
+| B | Toggle red back faces |
 
-Source text can face the camera or remain in a fixed world plane. BRep boundaries reuse the incident face mesh's exact samples; curved constrained boundaries are refined before triangulation. Per-face normals preserve planar faces, smooth interiors and sharp creases.
+Commands go in the command area below the viewport. Type a command, press Enter, then pick an option. Examples: `Point`, `Line`, `Polyline`, `Curve`, or a full command such as `Line 0,0,0 100,0,0`. `Snap On|Off`, `Lay On|Off`, `Arctic On|Off` and `Element Interactions|Attributes On|Off` switch settings.
 
-The white command area sits below the viewport, with full-width dividers and only its output window above the input. It accepts typing from the first page load and completes command names inline with the suggested suffix selected. Enter accepts the first matching command, then its default or arrow-selected option; Escape cancels. The completion list opens directly upward from the input and stays within the window. History and active drawing prompts wrap at narrow widths; long input scrolls inside its field. Matching commands appear first, followed by all remaining commands. Browse with Up/Down, the mouse wheel, or the scrollbar; Tab inserts a completion. Options appear only after accepting a command with Enter, Tab or Space. Type `Lay`, press Enter, then choose inline `On` or `Off`, or enter `Layers On` directly. `Arctic On` and `Arctic Off` control the same lighting as G; Rotate offers clickable axis options. The documentation triangle sits in the bottom-right corner. Layers start hidden. Each panel has a collapse control, and the layer tree highlights selected objects. Selecting or locking a group applies to its descendants.
-
-`Element Interactions On|Off` draws or removes what other elements do to an element: its contacts, joints, cuts and drills; it is on when the viewer opens. `Element Attributes On|Off` shows or hides an element's own things: its `attributes` group, such as its base plane, and its own features, such as its axis. In the layers panel every element lists both: `attributes` with its own features after its objects, and `interactions` with a line per interaction it hosts, led by the full type name (`InteractionContactFace seam_wedge_0`), holding the pieces that interaction drew; each eye hides or shows them. An element hung under another element, such as a connector's dowel, is an element of its own. Use Up/Down to cycle command options, then Enter to accept; Left/Right move the text caret. Coincident contact endpoints appear as dots.
-
-`Object`, `Edge`, `Face`, and `Controls` choose selection tools. Geometry and editing commands include `Point`, `Line`, `Polyline`, `Curve`, `Move`, `Rotate`, `Scale`, `Split`, `Trim`, `Extend`, `Explode`, `Undo`, `Redo`, `Save`, and `Open`. Enter `Point`, `Line`, `Polyline`, or `Curve`, then click the canvas or type coordinates at each prompt. Two coordinates use the construction plane facing the camera; three are world coordinates. `@dx,dy,dz` is relative to the previous point. Enter finishes a polyline or curve; Escape discards a draft. Endpoints, vertices and midpoints snap within 12 screen pixels by default; `Snap Off` and `Snap On` control snapping, including during a draft. A blue marker names the active snap and a line previews the next span. Each completed draft is one undo step. Complete commands also work: `Line 0,0,0 100,0,0` and `Move 10,0,0`.
-
-Standalone NURBS surfaces retain a fixed UV display grid and four natural domain boundaries, excluding closed directions. Control and edge previews update those samples without detecting mesh edges or rebuilding connectivity. Source line widths are screen-space weights; sheet drawing widths retain their physical pen units. The viewport is white with Arctic disabled and very light grey with Arctic enabled. Default kernel colors remain very light grey.
-
-Arctic preserves authored colors under neutral hemisphere lighting, with soft contact occlusion and a virtual ground receiver. Contact radii follow each object's size, so a small cone or torus does not inherit a building's shadow radius. Faceted normals come directly from the existing geometry buffers. Horizon sampling, bilateral filtering, motion reprojection and depth-aware reconstruction produce a cached shading image, with sample-aware blending before MSAA resolve. Quality and resolution stay the same while orbiting, panning and zooming. The ground follows visible solids only; hidden geometry, sheets and point clouds cannot lower it. Switching On/Off preserves the camera, including while the scene finishes loading.
-
-Occlusion is cached while camera and geometry stay unchanged. At 1920×1080, DPR 1, AO textures reserve 7.91 MB. AO buffers add 348 bytes at 1× MSAA or 8.36 MB at 4×; switching off releases them. Arctic does not require the projected-triangle table. Moving the camera recomputes the shading, so cached frame rates do not establish navigation speed on slower GPUs. This screen-space effect cannot include hidden or off-screen occluders. See [Arctic quality and controls](docs/ssao.md) and the [command-line walkthrough](docs/command-line-walkthrough.md).
+Arctic details: [docs/ssao.md](docs/ssao.md). Command walkthrough: [docs/command-line-walkthrough.md](docs/command-line-walkthrough.md).
 
 ## Memory
 
-Video memory goes to per-pixel attachments, not to geometry. Antialiasing is 4x only for solid geometry, inside the adapter's pixel budget and below two physical pixels per CSS pixel; `?msaa=4` or `?msaa=1` forces it. Picking renders a window around the cursor into an attachment of that size, and the finite-visibility pool is sized for the scene and grows on demand. `?dpr=1.5` caps the device pixel ratio the canvas is rendered at, for people who prefer memory over crispness; by default it is capped at 2, since a phone's third device pixel per CSS pixel is invisible and costs 2.25x the pixels, and `?dpr=3` asks for it back. Every attachment the viewer replaces is destroyed on the spot: in the browser a dropped wgpu texture is otherwise held until the JavaScript garbage collector notices, and a window drag remakes the frame's attachments as it goes - at most once every 100 ms, the last picture stretched in between. If the browser loses the WebGPU device anyway, the page reloads itself once at device scale 1 without antialiasing, the status line names the browser's reason, and the address is left clean so the next reload starts at full resolution. `?inspect=1` publishes the exact texture and buffer bytes the viewer owns.
+Antialiasing, pixel ratio and inspection are URL options: `?msaa=4` or `?msaa=1`, `?dpr=1.5` (default cap 2, `?dpr=3` asks for more), `?inspect=1` to publish the texture and buffer bytes.
 
-## Publish and verify
+## Publish
 
-The existing scripts live in the parent Session directory. They publish verified immutable geometry before updating scene metadata:
+### Scene geometry
+
+Run from the Session directory:
 
 ```sh
 cd ..
@@ -67,10 +56,32 @@ bash/view_put.sh out/scan.pb
 bash/view_live.sh scene.yaml scan.pb
 ```
 
-Every checkpoint of the course is a runnable crate under `docs/lessons/<id>/`; the lessons are in `docs/`.
+### Stage decks (slide YAML)
 
-## Stage decks: mathematics in YAML
+A slide change needs no git push. The live site reads the decks from R2.
 
-`?stage=force-density` plays a deck written only in YAML. The left of the slide is the viewer's own scene: the deck's points, lines and arrows are kernel `Point`, `Line` and `Polyline` objects under the real orthographic camera, moved per frame by placement, and the view stays put between slides. The right is a column of TeX formulas and matrices (rounded filled cells, no contour), laid out without overlaps. Steps write, morph, derive and project formulas and geometry. The TeX layout reads the OpenType MATH table of New Computer Modern (`assets/stage/`).
+1. Edit the YAML in `examples/stage/<deck>/`.
+2. Preview locally:
 
-The format, the actions and the publishing commands are in [examples/stage/README.md](examples/stage/README.md). Five decks ship, following Linkwitz: [equilibrium](examples/stage/equilibrium/) (one node in 2D: force diagram and projections), [force-density](examples/stage/force-density/) (the equations of five nodes, no matrices), [force-density-matrices](examples/stage/force-density-matrices/) (the method as a tool: matrices, any net and its forces), [force-density-derivation](examples/stage/force-density-derivation/) (where the formula comes from: the Jacobian and the matrix form) and [force-density-materialization](examples/stage/force-density-materialization/) (elongations, unstretched lengths, a résumé). `cargo test --lib stage::` plays every step of all five.
+   ```sh
+   bash ../../wood/tools/buildslot.sh stage env CARGO_BUILD_JOBS=8 trunk serve
+   ```
+
+   Open <http://127.0.0.1:8080/?stage=decks/equilibrium/index.yaml&data=off>. The page reloads on save.
+
+3. Push to R2 from this folder:
+
+   ```sh
+   cd session_viewer
+   aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete \
+     --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 \
+     --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
+   ```
+
+4. Check <https://petrasvestartas.github.io/session/?stage=equilibrium> and reload.
+
+`--delete` removes files in the bucket that are not in `examples/stage`, so sync from a clean checkout.
+
+Viewer code changes (anything else in `session_viewer/`) go through git: push to `main` and the `viewer-pages` workflow deploys them.
+
+Decks: [equilibrium](examples/stage/equilibrium/), [force-density](examples/stage/force-density/), [force-density-matrices](examples/stage/force-density-matrices/), [force-density-derivation](examples/stage/force-density-derivation/), [force-density-materialization](examples/stage/force-density-materialization/). The deck format is in [examples/stage/README.md](examples/stage/README.md). `cargo test --lib stage::` plays every step of all five.

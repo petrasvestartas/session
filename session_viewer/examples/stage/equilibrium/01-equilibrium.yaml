@@ -1,4 +1,14 @@
 # Equilibrium of one node in 2D: a load on two cables, solved by a force diagram and then by projections.
+# Preview and publish: see README.md in this folder.
+#
+# Structure: slides: -> '- title:' starts a slide -> steps: -> '- say:' is one click.
+# Keys under a step appear with its sentence, top to bottom:
+#   eq: 'a = b'      an equation
+#   text: '...'      prose below the equation (same step, no new click)
+#   add: / do:       3D objects and further actions (see ../README.md)
+# 
+# Push to server:
+# aws s3 sync examples/stage s3://session-viewer-data/stage/ --delete --exclude '*' --include '*.yaml' --content-type application/yaml --cache-control no-cache --profile r2 --endpoint-url https://0520459c6817bd96c1e25fcb49461c4e.r2.cloudflarestorage.com
 title: Equilibrium of a node
 camera: {view: top}       # all points at z = 0: x to the right, y up
 points:
@@ -28,8 +38,10 @@ slides:
               - {id: f1, arrow: [n, F1], color: accent, width: 3.6, label: 'f_1'}
               - {id: f2, arrow: [n, F2], color: accent, width: 3.6, label: 'f_2'}
           - tex: 'f_1 = \ ?\qquad f_2 = \ ?'
-      - say: 'The node does not move, so the three forces cancel. That is **equilibrium**.'
+      - say: 'The node does not move, so the three forces cancel.'
         eq: '\mathbf{f}_1 + \mathbf{f}_2 + \mathbf{p} = \mathbf{0}'
+      - say: 'Equilibrium.'
+        text: 'All forces sums to zero.'
 
   - title: By drawing · the force diagram
     steps:
