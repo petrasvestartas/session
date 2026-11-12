@@ -9,6 +9,15 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
+  - title: The givens as matrices
+    steps:
+      - say: 'Force density 2: the method of Klaus Linkwitz and Hans-Jörg Schek, Stuttgart, 1971, written with matrices.'
+        row:
+          - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
+          - '\quad'
+          - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
+        text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
+
   - title: Where this presentation is heading
     steps:
       - say: 'Presentation 1 solved one free node with plain sums. This one writes them for any number of nodes. It ends in three lines, one per coordinate. Here they are a tool; presentation 3 derives them.'

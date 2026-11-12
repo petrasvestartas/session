@@ -9,6 +9,15 @@ net:
   q: 1
   load: {n0: [0, 0, -5]}
 slides:
+  - title: Why is the formula true?
+    steps:
+      - say: 'Force density 3: where the formula of Klaus Linkwitz and Hans-Jörg Schek comes from.'
+        row:
+          - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
+          - '\quad'
+          - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
+        text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
+
   - title: The formula we used
     steps:
       - say: 'The five nodes once more: four fixed nodes, one free node $n_0$, four cables, a load of 5 kN.'

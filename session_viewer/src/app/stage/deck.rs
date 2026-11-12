@@ -11,13 +11,15 @@ pub const PINNED: &str = "\u{1}picture:";
 pub struct Index {
     pub title: String,
     pub chapters: Vec<String>,
+    pub theme: Option<Theme>, // `theme: light` or `theme: dark`; white when not given.
 }
 
 /// One chapter file: a 3D scene shared by its slides.
 #[derive(Clone, Debug)]
 pub struct Chapter {
     pub title: String,
-    pub palette: HashMap<String, Rgba>,
+    pub palette: HashMap<String, Rgba>, // On the white ground; the stage rebuilds it per theme.
+    pub overrides: Vec<Override>,       // The chapter's own `palette:` entries.
     pub points: Vec<(String, [f64; 3])>,
     pub camera: CameraSpec,
     pub split: f32,
@@ -740,29 +742,122 @@ fn action(v: &Value, at: &str, cx: &mut Cx) -> Result<Action, String> {
     })
 }
 
-/// The default colors every chapter starts from.
+/// The ground of a deck: white or black. Every colour name exists in both.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Theme {
+    #[default]
+    Light,
+    Dark,
+}
+
+impl Theme {
+    /// `light` or `white`, `dark` or `black`.
+    pub fn parse(s: &str) -> Option<Theme> {
+        match s.trim().to_ascii_lowercase().as_str() {
+            "light" | "white" => Some(Theme::Light),
+            "dark" | "black" => Some(Theme::Dark),
+            _ => None,
+        }
+    }
+
+    /// The other ground.
+    pub fn toggled(self) -> Theme {
+        match self {
+            Theme::Light => Theme::Dark,
+            Theme::Dark => Theme::Light,
+        }
+    }
+}
+
+/// The colours of a theme. The named colours (blue, pink, yellow, ...) follow the BRG figures
+/// and compas.dev: vivid blue, pink and yellow on white or black, grey for what stays behind.
+pub fn theme_palette(theme: Theme) -> HashMap<String, Rgba> {
+    let colors: &[(&str, &str)] = match theme {
+        Theme::Light => &[
+            ("ink", "#111111"),
+            ("dim", "#7a808a"),
+            ("faint", "#dde1e6"),
+            ("free", "#4fb3ff"),
+            ("fixed", "#0a7cff"),
+            ("load", "#00c46a"),
+            ("x", "#ff2d7a"),
+            ("y", "#ff2d7a"),
+            ("z", "#ff2d7a"),
+            ("accent", "#0a7cff"),
+            ("bar", "#1a1d22"),
+            ("pos", "#ff5c9a"),
+            ("neg", "#4c9bff"),
+            ("cell", "#eef1f5"),
+            ("bg", "#ffffff"),
+            ("blue", "#0a7cff"),
+            ("lightblue", "#4fb3ff"),
+            ("pink", "#ff2d7a"),
+            ("yellow", "#ffc400"),
+            ("orange", "#ff7a1a"),
+            ("green", "#00c46a"),
+            ("grey", "#8a9099"),
+            ("black", "#111111"),
+            ("white", "#ffffff"),
+        ],
+        Theme::Dark => &[
+            ("ink", "#f4f6fa"),
+            ("dim", "#8d97a8"),
+            ("faint", "#2b313b"),
+            ("free", "#7cc4ff"),
+            ("fixed", "#2f8bff"),
+            ("load", "#00f5b0"),
+            ("x", "#ff4fa3"),
+            ("y", "#ff4fa3"),
+            ("z", "#ff4fa3"),
+            ("accent", "#2f8bff"),
+            ("bar", "#dfe3ea"),
+            ("pos", "#ff2d8a"),
+            ("neg", "#1f6bff"),
+            ("cell", "#171c26"),
+            ("bg", "#000000"),
+            ("blue", "#2f8bff"),
+            ("lightblue", "#7cc4ff"),
+            ("pink", "#ff4fa3"),
+            ("yellow", "#ffd60a"),
+            ("orange", "#ff8a1f"),
+            ("green", "#00f5b0"),
+            ("grey", "#8d97a8"),
+            ("black", "#000000"),
+            ("white", "#f4f6fa"),
+        ],
+    };
+    colors
+        .iter()
+        .map(|(k, v)| (k.to_string(), hex(v).unwrap()))
+        .collect()
+}
+
+/// The default colors every chapter starts from: the white theme.
 pub fn default_palette() -> HashMap<String, Rgba> {
-    let mut p = HashMap::new();
-    for (k, v) in [
-        ("ink", "#f4f6fa"),
-        ("dim", "#8d97a8"),
-        ("faint", "#2b313b"),
-        ("free", "#7cc4ff"),
-        ("fixed", "#2f8bff"),
-        ("load", "#00f5b0"),
-        ("x", "#ff4fa3"),
-        ("y", "#ff4fa3"),
-        ("z", "#ff4fa3"),
-        ("accent", "#2f8bff"),
-        ("bar", "#dfe3ea"),
-        ("pos", "#ff2d8a"),
-        ("neg", "#1f6bff"),
-        ("cell", "#171c26"),
-        ("bg", "#000000"),
-    ] {
-        p.insert(k.to_string(), hex(v).unwrap());
+    theme_palette(Theme::Light)
+}
+
+/// A chapter's colours in `theme`: the theme's, then the chapter's own `palette:` entries.
+pub fn chapter_palette(theme: Theme, overrides: &[Override]) -> HashMap<String, Rgba> {
+    let mut p = theme_palette(theme);
+    for o in overrides {
+        let v = match theme {
+            Theme::Light => &o.light,
+            Theme::Dark => &o.dark,
+        };
+        if let Some(c) = p.get(v).copied().or_else(|| hex(v)) {
+            p.insert(o.name.clone(), c);
+        }
     }
     p
+}
+
+/// One `palette:` entry of a chapter: a name and its colour on white and on black.
+#[derive(Clone, Debug)]
+pub struct Override {
+    pub name: String,
+    pub light: String,
+    pub dark: String,
 }
 
 /// Parse `index.yaml`.
@@ -781,6 +876,12 @@ pub fn index(src: &str) -> Result<Index, String> {
             .and_then(text)
             .unwrap_or_default(),
         chapters,
+        theme: match get(m, "theme").and_then(text) {
+            Some(t) => {
+                Some(Theme::parse(&t).ok_or_else(|| format!("index: theme {t}: light or dark"))?)
+            }
+            None => None,
+        },
     })
 }
 
@@ -790,20 +891,43 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
     let Value::Mapping(m) = &v else {
         return err(name, "expected a map");
     };
-    let mut palette = default_palette();
+    // `accent: '#ff0000'` for both grounds, or `accent: {light: blue, dark: '#7cc4ff'}`
+    let mut overrides = Vec::new();
     if let Some(Value::Mapping(p)) = get(m, "palette") {
+        let known = default_palette();
         for (k, v) in p {
-            let (Some(k), Some(v)) = (text(k), text(v)) else {
-                continue;
+            let Some(k) = text(k) else { continue };
+            let (light, dark) = match v {
+                Value::Mapping(both) => {
+                    let one = |t: &str| get(both, t).and_then(text);
+                    match (one("light"), one("dark")) {
+                        (Some(l), Some(d)) => (l, d),
+                        (Some(c), None) | (None, Some(c)) => (c.clone(), c),
+                        (None, None) => {
+                            return err(name, format!("palette {k}: give light or dark"));
+                        }
+                    }
+                }
+                _ => match text(v) {
+                    Some(c) => (c.clone(), c),
+                    None => continue,
+                },
             };
-            let rgba = palette
-                .get(&v)
-                .copied()
-                .or_else(|| hex(&v))
-                .ok_or_else(|| format!("{name}: bad color {v}"))?;
-            palette.insert(k, rgba);
+            for c in [&light, &dark] {
+                let named = known.contains_key(c.as_str())
+                    || overrides.iter().any(|o: &Override| o.name == *c);
+                if !named && hex(c).is_none() {
+                    return err(name, format!("bad color {c}"));
+                }
+            }
+            overrides.push(Override {
+                name: k,
+                light,
+                dark,
+            });
         }
     }
+    let palette = chapter_palette(Theme::Light, &overrides);
     let mut points = Vec::new();
     if let Some(Value::Mapping(p)) = get(m, "points") {
         for (k, v) in p {
@@ -896,6 +1020,7 @@ pub fn chapter(src: &str, name: &str) -> Result<Chapter, String> {
             .and_then(text)
             .unwrap_or_default(),
         palette,
+        overrides,
         points,
         camera: match get(m, "camera").or(get(m, "view")) {
             Some(c) => camera(c, name)?,

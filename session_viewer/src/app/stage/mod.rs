@@ -70,6 +70,11 @@ impl StageApp {
         let query = |key: &str| crate::app::route::query(key).and_then(|v| v.parse::<usize>().ok());
         #[cfg(not(target_arch = "wasm32"))]
         let query = |_: &str| None::<usize>;
+        // `?theme=dark` or `?theme=light` overrides the deck's own `theme:`
+        #[cfg(target_arch = "wasm32")]
+        if let Some(t) = crate::app::route::query("theme").and_then(|v| deck::Theme::parse(&v)) {
+            stage.theme = t;
+        }
         stage.open_at(
             query("chapter").unwrap_or(1),
             query("step").unwrap_or(0),
@@ -89,7 +94,7 @@ impl StageApp {
         }
     }
 
-    /// Keys: arrows and page keys step, up/down jump slides, digits open chapters.
+    /// Keys: arrows and page keys step, up/down jump slides, digits open chapters, T swaps white and black.
     pub fn key(&mut self, key: winit::keyboard::Key<&str>, now: f64) -> bool {
         use winit::keyboard::{Key, NamedKey};
         let stage = &mut self.stage;
@@ -105,6 +110,9 @@ impl StageApp {
             Key::Named(NamedKey::Home) => stage.chapter_go(stage.chapter, now),
             Key::Character(" ") => stage.next(now),
             Key::Character(c) if c == "r" || c == "R" => stage.cam_serial += 1,
+            Key::Character(c) if c == "t" || c == "T" => {
+                stage.set_theme(stage.theme.toggled(), now)
+            }
             Key::Character(c) => match c.parse::<usize>() {
                 Ok(n) if n >= 1 && n <= stage.chapters.len() => stage.chapter_go(n - 1, now),
                 _ => return false,

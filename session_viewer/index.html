@@ -231,6 +231,8 @@
     <!-- A phone keyboard opens only for an editable element: this one takes the command line's typing (app/agent.rs). Below 16px iOS zooms the page on focus. -->
     <input id="command-agent" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" tabindex="-1" aria-hidden="true" style="position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none;">
     <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
+    <!-- A presentation shows the slide only: no documentation corner. -->
+    <script>if (new URLSearchParams(location.search).has("stage")) document.getElementById("viewer-docs").remove();</script>
     <div id="viewer-status" role="status" aria-live="polite" style="position: fixed; bottom: 12px; left: 12px; color: #fff; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none;"></div>
     <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
     <link data-trunk rel="copy-dir" href="assets/stage" data-target-path="stage"/>

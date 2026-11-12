@@ -11,6 +11,12 @@ use swash::zeno::Format;
 /// Side of the glyph atlas texture, pixels.
 const N: usize = 2048;
 
+/// The ETH Zurich and BRG marks, white on clear; the painter tints them with the ink colour.
+const LOGOS: [&[u8]; 2] = [
+    include_bytes!("../../../assets/stage/logo-eth.png"),
+    include_bytes!("../../../assets/stage/logo-brg.png"),
+];
+
 /// Where one rasterized glyph sits in the atlas.
 #[derive(Clone, Copy)]
 struct Slot {
@@ -59,6 +65,8 @@ pub struct Atlas {
     tex: Option<TextureHandle>,
     pub pictures: Vec<Picture>, // The deck's pictures, by index.
     picture_tex: Vec<Option<TextureHandle>>, // Their textures, made on first use.
+    logos: Vec<Picture>,        // ETH Zurich and BRG, bottom right.
+    logo_tex: Vec<TextureHandle>, // Their textures, made on first use.
     slots: HashMap<(u8, u16, u16), Option<Slot>>, // By font, glyph and pixel size; None for no ink.
     x: usize,                   // Packing cursor.
     y: usize,                   // Top of the current shelf.
@@ -75,6 +83,8 @@ impl Atlas {
             tex: None,
             pictures: Vec::new(),
             picture_tex: Vec::new(),
+            logos: LOGOS.iter().filter_map(|b| picture(b).ok()).collect(),
+            logo_tex: Vec::new(),
             slots: HashMap::new(),
             x: 1,
             y: 1,
@@ -369,6 +379,54 @@ fn prim(out: &mut Out, atlas: &mut Atlas, f: &Frame, p: &DPrim, snap: bool) {
     }
 }
 
+/// ETH Zurich | BRG at the bottom right of the column, in `ink`.
+fn logos(out: &mut Out, atlas: &mut Atlas, f: &Frame, ink: Rgba) {
+    const HIGH: f32 = 21.0; // height of the ETH mark, slide pixels
+    const GAP: f32 = 13.0; // either side of the rule between the marks
+    const RIGHT: f32 = 40.0; // from the right edge of the slide
+    const BASE: f32 = H - 30.0; // bottom of both marks
+    if atlas.logos.len() < 2 {
+        return;
+    }
+    if atlas.logo_tex.is_empty() {
+        let ctx = out.painter.ctx().clone();
+        let options = TextureOptions {
+            mipmap_mode: Some(egui::TextureFilter::Linear),
+            ..TextureOptions::LINEAR
+        };
+        for (i, p) in atlas.logos.iter().enumerate() {
+            let image = egui::ColorImage::from_rgba_unmultiplied(p.size, &p.rgba);
+            atlas
+                .logo_tex
+                .push(ctx.load_texture(format!("stage-logo-{i}"), image, options));
+        }
+    }
+    // BRG is a heavy face: a little smaller than ETH reads as the same size
+    let heights = [HIGH, HIGH * 0.82];
+    let widths: Vec<f32> = atlas
+        .logos
+        .iter()
+        .zip(heights)
+        .map(|(p, h)| h * p.size[0] as f32 / p.size[1].max(1) as f32)
+        .collect();
+    let mut x = W - RIGHT - widths[0] - 2.0 * GAP - widths[1];
+    let uv = Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0));
+    out.flush();
+    let tint = c32(ink);
+    for i in 0..2 {
+        let rect = Rect::from_min_max(f.pt([x, BASE - heights[i]]), f.pt([x + widths[i], BASE]));
+        out.painter.image(atlas.logo_tex[i].id(), rect, uv, tint);
+        x += widths[i] + GAP;
+        if i == 0 {
+            out.painter.line_segment(
+                [f.pt([x, BASE - HIGH - 2.0]), f.pt([x, BASE + 2.0])],
+                Stroke::new((1.2 * f.k).max(1.0 / f.ppp), tint),
+            );
+            x += GAP;
+        }
+    }
+}
+
 /// Paint one draw item.
 fn draw(out: &mut Out, atlas: &mut Atlas, f: &Frame, d: &Draw, snap: bool) {
     match d {
@@ -480,7 +538,6 @@ pub fn paint(
     }
     // chrome: chapter and slide, the step's sentence, progress
     let ink = stage.palette("ink");
-    let dim = stage.palette("dim");
     let now = stage.now;
     let chapter_title = &stage.chapters[stage.chapter].title;
     // where we are, in the size of every other line of text on the slide
@@ -499,7 +556,7 @@ pub fn paint(
         [40.0, SAY],
         TEXT,
         stage.split * W - 80.0,
-        dim,
+        ink,
     );
     let x0 = stage.split * W + 33.6;
     let pw = W - 56.0 - x0;
@@ -509,12 +566,7 @@ pub fn paint(
     let in_a = |t: f32| smooth(((t - 0.4) / 0.6) as f64) as f32;
     let (say, old_say, t_say) = stage.say.clone();
     let fs = fade(t_say);
-    let say_color = [
-        ink[0] * 0.86 + dim[0] * 0.14,
-        ink[1] * 0.86 + dim[1] * 0.14,
-        ink[2] * 0.86 + dim[2] * 0.14,
-        1.0,
-    ];
+    let say_color = ink;
     if fs < 1.0 {
         let leaving = [say_color[0], say_color[1], say_color[2], out_a(fs)];
         text(
@@ -557,18 +609,7 @@ pub fn paint(
     ));
     let filled = Rect::from_min_max(track.min, Pos2::new(reached, bottom));
     out.add(EShape::rect_filled(filled, 0.0, c32(ink)));
-    text(
-        stage,
-        &mut out,
-        atlas,
-        scene_side,
-        "← → step   drag to orbit",
-        false,
-        [40.0, H - 52.0],
-        TEXT,
-        600.0,
-        [dim[0], dim[1], dim[2], 0.7],
-    );
+    logos(&mut out, atlas, f, ink);
     if !stage.errors.is_empty() {
         let msg = stage
             .errors

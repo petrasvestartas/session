@@ -14,6 +14,7 @@ impl Stage {
             .get(name)
             .copied()
             .or_else(|| tex::hex(name))
+            .or_else(|| self.palette.get("ink").copied())
             .unwrap_or([1.0; 4])
     }
 

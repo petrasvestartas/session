@@ -22,6 +22,15 @@ points:
   Q1: [7, -1.6, 0]
   Q2: [8.92, 0.96, 0]
 slides:
+  - title: Equilibrium of a node
+    steps:
+      - say: 'Presentation 0 of the force density method of Klaus Linkwitz and Hans-Jörg Schek: before any matrix, the equilibrium of one node.'
+        row:
+          - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
+          - '\quad'
+          - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
+        text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
+
   - title: A load on two cables
     steps:
       - say: 'Two cables run from supports $A$ and $B$ to a node $n$. A load of $p = 10$ kN hangs there.'

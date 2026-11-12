@@ -277,3 +277,51 @@ slides:
         assert!(stage.errors.is_empty(), "step {step}: {:?}", stage.errors);
     }
 }
+
+#[test]
+fn both_grounds_name_the_same_colours() {
+    let light = deck::theme_palette(deck::Theme::Light);
+    let dark = deck::theme_palette(deck::Theme::Dark);
+    let mut a: Vec<_> = light.keys().collect();
+    let mut b: Vec<_> = dark.keys().collect();
+    a.sort();
+    b.sort();
+    assert_eq!(a, b);
+    assert_eq!(light["bg"], [1.0, 1.0, 1.0, 1.0]);
+    assert_eq!(dark["bg"], [0.0, 0.0, 0.0, 1.0]);
+}
+
+#[test]
+fn a_chapter_colour_can_differ_per_ground() {
+    let src = "palette: {accent: {light: blue, dark: '#00ff00'}, mark: pink}\n\
+               slides: [{title: a, steps: [{say: x}]}]\n";
+    let ch = deck::chapter(src, "c").unwrap();
+    let light = deck::chapter_palette(deck::Theme::Light, &ch.overrides);
+    let dark = deck::chapter_palette(deck::Theme::Dark, &ch.overrides);
+    assert_eq!(light["accent"], light["blue"]);
+    assert_eq!(dark["accent"], [0.0, 1.0, 0.0, 1.0]);
+    assert_eq!(light["mark"], light["pink"]);
+    assert_eq!(dark["mark"], dark["pink"]);
+    assert!(
+        deck::chapter(
+            "palette: {a: nocolour}\nslides: [{title: a, steps: [{say: x}]}]\n",
+            "c"
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn the_ground_swaps_at_the_same_step() {
+    let (index, chapters) = deck("force-density");
+    let mut stage = run::Stage::new(Rc::new(fonts()), index, chapters);
+    pictures(&mut stage, "force-density");
+    assert_eq!(stage.theme, deck::Theme::Light);
+    stage.rebuild(0, Some(2));
+    let before = (stage.chapter, stage.step, stage.objs.len());
+    stage.set_theme(deck::Theme::Dark, 0.0);
+    assert_eq!(stage.palette("bg"), [0.0, 0.0, 0.0, 1.0]);
+    assert_eq!((stage.chapter, stage.step, stage.objs.len()), before);
+    stage.set_theme(deck::Theme::Light, 0.0);
+    assert_eq!(stage.palette("bg"), [1.0, 1.0, 1.0, 1.0]);
+}

@@ -13,7 +13,36 @@ https://petrasvestartas.github.io/session/?stage=force-density-materialization  
 ```
 
 Keys: **→ / Space** next step, **←** back, **↓ / ↑** next and previous slide, **1–9** chapter,
-**R** reset view. Drag the 3D side to orbit, wheel to zoom.
+**R** reset view, **T** white or black ground. Drag the 3D side to orbit, wheel to zoom.
+
+## White and black
+
+A deck plays on white by default, with the ETH Zurich | BRG marks at the bottom right in the ink
+colour. The slide shows no key hints and no documentation corner; the title and the step's
+sentence are drawn in the ink colour. `theme: dark` in `index.yaml` starts it on black, `&theme=dark` or `&theme=light` in the
+address overrides the deck, and **T** swaps the ground at the same step.
+
+Both grounds know the same colour names, so a deck never names a hex colour for one ground only:
+
+| name | white ground | black ground | use |
+|---|---|---|---|
+| `blue` | `#0a7cff` | `#2f8bff` | fixed nodes, accent, negative entries |
+| `lightblue` | `#4fb3ff` | `#7cc4ff` | free nodes |
+| `pink` | `#ff2d7a` | `#ff4fa3` | components, positive entries, large forces |
+| `yellow` | `#ffc400` | `#ffd60a` | a highlight that is neither |
+| `orange` | `#ff7a1a` | `#ff8a1f` | a third series |
+| `green` | `#00c46a` | `#00f5b0` | loads, thrust |
+| `grey` | `#8a9099` | `#8d97a8` | what stays behind |
+| `black`, `white` | `#111111`, `#ffffff` | `#000000`, `#f4f6fa` | |
+
+The roles (`ink dim faint free fixed load x y z accent bar pos neg cell bg`) map onto these. A
+chapter can change a colour for both grounds or for each:
+
+```yaml
+palette:
+  accent: pink                         # both grounds
+  mark: {light: '#0a7cff', dark: yellow}
+```
 
 On a phone: swipe left for the next step and right for the one before, tap to advance, hold and
 drag the 3D side to orbit, double tap it to reset the view. Held upright, the 3D side fills the
@@ -182,7 +211,7 @@ A position is a name from `points:` or the net, `[x, y, z]`, or an expression:
 `move: {point: P0, to: [3, 3, 0.25]}` animates it.
 
 Every object takes `id` (to refer to it later), `color` (`ink dim faint free fixed load x y z
-accent pos neg cell` or `#rrggbb`) and `size`.
+accent pos neg cell`, `blue pink yellow orange green grey` or `#rrggbb`) and `size`.
 
 ## Other actions
 

@@ -9,6 +9,15 @@ points:
   n3: [0, 7, 3]
   n4: [7, 5, 0]
 slides:
+  - title: Materialization
+    steps:
+      - say: 'Force density 4: materialization. From the force densities of Klaus Linkwitz and Hans-Jörg Schek to the length of every cable.'
+        row:
+          - {id: linkwitz, image: {src: ../force-density/img/linkwitz.png, height: 6.5}}
+          - '\quad'
+          - {id: schek, image: {src: ../force-density/img/schek.png, height: 6.5}}
+        text: '**Klaus Linkwitz** $\qquad\qquad\qquad$ **Hans-Jörg Schek**'
+
   - title: What form-finding leaves us
     steps:
       - say: 'Form-finding gave a shape but no material. How long must each cable be cut? How stiff must it be?'

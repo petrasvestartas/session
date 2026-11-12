@@ -1,4 +1,4 @@
-use super::deck::{Action, Chapter, Content, Index, Kind};
+use super::deck::{Action, Chapter, Content, Index, Kind, Theme, chapter_palette};
 use super::draw::fade;
 use super::font::Fonts;
 use super::geometry::{Spatial, SpatialKind};
@@ -111,6 +111,7 @@ pub struct Stage {
     pub chapter: usize,
     pub step: Option<usize>,
     pub errors: Vec<String>,
+    pub theme: Theme, // White or black ground, `T` toggles.
     pub(super) palette: HashMap<String, Rgba>,
     pub(super) points: HashMap<String, Tween<[f64; 3]>>,
     pub objs: Vec<Obj>,
@@ -151,6 +152,7 @@ impl Stage {
     pub fn new(fonts: Rc<Fonts>, index: Index, chapters: Vec<Chapter>) -> Self {
         let mut s = Stage {
             fonts,
+            theme: index.theme.unwrap_or_default(),
             index,
             chapters,
             chapter: 0,
@@ -226,7 +228,7 @@ impl Stage {
     fn reset(&mut self, chapter: usize) {
         self.chapter = chapter.min(self.chapters.len() - 1);
         let ch = &self.chapters[self.chapter];
-        self.palette = ch.palette.clone();
+        self.palette = chapter_palette(self.theme, &ch.overrides);
         self.points = ch
             .points
             .iter()
@@ -325,6 +327,21 @@ impl Stage {
             }
         }
         self.changed = true;
+    }
+
+    /// Repaint the deck on the other ground: the same step, the same view.
+    pub fn set_theme(&mut self, theme: Theme, now: f64) {
+        if theme == self.theme {
+            return;
+        }
+        self.now = now;
+        self.theme = theme;
+        self.cache.clear(); // typeset formulas carry their colours
+        let (cam, user) = (self.cam, self.user);
+        self.rebuild(self.chapter, self.step);
+        self.cam = cam;
+        self.cam.snap();
+        self.user = user;
     }
 
     /// Jump to a 1-based chapter and step from the page address.
