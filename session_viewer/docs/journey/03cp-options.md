@@ -200,19 +200,19 @@ pub struct CommandLine {
     pub(crate) command: String,                     // text in the command field
     pub(crate) drawing_prompt: String,              // prompt while drawing
     pub(crate) focus_command: bool,                 // give the field focus next frame
-    pub(crate) dock_top: Option<f32>,               // the dock's top edge in CSS px, for fitting above it
-    pub(crate) status: String,                      // status line text
-    pub(crate) history: VecDeque<String>,           // past commands and answers
-    pub(crate) command_expanded: bool,              // history shown above the field
-    pub(crate) completion: usize,                   // highlighted completion index
-    pub(crate) completion_prefix: String,           // text the completions match
-    pub(crate) inline_suffix: bool,                 // completion suffix shown in the field
-    pub(crate) completion_visible: bool,            // completion list shown
+    pub(crate) dock_top: Option<f32>, // the dock's top edge in CSS px, for fitting above it
+    pub(crate) status: String,        // status line text
+    pub(crate) history: VecDeque<String>, // past commands and answers
+    pub(crate) command_expanded: bool, // history shown above the field
+    pub(crate) completion: usize,     // highlighted completion index
+    pub(crate) completion_prefix: String, // text the completions match
+    pub(crate) inline_suffix: bool,   // completion suffix shown in the field
+    pub(crate) completion_visible: bool, // completion list shown
     pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
-    pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
-    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
-    pub(crate) options: Vec<(String, String)>,      // the running command's buttons: label, line it runs
-    pub(crate) options_rect: Option<egui::Rect>,    // where those buttons are, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) agent_edit: Option<bool>, // phone keyboard set the text, true on delete
+    pub(crate) options: Vec<(String, String)>, // the running command's buttons: label, line it runs
+    pub(crate) options_rect: Option<egui::Rect>, // where those buttons are, for taps
 }
 
 /// One clickable control and where it was drawn, for browser tests.

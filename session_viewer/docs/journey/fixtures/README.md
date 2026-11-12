@@ -13,17 +13,12 @@ These are reconstructed deterministic specimens. The historical binary files and
 
 `ordered_mesh.rs` changes map ordering during protobuf encoding only. It preserves every field of the kernel's Mesh message and asserts the decoded message equals the original. All geometry comes from kernel constructors. The generator builds each fixture twice and requires identical bytes before writing it. The output manifest has no timestamp, so unchanged source and kernel versions produce an identical manifest too.
 
-Run from the repository root in PowerShell. The integrator owns the guarded queue; these commands compile Rust and are heavy jobs. On the first checkout, create the local Cargo lockfile, then retain it for subsequent locked runs:
+Run from `session_viewer` in the cloud workspace, using the committed lockfile and native target (the viewer otherwise defaults to WebAssembly):
 
-```powershell
-$env:REGEN_PROTO = '0'
-$env:CARGO_BUILD_JOBS = '1'
-$guard = 'session/session_tests/scripts/run-guarded.cmd'
-$manifest = 'session/session_viewer/docs/journey/fixtures/Cargo.toml'
-& $guard -TimeoutSeconds 600 -ManifestPath "$env:TEMP\course-fixture-lock.json" cargo generate-lockfile --manifest-path $manifest
-& $guard -TimeoutSeconds 1200 -ManifestPath "$env:TEMP\course-fixture-build.json" cargo run --locked --manifest-path $manifest -j1
+```sh
+REGEN_PROTO=0 python -B ../../bash/workspace_storage.py run -- bash ../../wood/tools/buildslot.sh tutorial-cloud timeout 10m cargo run --locked --manifest-path docs/journey/fixtures/Cargo.toml --target x86_64-unknown-linux-gnu -j8
 ```
 
-Preserve the generated lockfile and the four output hashes as the local input identity. Re-run the executable into a second directory and compare hashes across processes before treating generation as reproducible. No build or generation was performed when this generator was introduced.
+The November 12 cloud run passed kernel round trips and within-process byte equality for all four specimens. A second native process wrote to a separate directory and produced the identical manifest. [Recorded hashes](validated-inputs.json) identify these generated inputs. Rendering and browser interaction acceptance remain pending.
 
 Then materialize the unchanged course endpoint with its dependency command. Run the existing Native source/archive/instance-feature/copy-owner checks and the unchanged `instance-features.cjs` and `feature-original-pick.cjs` browser chains. In particular verify two original instance owners, four derived paths, one shared definition, independent attribute visibility, locked-owner rejection, exact feature-pixel selection, and Save/Open regeneration. These fresh checks, followed by the declared matched rendering checks, remain required; generator round trips do not replace them.

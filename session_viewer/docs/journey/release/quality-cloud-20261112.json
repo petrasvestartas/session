@@ -1,0 +1,36 @@
+{
+  "checkpoint": "96zzzzzzv-reuse-coherent-frame-targets",
+  "sourceFingerprint": "9cd61732a3d4df211dfa005101e3899c13c190e797419dc458b41384dadba22f",
+  "checks": {
+    "courseTooling": {
+      "passed": 24,
+      "failed": 0
+    },
+    "nativeQuality": {
+      "passed": 3,
+      "failed": 0,
+      "locked": true,
+      "target": "x86_64-unknown-linux-gnu"
+    },
+    "fixtureGeneration": {
+      "files": 4,
+      "separateProcessManifestEquality": true
+    },
+    "ownership": {
+      "passed": false,
+      "checkpoints": 1359,
+      "subjects": 110,
+      "laterSubjectRewrites": 5003,
+      "affectedFiles": 304,
+      "moduleRegistrations": 443
+    },
+    "structure": {
+      "passed": false,
+      "reason": "20 production stage source files are absent from the historical inventory."
+    }
+  },
+  "limitations": [
+    "No fresh browser acceptance of the four reconstructed protobuf fixtures.",
+    "Subject ownership, current production coverage and cumulative mathematics integration remain unfinished."
+  ]
+}

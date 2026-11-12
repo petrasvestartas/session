@@ -359,7 +359,7 @@
         },
         {
           "path": "src/command_dock/mod.rs",
-          "before": "    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete\n}\n\n/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.\npub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {\n    if !prompt.is_empty() {\n",
+          "before": "    pub(crate) agent_edit: Option<bool>, // phone keyboard set the text, true on delete\n}\n\n/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.\npub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {\n    if !prompt.is_empty() {\n",
           "snippet": "journey/code/03b-state-04.rs",
           "why": "Record actual widget bounds only when inspection is enabled."
         },

@@ -383,13 +383,34 @@ test('field renames replace whole references without changing longer names', () 
     assert.throws(() => edited(source, edit, 'self.targets.depth\n'), /two field references/);
 });
 
-test('the compact target-owner lesson preserves its accepted source apart from scoped Escape, inventory and hierarchy edits', () => {
+// Restore only the exact reviewed changes; every historical fingerprint below remains enforced.
+const qualityDeltaText = read(path.join(viewer, '../session_tests/scripts/course/fixtures/math-quality-and-dock-delta.json'));
+const qualityDelta = JSON.parse(qualityDeltaText);
+function beforeQualityAndDock(files: Record<string, string>, changes = qualityDelta.changes) {
+    files = {...files};
+    for (const entry of changes) {
+        const change = typeof entry === 'number' ? qualityDelta.changes[entry] : entry;
+        if (change.previous === null) {
+            assert.equal(files[change.path], change.current, `Added module changed: ${change.path}`);
+            delete files[change.path];
+        } else {
+            files[change.path] = edited(files[change.path], {path: change.path, before: change.current, snippet: '', why: ''}, change.previous);
+        }
+    }
+    return files;
+}
+
+test('the compact target-owner preserves its accepted source through exact quality, dock, Escape, inventory and hierarchy deltas', () => {
     const id = '96zzzzzzv-reuse-coherent-frame-targets';
     const record = JSON.parse(read(path.join(viewer, 'docs/journey/visual-review.json'))).steps[id];
     const step = course().steps.find(step => step.id === id)!;
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
-    const files = expected(id);
+    assert.equal(hash(qualityDeltaText), '1f1d988f61fce3ce25deb794c028e6eda82fbc023e3710931abc22430f0c202c');
+    const current = expected(id);
+    assert.equal(fingerprint(current), qualityDelta.after);
+    const files = beforeQualityAndDock(current);
+    assert.equal(fingerprint(files), qualityDelta.before);
     const baselineText = read(path.join(viewer, '../session_tests/scripts/course/fixtures/early-quality-compact-owner-799f6af0.json')).replace(/\r\n/g, '\n');
     assert.equal(hash(baselineText), '6ee946f68bf5d1986059383aa7e861b5515501da11598e2adaf2de6eb8d56fa5');
     const baseline = JSON.parse(baselineText);
@@ -448,7 +469,9 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     const assertion = (value: number) => `assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),${value});`;
     files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
-    assert.equal(fingerprint(expected('96zzzzzzzq-draw-original-cad-wire-curves')),
+    const later = expected(qualityDelta.later.checkpoint);
+    assert.equal(fingerprint(later), qualityDelta.later.after);
+    assert.equal(fingerprint(beforeQualityAndDock(later, qualityDelta.later.changes)),
         '3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32');
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);

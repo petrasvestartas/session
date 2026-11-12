@@ -1,0 +1,26 @@
+{
+  "files": [
+    {
+      "bytes": 18736,
+      "file": "course-comparison.pb",
+      "sha256": "8d952b0ac17ebf0bb7c20704b45b95acbe5b4395ff809a38baacaad93de4bed5"
+    },
+    {
+      "bytes": 18946,
+      "file": "course-metadata.pb",
+      "sha256": "2cfe2ad9becff37d0fcca23f71e47b1c6e674d7934327120a9233efd0c2faf55"
+    },
+    {
+      "bytes": 1358,
+      "file": "course-instance-features.pb",
+      "sha256": "3b9a0d162728849ff09fe9b8e77b877a4565e66b77b5c73d09422f362e816500"
+    },
+    {
+      "bytes": 2608,
+      "file": "course-feature-pick.pb",
+      "sha256": "e05c864d93c99b700665508eb8ddc630c637cec24b51558de97f26f05762387d"
+    }
+  ],
+  "source": "session/session_viewer/docs/journey/fixtures",
+  "status": "reconstructed deterministic fixtures; historical bytes unavailable; rendering acceptance pending"
+}

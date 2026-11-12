@@ -57,6 +57,18 @@ The earlier reconstruction in `typing/manifest.json` remains readable without Py
 
 The old Python lesson generators and checkers have been retired. `structure` now compares every reference insertion and displayed snippet with all 43 stored source snapshots. Edit the new cumulative sequence for teaching changes; the large reference is retained as a checked destination during conversion. `mkdocs.yml` contains navigation data only. Both documentation launchers build or serve Vue.
 
+## Geometry quality regression
+
+From `session_tests`, run the current reconstructed checkpoint under the workspace guards:
+
+```sh
+python -B ../../bash/workspace_storage.py run -- bash ../../wood/tools/buildslot.sh tutorial-cloud timeout 10m node --import ./scripts/typescript.mjs scripts/course/quality-regression.ts
+```
+
+Generate the [four kernel fixtures](https://github.com/petrasvestartas/session/blob/codex/tutorial-cloud-handoff-20261112/session_viewer/docs/journey/fixtures/README.md) first. The runner materializes the exact checkpoint, uses its committed lock and shared Cargo cache, tests adaptive surface refinement, original BRep edges and error-path quality restoration, then removes only its temporary source directory. [Cloud results](journey/release/quality-cloud-20261112.json) record three passing native tests and 24 passing tooling tests; browser fixture acceptance is still pending.
+
+The historical checkpoint test keeps its original fingerprints. The separate `math-quality-and-dock-delta.json` fixture records exact inverse edits against commit `bff184faa`; its own hash is pinned. This isolates the existing finite-quality implementation and dock comment alignment without replacing historical acceptance with a new fingerprint.
+
 ## Browser evidence
 
 The [November 12 coverage audit](journey/coverage-audit-2026-11-12.json) distinguishes source references, exact edit paths and verified teaching. It records the working tree used for the audit; do not treat its unresolved statuses as completed coverage or silently refresh its source hashes.
