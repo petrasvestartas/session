@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:29:52.334Z",
+  "id": "72s-exercise-current-drawing-tools-and-original-persistence",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-72s-exercise-current-drawing-tools-and-original-persistence-4b1cb0a70e3e64b803da\\capture.json.gz",
+    "sha256": "c0d9347328b759bd4a918113268b4b6dd10e7f25277e38f98317522ac2f1aa37",
+    "bytes": 142610
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native72-73-slot-proposal-01\\case72\\capture-result.json",
+    "sha256": "59a07fc99842a9f566f7666493bb7695eb51f4fb232caa2c701ca625778033d5"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native72-73-source22-e6bec9f1-72-execution.json",
+    "sha256": "1fd7376c06b965787f0c8bc5084c6b390f3a7bd0edea2dde3551413821bb645a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native72-73-slot-proposal-01\\case72\\bounded-terminal.json",
+    "sha256": "5cf83f9c84f3d27393f647ead3e7be4c177f7b566afab38273da83aab9a088ea"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\72s-exercise-current-drawing-tools-and-original-persistence-a2491194a1e6.png",
+    "sha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\72s-exercise-current-drawing-tools-and-original-persistence.png",
+    "sha256": "48b04bc7c5590cb377d54f385db403dd53ce48114d483fc1cf3fe9e698add90c"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. The XY command fixture shows a thin horizontal line below an open two-segment peaked polyline and a separate filled point; all are fully framed on white. Stroke coverage is continuous with no geometry wires or unintended whole-object tint. Original Native draw asserts one line, one path and one point. RawDPR4 IMAGE only; canonical640 pixel coverage and browser callbacks were not executed. Seven historical aliases and pixels remain preserved.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 7 historical aliases and their original pixels remain unchanged. One line, one open polyline and one point created through original drawing commands on XY construction plane. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native72-73-slot-proposal-01\\case72\\publication.json",
+    "sha256": "a9261e0b98e2cbc916a16bd845dfbc742873c787a3ebf509387be848ac4fe380"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-72s-exercise-current-drawing-tools-and-original-persistence-4b1cb0a70e3e64b803da\\publication.json",
+    "sha256": "2f8212b79a849159fb1460babc59bf3134fe58be05032bc69bc0f6506b33b04e"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-72s-exercise-current-drawing-tools-and-original-persistence-4b1cb0a70e3e64b803da\\retirement.json.gz",
+    "sha256": "9b7f6fa0963392b5079bec0164cb31f3aaecab6041dc8e7226718cd71c083aa6"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-72s-exercise-current-drawing-tools-and-original-persistence-4b1cb0a70e3e64b803da\\retired.json",
+    "sha256": "02e017af22c918614b61f2116a3437fefa4d36a95929a5168df8c3686bb77395"
+  }
+}

@@ -2805,7 +2805,7 @@ mod drawing_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 14.2 (72s-exercise-current-drawing-tools-and-original-persistence)](../../screenshots/journey/72s-exercise-current-drawing-tools-and-original-persistence.png)
+![Recorded visual output for Lesson 14.2 (72s-exercise-current-drawing-tools-and-original-persistence)](../../screenshots/journey/72s-exercise-current-drawing-tools-and-original-persistence-a2491194a1e6.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.2

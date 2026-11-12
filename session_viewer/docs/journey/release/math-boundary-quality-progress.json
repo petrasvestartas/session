@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-12T03:27:05.602366+00:00",
+  "updatedUtc": "2026-11-12T03:38:06.832022+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -188,13 +188,13 @@
       "status": "PARTIAL_SOURCE22_NATIVE_IMAGES_ROOT_REVIEWED_RETIRED",
       "freeze": "source-freeze-22-cloud-lifecycle-route.json",
       "sourceFiles": 540,
-      "acceptedImages": 4,
+      "acceptedImages": 7,
       "historicalFreeze13AcceptedImages": 51,
       "historicalFreeze15AcceptedImages": 14,
       "historicalFreeze19AcceptedImages": 5,
       "historicalFreeze20AcceptedImages": 6,
       "acceptedSupplementalFigures": 1,
-      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has4 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible21/42; no canonical640 or browser callback acceptance."
+      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has7 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible24/42; no canonical640 or browser callback acceptance."
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -288,19 +288,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 85,
-    "remainingAffected": 1241,
-    "acceptedForFinalSource": 4,
-    "remainingFinalSourceAcceptance": 1322,
-    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has4 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible21/42; no canonical640 or browser callback acceptance.",
+    "newPublishedReviewed": 88,
+    "remainingAffected": 1238,
+    "acceptedForFinalSource": 7,
+    "remainingFinalSourceAcceptance": 1319,
+    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has7 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible24/42; no canonical640 or browser callback acceptance.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 80,
-    "remainingPlannedImageAcceptances": 1246,
-    "physicalJourneyPngs": 545,
-    "uniqueJourneyPngs": 545,
+    "acceptedAcrossRendererLineage": 83,
+    "remainingPlannedImageAcceptances": 1243,
+    "physicalJourneyPngs": 548,
+    "uniqueJourneyPngs": 548,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -370,7 +370,7 @@
       "normalLedgerRetirement": true,
       "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
     },
-    "reviewedFigureCountScope": "80 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
+    "reviewedFigureCountScope": "83 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
     "native74Dpr4Image": {
       "receipt": "docs/journey/release/math-boundary-quality-source15-native74-dpr4-a8b7dfe56c56.json",
       "sha256": "6701239d01ac7da7190187be22309e7badfb4baa793ed3aa700def9dde8b914f",
@@ -514,17 +514,35 @@
         "receipt": "docs/journey/release/math-boundary-quality-source22-native71-dpr4-ea5a1a49286b.json",
         "sha256": "460d5dacf24fd88fa492e918a7f0642180fe0fdc98a453b4cd73b9844e0ea4a8",
         "imageSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624"
+      },
+      {
+        "id": "72s-exercise-current-drawing-tools-and-original-persistence",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native72-dpr4-a2491194a1e6.json",
+        "sha256": "f1883f034d7f9e4f8a86c4f522b967c385d9231922f11f79ff7411e670b0fd7a",
+        "imageSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317"
+      },
+      {
+        "id": "73t-build-regular-kernel-polyhedra",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native73-dpr4-16c8e50c00e4.json",
+        "sha256": "06f4857be5029de00b94ded5366fe80a615d0ac536c49821fc8cf2de369b4304",
+        "imageSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51"
+      },
+      {
+        "id": "81za-validate-original-split-inputs-and-name-pieces",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native81-dpr4-b9c270157425.json",
+        "sha256": "578e0cc5899c713f276ce480f70bef88f5ccdc47165459956aecfa8da57db56e",
+        "imageSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574"
       }
     ]
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 21,
+    "pending": 18,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 21,
+    "published": 24,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
@@ -1851,6 +1869,45 @@
       "receiptSha256": "460d5dacf24fd88fa492e918a7f0642180fe0fdc98a453b4cd73b9844e0ea4a8",
       "image": "docs/screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates-ea5a1a49286b.png",
       "imageSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "72s-exercise-current-drawing-tools-and-original-persistence",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native72-dpr4-a2491194a1e6.json",
+      "receiptSha256": "f1883f034d7f9e4f8a86c4f522b967c385d9231922f11f79ff7411e670b0fd7a",
+      "image": "docs/screenshots/journey/72s-exercise-current-drawing-tools-and-original-persistence-a2491194a1e6.png",
+      "imageSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "73t-build-regular-kernel-polyhedra",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native73-dpr4-16c8e50c00e4.json",
+      "receiptSha256": "06f4857be5029de00b94ded5366fe80a615d0ac536c49821fc8cf2de369b4304",
+      "image": "docs/screenshots/journey/73t-build-regular-kernel-polyhedra-16c8e50c00e4.png",
+      "imageSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "81za-validate-original-split-inputs-and-name-pieces",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native81-dpr4-b9c270157425.json",
+      "receiptSha256": "578e0cc5899c713f276ce480f70bef88f5ccdc47165459956aecfa8da57db56e",
+      "image": "docs/screenshots/journey/81za-validate-original-split-inputs-and-name-pieces-b9c270157425.png",
+      "imageSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": false,

@@ -4549,7 +4549,7 @@ pub mod split_geometry;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 16.1 (81za-validate-original-split-inputs-and-name-pieces)](../../screenshots/journey/81za-validate-original-split-inputs-and-name-pieces.png)
+![Recorded visual output for Lesson 16.1 (81za-validate-original-split-inputs-and-name-pieces)](../../screenshots/journey/81za-validate-original-split-inputs-and-name-pieces-b9c270157425.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16.1
