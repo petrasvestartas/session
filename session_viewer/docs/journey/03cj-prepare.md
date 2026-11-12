@@ -1,6 +1,6 @@
-# 1.3.17 · Prepare the dock before painting
+# 1.2.17 · Prepare the dock before painting
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 11–22 minutes.** [Estimate](typing-load.md).
 

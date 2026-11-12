@@ -1,6 +1,6 @@
-# 1.3.4 · Lay out the command field
+# 1.2.4 · Lay out the command field
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 

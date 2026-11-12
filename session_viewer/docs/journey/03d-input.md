@@ -1,6 +1,6 @@
-# 1.3.25 · Hand commands to the application
+# 1.2.25 · Hand commands to the application
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 22–44 minutes.** [Estimate](typing-load.md).
 

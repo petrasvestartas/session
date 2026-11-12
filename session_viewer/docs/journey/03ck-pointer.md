@@ -1,6 +1,6 @@
-# 1.3.19 · Click the command dock
+# 1.2.19 · Click the command dock
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 26–51 minutes.** [Estimate](typing-load.md).
 

@@ -1,6 +1,6 @@
-# 1.3.14 · Read editing keys before the field
+# 1.2.14 · Read editing keys before the field
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 23–46 minutes.** [Estimate](typing-load.md).
 

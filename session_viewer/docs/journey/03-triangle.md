@@ -1,6 +1,6 @@
-# 1.3.1 · Give the GPU three corners
+# 1.2.1 · Give the GPU three corners
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
@@ -8,7 +8,7 @@ Draw one pink triangle inside the white GPU frame. The shader supplies three cor
 
 ## Type
 
-Continue from [Give browser presentation its own function](02-clear.md). [Save or recover your work](recovery.md).
+Continue from [Rust and the first GPU frame](01-canvas.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/triangle.wgsl`
 

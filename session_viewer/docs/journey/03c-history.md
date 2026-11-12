@@ -1,6 +1,6 @@
-# 1.3.7 · Draw retained command history
+# 1.2.7 · Draw retained command history
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 22–43 minutes.** [Estimate](typing-load.md).
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor, withExpectedSequence, fingerprint, type Files, snippetSource} from './course/model.ts';
+import {course, canonicalCheckpoint, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor, withExpectedSequence, fingerprint, type Files, snippetSource} from './course/model.ts';
 import {save, restore} from './course/checkpoints.ts';
 import {generate} from './course/render.ts';
 import {structure, verify, runCommand, nativeTarget, removeGenerated} from './course/verify.ts';
@@ -29,7 +29,7 @@ function lessonId(name: string) {
         if (!endpoint) throw Error(`Unknown consolidated lesson number: ${name}`);
         return endpoint;
     }
-    if (!/^\d+\.\d+\.\d+$/.test(name)) return name;
+    if (!/^\d+\.\d+\.\d+$/.test(name)) return canonicalCheckpoint(name);
     const lesson = [...book().byId.values()].find(step => step.number === name);
     if (!lesson) throw Error(`Unknown lesson number: ${name}`);
     return lesson.id;

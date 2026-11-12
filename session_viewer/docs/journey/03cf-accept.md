@@ -1,6 +1,6 @@
-# 1.3.13 · Accept or cancel a completion
+# 1.2.13 · Accept or cancel a completion
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 

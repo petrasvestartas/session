@@ -110,18 +110,18 @@ test('adjacent lesson edits share one instruction while supplied validation stay
 });
 
 test('scoped checkpoint replay preserves snapshots, backward reads and nested scopes', () => {
-    const first = expected('01-canvas'), second = expected('02-clear');
+    const first = expected('01-canvas'), second = expected('03-triangle');
     withExpectedSequence(() => {
         const snapshot = expected('01-canvas');
-        assert.deepEqual(expected('02-clear'), second);
+        assert.deepEqual(expected('03-triangle'), second);
         assert.deepEqual(snapshot, first);
         snapshot['src/lib.rs'] = 'external edit';
         assert.deepEqual(expected('01-canvas'), first);
         assert.throws(() => withExpectedSequence(() => {
-            expected('02-clear');
+            expected('03-triangle');
             throw Error('interrupted');
         }), /interrupted/);
-        assert.deepEqual(expected('02-clear'), second);
+        assert.deepEqual(expected('03-triangle'), second);
         assert.throws(() => expected('missing-checkpoint'), /Unknown lesson/);
     });
     assert.deepEqual(expected('01-canvas'), first);
@@ -337,12 +337,14 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     const reading = readingBook(data.steps, plan);
     assert.equal(reading.chapters.length, 22);
     const pilot = reading.chapters[0].sections.flatMap(section => section.lessons);
-    assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3', '1.4']);
+    assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3']);
     const consolidated = plan.chapters.flatMap((chapter: {consolidated?: {steps: string[]}[]}) => chapter.consolidated || []);
     assert.equal(reading.aliases.size, consolidated.reduce((count: number, lesson: {steps: string[]}) => count + lesson.steps.length, 0));
-    assert.equal(reading.aliases.get('01a-gpu')?.page, 'journey/consolidation/01-canvas.md');
+    assert.equal(reading.aliases.get('01-canvas')?.page, 'journey/consolidation/01-canvas.md');
     assert.equal(reading.aliases.get('03d-input')?.anchor, 'checkpoint-03d-input');
-    assert.equal(original.byId.get('01a-gpu')?.number, '1.1.2');
+    assert(!original.byId.has('01a-gpu'));
+    assert.deepEqual(expected('01a-gpu'), expected('01-canvas'));
+    assert.deepEqual(expected('02-clear'), expected('01-canvas'));
     for (const lesson of consolidated) {
         const page = read(path.join(viewer, 'docs', lesson.page));
         for (const id of lesson.steps) assert(page.includes(`id="checkpoint-${id}"`));
@@ -352,7 +354,7 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     malformed.chapters[0].consolidated[0].steps.pop();
     assert.throws(() => readingBook(data.steps, malformed), /retain every checkpoint/);
     const wrongEndpoint = structuredClone(plan);
-    wrongEndpoint.chapters[0].consolidated[0].checkpoint = '01-canvas';
+    wrongEndpoint.chapters[0].consolidated[0].checkpoint = '03-triangle';
     assert.throws(() => readingBook(data.steps, wrongEndpoint), /runnable checkpoint/);
 });
 

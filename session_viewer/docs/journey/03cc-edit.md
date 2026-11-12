@@ -1,6 +1,6 @@
-# 1.3.10 · Edit the command text
+# 1.2.10 · Edit the command text
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 14–28 minutes.** [Estimate](typing-load.md).
 

@@ -3,123 +3,56 @@
   "steps": [
     {
       "id": "01-canvas",
-      "title": "A page that Rust can reach",
+      "title": "Rust and the first GPU frame",
       "page": "journey/01-canvas.md",
       "hours": [
-        1,
-        2
+        2,
+        4
       ],
-      "goal": "Fill the browser window with a canvas and let Rust signal that it has started.",
-      "trace": "HTML canvas → WebAssembly entry point → hidden startup status",
-      "question": "Does seeing the canvas prove that the GPU has drawn anything?",
-      "answer": "No. HTML creates the canvas and CSS gives it a background. The status proves Rust ran; GPU commands begin in the next lesson.",
-      "edits": [
-        {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/01-canvas-01.toml",
-          "before": null,
-          "why": "Create the manifest. cdylib makes browser-loadable code; rlib will let our native checks use the same renderer."
-        },
-        {
-          "path": "index.html",
-          "snippet": "journey/code/01-canvas-fullscreen-1.html",
-          "before": null,
-          "why": "Let the canvas fill the window from the start. Keep startup information hidden; the documentation explains the lesson."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/01-canvas-fullscreen-2.rs",
-          "before": null,
-          "why": "Create Rust’s entry point. The browser calls start after loading WebAssembly; ? returns an error if a required element is missing."
-        }
-      ],
-      "story": "Create a white canvas that fills the window and let Rust write a startup message to the hidden status element. This checks browser startup before we use the GPU.\n\nFrom `session_viewer`, run `npm --prefix ../session_tests run course -- init`. It supplies the dependency lock. Create `workspace/journey/src`, then type the three files below. Keep using this project throughout the course.\n\n`index.html` owns the page; `Cargo.toml` declares libraries; `src/lib.rs` supplies the browser entry point. `Result<(), JsValue>` returns either success with no value or a browser error. `?` stops at a failed window, document or element lookup.\n\nThe canvas has no margin or scrolling. The hidden status keeps startup feedback out of the drawing. For unfamiliar syntax, see [values](../foundations/01-values.md) and [errors](../foundations/05-errors.md).\n\n![HTML fills the window with a white canvas; Rust records its startup result.](../illustrations/journey-01.svg)",
-      "result": "The window is white. In the browser console, evaluate `document.getElementById(\"status\").textContent`. It should say “Rust is running. The canvas is ready.” Rust has started; GPU drawing comes next.",
-      "experiment": "Change the sentence passed to `set_text_content`, save, and read the hidden status again in the browser console. The sentence changes while the white canvas stays still. Restore the original sentence before comparing your code.",
-      "production": "Our entry point will grow into the maintained viewer’s `lib.rs`. Browser setup is deliberately small here; the later application needs winit event routing, resizing and device recovery.",
-      "browser_status": "Rust is running. The canvas is ready.",
-      "browser_caption": "A white canvas fills the window. Rust startup is checked through the hidden status; there is deliberately no visible heading or message."
-    },
-    {
-      "id": "01a-gpu",
-      "title": "Paint the first GPU frame",
-      "page": "journey/01a-gpu.md",
-      "hours": [
-        1,
-        2
-      ],
-      "goal": "Open a browser GPU and paint the whole canvas white.",
-      "trace": "canvas → compatible adapter → device and queue → clear → present",
-      "question": "Why does the render pass end before encoder.finish()?",
-      "answer": "The pass borrows the encoder. Ending its scope releases that borrow so finish can take the encoder and return the recorded commands.",
-      "edits": [
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/01a-gpu-01.rs",
-          "before": "use wasm_bindgen::{prelude::*, JsCast};\n\n#[wasm_bindgen(start)]\npub fn start() -> Result<(), JsValue> {\n    console_error_panic_hook::set_once();\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document.get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.dyn_into()?;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    canvas.set_width((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round().max(1.0) as u32);\n    canvas.set_height((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round().max(1.0) as u32);\n    let status = document.get_element_by_id(\"status\").ok_or(\"Missing status\")?;\n    status.set_text_content(Some(\"Rust is running. The canvas is ready.\"));\n    Ok(())\n}\n",
-          "why": "Start asynchronous GPU setup without blocking the browser. A setup error goes to the developer console."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/01a-gpu-02.rs",
-          "before": null,
-          "why": "Own the device and queue; record and submit one white clear."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/01a-gpu-03.rs",
-          "before": null,
-          "why": "Connect the canvas to an adapter, configure its image and present the clear."
-        }
-      ],
-      "story": "Give the GPU one instruction: clear the canvas to white. The picture will look like lesson 01, but its pixels now come from a real GPU frame.\n\nAn **adapter** chooses a GPU compatible with our canvas surface. A **device** creates resources; its **queue** receives recorded work. A **surface** supplies the image that can appear in the canvas. `.await` waits for adapter/device requests while leaving the browser free.\n\n`Renderer` keeps the device and queue in a `struct`. Its `draw(&self, view)` method borrows those values and a supplied image view. The render pass borrows the encoder inside a brace-delimited scope. End that scope before `finish` consumes the encoder, then submit its commands.\n\n`map_err(error)` converts GPU errors into `JsValue`; `impl ToString` accepts error types that can produce text. `expect` reports failed startup through the panic hook. Descriptor defaults are enough for this first clear. The next lesson adds bounded sizing, colour-view configuration and page feedback.\n\n![Open a compatible GPU, clear its surface image and present it.](../illustrations/journey-01a.svg)",
-      "result": "The canvas stays white. Change `wgpu::Color::WHITE` to `wgpu::Color::BLACK`, save, and check that it turns black. Restore WHITE. These pixels now come from the GPU.",
-      "experiment": "Remove the inner braces around the render pass and keep its named binding alive until finish. Read the borrow error, then restore the scope.",
-      "production": "This is the first complete GPU frame. The next step keeps this drawing operation while separating browser presentation and adding explicit configuration.",
-      "browser_status": "The GPU painted the canvas.",
-      "browser_caption": "Actual Chrome verifies an opaque white GPU canvas at the full initial window size. It intentionally looks like lesson 01: the new result is a submitted GPU clear, not a different drawing.",
-      "frame_constructor": "Renderer::new(device, queue)",
-      "frame": "journey/checks/01a-gpu.rs"
-    },
-    {
-      "id": "02-clear",
-      "title": "Give browser presentation its own function",
-      "page": "journey/02-clear.md",
-      "hours": [
-        1,
-        2
-      ],
-      "goal": "Separate browser presentation from setup and add bounded sizing and error feedback.",
+      "goal": "Create a browser canvas and paint its first frame through wgpu.",
       "trace": "configure within device limits → present(surface, renderer) → independent draw → page feedback",
       "question": "What starts the GPU work, and what makes its image appear in the canvas?",
       "answer": "queue.submit sends the recorded commands to the GPU. The browser presents its canvas image automatically. We still call frame.present to mark the end of our surface frame through wgpu’s shared API; native surface backends use that call to request presentation.",
       "edits": [
         {
+          "path": "Cargo.toml",
+          "snippet": "journey/code/01-frame-1.toml",
+          "before": null,
+          "why": "Create the manifest with the locked wgpu and browser dependencies."
+        },
+        {
+          "path": "index.html",
+          "snippet": "journey/code/01-frame-2.html",
+          "before": null,
+          "why": "Create the full-window canvas and hidden startup status."
+        },
+        {
           "path": "src/lib.rs",
-          "snippet": "journey/code/02-clear-fullscreen-2.rs",
-          "before": "pub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        browser::run().await.expect(\"GPU startup failed\");\n    });\n}\n",
-          "why": "Report startup failure on the page through the browser owner."
+          "snippet": "journey/code/01-frame-3.rs",
+          "before": null,
+          "why": "Start asynchronous GPU setup from the WebAssembly entry point."
         },
         {
           "path": "src/renderer.rs",
-          "snippet": "journey/code/02-clear-fullscreen-4.rs",
-          "before": "pub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {\n        Self { device, queue }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView) {\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n                    depth_slice: None,\n                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),\n                        store: wgpu::StoreOp::Store,\n                    },\n                })],\n                ..Default::default()\n            });\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n}\n",
-          "why": "Name the render pass and spell out the clear colour for later experiments."
+          "snippet": "journey/code/01-frame-4.rs",
+          "before": null,
+          "why": "Record and submit the clear pass."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/02-clear-window-1.rs",
-          "before": "use crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue};\n\nfn error(value: impl ToString) -> JsValue { JsValue::from_str(&value.to_string()) }\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document.get_element_by_id(\"canvas\").ok_or(\"No canvas\")?.dyn_into()?;\n    let instance = wgpu::Instance::default();\n    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone())).map_err(error)?;\n    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {\n        compatible_surface: Some(&surface), ..Default::default()\n    }).await.map_err(error)?;\n    let (device, queue) = adapter.request_device(&Default::default()).await.map_err(error)?;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let limit = device.limits().max_texture_dimension_2d;\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width); canvas.set_height(height);\n    let config = surface.get_default_config(&adapter, width, height).ok_or(\"No surface format\")?;\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue);\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame) | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        _ => return Err(\"No surface image\".into()),\n    };\n    renderer.draw(&frame.texture.create_view(&Default::default()));\n    frame.present();\n    document.get_element_by_id(\"status\").ok_or(\"No status\")?.set_text_content(Some(\"The GPU painted the canvas.\"));\n    Ok(())\n}\n",
-          "why": "Separate presentation, bound the canvas size and choose the colour view explicitly."
+          "snippet": "journey/code/01-frame-5.rs",
+          "before": null,
+          "why": "Configure the bounded surface, draw and present its texture."
         }
       ],
-      "story": "Keep the white GPU frame and separate its browser presentation into `present`. Setup requests the device and configures the surface; presentation obtains an image, calls `Renderer::draw`, then presents it.\n\nClamp canvas dimensions to the device’s texture limit, with at least one pixel per axis. This prevents a zero-sized or oversized surface. CSS still determines the visible window area; lesson 20 handles later resizes and display density.\n\nAllow an sRGB texture view and use it for drawing. It converts linear colour values into display encoding. The triangle pipeline added next must use that same view format.\n\n`Arc::new` gives wgpu’s error callback a shared owner. The short `|error| ...` closures convert errors into page feedback. `report` exposes startup failures through the existing status element; it adds no feature control.\n\n![The browser owns setup and presentation; the renderer owns the submitted clear.](../illustrations/journey-02.svg)",
+      "story": "Create one browser application with five files: the manifest, HTML page, entry point, renderer and surface adapter. Keep these files in the same project throughout the course.\n\nA GPU adapter identifies a usable backend; its device creates resources and its queue accepts work. A surface connects those resources to the HTML canvas. CSS dimensions are logical pixels; multiply by device pixel ratio and clamp to the device limit before configuring the texture.\n\nThe renderer records one clear pass. Its inner scope releases the encoder borrow before `finish` consumes the encoder. Submission schedules the commands; `present` releases the acquired frame for display.\n\nThe entry point starts asynchronous GPU setup without blocking the browser. Errors reach the developer console and the hidden status element. This checkpoint draws once: reload after resizing.",
       "result": "The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: it becomes light grey through the sRGB view. Restore all three values to `1.0`.",
-      "experiment": "Compare width and height with the device limit in run. Explain why a drawing buffer needs pixel dimensions even though CSS already fills the window.",
-      "production": "These owners become the production GPU device setup and presentation modules. The drawing operation stays independent of page lookup. Surface resizing, retry and recovery are later lessons, not hidden in this one.",
+      "experiment": "Predict the result of setting the clear colour’s green and blue components to zero. Change those values in Renderer::draw, reload, and verify a red canvas. Restore the original values.",
+      "production": "This checkpoint introduces browser setup and GPU submission in one runnable subject. Later subjects still rewrite these files; finished-file ownership across the complete course remains unfinished.",
       "browser_status": "The GPU painted the canvas.",
-      "browser_caption": "The actual opaque white GPU frame is deliberately identical to lesson 01a. This step changes presentation ownership, bounded configuration and error feedback.",
-      "image_same_as": "01a-gpu"
+      "browser_caption": "Verify GPU startup and the clear-colour experiment; a white HTML page alone is not a rendered-frame check.",
+      "frame_constructor": "Renderer::new(device, queue)",
+      "frame_mode": "clear"
     },
     {
       "id": "03-triangle",
@@ -92138,5 +92071,9 @@
       "image_same_as": "96u-fit-original-box-corners-to-the-free-canvas"
     }
   ],
-  "inventory": "journey/current-viewer-2026-11-05.json"
+  "inventory": "journey/current-viewer-2026-11-05.json",
+  "aliases": {
+    "01a-gpu": "01-canvas",
+    "02-clear": "01-canvas"
+  }
 }

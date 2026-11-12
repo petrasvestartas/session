@@ -8,10 +8,6 @@
           "first": "01-canvas"
         },
         {
-          "title": "Browser presentation",
-          "first": "02-clear"
-        },
-        {
           "title": "Shaders and the command dock",
           "first": "03-triangle"
         },
@@ -26,19 +22,9 @@
           "title": "Rust and the first GPU frame",
           "page": "journey/consolidation/01-canvas.md",
           "steps": [
-            "01-canvas",
-            "01a-gpu"
+            "01-canvas"
           ],
-          "checkpoint": "01a-gpu"
-        },
-        {
-          "id": "02-clear",
-          "title": "Browser presentation",
-          "page": "journey/consolidation/02-clear.md",
-          "steps": [
-            "02-clear"
-          ],
-          "checkpoint": "02-clear"
+          "checkpoint": "01-canvas"
         },
         {
           "id": "03-triangle",

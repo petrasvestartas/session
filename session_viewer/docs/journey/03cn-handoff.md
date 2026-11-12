@@ -1,6 +1,6 @@
-# 1.3.24 · Return accepted application commands
+# 1.2.24 · Return accepted application commands
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 29–57 minutes.** [Estimate](typing-load.md).
 

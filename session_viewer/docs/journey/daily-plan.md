@@ -6,7 +6,6 @@ Work through one coherent subject at a time and save partial work at file bounda
 
 - [1.1 · Rust and the first GPU frame](consolidation/01-canvas.md)
 
-- [1.2 · Browser presentation](consolidation/02-clear.md)
 
 - [1.3 · Shaders and the command dock](consolidation/03-triangle.md)
 

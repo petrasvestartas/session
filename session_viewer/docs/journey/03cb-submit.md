@@ -1,6 +1,6 @@
-# 1.3.9 · Submit command text once
+# 1.2.9 · Submit command text once
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 14–27 minutes.** [Estimate](typing-load.md).
 

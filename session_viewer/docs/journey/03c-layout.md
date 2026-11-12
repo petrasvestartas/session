@@ -1,6 +1,6 @@
-# 1.3.21 · Share the production dock layout
+# 1.2.21 · Share the production dock layout
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 29–58 minutes.** [Estimate](typing-load.md).
 

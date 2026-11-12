@@ -1,4 +1,4 @@
-# 1.3 · Shaders and the command dock
+# 1.2 · Shaders and the command dock
 
 **Steps:** 26 · **Source:** [`lib.rs`](../../../src/lib.rs) · [`engine/pipelines/mod.rs`](../../../src/engine/pipelines/mod.rs) · [`command_dock/mod.rs`](../../../src/command_dock/mod.rs) · [`view.rs`](../../../src/command_dock/view.rs)
 

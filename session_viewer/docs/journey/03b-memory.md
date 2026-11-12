@@ -1,6 +1,6 @@
-# 1.3.5 · Give the command field its memory
+# 1.2.5 · Give the command field its memory
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 21–42 minutes.** [Estimate](typing-load.md).
 

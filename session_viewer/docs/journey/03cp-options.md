@@ -1,6 +1,6 @@
-# 1.3.23 · Reserve command-row space for active tool values
+# 1.2.23 · Reserve command-row space for active tool values
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 

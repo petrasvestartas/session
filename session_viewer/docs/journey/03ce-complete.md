@@ -1,6 +1,6 @@
-# 1.3.12 · Complete a command name
+# 1.2.12 · Complete a command name
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 22–44 minutes.** [Estimate](typing-load.md).
 

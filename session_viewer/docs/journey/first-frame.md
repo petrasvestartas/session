@@ -6,7 +6,7 @@ Create a browser canvas and paint its first frame through wgpu.
 
 Install the course's Rust, WebAssembly and Trunk prerequisites. This subject introduces `Cargo.toml`, `index.html`, `src/lib.rs`, `src/browser.rs` and `src/renderer.rs`.
 
-This is a consolidation draft. Its source matches the existing `02-clear` checkpoint; it is not yet the active cumulative route. Later rendering subjects still replace these files, so their integration must be designed before this subject can satisfy the finished-file rule.
+This is the active [first-frame checkpoint](01-canvas.md). It replaces the former `01-canvas`, `01a-gpu` and `02-clear` executable steps while preserving their cumulative endpoint. Later rendering subjects still replace these files, so their integration must be designed before this subject can satisfy the finished-file rule.
 
 ## Build
 
@@ -60,4 +60,4 @@ Submission sends recorded drawing commands to the GPU. Presentation makes the ac
 
 ## Validation
 
-Apart from named teaching markers, the five source files match the reconstructed `02-clear` output. Browser execution of this consolidated draft and its integration into the active course remain pending. Source equality does not establish runtime success or finished-file ownership.
+Apart from named teaching markers, the five source files match the reconstructed `02-clear` output. The active checkpoint passes a WebAssembly build, native 640 × 480 GPU readback, and browser checks at 1280 × 720 and 390 × 844 (density 2). Every pixel matches white; rebuilding the prediction experiment produces red in both viewports. These checks use software Vulkan/SwiftShader, not hardware-driver validation. Source equality does not establish runtime success or finished-file ownership.

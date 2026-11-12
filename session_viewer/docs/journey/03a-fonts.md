@@ -1,6 +1,6 @@
-# 1.3.2 · Prepare the command fonts and painter
+# 1.2.2 · Prepare the command fonts and painter
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 

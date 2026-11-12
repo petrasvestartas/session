@@ -1,6 +1,6 @@
-# 1.3.22 · Align and measure the command row
+# 1.2.22 · Align and measure the command row
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 5–9 minutes.** [Estimate](typing-load.md).
 

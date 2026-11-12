@@ -31,6 +31,7 @@ export function signature(id: string) {
         ...Object.fromEntries(assetsFor(id).map(name => [name, hash(fs.readFileSync(path.join(viewer, name)))])),
         kernel: fingerprint(Object.fromEntries(inputs.map(file => [path.relative(kernel, file), hash(fs.readFileSync(file))]))),
         constructor: step.frame_constructor || '',
+        frame_mode: step.frame_mode || 'triangle',
         frame_size: JSON.stringify(step.frame_size || [640, 480]),
         ...(step.frame ? {frame: read(path.join(docs, step.frame))} : {}),
         harness: read(path.join(docs, 'journey/frame.rs')), checker: read(fileURLToPath(import.meta.url))});
@@ -103,7 +104,7 @@ export function verify(ids: string[], stored = false, all = process.env.COURSE_V
             assert(record.commands.some((command: {name: string; args: string[]}) =>
                 command.name === `${id}-web` && command.args.includes('--release')), `${id}: web bundle must be optimized`);
             if (step.tests) assert(record.commands.some((command: {name: string}) => command.name === `${id}-tests`));
-            if (id !== '01-canvas') assert(record.pixels);
+            assert(record.pixels, `${id}: native pixel verification is required`);
             if (id === '04-input') assert(record.roundtrip);
             console.log(`${id}: evidence current`);
             continue;
@@ -125,8 +126,8 @@ export function verify(ids: string[], stored = false, all = process.env.COURSE_V
                 fs.mkdirSync(path.dirname(bundle), {recursive: true});
                 fs.cpSync(path.join(target, 'dist'), bundle, {recursive: true});
             }
-            if (id !== '01-canvas') {
-                const args = id === '02-clear' ? 'device, queue' : 'device, queue, format';
+            {
+                const args = step.frame_mode === 'clear' ? 'device, queue' : 'device, queue, format';
                 const constructor = step.frame_constructor || `Renderer::new(${args})`;
                 const [width, height] = step.frame_size || [640, 480];
                 assert([width, height].every(value => Number.isInteger(value) && value > 0 && value <= 4096));
@@ -147,7 +148,7 @@ export function verify(ids: string[], stored = false, all = process.env.COURSE_V
                 code = code.replace('// COURSE_DRAW', draw);
                 write(path.join(target, 'examples/frame.rs'), code);
                 const command = ['cargo', 'run', '--example', 'frame', '--locked', '--target', nativeTarget(), '-j1'];
-                record.commands.push(runCommand(`${id}-frame`, command, target, {COURSE_FRAME: id === '02-clear' ? 'clear' : 'triangle'}));
+                record.commands.push(runCommand(`${id}-frame`, command, target, {COURSE_FRAME: step.frame_mode || 'triangle'}));
                 const frame = path.join(target, 'frame.ppm');
                 const original = ppm(frame).pixels;
                 write(path.join(pictures, `${id}.png`), png(frame));

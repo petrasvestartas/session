@@ -1,6 +1,6 @@
-# 1.3.16 · Browse matching names
+# 1.2.16 · Browse matching names
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 23–45 minutes.** [Estimate](typing-load.md).
 

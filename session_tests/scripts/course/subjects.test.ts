@@ -55,10 +55,14 @@ test('field-renaming edits collapse to their complete result', () => {
 });
 
 test('the first GPU subject replaces three checkpoints with five final files', () => {
-    const steps = course().steps.slice(0, 3);
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/first-frame/checkpoints.json'), 'utf8'));
+    const steps = archived.steps;
     assert.deepEqual(steps.map(step => step.id), ['01-canvas', '01a-gpu', '02-clear']);
     const result = collapseSubject({}, steps, file => fs.readFileSync(path.join(docs, file), 'utf8'));
-    assert.deepEqual(result.files, expected('02-clear'));
+    assert.deepEqual(result.files, archived.endpoint);
+    assert.deepEqual(result.files, expected('01-canvas'));
+    assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
+    assert.equal(course().steps.length, 1359);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));

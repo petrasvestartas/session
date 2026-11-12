@@ -1,6 +1,6 @@
-# 1.4.1 · Make a choice change the picture
+# 1.3.1 · Make a choice change the picture
 
-**Chapter 1 · Browser, Rust and the GPU · Section 1.4 · Commands that change the view** · [Contents](contents.md)
+**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Commands that change the view** · [Contents](contents.md)
 
 **Typing: 12–24 minutes.** [Estimate](typing-load.md).
 

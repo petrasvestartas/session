@@ -1,5 +1,5 @@
 {
-  "status": "draft; not the active course",
+  "status": "active executable checkpoint; later-subject ownership remains unfinished",
   "subject": "Rust and the first GPU frame",
   "checkpoint": "01-canvas",
   "replaces": [
@@ -37,8 +37,60 @@
   ],
   "validation": {
     "source": "Verified: named snippets reconstruct the exact existing 02-clear output; subjects.test.ts",
-    "consolidation": "Three checkpoints collapse to one subject with five final file introductions",
+    "consolidation": "Three executable checkpoints replaced by one, preserving their exact cumulative endpoint",
     "ownership": "Later subjects still rewrite these files; full ownership consolidation remains pending",
-    "browser": "pending"
+    "browser": "Passed white frame and red-clear prediction experiment at desktop and upright phone sizes with Vulkan SwiftShader",
+    "native": "Passed native Vulkan SwiftShader readback: every 640x480 pixel is white",
+    "wasm": "Passed Trunk WebAssembly build",
+    "browserCases": [
+      {
+        "browser": "156.0.8078.79",
+        "renderer": "Vulkan SwiftShader software WebGPU",
+        "cases": [
+          {
+            "width": 1280,
+            "height": 720,
+            "deviceScaleFactor": 1,
+            "colour": "white",
+            "errors": [],
+            "file": "white-1280x720.png",
+            "sha256": "3878570f4a62a0d65f57cf1754e0269e56ec797f4e36e26b44c172eb6e800401"
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "deviceScaleFactor": 2,
+            "colour": "white",
+            "errors": [],
+            "file": "white-390x844.png",
+            "sha256": "10601c9c4d775496fe9ae0c957515adc629f8aad09cb51c27401b71a841dec24"
+          }
+        ]
+      },
+      {
+        "browser": "156.0.8078.79",
+        "renderer": "Vulkan SwiftShader software WebGPU",
+        "cases": [
+          {
+            "width": 1280,
+            "height": 720,
+            "deviceScaleFactor": 1,
+            "colour": "red",
+            "errors": [],
+            "file": "red-1280x720.png",
+            "sha256": "97280dadd5fefe81d396ec1fe6544519405e4f6343a799df297b9f06e6c61fce"
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "deviceScaleFactor": 2,
+            "colour": "red",
+            "errors": [],
+            "file": "red-390x844.png",
+            "sha256": "829fca65f73542f58124902980372b7156af131284d4e940a846746cbdaa464e"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,4 +1,4 @@
-# 1.4 · Commands that change the view
+# 1.3 · Commands that change the view
 
 **Steps:** 1 · **Source:** [`State`](../../../src/state.rs) · [`engine/gpu/frame.rs`](../../../src/engine/gpu/frame.rs)
 

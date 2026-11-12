@@ -23,6 +23,7 @@ export interface Step {
     browser_check?: string;
     frame?: string;
     frame_constructor?: string;
+    frame_mode?: 'clear' | 'triangle';
     frame_size?: [number, number];
     tests?: boolean;
     browser_actions?: ({command: string} | {canvas: [number, number]} | {viewport: [number, number]} | {drag: [[number, number], [number, number]]} | {wheel: number} | {key: string} | {file: string; fit?: boolean})[];
@@ -30,7 +31,7 @@ export interface Step {
     lock?: string;
     assets?: string[];
 }
-export interface Course { release: string; inventory?: string; steps: Step[] }
+export interface Course { release: string; inventory?: string; aliases?: Record<string, string>; steps: Step[] }
 
 export const read = (file: string) => fs.readFileSync(file, 'utf8');
 export const snippetSource = (name: string) => read(path.join(docs, name)).replace(
@@ -67,6 +68,7 @@ export function resolveJourneyImage(file: string, expectedSha256?: string, direc
     return verify(canonical, alias.sha256);
 }
 export const course = (): Course => sequence?.data || json(path.join(docs, 'journey/course.json'));
+export const canonicalCheckpoint = (id: string): string => course().aliases?.[id] || id;
 export const reference = () => json(path.join(docs, 'typing/manifest.json'));
 export const sorted = (files: Files) => Object.fromEntries(Object.keys(files).sort().map(name => [name, files[name]]));
 export const fingerprint = (files: Files) => hash(JSON.stringify(sorted(files)));
@@ -104,6 +106,7 @@ export function typingLoad(step: Step) {
 }
 
 export function lockFor(id: string, steps: Step[] = course().steps): string {
+    id = canonicalCheckpoint(id);
     let lock = 'journey/release/Cargo.lock';
     for (const step of steps) {
         lock = step.lock || lock;
@@ -113,6 +116,7 @@ export function lockFor(id: string, steps: Step[] = course().steps): string {
 }
 
 export function assetsFor(id: string): string[] {
+    id = canonicalCheckpoint(id);
     const assets = new Set<string>();
     for (const step of course().steps) {
         for (const name of step.assets || []) assets.add(name);
@@ -165,6 +169,7 @@ export function withExpectedSequence<T>(run: () => T): T {
 }
 
 export function expected(id: string): Files {
+    id = canonicalCheckpoint(id);
     const state = sequence || {data: course(), at: -1, files: {}};
     const end = state.data.steps.findIndex(step => step.id === id);
     if (end < 0) throw Error(`Unknown lesson: ${id}`);
