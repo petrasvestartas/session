@@ -7053,7 +7053,7 @@ Replace it with:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 12.1 (66af-connect-browser-save-open-url-adoption)](../../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
+![Recorded visual output for Lesson 12.1 (66af-connect-browser-save-open-url-adoption)](../../screenshots/journey/66af-connect-browser-save-open-url-adoption-0f28c3277327.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 12.1

@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:25:49.171Z",
+  "id": "69af-exercise-independent-original-cad-reuse",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69af-exercise-independent-original-cad-reuse-41d99a3585880e54cc2e\\capture.json.gz",
+    "sha256": "041e3da1a1cbfe2385deaa1dac203f81e904e6494032995df14c14a95c83502c",
+    "bytes": 137100
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-slot-proposal-01\\case69a\\capture-result.json",
+    "sha256": "64b4fa2045302601256b2a5681d7d424babeff0b24a863d29c55378b5cfbadc3"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-source22-54d5cd15-69a-execution.json",
+    "sha256": "35e7c54593aa09fcaff7b9e5ea75b72a6b0f8662f40a03bb54cba68ef5b62b36"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-slot-proposal-01\\case69a\\bounded-terminal.json",
+    "sha256": "70c0f3d1ec74d8749a94c5369cd1e95bce717a9286420446cfd407003a93d710"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\69af-exercise-independent-original-cad-reuse-e5df8d852cd6.png",
+    "sha256": "e5df8d852cd60d767042260544ba48dedb3b8e3b4b8e54ddd7c1f97d63293547"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\69af-exercise-independent-original-cad-reuse.png",
+    "sha256": "2b7289fbe5c2914e0f16e937b652a76fc26651c5ac6d24160f40e7dfcec21010"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. Two separately placed CAD blocks with circular bores are fully framed: one blue and the second selected gold with heavier black edge emphasis. Curved bore boundaries are smooth without triangle wires; face shading and independent colors remain visible. Actual fixture asserts two objects and two original CAD walks. Source-bound rawDPR4 Native IMAGE only; no canonical640 pixel, browser callback, other source reuse or later global-contour acceptance. Four historical aliases/pixels preserved.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 4 historical aliases and their original pixels remain unchanged. Two independently placed CAD instances from AddShapeReuse, second selected; original fixture asserts two CAD walks and two objects. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-slot-proposal-01\\case69a\\publication.json",
+    "sha256": "b06d0752a95d82c14a147b235ea3b403b2c1a35110b782afba1e9cd998ebf923"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69af-exercise-independent-original-cad-reuse-41d99a3585880e54cc2e\\publication.json",
+    "sha256": "0385eba3350962acfb7cadf781ab289b337c647bb05fe8d52aaae19a7b4168d8"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69af-exercise-independent-original-cad-reuse-41d99a3585880e54cc2e\\retirement.json.gz",
+    "sha256": "b57c302f77c0970c4ffb4f666ff5484cfa3a78b14034d0abffd2113c6137f6a3"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69af-exercise-independent-original-cad-reuse-41d99a3585880e54cc2e\\retired.json",
+    "sha256": "860cd53b208d57a8f9b15d7b2891eb21dc807d55a27c830f13253c93e4e343ba"
+  }
+}

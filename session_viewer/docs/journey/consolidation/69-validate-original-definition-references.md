@@ -4332,7 +4332,7 @@ mod instance_scene_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 13.1 (69i-check-sharing-precision-history-and-release)](../../screenshots/journey/69i-check-sharing-precision-history-and-release.png)
+![Recorded visual output for Lesson 13.1 (69i-check-sharing-precision-history-and-release)](../../screenshots/journey/69i-check-sharing-precision-history-and-release-29ffdc4a7fc9.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 13.1

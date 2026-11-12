@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:23:02.192Z",
+  "id": "69i-check-sharing-precision-history-and-release",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69i-check-sharing-precision-history-and-release-faee32d7b46d47a16c50\\capture.json.gz",
+    "sha256": "aeaa34b1898040840c7dcf76de11cabcbd858d7df2dbf1c7f91fb0648e89d59d",
+    "bytes": 135893
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native66-69-slot-proposal-03\\case69\\capture-result.json",
+    "sha256": "da340e740addb5a3a899b9acb84edee512fcab092256336d263b02344ad8443f"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native66-69-source22-selection-67564a23-69-execution.json",
+    "sha256": "f99aa87a2c4923d5131a7a73972b7926d6d6b484d8e320ab22ad9017301ef222"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native66-69-slot-proposal-03\\case69\\bounded-terminal.json",
+    "sha256": "c5f1d08a58f0beba145860a5849d48c2434dcf455d7b3abdc83c3bff31166c58"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\69i-check-sharing-precision-history-and-release-29ffdc4a7fc9.png",
+    "sha256": "29ffdc4a7fc918fb5cd159655246d3d5558ec69f47a783d932087fe507d78431"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\69i-check-sharing-precision-history-and-release.png",
+    "sha256": "daae1ad7fe151abcf937c2d06ab36f8dade3a5059d821b4a050713aeeb62a11d"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. The CAD block/bore and partially occluded parametric surface retain blue faces and staged black boundaries. Four streamed points remain distinct: red, blue, yellow and a larger local gold selected marker. The original fixture asserts four source points, full-u32 original point4294967295 and incomplete archive rejection. Local selection no longer tints every point. RawDPR4 Native IMAGE draw assertions only; no canonical640 pixels, browser callback, dense cloud or later global-contour acceptance. All12 old aliases/pixels retained.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 12 historical aliases and their original pixels remain unchanged. Original CAD body, parametric surface and four streamed source points, with full-u32 original point highlighted; incomplete archive rejection retained. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native66-69-slot-proposal-03\\case69\\publication.json",
+    "sha256": "817a9a71fadc527a11eeba2c51d6c9491ae97c2eea19f3d75e218403b92c7aed"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69i-check-sharing-precision-history-and-release-faee32d7b46d47a16c50\\publication.json",
+    "sha256": "eb627cbf16aaea98cc24f12e5f267ab09c8adec79301d935d1c7c43f62353d15"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69i-check-sharing-precision-history-and-release-faee32d7b46d47a16c50\\retirement.json.gz",
+    "sha256": "05cc14a9bd3ac2fc7cfc5bce323511a146f94d3a39db8889c9cf7aa06335d094"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-69i-check-sharing-precision-history-and-release-faee32d7b46d47a16c50\\retired.json",
+    "sha256": "7691d9dec489c1b27add9fa1dfb2dfd759eaa865dbc62d0c499fdbc4defba194"
+  }
+}

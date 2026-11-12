@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:27:03.830Z",
+  "id": "71ze-resolve-original-relative-and-polar-coordinates",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-71ze-resolve-original-relative-and-polar-coordinates-a95ba5c3f07470863980\\capture.json.gz",
+    "sha256": "80ca6e779ee81107ddf86b4224acde06876fc6a6e2b1efafab70e8e07798869f",
+    "bytes": 142642
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-slot-proposal-01\\case71\\capture-result.json",
+    "sha256": "cb91bf0f4050a9f282773c2c736feb4522ef7146d5ef72d970f084b62413e159"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-source22-54d5cd15-71-execution.json",
+    "sha256": "4a8edb39990c73d5b600810d21bdfd8e1609025568d91a542c3c80411a9dbf03"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-slot-proposal-01\\case71\\bounded-terminal.json",
+    "sha256": "e4d0c89f1e3125621b321305ec4c6aed78bd3c517d8186f814ff8af9c9a337ca"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\71ze-resolve-original-relative-and-polar-coordinates-ea5a1a49286b.png",
+    "sha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\71ze-resolve-original-relative-and-polar-coordinates.png",
+    "sha256": "ede952d022e5e620987eb013e8c797b123e388c1401e3f3c8ec764e95a5c03c0"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. The actual AddSheet fixture shows a complete heavy black rectangular physical-pen boundary and a thin blue horizontal hairline against white, fully framed. The Native draw asserts sheet geometry/row usage[1,1]. This simple sheet is the staged fixture; checkpoint title does not imply a polar-coordinate diagram. RawDPR4 Native IMAGE only, no canonical640 pixel or browser callback acceptance. All24 old aliases and pixels retained.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 24 historical aliases and their original pixels remain unchanged. Original drawing sheet fixture with physical black pens and blue hairline; one geometry and one row asserted by Native draw. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native69a-71-slot-proposal-01\\case71\\publication.json",
+    "sha256": "65b11377e094f7808db18e3d1275d21d41200c6ac38f9ad33f2a551a7eab1746"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-71ze-resolve-original-relative-and-polar-coordinates-a95ba5c3f07470863980\\publication.json",
+    "sha256": "7bf791a8d6345cc217a0786a947d924d1aa835f29d1f8c5f95183f4116421fef"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-71ze-resolve-original-relative-and-polar-coordinates-a95ba5c3f07470863980\\retirement.json.gz",
+    "sha256": "f782f21dfa18bd7706c79fe17d4899ef77760e96b002cf0ee951ceb41d3e572c"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-71ze-resolve-original-relative-and-polar-coordinates-a95ba5c3f07470863980\\retired.json",
+    "sha256": "33ba2db0510f73f2d20c76f7d3842bfb5608f48b3e0ce30c9276a65726e882d7"
+  }
+}
