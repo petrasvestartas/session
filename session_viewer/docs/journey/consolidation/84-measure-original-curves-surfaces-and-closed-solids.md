@@ -6010,7 +6010,7 @@ mod tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 16.4 (84zod-explode-supported-original-families)](../../screenshots/journey/84zod-explode-supported-original-families.png)
+![Recorded visual output for Lesson 16.4 (84zod-explode-supported-original-families)](../../screenshots/journey/84zod-explode-supported-original-families-355e633aaacf.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16.4

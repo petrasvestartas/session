@@ -2430,7 +2430,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 17.1 (86r-cache-projection-and-finish-current-reports)](../../screenshots/journey/86r-cache-projection-and-finish-current-reports.png)
+![Recorded visual output for Lesson 17.1 (86r-cache-projection-and-finish-current-reports)](../../screenshots/journey/86r-cache-projection-and-finish-current-reports-68d4d01e7068.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 17.1
