@@ -913,7 +913,7 @@ fn actual_screen_text_overlay_does_not_create_scene_pick_owners_or_reupload_geom
 
 ## Build & Run
 
-![Recorded visual output for Lesson 10.3 (61d-glyphs)](../../screenshots/journey/61d-glyphs.png)
+![Recorded visual output for Lesson 10.3 (61d-glyphs)](../../screenshots/journey/61d-glyphs-0cc8b191590c.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 10.3

@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T01:34:02.460Z",
+  "id": "63h-outline",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-63h-outline-ddc9d6e55c4f8050a731\\capture.json.gz",
+    "sha256": "2883ace34d3bd29be3b450f9969542211908bcde32245783b2ddc505005dca77",
+    "bytes": 118049
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native61-63-slot-proposal-01\\case63\\capture-result.json",
+    "sha256": "811642623455e5be2c06a77a6c65266cb823da160f2e72db52f991f7ba867aef"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native61-63-source20-a0eef456-63-execution.json",
+    "sha256": "2662f7ad3a48bdf4ccbbb6de1e7dda86dcc31a422cdb570bb994d7d6e382898a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native61-63-slot-proposal-01\\case63\\bounded-terminal.json",
+    "sha256": "2a0bfc156c2698c4ffc50629e169e4274940cdb797de0a93013f46490888e340"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+    "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\63h-outline-136856a71f43.png",
+    "sha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\63h-outline.png",
+    "sha256": "641970ad068160f367d33830690201e0d2f04f49998711e77f2960398166929e"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. Selected CAD block faces remain yellow with a shaded inner bore. Outer silhouette and visible near bore contour have stronger black ink, while original source borders and the cylindrical seam remain visible. No triangulation wires, missing face region or clipping is visible. This is the actual staged63h-outline contour fixture; it does not retroactively add silhouettes to lesson55 or qualify all later global-outline paths. Native rawDPR4 IMAGE only; no canonical640 or browser claim.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 24 historical aliases and their original pixels remain unchanged. Selected original CAD block with bore; yellow faces and actual visible outer and bore contour ink. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native61-63-slot-proposal-01\\case63\\publication.json",
+    "sha256": "896e07711edcc9aca05bd8d0e30b70181637b69a28059339f44694b373a4dd0d"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-63h-outline-ddc9d6e55c4f8050a731\\publication.json",
+    "sha256": "fbacbb333f589a1f727b02b7b5a01f4e4a97d143291f4e72dd9104e16cb46442"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-63h-outline-ddc9d6e55c4f8050a731\\retirement.json.gz",
+    "sha256": "357bbfceefbd6c4d9f3888e7339c6f00362eb1d33c2a2b455b31b94d342120af"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-63h-outline-ddc9d6e55c4f8050a731\\retired.json",
+    "sha256": "261660909b6a134dc2902dff2e6abc7e95bc17e7662275a6ba343d422761b03f"
+  }
+}

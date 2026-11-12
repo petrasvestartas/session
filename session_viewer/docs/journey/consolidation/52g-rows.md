@@ -1207,7 +1207,7 @@ mod hierarchy_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 8.2 (52k-tree)](../../screenshots/journey/52k-tree.png)
+![Recorded visual output for Lesson 8.2 (52k-tree)](../../screenshots/journey/52k-tree-363e6b24f861.png)
 
 ```sh
 cd workspace/journey

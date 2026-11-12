@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T01:25:48.008Z",
+  "id": "52k-tree",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-bf99b42981cd58408352\\capture.json.gz",
+    "sha256": "d00aeda2b459786b8c0bc739de75bb6c2cd3b01e0ced6689a52d23f9870d8e52",
+    "bytes": 103114
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native52-53-slot-proposal-03\\case52\\capture-result.json",
+    "sha256": "1c37b49e97fbfac6d3acf86d12640ea73e74be472fa1b656b55ea1fbf9d82345"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native52-53-source20-e95cfc5c-52-execution.json",
+    "sha256": "6c4944b8bade52fe8773de21da732cff98cb6f946afece06c4bbe5b685fdf731"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native52-53-slot-proposal-03\\case52\\bounded-terminal.json",
+    "sha256": "12e51811e72cf49175a5a8aca723bf7d1a72b4d1185b9c54f9f752aecd72120b"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+    "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected every original 2560x1920 pixel in four unfiltered 1280x960 tiles. The editable parent post is selected yellow; readonly attribute beam and other original post remain visible brown, with black source boundaries and the coloured manipulation gizmo. Occlusion and framing fit the staged 52k-tree nested-selection fixture. This is the raw DPR4 Native illustration, not a canonical 640-pixel assertion or website/browser acceptance.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 22 historical aliases and their original pixels remain unchanged. Nested scene with editable parent selected and readonly attributes still visible but not pickable. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native52-53-slot-proposal-03\\case52\\publication.json",
+    "sha256": "4746054efed218b7b351be19b096958c50d402796465509607b22818ccc7cc65"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-bf99b42981cd58408352\\publication.json",
+    "sha256": "9d4b5bc811f8163b45befc101609f1c0fb9837da131f3fbdf3cf3a8ada3c4ab3"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-bf99b42981cd58408352\\retirement.json.gz",
+    "sha256": "cd929e59074a4b7526f47f8f4d6ea71b1e99977fa3250ef6b03cfe1f29d42e2f"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-bf99b42981cd58408352\\retired.json",
+    "sha256": "332cd8f79699543d971d043844e0f785985ad1f179b9c6fdee0175c734ddfcb0"
+  }
+}

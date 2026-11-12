@@ -1658,7 +1658,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 11.1 (63h-outline)](../../screenshots/journey/63h-outline.png)
+![Recorded visual output for Lesson 11.1 (63h-outline)](../../screenshots/journey/63h-outline-136856a71f43.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 11.1

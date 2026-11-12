@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T01:28:41.387Z",
+  "id": "53u-layers",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53u-layers-f4691bb6e45ed4595da7\\capture.json.gz",
+    "sha256": "131c19f02afe809c07bbf92137e695bcd7d9ef9c69f03c60aea84bfd363a7de1",
+    "bytes": 105270
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native53-slot-proposal-01\\case53\\capture-result.json",
+    "sha256": "300dd16d9b2737e46c6cc70229f0c4596477e4ec6ee5104a8f3d7d48edb82c90"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native53-source20-eeb13eb7-53-execution.json",
+    "sha256": "368021bb41a71e51c22ecb0eebc0f4a48187bbcec06a30ee0a70f5db9209116b"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native53-slot-proposal-01\\case53\\bounded-terminal.json",
+    "sha256": "b3a8d452db32d40fceb8a25eb6fa80a1f5e1719c88c56f0ffdf864f9aeecd591"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+    "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original 2560x1920 pixels in four unfiltered 1280x960 tiles. Both Posts members appear blue with shaded faces; the unrelated original beam remains brown. Black original-source boundaries remain visible and the fixture is framed without clipping. This matches the staged 53u-layers inherited face-colour scope; readonly pick exclusion is an executed draw assertion, not inferred from pixels. Raw DPR4 Native illustration only, with no canonical640 or website/browser acceptance.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 24 historical aliases and their original pixels remain unchanged. Nested scene with Posts face colour derived as blue and unrelated original source retaining its own colour. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native53-slot-proposal-01\\case53\\publication.json",
+    "sha256": "8aaa3d3294dbc36714975554789840471d1ddd99ed7e025038bd5fcd9f874504"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53u-layers-f4691bb6e45ed4595da7\\publication.json",
+    "sha256": "c84958af34096a317474a4cbe69d8afb32ca4d90aef19eb9b40ee84863ce2f7a"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53u-layers-f4691bb6e45ed4595da7\\retirement.json.gz",
+    "sha256": "92c6b85707d9248ce0938d8fe9427108524b4c7aaf8925f89ce8cffe0eb82e1a"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53u-layers-f4691bb6e45ed4595da7\\retired.json",
+    "sha256": "3850e8724718c307a6fdace39447b4ac0d270be085cdd62299712f56168303bf"
+  }
+}
