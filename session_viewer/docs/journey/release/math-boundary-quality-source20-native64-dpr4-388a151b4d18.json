@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T01:38:25.879Z",
+  "id": "64t-clouds",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-64t-clouds-2f73db6b1d4270bac98c\\capture.json.gz",
+    "sha256": "59ebb23b28c933624eb0b7d0f117d712a428adb77598c5e24056eaa1e00118c8",
+    "bytes": 120837
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-slot-proposal-01\\case64\\capture-result.json",
+    "sha256": "281518ab7d6ebc3725bbb6f2c9a94748107496fa7938275fb419195537128b99"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-source20-1d5fe46f-64-execution.json",
+    "sha256": "c1ce97c8e7cb8c598e5bc7c447d0a554973a75faa89921e3bfa5a6bd8f02e480"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-slot-proposal-01\\case64\\bounded-terminal.json",
+    "sha256": "0d4d87d087f9ea45f879f1373f3ca43ca6c1fea52babba9c98136abc92419154"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+    "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\64t-clouds-388a151b4d18.png",
+    "sha256": "388a151b4d18cbb6f462b54df21921c5647415d8c9b77baec04efe9f2fb792f5"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\64t-clouds.png",
+    "sha256": "2903be3536be2f1e80497ebb3455b49f6984ed619605087b8e3ce4b93329d8d9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. The sparse teaching cloud forms a complete wavy coloured grid of camera-facing discs, cyan/blue through pink, framed without clipping. Existing hard disc rims are visible at physical-pixel scale; this review does not claim a new cloud-antialiasing treatment. The executed fixture asserts1681 original points, one cloud allocation and no cloud error. This is staged64t-clouds, distinct from the dense196608-point synthetic supplement; Native rawDPR4 IMAGE only, no canonical640/browser/dense-AA acceptance.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 3 historical aliases and their original pixels remain unchanged. Canonical1681-point coloured cloud with camera-facing discs and unchanged original point ownership. This sparse teaching fixture is distinct from the dense synthetic RGB supplement. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-slot-proposal-01\\case64\\publication.json",
+    "sha256": "01b0ec6dce9c738a8a460b8a7f51d24f2ebc3f7cb5867adb22b6bff75a6b1099"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-64t-clouds-2f73db6b1d4270bac98c\\publication.json",
+    "sha256": "0df918a3c4b81166746641b63d3238b9c4d26657a119e4701875ba613d167014"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-64t-clouds-2f73db6b1d4270bac98c\\retirement.json.gz",
+    "sha256": "8d4c1cbef79cfc45c599c2adfc93d6465925e8b7b77816b9fcbae0e58ce36fb4"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-64t-clouds-2f73db6b1d4270bac98c\\retired.json",
+    "sha256": "2d00b808caf1b3c9018e0ba7bc4aeefcb1c59b9a51ab5aa430312c5072ba9f59"
+  }
+}

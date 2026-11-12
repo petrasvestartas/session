@@ -33,6 +33,8 @@ export interface Step {
 export interface Course { release: string; inventory?: string; steps: Step[] }
 
 export const read = (file: string) => fs.readFileSync(file, 'utf8');
+export const snippetSource = (name: string) => read(path.join(docs, name)).replace(
+    /^(?:[ \t]*\/\/|[ \t]*#|[ \t]*<!--)[ \t]*--8<--[ \t]*\[(?:start|end):[^\]\r\n]+\][ \t]*(?:-->)?[ \t]*(?:\r?\n|$)/gm, '');
 export const json = (file: string) => JSON.parse(file.endsWith('.gz') ? gunzipSync(fs.readFileSync(file)).toString('utf8') : read(file));
 export const hash = (value: string | Uint8Array) => crypto.createHash('sha256').update(value).digest('hex');
 export function resolveJourneyImage(file: string, expectedSha256?: string, directory = path.join(docs, 'screenshots/journey')): string {
@@ -94,7 +96,7 @@ export function edited(original: string | undefined, edit: Edit, code: string, l
 
 export function typingLoad(step: Step) {
     const added = step.edits.filter(edit => !edit.copy).flatMap(edit => {
-        const code = read(path.join(docs, edit.snippet));
+        const code = snippetSource(edit.snippet);
         return edit.rename_field ? [edit.before || '', code] : addedLines(edit.before || '', code);
     });
     const characters = [...added.join('')].length;
@@ -171,7 +173,7 @@ export function expected(id: string): Files {
     for (let index = state.at + 1; index <= end; index++) {
         const step = state.data.steps[index];
         for (const edit of step.edits) {
-            const code = read(path.join(docs, edit.snippet));
+            const code = snippetSource(edit.snippet);
             files[edit.path] = edited(files[edit.path], edit, code, step.id);
         }
         state.at = index;

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor} from './course/model.ts';
+import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor, withExpectedSequence, fingerprint, type Files, snippetSource} from './course/model.ts';
 import {save, restore} from './course/checkpoints.ts';
 import {generate} from './course/render.ts';
 import {structure, verify, runCommand, nativeTarget, removeGenerated} from './course/verify.ts';
@@ -13,6 +13,8 @@ import {foundations} from './course/foundations.ts';
 import {dockPreview} from './course/dock.ts';
 import {referenceStructure} from './course/reference-checks.ts';
 import {courseBook, readingBook} from '../src/courseBook.ts';
+import {auditOwnership} from './course/ownership.ts';
+import {collapseSubject} from './course/subjects.ts';
 
 function book() {
     return courseBook(course().steps, JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8')));
@@ -74,6 +76,42 @@ function main() {
         dockPreview();
     } else if (action === 'generate') {
         generate();
+    } else if (action === 'subject-audit') {
+        const plan = JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8'));
+        const groups: {id: string; steps: string[]; checkpoint: string}[] = plan.chapters.flatMap(
+            (chapter: {consolidated?: unknown[]}) => chapter.consolidated || []);
+        if (!name) throw Error('Choose a subject ID or --all; this command writes no course files.');
+        const selected = groups.filter(subject => name === '--all' || subject.id === name);
+        if (!selected.length) throw Error(`Unknown subject: ${name}`);
+        const reports = withExpectedSequence(() => selected.map(subject => {
+            const sequence = course().steps;
+            const start = sequence.findIndex(step => step.id === subject.steps[0]);
+            const steps = sequence.slice(start, start + subject.steps.length);
+            if (start < 0 || steps.some((step, i) => step.id !== subject.steps[i])
+                || steps.at(-1)?.id !== subject.checkpoint) throw Error(`${subject.id}: noncontiguous subject`);
+            const before: Files = start ? expected(sequence[start - 1].id) : {};
+            const result = collapseSubject(before, steps, snippetSource);
+            const actual = fingerprint(result.files);
+            if (actual !== fingerprint(expected(subject.checkpoint))) throw Error(`${subject.id}: endpoint differs`);
+            return {subject: subject.id, checkpoints: steps.length, edits: steps.reduce((n, step) => n + step.edits.length, 0),
+                finishedFileEdits: result.edits.length, endpoint: actual};
+        }));
+        console.log(JSON.stringify({status: 'source-preserving candidate; active course unchanged',
+            currentCheckpoints: reports.reduce((n, subject) => n + subject.checkpoints, 0),
+            candidateCheckpoints: reports.length, subjects: reports}, null, 2));
+    } else if (action === 'ownership') {
+        const plan = JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8'));
+        const subjects = new Map<string, string>();
+        for (const chapter of plan.chapters) for (const subject of chapter.consolidated || []) {
+            for (const id of subject.steps) subjects.set(id, subject.id);
+        }
+        const result = auditOwnership(course().steps, subjects, snippetSource);
+        const rewrites = result.findings.filter(finding => finding.kind === 'rewrite');
+        console.log(JSON.stringify({checkpoints: course().steps.length, subjects: new Set(subjects.values()).size,
+            laterSubjectRewrites: rewrites.length, affectedFiles: new Set(rewrites.map(finding => finding.path)).size,
+            moduleRegistrations: result.findings.length - rewrites.length}, null, 2));
+        if (name === '--details') console.log(JSON.stringify(rewrites, null, 2));
+        if (rewrites.length) process.exitCode = 1;
     } else if (action === 'structure') {
         structure();
         referenceStructure();
@@ -142,7 +180,7 @@ function main() {
     } else {
         console.log('npm run course -- init | check LESSON | dependencies LESSON | save NAME | restore NAME | reference LESSON --output NEW_FOLDER');
         console.log('Use a book number such as 22.2.3 or an existing lesson ID. List shows book numbers; list --ids shows internal IDs.');
-        console.log('Authoring: dock-preview | generate | structure | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
+        console.log('Authoring: dock-preview | generate | structure | ownership [--details] | subject-audit ID|--all | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
     }
 }
 

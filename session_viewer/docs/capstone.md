@@ -1,5 +1,7 @@
 # Section plane design
 
+This capstone covers section planes, not the full current viewer. The complete destination also includes mathematical stage decks: early 2D layout and motion, then kernel geometry in scene rows, authored cameras, projected labels and deck playback checks. Follow the [current course](README.md) and [stage dependency audit](journey/stage-gap.md); the numbered clipping lesson linked below is archived.
+
 [Lesson 18b](18b-clipping.md) builds this feature. This page keeps the design answers and acceptance criteria behind it, not the code.
 
 The feature is a **section plane**: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.

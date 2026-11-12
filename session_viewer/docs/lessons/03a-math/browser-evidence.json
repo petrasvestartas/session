@@ -1,0 +1,48 @@
+{
+  "checkpoint": "docs/lessons/03a-math",
+  "scope": "Standalone formula rendering; cumulative integration, matrices and deck playback pending",
+  "browser": "Chrome, headless, WebGPU",
+  "cases": [
+    {
+      "name": "landscape",
+      "width": 1280,
+      "height": 720,
+      "density": 1,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "errors": []
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "density": 2,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "errors": []
+    }
+  ],
+  "sourceSha256": {
+    "Cargo.lock": "9b69f20f9ca29f91fbe4c6e55af78f3752a1ce56153dfc813d2929734d00961a",
+    "Cargo.toml": "a69d24ddf46bbf509def22d10226a4d785619c3260b69a17d5aeb78da797a31a",
+    "index.html": "260a66916702ced30804dd8be0db426ce8a75f1404e1546cb6a2352fb44d7ca1",
+    "src/app/stage/font.rs": "12a1aee6ebe22b347550d33fc82bcaebf5c88ab06e786d63c8eceb1c090fa248",
+    "src/app/stage/morph.rs": "360a0c86cc17945a423cbc0238415462d8d4619e43e0af550f51ac2ff42b38cd",
+    "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+    "src/app/stage/paint.rs": "cf14f5b36344128e860e30cd25baf0d371c53c8bd35de0971d089b6163457752",
+    "src/app/stage/tex.rs": "0cfa7d231e0d60ac75f62ed52acef0d5a93d1e424cdedd510273c41e39ffb03b",
+    "src/app/stage/tween.rs": "c322e10fedf3a32642e2f7a84ba9db20b6ea6d0daee5d54e80f645bfa73cea17",
+    "src/browser.rs": "853b149d2b92e55b2b4b9e832cd207268ede2d4d1663cb23ae823ff5e1fff61a",
+    "src/lib.rs": "286ce280b4849e06fe8698e5e82c86f1030c5c319411943d9a240e29a37543a3",
+    "src/tests.rs": "9f48ec89a4586f55e2bf4628bbec4e1557fd134f89a6e95feabadcfe0fd71953"
+  },
+  "review": "Both captures show a fraction, a radical and aligned equals signs. Portrait scales the full slide; it does not exercise stacked stage composition."
+}

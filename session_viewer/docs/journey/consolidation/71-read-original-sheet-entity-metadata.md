@@ -8113,7 +8113,7 @@ pub fn resolve(
 
 ## Build & Run
 
-![Recorded visual output for Lesson 14.1 (71ze-resolve-original-relative-and-polar-coordinates)](../../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png)
+![Recorded visual output for Lesson 14.1 (71ze-resolve-original-relative-and-polar-coordinates)](../../screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates-ea5a1a49286b.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.1

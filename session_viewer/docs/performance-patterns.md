@@ -1,5 +1,13 @@
 # Small code, bounded work
 
+## Stage animation follows the same ownership
+
+The stage's scene adapter keeps object row identities. `set_placement` writes a changed placement; `set_reveal` changes the row's line fraction and point scale. Colour and hidden state have their own row updates. Rebuild display geometry only when its shape changes. An object row is currently 112 bytes, including four effect floats; all shader and compute consumers must use that layout.
+
+The mathematics painter caches rasterized glyphs by font, glyph ID and pixel size. An atlas overflow clears its packing state and requests another paint; it must not silently leave missing symbols. Stage frame scaling and scene-camera projection are separate responsibilities: changing the slide size must preserve their agreement.
+
+A deck's fonts and YAML are fetched alongside WebAssembly. These are startup optimizations, not proof of steady-state frame performance. Measure the actual device and scene; [phone diagnostics](phone-performance.md) and the [shader probe](debugging.md#probe-a-phone-only-shader-failure) address different failure modes.
+
 ## You are building
 
 Use the same design for each extension:

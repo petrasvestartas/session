@@ -2964,7 +2964,7 @@ pub mod finite_project_source;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 18.2 (90v-exercise-actual-contacts-cache-and-source-ownership)](../../screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership.png)
+![Recorded visual output for Lesson 18.2 (90v-exercise-actual-contacts-cache-and-source-ownership)](../../screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership-b86cbe35a606.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.2

@@ -1,5 +1,7 @@
 # Session Viewer
 
+The active tutorials live in `session_viewer/docs/journey/`, the course source used by the GitHub Pages documentation build.
+
 A browser CAD viewer in Rust, compiled to WebAssembly and rendered with WebGPU. It shows meshes, BReps, NURBS, lines, points, point clouds and text, and keeps the identity of each original object.
 
 - [Course](docs/README.md): type the viewer step by step.

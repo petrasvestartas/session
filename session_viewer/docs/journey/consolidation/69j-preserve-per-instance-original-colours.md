@@ -5163,7 +5163,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 13.2 (69af-exercise-independent-original-cad-reuse)](../../screenshots/journey/69af-exercise-independent-original-cad-reuse.png)
+![Recorded visual output for Lesson 13.2 (69af-exercise-independent-original-cad-reuse)](../../screenshots/journey/69af-exercise-independent-original-cad-reuse-e5df8d852cd6.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 13.2

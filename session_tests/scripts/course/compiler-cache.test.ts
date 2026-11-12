@@ -61,6 +61,7 @@ function fixture() {
         const file = path.join(targetDirectory, 'debug/deps', name + '-fixture.rlib');
         calls.push({executable, args, options, dry});
         if (dry) {
+            if (controls.refusal) return controls.refusal;
             if (!nodes.has(file)) put(file, 'compiled variant');
             return {status: 0, stdout: controls.dry ? controls.dry({file, args, calls}) : file + '\n', stderr: ''};
         }
@@ -191,4 +192,29 @@ test('a previous manifest without session_rust never selects its package for cle
     f.receipt.build.sha256 = f.previous.completedReceiptSha256; f.put(f.receiptFile, JSON.stringify(f.receipt));
     assert(f.run()); assert.equal(f.calls.filter(row => !row.dry).length, 3);
     assert(f.calls.every(row => row.args[row.args.indexOf('--package') + 1] === 'image_incremental'));
+});
+
+for (const shortWrites of [false, true]) test(`an exact immutable-lock dry-run refusal retains every cache byte (${shortWrites})`, () => {
+    const f = fixture(), before = new Map(f.nodes); f.controls.shortWrites = shortWrites;
+    f.controls.refusal = {status: 101, stdout: '', stderr: 'error: cannot update the lock file fixture/Cargo.lock because --locked was passed to prevent this\n'};
+    assert(f.run()); assert.equal(f.calls.length, 1); assert(f.calls[0].dry);
+    for (const [name, bytes] of before) assert.deepEqual(f.nodes.get(name), bytes, name);
+    const report = JSON.parse(f.nodes.get(f.report)!.toString());
+    assert.equal(report.status, 'CACHE_RETAINED_IMMUTABLE_LOCK_REFUSAL'); assert.deepEqual(report.commands, []);
+    assert.equal(report.attempts[0].exitCode, 101); assert.deepEqual(f.synced, [1]); assert.deepEqual(f.closed, [1]);
+});
+for (const refusal of [
+    {status: 1, stdout: '', stderr: 'cannot update the lock file fixture/Cargo.lock because --locked was passed to prevent this'},
+    {status: 101, stdout: 'unexpected deletion paths', stderr: 'cannot update the lock file fixture/Cargo.lock because --locked was passed to prevent this'},
+    {status: 101, stdout: '', stderr: 'unrelated Cargo failure'},
+]) test(`other dry-run failures still block the transition: ${JSON.stringify(refusal)}`, () => {
+    const f = fixture(); f.controls.refusal = refusal; assert.throws(f.run); assert.equal(f.calls.length, 1); assert(!f.nodes.has(f.report));
+});
+
+test('Cargo dry-run may announce a new graph while returning zero; retain cache before any actual clean', () => {
+    const f = fixture(), before = new Map(f.nodes);
+    f.controls.refusal = {status: 0, stdout: '', stderr: '     Locking 9 packages to latest Rust compatible versions\n      Adding png v0.17.16\nwarning: no files deleted due to --dry-run\n'};
+    assert(f.run()); assert.equal(f.calls.length, 1); assert(f.calls[0].dry);
+    for (const [name, bytes] of before) assert.deepEqual(f.nodes.get(name), bytes, name);
+    const report = JSON.parse(f.nodes.get(f.report)!.toString()); assert.equal(report.status, 'CACHE_RETAINED_IMMUTABLE_LOCK_GRAPH_DRIFT'); assert.deepEqual(report.commands, []);
 });

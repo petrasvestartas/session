@@ -255,7 +255,7 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <details>
 <summary>Viewer coverage and verification</summary>
 
-Shader extrusion now covers joined bodies and free-end heads. The following endpoint connects its complete 72-byte instance layout and pixel checks.
+Shader extrusion now covers joined bodies and free-end heads. The following endpoint connects its complete 72-byte instance layout and pixel checks. The maintained viewer now shares arrow_corner between vector.wgsl and plane.wgsl, passing start, end, radius, instance_id, ink, head_pens, heads, start_trim and end_trim separately, followed by the vertex index and overlay flag. VectorRow remains the storage layout; it is not a function argument. On the Android device tested on 2026-11-11, passing a struct with a scalar packed behind a vec3 changed end and heads inside the function and removed the head. Head size, part selection, near-plane cuts, trims and widths use explicit if branches. This checkpoint still teaches chain.wgsl; it does not yet reproduce that shared production function. See [the phone shader probe](../debugging.md#probe-a-phone-only-shader-failure).
 
 The actual native drawing device validates the headed vertex and fragment entry points. Turn, head flag, short-arrow and opacity pixels follow with the connected pipeline.
 

@@ -1,6 +1,12 @@
-# Where every file is taught
+# Source ownership and historical lesson links
 
-These links open the first and last additions inside their buildable tutorial step.
+The table below maps the archived reference implementation. It does not establish coverage of the current viewer. In the November 12 audit, 52 current source files were absent from its last checkpoint and 240 shared files differed.
+
+The [November 12 coverage audit](journey/coverage-audit-2026-11-12.json) records all 323 current source files, their hashes, historical lesson sections and journey references. Its unresolved teaching statuses are work to complete, not approved omissions.
+
+The stage adds `src/app/stage/`: font metrics, TeX, glyph painting, layout, matrices and motion belong to the early mathematics subject; geometry, camera projection, scene rows, the net solver and loading belong to its later scene subject. See the [stage dependency audit](journey/stage-gap.md). Its `spatial.rs` uses real scene rows, while `paint.rs` paints mathematical glyphs through egui.
+
+Current object effects, stroke trims, non-pickable rows, shared arrow rendering and Matrix display also require current subject owners. A file listed in a source inventory is not necessarily taught. The links below open the first and last additions of the historical implementation.
 
 | File | Responsibility | First addition | Last addition |
 | --- | --- | --- | --- |

@@ -190,10 +190,28 @@ A few failures are environmental, and recognising them saves hours:
 
 ## Getting back to solid ground
 
-Every checkpoint is a complete crate under `docs/lessons/<id>/`:
+For the cumulative journey, compare your learner project with the checkpoint named by its lesson:
 
 ```bash
-diff -r docs/lessons/07/src src
+npm --prefix ../session_tests run course -- check 36-chain
 ```
 
-Diff your tree against it. The first file that differs is where your lesson went sideways.
+Run this from `session_viewer`. Read the reported differences before changing your files; an intentional experiment can also explain a mismatch. The check compares reconstructed source, not browser behavior.
+
+The numbered crates in `docs/lessons/00` through `37` belong to the archived reference course. Compare against one only when following that archived checkpoint. Their final crate does not equal the maintained viewer. Standalone subject checkpoints, such as `docs/lessons/03a-math`, identify their own commands and validation limits on their lesson page.
+
+## Probe a phone-only shader failure
+
+Stage decks exercise the same arrow shader as ordinary vector and plane geometry. Reproduce with the same `?stage=` deck, camera and step before adding a diagnostic. A correct formula column proves neither that scene rows are correct nor that the phone drew their heads.
+
+A desktop success does not identify the cause of a phone failure; measure the values inside the shader on the failing device.
+
+On 2026-11-11, arrows had shafts but no heads on the tested Android phone. A temporary query switch drew plain squares coloured by intermediate shader values. The probes compared endpoint coordinates and head flags before and inside `arrow_corner`, then isolated the function boundary: `end` and `heads` changed when a row struct crossed it. The affected layout packed a scalar behind a `vec3`.
+
+Keep the buffer layout and the function interface separate. `VectorRow` still describes storage, but `arrow_corner` receives `start`, `end`, `radius`, `instance_id`, `ink`, `head_pens`, `heads`, `start_trim`, `end_trim`, `vid` and `over` as individual arguments. Both vector and plane callers use that interface. Head size, part selection, near-plane cutting, trims and widths use explicit branches.
+
+Predict the square colours for one known arrow before capturing the phone. Probe the stored values, the function inputs and the selected part separately; change one boundary at a time. Compare the same input on desktop and phone, preserve the captures, confirm the repaired heads, then remove the diagnostic switch. A passing desktop test alone cannot validate this device-specific repair.
+
+Question: if the stored endpoint is correct but the function sees a different endpoint, should the scene data be changed? No: investigate the argument boundary before changing correct input data.
+
+The temporary probe is historical, not a supported viewer option. In the Session repository, inspect commits `a4bf7bb76` (intermediate-value squares), `1ff3ff3a9` (field arguments), and `1185c1dab` (probe removal), especially `src/engine/gpu/vectors.rs` under `session_viewer/`.

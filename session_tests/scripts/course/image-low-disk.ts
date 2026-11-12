@@ -21,7 +21,7 @@ export function nativeSamplePhase(viewer: string, p: any, target: () => string, 
     assert(/^[A-Za-z0-9_-]+$/.test(host), 'Native target must be a single toolchain triple');
     const sample = path.join(g.workbench, 'sample.pb'), copied = path.join(p.folder, 'sample.pb');
     if (io.existsSync(sample)) io.unlinkSync(sample);
-    const sampleCommand: any = execute('sample', ['cargo', 'run', '--example', 'sample', '--locked', '--target', host, '-j8',
+    const sampleCommand: any = execute('sample', ['cargo', 'run', '--example', 'sample', '--locked', '--target', host, '-j2',
         ...(p.buildMode.lowDisk ? ['--message-format=json-render-diagnostics'] : [])]);
     assert(io.statSync(sample).size > 0, 'Native sample must exist before cache retirement');
     io.copyFileSync(sample, copied);

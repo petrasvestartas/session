@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:51:38.085Z",
+  "id": "87ab-exercise-original-clipping-color-and-picking",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-87ab-exercise-original-clipping-color-and-picking-94908e49edc5e7ff2b90\\capture.json.gz",
+    "sha256": "f482011dbda59626a2de473ab01984360e239b95a9f5201de39fe3283558387b",
+    "bytes": 184090
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native86a-87-slot-proposal-01\\case87\\capture-result.json",
+    "sha256": "419f30ce7e6f4a3e9cd95aeb5a9212527e4fd910bbc036490d8ae7945bf9afc4"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native86a-87-source22-22b8fa5c-87-execution.json",
+    "sha256": "ba524d97e050ce449cbad581bca2a134e9d98eda4702e01004fd22afa464a2f0"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native86a-87-slot-proposal-01\\case87\\bounded-terminal.json",
+    "sha256": "1f5138977ad446bbc51f7d3e29be7790ced983739dcd531063fabf68dac3a6d6"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\87ab-exercise-original-clipping-color-and-picking-9195e2d48345.png",
+    "sha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\87ab-exercise-original-clipping-color-and-picking.png",
+    "sha256": "98a07fa37c2c969999d6f7fdcef050281ca2c05abf93a57960ba79265faf5a88"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected every original2560x1920 pixel in four unfiltered1280x960 tiles. The clipping fixture retains the left half of the blue triangle and the left portion of its red foreground stroke; the cut right region is white, with the small original plane indicator visible. Existing triangle boundaries remain black. This stage clips color and does not promise a newly extracted black section edge at the cut plane; no forced cut line is required. Native draw asserts clipping usage[1,1,1] and no clipping error. RawDPR4 IMAGE only; fixed640 color/picking checks and browser callbacks were not executed. Thirty-one old aliases/pixels preserved.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 31 historical aliases and their original pixels remain unchanged. Original blue triangle and red front line clipped by one original YZ plane; Native draw checks actual clipping usage and no clipping error. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native86a-87-slot-proposal-01\\case87\\publication.json",
+    "sha256": "cb8ce59bf6e5e27ff4b076f5596d3a3abb56829e410c7d37c34e5c17b6340076"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-87ab-exercise-original-clipping-color-and-picking-94908e49edc5e7ff2b90\\publication.json",
+    "sha256": "9775626efcd8603bac7a933c5e87316ae2d59b6e74d32dd7904042cf02ef0b64"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-87ab-exercise-original-clipping-color-and-picking-94908e49edc5e7ff2b90\\retirement.json.gz",
+    "sha256": "5cef00dcf4cdeae54d030b3871283746b68f337e934c80fea8356d448fd63a1a"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-87ab-exercise-original-clipping-color-and-picking-94908e49edc5e7ff2b90\\retired.json",
+    "sha256": "9e30801ede1edc26632ede814c8098d89b5ccc971fe9bd77e229c7167b764711"
+  }
+}

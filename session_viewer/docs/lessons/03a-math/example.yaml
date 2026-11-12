@@ -1,0 +1,17 @@
+# --8<-- [start:deck]
+title: A slide of mathematics
+slides:
+  - title: Align and rewrite
+    steps:
+      - say: 'Different left sides share one equals column.'
+        eq: 'x=\frac{a+b}{c}'
+        then: 'x+y=\sqrt{a^2+b^2}'
+      - say: 'Equal symbols keep their identity while the equation changes.'
+        becomes: 'x+y+z=\sqrt{a^2+b^2}'
+  - title: Read a matrix
+    steps:
+      - say: 'Rows and columns give every entry a stable address.'
+        matrix: {id: M, rows: [[2, -1], [-1, 2]]}
+      - say: 'The first row contains both addressed entries.'
+        color: {target: 'M[0,:]', color: accent}
+# --8<-- [end:deck]

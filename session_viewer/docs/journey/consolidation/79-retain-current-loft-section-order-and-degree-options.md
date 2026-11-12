@@ -1880,7 +1880,7 @@ fn fitted(samples: Samples) -> Result<NurbsSurface, String> {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 15.3 (79zze-fit-the-original-gordon-surface)](../../screenshots/journey/79zze-fit-the-original-gordon-surface.png)
+![Recorded visual output for Lesson 15.3 (79zze-fit-the-original-gordon-surface)](../../screenshots/journey/79zze-fit-the-original-gordon-surface-fea8d18aee2b.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 15.3

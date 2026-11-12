@@ -2136,7 +2136,7 @@ pub mod source_mesh_topology;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 15.2 (78m-exercise-profiles-exact-surfaces-and-one-undo-transaction)](../../screenshots/journey/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction.png)
+![Recorded visual output for Lesson 15.2 (78m-exercise-profiles-exact-surfaces-and-one-undo-transaction)](../../screenshots/journey/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-ef0c9bde35d4.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 15.2

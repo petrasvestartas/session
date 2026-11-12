@@ -1,12 +1,14 @@
 # Build and understand the Session Viewer
 
-Learn the existing Session Viewer and its developed rendering paths in dependency order. Early checkpoints stage the required owners and GPU concepts; later lessons must converge to the production Rust and WGSL implementation.
+Build the Session Viewer from scratch with Rust and wgpu. Work through one cumulative project until its code, production layout and behavior match the maintained viewer.
 
 Begin with [chapter 1: four consolidated lessons](journey/consolidation/01-canvas.md). The [production source and coverage map](journey/production-course-map.md) distinguishes reused code, staged integration, divergent algorithms and missing coverage. All original checkpoint links and recovery IDs remain available.
 
-**Start with [the course route](journey.md).** All subjects 00–97 are authored, from the first GPU frame through original geometry, editing, rendering and the maintained viewer runtime. The [lesson checklist](journey/roadmap.md) tracks acceptance separately; most browser checks remain pending. The [complete implementation reference](reference-course.md) preserves the final feature set.
+**Start with [the course route](journey.md).** The course is being consolidated by subject: fewer complete lessons, lean code, and no late collection of features that belong earlier. The [lesson checklist](journey/roadmap.md) tracks acceptance separately. The [archived tutorials](archived/README.md) preserve the earlier reference course; they do not represent today's finished viewer.
 
-You type every piece of application code. Lessons may revisit earlier files, explain why the change is needed and finish with a working checkpoint. [Save and recovery commands](journey/recovery.md) protect your own work. Vue hosts these documents; Rust and wgpu implement the viewer.
+Each subject has one visible goal, a prediction experiment, a question and a runnable checkpoint. Teach each concept once, in its final home. Small instructions stay inside a lesson instead of becoming separate checkpoints. [Save and recovery commands](journey/recovery.md) protect your own work. Vue hosts these documents; Rust and wgpu implement the viewer.
+
+The first new [mathematics checkpoint](journey/03a-mathematics.md) belongs immediately after the early egui painting. It covers font metrics, TeX, glyph pixels and equals alignment; cumulative course integration is still in progress.
 
 ## Prepare your computer
 

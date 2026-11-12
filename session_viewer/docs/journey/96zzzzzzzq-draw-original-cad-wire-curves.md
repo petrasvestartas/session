@@ -4,7 +4,7 @@
 
 **Typing: 1509–3017 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Plan several study sessions for this subject. Save at file boundaries; its executable checkpoint remains one complete subject.
 
 Keep coherent CAD face boundaries and their original edge addresses. When an edge has no face boundary, sample its original 3D curve into the existing joined path lane. The two kinds retain independent Edges and Lines controls.
 

@@ -2,7 +2,7 @@ import {changedBlocks, lines, lineContext} from './line-diff.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
-import {course, docs, read, json, write, hash, typingLoad, edited, expected, withExpectedSequence, resolveJourneyImage, type Step, type Edit} from './model.ts';
+import {course, docs, read, snippetSource, json, write, hash, typingLoad, edited, expected, withExpectedSequence, resolveJourneyImage, type Step, type Edit} from './model.ts';
 import {signature} from './verify.ts';
 import {courseBook, readingBook} from '../../src/courseBook.ts';
 
@@ -12,7 +12,7 @@ const language: Record<string, string> = {'.rs': 'rust', '.wgsl': 'wgsl', '.html
 const command = 'npm --prefix ../session_tests run course --';
 const browserFingerprint = createRequire(import.meta.url)(path.join(docs, 'journey/checks/fingerprint.cjs'));
 
-export function instructions(edits: Edit[], files: Record<string, string>, load = (edit: Edit) => read(path.join(docs, edit.snippet))) {
+export function instructions(edits: Edit[], files: Record<string, string>, load = (edit: Edit) => snippetSource(edit.snippet)) {
     const current = {...files}, result: {edit: Edit; code: string; inline: boolean; references: Edit[]}[] = [];
     const typed = (edit: Edit) => !edit.copy && !edit.rename_field && !edit.reuse;
     for (let i = 0; i < edits.length;) {
@@ -28,16 +28,11 @@ export function instructions(edits: Edit[], files: Record<string, string>, load 
     return result;
 }
 
-export function dailyPlan(steps: Step[]) {
-    const book = bookFor(steps);
-    const reading = readingBook(steps, json(path.join(docs, 'journey/book.json')));
+export function studySessions(steps: Step[], measure = typingLoad) {
     const days: {steps: Step[]; minutes: number[]}[] = [];
     let day = {steps: [] as Step[], minutes: [0, 0]};
     for (const step of steps) {
-        if (reading.aliases.has(step.id)) continue;
-        if (step.id === '97-finish-with-the-maintained-browser-runtime') continue;
-        const minutes = typingLoad(step).minutes;
-        if (minutes[1] > 60) throw Error(`${step.id}: split the coding lesson before scheduling it`);
+        const minutes = measure(step).minutes;
         if (day.steps.length && (day.minutes[1] + minutes[1] > 60 || day.steps.length === 6)) {
             days.push(day); day = {steps: [], minutes: [0, 0]};
         }
@@ -45,15 +40,23 @@ export function dailyPlan(steps: Step[]) {
         day.minutes = day.minutes.map((value, index) => value + minutes[index]);
     }
     if (day.steps.length) days.push(day);
+    return days;
+}
+
+export function dailyPlan(steps: Step[]) {
+    const book = bookFor(steps);
+    const reading = readingBook(steps, json(path.join(docs, 'journey/book.json')));
+    const days = studySessions(steps.filter(step => !reading.aliases.has(step.id)
+        && step.id !== '97-finish-with-the-maintained-browser-runtime'));
     return ['# Plan your coding sessions',
         ...reading.chapters.filter(chapter => chapter.sections.some(section => section.lessons.some(lesson => /^\d+\.\d+$/.test(lesson.number)))).flatMap(chapter => [
             `## Chapter ${chapter.number}: consolidated lessons`,
-            'Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.',
+            'Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.',
             ...chapter.sections.flatMap(section => section.lessons.map(lesson => `- [${lesson.number} · ${lesson.title}](${path.posix.relative('journey', lesson.page)})`)),
         ]),
         ...(days.length ? ['## Chapters awaiting consolidation',
         'Follow each row from left to right in the same browser project. Small consecutive checkpoints share a day; their code and explanations remain in their original lessons. Build and inspect the browser at each checkpoint before continuing.',
-        'The estimates count typing at 50–100 characters per minute. Reading, reasoning, debugging and experiments take additional time. Stop at a completed checkpoint when your hour ends; resume from your own saved project.',
+        'The estimates count typing at 50–100 characters per minute. Reading, reasoning, debugging and experiments take additional time. A long subject can span several sittings; resume from your saved project without creating another tutorial checkpoint.',
         'This route covers the authored learner implementation. [Current-viewer parity remains unfinished](completion-contract.md). The maintained-runtime reference comparison is excluded from the coding route.',
         '| Day | Checkpoints in order | Estimated coding |', '| ---: | --- | --- |',
         ...days.map((day, index) => `| ${index + 1} | ${day.steps.map(step => `[${book.byId.get(step.id)?.number || 'Reference comparison'} · ${step.title}](${step.id}.md)`).join(' → ')} | ${day.minutes.join('–')} min |`)] : []),
@@ -154,7 +157,7 @@ function generatePages(selected?: Set<string>) {
 
     for (const [index, step] of steps.entries()) {
         if (selected && !selected.has(step.id)) {
-            for (const edit of step.edits) files[edit.path] = edited(files[edit.path], edit, read(path.join(docs, edit.snippet)), step.id);
+            for (const edit of step.edits) files[edit.path] = edited(files[edit.path], edit, snippetSource(edit.snippet), step.id);
             continue;
         }
         const [low, high] = step.hours;
@@ -174,7 +177,7 @@ function generatePages(selected?: Set<string>) {
         const page = [`# ${lesson?.number || 'Reference comparison'} · ${step.title}`,
             ...(lesson ? [`**Chapter ${lesson.chapter} · Section ${lesson.section}** · [Contents](contents.md)`] : []),
             `**Typing: ${typing.minutes.join('–')} minutes.** [Estimate](typing-load.md).`,
-            ...(typing.minutes[1] > 60 ? ['**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.'] : []),
+            ...(typing.minutes[1] > 60 ? ['Plan several study sessions for this subject. Save at file boundaries; its executable checkpoint remains one complete subject.'] : []),
             ...introduction, '## Type'];
         if (index === 0) page.push(explanation[1]);
         if (index) {
@@ -228,11 +231,11 @@ function generatePages(selected?: Set<string>) {
             if (fixture || data || example || moved) page.push(`<details>\n<summary>${moved ? 'Previously typed code reference' : data ? 'Supplied data' : example ? 'Supplied example data' : author ? 'Optional authoring helper' : 'Supplied validation fixture'}</summary>`,
                 moved ? 'Use this reference when moving the existing code; it is excluded from the typing estimate.' : data || example ? 'Copy this supplied data once; it is excluded from the typing estimate.' : author ? 'Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.'
                     : 'Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.');
-            const fence = '`'.repeat(Math.max(3, ...[...(code + (before || '') + instruction.references.map(edit => read(path.join(docs, edit.snippet))).join('\n')).matchAll(/^\s*(`{3,})/gm)].map(match => match[1].length + 1)));
+            const fence = '`'.repeat(Math.max(3, ...[...(code + (before || '') + instruction.references.map(edit => snippetSource(edit.snippet)).join('\n')).matchAll(/^\s*(`{3,})/gm)].map(match => match[1].length + 1)));
             const references = () => {
                 if (expanded) page.push('<details>\n<summary>Optional patch references</summary>',
                     'Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.',
-                    ...instruction.references.filter(edit => read(path.join(docs, edit.snippet)))
+                    ...instruction.references.filter(edit => snippetSource(edit.snippet))
                         .map(edit => `${fence}text\n--8<-- "${edit.snippet}"\n${fence}`), '</details>');
             };
             if (!moved) page.push(`### ${number + 1}. \`${edit.path}\``, ...why);
@@ -400,13 +403,13 @@ function generatePages(selected?: Set<string>) {
     const audit = path.join(docs, 'journey/typing-load.md');
     const rows = steps.map(step => {
         const typing = typingLoad(step);
-        return `| [${book.byId.get(step.id)?.number || 'Reference comparison'} · ${step.title}](${step.id}.md) | ${typing.lines} | ${typing.characters} | ${typing.minutes.join('–')} min | ${step.hours.join('–')} h | ${typing.minutes[1] <= 60 ? 'Within planning limit' : 'Split required'} |`;
+        return `| [${book.byId.get(step.id)?.number || 'Reference comparison'} · ${step.title}](${step.id}.md) | ${typing.lines} | ${typing.characters} | ${typing.minutes.join('–')} min | ${step.hours.join('–')} h | ${typing.minutes[1] <= 60 ? 'One sitting' : 'Several sittings; one checkpoint'} |`;
     });
     write(audit, read(audit)
         .replace(/all \d+ current checkpoints/, `all ${steps.length} current checkpoints`)
         .replace(/the current \d+ slots/, `the current ${planned} slots`)
         .replace(/\| Checkpoint \|[\s\S]*?(?=\n\n)/,
-        ['| Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Typing limit |',
+        ['| Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Study sessions |',
             '| --- | ---: | ---: | --- | --- | --- |', ...rows].join('\n')));
     console.log(`Generated ${steps.length} lessons from their source edits.`);
 }

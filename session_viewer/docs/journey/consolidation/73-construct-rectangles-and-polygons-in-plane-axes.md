@@ -2697,7 +2697,7 @@ mod tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 14.3 (73t-build-regular-kernel-polyhedra)](../../screenshots/journey/73t-build-regular-kernel-polyhedra.png)
+![Recorded visual output for Lesson 14.3 (73t-build-regular-kernel-polyhedra)](../../screenshots/journey/73t-build-regular-kernel-polyhedra-16c8e50c00e4.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.3

@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T01:40:18.938Z",
+  "id": "65zb-validate-original-manifest-text-and-source-keys",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-65zb-validate-original-manifest-text-and-source-keys-21cb604cf9a9a8ec19a4\\capture.json.gz",
+    "sha256": "ddf02151ce9b18a16e2aa0af712da2f09d54c1d86673f32459c12328391521e5",
+    "bytes": 123343
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-slot-proposal-01\\case65\\capture-result.json",
+    "sha256": "64fc89bc1a3d7e28f53054e94ea9bbd7a220d9a205773b4975ebae85a75d74d2"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-source20-1d5fe46f-65-execution.json",
+    "sha256": "ce71eef1cb22e6575d81f5a0072ca6a057f949b5d89b4361f9ab7c7af2458546"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-slot-proposal-01\\case65\\bounded-terminal.json",
+    "sha256": "7cf585d65b90214de56a61e167ff9d41dddfed7848b24df334494644dd17a8fa"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+    "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65zb-validate-original-manifest-text-and-source-keys-713353f65147.png",
+    "sha256": "713353f65147ef47144f8749963c39ee4115adfcb8dd04d22564b1b3e203304d"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65zb-validate-original-manifest-text-and-source-keys.png",
+    "sha256": "aabee6520c736f28e01e6377012e07e54539e2725a62118b0ee317ed510ecd60"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected every original2560x1920 pixel in four unfiltered1280x960 tiles and an additional unfiltered256x256 centre crop. The same complete cyan/blue-to-pink wavy teaching grid remains visible, with a yellow local point marker at the centre; a nearer pale disc partially occludes that marker. The fixture executes the original point840 selection and highlight assertions. Hard disc rims remain visible, so no cloud-AA correction is claimed. This is the1681-point65zb teaching fixture, not the separate196608-point dense synthetic illustration; Native rawDPR4 IMAGE only, no canonical640/browser qualification.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 45 historical aliases and their original pixels remain unchanged. Canonical1681-point coloured cloud with original point840 highlighted. This is not the separate dense synthetic RGB supplement. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native64-65-slot-proposal-01\\case65\\publication.json",
+    "sha256": "7bd5f2404fbc7a83344d76281d89f858bfe69606aeef9bf1a70b880c22f745d0"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-65zb-validate-original-manifest-text-and-source-keys-21cb604cf9a9a8ec19a4\\publication.json",
+    "sha256": "4c1baa7ef516916e89e602aaec0ac1d953c9256f1b84ad03c7ca3a85fc5921a9"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-65zb-validate-original-manifest-text-and-source-keys-21cb604cf9a9a8ec19a4\\retirement.json.gz",
+    "sha256": "10e327f1192ef9b617f59d27a421af693e25562324320238a424428dc45f4980"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-65zb-validate-original-manifest-text-and-source-keys-21cb604cf9a9a8ec19a4\\retired.json",
+    "sha256": "671c14467c93575b58bc057c18862227498d6548f5e7b8a05df101cec4ac9b8e"
+  }
+}

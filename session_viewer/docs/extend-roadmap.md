@@ -1,5 +1,11 @@
 # Extension roadmap and historical designs
 
+## Current stage integration
+
+The stage already exists in production; it is missing from the executable teaching sequence. Its geometry goes through existing scene rows and camera projection, while its mathematical glyphs go through egui. Do not implement a painted duplicate of the 3D scene.
+
+The early mathematics lesson and later scene lesson need a clean boundary. The current `paint` module depends on `Stage`, which depends on geometry, camera and deck types; deck parsing also depends on the net solver. The smallest proposed separation is a math frame/drawing interface and a later scene adapter, plus an application-mode registration for loading, input and frame dispatch. Existing pass and panel registries alone do not cover those entry-point branches. See [the dependency audit](journey/stage-gap.md); no viewer refactor is included in these documentation changes.
+
 This page is the gap analysis the editing lessons started from, kept for its reasoning. The course now builds everything marked closed below; the numbered gaps further down are the original list, and the ones still open are the roadmap.
 
 ## Three rules every design below obeys

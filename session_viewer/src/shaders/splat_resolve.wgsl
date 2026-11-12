@@ -94,3 +94,58 @@ fn shade(in: VsOut) -> FsOut {
 fn fs_main(in: VsOut) -> FsOut {
     return shade(in);
 }
+
+@group(1) @binding(2) var sdepth_aa: texture_depth_multisampled_2d;
+@group(1) @binding(3) var scolor_aa: texture_multisampled_2d<f32>;
+
+fn shade_aa(in: VsOut, sample: u32) -> FsOut {
+    let pix = vec2<i32>(in.pos.xy);
+    let d = textureLoad(sdepth_aa, pix, i32(sample));
+
+    // no point here
+    if (d == 0.0) {
+        discard;
+    }
+
+    var o: FsOut;
+    var rgb = textureLoad(scolor_aa, pix, i32(sample)).rgb;
+
+    // eye-dome lighting: darken where neighbours are nearer
+    if (cloud.edl > 0.0) {
+        let w = i32(cloud.vp_w);
+        let h = i32(cloud.vp_h);
+        let me = log_depth(d);
+        var sum = 0.0;
+        var taps = array<vec2<i32>, 4>(vec2<i32>(-1, 0), vec2<i32>(1, 0), vec2<i32>(0, -1), vec2<i32>(0, 1));
+
+        for (var k = 0; k < 4; k++) {
+            let q = pix + taps[k];
+
+            if (q.x < 0 || q.y < 0 || q.x >= w || q.y >= h) {
+                continue;
+            }
+
+            let nd = textureLoad(sdepth_aa, q, i32(sample));
+
+            if (nd == 0.0) {
+                continue;
+            }
+
+            sum += max(0.0, me - log_depth(nd));
+        }
+
+        // darken by the depth steps, never below a quarter
+        let shade = max(exp(-sum * 75.0 * cloud.edl), 0.25);
+        rgb *= shade;
+    }
+
+    o.color = vec4<f32>(rgb, 1.0);
+    o.depth = d;
+    o.primitive = vec2<u32>(0u);
+    return o;
+}
+
+@fragment
+fn fs_main_aa(in: VsOut, @builtin(sample_index) sample: u32) -> FsOut {
+    return shade_aa(in, sample);
+}

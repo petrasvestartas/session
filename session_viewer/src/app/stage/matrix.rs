@@ -1,6 +1,6 @@
 use super::deck::MatrixSpec;
 use super::run::Stage;
-use super::tex::{Expr, Prim, Shape};
+use super::tex::{Expr, Prim, Rgba, Shape};
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -79,6 +79,8 @@ impl Stage {
         };
         let neutral = self.color(Some("cell"), "cell");
         let mut cell_idx = vec![vec![usize::MAX; cols]; rows];
+        let mut fills = vec![vec![neutral; cols]; rows];
+        let (ink, ground) = (self.color(Some("ink"), "ink"), self.color(Some("bg"), "bg"));
         if spec.pattern {
             push(
                 &mut out,
@@ -127,6 +129,7 @@ impl Stage {
                 }
                 let x = left + c as f32 * (cw + g);
                 let y = top + r as f32 * (ch + g);
+                fills[r][c] = color;
                 cell_idx[r][c] = push(
                     &mut out,
                     Prim {
@@ -154,8 +157,17 @@ impl Stage {
                     continue;
                 }
                 let mut ids = vec![cell_idx[r][c]];
+                // an entry is written in whichever of ink and ground stands out more from its cell
+                let light = |c: Rgba| 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+                let fill = light(fills[r][c]);
+                let on = if (light(ink) - fill).abs() >= (light(ground) - fill).abs() {
+                    ink
+                } else {
+                    ground
+                };
                 for p in &ex.prims {
                     let mut q = *p;
+                    q.color = q.color.or(Some(on));
                     q.x = x + p.x * e;
                     q.y = y + p.y * e;
                     q.shape = p.shape.resized(e);

@@ -24,6 +24,7 @@ const NO_NORMALS: u32 = 0xffffffffu; // marker for a run without normals
 // One point projected to the screen.
 struct Splat {
     px: vec2<i32>, // center pixel
+    continuous: vec2<f32>,
     r: f32, // radius, px
     z: f32, // depth, 0..1
     color: u32, // packed rgba, lit
@@ -118,6 +119,7 @@ fn project(gid: u32) -> Splat {
     }
 
     s.px = vec2<i32>(i32(x), i32(y));
+    s.continuous = vec2<f32>(x, y);
     s.z = ndc.z;
 
     let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
@@ -222,3 +224,36 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
 }
 
 #include "clip.wgsl"
+
+struct PointAaOut {
+    @builtin(position) pos: vec4<f32>,
+    @location(0) @interpolate(linear, sample) delta: vec2<f32>,
+    @location(1) @interpolate(flat) rr: f32,
+    @location(2) @interpolate(flat) color: vec4<f32>,
+};
+
+@vertex
+fn vs_point_aa(@builtin(vertex_index) vid: u32) -> PointAaOut {
+    var o: PointAaOut;
+    let s = project(vid / 6u);
+    if (!s.ok) {
+        o.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
+        return o;
+    }
+    let lo = floor(s.continuous - vec2<f32>(s.r));
+    let hi = ceil(s.continuous + vec2<f32>(s.r));
+    let c = vid % 6u;
+    let p = vec2<f32>(select(lo.x, hi.x, c == 1u || c == 4u || c == 5u),
+                      select(lo.y, hi.y, c == 2u || c == 3u || c == 5u));
+    o.pos = vec4<f32>(p.x / cloud.vp_w * 2.0 - 1.0, 1.0 - p.y / cloud.vp_h * 2.0, s.z, 1.0);
+    o.delta = p - s.continuous;
+    o.rr = s.r * s.r;
+    o.color = unpack4x8unorm(s.color);
+    return o;
+}
+
+@fragment
+fn fs_point_aa(in: PointAaOut) -> @location(0) vec4<f32> {
+    if (dot(in.delta, in.delta) > in.rr) { discard; }
+    return in.color;
+}

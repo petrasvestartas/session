@@ -1,0 +1,44 @@
+{
+  "status": "draft; not the active course",
+  "subject": "Rust and the first GPU frame",
+  "checkpoint": "01-canvas",
+  "replaces": [
+    "01-canvas",
+    "01a-gpu",
+    "02-clear"
+  ],
+  "handoff": "03-triangle",
+  "edits": [
+    {
+      "path": "Cargo.toml",
+      "snippet": "journey/code/01-frame-1.toml",
+      "before": null
+    },
+    {
+      "path": "index.html",
+      "snippet": "journey/code/01-frame-2.html",
+      "before": null
+    },
+    {
+      "path": "src/lib.rs",
+      "snippet": "journey/code/01-frame-3.rs",
+      "before": null
+    },
+    {
+      "path": "src/renderer.rs",
+      "snippet": "journey/code/01-frame-4.rs",
+      "before": null
+    },
+    {
+      "path": "src/browser.rs",
+      "snippet": "journey/code/01-frame-5.rs",
+      "before": null
+    }
+  ],
+  "validation": {
+    "source": "Verified: named snippets reconstruct the exact existing 02-clear output; subjects.test.ts",
+    "consolidation": "Three checkpoints collapse to one subject with five final file introductions",
+    "ownership": "Later subjects still rewrite these files; full ownership consolidation remains pending",
+    "browser": "pending"
+  }
+}

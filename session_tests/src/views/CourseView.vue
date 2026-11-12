@@ -69,7 +69,7 @@ watch(
     const mod = await load();
     if (s !== slug.value) return;
     if (mod.default.redirect) {
-      await router.replace(mod.default.redirect);
+      await router.replace(mod.default.redirect + (mod.default.redirect.includes('#') ? '' : route.hash));
       return;
     }
     page.value = mod.default;

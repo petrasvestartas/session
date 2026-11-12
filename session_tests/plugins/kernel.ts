@@ -9,6 +9,7 @@ export interface KernelClass {
   label: string;
   description: string;
   tests: string[];
+  aliases: {name: string; test: string}[];
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -76,7 +77,9 @@ export function kernelClasses(session: string): KernelClass[] {
     }
     if (!tests.length) continue;
     const label = groups.find((g) => norm(g) === norm(name)) || groups[0];
-    out.push({ suite, label, description: describe(session, name, label), tests });
+    const aliases = name === 'polyline' && tests.includes('Morph') && /\.resampled\s*\(/.test(src)
+      ? [{name: 'resampled', test: 'Morph'}] : [];
+    out.push({ suite, label, description: describe(session, name, label), tests, aliases });
   }
   return out;
 }

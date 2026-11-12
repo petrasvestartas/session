@@ -19,7 +19,7 @@ const guard=fileURLToPath(new URL('./parallel-image-guard.ps1',import.meta.url))
 const modeHelper=fileURLToPath(new URL('./image-low-disk.ts',import.meta.url));
 const sha=(file:string)=>hash(fs.readFileSync(file));
 const root=path.join(viewer,'target/course-presentation/incremental-browser-builds');
-const policy={purpose:'Image-only stable incremental compiler experiment; no canonical callback acceptance',processors:8,memoryMiB:8192,jobs:8,affinityMask:'0xFF00',timeoutSeconds:1800,profile:'debug',incremental:{nativeSample:'0',wasm:'1'}};
+const policy={purpose:'Image-only stable incremental compiler experiment; no canonical callback acceptance',processors:2,memoryMiB:6144,jobs:2,affinityMask:'0x300',timeoutSeconds:600,profile:'debug',incremental:{nativeSample:'0',wasm:'1'}};
 const manifest=(folder:string)=>Object.fromEntries(filesIn(folder).filter(f=>!path.relative(folder,f).split(path.sep).includes('target')).map(f=>[path.relative(folder,f).replaceAll('\\','/'),sha(f)]));
 
 export function copyTrunkFiles(native:string,dist:string){
@@ -118,14 +118,14 @@ export function buildIncrementalImageBrowser(id:string,density=2,options:{before
             const environment={CARGO_INCREMENTAL:label==='sample'?'0':p.buildMode.wasmIncremental};
             check();const prefix=path.join(p.folder,label),commandFile=prefix+'.command.json',log=prefix+'.log',resourcesFile=prefix+'.resources.json';assert(!fs.existsSync(log),'Preserve old attempt: '+log);
             write(commandFile,JSON.stringify({executable:args[0],arguments:args.slice(1)})+'\n');const fd=fs.openSync(log,'wx');let result;
-            try{result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','8','-MemoryLimitMiB','8192','-TimeoutSeconds','1800','-WorkingDirectory',g.workbench,'-ManifestPath',resourcesFile,'-CommandFile',commandFile],
-                {cwd:g.workbench,windowsHide:true,stdio:['ignore',fd,fd],env:{...process.env,RUSTC_WRAPPER:'',CARGO_NET_OFFLINE:process.env.CARGO_NET_OFFLINE||'true',NO_COLOR:'true',CARGO_BUILD_JOBS:'8',RUST_TEST_THREADS:'1',REGEN_PROTO:'0',...environment,CARGO_TARGET_DIR:g.target}});
+            try{result=spawnSync('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',guard,'-ProcessorCount','2','-MemoryLimitMiB','6144','-TimeoutSeconds','600','-WorkingDirectory',g.workbench,'-ManifestPath',resourcesFile,'-CommandFile',commandFile],
+                {cwd:g.workbench,windowsHide:true,stdio:['ignore',fd,fd],env:{...process.env,RUSTC_WRAPPER:'',CARGO_NET_OFFLINE:process.env.CARGO_NET_OFFLINE||'true',NO_COLOR:'true',CARGO_BUILD_JOBS:'2',RUST_TEST_THREADS:'1',REGEN_PROTO:'0',...environment,CARGO_TARGET_DIR:g.target}});
             }finally{fs.closeSync(fd);}
-            const resources=json(resourcesFile);assert.equal(result.status,0,log);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);assert.equal(resources.processors,8);assert.equal(resources.jobCommitLimitBytes,8589934592);assert.equal(resources.affinityMask,'0xFF00');assert.equal(resources.laneMutex,'Local\\SessionViewerCourseImageJob');check();
+            const resources=json(resourcesFile);assert.equal(result.status,0,log);assert.equal(resources.exitCode,0);assert.equal(resources.timedOut,false);assert.equal(resources.processors,2);assert.equal(resources.jobCommitLimitBytes,6442450944);assert.equal(resources.affinityMask,'0x300');assert.equal(resources.laneMutex,'Local\\SessionViewerCourseImageJob');check();
             const r={label,args,environment,commandFile,log,logSha256:sha(log),resourcesFile,resourcesSha256:sha(resourcesFile),resources};commands.push(r);return r;
         };
         const nativeCacheRetirement=nativeSamplePhase(viewer,p,nativeTarget,check,execute);
-        const wasmCommand=execute('wasm',['cargo','build','--lib','--locked','--target','wasm32-unknown-unknown','-j8','-vv','--message-format=json-render-diagnostics']);
+        const wasmCommand=execute('wasm',['cargo','build','--lib','--locked','--target','wasm32-unknown-unknown','-j2','-vv','--message-format=json-render-diagnostics']);
         const artifacts=read(wasmCommand.log).split(/\r?\n/).flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}}).filter(r=>r.reason==='compiler-artifact'&&r.target?.name==='viewer_journey'&&path.resolve(r.manifest_path)===path.join(g.workbench,'Cargo.toml'));
         assert.equal(artifacts.length,1,'Actual own source-bound Cargo WASM artifact required');
         const wasm=path.join(g.target,'wasm32-unknown-unknown/debug/viewer_journey.wasm');assert(artifacts[0].filenames.some((f:string)=>path.resolve(f)===wasm));

@@ -13,6 +13,7 @@ import { kernelClasses } from './kernel';
 import { readingBook } from '../src/courseBook';
 import { svgHtml } from './svg';
 import { registerLinkedAsset } from './course-source-assets';
+import { archivedPage, originalPage } from './course-archive';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SESSION = path.resolve(HERE, '../..');
@@ -101,7 +102,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
   if (fs.existsSync(series)) {
     for (const line of fs.readFileSync(series, 'utf8').split('\n')) {
       const file = line.trim().split(/\s+/)[2];
-      const slug = file && pageSlug(path.join(DOCS, file));
+      const slug = file && pageSlug(archivedPage(DOCS, path.join(DOCS, file)));
       if (slug && bySlug.has(slug) && !course.includes(slug)) course.push(slug);
     }
   }
@@ -120,7 +121,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
       }
       const item = line.match(/^ {4}- (?:"[^"]+"|[^:"]+):\s*(\S+\.md)\s*$/);
       if (item && current) {
-        const slug = pageSlug(path.join(VIEWER, item[1]));
+        const slug = pageSlug(archivedPage(DOCS, path.join(VIEWER, item[1])));
         if (bySlug.has(slug)) current.slugs.push(slug);
       }
     }
@@ -143,12 +144,14 @@ function navGroups(bySlug: Map<string, string>): Group[] {
     if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
     groups.splice(1, 0, ...lessonGroups);
     const reference = groups.find((g) => g.title === 'Course');
-    if (reference) reference.title = 'Complete viewer reference';
+    if (reference) reference.title = 'Archived tutorials';
   }
-  for (const group of groups) group.slugs = group.slugs.filter(slug => !['journey/contents', 'journey/roadmap'].includes(slug));
+  const archived = groups.find(group => group.title === 'Archived tutorials')?.slugs || [];
+  for (const group of groups) group.slugs = group.slugs.filter(slug => !slug.startsWith('archived/') && !['journey/contents', 'journey/roadmap'].includes(slug));
   const listed = new Set(groups.flatMap((g) => g.slugs));
   const rest = [...bySlug.keys()].filter((s) => !listed.has(s) && !s.includes('/')).sort();
   if (rest.length) groups.push({ title: 'More', slugs: rest });
+  groups.push({title: 'Archived tutorials', slugs: ['archived/readme', 'archived/reference-course', ...archived]});
   return groups.filter((g) => g.slugs.length);
 }
 
@@ -255,17 +258,17 @@ export default function coursePlugin(): Plugin {
     }
     const lesson = [...readerBook.byId.values()].find(lesson => pageSlug(path.join(DOCS, lesson.page)) === slug);
     if (lesson && /^\d+\.\d+$/.test(lesson.number)) raw = raw.replace(/^# (?:\d+\.\d+ · )?/, `# ${lesson.number} · `);
-    let search = true;
+    let search = !slug.startsWith('archived/');
     const front = raw.match(/^---\n([\s\S]*?)\n---\n/);
     if (front) {
-      search = !/exclude:\s*true/.test(front[1]);
+      search = search && !/exclude:\s*true/.test(front[1]);
       raw = raw.slice(front[0].length);
     }
     raw = resolveSnippets(raw, rel, errors, sources);
 
     const ids = new Set([...raw.matchAll(/^<span id="([\w-]+)"><\/span>$/gm)].map((m) => m[1]));
     const toc: Page['toc'] = [];
-    const dir = path.dirname(file);
+    const dir = path.dirname(originalPage(DOCS, file));
 
     const rewrite = (href: string, label?: string): { url: string; external: boolean } => {
       if (/^[a-z][a-z0-9+.-]*:|^\/\//i.test(href)) return { url: href, external: true };
@@ -275,7 +278,7 @@ export default function coursePlugin(): Plugin {
         return { url: `#/course/${slug}${href}`, external: false };
       }
       const [p, frag = ''] = href.split('#');
-      const abs = path.resolve(dir, decodeURI(p));
+      const abs = archivedPage(DOCS, path.resolve(dir, decodeURI(p)));
       const target = bySlug.get(pageSlug(abs)) === abs ? pageSlug(abs) : '';
       if (p.endsWith('.md')) {
         links.push({ from: rel, href, slug: target, frag });
@@ -363,6 +366,7 @@ export default function coursePlugin(): Plugin {
     html = html.replace(/<p>@@BLOCK(\d+)@@<\/p>/g, (_m, n) => blocks[+n]);
     const h1 = html.match(/<h1 id="[^"]*">([\s\S]*?)<a class="anchor"/);
     const title = h1 ? stripTags(h1[1]) : slug;
+    if (slug.startsWith('archived/')) html = '<p><strong>Archived tutorial.</strong> This preserves an earlier implementation. Follow the <a href="#/course/readme">current course</a> to build the maintained viewer.</p>' + html;
     return { slug, file, title, html, toc, ids, search };
   };
 
@@ -387,6 +391,11 @@ export default function coursePlugin(): Plugin {
         const route = `/tests?suite=${c.suite}&test=${encodeURIComponent(t)}`;
         docs.push({ id: `k:${c.suite}:${t}`, title: t, page: `Kernel API · ${c.label}`, route, text: '' });
       }
+      for (const alias of c.aliases) {
+        const route = `/tests?suite=${c.suite}&test=${encodeURIComponent(alias.test)}`;
+        docs.push({id: `k:${c.suite}:method:${alias.name}`, title: alias.name, page: `Kernel API · ${c.label}`, route,
+          text: `Demonstrated and tested in ${alias.test}.`});
+      }
     }
     const ms = new MiniSearch(SEARCH_OPTIONS);
     ms.addAll(docs);
@@ -408,6 +417,11 @@ export default function coursePlugin(): Plugin {
     for (const [slug, file] of bySlug) {
       try { next.set(slug, renderPage(file, slug, bySlug, links, errors)); }
       catch (cause) { throw new Error(`Cannot render ${posix(path.relative(SESSION, file))}`, { cause }); }
+    }
+    for (const page of [...next.values()]) {
+      const original = originalPage(DOCS, page.file);
+      if (original !== page.file && !next.has(pageSlug(original))) next.set(pageSlug(original), {...page, slug: pageSlug(original), search: false,
+        redirect: `/course/${page.slug}`});
     }
     // journey/ is the course still being written: its unwritten snippets warn, every other page fails the build
     const drafts = errors.filter((e) => e.includes('/docs/journey/'));
@@ -441,10 +455,9 @@ export default function coursePlugin(): Plugin {
     const manifest = path.join(DOCS, 'typing/manifest.json');
     if (fs.existsSync(manifest)) {
       const course = JSON.parse(fs.readFileSync(manifest, 'utf8'));
-      const chain = ['reference-course', 'map', 'how-to-learn', 'foundations'];
-      chain.push(...[...pages.keys()].filter((s) => s.startsWith('foundations/')).sort());
+      const chain = ['archived/reference-course'];
       for (const chapter of course.chapters) {
-        chain.push(pageSlug(path.join(DOCS, chapter.page)));
+        chain.push(pageSlug(archivedPage(DOCS, path.join(DOCS, chapter.page))));
       }
       chains.push(chain);
     }

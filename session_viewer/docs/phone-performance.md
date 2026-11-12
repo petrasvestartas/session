@@ -1,5 +1,15 @@
 # Phone rendering and loading
 
+## Stage decks on a phone
+
+A stage uses a 1600 by 900 design space. Its frame letterboxes the slide and stacks the scene above the mathematics in an upright viewport. Labels use the same camera projection as the scene. Dot sizes scale linearly with the frame; line widths use its scale to the power 0.3 so fine lines remain readable.
+
+Check `?stage=equilibrium` at desktop and upright phone sizes: advance and step back, drag the scene, zoom, and inspect labels during motion as well as at rest. A narrow desktop window tests layout, but does not reproduce a phone GPU driver.
+
+The tested Android arrow failure crossed a shader function boundary: a row passed as a struct changed `end` and `heads`. The current shared `arrow_corner` takes individual fields. The [temporary shader-probe procedure](debugging.md#probe-a-phone-only-shader-failure) records how that cause was isolated; the probe switch has been removed.
+
+For decks, `index.html` starts font, index and chapter requests while WebAssembly loads and skips the ordinary scene request. Distinguish download, compilation and first-frame costs. Historical measurements below are not current stage benchmarks.
+
 The supplied CODEX_PROMPT.md references another machine's review and patch. They are absent here; this work verifies the local code and published timber-floor bytes independently.
 
 ## Load diagnostics

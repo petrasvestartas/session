@@ -3249,7 +3249,7 @@ fn actual_large_cloud_changes_detail_with_the_view_and_reuses_its_original_uploa
 
 ## Build & Run
 
-![Recorded visual output for Lesson 11.3 (64t-clouds)](../../screenshots/journey/64t-clouds.png)
+![Recorded visual output for Lesson 11.3 (64t-clouds)](../../screenshots/journey/64t-clouds-388a151b4d18.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 11.3

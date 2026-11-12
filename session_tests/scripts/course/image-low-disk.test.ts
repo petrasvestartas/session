@@ -71,7 +71,7 @@ function fixture(lowDisk = true, declaredPackages = packages) {
         return {status: 0, stdout: '', stderr: 'retired local package'};
     };
     const execute = (label: string, args: string[]) => {
-        events.push(label); assert.equal(label, 'sample'); assert.deepEqual(args, ['cargo', 'run', '--example', 'sample', '--locked', '--target', host, '-j8', ...(lowDisk ? ['--message-format=json-render-diagnostics'] : [])]);
+        events.push(label); assert.equal(label, 'sample'); assert.deepEqual(args, ['cargo', 'run', '--example', 'sample', '--locked', '--target', host, '-j2', ...(lowDisk ? ['--message-format=json-render-diagnostics'] : [])]);
         if (controls.sampleFails) throw Error('sample failed'); put(path.join(workbench, 'sample.pb'), 'generated fixture');
         const log = path.join(folder, 'sample.log'); put(log, controls.emptyLog ? '' : artifactRecords.map(row=>JSON.stringify(row)).join('\n')+'\n');
         return {log,logSha256:sha(fs.readFileSync(log)),resources:{exitCode:0,timedOut:false}};

@@ -357,7 +357,9 @@ impl Ui {
             .stacked(screen, stage.stage.split)
             .side(0.0);
         stage.stage.tick(now);
-        state.gpu.view.dark = true;
+        // a deck on a light ground gets the viewer's white backdrop, a dark one the black clear
+        let ground = stage.stage.palette("bg");
+        state.gpu.view.dark = ground[0] + ground[1] + ground[2] < 1.5;
         state.gpu.view.show_grid = false; // the deck draws its own floor grid as kernel lines
         let (cam, busy) = stage.stage.camera(now);
         let (serial, origin) = (stage.stage.cam_serial, stage.stage.origin());

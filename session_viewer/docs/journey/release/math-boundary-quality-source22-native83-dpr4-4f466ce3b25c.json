@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:44:00.746Z",
+  "id": "83ze-integrate-original-surface-area",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-83ze-integrate-original-surface-area-685232ee1e05a827c9ae\\capture.json.gz",
+    "sha256": "fb8e72744944dda5bd932aa4e2c0a0cdeeb5541bbe272306111d378d33c264b2",
+    "bytes": 163408
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-slot-proposal-01\\case83\\capture-result.json",
+    "sha256": "625d541667d7dc649ae286f67668b0bce844332a48d7f5435131628a40a4ccc0"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-source22-fd32eaf3-83-execution.json",
+    "sha256": "cf049aa705491d75c927d1fdcdac5f9da9e1cdb942585f0f28dfed10e0c07372"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-slot-proposal-01\\case83\\bounded-terminal.json",
+    "sha256": "3fa4262fc8eb4b8cff5a3f2686baa58e8877d0d015e8d501f34214c04eadddc6"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\83ze-integrate-original-surface-area-4f466ce3b25c.png",
+    "sha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\83ze-integrate-original-surface-area.png",
+    "sha256": "1efeb34f22f39a0db673a5f3fbca88990f635f08ae63104bf7527065e06784fe"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. The actual fixture shows one flat grey planar body in isometric view with a complete black outer boundary and the retained black cutter crossing its two face regions, extending beyond opposite sides. The common split/cutter line is intentional source geometry. Native draw asserts one CAD body, two faces, one retained line, no remaining surface object and stable upload count. This is face splitting, not surface-area integration. RawDPR4 IMAGE only; no canonical640 pixels or browser callback acceptance. Sixteen old aliases/pixels retained.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 16 historical aliases and their original pixels remain unchanged. One original planar CAD face split into two trimmed face regions with retained line cutter; original draw asserts one body/two faces. No area-integration fixture. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-slot-proposal-01\\case83\\publication.json",
+    "sha256": "fb4135e14fd1622413695813e11b9ec8c91ef39e69d1b343fc8ea573d0737757"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-83ze-integrate-original-surface-area-685232ee1e05a827c9ae\\publication.json",
+    "sha256": "abe184d7b4d3378403d05240ae0ce2af167b1820622d55050d2944945562f3ea"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-83ze-integrate-original-surface-area-685232ee1e05a827c9ae\\retirement.json.gz",
+    "sha256": "bd4ce3bd044a87c7a707e99114fb899b87077973e0bb1f9066b7cc8f0329c9d4"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-83ze-integrate-original-surface-area-685232ee1e05a827c9ae\\retired.json",
+    "sha256": "f3b3c9cde33939c703202936c171d45d049b8b6b9763569d12b63b640d4b9d17"
+  }
+}

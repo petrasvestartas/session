@@ -3,6 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {docs, viewer, reference, json, read, hash, lines, filesIn} from './model.ts';
 import type {Files} from './model.ts';
+import {archivedPage} from '../../plugins/course-archive.ts';
 
 function snapshot(id: string, names: string[]): Files {
     const files: Files = {};
@@ -35,7 +36,7 @@ export function referenceStructure() {
     const names = Object.keys(data.files);
     const last = new Map(data.chapters.map((chapter: any) => [chapter.last, chapter.id]));
     for (const chapter of data.chapters) {
-        const page = read(path.join(docs, chapter.page));
+        const page = read(archivedPage(docs, path.join(docs, chapter.page)));
         pages.set(chapter.id, page);
         assert(/^# [^\n]+\n\n\*\*Estimated study time: about \d+–\d+ hours\./.test(page), chapter.id);
         for (const key of ['local', 'global', 'trace', 'question', 'answer']) assert(page.includes(notes[chapter.id].guide[key]), `${chapter.id}: ${key}`);

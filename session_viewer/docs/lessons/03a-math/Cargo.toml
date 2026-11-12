@@ -1,0 +1,28 @@
+# --8<-- [start:manifest]
+[package]
+name = "viewer_math_lesson"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
+
+[dependencies]
+session_rust = { path = "../../../../session_rust", default-features = false, features = ["viewer-display"] }
+png = "0.17"
+serde_yaml_ng = "0.10"
+ttf-parser = { version = "0.25", default-features = false, features = ["opentype-layout", "std"] }
+swash = "=0.2.10"
+egui = { version = "=0.34.3", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+wgpu = "=29.0.4"
+egui-wgpu = { version = "=0.34.3", default-features = false }
+wasm-bindgen = "=0.2.128"
+wasm-bindgen-futures = "=0.4.78"
+console_error_panic_hook = "=0.1.7"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "KeyboardEvent", "EventTarget"] }
+# --8<-- [end:manifest]

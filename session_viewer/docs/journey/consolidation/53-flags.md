@@ -6832,7 +6832,7 @@ fn actual_layer_colours_change_display_settings_without_editing_or_reuploading_o
 
 ## Build & Run
 
-![Recorded visual output for Lesson 8.3 (53u-layers)](../../screenshots/journey/53u-layers.png)
+![Recorded visual output for Lesson 8.3 (53u-layers)](../../screenshots/journey/53u-layers-aeab6de33013.png)
 
 ```sh
 cd workspace/journey

@@ -73,12 +73,15 @@ struct SplatTargets {
     depth: Attachment,              // nearest point per pixel
     color: Attachment,              // its color
     size: (u32, u32),               // texture size, px
+    samples: u32,
     resolve_group: wgpu::BindGroup, // both textures, for the resolve
 }
 
 impl SplatTargets {
     /// Create both textures and their bind group.
-    fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
+    fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32), samples: u32) -> Self {
+        assert!(matches!(samples, 1 | 4));
+        log::info!("splat targets: {}x", samples);
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
         let depth = Attachment::new(
             ctx,
@@ -86,7 +89,7 @@ impl SplatTargets {
             &TextureSpec {
                 size,
                 format: wgpu::TextureFormat::Depth32Float,
-                samples: 1,
+                samples,
                 usage,
             },
         );
@@ -96,23 +99,25 @@ impl SplatTargets {
             &TextureSpec {
                 size,
                 format: COLOR_FORMAT,
-                samples: 1,
+                samples,
                 usage,
             },
         );
+        let (layout, first) = if samples == 4 { (&l.resolve_msaa, 2) } else { (&l.resolve, 0) };
         let resolve_group = resource_group(
             ctx,
-            &l.resolve,
+            layout,
             "splat.resolve.group",
             [
-                (0, wgpu::BindingResource::TextureView(&depth)),
-                (1, wgpu::BindingResource::TextureView(&color)),
+                (first, wgpu::BindingResource::TextureView(&depth)),
+                (first + 1, wgpu::BindingResource::TextureView(&color)),
             ],
         );
         Self {
             depth,
             color,
             size,
+            samples,
             resolve_group,
         }
     }
@@ -137,6 +142,8 @@ pub struct Splat {
     targets: Option<SplatTargets>, // point textures
     points_group: wgpu::BindGroup, // records and point buffers, bound
     resolve_shader: Shader,        // resolve shader
+    point_shader: Shader,
+    samples: u32,
     point_pipeline: Pipeline,      // points in color
     resolve_pipeline: Pipeline,    // point texture into the scene
     id_pipeline: Pipeline,         // points as ids
@@ -146,7 +153,7 @@ impl Splat {
     /// Bytes reserved on the GPU: (buffers, textures).
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let pixels = match &self.targets {
-            Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
+            Some(target) => u64::from(target.size.0) * u64::from(target.size.1) * u64::from(target.samples),
             None => 0,
         };
         (self.record_buf.size(), pixels * 8)
@@ -170,10 +177,10 @@ impl Splat {
             &PointVariant {
                 target: Target {
                     format: COLOR_FORMAT,
-                    samples: 1,
+                    samples: target.samples,
                 },
                 label: "splat.points",
-                fs: "fs_point",
+                fs: if target.samples == 4 { "fs_point_aa" } else { "fs_point" },
             },
         );
         let id_pipeline = build_point(
@@ -199,6 +206,8 @@ impl Splat {
             targets: None,
             points_group,
             resolve_shader,
+            point_shader,
+            samples: target.samples,
             point_pipeline,
             resolve_pipeline,
             id_pipeline,
@@ -220,6 +229,16 @@ impl Splat {
 
     /// Rebuild the resolve pipeline for a new MSAA sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
+        if self.samples != target.samples {
+            self.samples = target.samples;
+            self.point_pipeline = build_point(ctx, l, &self.point_shader, &PointVariant {
+                target: Target { format: COLOR_FORMAT, samples: self.samples },
+                label: "splat.points",
+                fs: if self.samples == 4 { "fs_point_aa" } else { "fs_point" },
+            });
+            self.targets = None;
+            self.key = None;
+        }
         self.resolve_pipeline = build_resolve(ctx, l, &self.resolve_shader, target);
     }
 
@@ -288,8 +307,8 @@ impl Splat {
         }
 
         // remake the textures when the size changed
-        if !matches!(&self.targets, Some(targets) if targets.size == cx.size) {
-            self.targets = Some(SplatTargets::new(ctx, l, cx.size));
+        if !matches!(&self.targets, Some(targets) if targets.size == cx.size && targets.samples == self.samples) {
+            self.targets = Some(SplatTargets::new(ctx, l, cx.size, self.samples));
         }
 
         // upload the header and the records
@@ -493,7 +512,7 @@ fn build_point(ctx: &GpuCtx, l: &Layouts, shader: &Shader, v: &PointVariant) -> 
     let groups = [&l.line, &l.points];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .with(v.label, v.fs)
-        .vertex("vs_point");
+        .vertex(if v.target.samples == 4 { "vs_point_aa" } else { "vs_point" });
     let desc = if v.target == Target::ID {
         desc.physical()
     } else {
@@ -504,9 +523,9 @@ fn build_point(ctx: &GpuCtx, l: &Layouts, shader: &Shader, v: &PointVariant) -> 
 
 /// Resolve pipeline: a fullscreen triangle writing color and depth.
 fn build_resolve(ctx: &GpuCtx, l: &Layouts, shader: &Shader, target: Target) -> Pipeline {
-    let groups = [&l.line, &l.resolve];
+    let groups = [&l.line, if target.samples == 4 { &l.resolve_msaa } else { &l.resolve }];
     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
-        .with("splat.resolve", "fs_main")
+        .with("splat.resolve", if target.samples == 4 { "fs_main_aa" } else { "fs_main" })
         .physical()
         .depth(DepthMode::Opaque);
     build(ctx, target, &desc)

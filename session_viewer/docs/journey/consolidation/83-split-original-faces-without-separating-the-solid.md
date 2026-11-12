@@ -1106,7 +1106,7 @@ mod tests {
 
 ## Build & Run
 
-![Recorded visual output for Lesson 16.3 (83ze-integrate-original-surface-area)](../../screenshots/journey/83ze-integrate-original-surface-area.png)
+![Recorded visual output for Lesson 16.3 (83ze-integrate-original-surface-area)](../../screenshots/journey/83ze-integrate-original-surface-area-4f466ce3b25c.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16.3

@@ -9,6 +9,7 @@ import {png, ppm} from './png.ts';
 import {adapterMetadataPath, fileReference, observeExecution, finishExecution} from './capture-storage.ts';
 
 import {imageProfile, nativeScaleBridge, verifyNativeScale} from './image-render-scale.ts';
+import {nativeRefinementBudget, nativeRefinementFiles, nativeRefinementDensity} from './image-native-refinement.ts';
 
 const output = path.join(viewer, 'target/course-presentation');
 const relative = (file: string) => path.relative(viewer, file).split(path.sep).join('/');
@@ -137,8 +138,8 @@ function checkAdapterBridge(record: any) {
     assert.equal(digest(bridge.record.path), bridge.record.sha256);
 }
 
-function checkMaterialized(id: string, directory: string) {
-    for (const [name, text] of Object.entries(expected(id))) {
+function checkMaterialized(id: string, directory: string, refinement: any = null) {
+    for (const [name, text] of Object.entries(nativeRefinementFiles(expected(id), refinement))) {
         const wanted = materializedContent(name, text, directory);
         assert.equal(read(path.join(directory, name)), wanted, `Materialized checkpoint changed: ${name}`);
     }
@@ -216,7 +217,8 @@ export function inventory() {
 export function bindings(id: string) {
     const step = course().steps.find(step => step.id === id);
     assert(step, `Unknown checkpoint: ${id}`);
-    const files = expected(id);
+    const files = expected(id), refinement = nativeRefinementBudget(id);
+    const adapted = nativeRefinementFiles(files, refinement);
     const kernel = path.resolve(viewer, '../session_rust');
     const inputs = files['Cargo.toml'].includes('session_rust')
         ? [...filesIn(path.join(kernel, 'src')), path.join(kernel, 'Cargo.toml'), path.join(kernel, 'build.rs')] : [];
@@ -226,7 +228,8 @@ export function bindings(id: string) {
         kernel: fingerprint(Object.fromEntries(inputs.map(file => [path.relative(kernel, file), digest(file)]))),
         fixture: step.frame ? digest(path.join(docs, step.frame)) : null,
         harness: digest(path.join(docs, 'journey/frame.rs')), constructor: step.frame_constructor || null,
-        logicalSize: step.frame_size || [640, 480], imageProfile: {native: imageProfile(id, 'native', undefined, docs), browser: imageProfile(id, 'browser', undefined, docs)}, helper: digest(fileURLToPath(import.meta.url)), nativeAdapter: nativeAdapterProfile()};
+        logicalSize: step.frame_size || [640, 480], imageProfile: {native: imageProfile(id, 'native', undefined, docs), browser: imageProfile(id, 'browser', undefined, docs)}, helper: digest(fileURLToPath(import.meta.url)), nativeAdapter: nativeAdapterProfile(),
+        ...(refinement ? {nativeRefinementBudget: {...refinement, originalMathSha256: hash(files['src/math_quality.rs']), adaptedMathSha256: hash(adapted['src/math_quality.rs'])}} : {})};
 }
 
 export function captureDirectory(id: string, density = 2) {
@@ -238,7 +241,7 @@ export function captureDirectory(id: string, density = 2) {
 
 function retained(record: any) {
     assert.deepEqual(bindings(record.source.checkpoint), record.source, 'Retained source/dependency binding changed');
-    checkMaterialized(record.source.checkpoint, record.directory);
+    checkMaterialized(record.source.checkpoint, record.directory, record.source.nativeRefinementBudget || null);
     assert.equal(digest(path.join(viewer, record.driver.path)), record.driver.sha256);
     checkAdapterBridge(record);
     if (record.status === 'CAPTURED_AWAITING_ROOT_VISUAL_REVIEW') {
@@ -255,7 +258,8 @@ export function prepare(id: string, density = 2) {
     const {checkpoint, source, key, directory} = captureDirectory(id, density);
     const step = course().steps.find(step => step.id === checkpoint);
     assert(step, `Unknown checkpoint: ${id}`);
-    const files = expected(checkpoint);
+    nativeRefinementDensity(source.nativeRefinementBudget, density);
+    const files = nativeRefinementFiles(expected(checkpoint), source.nativeRefinementBudget || null);
     if (fs.existsSync(directory)) return retained(json(path.join(directory, 'presentation.json')));
     const [width, height] = source.logicalSize.map(value => value * density);
     assert(width <= 4096 && height <= 4096, 'Presentation dimensions exceed the capture limit');

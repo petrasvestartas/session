@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:46:21.447Z",
+  "id": "84zod-explode-supported-original-families",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-84zod-explode-supported-original-families-92197c84480cb91f23e4\\capture.json.gz",
+    "sha256": "5a97a304b117973f8da60adfa09136ac04328b577245ebea3a124905026e51f9",
+    "bytes": 167254
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native84-86-slot-proposal-01\\case84\\capture-result.json",
+    "sha256": "e2c2e5743016dea5f8537fe647f0281a205d62d22b4d77e76e05a770f6d7be8d"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native84-86-source22-78976e9c-84-execution.json",
+    "sha256": "df838df23434f13f9f4c918c74525003852ff8619134bc1a3d0bd3ba16f5d92d"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native84-86-slot-proposal-01\\case84\\bounded-terminal.json",
+    "sha256": "3c08806a1261b6b13428acf6722ccf9f7cc2f074c0afb5491d691b38ae273d61"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\84zod-explode-supported-original-families-355e633aaacf.png",
+    "sha256": "355e633aaacfb0c20dc27b5521b39f01db8f7d0e933a56d57322fe11da137b16"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\84zod-explode-supported-original-families.png",
+    "sha256": "bde12f4a9c0fcc0e905f8616cee53ba64538c99ca9d6a601965a8da21e067718"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected all original2560x1920 pixels in four unfiltered1280x960 tiles. A solid grey box remains visible inside the gold selected wire bounding box. The separate dark measurement segment, square endpoints and black value chip with clear white2 mm text are fully framed. No triangle wires are shown. Original Native draw asserts OBB half-sizes[1,1,0.2], twelve wire edges/no OBB face indices, exact2 mm label, measurement bytes and zero missing glyphs. This approves only this84 fixture, not separate85ay measurement-supporting work. RawDPR4 IMAGE only; no canonical640 pixels or browser callback acceptance. All62 old aliases/pixels preserved.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 62 historical aliases and their original pixels remain unchanged. Original box with selected wire-only original OBB, unpickable distance measurement and2 mm label; source OBB half-sizes/12 edges/font glyphs are asserted. No explode fixture. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native84-86-slot-proposal-01\\case84\\publication.json",
+    "sha256": "0cb211726f58d6153e1153f5c4dcebca41880e264fb43a8e66a986c04cec1af1"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-84zod-explode-supported-original-families-92197c84480cb91f23e4\\publication.json",
+    "sha256": "74493ba04027ba2629a52469392de49389bbf66c8387ca307fda56ce0708d5ce"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-84zod-explode-supported-original-families-92197c84480cb91f23e4\\retirement.json.gz",
+    "sha256": "7a6be30156e8f267b548153424676fe73df79e95e9d0ba80b5667fcbf1f080df"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-84zod-explode-supported-original-families-92197c84480cb91f23e4\\retired.json",
+    "sha256": "da11bb00bf25c7bb9ca26d2815265fb3d8d02fb6c0f6112c95c8400853dbdcaf"
+  }
+}

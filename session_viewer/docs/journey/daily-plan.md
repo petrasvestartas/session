@@ -2,7 +2,7 @@
 
 ## Chapter 1: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [1.1 · Rust and the first GPU frame](consolidation/01-canvas.md)
 
@@ -14,7 +14,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 2: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [2.1 · Buffers that describe a shared mesh](consolidation/05-vertices.md)
 
@@ -30,7 +30,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 3: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [3.1 · Kernel geometry and a single editor owner](consolidation/17-solid.md)
 
@@ -48,7 +48,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 4: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [4.1 · Browser callbacks with a real lifetime](consolidation/33-owner.md)
 
@@ -62,7 +62,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 5: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [5.1 · Original lines and a screen-space stroke lane](consolidation/35-stroke.md)
 
@@ -80,7 +80,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 6: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [6.1 · A bounded integer picking pass](consolidation/42-window.md)
 
@@ -92,7 +92,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 7: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [7.1 · Active tools own their command input](consolidation/46-tool-panel.md)
 
@@ -108,7 +108,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 8: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [8.1 · Nested original sources and exact parent edits](consolidation/52-tree.md)
 
@@ -120,7 +120,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 9: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [9.1 · Original surfaces, analytic normals and trim boundaries](consolidation/55-validation.md)
 
@@ -134,7 +134,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 10: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [10.1 · Explicit fonts and source label placement](consolidation/60-fonts.md)
 
@@ -146,7 +146,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 11: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [11.1 · Coverage-based screen-space outlines](consolidation/63-radius.md)
 
@@ -158,7 +158,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 12: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [12.1 · Complete viewer files and published scene sources](consolidation/66-read-scene-manifests.md)
 
@@ -170,7 +170,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 13: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [13.1 · Shared original definitions and independently placed instances](consolidation/69-validate-original-definition-references.md)
 
@@ -182,7 +182,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 14: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [14.1 · Original drawings, entity queries and construction frames](consolidation/71-read-original-sheet-entity-metadata.md)
 
@@ -198,7 +198,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 15: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [15.1 · Original transforms, part edits and solid recipes](consolidation/77-copy-current-transformation-and-source-edit-algorithms.md)
 
@@ -210,7 +210,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 16: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [16.1 · Projection, extension and stable edit targets](consolidation/81-project-originals-through-the-current-plane-algorithms.md)
 
@@ -224,7 +224,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 17: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [17.1 · Bounded projected triangles and tile lists](consolidation/86-copy-finite-tile-allocation-rules.md)
 
@@ -236,7 +236,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 18: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [18.1 · A retained depth and radius pyramid](consolidation/89-copy-density-scaled-depth-reduction.md)
 
@@ -254,7 +254,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 19: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [19.1 · Complete source metadata and the actual command contract](consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md)
 
@@ -266,7 +266,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 20: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [20.1 · Shared surface geometry and finite visibility addresses](consolidation/96zh-bind-the-shared-geometry-as-storage.md)
 
@@ -282,7 +282,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 21: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [21.1 · Units and one precise render origin](consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md)
 
@@ -296,7 +296,7 @@ Work through one coherent lesson at a time. Use its retained implementation chec
 
 ## Chapter 22: consolidated lessons
 
-Work through one coherent lesson at a time. Use its retained implementation checkpoints to save a stopping point; the reading structure is not limited by a typing-character budget.
+Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
 - [22.1 · Original surface colours and lighting controls](consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md)
 

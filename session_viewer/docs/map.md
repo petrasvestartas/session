@@ -1,6 +1,6 @@
 # The whole viewer and your place in it
 
-This page describes the complete implementation reference. For the new smaller lessons and their availability, start with [the course route](journey.md).
+This page describes the viewer's data flow. Start with [the course route](journey.md); the older numbered implementation lessons are archived.
 
 You do not need to hold every function in your head. Start with three versions of the same object: its editable source, its display geometry, and the bytes the GPU draws. For any file, ask which version it owns and what it passes to the next part.
 
@@ -17,6 +17,12 @@ You do not need to hold every function in your head. Start with three versions o
 | Input, tools and interface | Gestures, commands and pick results | State changes and editing requests | Interpret what the user wants and ask the appropriate owner to act. |
 
 Vue hosts this documentation. The viewer itself runs Rust compiled to WebAssembly, with WGSL shaders on the GPU. The geometry kernel is a dependency of the viewer; you do not rewrite that library in this course.
+
+## A slide of mathematics
+
+With `?stage=equilibrium`, the same viewer draws a mathematical presentation. YAML supplies chapters, slides and steps. The 3D picture uses the real scene, GPU lanes and camera; the formula column uses OpenType MATH metrics, the stage's TeX layout and an egui glyph atlas. Scene text cannot address the math font's glyph IDs, so it cannot replace this painter.
+
+Learn the 2D frame, formulas, matrices, timing and stepping immediately after the first egui painting. Add the scene adapter only after camera, object rows, strokes, markers and loading. A step can then move a kernel object by placement, reveal a line, project its label and carry a value into a matrix cell. [Dependency boundaries](journey/stage-gap.md) identify the current coupling that must be resolved for write-once lessons.
 
 ## Follow three small stories
 
@@ -38,7 +44,7 @@ These stories connect local code to the whole viewer. If you lose your place, re
 | [14 · Loading scenes](14-loading.md) | A connected browser viewer that loads and presents the course scene. | Streaming, resource lifetimes, fuller presentation and editing. |
 | [20 · Document history](20-history.md) | The connection between source transactions and displayed rows. | Direct-edit gestures and modeling tools. |
 | [31 · Modeling and panels](31-splitting.md) | Editing, commands, tools, snapping, panels and splitting. | The remaining presentation controls and final integrated checks. |
-| [37 · Finished viewer](37-command-dock.md) | The maintained viewer implementation and its verification examples. | Your own changes and deeper experiments. |
+| [37 · Archived endpoint](37-command-dock.md) | The reference course's historical implementation and verification examples. | Compare its limits with the current coverage audit. |
 
 The course starts by building the lower-level drawing machinery, then connects the application around it. The order is not the same as the path a loaded file follows. A module may be built and tested before its browser caller arrives; each section says what can run at that stage.
 
@@ -116,4 +122,4 @@ The 43 viewer sections total roughly **1,000–2,100 active study hours** under 
 | [33 · GTAO, Arctic and Outline](33-contact-shadows.md) | 3–7 | Connect Arctic, outline and contact-shading controls to render state. |
 | [35 · Element features](35-attributes.md) | 3–6 | Show or hide element features through the shared display state. |
 | [36 · Translucent faces and Opacity](36-translucent-faces.md) | 2–5 | Expose face opacity through the command and state layers. |
-| [37 · Self-test: the finished viewer](37-command-dock.md) | 15–30 | Exercise the finished viewer from a scene file through GPU output. |
+| [37 · Archived self-test endpoint](37-command-dock.md) | 15–30 | Exercise the historical checkpoint from a scene file through GPU output. |
