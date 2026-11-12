@@ -1,6 +1,6 @@
 # Stage tutorial ownership and integration
 
-The [early mathematics subject](03a-mathematics.md) teaches the complete 2D stage core. Its standalone checkpoint contains 17 production modules, verified by `scripts/course/stage-core.test.ts`. Native and browser verification of that complete checkpoint remains pending. The active cumulative course does not yet include it.
+The [early mathematics subject](03a-mathematics.md) teaches the complete 2D stage core. Its standalone checkpoint contains 17 production modules, verified by `scripts/course/stage-core.test.ts`. The complete checkpoint passes 24 native tests, a WebAssembly build and browser checks at desktop and upright phone dimensions using software WebGPU. The active cumulative course does not yet include it.
 
 ## Two subjects, one implementation
 

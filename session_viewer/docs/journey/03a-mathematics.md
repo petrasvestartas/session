@@ -146,11 +146,11 @@ The next scene subject uses the same schema and runtime. It adds the adapter tha
 
 ## Run and observe
 
-From `docs/lessons/03a-math`, run `CARGO_TARGET_DIR=../../../target/course-cargo CARGO_BUILD_JOBS=8 trunk serve --port 8780` through the workspace build guard. Open `http://127.0.0.1:8780/`.
+From `docs/lessons/03a-math`, run `CARGO_TARGET_DIR=../../../target CARGO_BUILD_JOBS=8 NO_COLOR=true trunk serve --port 8780` through the workspace build guard. Open `http://127.0.0.1:8780/`.
 
 The first step aligns two equations. Right arrow advances to a matching rewrite, then a matrix and its coloured first row. Left arrow rebuilds the previous state. `T` changes the stage theme. The left scene region stays empty because this subject does not allocate 3D scene rows. Reload after changing the viewport size; the supplied browser harness has no resize integration yet.
 
-Run native checks with `cargo test --lib --target x86_64-pc-windows-msvc --target-dir ../../../target/course-cargo -j8`, also through the guard. Use your native host target on another platform. Tests include parser and layout facts, the lesson deck, replay, and the production suite that plays all five shipped decks.
+Run native checks with `REGEN_PROTO=0 cargo test --locked --lib --target x86_64-unknown-linux-gnu --target-dir ../../../target -j8`, also through the guard. Use your native host target on another platform. Tests include parser and layout facts, the lesson deck, replay, and the production suite that plays all five shipped decks.
 
 ## Predict and try
 
@@ -166,4 +166,11 @@ The action stream already describes how to construct every state. Replaying that
 
 ## Validation
 
-The source-parity test passes for all 17 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths. Current native and browser verification is pending: the storage guard stopped the native build at the workspace's generated-file limit. The previous formula-only captures do not validate this source revision. Cumulative course integration remains unfinished. The browser harness is a subject test host, not a replacement for the production application's event loop.
+The source-parity test passes for all 17 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths. The complete checkpoint passes 24 native tests and its WebAssembly build in the cloud environment. Chromium with Vulkan/SwiftShader passes four visible deck steps at 1280 × 720 and 390 × 844 (density 2), exact previous-frame reconstruction and a theme round trip. This is software WebGPU evidence, not a hardware-driver or real-phone test. The [full browser record](../lessons/03a-math/full-browser-evidence.json) fingerprints the tested source; the older formula-only record remains historical. Cumulative course integration remains unfinished. The browser harness is a subject test host, not a replacement for the production application's event loop.
+
+
+![Full stage core: aligned equations in the browser.](../screenshots/math-full/landscape-step-1.png)
+
+![The matrix row at upright phone dimensions.](../screenshots/math-full/portrait-step-4.png)
+
+Reproduce browser checks after serving the built checkpoint with `node ../session_tests/scripts/course/math-browser.cjs http://127.0.0.1:8780/`. Supply Playwright and pngjs through `NODE_PATH` if installed outside `session_tests`; `CHROMIUM` selects the browser executable. The check rejects blank images, unchanged steps, runtime errors and failed navigation round trips. Its captures go to `target/math-browser`.

@@ -1,0 +1,164 @@
+{
+  "checkpoint": "docs/lessons/03a-math",
+  "scope": "Full standalone stage core; cumulative integration remains separate",
+  "browser": "156.0.8078.79",
+  "args": [
+    "--enable-unsafe-webgpu",
+    "--enable-unsafe-swiftshader",
+    "--use-angle=swiftshader",
+    "--enable-features=Vulkan",
+    "--use-vulkan=swiftshader"
+  ],
+  "sourceSha256": {
+    "Cargo.lock": "d3d18e75a6df5ccdc6f49fa3052e63d9a3f1450359480d8f63cabd53c1f333ef",
+    "Cargo.toml": "3b85e3c3d72aa388b6c0aa0cae5ddd6f6d958f9dbcad67a95124b07df43524cd",
+    "example.yaml": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a",
+    "index.html": "4aabe275d5ace205f544a88517acdc06daf36cf2747d37262f56de427e8b88ab",
+    "src/app/stage/actions.rs": "5968e4a65362a6bd3236c5dee9b907a55ea1c1a7d27306d51afefa9bf6ade09d",
+    "src/app/stage/check.rs": "40915c98440ce643d1b987983aad3d58077f255d404c4d546c1725f044014f83",
+    "src/app/stage/deck.rs": "cae7e6de073b888c44d0038be57e0af584708edb077fcc6b35220b9cc047e5ec",
+    "src/app/stage/draw.rs": "b5cb855e7654eecb78ce719d60fa8116ef4b418bf9516185b01b5b51e7e1eaf3",
+    "src/app/stage/eval.rs": "43421b37522e480291b3c4b5777f81dee65b12f9b016001f60329ec381207e4d",
+    "src/app/stage/font.rs": "75a961befd0ba7f371e65da9a2a4bf5255501d199aeb0b1e42738c7a4de7772c",
+    "src/app/stage/geometry.rs": "c77eff7f86f710212172b5e5ec2cc509c489298cb1b393aec1f5652f709e8ae9",
+    "src/app/stage/layout.rs": "e959b5bcd302d7504a7752ecf915de732d943eae04a60bd0bdf596f9dbc0e60a",
+    "src/app/stage/matrix.rs": "301a0a21ddbad546003fd83006d05304c25597c772c0486e7bd1ae4bd2dfd9f2",
+    "src/app/stage/morph.rs": "8bcccff2a8e6b66a47f2fedf3ff72045b9731cec7e653531f0ab014cfa869a34",
+    "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+    "src/app/stage/net.rs": "1e6e4931e919648b7841f8e38beca5fd7546ec9ced6552192d6f45c7195ef27a",
+    "src/app/stage/object.rs": "5ca468a78c21cf3111f7e84689a17938bc57b4cdda846f20d5e3d9aa14399055",
+    "src/app/stage/paint.rs": "f349ef5dad794f8e6eff8f99b396aa3ad101def99c06656daf5b069cfdbea997",
+    "src/app/stage/production_tests.rs": "f6b6b2d6c8141d9a8cf665a443fbadcb660e9052ebde3f0730382685d3619787",
+    "src/app/stage/run.rs": "a0a1a0a676ec8b1551a468993f221643d432554164ab5a066674f1e22ed7f5a7",
+    "src/app/stage/tex.rs": "2a758b3235e1918cc90923268040667b55302516cdcb46a94944ae0ca97b51d4",
+    "src/app/stage/tween.rs": "5023fcc4be65742c3b9fbde52ea40bd645a06e3d7c5d4c3f7ac8a65a2d07ca7f",
+    "src/app/stage/view.rs": "6e4a6352576e3940fe0d5b05affe4407c66383d8e36868127da25ebb2b75efb8",
+    "src/browser.rs": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0",
+    "src/lib.rs": "03a4416cdf85b7089d7751dfa6631e9461cf8e2bd936908c3837375ddff1bf07",
+    "src/tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba"
+  },
+  "inputs": {
+    "assets/stage/NewCMMath-Book.otf": "c74561f7468db46411725981ba30ad6f1e14094fa11e843ff8e8369508cf506e",
+    "assets/stage/NewCM10-Book.otf": "005abadbdf039dfabab28d5836ec5ec5d94b61410003ca043e7afcd10115af55",
+    "assets/stage/NewCM10-Bold.otf": "c49c61d51757edffeafc43b4d58925cedf9180f7942fb85a3f21a5319bbed07e",
+    "assets/stage/NewCMMono10-Book.otf": "cd3bdeb3eb3a2e3d1b33a4bfc639c32080a39b78c02da0cca060208202aa046c",
+    "assets/stage/logo-eth.png": "bad3cab4da798a796db2fba804f5400829adecd401baed0c48412aa8de09cfe3",
+    "assets/stage/logo-brg.png": "58eb99570cbb0102ec68d1a78e318510276e3bf7ee7c4605f562e7423c9ca499"
+  },
+  "cases": [
+    {
+      "name": "landscape",
+      "width": 1280,
+      "height": 720,
+      "deviceScaleFactor": 1,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      },
+      "errors": [],
+      "frames": [
+        {
+          "file": "landscape-step-1.png",
+          "sha256": "bd0bd9d34f9d35db66f3a5b0bb3a1818c9bb887dfddc172443a9a28b3f80b635",
+          "pixels": "9130889b80dcdf45a107b76aadd16a3b1396fc2cd6811e3a8005875d4990f317",
+          "ink": 8406
+        },
+        {
+          "file": "landscape-step-2.png",
+          "sha256": "b94a44c7dd53c45440adf0c2b939c8f633ab31444a1dfb26981637206f5a9c72",
+          "pixels": "afd0c2e7bdce042382ad05a7f3748ecbe8777e7e2d0b7debd25211aaaa3dcb46",
+          "ink": 11337
+        },
+        {
+          "file": "landscape-step-3.png",
+          "sha256": "9c80651fe201818952fcb96296c6181492f72edb55d4b191ab1b29f1420dec59",
+          "pixels": "e0573353728583edaa437dd17abe4f82c1737f5f57f21697a1fc8167da2b3948",
+          "ink": 15324
+        },
+        {
+          "file": "landscape-step-4.png",
+          "sha256": "c04832b7c320f5a67c782ffbd430e85a29267ab8196e4524830b6ad298a00e71",
+          "pixels": "53149e7b2b5c11b65ede2f3c75ec2eb04cafd38a119d1d506fbe74ec5d7ca73a",
+          "ink": 16949
+        }
+      ],
+      "previous": {
+        "file": "landscape-previous.png",
+        "sha256": "9c80651fe201818952fcb96296c6181492f72edb55d4b191ab1b29f1420dec59",
+        "pixels": "e0573353728583edaa437dd17abe4f82c1737f5f57f21697a1fc8167da2b3948",
+        "ink": 15324
+      },
+      "dark": {
+        "file": "landscape-theme.png",
+        "sha256": "37b498df66868a27a6efafefd8afe5858bc1c06b7f37bc73a3428bbc39d9e02a",
+        "pixels": "78763205a8689893dbd07072ca25b265a0c6cb46e2baaeaaadb1e116ff3eaea1",
+        "ink": 17321
+      },
+      "restored": {
+        "file": "landscape-theme-restored.png",
+        "sha256": "9c80651fe201818952fcb96296c6181492f72edb55d4b191ab1b29f1420dec59",
+        "pixels": "e0573353728583edaa437dd17abe4f82c1737f5f57f21697a1fc8167da2b3948",
+        "ink": 15324
+      }
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 2,
+      "adapter": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      },
+      "errors": [],
+      "frames": [
+        {
+          "file": "portrait-step-1.png",
+          "sha256": "88f56a850284b68539cd078e8b377d9556a9a2af76078c044734a447e0cacdb2",
+          "pixels": "511ed5066b56a5ae9dbc4ddfc9a8284e982d000af2ec275c41f3b571df406647",
+          "ink": 9082
+        },
+        {
+          "file": "portrait-step-2.png",
+          "sha256": "56de4a2c5df8b3fcf4bc7c1e9ba48d62b6331030170a05410a9edc6f97b183a1",
+          "pixels": "728425a032d9b300be93b98acfb13b5ba13c450117f974e26143238f49119f00",
+          "ink": 11220
+        },
+        {
+          "file": "portrait-step-3.png",
+          "sha256": "f7f312fb02eea3426272a2aa30821f61d79bd3358242dc6f70097b0b21328699",
+          "pixels": "8cfd0bc2f1377d0973751b4cdb76290d575744e07a08065b6e7353f79b8ddfa2",
+          "ink": 14497
+        },
+        {
+          "file": "portrait-step-4.png",
+          "sha256": "56161bd7673b422a777d400d39fd407ab38763bd68e60bc5c7513e5ed5c63473",
+          "pixels": "b2830e36e85cea57e4232d8675042471abe10bcae0f79eacf72a49cfe4483998",
+          "ink": 15443
+        }
+      ],
+      "previous": {
+        "file": "portrait-previous.png",
+        "sha256": "f7f312fb02eea3426272a2aa30821f61d79bd3358242dc6f70097b0b21328699",
+        "pixels": "8cfd0bc2f1377d0973751b4cdb76290d575744e07a08065b6e7353f79b8ddfa2",
+        "ink": 14497
+      },
+      "dark": {
+        "file": "portrait-theme.png",
+        "sha256": "0a033b15b9bb8c898a1a0b297cbff446157ea83d9a5915cacff45d3cf9b76581",
+        "pixels": "224a5c35725e2e4f676a2f30afa2a5c8bf799f833b873c15fe7b54cdf4970885",
+        "ink": 15737
+      },
+      "restored": {
+        "file": "portrait-theme-restored.png",
+        "sha256": "f7f312fb02eea3426272a2aa30821f61d79bd3358242dc6f70097b0b21328699",
+        "pixels": "8cfd0bc2f1377d0973751b4cdb76290d575744e07a08065b6e7353f79b8ddfa2",
+        "ink": 14497
+      }
+    }
+  ]
+}
