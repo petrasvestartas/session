@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-12T03:51:40.463915+00:00",
+  "updatedUtc": "2026-11-12T03:57:18.351679+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -188,13 +188,13 @@
       "status": "PARTIAL_SOURCE22_NATIVE_IMAGES_ROOT_REVIEWED_RETIRED",
       "freeze": "source-freeze-22-cloud-lifecycle-route.json",
       "sourceFiles": 540,
-      "acceptedImages": 13,
+      "acceptedImages": 15,
       "historicalFreeze13AcceptedImages": 51,
       "historicalFreeze15AcceptedImages": 14,
       "historicalFreeze19AcceptedImages": 5,
       "historicalFreeze20AcceptedImages": 6,
       "acceptedSupplementalFigures": 1,
-      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has13 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible30/42; no canonical640 or browser callback acceptance."
+      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has15 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible32/42; no canonical640 or browser callback acceptance."
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -288,19 +288,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 94,
-    "remainingAffected": 1232,
-    "acceptedForFinalSource": 13,
-    "remainingFinalSourceAcceptance": 1313,
-    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has13 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible30/42; no canonical640 or browser callback acceptance.",
+    "newPublishedReviewed": 96,
+    "remainingAffected": 1230,
+    "acceptedForFinalSource": 15,
+    "remainingFinalSourceAcceptance": 1311,
+    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has15 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible32/42; no canonical640 or browser callback acceptance.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 89,
-    "remainingPlannedImageAcceptances": 1237,
-    "physicalJourneyPngs": 554,
-    "uniqueJourneyPngs": 554,
+    "acceptedAcrossRendererLineage": 91,
+    "remainingPlannedImageAcceptances": 1235,
+    "physicalJourneyPngs": 556,
+    "uniqueJourneyPngs": 556,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -370,7 +370,7 @@
       "normalLedgerRetirement": true,
       "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
     },
-    "reviewedFigureCountScope": "89 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
+    "reviewedFigureCountScope": "91 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
     "native74Dpr4Image": {
       "receipt": "docs/journey/release/math-boundary-quality-source15-native74-dpr4-a8b7dfe56c56.json",
       "sha256": "6701239d01ac7da7190187be22309e7badfb4baa793ed3aa700def9dde8b914f",
@@ -568,17 +568,29 @@
         "receipt": "docs/journey/release/math-boundary-quality-source22-native87-dpr4-9195e2d48345.json",
         "sha256": "d48c12d5b1034b25720888d80f571b862d143e5440c9fb3270402206a34a5902",
         "imageSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c"
+      },
+      {
+        "id": "90v-exercise-actual-contacts-cache-and-source-ownership",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native90-dpr4-b86cbe35a606.json",
+        "sha256": "9da32769cdd89a9562ff720d36c2a3ae02b776c88536751e1e78506e77d53000",
+        "imageSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856"
+      },
+      {
+        "id": "93h-prove-actual-glass-x-ray-and-source-ownership",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native93-dpr4-77fc952a84a5.json",
+        "sha256": "2abd0fca2ee3e8958d43614c814e5b6445c847b247be0e5c2cea91f19da00e81",
+        "imageSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15"
       }
     ]
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 12,
+    "pending": 10,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 30,
+    "published": 32,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
@@ -2027,6 +2039,32 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "90v-exercise-actual-contacts-cache-and-source-ownership",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native90-dpr4-b86cbe35a606.json",
+      "receiptSha256": "9da32769cdd89a9562ff720d36c2a3ae02b776c88536751e1e78506e77d53000",
+      "image": "docs/screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership-b86cbe35a606.png",
+      "imageSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "93h-prove-actual-glass-x-ray-and-source-ownership",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native93-dpr4-77fc952a84a5.json",
+      "receiptSha256": "2abd0fca2ee3e8958d43614c814e5b6445c847b247be0e5c2cea91f19da00e81",
+      "image": "docs/screenshots/journey/93h-prove-actual-glass-x-ray-and-source-ownership-77fc952a84a5.png",
+      "imageSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
     }
   ],
   "stages": [
@@ -2214,5 +2252,10 @@
     "sha256": "2f84361a4573c9809c58bd2396bdca87a52843fbdf0a76b7ad85661e0b407895",
     "scope": "Dated historical ledger snapshot; current freeze19 image acceptances are tracked separately in currentDependencyQualification and source19ReviewedImages.",
     "newAcceptances": 0
+  },
+  "validationLedgerLatest": {
+    "receipt": "docs/journey/release/math-boundary-validation-ledger-20261112-01.json",
+    "sha256": "7e9006a35d5ee2e480350d34b30a3880ff9f3c3db1632a7476c5ef845c67d707",
+    "scope": "Point-in-time index; historical76 destinations/currentSource22 Native15/dense supplement separate. Creates no acceptance."
   }
 }

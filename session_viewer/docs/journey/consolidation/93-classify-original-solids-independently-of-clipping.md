@@ -1469,7 +1469,7 @@ pub mod source_mesh_topology;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 18.5 (93h-prove-actual-glass-x-ray-and-source-ownership)](../../screenshots/journey/93h-prove-actual-glass-x-ray-and-source-ownership.png)
+![Recorded visual output for Lesson 18.5 (93h-prove-actual-glass-x-ray-and-source-ownership)](../../screenshots/journey/93h-prove-actual-glass-x-ray-and-source-ownership-77fc952a84a5.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.5
