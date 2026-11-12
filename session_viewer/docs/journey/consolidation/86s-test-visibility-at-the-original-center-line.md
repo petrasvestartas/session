@@ -3109,7 +3109,7 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## Build & Run
 
-![Recorded visual output for Lesson 17.2 (86aq-exercise-finite-color-and-original-picking)](../../screenshots/journey/86aq-exercise-finite-color-and-original-picking.png)
+![Recorded visual output for Lesson 17.2 (86aq-exercise-finite-color-and-original-picking)](../../screenshots/journey/86aq-exercise-finite-color-and-original-picking-7d0a558b1a54.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 17.2

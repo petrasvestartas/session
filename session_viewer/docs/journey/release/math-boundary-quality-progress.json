@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-12T03:47:49.729981+00:00",
+  "updatedUtc": "2026-11-12T03:51:40.463915+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -188,13 +188,13 @@
       "status": "PARTIAL_SOURCE22_NATIVE_IMAGES_ROOT_REVIEWED_RETIRED",
       "freeze": "source-freeze-22-cloud-lifecycle-route.json",
       "sourceFiles": 540,
-      "acceptedImages": 11,
+      "acceptedImages": 13,
       "historicalFreeze13AcceptedImages": 51,
       "historicalFreeze15AcceptedImages": 14,
       "historicalFreeze19AcceptedImages": 5,
       "historicalFreeze20AcceptedImages": 6,
       "acceptedSupplementalFigures": 1,
-      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has11 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible28/42; no canonical640 or browser callback acceptance."
+      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has13 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible30/42; no canonical640 or browser callback acceptance."
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -288,19 +288,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 92,
-    "remainingAffected": 1234,
-    "acceptedForFinalSource": 11,
-    "remainingFinalSourceAcceptance": 1315,
-    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has11 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible28/42; no canonical640 or browser callback acceptance.",
+    "newPublishedReviewed": 94,
+    "remainingAffected": 1232,
+    "acceptedForFinalSource": 13,
+    "remainingFinalSourceAcceptance": 1313,
+    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has13 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible30/42; no canonical640 or browser callback acceptance.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 87,
-    "remainingPlannedImageAcceptances": 1239,
-    "physicalJourneyPngs": 552,
-    "uniqueJourneyPngs": 552,
+    "acceptedAcrossRendererLineage": 89,
+    "remainingPlannedImageAcceptances": 1237,
+    "physicalJourneyPngs": 554,
+    "uniqueJourneyPngs": 554,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -370,7 +370,7 @@
       "normalLedgerRetirement": true,
       "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
     },
-    "reviewedFigureCountScope": "87 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
+    "reviewedFigureCountScope": "89 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
     "native74Dpr4Image": {
       "receipt": "docs/journey/release/math-boundary-quality-source15-native74-dpr4-a8b7dfe56c56.json",
       "sha256": "6701239d01ac7da7190187be22309e7badfb4baa793ed3aa700def9dde8b914f",
@@ -556,17 +556,29 @@
         "receipt": "docs/journey/release/math-boundary-quality-source22-native86-dpr4-68d4d01e7068.json",
         "sha256": "6bcb55d1e02b0e666279d4e2ce7597b672b6f084c8bd56fb895b7b066155ae7f",
         "imageSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7"
+      },
+      {
+        "id": "86aq-exercise-finite-color-and-original-picking",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native86a-dpr4-7d0a558b1a54.json",
+        "sha256": "ac5f1c0f29b762df68347f03306f1432a04e36e20d60b3ddbdd8452194a1cd05",
+        "imageSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a"
+      },
+      {
+        "id": "87ab-exercise-original-clipping-color-and-picking",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native87-dpr4-9195e2d48345.json",
+        "sha256": "d48c12d5b1034b25720888d80f571b862d143e5440c9fb3270402206a34a5902",
+        "imageSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c"
       }
     ]
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 14,
+    "pending": 12,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 28,
+    "published": 30,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
@@ -1984,6 +1996,32 @@
       "receiptSha256": "6bcb55d1e02b0e666279d4e2ce7597b672b6f084c8bd56fb895b7b066155ae7f",
       "image": "docs/screenshots/journey/86r-cache-projection-and-finish-current-reports-68d4d01e7068.png",
       "imageSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "86aq-exercise-finite-color-and-original-picking",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native86a-dpr4-7d0a558b1a54.json",
+      "receiptSha256": "ac5f1c0f29b762df68347f03306f1432a04e36e20d60b3ddbdd8452194a1cd05",
+      "image": "docs/screenshots/journey/86aq-exercise-finite-color-and-original-picking-7d0a558b1a54.png",
+      "imageSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "87ab-exercise-original-clipping-color-and-picking",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native87-dpr4-9195e2d48345.json",
+      "receiptSha256": "d48c12d5b1034b25720888d80f571b862d143e5440c9fb3270402206a34a5902",
+      "image": "docs/screenshots/journey/87ab-exercise-original-clipping-color-and-picking-9195e2d48345.png",
+      "imageSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": false,

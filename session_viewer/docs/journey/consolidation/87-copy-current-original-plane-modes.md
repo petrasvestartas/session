@@ -5834,7 +5834,7 @@ pub mod finite_project_source;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 17.3 (87ab-exercise-original-clipping-color-and-picking)](../../screenshots/journey/87ab-exercise-original-clipping-color-and-picking.png)
+![Recorded visual output for Lesson 17.3 (87ab-exercise-original-clipping-color-and-picking)](../../screenshots/journey/87ab-exercise-original-clipping-color-and-picking-9195e2d48345.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 17.3
