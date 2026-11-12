@@ -317,7 +317,10 @@ pub fn run() {
     std::fs::create_dir_all(out).unwrap();
     let mut gpu = pollster::block_on(Gpu::new_headless(800, 600)).expect("headless GPU");
     gpu.view.show_grid = false;
-    check(&mut gpu, &lines(), "lines", out);
+    let cloud_only = std::env::var_os("VIEWER_LIFECYCLE_CLOUD_ONLY").is_some();
+    if !cloud_only {
+        check(&mut gpu, &lines(), "lines", out);
+    }
     check_streamed(&mut gpu);
     let files: Vec<_> = args
         .enumerate()
@@ -333,7 +336,11 @@ pub fn run() {
     if !files.is_empty() {
         check(&mut gpu, &files, "meshes", out);
     }
-    println!(
-        "lifecycle OK: no-face rendering, runtime MSAA toggles, resize, rewalk, edit and undo, streamed sources, release, incremental uploads and picking"
-    );
+    if cloud_only {
+        println!("cloud lifecycle OK: streamed sources, MSAA toggles, resize, rewalk, edit and undo, release, incremental uploads and picking");
+    } else {
+        println!(
+            "lifecycle OK: no-face rendering, runtime MSAA toggles, resize, rewalk, edit and undo, streamed sources, release, incremental uploads and picking"
+        );
+    }
 }

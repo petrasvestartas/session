@@ -148,16 +148,17 @@ fn points_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
 }
 
 /// Group 1 for the point resolve: depth and color textures.
-fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+fn resolve_layout(device: &wgpu::Device, multisampled: bool) -> wgpu::BindGroupLayout {
+    let first = if multisampled { 2 } else { 0 };
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("splat.resolve.layout"),
+        label: Some(if multisampled { "splat.resolve.msaa.layout" } else { "splat.resolve.layout" }),
         entries: &[
-            texture_entry(0, ShaderStages::FRAGMENT, TextureSampleType::Depth, false),
+            texture_entry(first, ShaderStages::FRAGMENT, TextureSampleType::Depth, multisampled),
             texture_entry(
-                1,
+                first + 1,
                 ShaderStages::FRAGMENT,
                 TextureSampleType::Float { filterable: false },
-                false,
+                multisampled,
             ),
         ],
     })
@@ -173,6 +174,7 @@ pub struct Layouts {
     pub segment_rows: wgpu::BindGroupLayout, // group 3 for lines
     pub points: wgpu::BindGroupLayout,       // group 1 for points
     pub resolve: wgpu::BindGroupLayout,      // group 1 for the point resolve
+    pub resolve_msaa: wgpu::BindGroupLayout,
 }
 
 impl Layouts {
@@ -190,7 +192,8 @@ impl Layouts {
             ink_rows: ink_rows_layout(device),
             segment_rows: segment_rows_layout(device),
             points: points_layout(device),
-            resolve: resolve_layout(device),
+            resolve: resolve_layout(device, false),
+            resolve_msaa: resolve_layout(device, true),
         }
     }
 }
