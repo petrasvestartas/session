@@ -1,0 +1,568 @@
+{
+  "schema": 1,
+  "status": "POINT_IN_TIME_SOURCE_SCOPED_VALIDATION_SNAPSHOT",
+  "recordedUtc": "2026-11-12T04:42:20.021799+00:00",
+  "scope": "Historical receipts, current maintained-source Native IMAGE acceptance, dense supplemental qualification and visible-work counts are separate. This index creates no new runtime, alias, canonical-pixel, browser or full-suite acceptance.",
+  "immutableHistoricalLedger": {
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261110.json",
+    "sha256": "2f84361a4573c9809c58bd2396bdca87a52843fbdf0a76b7ad85661e0b407895"
+  },
+  "historicalLedgerReceiptHashesVerified": 73,
+  "historicalAcceptedDestinations": 91,
+  "historicalQualifications": [
+    {
+      "sourceFreeze": "source-freeze-13.json",
+      "sourceFreezeSha256": "2dd9b9cff9177fe6801909245418b10a6fe30cb4b46782fb2bc56adec80dca4f",
+      "frozenFiles": 477,
+      "recordedAcceptedImageDestinations": 51,
+      "scope": "Historical image validation for this recorded source version. No current production, canonical callback or website acceptance is inferred."
+    },
+    {
+      "sourceFreeze": "source-freeze-15-compat.json",
+      "sourceFreezeSha256": "3a90a6257b8ca972250d396ac90a1550d85e3267657cb17401c76387f22926d5",
+      "frozenFiles": 473,
+      "recordedAcceptedImageDestinations": 14,
+      "scope": "Historical image validation for this recorded source version. No current production, canonical callback or website acceptance is inferred."
+    },
+    {
+      "sourceFreeze": "source-freeze-19-stage-pictures-handoff.json",
+      "sourceFreezeSha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a",
+      "recordedAcceptedImageDestinations": 5
+    },
+    {
+      "sourceFreeze": "source-freeze-20-current-snapshot.json",
+      "sourceFreezeSha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0",
+      "recordedAcceptedImageDestinations": 6
+    },
+    {
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "sourceFreezeSha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d",
+      "recordedAcceptedImageDestinations": 15
+    }
+  ],
+  "sourceRoles": {
+    "source19": "historical",
+    "source20": "historical",
+    "source22": "historical",
+    "source23": "current expanded-refinement Native profile only"
+  },
+  "previousNovember12Snapshot": {
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261112-01.json",
+    "sha256": "7e9006a35d5ee2e480350d34b30a3880ff9f3c3db1632a7476c5ef845c67d707"
+  },
+  "nativeRefinementProfileQualification": {
+    "receipt": "docs/journey/release/native-surface-refinement-profile-source23-20261112.json",
+    "sha256": "2ea47fbeb7bf44479e7272ffbc0576087d37a94c254879abd163c517d74ff883",
+    "sourceFreeze": "source-freeze-23-native-refinement-profile.json",
+    "acceptedListedNativeImages": 2,
+    "defaultProfileGpuAcceptance": false
+  },
+  "subsequentSourceBoundImageReceipts": {
+    "source19": [
+      {
+        "id": "44l-input",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source19-native44-dpr4-7dada61886fe.json",
+          "sha256": "ca88c7332b68506047728597d7a7ed6b478ca86dafa5488603444ad4759ed95e"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+          "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+        },
+        "imageSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "45c-input",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source19-native45-dpr4-77791d4fa1df.json",
+          "sha256": "c6233f2c770df45ccbc533715179e42158718444599c8dc4a73c280585b73613"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+          "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+        },
+        "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "48d-input",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source19-native48-dpr4-9b3b2620591a.json",
+          "sha256": "bb9d99dcdb591d23fbe84c1439e7e3a1ed696c18f7e380c95106b095cce24030"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+          "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+        },
+        "imageSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "49f-input",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source19-native49-dpr4-b54a77169648.json",
+          "sha256": "dc36f5982399452d1dcc58bc0bb5f356f2699cc4151b56c41f4bd6cf605faacd"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+          "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+        },
+        "imageSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "50d-ownership",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source19-native50-dpr4-deb4457c6d33.json",
+          "sha256": "3b4dde5b60bb7e022ffdc7471b638212856721f867d8999eb395592e195bd33f"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-19-stage-pictures-handoff.json",
+          "sha256": "a9ae41f6b8dc3fbc026b8a6287903b7bfafad473fe00176eb298524ba6e2ae1a"
+        },
+        "imageSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      }
+    ],
+    "source20": [
+      {
+        "id": "52k-tree",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source20-native52-dpr4-363e6b24f861.json",
+          "sha256": "e60ac0a4d14287a0bc43f4ac0feda6ccf1ebc44bd7bfb4bae04fb7d06d5b7dd6"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+          "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+        },
+        "imageSha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "53u-layers",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source20-native53-dpr4-aeab6de33013.json",
+          "sha256": "9da477788042ca2d1ffee10c88c0e5594ad12549cd86e30caec7493772217e77"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+          "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+        },
+        "imageSha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "61d-glyphs",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source20-native61-dpr4-0cc8b191590c.json",
+          "sha256": "8b1b8ec3f2904af1ee4f7b5cea2d06387359caf3452cd1d4ebb3c61ceb964fec"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+          "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+        },
+        "imageSha256": "0cc8b191590cb3315c99b28a413dac7756530898a89c4b7f81f0a68dc3ea47d8",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "63h-outline",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source20-native63-dpr4-136856a71f43.json",
+          "sha256": "e1bd8b101d1456c226d5430d0e3707138df36ff291f10f04266ec2ff4e443a97"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+          "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+        },
+        "imageSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "64t-clouds",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source20-native64-dpr4-388a151b4d18.json",
+          "sha256": "f5119a3bb215e572a988583be8e1f17cbf10ff6b523142b8d6963c578f9d1978"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+          "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+        },
+        "imageSha256": "388a151b4d18cbb6f462b54df21921c5647415d8c9b77baec04efe9f2fb792f5",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "65zb-validate-original-manifest-text-and-source-keys",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source20-native65-dpr4-713353f65147.json",
+          "sha256": "310e1084fb119c42e07d0c148a68ac06f7af59355a554e81cd16f15e2fde6906"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-20-current-snapshot.json",
+          "sha256": "9e523251a1b988497b658bfff542f2a83dc247c9357874897d0000425eea43f0"
+        },
+        "imageSha256": "713353f65147ef47144f8749963c39ee4115adfcb8dd04d22564b1b3e203304d",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      }
+    ],
+    "source22": [
+      {
+        "id": "66af-connect-browser-save-open-url-adoption",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native66-dpr4-0f28c3277327.json",
+          "sha256": "c59874945fcd31f87884675742c79ce380b55907aacb7258bbda8e5078b93d1b"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "69i-check-sharing-precision-history-and-release",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native69-dpr4-29ffdc4a7fc9.json",
+          "sha256": "847dd776ff7362667a4e76300be0454a33857944978134761466f860e634b4f0"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "29ffdc4a7fc918fb5cd159655246d3d5558ec69f47a783d932087fe507d78431",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "69af-exercise-independent-original-cad-reuse",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native69a-dpr4-e5df8d852cd6.json",
+          "sha256": "f5547288db2f204d71030b7bdbf11a01c431fb0e33dd1dad9c81499af12d0d10"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "e5df8d852cd60d767042260544ba48dedb3b8e3b4b8e54ddd7c1f97d63293547",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "71ze-resolve-original-relative-and-polar-coordinates",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native71-dpr4-ea5a1a49286b.json",
+          "sha256": "460d5dacf24fd88fa492e918a7f0642180fe0fdc98a453b4cd73b9844e0ea4a8"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "72s-exercise-current-drawing-tools-and-original-persistence",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native72-dpr4-a2491194a1e6.json",
+          "sha256": "f1883f034d7f9e4f8a86c4f522b967c385d9231922f11f79ff7411e670b0fd7a"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "73t-build-regular-kernel-polyhedra",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native73-dpr4-16c8e50c00e4.json",
+          "sha256": "06f4857be5029de00b94ded5366fe80a615d0ac536c49821fc8cf2de369b4304"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "81za-validate-original-split-inputs-and-name-pieces",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native81-dpr4-b9c270157425.json",
+          "sha256": "578e0cc5899c713f276ce480f70bef88f5ccdc47165459956aecfa8da57db56e"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native82-dpr4-69b2646efefa.json",
+          "sha256": "9a82eee0f474cef8c967c4927c190fbc810d862194391c20bb2da8cad68bc86f"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "83ze-integrate-original-surface-area",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native83-dpr4-4f466ce3b25c.json",
+          "sha256": "461fd4c5b55f67235a076e55f761509e3a2e0eec0a325d4ef23b00bc551b90f4"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "84zod-explode-supported-original-families",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native84-dpr4-355e633aaacf.json",
+          "sha256": "1a9eb76d11d8883ebf5831379b84122793d406a382502daf6e22de83d746bcd5"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "355e633aaacfb0c20dc27b5521b39f01db8f7d0e933a56d57322fe11da137b16",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "86r-cache-projection-and-finish-current-reports",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native86-dpr4-68d4d01e7068.json",
+          "sha256": "6bcb55d1e02b0e666279d4e2ce7597b672b6f084c8bd56fb895b7b066155ae7f"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "86aq-exercise-finite-color-and-original-picking",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native86a-dpr4-7d0a558b1a54.json",
+          "sha256": "ac5f1c0f29b762df68347f03306f1432a04e36e20d60b3ddbdd8452194a1cd05"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "87ab-exercise-original-clipping-color-and-picking",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native87-dpr4-9195e2d48345.json",
+          "sha256": "d48c12d5b1034b25720888d80f571b862d143e5440c9fb3270402206a34a5902"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "90v-exercise-actual-contacts-cache-and-source-ownership",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native90-dpr4-b86cbe35a606.json",
+          "sha256": "9da32769cdd89a9562ff720d36c2a3ae02b776c88536751e1e78506e77d53000"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "93h-prove-actual-glass-x-ray-and-source-ownership",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source22-native93-dpr4-77fc952a84a5.json",
+          "sha256": "2abd0fca2ee3e8958d43614c814e5b6445c847b247be0e5c2cea91f19da00e81"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+          "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+        },
+        "imageSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      }
+    ],
+    "source23": [
+      {
+        "id": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source23-native78-dpr4-ef0c9bde35d4.json",
+          "sha256": "40579633a7656058227c93be082a0c77317c44422adf17b1405c1ed0ff5564ba"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-23-native-refinement-profile.json",
+          "sha256": "c1782ce5264dbf2cf8e0ff3ba54d7ad1a575921084a9acfc0f75ab9d62170621"
+        },
+        "imageSha256": "ef0c9bde35d4b145c797c51b57e36f5c066e4eda5974e0cead240b8815f141f1",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      },
+      {
+        "id": "79zze-fit-the-original-gordon-surface",
+        "receipt": {
+          "path": "docs/journey/release/math-boundary-quality-source23-native79-dpr4-fea8d18aee2b.json",
+          "sha256": "ee832f949eec792462e6904aec8f24d4dfaddcc2b64c26f421d7511462f5104b"
+        },
+        "sourceFreeze": {
+          "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-23-native-refinement-profile.json",
+          "sha256": "c1782ce5264dbf2cf8e0ff3ba54d7ad1a575921084a9acfc0f75ab9d62170621"
+        },
+        "imageSha256": "fea8d18aee2b8737bb461e295624cdb0efbaba3e785f711b219dd316365d444e",
+        "rootOriginalPixelReview": true,
+        "normalLedgerRetirement": true,
+        "canonical640PixelsOrBrowserCallbackExecuted": false
+      }
+    ]
+  },
+  "counts": {
+    "historicalFreeze13": 51,
+    "historicalFreeze15": 14,
+    "historicalFreeze19": 5,
+    "historicalFreeze20": 6,
+    "historicalFreeze22": 15,
+    "currentSource23NativeImages": 2,
+    "lineageDestinations": 93,
+    "remainingPlannedDestinations": 1233,
+    "visiblePublished": 34,
+    "visibleRemaining": 8
+  },
+  "currentMaintainedSource": {
+    "freeze": "source-freeze-23-native-refinement-profile.json",
+    "sha256": "c1782ce5264dbf2cf8e0ff3ba54d7ad1a575921084a9acfc0f75ab9d62170621",
+    "matchedFiles": 542,
+    "lessonAcceptanceScope": "Only listed Native IMAGE fixtures, with their own exact course/frame/helper/dependency/output bindings; historical aliases remain unchanged."
+  },
+  "denseSupplement": {
+    "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
+    "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
+    "acceptedSupplementalFigures": 1,
+    "points": 196608,
+    "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+    "scope": "Only maintained dense illustration and explicit cloud/mesh GPU lifecycle route. Source20 six Native lesson proofs remain historical; no blanket current-source, default full-suite, browser, Potree parity or performance claim.",
+    "canonicalBehaviorExecuted": false,
+    "cloudAntialiasingPatchExecuted": true,
+    "currentSource22DenseSupplementQualified": true,
+    "rootPersonallyViewed": true,
+    "imageSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d",
+    "historicalSource13Illustration": {
+      "receipt": "docs/journey/release/dense-original-rgb-20261106.json",
+      "sha256": "59b0ade56ecb56092349c49809a087f45290e7d322384a1a52c2d0689c172080",
+      "acceptedSupplementalFigures": 1,
+      "points": 196608,
+      "scope": "Source13 maintained renderer; synthetic mesh-derived RGB PointCloud supplemental illustration.",
+      "canonicalBehaviorExecuted": false,
+      "cloudAntialiasingPatchExecuted": false,
+      "currentSource15Qualified": false,
+      "rootPersonallyViewed": true,
+      "imageSha256": "91a3a8e052da49b1513b296a9adc6f47c3cbb84b832e7cc3ed8159d65ec55b31"
+    },
+    "currentSource23HelperQualified": false
+  },
+  "knownDefaultFullLifecycleFailure": {
+    "fullSuitePassed": false,
+    "baselineAndCandidateSameObservedFailure": "line rewalk state0,154 color and4 ID pixels before cloud cases",
+    "explicitCloudRoutePassed": true,
+    "qualificationBoundary": "No full-suite pass is inferred from scoped cloud/mesh lifecycle."
+  },
+  "websiteQualification": {
+    "latestContentRebuilt": false,
+    "lastDatedSnapshot": {
+      "status": "PASS_ACTUAL_SITE_BUILD_AND_BROWSER_QA",
+      "pages": 38,
+      "chapterRoutes": 22,
+      "sourceReaderPins": 111,
+      "plaintextSourcePairs": 13,
+      "otherRustSourcePreviews": 63,
+      "decodedImageOccurrences": 26,
+      "freshReplacementFigures": 4,
+      "denseRgbFigures": 1,
+      "generatorDownloads": 1,
+      "errors": 0,
+      "receipt": "session\\session_viewer\\docs\\journey\\release\\viewer-site-20261106-06.json",
+      "sha256": "2d4294f43d47934763656b6b212be95ad072ccd17fa21965700969f1a0db9376",
+      "browser": "157.0.8103.38"
+    },
+    "finalRealBuildAndBrowserQaPending": true
+  },
+  "excludedAcceptances": [
+    "Rejected uniformly-yellow66 diagnostic image",
+    "Old source22 failed79 refinement with no PNG; source23 separately qualified",
+    "82 admission refusal before preparation",
+    "Source-only cap WGSL probes"
+  ],
+  "immutableHistoricalEvidenceModified": false,
+  "newAcceptancesCreatedByLedger": 0
+}

@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T04:28:46.178Z",
+  "id": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-7e1b2cfd05d205e6e8e8\\capture.json.gz",
+    "sha256": "453e82daf235a11fe0e67e8401cb4e6603cd48c0ca79c084ab7887fe7433f68e",
+    "bytes": 156881
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native78-79-source23-slot-proposal-01\\case78\\capture-result.json",
+    "sha256": "121eab1d7f2f21927f638a817aab389c268547670e7a8cebe7f2e3e3ef80e6a7"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native78-79-source23-532e942d-78-execution.json",
+    "sha256": "2554a97f155f4c7939487dea42631f96fe71aaa24a3d35f1cd495523dd82e8c2"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native78-79-source23-slot-proposal-01\\case78\\bounded-terminal.json",
+    "sha256": "246514c42946f3832e1384c35bf57d9936b2eadcb48a82da58b92455883cebc2"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-23-native-refinement-profile.json",
+    "sha256": "c1782ce5264dbf2cf8e0ff3ba54d7ad1a575921084a9acfc0f75ab9d62170621"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 542,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-ef0c9bde35d4.png",
+    "sha256": "ef0c9bde35d4b145c797c51b57e36f5c066e4eda5974e0cead240b8815f141f1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\78m-exercise-profiles-exact-surfaces-and-one-undo-transaction.png",
+    "sha256": "8fe33b1487ca178fa59e106976eb1078e4cb67752258cf0b62b2ba45090fcc0f"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected every original2560x1920 pixel in four unfiltered1280x960 tiles. The rectangular extrusion is fully framed at left, with independent smoothly shaded open revolved NURBS surface at right. The surface has smooth black top/bottom domain curves and its retained original profile line; no triangulation wires or forced side contours are introduced. Original mathematical quality drain completed without fallback, and original draw/source assertions for closed source directions, retained path/line, stable uploads and both in-view centres executed. Only source23 opt-in rawDPR4 surface256/upload64MiB is qualified; no default-profile, canonical640 or browser acceptance. Six historical aliases/pixels remain unchanged.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 6 historical aliases and their original pixels remain unchanged. Original rectangular-profile extrusion and independently revolved NURBS surface, retained profile/axis sources; exact original draw/source assertions. Opt-in rawDPR4 surface256/upload64MiB only; original requested quality criterion unchanged. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native78-79-source23-slot-proposal-01\\case78\\publication.json",
+    "sha256": "5d81e98fe21c7ead87d3f8a01f2d7a1510c40fc0ace78850b0a8fc111bb74d36"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-7e1b2cfd05d205e6e8e8\\publication.json",
+    "sha256": "7f35974de8fe064607dc61e445d591abc9a20aa9646dfce02c1f8d7182b1a090"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-7e1b2cfd05d205e6e8e8\\retirement.json.gz",
+    "sha256": "e7ac4ce2bc365380dee03ab784080ddf806d8def5d004bb2704b40998a448984"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-7e1b2cfd05d205e6e8e8\\retired.json",
+    "sha256": "93d2ec48c33f32b9dedb534c9b37844658d239680a843cedb4a8f1537cbc2f54"
+  }
+}

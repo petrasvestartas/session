@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "recordedUtc": "2026-11-12T04:41:09.677414+00:00",
+  "status": "ACTUAL_NATIVE_RAW_DPR4_PROFILE_QUALIFIED_FOR_78_79_ONLY",
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-23-native-refinement-profile.json",
+    "sha256": "c1782ce5264dbf2cf8e0ff3ba54d7ad1a575921084a9acfc0f75ab9d62170621"
+  },
+  "ownedHelperFiles": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\presentation.ts",
+      "sha256": "81beb7a950b59ed56ad4b4f3460e83ffa9e14cf41ecd89101eb04d0907e53245"
+    },
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_tests\\scripts\\course\\image-native-refinement.ts",
+      "sha256": "17d95bb3e2981757f49407897eb8abe87867e7936b1084c2e520fae2d5e68a82"
+    }
+  ],
+  "policy": {
+    "scope": "Only two listed Native rawDPR4 fixtures",
+    "surfaceIntervals": 256,
+    "transientAccountingLimitBytes": 67108864,
+    "originalSurfaceIntervals": 128,
+    "originalTransientAccountingLimitBytes": 33554432,
+    "requestedQualityCriterionChanged": false,
+    "retainedObjectAndSceneByteLimitsChanged": false,
+    "curveSegmentLimitChanged": false,
+    "algorithmsOrOriginalSourceGeometryChanged": false,
+    "defaultGeneratedFilesAndDriversUnchangedForFixtures": 16,
+    "defaultDpr2AndDpr4DriverComparisons": 32,
+    "scopeOf64MiB": "Finite conservative internal upload accounting; not an actual allocation or VRAM measurement."
+  },
+  "focusedSourceChecks": {
+    "passed": 23,
+    "evidence": {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native-surface-refinement-profile-proposal-01\\live-verification.json",
+      "sha256": "46335606eda39dc2813073704b3ff4bbc1ed40939ab18e5e8a2a552f3e837d30"
+    },
+    "scope": "Source-only checks; actual Native image evidence is listed separately."
+  },
+  "cpuDiagnostics": [
+    {
+      "result": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\surface-refinement-diagnostic-source22-01\\result.json",
+        "sha256": "d7690ddb9107ca5eea24f6812976fd54177d94f9321576eb0358444c798c00ef"
+      },
+      "scope": "Actual CPU preparation only;78 recipe executed under79 modules, so no78-module equality or GPU acceptance."
+    },
+    {
+      "result": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\surface-refinement-diagnostic-source22-02\\result.json",
+        "sha256": "63b8a6416d6230022ed070893b14504d34d9a375605e7879d4d0466697edbf52"
+      },
+      "scope": "Actual CPU preparation only;78 recipe executed under79 modules, so no78-module equality or GPU acceptance."
+    }
+  ],
+  "nativeImages": [
+    {
+      "id": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction",
+      "proof": {
+        "receipt": "docs/journey/release/math-boundary-quality-source23-native78-dpr4-ef0c9bde35d4.json",
+        "sha256": "40579633a7656058227c93be082a0c77317c44422adf17b1405c1ed0ff5564ba"
+      },
+      "imageSha256": "ef0c9bde35d4b145c797c51b57e36f5c066e4eda5974e0cead240b8815f141f1",
+      "rawPhysicalPixels": [
+        2560,
+        1920
+      ],
+      "profile": {
+        "name": "surface256-upload64",
+        "surfaceIntervals": 256,
+        "transientBytes": 67108864,
+        "originalMathSha256": "3d2db0497790c7a783c19365a491cc95e25f70629b53df69548cba6078c389ff",
+        "adaptedMathSha256": "6e2d5aa2e1d1d2e9c62d7776f3bba5277a35de406173973abb62ff7074bd6bb8"
+      },
+      "originalMathDrainAndDrawAssertionsUnchanged": true,
+      "rootOriginalPixelReview": true,
+      "normalLedgerRetirement": true,
+      "actualCompilerPeakCommitBytes": 1221681152,
+      "actualDrawPeakCommitBytes": 597098496,
+      "compilerJobLimitBytes": 4294967296,
+      "drawJobLimitBytes": 2147483648,
+      "canonical640OrBrowserCallbackExecuted": false
+    },
+    {
+      "id": "79zze-fit-the-original-gordon-surface",
+      "proof": {
+        "receipt": "docs/journey/release/math-boundary-quality-source23-native79-dpr4-fea8d18aee2b.json",
+        "sha256": "ee832f949eec792462e6904aec8f24d4dfaddcc2b64c26f421d7511462f5104b"
+      },
+      "imageSha256": "fea8d18aee2b8737bb461e295624cdb0efbaba3e785f711b219dd316365d444e",
+      "rawPhysicalPixels": [
+        2560,
+        1920
+      ],
+      "profile": {
+        "name": "surface256-upload64",
+        "surfaceIntervals": 256,
+        "transientBytes": 67108864,
+        "originalMathSha256": "3d2db0497790c7a783c19365a491cc95e25f70629b53df69548cba6078c389ff",
+        "adaptedMathSha256": "6e2d5aa2e1d1d2e9c62d7776f3bba5277a35de406173973abb62ff7074bd6bb8"
+      },
+      "originalMathDrainAndDrawAssertionsUnchanged": true,
+      "rootOriginalPixelReview": true,
+      "normalLedgerRetirement": true,
+      "actualCompilerPeakCommitBytes": 1225842688,
+      "actualDrawPeakCommitBytes": 598130688,
+      "compilerJobLimitBytes": 4294967296,
+      "drawJobLimitBytes": 2147483648,
+      "canonical640OrBrowserCallbackExecuted": false
+    }
+  ],
+  "newImageAcceptancesCreatedByThisIndex": 0,
+  "qualificationBoundary": "Only the listed expanded-budget source23 Native IMAGE captures. Original math drain/draw assertions and Root raw-pixel review passed; prior source22 fifteen image acceptances remain historical. No default-profile, canonical640, browser, cap-MSAA4 or whole-course acceptance."
+}
