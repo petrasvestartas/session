@@ -1387,7 +1387,7 @@ mod split_tests;
 
 ## Build & Run
 
-![Recorded visual output for Lesson 16.2 (82g-exercise-curve-pieces-source-inheritance-and-one-step-undo)](../../screenshots/journey/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo.png)
+![Recorded visual output for Lesson 16.2 (82g-exercise-curve-pieces-source-inheritance-and-one-step-undo)](../../screenshots/journey/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-69b2646efefa.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16.2

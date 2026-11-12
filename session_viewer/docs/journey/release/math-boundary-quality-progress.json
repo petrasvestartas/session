@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-12T03:38:06.832022+00:00",
+  "updatedUtc": "2026-11-12T03:44:02.883364+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -188,13 +188,13 @@
       "status": "PARTIAL_SOURCE22_NATIVE_IMAGES_ROOT_REVIEWED_RETIRED",
       "freeze": "source-freeze-22-cloud-lifecycle-route.json",
       "sourceFiles": 540,
-      "acceptedImages": 7,
+      "acceptedImages": 9,
       "historicalFreeze13AcceptedImages": 51,
       "historicalFreeze15AcceptedImages": 14,
       "historicalFreeze19AcceptedImages": 5,
       "historicalFreeze20AcceptedImages": 6,
       "acceptedSupplementalFigures": 1,
-      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has7 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible24/42; no canonical640 or browser callback acceptance."
+      "scope": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has9 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible26/42; no canonical640 or browser callback acceptance."
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -288,19 +288,19 @@
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 88,
-    "remainingAffected": 1238,
-    "acceptedForFinalSource": 7,
-    "remainingFinalSourceAcceptance": 1319,
-    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has7 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible24/42; no canonical640 or browser callback acceptance.",
+    "newPublishedReviewed": 90,
+    "remainingAffected": 1236,
+    "acceptedForFinalSource": 9,
+    "remainingFinalSourceAcceptance": 1317,
+    "qualificationNote": "Historical51freeze13,14freeze15,5freeze19 and6freeze20 lesson acceptances retain their source scopes. Current source22 has9 fresh Native IMAGE fixtures with local selection replay corrected,540 source pins, original-pixel Root review and normal retirement. Dense supplement/scoped cloud lifecycle separately qualified; default full lifecycle line failure remains documented. Visible26/42; no canonical640 or browser callback acceptance.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 83,
-    "remainingPlannedImageAcceptances": 1243,
-    "physicalJourneyPngs": 548,
-    "uniqueJourneyPngs": 548,
+    "acceptedAcrossRendererLineage": 85,
+    "remainingPlannedImageAcceptances": 1241,
+    "physicalJourneyPngs": 550,
+    "uniqueJourneyPngs": 550,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -370,7 +370,7 @@
       "normalLedgerRetirement": true,
       "scope": "Visible original domain boundaries; roof correctly occludes central far boundary. Apparent silhouettes introduced63f/63g/63h. Not a curved-isocurve demonstration or acceptance of later56/57/58 code."
     },
-    "reviewedFigureCountScope": "83 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
+    "reviewedFigureCountScope": "85 source-scoped destinations plus4 controls and1 dense supplement;42 visible updates are separate.",
     "native74Dpr4Image": {
       "receipt": "docs/journey/release/math-boundary-quality-source15-native74-dpr4-a8b7dfe56c56.json",
       "sha256": "6701239d01ac7da7190187be22309e7badfb4baa793ed3aa700def9dde8b914f",
@@ -532,17 +532,29 @@
         "receipt": "docs/journey/release/math-boundary-quality-source22-native81-dpr4-b9c270157425.json",
         "sha256": "578e0cc5899c713f276ce480f70bef88f5ccdc47165459956aecfa8da57db56e",
         "imageSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574"
+      },
+      {
+        "id": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native82-dpr4-69b2646efefa.json",
+        "sha256": "9a82eee0f474cef8c967c4927c190fbc810d862194391c20bb2da8cad68bc86f",
+        "imageSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5"
+      },
+      {
+        "id": "83ze-integrate-original-surface-area",
+        "receipt": "docs/journey/release/math-boundary-quality-source22-native83-dpr4-4f466ce3b25c.json",
+        "sha256": "461fd4c5b55f67235a076e55f761509e3a2e0eec0a325d4ef23b00bc551b90f4",
+        "imageSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8"
       }
     ]
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 18,
+    "pending": 16,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 24,
+    "published": 26,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
@@ -1908,6 +1920,32 @@
       "receiptSha256": "578e0cc5899c713f276ce480f70bef88f5ccdc47165459956aecfa8da57db56e",
       "image": "docs/screenshots/journey/81za-validate-original-split-inputs-and-name-pieces-b9c270157425.png",
       "imageSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native82-dpr4-69b2646efefa.json",
+      "receiptSha256": "9a82eee0f474cef8c967c4927c190fbc810d862194391c20bb2da8cad68bc86f",
+      "image": "docs/screenshots/journey/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-69b2646efefa.png",
+      "imageSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5",
+      "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "83ze-integrate-original-surface-area",
+      "lane": "native",
+      "receipt": "docs/journey/release/math-boundary-quality-source22-native83-dpr4-4f466ce3b25c.json",
+      "receiptSha256": "461fd4c5b55f67235a076e55f761509e3a2e0eec0a325d4ef23b00bc551b90f4",
+      "image": "docs/screenshots/journey/83ze-integrate-original-surface-area-4f466ce3b25c.png",
+      "imageSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
       "httpSha256Verified": false,

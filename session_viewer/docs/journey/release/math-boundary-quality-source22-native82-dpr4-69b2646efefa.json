@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-12T03:42:43.706Z",
+  "id": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-e5cbe1a259a0093f59b3\\capture.json.gz",
+    "sha256": "de6288fc1f280ab2f66712cb38446a9422a64f452a21f3834e5591139a568c20",
+    "bytes": 162521
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-slot-proposal-01\\case82\\capture-result.json",
+    "sha256": "34d3a0dc58b5c7578f6100b56daf8c60ca31fa8c30b4e71b18afdd6ae5577029"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-source22-fd32eaf3-82-execution.json",
+    "sha256": "1f37c4b61ef4060f45014fcad7986ba59a249aca306c62462cd7cb3b105ca2d2"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-slot-proposal-01\\case82\\bounded-terminal.json",
+    "sha256": "21bf814da37a8f2b66f47624017732afbf48dafd1e1afb4587c449a568c21e75"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-22-cloud-lifecycle-route.json",
+    "sha256": "ed493696e0163aff079003538694fc5f1c727e1ff1fbb29aa2242f367df8552d"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 540,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-69b2646efefa.png",
+    "sha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\82g-exercise-curve-pieces-source-inheritance-and-one-step-undo.png",
+    "sha256": "b521a278828def40c1669cffb7054be261b7bcf4aa0b2f00e3a38139d2150b65"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root inspected every original2560x1920 pixel in four unfiltered1280x960 tiles. The actual split fixture shows two crossing straight paths in isometric projection: the selected first split piece has gold emphasis up to the intersection, its sibling stays black, and the transverse cutter remains black. All endpoints are framed. Native draw asserts three lines, two split pieces meeting at zero, inherited part names and completed split state. Source-bound rawDPR4 IMAGE only; no canonical640 pixel or browser callback acceptance. No historical aliases are retargeted.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native IMAGE draw assertions and original-resolution root visual review only. No canonical640 pixel or browser callback claim. 0 historical aliases and their original pixels remain unchanged. Two original split horizontal line pieces and retained transverse cutter in isometric view; first split piece selected. Source endpoints and inherited part names are asserted. Current-stage true boundaries and selection features only; global contours are not promised before91.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\native82-83-slot-proposal-01\\case82\\publication.json",
+    "sha256": "6c101ce938c34dcfe29ac83510a702856f8ea5986c0dce3e4d8a33e38db78857"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-e5cbe1a259a0093f59b3\\publication.json",
+    "sha256": "e47cad42d801df5e1b99257f613ef6b66b7688757a38f2699c512ba47352492c"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-e5cbe1a259a0093f59b3\\retirement.json.gz",
+    "sha256": "367eb9d2f61c31db8e0fff84c40136b0168deed986eac7ce892b8ccc922b327d"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-e5cbe1a259a0093f59b3\\retired.json",
+    "sha256": "573e8a687f37d34700c2f3396d9560c17750058f0341f850943a94ff83cfaf60"
+  }
+}
