@@ -3669,6 +3669,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-38c-controls"></a>4. Draw controls with their curve parent and index
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38c-controls-0a45ef5b8472.png). The inherited blocks, real line/path strokes and blue point remain the visible scene; new curve-control behavior requires separate state checks.
+
 ### 1. `src/scene.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3953,6 +3955,8 @@ fn placed_controls_share_the_original_curve_but_keep_distinct_document_parents()
 ```
 
 ## <a id="checkpoint-38d-input"></a>5. Insert an curve and inspect its controls
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38d-input-0a45ef5b8472.png). The inherited comparison scene remains visible; constructor checks also cover three curve controls and their GPU upload and release lifecycle. Full interactive input needs separate acceptance.
 
 ### 1. `src/editor.rs`
 

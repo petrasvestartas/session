@@ -1,0 +1,63 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T20:56:51.494Z",
+  "id": "38c-controls",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38c-controls-d4a58d0be76e03062f2e\\capture.json.gz",
+    "sha256": "ef4292b7b75efa26b1bd03eb0114df8d705d17245c50ee73022e140280225f3c",
+    "bytes": 80722
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-native38c-01\\capture-result.json",
+    "sha256": "432206cf307bda22143d83d185da088c11f2b33fc23383530c40a53a2f22eece"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-full-native38c-01-execution.json",
+    "sha256": "3faec051f1ecc6dbd527a5ccdfe38098da646f1e55ad481a6d89c82e39c66dd5"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-native38c-01\\bounded-terminal.json",
+    "sha256": "bd399d31ed9064b5c0d1e1b7ae6e948e3fda22ce2fc480f3de96ed44717a067e"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38c-controls-0a45ef5b8472.png",
+    "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\37d-render.png",
+    "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed the original2560x1920 Native38c PNG. The fully framed yellow selected block, tall brown source object, real black strokes and blue point marker match the reviewedNative38a/b pixels exactly by full-fileSHA. The brown source object correctly occludes parts of the strokes. There are no triangulation-edge strokes. This inherited comparison fixture does not picture new curve-control geometry, and the blue point is not claimed as a new NURBS control. Small original raster edge steps remain visible. Actual physical sizing precedes the38c mathematical drain, and constructor/draw/readback passed onNVIDIA. Original draw/fixed640pixel function bodies are preserved; canonicalpixel checks, newcontrol tests and browserbehavior are separate. Oldaliases/pixels remain unchanged.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Native38c curve-control checkpoint rawDPR4 image presentation. Physical size is set before the actual mathematical drain; constructor/draw and physical readback are qualified only by this case execution. Visible scene remains the inherited comparison objects, strokes and point marker; no new curve-control feature or unexecuted test is claimed. Original fixed640pixel function bodies, old aliases and oldpixels retained; canonical/browser/whole-suite acceptance separate.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-native38c-01\\publication.json",
+    "sha256": "4e49fa56744c140d5a9efb0e97b8635b96d375b994cac500037bd0f96b9429e1"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38c-controls-d4a58d0be76e03062f2e\\publication.json",
+    "sha256": "c6f04f0ef77679951318d97953e1faf259c9a2668b195216243eecbb663d0180"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38c-controls-d4a58d0be76e03062f2e\\retirement.json.gz",
+    "sha256": "b960b6354b08e2b55204f2a7f21dff220a5623802187c2f3b189bc1cdbc7916f"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-38c-controls-d4a58d0be76e03062f2e\\retired.json",
+    "sha256": "510d272d0ed6a2804ad123994782acf859f36fbfcb55c3f530dfb758e962e7ce"
+  }
+}
