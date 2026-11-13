@@ -75,24 +75,8 @@
           "first": "10-depth"
         },
         {
-          "title": "Selection and CPU queries",
+          "title": "Select, navigate and undo",
           "first": "12-identity"
-        },
-        {
-          "title": "Mouse selection and history",
-          "first": "13-picking"
-        },
-        {
-          "title": "Undo, Redo and viewing rays",
-          "first": "14-history"
-        },
-        {
-          "title": "Nearest-surface picking",
-          "first": "15-perspective"
-        },
-        {
-          "title": "Orbit navigation",
-          "first": "16-orbit"
         }
       ],
       "consolidated": [
@@ -125,37 +109,12 @@
         },
         {
           "id": "12-identity",
-          "title": "Selection that agrees with the displayed view",
-          "page": "journey/consolidation/12-identity.md",
+          "title": "Select, navigate and undo",
+          "page": "journey/12-identity.md",
           "steps": [
-            "12-identity",
-            "12a-coordinates",
-            "12b-picking",
-            "13-picking"
+            "12-identity"
           ],
-          "checkpoint": "13-picking"
-        },
-        {
-          "id": "13a-history",
-          "title": "Document history and perspective rays",
-          "page": "journey/consolidation/13a-history.md",
-          "steps": [
-            "13a-history",
-            "14-history",
-            "14a-perspective",
-            "14b-ray"
-          ],
-          "checkpoint": "14b-ray"
-        },
-        {
-          "id": "15-perspective",
-          "title": "Perspective picking and orbit navigation",
-          "page": "journey/consolidation/15-perspective.md",
-          "steps": [
-            "15-perspective",
-            "16-orbit"
-          ],
-          "checkpoint": "16-orbit"
+          "checkpoint": "12-identity"
         }
       ]
     },

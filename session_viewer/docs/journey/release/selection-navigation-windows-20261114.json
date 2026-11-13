@@ -1,0 +1,672 @@
+{
+  "scope": "Consolidated selection/navigation checkpoint; not complete-course acceptance",
+  "date": "2026-11-14",
+  "baseCommit": "08898f491232fe9157242f92a325d39c638da23f",
+  "checkpoint": {
+    "id": "12-identity",
+    "title": "Select, navigate and undo",
+    "page": "journey/12-identity.md",
+    "hours": [
+      4,
+      7
+    ],
+    "goal": "Orbit a perspective scene, select its nearest visible triangle, and undo or redo document edits without losing identity.",
+    "trace": "canvas coordinates \u2192 viewing ray \u2192 nearest triangle \u2192 object identity \u2192 reversible scene snapshot",
+    "question": "Why must undo preserve both an object's ID and the highest identity already issued?",
+    "answer": "Restored objects keep references meaningful. Preserving the highest issued identity prevents a new branch from assigning an old identity to a different object.",
+    "story": "One camera supplies both the rendered projection and the picking ray. History keeps document snapshots independently of the camera and GPU resources.",
+    "result": "The visible selected triangle is yellow. Orbit changes the view; delete exposes the triangle behind it; undo restores the original identity and shared mesh.",
+    "experiment": "Delete the nearer triangle, undo, then make a different edit. Predict the selected object and whether redo still has a branch.",
+    "production": "The maintained viewer also keeps camera motion separate from source geometry. Its current camera adds framed viewports, units, fitting and anchored projection; cumulative production parity remains unfinished.",
+    "browser_status": "Orbit moves the eye around a fixed target.",
+    "browser_actions": [
+      {
+        "command": "View Isometric"
+      }
+    ],
+    "image_result": "Look at the overlap: the pink triangle now covers the centre while the cyan triangle sits above it. The helper sets the camera to Isometric and checks the centre pixel against picking. This image shows the camera pose, not a mouse gesture.",
+    "frame": "journey/checks/16-orbit.rs",
+    "tests": true,
+    "edits": [
+      {
+        "path": "Cargo.toml",
+        "before": "[package]\nname = \"viewer_journey\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\ncrate-type = [\"cdylib\", \"rlib\"]\n\n[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\nserde = { version = \"1.0\", features = [\"derive\"] }\nserde_json = \"1.0\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
+        "snippet": "journey/code/12-selection-9.toml",
+        "why": "Declare the kernel math dependency used by projection and ray intersection."
+      },
+      {
+        "path": "src/lib.rs",
+        "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n#[cfg(test)]\n#[path = \"command_dock/tool_buttons_tests.rs\"]\nmod tool_buttons_tests;\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_vocabulary;\n\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n",
+        "snippet": "journey/code/12-selection-6.rs",
+        "why": "Declare the camera, picking and history modules."
+      },
+      {
+        "path": "src/camera.rs",
+        "before": "pub struct Camera {\n    pub center: [f32; 2],\n    pub scale: f32,\n    pub angle: f32,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        self.center[0] += dx;\n        self.center[1] += dy;\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.scale = (self.scale * factor).clamp(0.1, 10.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians;\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        let a = self.scale * self.angle.cos();\n        let b = self.scale * self.angle.sin();\n        let [x, y] = self.center;\n        // WGSL matrices are uploaded column by column.\n        [\n            a, -b, 0.0, 0.0,\n            b,  a, 0.0, 0.0,\n            0.0, 0.0, 1.0, 0.0,\n            -a * x - b * y, b * x - a * y, 0.0, 1.0,\n        ]\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn panned_target_stays_at_the_screen_centre_when_zooming() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(std::f32::consts::FRAC_PI_4);\n        let m = camera.uniform();\n        let [x, y] = camera.center;\n        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);\n        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);\n    }\n\n    #[test]\n    fn zoom_stays_positive_and_bounded() {\n        let mut camera = Camera::default();\n        camera.zoom(0.0001);\n        assert_eq!(camera.scale, 0.1);\n        camera.zoom(1_000.0);\n        assert_eq!(camera.scale, 10.0);\n        camera.zoom(f32::NAN);\n        camera.zoom(-1.0);\n        assert_eq!(camera.scale, 10.0);\n    }\n}\n",
+        "snippet": "journey/code/12-selection-4.rs",
+        "why": "Keep quaternion navigation, perspective projection and unprojection together."
+      },
+      {
+        "path": "src/picking.rs",
+        "before": null,
+        "snippet": "journey/code/12-selection-5.rs",
+        "why": "Choose the nearest triangle intersecting the clipped viewing ray."
+      },
+      {
+        "path": "src/scene.rs",
+        "before": "use crate::mesh::Mesh;\n\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub struct ObjectId(u32);\n\npub struct Object {\n    pub id: ObjectId,\n    pub mesh: Mesh,\n}\n\npub struct Scene {\n    objects: Vec<Object>,\n    next_id: u32,\n    extra: Option<ObjectId>,\n}\n\nimpl Scene {\n    pub fn demo() -> Self {\n        let near = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid near triangle\");\n        let far = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid far triangle\");\n        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };\n        scene.insert(near).expect(\"ID available\");\n        scene.insert(far).expect(\"ID available\");\n        scene\n    }\n\n    pub fn objects(&self) -> &[Object] {\n        &self.objects\n    }\n\n    pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {\n        let next = self.next_id.checked_add(1).ok_or(\"Object IDs exhausted\")?;\n        let id = ObjectId(self.next_id);\n        self.next_id = next;\n        self.objects.push(Object { id, mesh });\n        Ok(id)\n    }\n\n    pub fn remove(&mut self, id: ObjectId) -> bool {\n        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };\n        self.objects.remove(index);\n        if self.extra == Some(id) {\n            self.extra = None;\n        }\n        true\n    }\n\n    pub fn contains(&self, id: ObjectId) -> bool {\n        self.objects.iter().any(|object| object.id == id)\n    }\n\n    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {\n        if self.objects.is_empty() {\n            return None;\n        }\n        let index = self.objects.iter().position(|object| Some(object.id) == current)\n            .map_or(0, |index| index + 1);\n        Some(self.objects[index % self.objects.len()].id)\n    }\n\n    pub fn toggle_extra(&mut self) {\n        if let Some(id) = self.extra.take() {\n            self.remove(id);\n        } else {\n            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n            self.extra = Some(self.insert(extra).expect(\"ID available\"));\n        }\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn removal_moves_a_row_without_changing_its_identity() {\n        let mut scene = Scene::demo();\n        let first = scene.objects()[0].id;\n        let second = scene.objects()[1].id;\n        assert!(scene.remove(first));\n        assert_eq!(scene.objects()[0].id, second);\n        assert_eq!(scene.next(None), Some(second));\n        assert!(!scene.contains(first));\n        scene.toggle_extra();\n        assert_ne!(scene.objects()[1].id, first);\n        assert_ne!(scene.objects()[1].id, second);\n    }\n\n    #[test]\n    fn toggling_the_extra_object_uses_its_id_after_other_removals() {\n        let mut scene = Scene::demo();\n        scene.toggle_extra();\n        let extra = scene.objects()[2].id;\n        scene.remove(scene.objects()[0].id);\n        scene.toggle_extra();\n        assert!(!scene.contains(extra));\n        assert_eq!(scene.objects().len(), 1);\n    }\n}\n",
+        "snippet": "journey/code/12-selection-7.rs",
+        "why": "Restore snapshots without recycling an object identity."
+      },
+      {
+        "path": "src/history.rs",
+        "before": null,
+        "snippet": "journey/code/12-selection-8.rs",
+        "why": "Retain shared-mesh snapshots and bounded undo/redo branches."
+      },
+      {
+        "path": "src/gpu_mesh.rs",
+        "before": "use crate::mesh::Mesh;\nuse wgpu::util::DeviceExt;\n\npub struct GpuMesh {\n    vertices: wgpu::Buffer,\n    indices: wgpu::Buffer,\n    index_count: u32,\n}\n\nimpl GpuMesh {\n    pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {\n        let bytes: Vec<u8> = mesh.vertices().iter().flatten()\n            .flat_map(|value| value.to_ne_bytes()).collect();\n        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"mesh vertices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::VERTEX,\n        });\n        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();\n        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"mesh indices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::INDEX,\n        });\n        Self { vertices, indices, index_count: mesh.indices().len() as u32 }\n    }\n\n    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {\n        pass.set_vertex_buffer(0, self.vertices.slice(..));\n        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);\n        pass.draw_indexed(0..self.index_count, 0, 0..1);\n    }\n}\n",
+        "snippet": "journey/code/12-selection-1.rs",
+        "why": "Upload selection colour while preserving source mesh data."
+      },
+      {
+        "path": "src/renderer.rs",
+        "before": "use crate::{gpu_mesh::GpuMesh, scene::Scene};\n\npub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n    pipeline: wgpu::RenderPipeline,\n    meshes: Vec<GpuMesh>,\n    uniform: wgpu::Buffer,\n    view_group: wgpu::BindGroup,\n    depth: wgpu::TextureView,\n}\n\nimpl Renderer {\n    pub fn new(\n        device: wgpu::Device,\n        queue: wgpu::Queue,\n        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n        });\n        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {\n            label: Some(\"triangle\"),\n            layout: None,\n            vertex: wgpu::VertexState {\n                module: &shader,\n                entry_point: Some(\"vertex\"),\n                compilation_options: Default::default(),\n                buffers: &[wgpu::VertexBufferLayout {\n                    array_stride: 24,\n                    step_mode: wgpu::VertexStepMode::Vertex,\n                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],\n                }],\n            },\n            fragment: Some(wgpu::FragmentState {\n                module: &shader,\n                entry_point: Some(\"fragment\"),\n                compilation_options: Default::default(),\n                targets: &[Some(format.into())],\n            }),\n            primitive: Default::default(),\n            depth_stencil: Some(wgpu::DepthStencilState {\n                format: wgpu::TextureFormat::Depth32Float,\n                depth_write_enabled: Some(true),\n                depth_compare: Some(wgpu::CompareFunction::Less),\n                stencil: Default::default(),\n                bias: Default::default(),\n            }),\n            multisample: Default::default(),\n            multiview_mask: None,\n            cache: None,\n        });\n        let uniform = device.create_buffer(&wgpu::BufferDescriptor {\n            label: Some(\"view transform\"),\n            size: 64,\n            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,\n            mapped_at_creation: false,\n        });\n        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {\n            label: Some(\"view settings\"),\n            layout: &pipeline.get_bind_group_layout(0),\n            entries: &[wgpu::BindGroupEntry {\n                binding: 0,\n                resource: uniform.as_entire_binding(),\n            }],\n        });\n        let depth = Self::depth(&device, 640, 480);\n        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene) {\n        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {\n            label: Some(\"opaque depth\"),\n            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },\n            mip_level_count: 1,\n            sample_count: 1,\n            dimension: wgpu::TextureDimension::D2,\n            format: wgpu::TextureFormat::Depth32Float,\n            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,\n            view_formats: &[],\n        });\n        depth_texture.create_view(&Default::default())\n    }\n\n    pub fn resize(&mut self, width: u32, height: u32) {\n        self.depth = Self::depth(&self.device, width, height);\n    }\n\n    pub fn draw(\n        &self,\n        view: &wgpu::TextureView,\n        background: &crate::background::Background,\n        transform: &[f32; 16],\n    ) {\n        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();\n        self.queue.write_buffer(&self.uniform, 0, &bytes);\n        let [r, g, b] = background.rgb();\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {\n                    view: &self.depth,\n                    depth_ops: Some(wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(1.0),\n                        store: wgpu::StoreOp::Store,\n                    }),\n                    stencil_ops: None,\n                }),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n                    depth_slice: None,\n                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r, g, b, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n                })],\n                ..Default::default()\n            });\n            pass.set_pipeline(&self.pipeline);\n            pass.set_bind_group(0, &self.view_group, &[]);\n            for mesh in &self.meshes {\n                mesh.draw(&mut pass);\n            }\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n}\n",
+        "snippet": "journey/code/12-selection-2.rs",
+        "why": "Rebuild displayed meshes when document or selection changes."
+      },
+      {
+        "path": "src/browser.rs",
+        "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n        if let Some(status) = document.get_element_by_id(\"status\") {\n            status.set_text_content(Some(message));\n            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n        }\n    }\n}\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\")\n        .ok_or(\"Missing canvas\")?\n        .dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n        memory_budget_thresholds: Default::default(),\n        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance\n        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance\n        .request_adapter(&wgpu::RequestAdapterOptions {\n            compatible_surface: Some(&surface),\n            ..Default::default()\n        })\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter\n        .request_device(&wgpu::DeviceDescriptor::default())\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface\n        .get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut scene = Scene::demo();\n    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"View Reset\",\n        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n        &surface,\n        &renderer,\n        &background,\n        &camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };\n\n        if let Some(line) = line {\n            match line.as_str() {\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    renderer.set_scene(&scene);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"view reset\" => camera = Camera::default(),\n                _ => return,\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &background,\n            &camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n    for name in [\n        \"pointerdown\",\n        \"pointermove\",\n        \"pointerup\",\n        \"pointercancel\",\n        \"lostpointercapture\",\n        \"contextmenu\",\n        \"keydown\",\n        \"keyup\",\n        \"blur\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        click.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Scene data owns the meshes; the renderer displays them.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    transform: &[f32; 16],\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => {\n            return Err(JsValue::from_str(&format!(\n                \"Surface unavailable: {other:?}\"\n            )));\n        }\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view, background, transform);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n}\n",
+        "snippet": "journey/code/12-selection-3.rs",
+        "why": "Route canvas input, navigation and reversible document commands."
+      }
+    ],
+    "frame_constructor": "make_renderer(device, queue, format)",
+    "browser_caption": "Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions.",
+    "authored": true,
+    "lock": "journey/release/15-perspective.lock",
+    "assets": [],
+    "browser_check": "journey/checks/browser/selection-navigation.cjs"
+  },
+  "endpoint": "c11079c42f941b02dc328ba0e828000e37d382bf51a1a7243e34881de03f9ac2",
+  "unchangedFinalEndpoint": "7973001e990fea905edfad976b5319b82cf129a77b812d36c94a264995ad21ca",
+  "sourceInputs": {
+    "docs\\journey\\code\\12-selection-1.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+    "docs\\journey\\code\\12-selection-2.rs": "7be9552e5d997633e50ba95a897a47eb48246c44706868e27e6d25143933b9a3",
+    "docs\\journey\\code\\12-selection-3.rs": "b804439bdff011be6953dad4daefb2be16622c5969595c7689250acdfe28f07d",
+    "docs\\journey\\code\\12-selection-4.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+    "docs\\journey\\code\\12-selection-5.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+    "docs\\journey\\code\\12-selection-6.rs": "730964ca864fd60fd5ad527e4af8049c2419cb407b8cd9614da87cbd99f32291",
+    "docs\\journey\\code\\12-selection-7.rs": "8fb86841c45c75bdd28f7e5c531e1c8507fc24ea1fc7663d386265756533538d",
+    "docs\\journey\\code\\12-selection-8.rs": "d87d5b75bf1a3186f2c65cc10c462b8bb5facc39af7bc6ba3bce96f93cdbaea8",
+    "docs\\journey\\code\\12-selection-9.toml": "77f33fae072f0866b7442c2502558feb714d1751cedbcbf33213422f515888e1",
+    "docs\\journey\\checks\\browser\\selection-navigation.cjs": "16011aa9c202bc521af33b972e012881951c0490c88cf0c026d6a443878a60a2",
+    "docs\\journey\\checks\\16-orbit.rs": "39486578cd042fcef3dde4738482b31e6cb120313f085e74281d6ee35d026839",
+    "docs\\journey\\release\\15-perspective.lock": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+    "docs\\capture_journey.cjs": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7"
+  },
+  "phases": {
+    "12-identity-tests": {
+      "command": {
+        "executable": "cargo",
+        "arguments": [
+          "test",
+          "--lib",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:30:05.8382456Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "test",
+          "--lib",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-12-identity",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 28.969,
+        "peakJobCommitBytes": 1572831232,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 12708,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "42f987f35598ef5244d86144095a4eca0b39a1a7d400208f801ed4e679438aa3"
+    },
+    "12-identity-frame": {
+      "command": {
+        "executable": "cargo",
+        "arguments": [
+          "run",
+          "--example",
+          "frame",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:30:35.2504839Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "run",
+          "--example",
+          "frame",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-12-identity",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 5.936,
+        "peakJobCommitBytes": 614821888,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 22776,
+        "descendantsAtCleanup": 2
+      },
+      "logSha256": "40dbb1d8d80e5237e95725eabd5977ecff9b2040ee0aa6f095b93efc3aa06175"
+    },
+    "12-identity-wasm": {
+      "command": {
+        "executable": "cargo",
+        "arguments": [
+          "build",
+          "--lib",
+          "--release",
+          "--locked",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j1"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:20:20.9619548Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+        "arguments": [
+          "build",
+          "--lib",
+          "--release",
+          "--locked",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j1"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-12-identity",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 247.087,
+        "peakJobCommitBytes": 1640337408,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 18216,
+        "descendantsAtCleanup": 2
+      },
+      "logSha256": "1694a26786dea5340cc7ffbc00e81e25cb0902d25a8b4ef244b8247c26b4b396"
+    },
+    "12-identity-web": {
+      "command": {
+        "executable": "trunk",
+        "arguments": [
+          "build",
+          "--release",
+          "--public-url",
+          "./"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:24:28.5025084Z",
+        "executable": "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+        "arguments": [
+          "build",
+          "--release",
+          "--public-url",
+          "./"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-12-identity",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 19.125,
+        "peakJobCommitBytes": 197480448,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 24400,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "9f3bc893ef521cec94b4755d95affd9d4eab6686b49d65b4c60bd3bfd32cb1bb"
+    },
+    "selection-tooling": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/subjects.test.ts",
+          "scripts/course/stage-core.test.ts",
+          "scripts/course/ownership.test.ts",
+          "scripts/course/endpoint-parity.test.ts",
+          "scripts/course/consolidated-evidence.test.ts",
+          "scripts/course/checkpoints.test.ts",
+          "scripts/course/verify-phases.test.ts",
+          "scripts/course/authored-pages.test.ts",
+          "plugins/course-source-assets.test.ts"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:18:24.9440848Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/subjects.test.ts",
+          "scripts/course/stage-core.test.ts",
+          "scripts/course/ownership.test.ts",
+          "scripts/course/endpoint-parity.test.ts",
+          "scripts/course/consolidated-evidence.test.ts",
+          "scripts/course/checkpoints.test.ts",
+          "scripts/course/verify-phases.test.ts",
+          "scripts/course/authored-pages.test.ts",
+          "plugins/course-source-assets.test.ts"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 16.917,
+        "peakJobCommitBytes": 476266496,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 39916,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "989d23b5483d92b6b2f3e34efa097e3ea01ffe9b654c31ac27e7983db149705b"
+    },
+    "selection-docs-strict": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs/vue",
+          "--emptyOutDir"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:18:42.2936795Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs/vue",
+          "--emptyOutDir"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 43.155,
+        "peakJobCommitBytes": 1391099904,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 23084,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "2fbd57e80deb1d97be355184521a52897195c884b30e7c68226c4b60c2562508"
+    },
+    "selection-docs-browser": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs-selection-review.cjs"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:20:17.6066337Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs-selection-review.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 2.401,
+        "peakJobCommitBytes": 605151232,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 22540,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "b3d3a840478784c42cca379d890d47e6aea3139e237ba4196058dfc23251ba33"
+    },
+    "selection-browser-desktop": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "docs/capture_journey.cjs",
+          "12-identity"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:31:40.9190731Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "docs/capture_journey.cjs",
+          "12-identity"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 5.019,
+        "peakJobCommitBytes": 548290560,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 23888,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "5e303bd9788dd3e8dccf2555c8a8addc5102a4e520083bcc90f074ba9d1fdb39"
+    },
+    "selection-browser-upright": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "docs/capture_journey.cjs",
+          "12-identity"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:31:46.3775836Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "docs/capture_journey.cjs",
+          "12-identity"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 4.431,
+        "peakJobCommitBytes": 501379072,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 6408,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "5e303bd9788dd3e8dccf2555c8a8addc5102a4e520083bcc90f074ba9d1fdb39"
+    }
+  },
+  "nativeTests": 13,
+  "toolingTests": 55,
+  "nativeAdapter": "Microsoft Basic Render Driver; CPU; DX12; DXC 1.9",
+  "browser": {
+    "desktop": {
+      "browser": "157.0.8103.51",
+      "headless": true,
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-angle=d3d11"
+      ],
+      "captured": "2026-11-13T23:31:41.360Z",
+      "steps": {
+        "12-identity": {
+          "source": "25b7fec2b95253aa425834df4a19d970ca9b4df635be15b5e07d2224a08738d7",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "5da78404dd3356e737eed3f263bb1d3fafa484a99d81223c2c140336b8e06776",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T23:31:45.745Z",
+          "status": "Orbit moves the eye around a fixed target.",
+          "canvas": "8f843bac18c9b4375fc7ac51ef2f7d2a658951dfb50c8f324e61cb8fd3a53dae",
+          "file": "12-identity-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "c75f7125485e00d791acd84f80b82950ec25d7b25293de56005482bd06a6424e",
+          "commands": [
+            "View Isometric"
+          ],
+          "keyboardRoundtrip": false
+        }
+      }
+    },
+    "upright": {
+      "browser": "157.0.8103.51",
+      "headless": true,
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-angle=d3d11"
+      ],
+      "captured": "2026-11-13T23:31:46.844Z",
+      "steps": {
+        "12-identity": {
+          "source": "25b7fec2b95253aa425834df4a19d970ca9b4df635be15b5e07d2224a08738d7",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "5da78404dd3356e737eed3f263bb1d3fafa484a99d81223c2c140336b8e06776",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T23:31:50.647Z",
+          "status": "Orbit moves the eye around a fixed target.",
+          "canvas": "90fa9c5f0938a9a05a121000611a4195b153935772793914b6ab144c88089d91",
+          "file": "12-identity-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "c75f7125485e00d791acd84f80b82950ec25d7b25293de56005482bd06a6424e",
+          "commands": [
+            "View Isometric"
+          ],
+          "keyboardRoundtrip": false
+        }
+      }
+    }
+  },
+  "images": {
+    "screenshots\\selection-windows-20261114\\native.png": "fdeecfe68c11349f6994654689e2bb1b99e8895a14efe17e74ca0cff6e0e4c41",
+    "screenshots\\selection-windows-20261114\\desktop.png": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+    "screenshots\\selection-windows-20261114\\upright.png": "993191b65342e5a39400a91c72528eb63e94ccae155de3eaa22fdd8cff172e86"
+  },
+  "visualReview": "Original native, desktop and upright frames reviewed. Turquoise and pink triangles are distinct; browser dock visible. Perspective tips extend beyond narrow upright canvas. Upright is emulated desktop Chrome, not a physical-phone test. Queried WebGPU adapter is Intel gen-12lp; query alone is not adapter selection proof.",
+  "interactionAssertions": [
+    "nearest triangle selection",
+    "delete reveals farther triangle",
+    "undo/redo",
+    "new edit discards redo",
+    "orbit changes projection",
+    "reset restores camera",
+    "camera navigation remains outside document history"
+  ],
+  "documentationReview": {
+    "status": "passed",
+    "browser": "157.0.8103.51",
+    "records": [
+      {
+        "slug": "readme",
+        "heading": "Build and understand the Session Viewer",
+        "images": 0,
+        "sources": 1
+      },
+      {
+        "slug": "journey/12-identity",
+        "heading": "2.4 \u00b7 Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/34g-heartbeat",
+        "heading": "4.4 \u00b7 Heartbeat suspension and revocable startup",
+        "images": 0,
+        "sources": 2
+      },
+      {
+        "slug": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin",
+        "heading": "21.3 \u00b7 Browser ownership of frame matrices and wakeups",
+        "images": 0,
+        "sources": 6
+      },
+      {
+        "slug": "journey/13a-history",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/16-orbit",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/15-perspective",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "archived/journey-consolidation-13a-history",
+        "heading": "2.5 \u00b7 Document history and perspective rays",
+        "images": 1,
+        "sources": 0
+      }
+    ],
+    "errors": []
+  },
+  "documentationScope": "1690 pages /703 assets strict build and8 browser pages before final evidence/link additions; final merged-site check pending",
+  "remainingFailures": {
+    "activeCheckpoints": 1321,
+    "readerSubjects": 109,
+    "laterRewrites": 4870,
+    "rewrittenFiles": 305,
+    "uninventoriedStageFiles": 22,
+    "endpointMissing": 320,
+    "endpointExtra": 707,
+    "endpointChanged": 3
+  },
+  "exclusions": []
+}

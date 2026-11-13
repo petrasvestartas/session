@@ -2,7 +2,7 @@
 
 Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, such as **1.1**. Original chapter.section.checkpoint numbers and URLs remain available for recovery and source comparison. The [daily plan](daily-plan.md) keeps stopping points within each lesson.
 
-[Production source and coverage map](production-course-map.md) · **22 / 22 chapters consolidated; 111 reader-facing lessons on the current route**. All 1,361 old checkpoint IDs remain available; the final maintained-runtime comparison is a reference appendix.
+[Production source and coverage map](production-course-map.md) · **22 chapter groups, 109 reader subjects and 1,321 active runnable checkpoints.** Executable subject consolidation remains unfinished. Original checkpoint URLs and recovery aliases remain available; the final maintained-runtime comparison is a reference appendix.
 
 [Progress and remaining work](roadmap.md) · [Visual review and known issues](visual-review.md). Existing lesson links and saved checkpoints remain valid.
 
@@ -25,23 +25,19 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 - [1.1 · Rust and the first GPU frame](consolidation/01-canvas.md)
 
 
-- [1.3 · Shaders and the command dock](consolidation/03-triangle.md)
+- [1.2 · Shaders and first egui painting](03-triangle.md)
+
+- [A slide of mathematics](03a-mathematics.md) - standalone verified; cumulative integration pending immediately after painting.
+
+- [1.3 · The command dock](03d-input.md)
 
 - [1.4 · Commands that change the view](consolidation/04-input.md)
 
 ## 2 · Geometry, camera and selection
 
-**Automated Chrome checks: 0 of 19 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
+The four consolidated subjects have source-bound native and browser checks. Their individual receipts define the tested source and interaction scope; this does not establish production parity or acceptance of the historical 19-checkpoint inventory. [Selection/navigation evidence](release/selection-navigation-windows-20261114.json).
 
-**Critical browser-scene review: 0 of 19 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
-
-**Critical visual review pending.** This recorded reference is not an accepted visual-quality result.
-
-**Previous native render — fresh verification pending.** [2.12.1 · Walk around the model](16-orbit.md).
-
-![Chapter 2: Walk around the model. Previous native render — fresh verification pending.](../screenshots/journey/16-orbit.png)
-
-
+![Selection and navigation in the consolidated checkpoint.](../screenshots/selection-windows-20261114/desktop.png)
 
 - [2.1 · Buffers that describe a shared mesh](consolidation/05-vertices.md)
 
@@ -49,11 +45,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 - [2.3 · Depth, validated geometry and stable objects](consolidation/10-depth.md)
 
-- [2.4 · Selection that agrees with the displayed view](consolidation/12-identity.md)
-
-- [2.5 · Document history and perspective rays](consolidation/13a-history.md)
-
-- [2.6 · Perspective picking and orbit navigation](consolidation/15-perspective.md)
+- [2.4 · Select, navigate and undo](12-identity.md)
 
 ## 3 · Documents, editing and ownership
 

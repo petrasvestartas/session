@@ -62,7 +62,7 @@ test('the first GPU subject replaces three checkpoints with five final files', (
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(result.files, expected('01-canvas'));
     assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
-    assert.equal(course().steps.length, 1330);
+    assert.equal(course().steps.length, 1321);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));
@@ -73,6 +73,18 @@ test('named first-frame listings reconstruct the same canonical source', () => {
     const files = Object.fromEntries(plan.edits.map((edit: {path: string; snippet: string}) =>
         [edit.path, snippetSource(edit.snippet)]));
     assert.deepEqual(files, expected('02-clear'));
+});
+
+test('selection, history and perspective navigation share the exact completed ray-picking endpoint', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/selection-navigation/checkpoints.json'), 'utf8'));
+    assert.equal(archived.steps.length, 10);
+    assert.deepEqual(archived.before, expected('10-depth'));
+    const result = collapseSubject(archived.before, archived.steps, snippetSource);
+    assert.deepEqual(result.files, archived.endpoint);
+    for (const step of archived.steps) assert.deepEqual(expected(step.id), archived.endpoint, step.id);
+    const subject = course().steps.find(step => step.id === '12-identity')!;
+    assert.equal(new Set(subject.edits.map(edit => edit.path)).size, subject.edits.length);
+    assert.equal(course().steps.filter(step => archived.steps.some((old: {id: string}) => old.id === step.id)).length, 1);
 });
 
 test('shader, font preparation and painting collapse to the exact runnable endpoint', () => {

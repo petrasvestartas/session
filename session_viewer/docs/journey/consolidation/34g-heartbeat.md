@@ -1,5 +1,20 @@
 # 4.4 · Heartbeat suspension and revocable startup
 
+## Current startup and early fetching
+
+Show a usable first frame while independent network work is already in flight. The prerequisites are asynchronous Rust, application messages and the browser page. This subject owns startup ordering; the later stage adapter owns interpretation of a loaded deck.
+
+Read [index.html](../../../index.html), [fetch.rs](../../../src/app/fetch.rs) and [loader.rs](../../../src/app/loader.rs). The page starts requests while wasm downloads and stores each promise, abort controller and start time in `window.__viewerEarly`. Rust's `early` takes a matching entry once and removes it. A full response and an 8192-byte prefix have different keys; conditional requests and other ranges cannot consume the wrong early response. If no compatible entry exists, the ordinary fetch path still works.
+
+For a stage route, the page fetches four local fonts and the deck index. Its small line matcher can start chapter requests written as YAML list entries; it is not the deck parser. Rust still validates the index, parses chapters and supplies contextual errors. An index written in another valid YAML form may simply miss this prefetch optimization. The JavaScript path returns before starting the ordinary scene request.
+
+`boot` determines whether stage or live loading applies, starts eligible scene prefetch, then awaits `State::new`. After sizing and prewarming GPU state it sends `Msg::Ready`. A stage route subsequently awaits `stage::open` and returns; ordinary scene/live loading follows its own path. Loaded data crosses the event loop as owned messages. A failed GPU initialization reports its error and does not continue into scene adoption.
+
+Predict the network waterfall when wasm download is slowed: the stage fonts and index should already be requested. Disable the early-request script in a local experiment and reload; the final deck should still be the same, with requests starting later. Restore the script. Question: why is an early response consumed only once? Its response body and cancellation owner belong to one fetch operation; another caller needs its own valid request rather than a second attempt to drain the same body.
+
+The historical runnable checkpoint below remains available. Its current-production startup integration and browser waterfall acceptance are still pending; source explanation is not evidence that this cumulative checkpoint implements the new stage route.
+
+
 **Steps:** 8 · **Source:** `src/lib.rs` · `src/selftest/lifecycle.rs` · `src/engine/gpu/device.rs`
 
 ## <a id="checkpoint-34g-heartbeat"></a>1. Refresh heartbeat without rewriting failure evidence

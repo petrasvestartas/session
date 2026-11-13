@@ -43,6 +43,18 @@ cd ../session_viewer
 
 Keep Cargo.lock: it records the dependency versions used by the viewer. Allow extra time for installation and the first dependency build.
 
+## Understand the production build
+
+Read the maintained [Cargo manifest](../Cargo.toml), [shader build script](../build.rs), [Trunk configuration](../Trunk.toml) and [browser page source](../index.html). Cargo builds Rust dependencies; Trunk connects the wasm module, browser entry page and copied assets. The `cdylib` library produces the browser module, while `rlib` lets native verification examples link the same crate.
+
+The kernel dependency disables its default features and enables `viewer-display`. The UI uses matching egui, egui-wgpu and egui-winit releases. Mathematics needs `ttf-parser` for OpenType layout, `swash` for glyph rasters, `png` for pictures and `serde_yaml_ng` for decks. Glyphon supplies the scene text renderer. These are different jobs: the mathematics painter cannot substitute scene text for font glyph IDs and MATH-table positioning. Preserve the lock so the shared font stack stays consistent.
+
+`build.rs` expands shader includes into `OUT_DIR/shaders`, includes each file once per output shader, and strips line comments and excess whitespace. The crate's `shader!` macro reads those generated files. Edit the source shaders, not the generated cache. Block comments are rejected by this minifier instead of being silently left in its output.
+
+Trunk uses an optimized build, and its pre-build hook prepares the Vue site. The page copies stage fonts to `stage/`, the five example decks to `decks/`, ordinary text fonts to `text/`, and the compiled documentation to `docs/`. Copying the wasm alone cannot produce a working mathematics viewer. The development server serves a mutable index without caching it, so that index names the current hashed bundle.
+
+After the first-frame subject, predict which request fails if the `stage/` asset directory is absent: wasm can initialize, but the named font fetch cannot complete the deck. Restore the directory and reload; the expected result is a painted slide, not an empty substitute. The [startup owner](journey/consolidation/34g-heartbeat.md) explains early requests and application adoption. This production-build explanation does not replace the cumulative checkpoint checks.
+
 ## Begin
 
 Follow [lesson 1.1: Rust and the first GPU frame](journey/consolidation/01-canvas.md). Rust concepts are explained where you use them; the [foundations](foundations.md) provide additional practice when useful.

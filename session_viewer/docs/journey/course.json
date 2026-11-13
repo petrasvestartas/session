@@ -453,593 +453,20 @@
     },
     {
       "id": "12-identity",
-      "title": "Display selection by object identity",
+      "title": "Select, navigate and undo",
       "page": "journey/12-identity.md",
       "hours": [
-        0.5,
-        1
+        4,
+        7
       ],
-      "goal": "Select and delete objects using stable identities, then highlight the selected object.",
-      "trace": "selected ObjectId → upload copy → yellow display vertices",
-      "question": "Why tint a copy rather than the retained mesh?",
-      "answer": "The scene keeps the authored colour. Clearing selection must recover that colour instead of replacing source data.",
-      "story": "Selection stores Option<ObjectId>, so it follows the object through row changes. GpuMesh uploads a yellow copy for the selected ID while Scene retains its original colours.\n\nDelete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.\n\n![Selection names an ObjectId; upload tints only that object’s display copy.](../illustrations/journey-direct-12-identity.svg)",
-      "result": "Type Select Next. The first object turns yellow; its stored mesh colour remains pink.",
-      "experiment": "Select the first object, then Delete. Add the extra triangle and toggle it off. Only the original far triangle should remain.",
-      "production": "The complete viewer distinguishes document identity, displayed object rows and source sub-elements. Picking and undo must cross those mappings explicitly. This lesson establishes the first rule: a storage index cannot serve as a permanent object name.",
-      "browser_status": "Selection follows object identity, even when rows move.",
-      "browser_actions": [
-        {
-          "command": "Select Next"
-        }
-      ],
-      "image_result": "This is the first object selected in yellow; its stored mesh colour remains pink.",
-      "frame": "journey/checks/12-identity.rs",
-      "tests": true,
-      "edits": [
-        {
-          "path": "src/gpu_mesh.rs",
-          "before": "    pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {\n",
-          "snippet": "journey/code/12-identity-02.rs",
-          "why": "Let the uploaded representation know whether to show selection."
-        },
-        {
-          "path": "src/gpu_mesh.rs",
-          "before": "        let bytes: Vec<u8> = mesh.vertices().iter().flatten()\n            .flat_map(|value| value.to_ne_bytes()).collect();\n",
-          "snippet": "journey/code/12-identity-03.rs",
-          "why": "Apply the yellow tint to an upload copy. Never overwrite the CPU mesh’s original colour."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/12-identity-fullscreen-5.rs",
-          "before": "use crate::{gpu_mesh::GpuMesh, scene::Scene};\n\npub struct Renderer {\n    pub device: wgpu::Device,\n",
-          "why": "Import ObjectId at the renderer boundary."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/12-identity-fullscreen-6.rs",
-          "before": "        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
-          "why": "Upload each scene object without selection highlighting initially."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/12-identity-fullscreen-7.rs",
-          "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene) {\n        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n",
-          "why": "Highlight the uploaded object whose stable ID matches the selection."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/12-identity-window-1.rs",
-          "before": "        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n",
-          "why": "Add Select Next and Delete to the vocabulary."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/12-identity-window-2.rs",
-          "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n",
-          "why": "Start without a selected object."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/12-identity-window-3.rs",
-          "before": "            match line.as_str() {\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    renderer.set_scene(&scene);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n",
-          "why": "Preserve valid selection, cycle by identity, and delete the selected object."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/12-identity-window-4.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Scene data owns the meshes; the renderer displays them.\");\n    Ok(())\n}\n\n",
-          "why": "Report that selection follows object identity."
-        }
-      ],
-      "frame_constructor": "make_renderer(device, queue, format)"
-    },
-    {
-      "hours": [
-        0.5,
-        0.75
-      ],
-      "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Selection follows object identity, even when rows move.",
-      "browser_actions": [
-        {
-          "command": "Select Next"
-        }
-      ],
-      "id": "12a-coordinates",
-      "title": "Convert screen positions back to the scene",
-      "page": "journey/12a-coordinates.md",
-      "goal": "Undo the camera transform before querying CPU geometry.",
-      "trace": "Screen point → divide scale → reverse rotation → add scene centre",
-      "question": "Why reverse the camera before testing geometry?",
-      "answer": "The click is in the displayed view; mesh positions are in scene coordinates. The conversion puts both in the same coordinates.",
-      "story": "Divide a screen point by camera scale, reverse rotation, then add the camera centre. world_from_screen returns the corresponding scene point.\n\nA round-trip check transforms a known scene point into the view and restores it after pan, zoom and rotation.\n\n![The inverse camera restores a displayed point to scene coordinates.](../illustrations/journey-direct-12a-coordinates.svg)",
-      "result": "Inspect the supplied state fixtures. The new round-trip test restores a known scene point after pan, zoom and rotation.",
-      "experiment": "Trace [0.4, 0.0] through the forward and inverse coordinate conversions. Undoing scale and rotation must recover both coordinates within 0.000001; inspect the supplied round-trip fixture.",
-      "production": "Picking must compare view input with geometry in a common coordinate system. The later perspective lesson replaces this flat conversion with a ray.",
-      "browser_caption": "Chrome independently verifies the existing command and selection drawing. The new inverse conversion is checked natively; mouse selection is connected in 13.",
-      "frame": "journey/checks/12a-coordinates.rs",
-      "edits": [
-        {
-          "path": "src/camera.rs",
-          "before": "    pub fn uniform(&self) -> [f32; 16] {\n",
-          "snippet": "journey/code/13-picking-03.rs",
-          "why": "Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "#[cfg(test)]\nmod tests {\n",
-          "snippet": "journey/code/12a-coordinates-test.rs",
-          "why": "Check that pan, zoom and rotation preserve the coordinate round trip."
-        }
-      ],
-      "image_same_as": "12-identity"
-    },
-    {
-      "hours": [
-        0.75,
-        1.5
-      ],
-      "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Selection follows object identity, even when rows move.",
-      "browser_actions": [
-        {
-          "command": "Select Next"
-        }
-      ],
-      "id": "12b-picking",
-      "title": "Find the nearest triangle at a scene point",
-      "page": "journey/12b-picking.md",
-      "goal": "Query triangle coverage and depth without changing the scene.",
-      "trace": "Scene point → barycentric coverage → interpolated depth → nearest ObjectId",
-      "question": "Why return an ObjectId rather than a row?",
-      "answer": "Rows can move after removal. Returning the stable name lets the caller retain the same object.",
-      "story": "Test each indexed triangle with barycentric weights. Nonnegative weights with a sum at most one place the point inside it; those weights also interpolate depth. Retain the nearest covered object.\n\nThe query borrows Scene and returns Option<ObjectId>. It does not change selection. None means no triangle covers the point.\n\n![Triangle coverage and depth identify the nearest object.](../illustrations/journey-direct-12b-picking.svg)",
-      "result": "Inspect the supplied state fixtures. The nearer object wins the overlap; removing it reveals the far object; empty and invalid positions return None.",
-      "experiment": "In the overlap test, remove the near object before the first query. The far object should now win at the same scene point.",
-      "production": "The finished viewer uses asynchronous integer-ID GPU picking. This small-scene query establishes coverage, nearest depth and the identity returned to input.",
-      "browser_caption": "The native checkpoint calls the new query and draws its far-object result. Chrome retains typed selection until the next step connects actual clicks.",
-      "frame": "journey/checks/13-picking.rs",
-      "edits": [
-        {
-          "path": "src/picking.rs",
-          "before": null,
-          "snippet": "journey/code/13-picking-04.rs",
-          "why": "Create the CPU query and tests. It reads scene data and returns identity without changing selection or GPU resources."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/13-picking-fullscreen-1.rs",
-          "before": "pub mod camera;\npub mod mesh;\npub mod scene;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Register the query module."
-        }
-      ]
-    },
-    {
-      "id": "13-picking",
-      "title": "Select the visible object with a mouse click",
-      "page": "journey/13-picking.md",
-      "hours": [
-        0.5,
-        1
-      ],
-      "goal": "Click a visible triangle to select its stable object ID, including after camera movement.",
-      "trace": "Canvas click → normalized point → inverse camera → pick → selected display",
-      "question": "Why test whether the command dock consumed the click?",
-      "answer": "Clicking or editing the dock must not also select scene geometry.",
-      "story": "Convert an unconsumed canvas click from CSS pixels to normalized screen coordinates. Reverse y, undo the camera, then ask the query for the visible ObjectId.\n\nThe command dock handles its own input first. A scene click updates selection and uploads its display colour.\n\n![An unconsumed canvas click becomes a scene point and a selected ObjectId.](../illustrations/journey-direct-13-picking.svg)",
-      "result": "Click the visible far triangle. It turns yellow.",
-      "experiment": "Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.",
-      "production": "Production picking renders integer identifiers, reads a small result asynchronously, rejects stale results and resolves the displayed row back to source identity. The conversion and ownership questions introduced here remain the same when the implementation becomes more capable.",
-      "browser_status": "Click a triangle; the visible object is selected.",
-      "browser_actions": [
-        {
-          "canvas": [
-            0.7,
-            0.5
-          ]
-        }
-      ],
-      "image_result": "This is the far triangle selected by a click outside the overlap.\n\nThis checkpoint was rendered independently and has the same native comparison frame as [Find the nearest triangle at a scene point](12b-picking.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "frame": "journey/checks/13-picking.rs",
-      "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "edits": [
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/13-picking-window-1.rs",
-          "before": "            }\n        };\n\n        if let Some(line) = line {\n            match line.as_str() {\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    selected = selected.filter(|id| scene.contains(*id));\n",
-          "why": "Convert an unconsumed canvas click into a picking request."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/13-picking-window-2.rs",
-          "before": "        \"keydown\",\n        \"keyup\",\n        \"blur\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n",
-          "why": "Listen for canvas clicks."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/13-picking-window-3.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Selection follows object identity, even when rows move.\");\n    Ok(())\n}\n\n",
-          "why": "Report the visible selection result."
-        }
-      ],
-      "image_same_as": "12b-picking"
-    },
-    {
-      "id": "13a-history",
-      "title": "Retain reversible scene snapshots",
-      "page": "journey/13a-history.md",
-      "hours": [
-        0.75,
-        1.5
-      ],
-      "goal": "Restore scene contents without copying immutable mesh arrays or reusing IDs.",
-      "trace": "Edit saves Scene → undo/redo transfer snapshots → restore keeps the highest ID counter",
-      "question": "Does cloning a scene copy every vertex array?",
-      "answer": "No. Object records clone Rc<Mesh> handles. The snapshots share the same immutable mesh allocation.",
-      "story": "History retains scene snapshots before an edit. Undo and Redo transfer snapshots between two stacks; a new edit clears Redo. Keep the latest 64 edits.\n\nRc shares immutable Mesh values across snapshots. FnOnce accepts an action called once with the scene. Restoring contents preserves the highest ID counter reached.\n\n![History retains small scene snapshots that share immutable Mesh values.](../illustrations/journey-direct-13a-history.svg)",
-      "result": "Inspect the supplied state fixtures. Undo restores the same ID and mesh allocation; a new branch clears Redo without reusing IDs; history keeps 64 edits.",
-      "experiment": "Read the pointer-equality assertion before running the history checks. Undo should restore the original Rc allocation rather than a copied mesh.",
-      "production": "Document snapshots preserve source identity and immutable geometry owners. Camera and background remain outside document history.",
-      "browser_status": "Click a triangle; the visible object is selected.",
-      "browser_actions": [
-        {
-          "canvas": [
-            0.7,
-            0.5
-          ]
-        }
-      ],
-      "browser_caption": "Native tests establish the snapshot, sharing and branching behavior. Chrome retains picking and typed selection until Undo/Redo commands are connected next.",
-      "frame": "journey/checks/14-history.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "tests": true,
-      "edits": [
-        {
-          "path": "src/scene.rs",
-          "before": "use crate::mesh::Mesh;\n",
-          "snippet": "journey/code/14-history-01.rs",
-          "why": "Use shared ownership for immutable mesh data."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "pub struct Object {\n",
-          "snippet": "journey/code/14-history-02.rs",
-          "why": "Allow scene snapshots to clone the object record."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "    pub mesh: Mesh,\n",
-          "snippet": "journey/code/14-history-03.rs",
-          "why": "Share the mesh allocation between object snapshots."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "pub struct Scene {\n",
-          "snippet": "journey/code/14-history-04.rs",
-          "why": "Clone the small scene records for a snapshot. Rc prevents a deep copy of each mesh."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "        self.objects.push(Object { id, mesh });\n",
-          "snippet": "journey/code/14-history-05.rs",
-          "why": "Give a newly inserted mesh its first shared owner."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "    pub fn objects(&self) -> &[Object] {\n",
-          "snippet": "journey/code/14-history-06.rs",
-          "why": "Restore document contents while preserving the highest ID counter reached."
-        },
-        {
-          "path": "src/history.rs",
-          "before": null,
-          "snippet": "journey/code/14-history-07.rs",
-          "why": "Create bounded undo and redo stacks, plus tests for identity, shared data and a new editing branch."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/14-history-fullscreen-1.rs",
-          "before": "pub mod mesh;\npub mod scene;\npub mod picking;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Register history as a document operation, independent of the browser and GPU."
-        }
-      ]
-    },
-    {
-      "id": "14-history",
-      "title": "Run Undo and Redo from the command line",
-      "page": "journey/14-history.md",
-      "hours": [
-        0.25,
-        0.5
-      ],
-      "goal": "Undo and redo adding or deleting an object without changing the camera or losing identity.",
-      "trace": "Typed edit → History → restored Scene → selection repair → set_scene",
-      "question": "Why repair selection after restoration?",
-      "answer": "Selection stores an ID. The restored scene may not contain that ID, so retain it only when it still exists.",
-      "story": "Route Example Triangle and Delete through History::edit. Undo and Redo restore the scene, retain only valid selection, then upload the restored display.\n\nThe callback keeps camera and background outside history. A document restoration redraws with the current view.\n\n![Typed commands restore document state and synchronize its drawing.](../illustrations/journey-direct-14-history.svg)",
-      "result": "Type Example Triangle, then Undo and Redo. The third triangle disappears and returns.",
-      "experiment": "Add the third triangle, undo that addition, then add it again. It looks similar, but the new addition must receive a new ID. Read the branching-history test and explain why. Next pan the camera, delete an object and undo: the camera should stay where you put it.",
-      "production": "The full viewer groups document operations into transactions and coordinates restoration with displayed rows and tool state. This lesson establishes reversible document changes, shared immutable data, preserved identity and the boundary between an edit and a view change.",
-      "browser_status": "Undo restores the document while the view stays put.",
-      "browser_actions": [
-        {
-          "command": "Example Triangle"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Delete"
-        },
-        {
-          "command": "Undo"
-        },
-        {
-          "command": "Select Next"
-        }
-      ],
-      "image_result": "The deleted third triangle has been restored, and the first object is selected.\n\nThis checkpoint was rendered independently and has the same native comparison frame as [Retain reversible scene snapshots](13a-history.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "frame": "journey/checks/14-history.rs",
-      "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "edits": [
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/14-history-window-1.rs",
-          "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n",
-          "why": "Import the history owner."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/14-history-window-2.rs",
-          "before": "            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n",
-          "why": "Add Undo and Redo to the vocabulary."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/14-history-window-3.rs",
-          "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n",
-          "why": "Create document history beside the scene."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/14-history-window-4.rs",
-          "before": "                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n",
-          "why": "Record the example toggle as a history edit."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/14-history-window-5.rs",
-          "before": "                }\n                \"delete\" => {\n                    if let Some(id) = selected.take() {\n                        scene.remove(id);\n                        renderer.set_scene(&scene, selected);\n                    }\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n",
-          "why": "Record deletion and route Undo/Redo through history; retain only valid selection."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/14-history-window-6.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Click a triangle; the visible object is selected.\");\n    Ok(())\n}\n\n",
-          "why": "Report the undo result."
-        }
-      ],
-      "image_same_as": "13a-history"
-    },
-    {
-      "id": "14a-perspective",
-      "title": "Draw through a perspective camera",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "story": "Look from z = 3 toward z = 0 with a 60-degree vertical field of view. The nearer turquoise triangle covers pink at their overlap.\n\nXform calculates the view and projection in double precision. to_f32 supplies the existing GPU uniform; the shader divides clip coordinates by w. Keep aspect equal to window width divided by height.\n\n![A double-precision view supplies the GPU uniform and depth drawing.](../illustrations/journey-direct-14a-perspective.svg)",
-      "result": "Refresh the viewer. Turquoise covers pink at the centre of the view.",
-      "question": "Why is turquoise nearer even though its world z is larger?",
-      "answer": "The eye is at positive z and looks toward zero. The turquoise triangle at z = 0.75 is closer to that eye than pink at z = 0.25.",
-      "experiment": "Type Zoom In, then View Reset. The eye moves closer and resets; geometry positions stay unchanged.",
-      "browser_caption": "This checkpoint verifies perspective drawing and typed commands. Canvas selection is paused while the old flat-coordinate query is replaced; it returns in the ray-picking step.",
-      "tests": true,
-      "page": "journey/14a-perspective.md",
-      "goal": "Draw nearer geometry through a perspective view while keeping typed commands working.",
-      "trace": "Eye and target → view_projection → f32 uniform → GPU depth test",
-      "production": "The viewer calculates camera geometry in double precision and supplies float matrices to the GPU. This step establishes perspective drawing; the next two steps restore canvas picking with a matching ray.",
-      "browser_status": "Perspective drawing uses the current camera.",
-      "frame": "journey/checks/14a-perspective.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "lock": "journey/release/15-perspective.lock",
-      "browser_check": "journey/checks/browser/perspective.cjs",
-      "edits": [
-        {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/15-perspective-dock-01.toml",
-          "before": "console_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n",
-          "why": "Add the geometry kernel and browser-compatible random number support."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "pub struct Camera {\n    pub center: [f32; 2],\n    pub scale: f32,\n    pub angle: f32,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        self.center[0] += dx;\n        self.center[1] += dy;\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.scale = (self.scale * factor).clamp(0.1, 10.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians;\n    }\n\n    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {\n        let x = point[0] / self.scale;\n        let y = point[1] / self.scale;\n        let (sin, cos) = self.angle.sin_cos();\n        [self.center[0] + x * cos - y * sin, self.center[1] + x * sin + y * cos]\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        let a = self.scale * self.angle.cos();\n        let b = self.scale * self.angle.sin();\n        let [x, y] = self.center;\n        // WGSL matrices are uploaded column by column.\n        [\n            a, -b, 0.0, 0.0,\n            b,  a, 0.0, 0.0,\n            0.0, 0.0, 1.0, 0.0,\n            -a * x - b * y, b * x - a * y, 0.0, 1.0,\n        ]\n    }\n}\n\n#[cfg(test)]\nmod coordinate_tests {\n    use super::Camera;\n\n    #[test]\n    fn moving_the_view_preserves_the_coordinate_round_trip() {\n        let mut camera = Camera::default();\n        camera.pan(0.1, -0.2);\n        camera.zoom(0.5);\n        camera.rotate(0.7);\n        let world = [0.4, 0.0];\n        let matrix = camera.uniform();\n        let screen = [matrix[0] * world[0] + matrix[4] * world[1] + matrix[12],\n            matrix[1] * world[0] + matrix[5] * world[1] + matrix[13]];\n        let restored = camera.world_from_screen(screen);\n        assert!((restored[0] - world[0]).abs() < 1.0e-6);\n        assert!((restored[1] - world[1]).abs() < 1.0e-6);\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn panned_target_stays_at_the_screen_centre_when_zooming() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(std::f32::consts::FRAC_PI_4);\n        let m = camera.uniform();\n        let [x, y] = camera.center;\n        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);\n        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);\n    }\n\n    #[test]\n    fn zoom_stays_positive_and_bounded() {\n        let mut camera = Camera::default();\n        camera.zoom(0.0001);\n        assert_eq!(camera.scale, 0.1);\n        camera.zoom(1_000.0);\n        assert_eq!(camera.scale, 10.0);\n        camera.zoom(f32::NAN);\n        camera.zoom(-1.0);\n        assert_eq!(camera.scale, 10.0);\n    }\n}\n",
-          "snippet": "journey/code/14a-perspective-camera.rs",
-          "why": "Give the camera an eye distance, view-projection matrix and GPU uniform. Check the transformed target stays centred."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "        let near = Mesh::new(vec![\n",
-          "snippet": "journey/code/15-perspective-05.rs",
-          "why": "Name the mesh by colour; which surface is nearer now depends on the camera."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "        let far = Mesh::new(vec![\n",
-          "snippet": "journey/code/15-perspective-06.rs",
-          "why": "Give the other mesh a camera-independent name."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "expect(\"Valid near triangle\")",
-          "snippet": "journey/code/15-perspective-07.rs",
-          "why": "Name the pink triangle in its validation error."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "expect(\"Valid far triangle\")",
-          "snippet": "journey/code/15-perspective-08.rs",
-          "why": "Name the turquoise triangle in its validation error."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "        scene.insert(near).expect(\"ID available\");\n        scene.insert(far).expect(\"ID available\");\n",
-          "snippet": "journey/code/15-perspective-09.rs",
-          "why": "Insert the same two mesh data sets in the same order. Their identities are unchanged."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/15-perspective-window-1.rs",
-          "before": "    let mut history = History::default();\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n        &surface,\n        &renderer,\n",
-          "why": "Initialize camera aspect from the canvas size."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/15-perspective-window-3.rs",
-          "before": "                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"view reset\" => camera = Camera::default(),\n                _ => return,\n            }\n        }\n",
-          "why": "Preserve aspect when resetting the camera."
-        },
-        {
-          "path": "src/lib.rs",
-          "before": "pub mod picking;\n",
-          "snippet": "journey/code/14a-perspective-picking-module.rs",
-          "why": "Pause the flat picking module until the camera-ray query is introduced."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n                    };\n                    let rect = input_canvas.get_bounding_client_rect();\n                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    let screen = [\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));\n                    renderer.set_scene(&scene, selected);\n                }\n",
-          "snippet": "journey/code/14a-perspective-canvas.rs",
-          "why": "Pause canvas selection while the camera changes; typed selection still works."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "    report(\"Undo restores the document while the view stays put.\");\n",
-          "snippet": "journey/code/14a-perspective-status.rs",
-          "why": "Report that perspective drawing is ready."
-        }
-      ]
-    },
-    {
-      "id": "14b-ray",
-      "title": "Turn a screen point into a bounded ray",
-      "hours": [
-        0.5,
-        0.75
-      ],
-      "story": "Invert the view-projection matrix. A screen point at depths zero and one gives the near and far ends of a ray through the view.\n\nOption returns None for invalid coordinates or an inverse that cannot be computed. Normalize the direction and retain the segment length.\n\n![An inverse view-projection supplies a finite ray through the view.](../illustrations/journey-direct-14b-ray.svg)",
-      "result": "Inspect the supplied state fixtures. A projected point lies on its recovered ray; invalid screen coordinates are rejected.",
-      "question": "Why retain max_distance beside a normalized direction?",
-      "answer": "Normalization removes length. max_distance keeps the far-plane boundary so picking can reject objects outside the visible segment.",
-      "experiment": "Change the round-trip test screen x to NaN. ray should return None; restore the valid point.",
-      "browser_caption": "The browser retains the independently captured perspective drawing. Native tests establish the new ray conversion; canvas picking is connected next.",
-      "tests": true,
-      "page": "journey/14b-ray.md",
-      "goal": "Recover a finite ray through the near-to-far segment from a screen position.",
-      "trace": "Screen depth 0 and 1 → inverse view-projection → origin, direction and max_distance",
-      "production": "Drawing and picking use the same view-projection transform. This step verifies the bounded ray before the next query chooses an object.",
-      "browser_status": "Perspective drawing uses the current camera.",
-      "frame": "journey/checks/14a-perspective.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_check": "journey/checks/browser/perspective.cjs",
-      "edits": [
-        {
-          "path": "src/camera.rs",
-          "before": "pub struct Camera {\n",
-          "snippet": "journey/code/14b-ray-type.rs",
-          "why": "Keep the near origin, normalized direction and segment length together."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "}\n\n#[cfg(test)]\n",
-          "snippet": "journey/code/14b-ray-method.rs",
-          "why": "Inverse-transform the screen point at both depth boundaries; reject invalid coordinates and invalid segment length."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "        assert!((0.0..1.0).contains(&screen[2]));\n    }\n\n}\n",
-          "snippet": "journey/code/14b-ray-test.rs",
-          "why": "Check that a projected point lies on its recovered ray and invalid screen coordinates are rejected."
-        }
-      ],
-      "image_same_as": "14a-perspective"
-    },
-    {
-      "id": "15-perspective",
-      "title": "Pick the nearest surface through the view",
-      "page": "journey/15-perspective.md",
-      "hours": [
-        1,
-        1.5
-      ],
-      "goal": "View the scene in perspective and select surfaces with a ray that agrees with the camera.",
-      "trace": "Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display",
-      "question": "Why compare ray distances rather than world z?",
-      "answer": "The camera can pan, rotate and zoom. Distance along its ray describes which valid surface the viewer sees first. World z alone does not.",
-      "story": "Intersect the camera ray with each triangle. Keep the nearest hit inside the near-to-far segment and return its ObjectId.\n\nThe barycentric values u and v test triangle coverage. The browser converts a canvas click to a ray, stores the selected ID, then uploads its yellow display colour.\n\n![A canvas click selects the nearest valid ray hit by object ID.](../illustrations/journey-direct-15-perspective.svg)",
-      "result": "Click the overlap. The turquoise triangle becomes yellow.",
-      "experiment": "Type Zoom In, select the overlap, then Delete and Undo. Picking should follow the camera and history should restore the same object.",
-      "production": "The full viewer uses this same geometry kernel, view-projection boundary and identity resolution. Its later camera adds world-up orbit, units, fit, floating origins and reversed depth for large scenes; those are extensions of the responsibilities introduced here.",
-      "browser_status": "Perspective and picking use the same camera.",
-      "frame": "journey/checks/15-perspective.rs",
-      "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "edits": [
-        {
-          "path": "src/picking.rs",
-          "before": "use crate::scene::{ObjectId, Scene};\n\npub fn pick(scene: &Scene, point: [f32; 2]) -> Option<ObjectId> {\n    let mut nearest = 1.0;\n    let mut hit = None;\n    for object in scene.objects() {\n        let vertices = object.mesh.vertices();\n        for triangle in object.mesh.indices().chunks_exact(3) {\n            let a = vertices[triangle[0] as usize];\n            let b = vertices[triangle[1] as usize];\n            let c = vertices[triangle[2] as usize];\n            if let Some(depth) = triangle_depth(point, a, b, c) {\n                if depth >= 0.0 && depth < nearest {\n                    nearest = depth;\n                    hit = Some(object.id);\n                }\n            }\n        }\n    }\n    hit\n}\n\nfn triangle_depth(p: [f32; 2], a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f32> {\n    let cross = |u: [f32; 2], v: [f32; 2]| u[0] * v[1] - u[1] * v[0];\n    let ab = [b[0] - a[0], b[1] - a[1]];\n    let ac = [c[0] - a[0], c[1] - a[1]];\n    let ap = [p[0] - a[0], p[1] - a[1]];\n    let area = cross(ab, ac);\n    if area.abs() < 1.0e-8 {\n        return None;\n    }\n    let u = cross(ap, ac) / area;\n    let v = cross(ab, ap) / area;\n    if u >= 0.0 && v >= 0.0 && u + v <= 1.0 {\n        Some((1.0 - u - v) * a[2] + u * b[2] + v * c[2])\n    } else {\n        None\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use crate::camera::Camera;\n\n    #[test]\n    fn overlap_chooses_the_visible_object_and_deletion_reveals_the_next() {\n        let mut scene = Scene::demo();\n        let near = scene.objects()[0].id;\n        let far = scene.objects()[1].id;\n        assert_eq!(pick(&scene, [0.0, 0.0]), Some(near));\n        assert_eq!(pick(&scene, [0.4, 0.0]), Some(far));\n        scene.remove(near);\n        assert_eq!(pick(&scene, [0.0, 0.0]), Some(far));\n        assert_eq!(pick(&scene, [-0.9, -0.9]), None);\n    }\n\n    #[test]\n    fn picking_follows_a_panned_zoomed_and_rotated_camera() {\n        let scene = Scene::demo();\n        let mut camera = Camera::default();\n        camera.pan(0.1, -0.2);\n        camera.zoom(0.5);\n        camera.rotate(0.7);\n        let world = [0.4, 0.0];\n        let m = camera.uniform();\n        let screen = [m[0] * world[0] + m[4] * world[1] + m[12],\n            m[1] * world[0] + m[5] * world[1] + m[13]];\n        let restored = camera.world_from_screen(screen);\n        assert!((restored[0] - world[0]).abs() < 1.0e-6);\n        assert!((restored[1] - world[1]).abs() < 1.0e-6);\n        assert_eq!(pick(&scene, restored), Some(scene.objects()[1].id));\n    }\n\n    #[test]\n    fn an_edge_on_or_invalid_triangle_cannot_be_picked() {\n        assert_eq!(triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]), None);\n        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);\n    }\n}\n",
-          "snippet": "journey/code/15-perspective-03.rs",
-          "why": "Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera."
-        },
-        {
-          "path": "src/lib.rs",
-          "before": "pub mod scene;\n",
-          "snippet": "journey/code/15-perspective-picking-module.rs",
-          "why": "Register the camera-ray query now that its input is available."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "                \"canvas\" => return,\n",
-          "snippet": "journey/code/15-perspective-canvas-ray.rs",
-          "why": "Convert a canvas click to a camera ray and highlight its nearest valid object."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "    report(\"Perspective drawing uses the current camera.\");\n",
-          "snippet": "journey/code/15-perspective-status.rs",
-          "why": "Report that perspective picking is ready."
-        }
-      ],
-      "browser_check": "journey/checks/browser/perspective.cjs",
-      "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Turn a screen point into a bounded ray](14b-ray.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "14a-perspective"
-    },
-    {
-      "id": "16-orbit",
-      "title": "Walk around the model",
-      "page": "journey/16-orbit.md",
-      "hours": [
-        2,
-        4
-      ],
-      "goal": "Orbit and tilt a perspective camera while keeping its target in place.",
-      "trace": "View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray",
-      "question": "Which camera value should stay fixed while you orbit around the model?",
-      "answer": "The target stays fixed. Orientation changes the direction from the eye toward that target, and distance controls how far the eye is from it. Recomputing eye = target − forward × distance moves the eye around the target without editing any mesh positions.",
-      "story": "Orbit around a fixed target. Camera orientation determines its right, up and forward directions; viewing distance places the eye behind the target.\n\nUse the kernel's quaternion to represent orientation. Rotate sideways around world z and tilt around the camera's current right axis. In `yaw × (pitch × orientation)`, the existing orientation is followed by tilt, then yaw. Order matters.\n\nNormalise after updates to keep a pure rotation. The repeated-turn test checks that the resulting axes remain unit length and perpendicular.\n\nIsometric changes orientation while retaining target and distance. Drawing and picking consume the same updated camera matrix. The scene, history and selection keep their existing owners.\n\n![A fixed target and viewing distance define the orbit; orientation determines the camera’s right, forward and up directions.](../illustrations/journey-16.svg)",
-      "result": "Type `View Isometric`, then `Orbit Right`. The eye moves around the same target. Click a visible face to confirm picking still agrees with the new view.",
-      "experiment": "Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.",
-      "production": "The maintained camera uses target, distance, orientation and world-up in the same way. Later gesture lessons turn pointer deltas into these operations; unit conversion, fit-to-scene and large-coordinate precision extend the camera without moving source geometry.",
+      "goal": "Orbit a perspective scene, select its nearest visible triangle, and undo or redo document edits without losing identity.",
+      "trace": "canvas coordinates → viewing ray → nearest triangle → object identity → reversible scene snapshot",
+      "question": "Why must undo preserve both an object's ID and the highest identity already issued?",
+      "answer": "Restored objects keep references meaningful. Preserving the highest issued identity prevents a new branch from assigning an old identity to a different object.",
+      "story": "One camera supplies both the rendered projection and the picking ray. History keeps document snapshots independently of the camera and GPU resources.",
+      "result": "The visible selected triangle is yellow. Orbit changes the view; delete exposes the triangle behind it; undo restores the original identity and shared mesh.",
+      "experiment": "Delete the nearer triangle, undo, then make a different edit. Predict the selected object and whether redo still has a branch.",
+      "production": "The maintained viewer also keeps camera motion separate from source geometry. Its current camera adds framed viewports, units, fitting and anchored projection; cumulative production parity remains unfinished.",
       "browser_status": "Orbit moves the eye around a fixed target.",
       "browser_actions": [
         {
@@ -1049,76 +476,68 @@
       "image_result": "Look at the overlap: the pink triangle now covers the centre while the cyan triangle sits above it. The helper sets the camera to Isometric and checks the centre pixel against picking. This image shows the camera pose, not a mouse gesture.",
       "frame": "journey/checks/16-orbit.rs",
       "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
       "edits": [
         {
-          "path": "src/camera.rs",
-          "before": "use session_rust::{Point, Vector, Xform};\n",
-          "snippet": "journey/code/16-orbit-01.rs",
-          "why": "Use the kernel’s rotation representation alongside its points, vectors and matrices."
+          "path": "Cargo.toml",
+          "before": "[package]\nname = \"viewer_journey\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\ncrate-type = [\"cdylib\", \"rlib\"]\n\n[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\nserde = { version = \"1.0\", features = [\"derive\"] }\nserde_json = \"1.0\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
+          "snippet": "journey/code/12-selection-9.toml",
+          "why": "Declare the kernel math dependency used by projection and ray intersection."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n#[cfg(test)]\n#[path = \"command_dock/tool_buttons_tests.rs\"]\nmod tool_buttons_tests;\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_vocabulary;\n\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n",
+          "snippet": "journey/code/12-selection-6.rs",
+          "why": "Declare the camera, picking and history modules."
         },
         {
           "path": "src/camera.rs",
-          "before": "    pub center: [f64; 2],\n    pub distance: f64,\n    pub angle: f64,\n    pub aspect: f64,\n",
-          "snippet": "journey/code/16-orbit-02.rs",
-          "why": "Store a 3D target and orientation instead of a flat centre and one angle."
+          "before": "pub struct Camera {\n    pub center: [f32; 2],\n    pub scale: f32,\n    pub angle: f32,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        self.center[0] += dx;\n        self.center[1] += dy;\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.scale = (self.scale * factor).clamp(0.1, 10.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians;\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        let a = self.scale * self.angle.cos();\n        let b = self.scale * self.angle.sin();\n        let [x, y] = self.center;\n        // WGSL matrices are uploaded column by column.\n        [\n            a, -b, 0.0, 0.0,\n            b,  a, 0.0, 0.0,\n            0.0, 0.0, 1.0, 0.0,\n            -a * x - b * y, b * x - a * y, 0.0, 1.0,\n        ]\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn panned_target_stays_at_the_screen_centre_when_zooming() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(std::f32::consts::FRAC_PI_4);\n        let m = camera.uniform();\n        let [x, y] = camera.center;\n        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);\n        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);\n    }\n\n    #[test]\n    fn zoom_stays_positive_and_bounded() {\n        let mut camera = Camera::default();\n        camera.zoom(0.0001);\n        assert_eq!(camera.scale, 0.1);\n        camera.zoom(1_000.0);\n        assert_eq!(camera.scale, 10.0);\n        camera.zoom(f32::NAN);\n        camera.zoom(-1.0);\n        assert_eq!(camera.scale, 10.0);\n    }\n}\n",
+          "snippet": "journey/code/12-selection-4.rs",
+          "why": "Keep quaternion navigation, perspective projection and unprojection together."
         },
         {
-          "path": "src/camera.rs",
-          "before": "        Self { center: [0.0, 0.0], distance: 3.0, angle: 0.0, aspect: 640.0 / 480.0 }\n",
-          "snippet": "journey/code/16-orbit-03.rs",
-          "why": "Keep the same initial eye and up directions as the perspective lesson."
+          "path": "src/picking.rs",
+          "before": null,
+          "snippet": "journey/code/12-selection-5.rs",
+          "why": "Choose the nearest triangle intersecting the clipped viewing ray."
         },
         {
-          "path": "src/camera.rs",
-          "before": "    pub fn pan(&mut self, dx: f32, dy: f32) {\n        let (sin, cos) = self.angle.sin_cos();\n        self.center[0] += dx as f64 * cos - dy as f64 * sin;\n        self.center[1] += dx as f64 * sin + dy as f64 * cos;\n    }\n",
-          "snippet": "journey/code/16-orbit-04.rs",
-          "why": "Move the target in the camera’s current right/up plane, including its world-z component."
+          "path": "src/scene.rs",
+          "before": "use crate::mesh::Mesh;\n\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub struct ObjectId(u32);\n\npub struct Object {\n    pub id: ObjectId,\n    pub mesh: Mesh,\n}\n\npub struct Scene {\n    objects: Vec<Object>,\n    next_id: u32,\n    extra: Option<ObjectId>,\n}\n\nimpl Scene {\n    pub fn demo() -> Self {\n        let near = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid near triangle\");\n        let far = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid far triangle\");\n        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };\n        scene.insert(near).expect(\"ID available\");\n        scene.insert(far).expect(\"ID available\");\n        scene\n    }\n\n    pub fn objects(&self) -> &[Object] {\n        &self.objects\n    }\n\n    pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {\n        let next = self.next_id.checked_add(1).ok_or(\"Object IDs exhausted\")?;\n        let id = ObjectId(self.next_id);\n        self.next_id = next;\n        self.objects.push(Object { id, mesh });\n        Ok(id)\n    }\n\n    pub fn remove(&mut self, id: ObjectId) -> bool {\n        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };\n        self.objects.remove(index);\n        if self.extra == Some(id) {\n            self.extra = None;\n        }\n        true\n    }\n\n    pub fn contains(&self, id: ObjectId) -> bool {\n        self.objects.iter().any(|object| object.id == id)\n    }\n\n    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {\n        if self.objects.is_empty() {\n            return None;\n        }\n        let index = self.objects.iter().position(|object| Some(object.id) == current)\n            .map_or(0, |index| index + 1);\n        Some(self.objects[index % self.objects.len()].id)\n    }\n\n    pub fn toggle_extra(&mut self) {\n        if let Some(id) = self.extra.take() {\n            self.remove(id);\n        } else {\n            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n            self.extra = Some(self.insert(extra).expect(\"ID available\"));\n        }\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn removal_moves_a_row_without_changing_its_identity() {\n        let mut scene = Scene::demo();\n        let first = scene.objects()[0].id;\n        let second = scene.objects()[1].id;\n        assert!(scene.remove(first));\n        assert_eq!(scene.objects()[0].id, second);\n        assert_eq!(scene.next(None), Some(second));\n        assert!(!scene.contains(first));\n        scene.toggle_extra();\n        assert_ne!(scene.objects()[1].id, first);\n        assert_ne!(scene.objects()[1].id, second);\n    }\n\n    #[test]\n    fn toggling_the_extra_object_uses_its_id_after_other_removals() {\n        let mut scene = Scene::demo();\n        scene.toggle_extra();\n        let extra = scene.objects()[2].id;\n        scene.remove(scene.objects()[0].id);\n        scene.toggle_extra();\n        assert!(!scene.contains(extra));\n        assert_eq!(scene.objects().len(), 1);\n    }\n}\n",
+          "snippet": "journey/code/12-selection-7.rs",
+          "why": "Restore snapshots without recycling an object identity."
         },
         {
-          "path": "src/camera.rs",
-          "before": "    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians as f64;\n    }\n",
-          "snippet": "journey/code/16-orbit-05.rs",
-          "why": "Add world-up orbit and a named pose. Keep rotate as the existing Turn view action."
+          "path": "src/history.rs",
+          "before": null,
+          "snippet": "journey/code/12-selection-8.rs",
+          "why": "Retain shared-mesh snapshots and bounded undo/redo branches."
         },
         {
-          "path": "src/camera.rs",
-          "before": "        let eye = Point::new(self.center[0], self.center[1], self.distance);\n        let target = Point::new(self.center[0], self.center[1], 0.0);\n        let (sin, cos) = self.angle.sin_cos();\n        let up = Vector::new(-sin, cos, 0.0);\n",
-          "snippet": "journey/code/16-orbit-06.rs",
-          "why": "Calculate eye and up from the orientation, then reuse the existing view and projection construction."
+          "path": "src/gpu_mesh.rs",
+          "before": "use crate::mesh::Mesh;\nuse wgpu::util::DeviceExt;\n\npub struct GpuMesh {\n    vertices: wgpu::Buffer,\n    indices: wgpu::Buffer,\n    index_count: u32,\n}\n\nimpl GpuMesh {\n    pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {\n        let bytes: Vec<u8> = mesh.vertices().iter().flatten()\n            .flat_map(|value| value.to_ne_bytes()).collect();\n        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"mesh vertices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::VERTEX,\n        });\n        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();\n        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"mesh indices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::INDEX,\n        });\n        Self { vertices, indices, index_count: mesh.indices().len() as u32 }\n    }\n\n    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {\n        pass.set_vertex_buffer(0, self.vertices.slice(..));\n        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);\n        pass.draw_indexed(0..self.index_count, 0, 0..1);\n    }\n}\n",
+          "snippet": "journey/code/12-selection-1.rs",
+          "why": "Upload selection colour while preserving source mesh data."
         },
         {
-          "path": "src/camera.rs",
-          "before": "        let target = Point::new(camera.center[0], camera.center[1], 0.0);\n",
-          "snippet": "journey/code/16-orbit-07.rs",
-          "why": "Extend the target-centering test to include a 3D orbit."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "    #[test]\n    fn a_projected_point_lies_on_its_unprojected_ray() {\n",
-          "snippet": "journey/code/16-orbit-08.rs",
-          "why": "Check the rotation invariant after many small updates, not just one convenient angle."
+          "path": "src/renderer.rs",
+          "before": "use crate::{gpu_mesh::GpuMesh, scene::Scene};\n\npub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n    pipeline: wgpu::RenderPipeline,\n    meshes: Vec<GpuMesh>,\n    uniform: wgpu::Buffer,\n    view_group: wgpu::BindGroup,\n    depth: wgpu::TextureView,\n}\n\nimpl Renderer {\n    pub fn new(\n        device: wgpu::Device,\n        queue: wgpu::Queue,\n        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n        });\n        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {\n            label: Some(\"triangle\"),\n            layout: None,\n            vertex: wgpu::VertexState {\n                module: &shader,\n                entry_point: Some(\"vertex\"),\n                compilation_options: Default::default(),\n                buffers: &[wgpu::VertexBufferLayout {\n                    array_stride: 24,\n                    step_mode: wgpu::VertexStepMode::Vertex,\n                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],\n                }],\n            },\n            fragment: Some(wgpu::FragmentState {\n                module: &shader,\n                entry_point: Some(\"fragment\"),\n                compilation_options: Default::default(),\n                targets: &[Some(format.into())],\n            }),\n            primitive: Default::default(),\n            depth_stencil: Some(wgpu::DepthStencilState {\n                format: wgpu::TextureFormat::Depth32Float,\n                depth_write_enabled: Some(true),\n                depth_compare: Some(wgpu::CompareFunction::Less),\n                stencil: Default::default(),\n                bias: Default::default(),\n            }),\n            multisample: Default::default(),\n            multiview_mask: None,\n            cache: None,\n        });\n        let uniform = device.create_buffer(&wgpu::BufferDescriptor {\n            label: Some(\"view transform\"),\n            size: 64,\n            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,\n            mapped_at_creation: false,\n        });\n        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {\n            label: Some(\"view settings\"),\n            layout: &pipeline.get_bind_group_layout(0),\n            entries: &[wgpu::BindGroupEntry {\n                binding: 0,\n                resource: uniform.as_entire_binding(),\n            }],\n        });\n        let depth = Self::depth(&device, 640, 480);\n        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene) {\n        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {\n            label: Some(\"opaque depth\"),\n            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },\n            mip_level_count: 1,\n            sample_count: 1,\n            dimension: wgpu::TextureDimension::D2,\n            format: wgpu::TextureFormat::Depth32Float,\n            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,\n            view_formats: &[],\n        });\n        depth_texture.create_view(&Default::default())\n    }\n\n    pub fn resize(&mut self, width: u32, height: u32) {\n        self.depth = Self::depth(&self.device, width, height);\n    }\n\n    pub fn draw(\n        &self,\n        view: &wgpu::TextureView,\n        background: &crate::background::Background,\n        transform: &[f32; 16],\n    ) {\n        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();\n        self.queue.write_buffer(&self.uniform, 0, &bytes);\n        let [r, g, b] = background.rgb();\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {\n                    view: &self.depth,\n                    depth_ops: Some(wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(1.0),\n                        store: wgpu::StoreOp::Store,\n                    }),\n                    stencil_ops: None,\n                }),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n                    depth_slice: None,\n                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r, g, b, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n                })],\n                ..Default::default()\n            });\n            pass.set_pipeline(&self.pipeline);\n            pass.set_bind_group(0, &self.view_group, &[]);\n            for mesh in &self.meshes {\n                mesh.draw(&mut pass);\n            }\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n}\n",
+          "snippet": "journey/code/12-selection-2.rs",
+          "why": "Rebuild displayed meshes when document or selection changes."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/16-orbit-window-1.rs",
-          "before": "            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"View Reset\",\n        ],\n    );\n",
-          "why": "Add vertical orbit and isometric commands."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/16-orbit-window-2.rs",
-          "before": "                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"view reset\" => camera = Camera { aspect: camera.aspect, ..Camera::default() },\n                _ => return,\n            }\n",
-          "why": "Apply vertical orbit or the isometric orientation."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/16-orbit-window-3.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Perspective and picking use the same camera.\");\n    Ok(())\n}\n\n",
-          "why": "Report that orbit preserves the target."
+          "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n        if let Some(status) = document.get_element_by_id(\"status\") {\n            status.set_text_content(Some(message));\n            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n        }\n    }\n}\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\")\n        .ok_or(\"Missing canvas\")?\n        .dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n        memory_budget_thresholds: Default::default(),\n        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance\n        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance\n        .request_adapter(&wgpu::RequestAdapterOptions {\n            compatible_surface: Some(&surface),\n            ..Default::default()\n        })\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter\n        .request_device(&wgpu::DeviceDescriptor::default())\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface\n        .get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut scene = Scene::demo();\n    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"View Reset\",\n        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n        &surface,\n        &renderer,\n        &background,\n        &camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };\n\n        if let Some(line) = line {\n            match line.as_str() {\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    renderer.set_scene(&scene);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"view reset\" => camera = Camera::default(),\n                _ => return,\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &background,\n            &camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n    for name in [\n        \"pointerdown\",\n        \"pointermove\",\n        \"pointerup\",\n        \"pointercancel\",\n        \"lostpointercapture\",\n        \"contextmenu\",\n        \"keydown\",\n        \"keyup\",\n        \"blur\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        click.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Scene data owns the meshes; the renderer displays them.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    transform: &[f32; 16],\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => {\n            return Err(JsValue::from_str(&format!(\n                \"Surface unavailable: {other:?}\"\n            )));\n        }\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view, background, transform);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n}\n",
+          "snippet": "journey/code/12-selection-3.rs",
+          "why": "Route canvas input, navigation and reversible document commands."
         }
       ],
-      "browser_caption": "Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions."
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_caption": "Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions.",
+      "authored": true,
+      "lock": "journey/release/15-perspective.lock",
+      "assets": [],
+      "browser_check": "journey/checks/browser/selection-navigation.cjs"
     },
     {
       "id": "17-solid",
@@ -90237,6 +89656,15 @@
     "09-matrices": "07-uniforms",
     "10a-mesh": "10-depth",
     "11-scene": "10-depth",
-    "11a-identity": "10-depth"
+    "11a-identity": "10-depth",
+    "12a-coordinates": "12-identity",
+    "12b-picking": "12-identity",
+    "13-picking": "12-identity",
+    "13a-history": "12-identity",
+    "14-history": "12-identity",
+    "14a-perspective": "12-identity",
+    "14b-ray": "12-identity",
+    "15-perspective": "12-identity",
+    "16-orbit": "12-identity"
   }
 }

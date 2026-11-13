@@ -1,6 +1,6 @@
 # Production source and course coverage
 
-The current cumulative course is **not accepted as the production viewer**. At the integrated November 13 checkpoint it contains 1,330 executable checkpoints in 111 reader subjects. Ownership checking reports 4,919 later-subject rewrites across 305 files. Its final source tree has 318 missing production paths, 707 extra paths and three changed shared files. These failures are not deliberate exclusions.
+The current cumulative course is **not accepted as the production viewer**. After the current selection/navigation consolidation it contains 1,321 executable checkpoints in 109 reader subjects. Ownership checking reports 4,870 later-subject rewrites across 305 files. Its final source tree has 320 missing production paths, 707 extra paths and three changed shared files. These failures are not deliberate exclusions.
 
 The [stage integration record](stage-gap.md) separates the accepted standalone mathematics checkpoint from unfinished cumulative integration. The [real-scene subject](stage-scene.md) explains production's scene boundary, but its cumulative checkpoint remains pending. A source mapping, copied file or link does not establish teaching; each production file still needs its implementing lesson and accepted checkpoint, or a reviewed exclusion with a reason.
 

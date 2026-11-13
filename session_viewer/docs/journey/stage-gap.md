@@ -31,6 +31,8 @@ The application owner should establish mode dispatch before first painting, with
 
 With a deterministic clock, the local extraction matches the published viewer's state and pixels in 23 equilibrium frames at each of 1280 × 720 and 390 × 844: 19 forward steps, backward navigation, both themes and mouse/touch stepping. Chrome uses the Intel gen-12lp adapter; the upright viewport is emulated. These are two of the required 46 chapter/viewport cases. The complete case commands still fail their separate history-frame assertions: automatic label placement deliberately remembers prior directions, so replay and subsequent pointer stepping need not match an earlier animated frame. The unchanged published baseline reproduces the replay failure. Both failed commands and the successful local-versus-published comparisons remain distinct evidence; neither establishes full stage or cumulative acceptance.
 
+Force-density chapter 1 now also matches 16 paired frames at each viewport against the preserved baseline bundle. [The source-bound comparison record](release/stage-force-density-windows-20261114.json) retains both failing history assertions per command. Four of 46 chapter/viewport comparisons are complete (78 paired frames); 42 remain. No full stage case is accepted by these comparison records.
+
 ## Existing subjects that must absorb current behavior
 
 | Existing owner | Required content |

@@ -1,0 +1,3916 @@
+{
+  "scope": "Production Presentation extraction comparison, force-density chapter1; not complete stage acceptance",
+  "date": "2026-11-14",
+  "status": "failed-history-assertions",
+  "comparisonComplete": true,
+  "cases": {
+    "desktop": {
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Exact history-frame assertions failed; production comparison is recorded separately\n+ actual - expected\n\n+ [\n+   {\n+     actual: 'c76dc21890c628d9a6bade2eb3b759f88816c12f090271ece5066608101e035e',\n+     expected: '384d5fa18e723218c673b6e41f158c8b9102e8fba0d048d6693c7d033708f6ea',\n+     message: 'Backward navigation does not reconstruct the same settled frame'\n+   },\n+   {\n+     actual: 'f32f6d5572554d036476b1ed3ef136dc8cd58f7a59de314437338a22a05fa142',\n+     expected: '1803d6ec9f76a6d64aa5f632f4efa0772f5da59fc16bbf5d7a892c9a0afb2db9',\n+     message: 'Pointer stepping differs from keyboard stepping'\n+   }\n+ ]\n- []\n",
+      "checker": "fec5315c78eeafa5e2c0303ee85bdbd076bd5c6181f7ac5c671b40e3e56a621d",
+      "baselineCommit": "56dd39eb41a958f053577606fcec20caf7261f18",
+      "fixedClock": true,
+      "comparisonComplete": true,
+      "roundTripFailures": [
+        {
+          "message": "Backward navigation does not reconstruct the same settled frame",
+          "actual": "c76dc21890c628d9a6bade2eb3b759f88816c12f090271ece5066608101e035e",
+          "expected": "384d5fa18e723218c673b6e41f158c8b9102e8fba0d048d6693c7d033708f6ea"
+        },
+        {
+          "message": "Pointer stepping differs from keyboard stepping",
+          "actual": "f32f6d5572554d036476b1ed3ef136dc8cd58f7a59de314437338a22a05fa142",
+          "expected": "1803d6ec9f76a6d64aa5f632f4efa0772f5da59fc16bbf5d7a892c9a0afb2db9"
+        }
+      ],
+      "frames": [
+        {
+          "label": "first",
+          "step": 1,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Klaus Linkwitz and Hans-J\u00f6rg Schek, Stuttgart, 1971: a way to find the shape of a cable net.",
+                "slide": 0,
+                "slide_step": 0,
+                "step": 0,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "44d630e1fbc0ac782f3cdbb94be2ffa9395811f4398ebce25f3c968bea01a2e1",
+              "sha256": "e08c87c62cf3837e9e01da03af67bad0a5b0c598b4a2be7a9ad83466acc5a24d",
+              "ink": 46216
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Klaus Linkwitz and Hans-J\u00f6rg Schek, Stuttgart, 1971: a way to find the shape of a cable net.",
+                "slide": 0,
+                "slide_step": 0,
+                "step": 0,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "44d630e1fbc0ac782f3cdbb94be2ffa9395811f4398ebce25f3c968bea01a2e1",
+              "sha256": "e08c87c62cf3837e9e01da03af67bad0a5b0c598b4a2be7a9ad83466acc5a24d",
+              "ink": 46216
+            }
+          ]
+        },
+        {
+          "label": "step-2",
+          "step": 2,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Every free node carries a load. Here the loads point up.",
+                "slide": 0,
+                "slide_step": 1,
+                "step": 1,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "314b46da874f21361d2564e14644d21d7fde052c20b94b59df15d274beb290d3",
+              "sha256": "0c3ea16659a5d3ea2110f23f860aaa74c75c69138a59050566645391b6ccda75",
+              "ink": 49653
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Every free node carries a load. Here the loads point up.",
+                "slide": 0,
+                "slide_step": 1,
+                "step": 1,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "314b46da874f21361d2564e14644d21d7fde052c20b94b59df15d274beb290d3",
+              "sha256": "0c3ea16659a5d3ea2110f23f860aaa74c75c69138a59050566645391b6ccda75",
+              "ink": 49653
+            }
+          ]
+        },
+        {
+          "label": "step-3",
+          "step": 3,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Give the net fixed points, loads and one number per cable. One linear solve gives the shape. Every node is in equilibrium.",
+                "slide": 0,
+                "slide_step": 2,
+                "step": 2,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "d83048a25add95391f57ade58cf04b344a8a4e8d5ef2433e21386e5b66b3f6cc",
+              "sha256": "0f7c4789ed65484443109316f7053c7c92883caca397a336f37381178f5af044",
+              "ink": 51723
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Give the net fixed points, loads and one number per cable. One linear solve gives the shape. Every node is in equilibrium.",
+                "slide": 0,
+                "slide_step": 2,
+                "step": 2,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "d83048a25add95391f57ade58cf04b344a8a4e8d5ef2433e21386e5b66b3f6cc",
+              "sha256": "0f7c4789ed65484443109316f7053c7c92883caca397a336f37381178f5af044",
+              "ink": 51723
+            }
+          ]
+        },
+        {
+          "label": "step-4",
+          "step": 4,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  },
+                  {
+                    "box": [
+                      917.0711669921875,
+                      416,
+                      1396.52880859375,
+                      688
+                    ],
+                    "id": "_auto3"
+                  },
+                  {
+                    "box": [
+                      885.5249633789062,
+                      712.1500244140625,
+                      1427.7999267578125,
+                      734.6500244140625
+                    ],
+                    "id": "_auto4"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Its best-known use is the Multihalle Mannheim, 1975: a timber gridshell, computed as a hanging net and built upside down.",
+                "slide": 0,
+                "slide_step": 3,
+                "step": 3,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "7838b4a5d3a8d396746138e1e37ec66f9bd195f16a7d5d86a36c5dbc9e87a8f8",
+              "sha256": "1b7003aaa2179a7afa5ca333efab5ecf7f015db91f97cb8b48225c76fdbd4a92",
+              "ink": 72132
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  },
+                  {
+                    "box": [
+                      917.0711669921875,
+                      416,
+                      1396.52880859375,
+                      688
+                    ],
+                    "id": "_auto3"
+                  },
+                  {
+                    "box": [
+                      885.5249633789062,
+                      712.1500244140625,
+                      1427.7999267578125,
+                      734.6500244140625
+                    ],
+                    "id": "_auto4"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Its best-known use is the Multihalle Mannheim, 1975: a timber gridshell, computed as a hanging net and built upside down.",
+                "slide": 0,
+                "slide_step": 3,
+                "step": 3,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "7838b4a5d3a8d396746138e1e37ec66f9bd195f16a7d5d86a36c5dbc9e87a8f8",
+              "sha256": "1b7003aaa2179a7afa5ca333efab5ecf7f015db91f97cb8b48225c76fdbd4a92",
+              "ink": 72132
+            }
+          ]
+        },
+        {
+          "label": "step-5",
+          "step": 5,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  }
+                ],
+                "overlaps": [],
+                "say": "For one free node, this presentation ends in one line per coordinate. The node sits at a weighted average of its neighbours, shifted by its load.",
+                "slide": 1,
+                "slide_step": 0,
+                "step": 4,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "3dcf4515e34473828b5c6e26aa744212ea7b58155100f01b410c6ee146e38b3b",
+              "sha256": "28ac8f2c757a62b3b1fd28b8ebff27f7d60208b33ece1dcc6e4b2d92adfda3a3",
+              "ink": 27200
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  }
+                ],
+                "overlaps": [],
+                "say": "For one free node, this presentation ends in one line per coordinate. The node sits at a weighted average of its neighbours, shifted by its load.",
+                "slide": 1,
+                "slide_step": 0,
+                "step": 4,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "3dcf4515e34473828b5c6e26aa744212ea7b58155100f01b410c6ee146e38b3b",
+              "sha256": "28ac8f2c757a62b3b1fd28b8ebff27f7d60208b33ece1dcc6e4b2d92adfda3a3",
+              "ink": 27200
+            }
+          ]
+        },
+        {
+          "label": "step-6",
+          "step": 6,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "The same line for $y_0$ and for $z_0$.",
+                "slide": 1,
+                "slide_step": 1,
+                "step": 5,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "904ec54466f3c4c308f316f5b3e26446e24129e4104e21b63dd7de6c72a24e6a",
+              "sha256": "692f606454fc000cb3e5dab2a21919b26a60aca9ee027ade801e7382982ea3c9",
+              "ink": 26565
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "The same line for $y_0$ and for $z_0$.",
+                "slide": 1,
+                "slide_step": 1,
+                "step": 5,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "904ec54466f3c4c308f316f5b3e26446e24129e4104e21b63dd7de6c72a24e6a",
+              "sha256": "692f606454fc000cb3e5dab2a21919b26a60aca9ee027ade801e7382982ea3c9",
+              "ink": 26565
+            }
+          ]
+        },
+        {
+          "label": "step-7",
+          "step": 7,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      778.44580078125,
+                      489.79083251953125,
+                      1535.3541259765625,
+                      513.7833251953125
+                    ],
+                    "id": "_auto8"
+                  },
+                  {
+                    "box": [
+                      975.3125,
+                      537.7833251953125,
+                      1338.1875,
+                      561.9683227539062
+                    ],
+                    "id": "_auto9"
+                  },
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "On the right is what we know. On the left is what we want: the free node.",
+                "slide": 1,
+                "slide_step": 2,
+                "step": 6,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "b728cf7fd1b3738f53d3ff17a5c15f642660897ce4956d2d07534265d022f9d9",
+              "sha256": "3cf6bd231beef3100fd00f0e9e8fd3aaf7f2e3e2758b4ffc3d247f4d39e6bba7",
+              "ink": 32006
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      778.44580078125,
+                      489.79083251953125,
+                      1535.3541259765625,
+                      513.7833251953125
+                    ],
+                    "id": "_auto8"
+                  },
+                  {
+                    "box": [
+                      975.3125,
+                      537.7833251953125,
+                      1338.1875,
+                      561.9683227539062
+                    ],
+                    "id": "_auto9"
+                  },
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "On the right is what we know. On the left is what we want: the free node.",
+                "slide": 1,
+                "slide_step": 2,
+                "step": 6,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "b728cf7fd1b3738f53d3ff17a5c15f642660897ce4956d2d07534265d022f9d9",
+              "sha256": "3cf6bd231beef3100fd00f0e9e8fd3aaf7f2e3e2758b4ffc3d247f4d39e6bba7",
+              "ink": 32006
+            }
+          ]
+        },
+        {
+          "label": "step-8",
+          "step": 8,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 0 comes first: one node in 2D, with force diagrams and projections.",
+                "slide": 2,
+                "slide_step": 0,
+                "step": 7,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "9c179c398a37977d3ab79e9e84ed1c2f1682daac36ae8fdf8c543ad045f6dc10",
+              "sha256": "cb6d388472fd7164079383cac8911f838bf3187b118346dd89ead799990b29cd",
+              "ink": 25166
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 0 comes first: one node in 2D, with force diagrams and projections.",
+                "slide": 2,
+                "slide_step": 0,
+                "step": 7,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "9c179c398a37977d3ab79e9e84ed1c2f1682daac36ae8fdf8c543ad045f6dc10",
+              "sha256": "cb6d388472fd7164079383cac8911f838bf3187b118346dd89ead799990b29cd",
+              "ink": 25166
+            }
+          ]
+        },
+        {
+          "label": "step-9",
+          "step": 9,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  }
+                ],
+                "overlaps": [],
+                "say": "This presentation: one free node in 3D, plain sums, no matrices yet (Linkwitz 6.2.2).",
+                "slide": 2,
+                "slide_step": 1,
+                "step": 8,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "60185138a68a1af26815e2216bd6ff32a0b959e8173d4c5aab417441b0c81bc3",
+              "sha256": "71fe553082f74462c561e60d1e5485ea83e3587c1af4395afa076c7fda435ed3",
+              "ink": 32142
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  }
+                ],
+                "overlaps": [],
+                "say": "This presentation: one free node in 3D, plain sums, no matrices yet (Linkwitz 6.2.2).",
+                "slide": 2,
+                "slide_step": 1,
+                "step": 8,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "60185138a68a1af26815e2216bd6ff32a0b959e8173d4c5aab417441b0c81bc3",
+              "sha256": "71fe553082f74462c561e60d1e5485ea83e3587c1af4395afa076c7fda435ed3",
+              "ink": 32142
+            }
+          ]
+        },
+        {
+          "label": "step-10",
+          "step": 10,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 2 writes the same sums with matrices. It uses the result as a tool for any net.",
+                "slide": 2,
+                "slide_step": 2,
+                "step": 9,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "3f72d629fa9080eb76e6d5ee2aab9b0005569896dd1164ff79b65dea5f38d684",
+              "sha256": "bd28e4d19c07ee12f0e7d7d7aa497ab56fa545ba103f3bf05ac48f10f3a484a0",
+              "ink": 34820
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 2 writes the same sums with matrices. It uses the result as a tool for any net.",
+                "slide": 2,
+                "slide_step": 2,
+                "step": 9,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "3f72d629fa9080eb76e6d5ee2aab9b0005569896dd1164ff79b65dea5f38d684",
+              "sha256": "bd28e4d19c07ee12f0e7d7d7aa497ab56fa545ba103f3bf05ac48f10f3a484a0",
+              "ink": 34820
+            }
+          ]
+        },
+        {
+          "label": "step-11",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "384d5fa18e723218c673b6e41f158c8b9102e8fba0d048d6693c7d033708f6ea",
+              "sha256": "44405453d8abee7a26b86c567ad752328cc2de3a9a9a814674730b6929734abe",
+              "ink": 38384
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "384d5fa18e723218c673b6e41f158c8b9102e8fba0d048d6693c7d033708f6ea",
+              "sha256": "44405453d8abee7a26b86c567ad752328cc2de3a9a9a814674730b6929734abe",
+              "ink": 38384
+            }
+          ]
+        },
+        {
+          "label": "step-12",
+          "step": 12,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "1803d6ec9f76a6d64aa5f632f4efa0772f5da59fc16bbf5d7a892c9a0afb2db9",
+              "sha256": "a9edac123aba4c5ed02bc206f239b2d69d28c21501b5102242bf5186e08e6484",
+              "ink": 39587
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "1803d6ec9f76a6d64aa5f632f4efa0772f5da59fc16bbf5d7a892c9a0afb2db9",
+              "sha256": "a9edac123aba4c5ed02bc206f239b2d69d28c21501b5102242bf5186e08e6484",
+              "ink": 39587
+            }
+          ]
+        },
+        {
+          "label": "previous",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "c76dc21890c628d9a6bade2eb3b759f88816c12f090271ece5066608101e035e",
+              "sha256": "45b02d21a9363c8661b16517f19ba91343df84aaaa3d1cf765e7215e5ce8f8b9",
+              "ink": 38384
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "c76dc21890c628d9a6bade2eb3b759f88816c12f090271ece5066608101e035e",
+              "sha256": "45b02d21a9363c8661b16517f19ba91343df84aaaa3d1cf765e7215e5ce8f8b9",
+              "ink": 38384
+            }
+          ]
+        },
+        {
+          "label": "dark",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "3033e34b869ae6c442c88affa2317afed893d211b2644a8470fb628ea733fc1d",
+              "sha256": "23b485d77045ff146420ae80df5d6712f29b4aec90c775c4e3065bd4415f9523",
+              "ink": 45201
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "3033e34b869ae6c442c88affa2317afed893d211b2644a8470fb628ea733fc1d",
+              "sha256": "23b485d77045ff146420ae80df5d6712f29b4aec90c775c4e3065bd4415f9523",
+              "ink": 45201
+            }
+          ]
+        },
+        {
+          "label": "light-restored",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "c76dc21890c628d9a6bade2eb3b759f88816c12f090271ece5066608101e035e",
+              "sha256": "45b02d21a9363c8661b16517f19ba91343df84aaaa3d1cf765e7215e5ce8f8b9",
+              "ink": 38384
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "c76dc21890c628d9a6bade2eb3b759f88816c12f090271ece5066608101e035e",
+              "sha256": "45b02d21a9363c8661b16517f19ba91343df84aaaa3d1cf765e7215e5ce8f8b9",
+              "ink": 38384
+            }
+          ]
+        },
+        {
+          "label": "mouse-step",
+          "step": 12,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "f32f6d5572554d036476b1ed3ef136dc8cd58f7a59de314437338a22a05fa142",
+              "sha256": "00b2c4f92c8ca33c19ca3152601c1cd921923c54d548fb9aa10f337fa778a369",
+              "ink": 39587
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "f32f6d5572554d036476b1ed3ef136dc8cd58f7a59de314437338a22a05fa142",
+              "sha256": "00b2c4f92c8ca33c19ca3152601c1cd921923c54d548fb9aa10f337fa778a369",
+              "ink": 39587
+            }
+          ]
+        }
+      ],
+      "bundles": [
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/session_viewer-d41d37febc1df060.js",
+          "bytes": 127459,
+          "sha256": "4fb3a54a75189f1ced556dbc60a65ce8a7064b281a5c09f6e521b9455e2047f8"
+        },
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/diagnostics.js",
+          "bytes": 6608,
+          "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f"
+        },
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+          "bytes": 849,
+          "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+        },
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/session_viewer-d41d37febc1df060_bg.wasm",
+          "bytes": 8396363,
+          "sha256": "5181ddd288ca527a24bd4a99e7f029a430e9e6ebaea78eaf0c3120e0169b98c5"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/diagnostics.js",
+          "bytes": 6608,
+          "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/session_viewer-8057c1a8f504dc4f.js",
+          "bytes": 127459,
+          "sha256": "0a7dcea59674a67b2f3bcaab5f627d7348ad676a30ca6b2854d322cb4be36834"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+          "bytes": 849,
+          "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/session_viewer-8057c1a8f504dc4f_bg.wasm",
+          "bytes": 8940245,
+          "sha256": "250ec8151285297429f5c46be049242b4f0ddac2566f65b5b3b2b2054339cc90"
+        }
+      ],
+      "adapters": [
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/?stage=decks%2Fforce-density%2Findex.yaml&data=off&chapter=1&step=1",
+          "requests": [
+            {
+              "options": {
+                "powerPreference": "high-performance"
+              },
+              "vendor": "intel",
+              "architecture": "gen-12lp",
+              "device": "",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/?stage=decks%2Fforce-density%2Findex.yaml&data=off&chapter=1&step=1",
+          "requests": [
+            {
+              "options": {
+                "powerPreference": "high-performance"
+              },
+              "vendor": "intel",
+              "architecture": "gen-12lp",
+              "device": "",
+              "description": ""
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "upright": {
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Exact history-frame assertions failed; production comparison is recorded separately\n+ actual - expected\n\n+ [\n+   {\n+     actual: '9e8b834d980e26a680572afc31bbf95ba3c12863b95e98a87a0a0e49fa063bdb',\n+     expected: '4667775047fe74dbcdb5337fd848609b3fe114c2aeece9614645d8fba190b0d4',\n+     message: 'Backward navigation does not reconstruct the same settled frame'\n+   },\n+   {\n+     actual: '13310cf0c46f07f81cbe99aea80e2de5b9925252fb92f4a9f01ce9ceccf5d8af',\n+     expected: '7c444c1520c041174d56c79b7a35b623212dd7daf7831f4f4307965ddd9675fa',\n+     message: 'Pointer stepping differs from keyboard stepping'\n+   }\n+ ]\n- []\n",
+      "checker": "fec5315c78eeafa5e2c0303ee85bdbd076bd5c6181f7ac5c671b40e3e56a621d",
+      "baselineCommit": "56dd39eb41a958f053577606fcec20caf7261f18",
+      "fixedClock": true,
+      "comparisonComplete": true,
+      "roundTripFailures": [
+        {
+          "message": "Backward navigation does not reconstruct the same settled frame",
+          "actual": "9e8b834d980e26a680572afc31bbf95ba3c12863b95e98a87a0a0e49fa063bdb",
+          "expected": "4667775047fe74dbcdb5337fd848609b3fe114c2aeece9614645d8fba190b0d4"
+        },
+        {
+          "message": "Pointer stepping differs from keyboard stepping",
+          "actual": "13310cf0c46f07f81cbe99aea80e2de5b9925252fb92f4a9f01ce9ceccf5d8af",
+          "expected": "7c444c1520c041174d56c79b7a35b623212dd7daf7831f4f4307965ddd9675fa"
+        }
+      ],
+      "frames": [
+        {
+          "label": "first",
+          "step": 1,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Klaus Linkwitz and Hans-J\u00f6rg Schek, Stuttgart, 1971: a way to find the shape of a cable net.",
+                "slide": 0,
+                "slide_step": 0,
+                "step": 0,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "9500c71a8e782cc9a845a90a66a64bb160be09d666e77fca67b45e89d178752c",
+              "sha256": "1128c053675b477337b1e1bd5bff807c3da0683f31c74b18d23512f09229229c",
+              "ink": 16360
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Klaus Linkwitz and Hans-J\u00f6rg Schek, Stuttgart, 1971: a way to find the shape of a cable net.",
+                "slide": 0,
+                "slide_step": 0,
+                "step": 0,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "9500c71a8e782cc9a845a90a66a64bb160be09d666e77fca67b45e89d178752c",
+              "sha256": "1128c053675b477337b1e1bd5bff807c3da0683f31c74b18d23512f09229229c",
+              "ink": 16360
+            }
+          ]
+        },
+        {
+          "label": "step-2",
+          "step": 2,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Every free node carries a load. Here the loads point up.",
+                "slide": 0,
+                "slide_step": 1,
+                "step": 1,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "962fdc5c1561f3af4c74716a0c443cadd9b844a660b03ac31d1ba216a10c7e80",
+              "sha256": "fec6a5b982ccd3c94859f2a6c279ce3139ae78546d51036fd5782ffc6fbfa67f",
+              "ink": 18065
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Every free node carries a load. Here the loads point up.",
+                "slide": 0,
+                "slide_step": 1,
+                "step": 1,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "962fdc5c1561f3af4c74716a0c443cadd9b844a660b03ac31d1ba216a10c7e80",
+              "sha256": "fec6a5b982ccd3c94859f2a6c279ce3139ae78546d51036fd5782ffc6fbfa67f",
+              "ink": 18065
+            }
+          ]
+        },
+        {
+          "label": "step-3",
+          "step": 3,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Give the net fixed points, loads and one number per cable. One linear solve gives the shape. Every node is in equilibrium.",
+                "slide": 0,
+                "slide_step": 2,
+                "step": 2,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "2f2b28f1108b438bc190acca203d7efb43847b9871ee13893783394c8ff04d8d",
+              "sha256": "accbfa662ef5025b01ecb0d01070fab7d36676c0428655f3d13046fbbb9a7f2a",
+              "ink": 18524
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Give the net fixed points, loads and one number per cable. One linear solve gives the shape. Every node is in equilibrium.",
+                "slide": 0,
+                "slide_step": 2,
+                "step": 2,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "2f2b28f1108b438bc190acca203d7efb43847b9871ee13893783394c8ff04d8d",
+              "sha256": "accbfa662ef5025b01ecb0d01070fab7d36676c0428655f3d13046fbbb9a7f2a",
+              "ink": 18524
+            }
+          ]
+        },
+        {
+          "label": "step-4",
+          "step": 4,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  },
+                  {
+                    "box": [
+                      917.0711669921875,
+                      416,
+                      1396.52880859375,
+                      688
+                    ],
+                    "id": "_auto3"
+                  },
+                  {
+                    "box": [
+                      885.5249633789062,
+                      712.1500244140625,
+                      1427.7999267578125,
+                      734.6500244140625
+                    ],
+                    "id": "_auto4"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Its best-known use is the Multihalle Mannheim, 1975: a timber gridshell, computed as a hanging net and built upside down.",
+                "slide": 0,
+                "slide_step": 3,
+                "step": 3,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "31d6d7a60c94a279f3cc1042ebb8f99300dbc927c4b10e0eeecba2061652f26d",
+              "sha256": "c0b15f1a2a024ee2067a61515ebb309195f403c02de680d04a600eed97b56bba",
+              "ink": 24616
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      903.2031860351562,
+                      150,
+                      1410.396728515625,
+                      345
+                    ],
+                    "id": "_auto1"
+                  },
+                  {
+                    "box": [
+                      874.7124633789062,
+                      369.07501220703125,
+                      1439.362548828125,
+                      391.5249938964844
+                    ],
+                    "id": "_auto2"
+                  },
+                  {
+                    "box": [
+                      917.0711669921875,
+                      416,
+                      1396.52880859375,
+                      688
+                    ],
+                    "id": "_auto3"
+                  },
+                  {
+                    "box": [
+                      885.5249633789062,
+                      712.1500244140625,
+                      1427.7999267578125,
+                      734.6500244140625
+                    ],
+                    "id": "_auto4"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Its best-known use is the Multihalle Mannheim, 1975: a timber gridshell, computed as a hanging net and built upside down.",
+                "slide": 0,
+                "slide_step": 3,
+                "step": 3,
+                "steps": 12,
+                "title": "The force density method"
+              },
+              "pixels": "31d6d7a60c94a279f3cc1042ebb8f99300dbc927c4b10e0eeecba2061652f26d",
+              "sha256": "c0b15f1a2a024ee2067a61515ebb309195f403c02de680d04a600eed97b56bba",
+              "ink": 24616
+            }
+          ]
+        },
+        {
+          "label": "step-5",
+          "step": 5,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  }
+                ],
+                "overlaps": [],
+                "say": "For one free node, this presentation ends in one line per coordinate. The node sits at a weighted average of its neighbours, shifted by its load.",
+                "slide": 1,
+                "slide_step": 0,
+                "step": 4,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "393744203c27582c71b6ef6444cc4fc90c20708eac9645158fbf9939b5d3daee",
+              "sha256": "98c1ea4057634c90aeca59ab035459d1583188d9ce272c0aa11b2f4a09437f89",
+              "ink": 11522
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  }
+                ],
+                "overlaps": [],
+                "say": "For one free node, this presentation ends in one line per coordinate. The node sits at a weighted average of its neighbours, shifted by its load.",
+                "slide": 1,
+                "slide_step": 0,
+                "step": 4,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "393744203c27582c71b6ef6444cc4fc90c20708eac9645158fbf9939b5d3daee",
+              "sha256": "98c1ea4057634c90aeca59ab035459d1583188d9ce272c0aa11b2f4a09437f89",
+              "ink": 11522
+            }
+          ]
+        },
+        {
+          "label": "step-6",
+          "step": 6,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "The same line for $y_0$ and for $z_0$.",
+                "slide": 1,
+                "slide_step": 1,
+                "step": 5,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "799dd7dd6a3682040fb6ce43fe9dbe67251e21f8d8fe48518b1d5fb95ec64ed9",
+              "sha256": "b7972a3d9cd06194885802f31973f44b0d06b086c7fe77d5f95a9a4bb41683c4",
+              "ink": 11368
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "The same line for $y_0$ and for $z_0$.",
+                "slide": 1,
+                "slide_step": 1,
+                "step": 5,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "799dd7dd6a3682040fb6ce43fe9dbe67251e21f8d8fe48518b1d5fb95ec64ed9",
+              "sha256": "b7972a3d9cd06194885802f31973f44b0d06b086c7fe77d5f95a9a4bb41683c4",
+              "ink": 11368
+            }
+          ]
+        },
+        {
+          "label": "step-7",
+          "step": 7,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      778.44580078125,
+                      489.79083251953125,
+                      1535.3541259765625,
+                      513.7833251953125
+                    ],
+                    "id": "_auto8"
+                  },
+                  {
+                    "box": [
+                      975.3125,
+                      537.7833251953125,
+                      1338.1875,
+                      561.9683227539062
+                    ],
+                    "id": "_auto9"
+                  },
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "On the right is what we know. On the left is what we want: the free node.",
+                "slide": 1,
+                "slide_step": 2,
+                "step": 6,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "f19c5770d74b6ebfdb91bdb2306e7dcad168fe37a2f5be5448feaa0eeb8bf8f5",
+              "sha256": "4674c1bba91141389a3328ed8ad1a8ba520cfcae070568726c53333cba06671b",
+              "ink": 13314
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      778.44580078125,
+                      489.79083251953125,
+                      1535.3541259765625,
+                      513.7833251953125
+                    ],
+                    "id": "_auto8"
+                  },
+                  {
+                    "box": [
+                      975.3125,
+                      537.7833251953125,
+                      1338.1875,
+                      561.9683227539062
+                    ],
+                    "id": "_auto9"
+                  },
+                  {
+                    "box": [
+                      1021.220947265625,
+                      150,
+                      1289.284912109375,
+                      239.2635955810547
+                    ],
+                    "id": "eq5"
+                  },
+                  {
+                    "box": [
+                      1024.0089111328125,
+                      263.26361083984375,
+                      1284.5452880859375,
+                      352.5271911621094
+                    ],
+                    "id": "eq6"
+                  },
+                  {
+                    "box": [
+                      1025.3349609375,
+                      376.5272216796875,
+                      1283.100341796875,
+                      465.7908020019531
+                    ],
+                    "id": "eq7"
+                  }
+                ],
+                "overlaps": [],
+                "say": "On the right is what we know. On the left is what we want: the free node.",
+                "slide": 1,
+                "slide_step": 2,
+                "step": 6,
+                "steps": 12,
+                "title": "The result we are heading for"
+              },
+              "pixels": "f19c5770d74b6ebfdb91bdb2306e7dcad168fe37a2f5be5448feaa0eeb8bf8f5",
+              "sha256": "4674c1bba91141389a3328ed8ad1a8ba520cfcae070568726c53333cba06671b",
+              "ink": 13314
+            }
+          ]
+        },
+        {
+          "label": "step-8",
+          "step": 8,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 0 comes first: one node in 2D, with force diagrams and projections.",
+                "slide": 2,
+                "slide_step": 0,
+                "step": 7,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "01c70fc15bf7f7b70ce9609f10097738befc0fd939f09e6826ec066671a47e71",
+              "sha256": "621a68c638755443106a68ed5d7baade5de488768b8c4b6880faf99816002c94",
+              "ink": 10951
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 0 comes first: one node in 2D, with force diagrams and projections.",
+                "slide": 2,
+                "slide_step": 0,
+                "step": 7,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "01c70fc15bf7f7b70ce9609f10097738befc0fd939f09e6826ec066671a47e71",
+              "sha256": "621a68c638755443106a68ed5d7baade5de488768b8c4b6880faf99816002c94",
+              "ink": 10951
+            }
+          ]
+        },
+        {
+          "label": "step-9",
+          "step": 9,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  }
+                ],
+                "overlaps": [],
+                "say": "This presentation: one free node in 3D, plain sums, no matrices yet (Linkwitz 6.2.2).",
+                "slide": 2,
+                "slide_step": 1,
+                "step": 8,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "3cbd31491bc94d675fae89964a5a633ab56de649acc54800f03bbf95a7265815",
+              "sha256": "ff2405aa82ab9c3d0ea74c742d1ce4922d7cc96148396454ca79785ac47387b0",
+              "ink": 13466
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  }
+                ],
+                "overlaps": [],
+                "say": "This presentation: one free node in 3D, plain sums, no matrices yet (Linkwitz 6.2.2).",
+                "slide": 2,
+                "slide_step": 1,
+                "step": 8,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "3cbd31491bc94d675fae89964a5a633ab56de649acc54800f03bbf95a7265815",
+              "sha256": "ff2405aa82ab9c3d0ea74c742d1ce4922d7cc96148396454ca79785ac47387b0",
+              "ink": 13466
+            }
+          ]
+        },
+        {
+          "label": "step-10",
+          "step": 10,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 2 writes the same sums with matrices. It uses the result as a tool for any net.",
+                "slide": 2,
+                "slide_step": 2,
+                "step": 9,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "4f9d324d9a6036a830dbf463210705f9d536dfeff3d7627f82e3acad6923c3bd",
+              "sha256": "48a47f923a0aa06dcd8b47644f1a8955d7c5488000c7c6f5ff0f5c69c618448d",
+              "ink": 14397
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 2 writes the same sums with matrices. It uses the result as a tool for any net.",
+                "slide": 2,
+                "slide_step": 2,
+                "step": 9,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "4f9d324d9a6036a830dbf463210705f9d536dfeff3d7627f82e3acad6923c3bd",
+              "sha256": "48a47f923a0aa06dcd8b47644f1a8955d7c5488000c7c6f5ff0f5c69c618448d",
+              "ink": 14397
+            }
+          ]
+        },
+        {
+          "label": "step-11",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "4667775047fe74dbcdb5337fd848609b3fe114c2aeece9614645d8fba190b0d4",
+              "sha256": "27a124120174696b2519a484dcd054b9cfeb4d3f4d2dbe32861a709850da3e95",
+              "ink": 15721
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "4667775047fe74dbcdb5337fd848609b3fe114c2aeece9614645d8fba190b0d4",
+              "sha256": "27a124120174696b2519a484dcd054b9cfeb4d3f4d2dbe32861a709850da3e95",
+              "ink": 15721
+            }
+          ]
+        },
+        {
+          "label": "step-12",
+          "step": 12,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "7c444c1520c041174d56c79b7a35b623212dd7daf7831f4f4307965ddd9675fa",
+              "sha256": "3e3afa4194aaa1039982379c8a8b92ff65204115947677bf59bc674798f7793f",
+              "ink": 16104
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "7c444c1520c041174d56c79b7a35b623212dd7daf7831f4f4307965ddd9675fa",
+              "sha256": "3e3afa4194aaa1039982379c8a8b92ff65204115947677bf59bc674798f7793f",
+              "ink": 16104
+            }
+          ]
+        },
+        {
+          "label": "previous",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "9e8b834d980e26a680572afc31bbf95ba3c12863b95e98a87a0a0e49fa063bdb",
+              "sha256": "93977bed55ac55c4bf017fb25b13e9f9c65bf4ccce9a64f983132d056083d10c",
+              "ink": 15721
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "9e8b834d980e26a680572afc31bbf95ba3c12863b95e98a87a0a0e49fa063bdb",
+              "sha256": "93977bed55ac55c4bf017fb25b13e9f9c65bf4ccce9a64f983132d056083d10c",
+              "ink": 15721
+            }
+          ]
+        },
+        {
+          "label": "dark",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "82a7005c2985f33f46a9d40e1e01c1bece9bebf26ae57d23219da96db9541755",
+              "sha256": "f1fe06f38638975ee82e272df8349eb128dca4971a3e2c78b3367f7926cefc71",
+              "ink": 16805
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "82a7005c2985f33f46a9d40e1e01c1bece9bebf26ae57d23219da96db9541755",
+              "sha256": "f1fe06f38638975ee82e272df8349eb128dca4971a3e2c78b3367f7926cefc71",
+              "ink": 16805
+            }
+          ]
+        },
+        {
+          "label": "light-restored",
+          "step": 11,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "9e8b834d980e26a680572afc31bbf95ba3c12863b95e98a87a0a0e49fa063bdb",
+              "sha256": "93977bed55ac55c4bf017fb25b13e9f9c65bf4ccce9a64f983132d056083d10c",
+              "ink": 15721
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 3 shows where that formula comes from: the Jacobian and equilibrium in matrix form (6.4.2, 6.4.3).",
+                "slide": 2,
+                "slide_step": 3,
+                "step": 10,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "9e8b834d980e26a680572afc31bbf95ba3c12863b95e98a87a0a0e49fa063bdb",
+              "sha256": "93977bed55ac55c4bf017fb25b13e9f9c65bf4ccce9a64f983132d056083d10c",
+              "ink": 15721
+            }
+          ]
+        },
+        {
+          "label": "touch-step",
+          "step": 12,
+          "pair": [
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "13310cf0c46f07f81cbe99aea80e2de5b9925252fb92f4a9f01ce9ceccf5d8af",
+              "sha256": "7a71232b2e17df81bac8713a581fb089f961257b7f88934db26f2097360482cd",
+              "ink": 16104
+            },
+            {
+              "state": {
+                "animating": false,
+                "chapter": 0,
+                "chapters": 5,
+                "errors": [],
+                "items": [
+                  {
+                    "box": [
+                      770.7249755859375,
+                      150,
+                      1218.074951171875,
+                      172.35000610351562
+                    ],
+                    "id": "_auto10"
+                  },
+                  {
+                    "box": [
+                      771.7249755859375,
+                      197,
+                      1138.4749755859375,
+                      219.35000610351562
+                    ],
+                    "id": "_auto11"
+                  },
+                  {
+                    "box": [
+                      770.074951171875,
+                      244,
+                      1535.099853515625,
+                      299.2749938964844
+                    ],
+                    "id": "_auto12"
+                  },
+                  {
+                    "box": [
+                      771.0249633789062,
+                      323.625,
+                      1383.324951171875,
+                      346.375
+                    ],
+                    "id": "_auto13"
+                  },
+                  {
+                    "box": [
+                      770.7999877929688,
+                      370.75,
+                      1460.2999267578125,
+                      393.5
+                    ],
+                    "id": "_auto14"
+                  },
+                  {
+                    "box": [
+                      770.3999633789062,
+                      417.875,
+                      1322,
+                      440.625
+                    ],
+                    "id": "_auto15"
+                  }
+                ],
+                "overlaps": [],
+                "say": "Presentation 4 turns the solved net into real cables: stretches and cut lengths (6.5).",
+                "slide": 2,
+                "slide_step": 4,
+                "step": 11,
+                "steps": 12,
+                "title": "The way there, in five presentations"
+              },
+              "pixels": "13310cf0c46f07f81cbe99aea80e2de5b9925252fb92f4a9f01ce9ceccf5d8af",
+              "sha256": "7a71232b2e17df81bac8713a581fb089f961257b7f88934db26f2097360482cd",
+              "ink": 16104
+            }
+          ]
+        }
+      ],
+      "bundles": [
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/diagnostics.js",
+          "bytes": 6608,
+          "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f"
+        },
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+          "bytes": 849,
+          "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+        },
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/session_viewer-d41d37febc1df060.js",
+          "bytes": 127459,
+          "sha256": "4fb3a54a75189f1ced556dbc60a65ce8a7064b281a5c09f6e521b9455e2047f8"
+        },
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/session_viewer-d41d37febc1df060_bg.wasm",
+          "bytes": 8396363,
+          "sha256": "5181ddd288ca527a24bd4a99e7f029a430e9e6ebaea78eaf0c3120e0169b98c5"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/diagnostics.js",
+          "bytes": 6608,
+          "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+          "bytes": 849,
+          "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/session_viewer-8057c1a8f504dc4f.js",
+          "bytes": 127459,
+          "sha256": "0a7dcea59674a67b2f3bcaab5f627d7348ad676a30ca6b2854d322cb4be36834"
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/session_viewer-8057c1a8f504dc4f_bg.wasm",
+          "bytes": 8940245,
+          "sha256": "250ec8151285297429f5c46be049242b4f0ddac2566f65b5b3b2b2054339cc90"
+        }
+      ],
+      "adapters": [
+        {
+          "name": "baseline",
+          "url": "http://127.0.0.1:8797/production-baseline-56dd39e/dist/?stage=decks%2Fforce-density%2Findex.yaml&data=off&chapter=1&step=1",
+          "requests": [
+            {
+              "options": {
+                "powerPreference": "high-performance"
+              },
+              "vendor": "intel",
+              "architecture": "gen-12lp",
+              "device": "",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "current",
+          "url": "http://127.0.0.1:8797/production/dist/?stage=decks%2Fforce-density%2Findex.yaml&data=off&chapter=1&step=1",
+          "requests": [
+            {
+              "options": {
+                "powerPreference": "high-performance"
+              },
+              "vendor": "intel",
+              "architecture": "gen-12lp",
+              "device": "",
+              "description": ""
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  },
+  "preservedBaseline": {
+    "baselineCommit": "56dd39eb41a958f053577606fcec20caf7261f18",
+    "scope": "Exact deployed baseline bundle from original comparison, preserved before the next Pages deployment",
+    "hashes": [
+      {
+        "file": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+        "name": "baseline",
+        "url": "https://petrasvestartas.github.io/session/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+        "bytes": 849,
+        "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+      },
+      {
+        "file": "diagnostics.js",
+        "name": "baseline",
+        "url": "https://petrasvestartas.github.io/session/diagnostics.js",
+        "bytes": 6608,
+        "sha256": "11cc770dc67130dad0dda0f7d58ffb87c839e0063ca100e9a509c6273933e13f"
+      },
+      {
+        "file": "session_viewer-d41d37febc1df060.js",
+        "name": "baseline",
+        "url": "https://petrasvestartas.github.io/session/session_viewer-d41d37febc1df060.js",
+        "bytes": 127459,
+        "sha256": "4fb3a54a75189f1ced556dbc60a65ce8a7064b281a5c09f6e521b9455e2047f8"
+      },
+      {
+        "file": "session_viewer-d41d37febc1df060_bg.wasm",
+        "name": "baseline",
+        "url": "https://petrasvestartas.github.io/session/session_viewer-d41d37febc1df060_bg.wasm",
+        "bytes": 8396363,
+        "sha256": "5181ddd288ca527a24bd4a99e7f029a430e9e6ebaea78eaf0c3120e0169b98c5"
+      },
+      {
+        "file": "index.html",
+        "sha256": "00603364349e945069ca5e3a3e9d384849628b60758f90560d8759eec4516f47"
+      }
+    ],
+    "sharedAssetHashes": {
+      "stage/FONTS.md": "eb35112a662d3598eda458c23e8b268d0af1c79852f183b18a152d575e656e32",
+      "stage/logo-brg.png": "58eb99570cbb0102ec68d1a78e318510276e3bf7ee7c4605f562e7423c9ca499",
+      "stage/logo-eth.png": "bad3cab4da798a796db2fba804f5400829adecd401baed0c48412aa8de09cfe3",
+      "stage/NewCM10-Bold.otf": "c49c61d51757edffeafc43b4d58925cedf9180f7942fb85a3f21a5319bbed07e",
+      "stage/NewCM10-Book.otf": "005abadbdf039dfabab28d5836ec5ec5d94b61410003ca043e7afcd10115af55",
+      "stage/NewCMMath-Book.otf": "c74561f7468db46411725981ba30ad6f1e14094fa11e843ff8e8369508cf506e",
+      "stage/NewCMMono10-Book.otf": "cd3bdeb3eb3a2e3d1b33a4bfc639c32080a39b78c02da0cca060208202aa046c",
+      "decks/README.md": "c7ef234a0130103a111fdccbb8f7f65ba6c77b8cc0dd082a6ca9b26f901be96f",
+      "decks/equilibrium/01-equilibrium.yaml": "7dd54b06b4b33c7c14f14bebf06630341146523d766df01422d0e492946b0041",
+      "decks/equilibrium/index.yaml": "b0703fff26b469b7dc813c2d45a39f92e3ef609229dc8b0a6b8805f078de1e64",
+      "decks/equilibrium/README.md": "8c3af1a5e98190d5a7d019e72f3757bc9ea7c929d6b98f45ecca729cc1c886d8",
+      "decks/force-density/01-method.yaml": "4beb6c398572fe9747d88a824e4cdea020f734338e1e24d565b0006151bf42e3",
+      "decks/force-density/02-question.yaml": "a3e58eda216b684821c66f0315b7896936a2f2318f9c619b92fb79166bc96d57",
+      "decks/force-density/03-projections.yaml": "a0188c34e8c6fbce85811eccb39f6e36d45a8eb87c047352ed8e8536890b4836",
+      "decks/force-density/04-one-dimension.yaml": "dece34db86f5a11d7e878ab03e5a847530f7848f320973d8ef34d1b0d43e9fcd",
+      "decks/force-density/05-force-densities.yaml": "ea6bf4c3bfb06d8faaab87c9711ae3de77209e67690292029afccf1ffd4dfd93",
+      "decks/force-density/index.yaml": "21bcc718a50b4b22975966ca9c31c36574536012f83b77d9fecc97e173def473",
+      "decks/force-density-derivation/01-why.yaml": "fe2b57ab5a42686f30e3119449576648dc20d4e5d8de6b3982724bfa6ce489a4",
+      "decks/force-density-derivation/02-one-cable.yaml": "ed450df2225f219552e49958c6028a7f02ccb07c21719d21edacd1daa11966fb",
+      "decks/force-density-derivation/03-tiny-nudge.yaml": "64ae3d5dcaad425c48cfe4197f5e55155445cf6153aa27e44453accd7643b233",
+      "decks/force-density-derivation/04-chain-rule.yaml": "69afdaa1a9eb829d24e6b8c5c1240bb16df94662414b8248d9178b3d1c625dcc",
+      "decks/force-density-derivation/05-jacobian.yaml": "ec58a804be48b4bd3638b3afcf3dcd8bcfe436b1ab87541e3613772147285e33",
+      "decks/force-density-derivation/06-matrix-form.yaml": "30083c1301de41b6bfce119a67dda0fd5384a934f422f5ff475353a5458e0f71",
+      "decks/force-density-derivation/index.yaml": "baacc48a4c222fff01730a0f43e9a9f0393aaf0cbd9ac9668f9408699ff59e62",
+      "decks/force-density-materialization/01-materialization.yaml": "ce7f761827452c0a6cdab49cf48dc6cc72cb480094674c5351f7650089835b05",
+      "decks/force-density-materialization/02-resume.yaml": "e7944485dfa9699bb3742fd93700f4bb3a52ee845f99e1ccade0e11b76a44fc1",
+      "decks/force-density-materialization/03-net.yaml": "da4ff6aa76e1b729062e616e795240bf85b3b269876578a116ff5dea701d8cee",
+      "decks/force-density-materialization/index.yaml": "959dc94e53f1a8ff45707cd58bb3a1be00156f3fea18fcf44357c17e9b5841b7",
+      "decks/force-density-matrices/01-givens.yaml": "0c52ec5f4b593d4ca99027cb55dd8c4c55af7e722bbd22da190b2d705db57fc9",
+      "decks/force-density-matrices/02-matrices.yaml": "f6a15e31531531f5345e847a80e55a00aadf74a4757bc1390a0ae97fa731c07b",
+      "decks/force-density-matrices/03-script.yaml": "447f76be9ff3e111616ba276b690df5bf09757d6adb50cbdfff65416d25e59cf",
+      "decks/force-density-matrices/04-several-nodes.yaml": "d6342cba327a936b156015a43dccc92231311e8eb3d5043a840cb6b144bf5d24",
+      "decks/force-density-matrices/05-solver.yaml": "8529eefc2c972090e94953c01c10566ae9f6896c387cf94179c8046dc6ec0960",
+      "decks/force-density-matrices/06-net.yaml": "2cad32667669568c72a47fae89758c62b9883a847aa23c0907cc00811f3aef65",
+      "decks/force-density-matrices/07-pillow.yaml": "304ab7486c85edbb6a2b203d841f348c0b1187da4dc89215e9cb6fb885bdefc0",
+      "decks/force-density-matrices/08-forces.yaml": "3f3a6f157cf8b80229975d09b572a22c3d6c9148ea8bedc383ad50ec9af4cf65",
+      "decks/force-density-matrices/index.yaml": "6efd0d49256e83eaa987cc36d487a33a3281a0475efddd1a9b46cbb565eda5a7",
+      "decks/force-density/img/linkwitz.png": "880693d6fac4d91b67a37caeef3a65a5ef830b80462706fe17d7846bb0cecd43",
+      "decks/force-density/img/multihalle.png": "537466c8b658edbf88b6a0f55a163633acfd32b057245719dce83f269bb9a404",
+      "decks/force-density/img/schek.png": "5739ffbce6563f075f5243edf06b2bb992c23b607a90ee8a34f582d44bfc50eb",
+      "text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+      "text/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+      "text/NotoSansSymbols-Regular.ttf": "8f02f31959bbdf6061547a188248e13f84dc5fdd940326ec494675f453f072bb",
+      "text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+      "text/NotoSansSymbols2-Regular.ttf": "630846d528dbe4c4981370a4d0a9475a1fd1491a129bb411f8e157cdb5de13c6",
+      "text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+      "text/README.md": "35d31413e382ac0d26234e926b0d53dc150bcc062988ebebc8b8b34d4ced65eb",
+      "pb/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pb/view_mixed_teapot.pb": "6e3866e40ee3b669cfeebd9180ff4a4c938c980244f6b405924a8024c9fc4b1f"
+    }
+  },
+  "summary": {
+    "exactPairedFrames": 32,
+    "completedComparisonCasesIncludingPriorEquilibrium": 4,
+    "requiredCases": 46,
+    "remainingCases": 42,
+    "fullyPassingCases": 0
+  },
+  "limitations": [
+    "All four complete case commands retain history assertions as failures.",
+    "Upright emulates a viewport on desktop hardware, not a physical phone.",
+    "No cumulative mathematics acceptance."
+  ]
+}

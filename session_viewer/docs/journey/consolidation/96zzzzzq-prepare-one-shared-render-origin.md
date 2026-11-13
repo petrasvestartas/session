@@ -1,5 +1,20 @@
 # 21.3 · Browser ownership of frame matrices and wakeups
 
+## Current GPU completion pacing
+
+Keep input responsive without accumulating old camera frames behind a busy GPU. The prerequisites are queue submission, event-loop wakeups and scene/UI frame preparation. This subject owns the decision to submit another frame; GPU resources remain with their existing renderer owners.
+
+Read [pacing.rs](../../../src/engine/gpu/pacing.rs) with the `RedrawRequested` branch in [lib.rs](../../../src/lib.rs). `FramePacing` shares two atomic flags with the completion callback. `pending` means earlier submitted work has not completed; `waiting` means a redraw was requested during that interval. The event loop checks `ready` before resizing, preparing UI and rendering. When busy, it stops that submission while retaining the latest application state.
+
+`ready` first reads `pending`, installs `waiting`, then reads `pending` again. The second read closes the race where completion occurs between the first read and installing the waiter. Without it, completion could observe no waiter and leave the new frame asleep. `submitted` sets the pending flag and registers a queue-completion callback. That callback clears pending and requests a redraw only if a waiter was installed.
+
+The completion fence is registered after scene rendering and UI/picking work have been submitted. It describes queued GPU work, not merely the CPU time spent encoding a scene pass. Input may keep changing the camera while that work runs; the wakeup renders the latest state instead of replaying every intermediate pointer position. Hidden pages and zero-sized canvases return before drawing, and a held resize keeps `needs_frame` set.
+
+Predict a drag while the GPU is deliberately busy: the next completed image should use the latest camera, with no long queue of stale views catching up afterward. Release the pointer and verify that the image settles. Question: why are two flags necessary? Pending records GPU work; waiting records whether completion needs to wake the application. Completing an idle frame alone must not create an endless redraw loop.
+
+The historical checkpoint below remains runnable. Current production pacing is explained here, but cumulative integration and a measured busy-GPU interaction check remain pending. Deterministic-clock stage comparisons validate pictures and state, not real-time latency or hardware pacing.
+
+
 **Steps:** 3 · **Source:** [camera.rs](../../../src/camera.rs) · [state.rs](../../../src/state.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

@@ -1,783 +1,122 @@
-# 2.8.1 · Display selection by object identity
+# Select, navigate and undo
 
-**Chapter 2 · Geometry, camera and selection · Section 2.8 · Selection and CPU queries** · [Contents](contents.md)
+<a id="checkpoint-12-identity"></a>
+<a id="checkpoint-12a-coordinates"></a>
+<a id="checkpoint-12b-picking"></a>
+<a id="checkpoint-13-picking"></a>
+<a id="checkpoint-13a-history"></a>
+<a id="checkpoint-14-history"></a>
+<a id="checkpoint-14a-perspective"></a>
+<a id="checkpoint-14b-ray"></a>
+<a id="checkpoint-15-perspective"></a>
+<a id="checkpoint-16-orbit"></a>
 
-**Typing: 16–32 minutes.** [Estimate](typing-load.md).
+Orbit a perspective scene, select its nearest visible triangle, and undo or redo a document edit without losing object identity.
 
-Selection stores Option<ObjectId>, so it follows the object through row changes. GpuMesh uploads a yellow copy for the selected ID while Scene retains its original colours.
+## Prerequisites and ownership
 
-## Type
+Complete [A depth-tested scene with stable objects](10-depth.md). You need indexed meshes, a depth attachment, camera uniforms, the command dock and stable object IDs. This subject owns the complete perspective picking and snapshot-history implementations in this checkpoint. Camera navigation and ray construction are taught together because drawing and picking must use the same projection.
 
-Continue from [Name objects independently of their rows](11a-identity.md). [Save or recover your work](recovery.md).
+The active course still contains later replacements of camera, scene and renderer implementations. This consolidation replaces ten checkpoints with one; it does not establish finished ownership across the whole course or parity with the production viewer. The [original source sequence](../archived/selection-navigation/checkpoints.json) and [original illustrated page](../archived/journey-consolidation-12-identity.md) remain available for historical reconstruction.
 
-### 1. `src/gpu_mesh.rs`
+## Build
 
-Let the uploaded representation know whether to show selection. Apply the yellow tint to an upload copy. Never overwrite the CPU mesh’s original colour.
+Keep the preceding project's files except for the nine files below. Type each complete implementation once. The kernel is a path dependency: use its points, vectors, quaternions and transforms rather than implementing a second matrix library.
 
-<details>
-<summary>Locate the existing block</summary>
+### Dependencies and module declarations
+
+```toml
+--8<-- "journey/code/12-selection-9.toml"
+```
 
 ```rust
-use crate::mesh::Mesh;
-use wgpu::util::DeviceExt;
-
-pub struct GpuMesh {
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-}
-
-impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {
-        let bytes: Vec<u8> = mesh.vertices().iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh vertices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh indices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        Self { vertices, indices, index_count: mesh.indices().len() as u32 }
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
+--8<-- "journey/code/12-selection-6.rs"
 ```
 
-</details>
+The module declarations make `history` and `picking` part of the same crate as the existing scene and camera. They do not create separate programs or separate GPU devices.
 
-Edit the existing block to match this code; keep unchanged lines:
+### One camera for drawing and picking
 
 ```rust
-use crate::mesh::Mesh;
-use wgpu::util::DeviceExt;
-
-pub struct GpuMesh {
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-}
-
-impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, mesh: &Mesh, selected: bool) -> Self {
-        let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
-        for vertex in mesh.vertices() {
-            let mut display = *vertex;
-            if selected {
-                display[3..].copy_from_slice(&[1.0, 0.75, 0.05]);
-            }
-            for value in display {
-                bytes.extend_from_slice(&value.to_ne_bytes());
-            }
-        }
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh vertices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh indices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        Self { vertices, indices, index_count: mesh.indices().len() as u32 }
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
+--8<-- "journey/code/12-selection-4.rs"
 ```
 
-<details>
-<summary>Optional patch references</summary>
+`Camera` stores a target, distance, quaternion orientation and aspect ratio. The quaternion rotates the right, forward and up basis vectors. Panning moves the target along the current right and up directions; zoom changes distance within finite bounds. Orbit composes a world-axis yaw with a pitch about the current right axis, then normalizes the quaternion so repeated gestures do not gradually distort the basis.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+`view_projection` places the eye behind the target along the forward direction and multiplies perspective projection by the view transform. The uniform uses that same matrix. `ray` inverts it and unprojects two points at the pointer's normalized x/y coordinates: depth zero and depth one. Their difference supplies a normalized direction and the length of the visible interval. Reject non-finite coordinates, points outside the canvas and a failed inverse before intersecting anything.
 
-```text
---8<-- "journey/code/12-identity-02.rs"
-```
+Browser coordinates grow downward in y; normalized device coordinates grow upward. The browser adapter uses `1 - 2*y/height`. Use the canvas's client rectangle for both axes, so CSS dimensions and pointer coordinates share units. The matrix's perspective division belongs in the kernel transform; dividing a screen coordinate by a camera scale is insufficient for perspective picking.
 
-```text
---8<-- "journey/code/12-identity-03.rs"
-```
-
-</details>
-
-### 2. `src/renderer.rs`
-
-Import ObjectId at the renderer boundary. Upload each scene object without selection highlighting initially. Highlight the uploaded object whose stable ID matches the selection.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
+### Nearest visible triangle
 
 ```rust
-        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene) {
-        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+--8<-- "journey/code/12-selection-5.rs"
 ```
 
-</details>
+For each indexed triangle, form two edge vectors. Cross and dot products solve for the ray distance and barycentric coordinates. A near-zero determinant rejects a ray parallel to the triangle. The inequalities `u >= 0`, `v >= 0` and `u + v <= 1` keep the hit inside it. The outer search accepts only nonnegative distances smaller than the ray's current nearest distance, initially its far-plane interval.
 
-Replace it with:
+Return the object's stable ID, not its current vector index. Removing a different object can move a row without changing the identity of the selected object. The tests cover the nearer surface, deletion revealing the farther surface, camera changes, a shortened ray and triangles behind the ray origin.
+
+### Document snapshots and branches
 
 ```rust
-        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.meshes = scene.objects().iter().map(|object| {
-            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))
-        }).collect();
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+--8<-- "journey/code/12-selection-7.rs"
 ```
-
-<details>
-<summary>Locate this block</summary>
 
 ```rust
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+--8<-- "journey/code/12-selection-8.rs"
 ```
 
-</details>
+A scene clone copies object records and shares immutable meshes through `Rc`. History therefore retains document snapshots without copying vertex arrays or GPU buffers. `edit` saves the previous scene and clears the redo branch. Undo and redo move snapshots between stacks and restore the document. The undo stack retains at most 64 edits; this is a count limit, not a byte limit.
 
-Replace it with:
+`Scene::restore` keeps the greater of the saved and current `next_id` counters. Undo can bring back an existing ID, but a new edit after undo must not reuse an ID already issued on the discarded branch. History does not compare snapshots to reject no-op edits: callers must decide whether a command represents a document edit. Camera navigation is outside document history.
+
+### Display and input ownership
 
 ```rust
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh, false)).collect();
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+--8<-- "journey/code/12-selection-1.rs"
 ```
-
-<details>
-<summary>Locate this block</summary>
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::Scene};
-
-pub struct Renderer {
-    pub device: wgpu::Device,
+--8<-- "journey/code/12-selection-2.rs"
 ```
-
-</details>
-
-Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    pub device: wgpu::Device,
+--8<-- "journey/code/12-selection-3.rs"
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+Selection changes uploaded display colour to yellow while retaining the original mesh. `set_scene` rebuilds the displayed mesh list when scene contents or selection change. GPU resources remain owned by the renderer; snapshots contain document data.
 
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
+The browser lets the dock consume input first. Canvas clicks become viewing rays; orbit commands update the camera. Document commands use history, while navigation updates only the camera. After deletion or history travel, filter selection through the restored scene's IDs before uploading it. The scene and dock draw into one acquired texture, followed by one presentation.
 
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    meshes: Vec<GpuMesh>,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-}
+## Run and observe
 
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh, false)).collect();
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 24,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: wgpu::TextureFormat::Depth32Float,
-                depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Less),
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform"),
-            size: 64,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.meshes = scene.objects().iter().map(|object| {
-            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))
-        }).collect();
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, width: u32, height: u32) {
-        self.depth = Self::depth(&self.device, width, height);
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) {
-        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in &self.meshes {
-                mesh.draw(&mut pass);
-            }
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/12-identity-fullscreen-5.rs"
-```
-
-```text
---8<-- "journey/code/12-identity-fullscreen-6.rs"
-```
-
-```text
---8<-- "journey/code/12-identity-fullscreen-7.rs"
-```
-
-</details>
-
-### 3. `src/browser.rs`
-
-Add Select Next and Delete to the vocabulary. Start without a selected object. Preserve valid selection, cycle by identity, and delete the selected object. Report that selection follows object identity.
-
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Scene data owns the meshes; the renderer displays them.");
-    Ok(())
-}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Selection follows object identity, even when rows move.");
-    Ok(())
-}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            match line.as_str() {
-                "example triangle" => {
-                    scene.toggle_extra();
-                    renderer.set_scene(&scene);
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            match line.as_str() {
-                "example triangle" => {
-                    scene.toggle_extra();
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "select next" => {
-                    selected = scene.next(selected);
-                    renderer.set_scene(&scene, selected);
-                }
-                "delete" => {
-                    if let Some(id) = selected.take() {
-                        scene.remove(id);
-                        renderer.set_scene(&scene, selected);
-                    }
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        ],
-    );
-    panel.update(None, &canvas)?;
-    let mut background = Background::default();
-    let mut camera = Camera::default();
-    present(
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        ],
-    );
-    panel.update(None, &canvas)?;
-    let mut selected = None;
-    let mut background = Background::default();
-    let mut camera = Camera::default();
-    present(
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        &[
-            "Help",
-            "Example Triangle",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        &[
-            "Help",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::camera::Camera;
-use crate::renderer::Renderer;
-use crate::scene::Scene;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut scene = Scene::demo();
-    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);
-    renderer.resize(width, height);
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Example Triangle",
-            "Select Next",
-            "Delete",
-            "Background",
-            "Zoom In",
-            "Zoom Out",
-            "Pan Left",
-            "Pan Right",
-            "Orbit Right",
-            "View Reset",
-        ],
-    );
-    panel.update(None, &canvas)?;
-    let mut selected = None;
-    let mut background = Background::default();
-    let mut camera = Camera::default();
-    present(
-        &surface,
-        &renderer,
-        &background,
-        &camera.uniform(),
-        &mut panel,
-    )?;
-    let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        };
-
-        if let Some(line) = line {
-            match line.as_str() {
-                "example triangle" => {
-                    scene.toggle_extra();
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "select next" => {
-                    selected = scene.next(selected);
-                    renderer.set_scene(&scene, selected);
-                }
-                "delete" => {
-                    if let Some(id) = selected.take() {
-                        scene.remove(id);
-                        renderer.set_scene(&scene, selected);
-                    }
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "view reset" => camera = Camera::default(),
-                _ => return,
-            }
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(
-            &surface,
-            &renderer,
-            &background,
-            &camera.uniform(),
-            &mut panel,
-        ) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
-    let options = web_sys::AddEventListenerOptions::new();
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options(
-        "wheel",
-        click.as_ref().unchecked_ref(),
-        &options,
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Selection follows object identity, even when rows move.");
-    Ok(())
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view, background, transform);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/12-identity-window-1.rs"
-```
-
-```text
---8<-- "journey/code/12-identity-window-2.rs"
-```
-
-```text
---8<-- "journey/code/12-identity-window-3.rs"
-```
-
-```text
---8<-- "journey/code/12-identity-window-4.rs"
-```
-
-</details>
-
-## Run and check
-
-In your project:
+From `session_viewer`, assemble a fresh checkpoint:
 
 ```sh
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+npm --prefix ../session_tests run course -- reference 12-identity --output target/select-navigate
+cd target/select-navigate
+trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+Run builds through the workspace storage guard and build slot. Open `http://127.0.0.1:8780/`. Two coloured triangles overlap in perspective. Click their shared area: the nearer turquoise triangle becomes yellow. Delete it to expose the pink triangle, then use `undo` and `redo` in the command dock. Enter `orbit right` or `orbit up` and select again; selection must follow the displayed projection. Entering a dock command must not also select through the panel.
 
-Type Select Next. The first object turns yellow; its stored mesh colour remains pink.
+## Predict and try
 
-### Recorded visual result
+Delete the nearer triangle and undo. Predict what happens after `example triangle` creates a different edit and you enter `redo`: the old redo branch is gone. The newly inserted triangle also receives a fresh ID, even if undo restored an earlier scene snapshot.
 
-**Previous native render — current verification pending.**
+Predict the result of shortening a viewing ray below its first hit distance: no object is selected. Restore the original interval before continuing. This distinguishes clipping from choosing whichever triangle happens to be visited first.
 
-This is the first object selected in yellow; its stored mesh colour remains pink.
+## Question and answer
 
-![Native renderer output for display selection by object identity.](../screenshots/journey/12-identity.png)
+Why must undo preserve both an object's ID and the highest identity already issued?
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+Restored objects keep references meaningful. Preserving the highest issued identity prevents a new branch from assigning an old identity to a different object. A row position provides neither guarantee.
 
-<details>
-<summary>Code explanation and diagram</summary>
+## Validation
 
-Delete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.
+The consolidated source exactly matches the former `16-orbit` endpoint, and the final cumulative endpoint remains unchanged. The ten original source checkpoints and all original page text, diagrams and images are retained. Fresh validation passes 13 native tests, optimized wasm and Trunk compilation, a native WARP pixel check, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. The browser checks exercise selection, deletion, undo/redo, branching history and orbit/reset. The upright viewport is emulated, not physical-phone acceptance. [Source-bound commands, hashes and scope](release/selection-navigation-windows-20261114.json) preserve the evidence.
 
-selected ObjectId → upload copy → yellow display vertices.
+![Selection checkpoint in desktop Chrome, with two perspective triangles and the command dock.](../screenshots/selection-windows-20261114/desktop.png)
 
-![Selection names an ObjectId; upload tints only that object’s display copy.](../illustrations/journey-direct-12-identity.svg)
-
-Why tint a copy rather than the retained mesh?
-
-The scene keeps the authored colour. Clearing selection must recover that colour instead of replacing source data.
-
-Study estimate, including typing and experiments: 0.5–1 hours.
-
-</details>
-
-<details>
-<summary>Optional experiment</summary>
-
-Select the first object, then Delete. Add the extra triangle and toggle it off. Only the original far triangle should remain.
-
-</details>
-
-<details>
-<summary>Check and save your work</summary>
-
-Restore experimental edits, then run from `session_viewer`:
-
-```sh
-npm --prefix ../session_tests run course -- check 2.8.1
-npm --prefix ../session_tests run course -- save 2.8.1
-```
-
-Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
-
-</details>
-
-<details>
-<summary>Viewer coverage and verification</summary>
-
-The complete viewer distinguishes document identity, displayed object rows and source sub-elements. Picking and undo must cross those mappings explicitly. This lesson establishes the first rule: a storage index cannot serve as a permanent object name.
-
-
-
-[Full validation scope](release.md).
-
-</details>
+The native render uses software DX12. Browser adapter queries report Intel gen-12lp; they do not independently prove adapter selection. Full-course ownership and parity still fail.
