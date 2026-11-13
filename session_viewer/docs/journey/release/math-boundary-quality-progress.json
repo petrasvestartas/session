@@ -1,11 +1,11 @@
 {
-  "status": "COMPLETE_PLANNED_VISIBLE_FIGURES_AND_FINAL_WEBSITE_REVIEW",
-  "updatedUtc": "2026-11-13T09:28:25.131035+00:00",
+  "status": "IN_PROGRESS_FULL_1334_AFFECTED_IMAGE_GOAL",
+  "updatedUtc": "2026-11-13T20:03:25.802047+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-30-cap-native-lock-graph.json",
-    "frozenFiles": 554,
+    "maintainedSourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+    "frozenFiles": 555,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
@@ -331,23 +331,30 @@
       "acceptedImages": 0,
       "scope": "Unchanged labels.focused and allownpointtoolDPR1/DPR2 assertions/finalpages passed; inheritedglyphs/commands prefixes excluded. Rootoriginalpixels reviewed and normalpublication/retirement done. Originalcanonicalcallbackfiles unchanged; no wholedefaultcallback/canonicalprofile acceptance.",
       "supportingTopicIllustrations": 2
+    },
+    "source31ImageQualification": {
+      "nativeImages": 1,
+      "sourceTestsPassed": 9,
+      "originalPixelRootReview": true,
+      "canonicalPixelAssertionsExecuted": false,
+      "stage": "Early sampling fixture has no refinement drain; later physical-refinement guards unchanged."
     }
   },
   "images": {
-    "inventoryTotal": 1752,
-    "explicitlyUnchanged": 426,
-    "affected": 1326,
-    "newPublishedReviewed": 99,
-    "remainingAffected": 1227,
-    "acceptedForFinalSource": 0,
-    "remainingFinalSourceAcceptance": 1326,
-    "qualificationNote": "Source30: three supporting cap main-page image profiles are actually compiled/GPU-qualified, Root-reviewed, published and retired. All42 visible figure updates and final strict115-page website/browser/layout review are complete. Historical94 primary cases, Source29two focused topic recipes and Source26measurement remain separate. CurrentSource30 primary0/1326;1232 lineage destinations remain. No full child/prefix/canonical callback transfer.",
+    "inventoryTotal": 1763,
+    "explicitlyUnchanged": 429,
+    "affected": 1334,
+    "newPublishedReviewed": 100,
+    "remainingAffected": 1333,
+    "acceptedForFinalSource": 1,
+    "remainingFinalSourceAcceptance": 1333,
+    "qualificationNote": "Full original1334 affected destinations retained, including eight previously removed entries pending explicit reconciliation. Source31 fresh Native38a image presentation is compiled, Root-reviewed, published and normally retired;1/1334 image presentations,1333 require current-source reconciliation/regeneration. Earlier primary/supporting evidence remains dated and separate. Current whole canonical validation is not claimed.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 94,
-    "remainingPlannedImageAcceptances": 1232,
+    "remainingPlannedImageAcceptances": 1333,
     "physicalJourneyPngs": 566,
     "uniqueJourneyPngs": 565,
     "denseRgbIllustration": {
@@ -702,8 +709,9 @@
     "unfinishedLinePreviewPublished": 1,
     "allFourTopicIllustrationsPublished": true,
     "capImageProfilesPublished": 3,
-    "imageTaskComplete": true,
-    "finalWebsiteQaComplete": true
+    "imageTaskComplete": false,
+    "finalWebsiteQaComplete": true,
+    "visibleMilestoneComplete": true
   },
   "published": [
     {
@@ -2362,6 +2370,21 @@
       "httpSha256Verified": true,
       "servedChromeVerified": true,
       "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
+    },
+    {
+      "id": "38a-samples",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "043b7c37213b35ffa9c3fcaf65d83963fbb88f095f2958ed888681e02d6f6d41",
+      "image": "docs/screenshots/journey/38a-samples-0a45ef5b8472.png",
+      "imageSha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
     }
   ],
   "stages": [
@@ -2395,7 +2418,7 @@
     "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
-    "status": "PASS_FINAL_SOURCE30_SITE_BUILD_BROWSER_AND_ROOT_LAYOUT_REVIEW",
+    "status": "DATED_SOURCE30_MILESTONE_PASSED_FULL_UPDATED_SET_BROWSER_QA_PENDING",
     "receipt": "docs/journey/release/viewer-site-20261113-source30.json",
     "sha256": "6a2f77782d7eb00a3f7509e8eec558238fd11e66fc9eefb2a05120128bcf5885",
     "browser": "157.0.8103.51",
@@ -2553,15 +2576,46 @@
     "receipt": "docs/journey/release/math-boundary-validation-ledger-20261110.json",
     "sha256": "2f84361a4573c9809c58bd2396bdca87a52843fbdf0a76b7ad85661e0b407895",
     "scope": "Dated historical ledger snapshot; current freeze19 image acceptances are tracked separately in currentDependencyQualification and source19ReviewedImages.",
-    "newAcceptances": 0
+    "newAcceptances": 0,
+    "source31Snapshot": {
+      "path": "docs/journey/release/math-boundary-validation-ledger-20261113-04.json",
+      "sha256": "a5e0b34e45f01ab402a4fa3f510548917cfa85c48cd37b559c38e8f627b17d3e"
+    }
   },
   "validationLedgerLatest": {
-    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-03.json",
-    "sha256": "1f156ab90bd1502531e68e737c824c65dcdec68d63c5a7b3c38a6599a794d535"
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-04.json",
+    "sha256": "a5e0b34e45f01ab402a4fa3f510548917cfa85c48cd37b559c38e8f627b17d3e"
   },
   "completion": {
-    "receipt": "docs/journey/release/viewer-visible-image-work-complete-20261113.json",
-    "sha256": "803c625357fe16902966b8b9d5d52ac7c6e6178dc805976b1ea6a010ce96def2",
-    "scope": "All42 visible replacements and final static website QA complete. Historical/current full-source callback counts remain separate; no new full matrix run is required by this image-regeneration task."
+    "status": "VISIBLE_MILESTONE_ONLY_FULL_GOAL_ACTIVE",
+    "supersededVisibleCompletionReceipt": {
+      "receipt": "docs/journey/release/viewer-visible-image-work-complete-20261113.json",
+      "sha256": "803c625357fe16902966b8b9d5d52ac7c6e6178dc805976b1ea6a010ce96def2",
+      "scope": "All42 visible replacements and final static website QA complete. Historical/current full-source callback counts remain separate; no new full matrix run is required by this image-regeneration task."
+    },
+    "fullGoalScopeReceipt": "docs/journey/release/viewer-full-image-goal-resumption-20261113.json",
+    "sha256": "0f630533a972f28e66ce1ed3b58125caf7c78d2360b271e0a112104ea5498464"
+  },
+  "fullImageGoal": {
+    "inventory": 1763,
+    "affected": 1334,
+    "explicitlyUnchanged": 429,
+    "status": "ACTIVE",
+    "destinationAcceptanceReconciliation": "FRESH_SOURCE31_AUDIT_1334_DESTINATIONS_429_EXACT_UNCHANGED",
+    "visibleMilestone": 42,
+    "fullGoalComplete": false,
+    "unchangedExactByteMatches": 429,
+    "unchangedMismatches": 0,
+    "currentSourceImagePresentationsPublishedReviewed": 1,
+    "currentSourceRemainingImagePresentations": 1333
+  },
+  "historicalReducedInventoryMetricsBeforeFullScopeRestoration": {
+    "inventoryTotal": 1752,
+    "explicitlyUnchanged": 426,
+    "affected": 1326,
+    "remainingAffected": 1227,
+    "remainingFinalSourceAcceptance": 1326,
+    "remainingPlannedImageAcceptances": 1232,
+    "acceptedAcrossRendererLineage": 94
   }
 }

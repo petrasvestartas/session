@@ -90,17 +90,20 @@ export function nativeDensityBridge(code: string, density: number, fixture: stri
     assert.equal(constructors.length, 1, 'One source-bound mathematical renderer constructor required');
     assert(fixture.includes('fn draw(') && fixture.includes('fn verify_pixels('), 'Canonical draw and pixel assertion tails required');
     const before = constructors[0][0], constructor = fixture.indexOf(before), drain = fixture.indexOf('math_quality.drain_matrix(');
-    assert(drain > constructor + before.length, 'Renderer construction must precede mathematical refinement');
-    assert.equal(fixture.split('math_quality.drain_matrix(').length, 2, 'One mathematical refinement boundary required');
-    assert(fixture.slice(drain).split(';')[0].includes('[WIDTH,HEIGHT]'), 'Mathematical refinement must use the physical target');
-    assert(!fixture.slice(constructor + before.length, drain).includes('renderer.resize('), 'Unexpected pre-refinement resize');
+    if (drain >= 0) {
+        assert(drain > constructor + before.length, 'Renderer construction must precede mathematical refinement');
+        assert.equal(fixture.split('math_quality.drain_matrix(').length, 2, 'One mathematical refinement boundary required');
+        assert(fixture.slice(drain).split(';')[0].includes('[WIDTH,HEIGHT]'), 'Mathematical refinement must use the physical target');
+        assert(!fixture.slice(constructor + before.length, drain).includes('renderer.resize('), 'Unexpected pre-refinement resize');
+    } else assert(!fixture.includes('math_quality.'), 'Mathematical refinement fixture is missing its drain boundary');
     assert.equal(code.split(before).length, 2, 'Exact renderer constructor boundary changed');
     const after = before + `\n    renderer.set_density(${density}.0);\n` + resize.trimEnd();
     const transformed = code.replace(before, after);
     assert.equal(transformed.replace(after, before), code, 'Native density bridge must reverse exactly');
     assert.equal(transformed.slice(transformed.indexOf('fn draw(')), code.slice(code.indexOf('fn draw(')), 'Draw and canonical pixel assertions must remain unchanged');
     return {code: transformed, density, physical, rendererSha256: hash(renderer), beforeSha256: hash(code), afterSha256: hash(transformed), reversedSha256: hash(code),
-        changes: [{before, after, needleCount: 1}], constructorAdaptedBeforeMath: true, drawAndPixelAssertionsPreserved: true};
+        changes: [{before, after, needleCount: 1}], ...(drain < 0 ? {mathematicalRefinementPresent: false} : {}),
+        constructorAdaptedBeforeMath: drain >= 0, drawAndPixelAssertionsPreserved: true};
 }
 
 function checkAdapterBridge(record: any) {
@@ -325,7 +328,7 @@ export function prepare(id: string, density = 2) {
         rendererResize: resizeSignature, rendererDensity: scaling, driver: {path: relative(driver), sha256: digest(driver)}, adapterBridge, renderScaleBridge,
         ...(densityBridge ? {nativeDensityBridge: densityBridge} : {}),
         fixtureFunctionsPreserved: !scale && !physical && (step.frame ? code.endsWith(read(path.join(docs, step.frame))) : true),
-        generatedConstructorAdaptedBeforeMath: Boolean(scale || physical), generatedDrawAndPixelAssertionsPreserved: scale ? scale.drawAndPixelAssertionsPreserved : physical ? physical.drawAndPixelAssertionsPreserved : true,
+        generatedConstructorAdaptedBeforeMath: Boolean(scale || physical?.constructorAdaptedBeforeMath), generatedDrawAndPixelAssertionsPreserved: scale ? scale.drawAndPixelAssertionsPreserved : physical ? physical.drawAndPixelAssertionsPreserved : true,
         canonicalPixelAssertions: 'Preserved unchanged in original fixture; fixed-resolution verification remains separate from this presentation capture.'};
     write(path.join(directory, 'presentation.json'), JSON.stringify(record, null, 2) + '\n');
     return record;
