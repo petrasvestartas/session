@@ -300,6 +300,10 @@ pub mod tool;
 
 ## <a id="checkpoint-48b-preview"></a>3. Draw a temporary rubber band and cursor
 
+![Temporary Line rubber band and endpoint cursor before commit](../../screenshots/reader-illustrations/48d-input/unfinished-line-preview-32e9793e694b.png)
+
+The unfinished Line displays a temporary yellow rubber band and cursor. No original line exists until a valid second point commits it.
+
 ### 1. `src/tool_preview.rs`
 
 Create the file and type:
@@ -1497,6 +1501,10 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-48d-input"></a>5. Draw points and lines through the shared command dock
+
+![Command dock waiting for the second Line point](../../screenshots/journey/48d-input-5d9f055b37a6.png)
+
+The browser command dock is waiting for Line point2of2. The diagonal line and endpoint marker are temporary display data; Cancel leaves the document unchanged.
 
 ### 1. `src/panel.rs`
 

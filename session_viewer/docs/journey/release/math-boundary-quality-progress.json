@@ -1,11 +1,11 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-13T07:13:38.400126+00:00",
+  "updatedUtc": "2026-11-13T07:59:47.492554+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
-    "frozenFiles": 549,
+    "maintainedSourceFreeze": "source-freeze-29-focused-topic-routes.json",
+    "frozenFiles": 550,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
@@ -185,13 +185,12 @@
       "sha256": "ae4406849a5d423b9f8288b5045a9fe91a0134e76235d4d63bad7ced8b6ba28d"
     },
     "currentDependencyQualification": {
-      "status": "PARTIAL_SOURCE28_BROWSER59F_ROOT_REVIEWED_RETIRED",
-      "freeze": "source-freeze-28-post-pull-cloud-handoff.json",
-      "sourceFiles": 549,
-      "acceptedImages": 1,
-      "historicalPrimaryImages": 93,
-      "historicalSupportingMeasurementFigures": 1,
-      "scope": "One current-source28 full59f browser callback image case; original DPR1/DPR2 assertions intact, two topic illustrations separately counted, Root original-pixel review and normal retirement. Actual compiler2CPU6GiB/fullcallback8CPU8GiB; canonical validation profile false. Historical93 Native cases and Source26 supporting measurement1 remain separate."
+      "status": "SOURCE29_TWO_FOCUSED_TOPIC_RECIPES_ROOT_REVIEWED_RETIRED",
+      "freeze": "source-freeze-29-focused-topic-routes.json",
+      "sourceFiles": 550,
+      "acceptedImages": 0,
+      "scope": "Unchanged labels.focused and allownpointtoolDPR1/DPR2 assertions/finalpages passed; inheritedglyphs/commands prefixes excluded. Rootoriginalpixels reviewed and normalpublication/retirement done. Originalcanonicalcallbackfiles unchanged; no wholedefaultcallback/canonicalprofile acceptance.",
+      "supportingTopicIllustrations": 2
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -299,6 +298,28 @@
       "historicalFreeze20AcceptedImages": 6,
       "historicalFreeze22AcceptedImages": 15,
       "scope": "Historical51freeze13,14freeze15,5freeze19,6freeze20 and15freeze22 retain their exact recorded source/helper scopes. Current source23 has2 expanded-refinement Native78/79 IMAGE acceptances with542pins, rawDPR4, original quality/draw assertions, Root original-pixel review and normal retirement. Default generated files/drivers remain unchanged; no default-profile/canonical640/browser/full-suite acceptance is inferred. DenseSource22 supplement remains separate. Visible34/42."
+    },
+    "historicalSource28Qualification": {
+      "status": "PARTIAL_SOURCE28_BROWSER59F_ROOT_REVIEWED_RETIRED",
+      "freeze": "source-freeze-28-post-pull-cloud-handoff.json",
+      "sourceFiles": 549,
+      "acceptedImages": 1,
+      "historicalPrimaryImages": 93,
+      "historicalSupportingMeasurementFigures": 1,
+      "scope": "One current-source28 full59f browser callback image case; original DPR1/DPR2 assertions intact, two topic illustrations separately counted, Root original-pixel review and normal retirement. Actual compiler2CPU6GiB/fullcallback8CPU8GiB; canonical validation profile false. Historical93 Native cases and Source26 supporting measurement1 remain separate."
+    },
+    "capMsaa4CurrentImageProfile": {
+      "status": "CAP96ZZC_IMAGE_CARGO_LOCK_REFUSED_BEFORE_RUST_COMPILE",
+      "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
+      "actualRustCompilationQualified": false,
+      "actualPipelineQualified": false,
+      "actualImageAccepted": false,
+      "privateOfflineProposal": {
+        "addedPackages": 9,
+        "existingVersionsChanged": 0,
+        "originalWorkBenchAndCanonicalLocksChanged": false
+      },
+      "scope": "First four-sample cap attempt adds0acceptances. Private graph proposal alone is not runtime qualification. Existing historical SSAA/single-sample images remain separately scoped."
     }
   },
   "images": {
@@ -307,17 +328,17 @@
     "affected": 1326,
     "newPublishedReviewed": 99,
     "remainingAffected": 1227,
-    "acceptedForFinalSource": 1,
-    "remainingFinalSourceAcceptance": 1325,
-    "qualificationNote": "Source28 fresh full59f original DPR1/DPR2 callback passed with original assertions, Root all original pixels reviewed,3PNGs published and normal retirement. One primary case plus2 topic illustrations; supporting figures and historical93 cases remain separate. Actual compiler2CPU6GiB, fullcallback8CPU8GiB; canonical validation profile false.37/42 visible complete,5pending.",
+    "acceptedForFinalSource": 0,
+    "remainingFinalSourceAcceptance": 1326,
+    "qualificationNote": "Source29 focused labels and ownpointtoolDPR1/DPR2 assertions passed on NVIDIA; supportingtopics2 plusversionedbrowserprimaryimages. Rootoriginalpixelreview/publication/normalretirement done; inheritedprefixes excluded, no fulldefault/canonicalacceptance. Historical94primarycases andSource26measurement1 separate.39/42visible done;3caps+finalsiteQA pending.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 94,
     "remainingPlannedImageAcceptances": 1232,
-    "physicalJourneyPngs": 559,
-    "uniqueJourneyPngs": 559,
+    "physicalJourneyPngs": 563,
+    "uniqueJourneyPngs": 563,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -648,22 +669,26 @@
       "sha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
       "canonicalBehaviorExecuted": false,
       "scope": "Separate original2mm supporting recipe; no full85aycanonical callback or Native84 acceptance. Not added to1326primary-case acceptance count."
-    }
+    },
+    "journeyPngInventoryScope": "Recursive docs/screenshots/journey PNGs; topic reader-illustrations and release measurement are separate."
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 5,
+    "pending": 3,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 37,
+    "published": 39,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
     "native77Published": 1,
     "measurementPublished": 1,
-    "cadTopicIllustrationsPublished": 2
+    "cadTopicIllustrationsPublished": 2,
+    "worldLabelIllustrationPublished": 1,
+    "unfinishedLinePreviewPublished": 1,
+    "allFourTopicIllustrationsPublished": true
   },
   "published": [
     {
@@ -2230,6 +2255,66 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "62o-labels#primary",
+      "lane": "browser",
+      "kind": "focused-supporting-image-recipe",
+      "receipt": "docs/journey/release/reader-topic-source29-62o-labels-5d17764a4e31.json",
+      "receiptSha256": "5295c4f77041af6fa2989408c0529d8318cb27e07afe5b9b2d6c8fa83ffae99d",
+      "image": "docs/screenshots/journey/62o-labels-5d17764a4e31.png",
+      "imageSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "62o-labels#world-label-selected",
+      "lane": "browser",
+      "kind": "supporting-topic-illustration",
+      "receipt": "docs/journey/release/reader-topic-source29-62o-labels-5d17764a4e31.json",
+      "receiptSha256": "5295c4f77041af6fa2989408c0529d8318cb27e07afe5b9b2d6c8fa83ffae99d",
+      "image": "docs/screenshots/reader-illustrations/62o-labels/world-label-selected-5d17764a4e31.png",
+      "imageSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "48d-input#primary",
+      "lane": "browser",
+      "kind": "focused-supporting-image-recipe",
+      "receipt": "docs/journey/release/reader-topic-source29-48d-input-5d9f055b37a6.json",
+      "receiptSha256": "cd3c979773c0f8d7746c7c2f262683553151580fb265dfbd6973429520f1fde7",
+      "image": "docs/screenshots/journey/48d-input-5d9f055b37a6.png",
+      "imageSha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3",
+      "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "48d-input#unfinished-line-preview",
+      "lane": "browser",
+      "kind": "supporting-topic-illustration",
+      "receipt": "docs/journey/release/reader-topic-source29-48d-input-5d9f055b37a6.json",
+      "receiptSha256": "cd3c979773c0f8d7746c7c2f262683553151580fb265dfbd6973429520f1fde7",
+      "image": "docs/screenshots/reader-illustrations/48d-input/unfinished-line-preview-32e9793e694b.png",
+      "imageSha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f",
+      "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
     }
   ],
   "stages": [
@@ -2419,7 +2504,7 @@
     "newAcceptances": 0
   },
   "validationLedgerLatest": {
-    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-01.json",
-    "sha256": "80594c0bbebda1c5b686247b52597ab08d6931911de14a84bd251fc995cb1437"
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-02.json",
+    "sha256": "a168e8dda7f6d0524f86b8584f4655f7bed4c584cd4b23424f63e8858f1cc608"
   }
 }

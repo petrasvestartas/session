@@ -19,16 +19,23 @@ const exportsByModule:Record<string,[string,number,number]>={
     'contact-fill':['feature',640,480], 'ink-metadata':['feature',640,480],
     'contact-boundary':['feature',640,480], 'source-faces':['feature',640,480],
     'source-pens':['finish',640,480],
+    'labels':['focused',1100,800],
 };
 
 export function exportedImageRecipe(id:string){
     const step=course().steps.find(s=>s.id===id);assert(step);
     if(!step.browser_check)return null;
     const module=path.basename(step.browser_check,'.cjs'), file=path.join(docs,step.browser_check), text=read(file);
+    if(module==='point-tools'){
+        const excludedPrefix="    await require('./commands.cjs')(original, helpers);";
+        assert.equal(text.split(excludedPrefix).length,2);
+        return {module,file,sha256:sha(file),kind:'original-own-callback',excludedPrefix,viewport:{width:960,height:640},
+            scope:'Original own point-tool DPR1/DPR2 assertions and final preview; inherited commands callback excluded. No whole canonical callback acceptance.'};
+    }
     if(exportsByModule[module]){
         const [exportName,width,height]=exportsByModule[module];assert(text.includes('module.exports.'+exportName+'=' )||text.includes('module.exports.'+exportName+' ='));
         return {module,file,sha256:sha(file),kind:'unchanged-export',exportName,viewport:{width,height},
-            scope:'One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance.'};
+            scope:module==='labels'?'Unchanged focused label export including its own DPR1/DPR2 child assertions and final selected label. Inherited glyphs callback excluded; no whole canonical callback acceptance.':'One unchanged source-scoped export at DPR2. No inherited prefix or child-context matrix, and no whole canonical callback acceptance.'};
     }
     let authority = null;
     if (module === 'caps' || module === 'performance') {
@@ -93,6 +100,16 @@ async function worker(p:any){
         const privateFile=path.join(p.privateDocs,path.relative(docs,p.recipe.file));
         const loaded=new Module(privateFile);loaded.filename=privateFile;loaded.paths=Module._nodeModulePaths(path.dirname(privateFile)).concat(Module._nodeModulePaths(path.dirname(path.join(docs,'capture_journey.cjs'))));
         // Relative original modules retain their private __dirname; external packages resolve from the actual viewer installation.
+        if(p.recipe.kind==='original-own-callback'){
+            const compile=loaded._compile.bind(loaded);
+            loaded._compile=(source:string,filename:string)=>{
+                const at=source.indexOf(p.recipe.excludedPrefix);
+                assert(at>=0);assert.equal(source.split(p.recipe.excludedPrefix).length,2);
+                const callbackSource=source.slice(0,at)+source.slice(at+p.recipe.excludedPrefix.length);
+                assert.equal(callbackSource.slice(0,at)+p.recipe.excludedPrefix+callbackSource.slice(at),source);
+                return compile(callbackSource,filename);
+            };
+        }
         loaded._compile(read(privateFile),privateFile);
         await page.goto(process.env.VIEWER_URL);
         await page.waitForFunction(()=>{const w=window as any;return w.wasmBindings?.runtime_running?.()&&JSON.parse(w.wasmBindings.diagnostic_snapshot()).outcome==='ready';});
@@ -105,12 +122,14 @@ async function worker(p:any){
             assert.deepEqual(await value('data-selected-ids'),[]);assert.equal(await canvasAttribute(page,'data-pick-mode'),'Object');
             assert.deepEqual(await value('data-cloud-sources'),before);assert.equal((await value('data-cloud-gpu'))[0],1681);
             semantic.cloudSources=before;semantic.cloudGpu=await value('data-cloud-gpu');semantic.selectedIds=[];
-        }else if(p.recipe.kind==='unchanged-export'){
-            const fn=loaded.exports[p.recipe.exportName];assert.equal(typeof fn,'function');
+        }else if(p.recipe.kind==='unchanged-export'||p.recipe.kind==='original-own-callback'){
+            const fn=p.recipe.kind==='original-own-callback'?loaded.exports:loaded.exports[p.recipe.exportName];assert.equal(typeof fn,'function');
             if(kind==='shared-view')await fn(page,address,helpers,json(path.join(p.privateDocs,'journey/checks/browser/shared-view-original.json')).archive);
             else if(kind==='source-pens')await fn(page,address,helpers);
+            else if(kind==='labels'||kind==='point-tools')await fn(page,helpers);
             else await fn(page,address,2,helpers);
-            semantic.originalExportReturned=true;
+            if(p.recipe.kind==='original-own-callback')semantic.originalOwnCallbackReturned=true;
+            else semantic.originalExportReturned=true;
         }else if(kind==='current-commands'){
             const source=read(privateFile),marker="    for(const line of ['Close','CPlane XY','View Top','Line w-2,0,0 w2,0,0'",start=source.indexOf(marker);assert(start>0);assert.equal(source.indexOf(marker,start+1),-1);
             const tail=source.slice(start,source.lastIndexOf('};'));
