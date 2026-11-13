@@ -24,7 +24,7 @@ Type the coordinate mapping in [paint.rs](../lessons/03a-math/src/app/stage/pain
 --8<-- "lessons/03a-math/src/app/stage/paint.rs:frame"
 ```
 
-The design space is 1600 ? 900. An 800 ? 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates.
+The design space is 1600 × 900. An 800 × 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates.
 
 ### Font metrics and TeX
 
@@ -106,6 +106,27 @@ A transition starting at 100 ms with duration 200 ms reaches its midpoint at 200
 
 A thing moves only when the movement is the idea. Use a matching transform for a rewritten equation. Use appearance for a newly introduced object. Colour changes can identify an addressed matrix row without moving it elsewhere.
 
+### Kernel motion values
+
+The clock supplies a normalized, eased parameter. The kernel supplies the value at that parameter. Keeping these responsibilities separate lets one clock move different kinds of objects without adding a second timing system.
+
+Read these live kernel implementations and their tests; the mathematics checkpoint already depends on this kernel. The later scene subject connects their results to scene rows.
+
+| Operation | Meaning at the midpoint | Constraint to preserve |
+| --- | --- | --- |
+| [Vector::lerp](../../../session_rust/src/vector.rs) | Each component is halfway between its endpoints. Between `(2, 0, 0)` and `(0, 2, 0)`, the result is `(1, 1, 0)`. | This does not preserve vector length. Use it for component motion, not as a rotation algorithm. |
+| [Color::lerp](../../../session_rust/src/color.rs) | Red, green, blue and alpha are blended component by component; the result keeps the first colour's name. | This is interpolation of stored channels, with no perceptual colour-space conversion. |
+| [Line::lerp](../../../session_rust/src/line.rs) | The start moves toward the other start and the end toward the other end. | The result copies the first line's other properties. Swapping one line's endpoints changes the motion and can collapse the midpoint. |
+| [Polyline::resampled](../../../session_rust/src/polyline.rs) | A requested count of points follows equal arc-length intervals, retaining the first and last point. | Counts below two, or inputs with fewer than two points, return a duplicate. Equal spacing need not retain every original corner. |
+| [Polyline::morph](../../../session_rust/src/polyline.rs) | Both inputs are resampled to their larger point count, then corresponding points are blended. | Correspondence follows traversal order. Even at parameter zero the result may be the resampled first path, rather than its original vertex list. |
+| [Xform::interpolate](../../../session_rust/src/xform.rs) | Translation and axis scales blend linearly; rotation follows a normalized quaternion blend, using spherical interpolation away from nearly equal rotations. | This interpolates a translation/rotation/scale decomposition, not all sixteen matrix entries. Do not assume arbitrary shear is preserved. |
+
+The vector, colour and line implementations do not clamp the parameter. The stage clock clamps time before easing, so an expired animation stays at its endpoint. `geometry.rs::geo_points` uses the kernel's point, line and polyline operations after that time calculation. The stage's floating-point RGBA tween remains a separate small value implementation; it does not call `Color::lerp`.
+
+Open **Lerp** in the Vector, Color and Line kernel test pages, **Morph** in Polyline (which also exercises resampling), and **Interpolate** in Xform. Read the live assertions before running the corresponding kernel tests. A discoverable test name alone does not establish that those tests ran in this checkout.
+
+Predict the midpoint of a line and the same line with reversed endpoints: both ends meet at the centre. Compare that with rotating the line's placement by half a turn using `Xform::interpolate`: at the halfway orientation, its length stays unchanged. Choose the operation according to what the movement means.
+
 ### Steps, slides and stepping backward
 
 Copy [run.rs](../lessons/03a-math/src/app/stage/run.rs). A chapter owns the shared scene and its slides; each slide contains steps. The runtime flattens those steps for navigation while retaining slide boundaries.
@@ -166,7 +187,7 @@ The action stream already describes how to construct every state. Replaying that
 
 ## Validation
 
-The source-parity test passes for all 17 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths. The complete checkpoint passes 24 native tests and its WebAssembly build in the cloud environment. Chromium with Vulkan/SwiftShader passes four visible deck steps at 1280 × 720 and 390 × 844 (density 2), exact previous-frame reconstruction and a theme round trip. This is software WebGPU evidence, not a hardware-driver or real-phone test. The [full browser record](../lessons/03a-math/full-browser-evidence.json) fingerprints the tested source; the older formula-only record remains historical. Cumulative course integration remains unfinished. The browser harness is a subject test host, not a replacement for the production application's event loop.
+The source-parity test passes for all 17 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths. The complete checkpoint passes 24 native tests and its WebAssembly build in the cloud environment. Chromium with Vulkan/SwiftShader passes four visible deck steps at 1280 × 720 (density 1) and 390 × 844 (density 2), exact previous-frame reconstruction and a theme round trip. This is software WebGPU evidence, not a hardware-driver or real-phone test. The [full browser record](../lessons/03a-math/full-browser-evidence.json) fingerprints the tested source; the older formula-only record remains historical. Cumulative course integration remains unfinished. The browser harness is a subject test host, not a replacement for the production application's event loop.
 
 
 ![Full stage core: aligned equations in the browser.](../screenshots/math-full/landscape-step-1.png)

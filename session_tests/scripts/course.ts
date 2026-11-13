@@ -8,6 +8,7 @@ import {generate} from './course/render.ts';
 import {structure, verify, runCommand, nativeTarget, removeGenerated} from './course/verify.ts';
 import {serve} from './course/serve.ts';
 import {verifyReference, parity} from './course/reference.ts';
+import {endpointParity} from './course/endpoint-parity.ts';
 import {diagrams} from './course/diagrams.ts';
 import {foundations} from './course/foundations.ts';
 import {dockPreview} from './course/dock.ts';
@@ -120,6 +121,8 @@ function main() {
     } else if (action === 'foundations') {
         foundations();
     } else if (action === 'parity') {
+        endpointParity(name === '--details');
+    } else if (action === 'reference-parity') {
         parity();
     } else if (action === 'verify-reference') {
         const ids = [name, ...args].filter(Boolean);
@@ -180,7 +183,7 @@ function main() {
     } else {
         console.log('npm run course -- init | check LESSON | dependencies LESSON | save NAME | restore NAME | reference LESSON --output NEW_FOLDER');
         console.log('Use a book number such as 22.2.3 or an existing lesson ID. List shows book numbers; list --ids shows internal IDs.');
-        console.log('Authoring: dock-preview | generate | structure | ownership [--details] | subject-audit ID|--all | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
+        console.log('Authoring: dock-preview | generate | structure | ownership [--details] | subject-audit ID|--all | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity [--details] | reference-parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
     }
 }
 

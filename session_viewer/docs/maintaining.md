@@ -51,7 +51,7 @@ Select checkpoint IDs explicitly; use `verify --all` only for an intentional ful
 
 ## Preserve the destination
 
-The inventory selected by `journey/course.json` fingerprints source and key inputs. `structure` fails on missing or changed source. Review an intentional change before updating the baseline; a refreshed hash is not evidence of teaching or execution. The current `parity` command still compares historical lesson 37 with production after removing teaching comments, and fails on the newer viewer. It must not be reported as a comparison of the journey endpoint.
+The inventory selected by `journey/course.json` fingerprints source and key inputs. `structure` fails on missing or changed source. Review an intentional change before updating the baseline; a refreshed hash is not evidence of teaching or execution. `parity` reconstructs the last active journey checkpoint and compares every file under `src/` with production after removing teaching comments. It reports missing, extra and changed files together; `parity --details` names them. No path aliases or source exclusions hide differences. The historical lesson 37 comparison remains available as `reference-parity`. Neither comparison establishes runtime acceptance.
 
 The earlier reconstruction in `typing/manifest.json` remains readable without Python. The TypeScript model replays every addition and its tests compare all final file hashes. Its large sections are reference material while the complete smaller sequence is developed. Do not connect incompatible checkpoints through Next links.
 

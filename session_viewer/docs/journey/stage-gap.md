@@ -21,6 +21,12 @@ Current stage integration touches `src/lib.rs`, state, loader dispatch and `src/
 
 The smallest proposed interface is an application-mode registration with three operations: accept a loaded payload, consume input, and render a frame. The application subject owns dispatch and shared state; the later stage subject supplies its mode adapter. GPU lanes already have their own registry, so this does not require a second GPU renderer. No production refactor has been applied. The exact mode interface and its behavior-preserving tests remain to be implemented before the cumulative checkpoint can claim integration.
 
+The early painting checkpoint currently owns a concrete `Panel::draw`; the dock replaces that file and the browser loop. Inserting mathematics only in that draw method would make it disappear when the dock checkpoint is replayed. Moving the standalone browser harness into the course would instead replace the finished first-frame implementation. Neither is cumulative integration.
+
+The application owner should establish mode dispatch before first painting, with registration entries supplying the loaded payload constructor, input handler and frame callback. Within the frame callback, preserve production's order: advance stage time, synchronize scene rows and camera, render the scene, then paint mathematics through the existing egui pass. The early mathematics adapter needs only the core and painter; the later scene adapter adds the `State`-dependent synchronization. Do not split or rewrite the 17 finished core modules to accomplish this.
+
+This proposal still needs a concrete production-compatible adapter: `StageApp` currently owns pointer state, scene allocation and browser state publication together. Verify input consumption, repaint scheduling, chapter reset, atlas ownership and portrait frame mappings before accepting a refactor. A registry declaration is permitted wiring; changing an earlier callback's implementation remains an ownership failure.
+
 ## Existing subjects that must absorb current behavior
 
 | Existing owner | Required content |
@@ -40,3 +46,5 @@ The journey's current arrow checkpoint still teaches a different shader. Its pro
 Each subject needs one visible goal, prediction experiment, question, current source and runnable checkpoint. The early subject must pass all parser/layout tests and the lesson deck; the later subject must play every step of the five shipped decks and be reviewed at desktop and upright phone sizes. Geometry must use the real scene and camera; mathematics uses MATH-table layout and egui glyph quads.
 
 The full task also covers the command dock, planes, matrix display, splats, box selection, scene display and live revisions. None is excluded by the stage split. The [initial per-file audit](coverage-audit-2026-11-12.json) remains a dated baseline, not current acceptance. The active course must eventually prove source and behavior parity with the maintained viewer; historical lesson 37 is not that destination.
+
+On the integrated handoff `b2b922817`, the reconstructed final journey has 712 files under `src/`, compared with 323 production files. Exact path comparison finds 318 missing, 707 extra and three changed shared files. Renamed implementations can teach related concepts, but this endpoint does not yet produce the required production tree. Run `course -- parity --details` to inspect the actual cumulative comparison; `reference-parity` separately preserves the historical lesson 37 check.

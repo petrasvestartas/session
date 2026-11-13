@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 
 const viewer = fileURLToPath(new URL('../../../session_viewer/', import.meta.url));
@@ -19,5 +20,23 @@ test('the mathematics checkpoint retains the complete production stage core', ()
             );
         }
         assert.deepEqual(lines(lesson), lines(source), `${name}: revise the owning subject when production changes`);
+    }
+});
+
+test('standalone mathematics evidence still names the checked-in sources, assets and captures', () => {
+    const lesson = path.join(viewer, 'docs/lessons/03a-math');
+    const record = JSON.parse(fs.readFileSync(path.join(lesson, 'full-browser-evidence.json'), 'utf8'));
+    const digest = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
+    // Git text checkouts may use CRLF; the cloud receipt fingerprints LF source.
+    for (const [name, hash] of Object.entries(record.sourceSha256)) {
+        assert.equal(digest(fs.readFileSync(path.join(lesson, name), 'utf8').replaceAll('\r\n', '\n')), hash, name);
+    }
+    for (const [name, hash] of Object.entries(record.inputs)) {
+        assert.equal(digest(fs.readFileSync(path.join(viewer, name))), hash, name);
+    }
+    for (const entry of record.cases) {
+        for (const frame of [...entry.frames, entry.previous, entry.dark, entry.restored]) {
+            assert.equal(digest(fs.readFileSync(path.join(viewer, 'docs/screenshots/math-full', frame.file))), frame.sha256, frame.file);
+        }
     }
 });
