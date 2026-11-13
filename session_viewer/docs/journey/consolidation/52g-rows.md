@@ -1,5 +1,25 @@
 # 8.2 · Tree presentation with explicit input ownership
 
+## Current hierarchy and graph panel
+
+Expand a document tree, select its objects and inspect graph connections without losing source identity when displayed rows change. The prerequisites are document identity, source trees, scene-row lookup and egui input ownership. [hierarchy.rs](../../../src/app/hierarchy.rs) owns the flattened presentation model; [ui/graph.rs](../../../src/app/ui/graph.rs) draws its graph rows.
+
+`Hierarchy::refresh` compares the scene's row revision before rebuilding. Nodes are stored parent-first; `end` marks the end of a subtree and `rows` addresses a slice of object rows. A separate lookup resolves `(document, GUID)` to a current row. The document qualifier matters: equal GUID text in two imported documents must not resolve through one global table.
+
+Before clearing the flattened arrays, the rebuild remembers expanded and active nodes by document and name. Missing expanded nodes stay in `away`, so undo can restore their expansion when they return. Visibility lamps use document/path keys and sets of object identities, preserving which objects a particular lamp hid. A row index alone cannot preserve that relationship across a rebuild.
+
+The hierarchy distinguishes an element's own attribute features from hosted interaction features. `Pick` retains the parent row, feature indices and whether the interaction or attribute visibility policy applies. A feature line selects its stated subset; it does not invent another top-level geometry object. The feature-specific rows use the interaction subject's source definitions.
+
+Graph collection resolves both endpoints through the per-document lookup, keeps one directed representation of each stored edge and sorts by document and edge index. The graph panel draws only visible rows through egui's scrolling row iterator. Each row has two truncated label columns, GUID hover text and one action key; clicking it requests selection of both endpoint objects through the existing action path.
+
+The tree uses pages of 128 nodes and explicit node, indexed-row and edge limits. `truncated` records incomplete presentation. Pagination bounds panel work; it does not delete source objects or make an incomplete hierarchy complete.
+
+**Predict and try:** use the checkpoint below to expand a nested group, remove it and undo. Predict restoration by source identity rather than its former displayed row. In the production graph panel, clicking an edge should select both endpoints while the panel retains the click instead of passing it to scene picking.
+
+**Question:** why distinguish a subtree's node interval from its object-row slice? **Answer:** headings and feature groups occupy presentation lines without each owning a separate object. The two ranges answer different traversal and selection questions.
+
+The runnable checkpoint below covers its existing tree and input model. Cumulative production hierarchy/graph parity and fresh browser acceptance remain pending.
+
 **Steps:** 5 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

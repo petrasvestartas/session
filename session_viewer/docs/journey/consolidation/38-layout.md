@@ -1,5 +1,21 @@
 # 5.4 · NURBS source ownership and derived samples
 
+## Current display design
+
+Keep the authored NURBS curve and derive a connected display stroke from it. The prerequisites are the kernel curve representation, object-row identity and the joined-stroke lane. This subject owns curve sampling and its source-to-display mapping; the [stroke subject](36-chain.md) owns joins, dashes and arrowheads.
+
+Read `sample` in [display.rs](../../../src/app/walk/display.rs), then `walk_nurbscurve_quality` in [curves.rs](../../../src/app/walk/curves.rs). Sampling returns curve parameters, so every displayed point is evaluated on the original curve. Rational control points are divided by their weights before measuring geometric deviation. The sampler first separates knot spans, then subdivides exact subcurves with an explicit stack. A piece can become one chord when its control polygon stays within the requested deviation and its successive directions satisfy the angle bound.
+
+The segment budget is at most 4,096 and subdivision depth is at most 16. Reaching a limit reports `limited`; it does not prove that the requested tolerance was met. Finite-quality candidate work records failure so an incomplete refinement is not silently accepted. A flat curve can need only its two domain endpoints. More control points do not by themselves imply more displayed segments.
+
+The walker evaluates those parameters in double precision, converts positions to GPU floats and sends them through `push_polyline`. It retains the object row, width and the first line colour, using black when that colour is absent. Curve arrowheads use the same endpoint-direction mechanism as other connected paths. The sampled vertices do not replace the curve's control points or knots.
+
+**Predict and try:** use the runnable checkpoint below to move a control point away from a straight control polygon. Predict a bowed display while the retained curve stays editable. In the production sampler's tests, tighten the tolerance and inspect the parameter count and `limited` flag together; a saturated count alone is not success.
+
+**Question:** why return parameters instead of treating sampled positions as the new curve? **Answer:** parameters retain an address on the authored geometry. Positions are derived display data and cannot recover its knots, weights or editing identity.
+
+The checkpoint below exercises source ownership and visible sampled curves. Its cumulative adoption of the production bounded sampler remains unfinished; the production source explanation is not checkpoint-parity acceptance.
+
 **Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
 ## <a id="checkpoint-38-layout"></a>1. Validate an NURBS curve before sampling

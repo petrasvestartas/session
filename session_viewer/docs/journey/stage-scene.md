@@ -50,6 +50,8 @@ Reapply the authored orientation while its tween is busy, when its serial change
 
 `lens` converts that actual camera into a two-row affine map from world coordinates to slide coordinates. Its axes come from the production camera's right and up vectors; its translation includes the camera target and the framed screen centre. The mathematical labels and fly-out source positions use this same lens. Recomputing labels only from the authored camera would make them drift away when the user orbits.
 
+`geometry.rs::place_labels` chooses the label's offset from that projected anchor. An authored direction fixes the offset. Otherwise it scores sixteen directions at two gaps against earlier labels, lines, points and the slide boundary. The previous choice receives a fifteen-point advantage, reducing direction changes during motion. This remembered `label_dir` makes automatic placement depend on the path taken through an animation. Backward replay reconstructs authored actions without replaying every painted frame, so it need not reproduce the same automatic label offsets. Preserve this distinction when testing: exact local-versus-production comparisons need the same clock and event sequence; a forward-versus-replay pixel assertion can fail in the unchanged production viewer.
+
 ```rust
 --8<-- "session_viewer/src/app/stage/view.rs:stage-camera-fit"
 ```
@@ -124,6 +126,6 @@ The user can orbit away from the authored pose. Projecting labels with that olde
 
 ## Validation
 
-The standalone mathematics checkpoint passes 24 native tests, including all five shipped decks at rest and through playback. Those tests validate parser, layout and action behavior; they do not exercise production row allocation, picking exclusion or touch handling. Production-reference browser review and cumulative integration of this subject remain pending. The named source sections add comments only; a code comparison verifies that their Rust implementations are unchanged.
+The standalone mathematics checkpoint passes 24 native tests, including all five shipped decks at rest and through playback. Those tests validate parser, layout and action behavior; they do not exercise production row allocation, picking exclusion or touch handling. The scene-independent presentation probe separately passes 17 tests, including the production deck tests and two presentation ownership/painting checks. Full application native, native test-configuration, wasm and optimized Trunk compilation pass. Production-reference browser review and cumulative integration of this subject remain pending. The [integration status](stage-gap.md) records the unresolved baseline comparison; compilation does not establish browser parity.
 
 Acceptance must cover every step of all five decks, contextual errors, settled overlap reports, row placement/reveal/colour/visibility, projected labels, camera reset, keyboard, mouse and touch input, both grounds and desktop/upright layouts. Record the actual adapter and distinguish viewport emulation from a real phone.

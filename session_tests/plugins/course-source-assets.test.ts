@@ -3,9 +3,20 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { registerLinkedAsset } from './course-source-assets.ts';
+import { registerLinkedAsset, repositorySourceLink } from './course-source-assets.ts';
 
 const viewer = process.env.COURSE_SOURCE_TEST_VIEWER || fileURLToPath(new URL('../../session_viewer/', import.meta.url));
+
+test('nested kernel sources link to the repositories that own their contents', () => {
+  for (const repository of ['session_cpp', 'session_py', 'session_rust', 'session_data', 'session_proto']) {
+    assert.equal(repositorySourceLink(`${repository}/src/vector.rs`),
+      `https://github.com/petrasvestartas/${repository}/blob/main/src/vector.rs`);
+  }
+  assert.equal(repositorySourceLink('session_viewer/src/lib.rs'),
+    'https://github.com/petrasvestartas/session/blob/main/session_viewer/src/lib.rs');
+  assert.equal(repositorySourceLink('Cargo.toml'),
+    'https://github.com/petrasvestartas/session/blob/main/Cargo.toml');
+});
 
 test('Rust source links receive plain-text filenames and retain the original exact download bytes', () => {
   const assets = new Map<string, string>();

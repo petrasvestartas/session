@@ -355,25 +355,25 @@ impl Ui {
         // the scene draws the 3D objects; its camera gives the labels their projection
         let canvas = [logical[0], logical[1]];
         let f = crate::app::stage::paint::Frame::new(screen, ppp)
-            .stacked(screen, stage.stage.split)
+            .stacked(screen, stage.presentation.stage.split)
             .side(0.0);
-        stage.stage.tick(now);
+        stage.presentation.stage.tick(now);
         // a deck on a light ground gets the viewer's white backdrop, a dark one the black clear
-        let ground = stage.stage.palette("bg");
+        let ground = stage.presentation.stage.palette("bg");
         state.gpu.view.dark = ground[0] + ground[1] + ground[2] < 1.5;
         state.gpu.view.show_grid = false; // the deck draws its own floor grid as kernel lines
-        let (cam, busy) = stage.stage.camera(now);
-        let (serial, origin) = (stage.stage.cam_serial, stage.stage.origin());
+        let (cam, busy) = stage.presentation.stage.camera(now);
+        let (serial, origin) = (stage.presentation.stage.cam_serial, stage.presentation.stage.origin());
         stage.scene3.camera(state, cam, busy, serial, origin, &f, canvas);
-        stage.stage.lens = Some(crate::app::stage::spatial::Scene3::lens(state, &f, canvas));
+        stage.presentation.stage.lens = Some(crate::app::stage::spatial::Scene3::lens(state, &f, canvas));
         let mut output = self.context.run_ui(input, &mut |root: &mut egui::Ui| {
             let painter = root.painter().with_clip_rect(screen);
             more = stage.paint(&painter, screen, ppp, now);
         });
-        let bg = stage.stage.palette("bg");
-        let (list, epoch) = (std::mem::take(&mut stage.stage.objects3), stage.stage.epoch);
+        let bg = stage.presentation.stage.palette("bg");
+        let (list, epoch) = (std::mem::take(&mut stage.presentation.stage.objects3), stage.presentation.stage.epoch);
         stage.scene3.sync(state, &list, epoch, bg, f.k as f64);
-        stage.stage.objects3 = list;
+        stage.presentation.stage.objects3 = list;
         state.stage = Some(stage);
         self.input
             .handle_platform_output(&state.window, std::mem::take(&mut output.platform_output));

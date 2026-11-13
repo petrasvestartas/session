@@ -1,5 +1,23 @@
 # 3.3 · Validated files, bounds and useful projections
 
+## Current session decoder
+
+Open geometry only after its representation has been validated. This subject owns input decoding and contextual rejection; the document owner receives a complete kernel `Session`, and the renderer derives display resources from it. The prerequisite is asynchronous file loading with a clear owner for the incoming bytes.
+
+Follow `session_from_body` in [decode.rs](../../../src/app/decode.rs). `Body::Bytes` already owns wasm/native bytes. `Body::Js` retains a JavaScript buffer and copies the requested field through a reusable window. The nominal window is 1 MiB, but a requested field can enlarge it; this is not a promise that total decode memory stays below 1 MiB. Whole-file geometry payloads above 512 MiB are rejected with an instruction to use cloud streaming.
+
+`Reader::field` separates the protobuf field number from its wire type, checks additions and enclosing-message bounds, and identifies the next field. Truncated lengths and malformed headers become errors before conversion. A first pass records top-level field locations. Counting objects before `reserve_exact` avoids repeated table growth while old and new allocations coexist. Conversion yields to the browser every 25,000 converted objects; that count is a scheduling interval, not a maximum object size or a hard latency guarantee.
+
+The object conversion path calls the matching validators in [validate.rs](../../../src/app/validate.rs). Fallible surface, BRep and element conversions propagate their errors. Components remain complete kernel components, including `Matrix`; decoding does not turn them into a substitute display mesh. Placements, definitions, tree, graph and interactions are restored before `reindex` completes the session.
+
+Graph decoding retains vertex numeric attributes and edge attribute maps. A stored edge GUID is copied onto both adjacency entries because interaction records refer to that GUID. The `vertices` option can omit standalone graph vertices for a display-only document that will never be saved; use the full path when authored graph data must survive saving. Unknown interaction types retain their names so the layers panel can still describe them.
+
+**Predict and try:** run the file checkpoint below, then truncate a copy of its input. Predict an error with no partially imported document. For the production protobuf reader, the corresponding field-boundary tests must reject an advertised length extending past its enclosing message.
+
+**Question:** does copying one window at a time make every file cheap? **Answer:** no. The retained JavaScript body, a large individual field and the resulting kernel objects still consume memory. Admission limits, validation and incremental conversion address different costs.
+
+The checkpoint below verifies its own file format and import behavior. Its cumulative replacement by the production session decoder remains pending; this explanation does not establish implementation parity.
+
 **Steps:** 14 · **Source:** `src/app/decode.rs` · `src/app/loader.rs` · `src/state.rs`
 
 ## <a id="checkpoint-22a-records"></a>1. Validate a raw mesh record

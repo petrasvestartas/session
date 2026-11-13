@@ -1,5 +1,23 @@
 # 9.3 · Trimmed curved faces with real open holes
 
+## Current face-to-source mapping
+
+Display the trimmed faces while retaining enough source information to update their samples after an edit. Complete the surface and shared-edge subjects first. This subject owns the connection from each displayed face vertex back to a surface parameter; shared edge chains and face orientation keep their existing owners.
+
+Read `walk_brep_fresh`, `push_face` and `cache_samples` in [brep.rs](../../../src/app/walk/brep.rs). The walker obtains one mesh per face, derives shared boundary chains and determines each face's orientation. An inward face reverses both its vertex normals and triangle winding. Reversing only one would make lighting and front-face tests disagree. Faces remain independently uploaded, so a crease does not acquire a smoothed normal from its neighbour.
+
+`push_face` appends a face-source address containing the parent object row and original face index. Every triangle of that face receives this address; GPU vertex offsets are a separate indexing concern. Selecting a displayed triangle can therefore resolve its authored face even when several faces share a surface.
+
+`cache_samples` orders mesh vertices by their keys before pairing them with rendered vertices. It retains each available `(u, v)`, the surface index and the GPU vertex index. The dot product between the analytic surface normal and displayed normal supplies a sign, preserving an orientation reversal during subsequent surface evaluation. If vertex counts differ, it records no pairing; a split render mesh cannot safely be associated by position in the list. Vertices without parameter attributes are skipped rather than assigned invented coordinates.
+
+The production tests in the same file check that refined surface borders use face vertices, that source IDs remain attached, and that edit-preview samples cover the rendered surface. The teapot boundary test measures edge-ink endpoints against authored curves and checks their distance from the corresponding mesh segment against its sag allowance. These are geometric checks; a screenshot alone cannot prove source identity or a valid parameter mapping.
+
+**Predict and try:** run the checkpoint below, inspect the open hole, then edit a surface control. The surrounding surface should move while the hole remains unfilled. Predict what happens if an orientation sign is discarded: a reevaluated face can acquire normals opposite to its displayed winding.
+
+**Question:** why retain both a face address and a surface index? **Answer:** topology selects a particular trimmed face; evaluation needs the underlying surface and its parameters. Those identities are related but are not interchangeable.
+
+The checkpoint below teaches trimmed-face parameter retention. Full cumulative parity with the production walker and fresh production rendering acceptance remain pending.
+
 **Steps:** 2 · **Source:** [app/walk/brep.rs](../../../src/app/walk/brep.rs) · [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs) · [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs) · [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

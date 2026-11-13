@@ -621,7 +621,7 @@ impl State {
         let input = FrameInput {
             view_proj,
             clear: if let Some(stage) = &self.stage {
-                let c = stage.stage.palette("bg");
+                let c = stage.presentation.stage.palette("bg");
                 wgpu::Color { r: c[0] as f64, g: c[1] as f64, b: c[2] as f64, a: 1.0 }
             } else {
                 CLEAR

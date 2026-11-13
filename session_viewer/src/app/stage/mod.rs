@@ -11,6 +11,9 @@ mod morph;
 pub mod net;
 mod object;
 pub mod paint;
+pub mod presentation;
+#[cfg(test)]
+mod presentation_tests;
 pub mod run;
 pub mod spatial;
 #[cfg(test)]
@@ -18,8 +21,6 @@ mod tests;
 pub mod tex;
 mod tween;
 mod view;
-
-use std::rc::Rc;
 
 /// Fonts and parsed deck, handed from the loader to the state.
 pub struct Loaded {
@@ -40,9 +41,7 @@ struct Touch {
 
 /// The running deck with its painter and pointer state.
 pub struct StageApp {
-    pub stage: run::Stage,
-    pub atlas: paint::Atlas,
-    pub frame: Option<paint::Frame>,
+    pub presentation: presentation::Presentation,
     pub scene3: spatial::Scene3,
     press: Option<([f32; 2], [f32; 2], bool)>, // Press on screen and slide, and whether it orbits.
     cursor: [f32; 2],
@@ -55,17 +54,10 @@ pub struct StageApp {
 impl StageApp {
     /// Open the deck at the chapter and step named in the page address.
     pub fn new(loaded: Loaded, now: f64) -> Self {
-        let fonts = Rc::new(loaded.fonts);
-        let mut atlas = paint::Atlas::new(&fonts);
-        let mut stage = run::Stage::new(fonts, loaded.index, loaded.chapters);
-        for (name, picture) in loaded.pictures {
-            let aspect = picture.size[0] as f32 / picture.size[1].max(1) as f32;
-            stage
-                .pictures
-                .insert(name, (atlas.pictures.len() as u16, aspect));
-            atlas.pictures.push(picture);
-        }
-        stage.now = now;
+        let mut presentation = presentation::Presentation::new(
+            loaded.fonts, loaded.index, loaded.chapters, loaded.pictures, now,
+        );
+        let stage = &mut presentation.stage;
         #[cfg(target_arch = "wasm32")]
         let query = |key: &str| crate::app::route::query(key).and_then(|v| v.parse::<usize>().ok());
         #[cfg(not(target_arch = "wasm32"))]
@@ -82,9 +74,7 @@ impl StageApp {
         );
         StageApp {
             scene3: spatial::Scene3::default(),
-            stage,
-            atlas,
-            frame: None,
+            presentation,
             press: None,
             cursor: [0.0; 2],
             last_click: 0.0,
@@ -97,7 +87,7 @@ impl StageApp {
     /// Keys: arrows and page keys step, up/down jump slides, digits open chapters, T swaps white and black.
     pub fn key(&mut self, key: winit::keyboard::Key<&str>, now: f64) -> bool {
         use winit::keyboard::{Key, NamedKey};
-        let stage = &mut self.stage;
+        let stage = &mut self.presentation.stage;
         match key {
             Key::Named(
                 NamedKey::ArrowRight | NamedKey::PageDown | NamedKey::Space | NamedKey::Enter,
@@ -132,7 +122,7 @@ impl StageApp {
         camera: &mut crate::camera::Camera,
     ) -> bool {
         use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
-        let Some(frame) = self.frame else {
+        let Some(frame) = self.presentation.frame else {
             return false;
         };
         match event {
@@ -145,7 +135,7 @@ impl StageApp {
                     let moved = (p[0] - start[0]).hypot(p[1] - start[1]);
                     if *orbit && moved > 3.0 {
                         camera.orbit(dx, dy);
-                        self.stage.changed = true;
+                        self.presentation.stage.changed = true;
                         return true;
                     }
                 }
@@ -158,7 +148,7 @@ impl StageApp {
             } => match state {
                 ElementState::Pressed => {
                     let at = frame.slide(egui::pos2(self.cursor[0], self.cursor[1]));
-                    self.press = Some((self.cursor, at, at[0] < self.stage.split * run::W));
+                    self.press = Some((self.cursor, at, at[0] < self.presentation.stage.split * run::W));
                     false
                 }
                 ElementState::Released => {
@@ -175,7 +165,7 @@ impl StageApp {
             WindowEvent::Touch(touch) => self.finger(touch, scale, now, camera),
             WindowEvent::MouseWheel { delta, .. } => {
                 let at = frame.slide(egui::pos2(self.cursor[0], self.cursor[1]));
-                if at[0] >= self.stage.split * run::W {
+                if at[0] >= self.presentation.stage.split * run::W {
                     return false;
                 }
                 let dy = match delta {
@@ -183,7 +173,7 @@ impl StageApp {
                     MouseScrollDelta::PixelDelta(p) => p.y / 60.0,
                 };
                 camera.zoom(dy as f32);
-                self.stage.changed = true;
+                self.presentation.stage.changed = true;
                 true
             }
             _ => false,
@@ -194,13 +184,13 @@ impl StageApp {
     fn tap(&mut self, orbit: bool, now: f64) {
         if orbit {
             if now - self.last_click < 350.0 {
-                self.stage.cam_serial += 1;
+                self.presentation.stage.cam_serial += 1;
             }
             self.last_click = now;
         } else {
-            self.stage.next(now);
+            self.presentation.stage.next(now);
         }
-        self.stage.changed = true;
+        self.presentation.stage.changed = true;
     }
 
     // --8<-- [start:stage-touch]
@@ -213,7 +203,7 @@ impl StageApp {
         camera: &mut crate::camera::Camera,
     ) -> bool {
         use winit::event::TouchPhase;
-        let Some(frame) = self.frame else {
+        let Some(frame) = self.presentation.frame else {
             return false;
         };
         let p = [
@@ -224,7 +214,7 @@ impl StageApp {
             TouchPhase::Started => {
                 let slide = frame.slide(egui::pos2(p[0], p[1]));
                 let inside = (0.0..run::H).contains(&slide[1]);
-                let orbit = inside && slide[0] < self.stage.split * run::W;
+                let orbit = inside && slide[0] < self.presentation.stage.split * run::W;
                 self.touch = Some(Touch {
                     id: touch.id,
                     start: p,
@@ -245,7 +235,7 @@ impl StageApp {
                     return false;
                 }
                 camera.orbit(dx, dy);
-                self.stage.changed = true;
+                self.presentation.stage.changed = true;
                 true
             }
             TouchPhase::Ended => {
@@ -260,11 +250,11 @@ impl StageApp {
                     && dx.abs() > 1.5 * dy.abs()
                 {
                     if dx < 0.0 {
-                        self.stage.next(now);
+                        self.presentation.stage.next(now);
                     } else {
-                        self.stage.prev(now);
+                        self.presentation.stage.prev(now);
                     }
-                    self.stage.changed = true;
+                    self.presentation.stage.changed = true;
                 }
                 true
             }
@@ -284,12 +274,7 @@ impl StageApp {
         ppp: f32,
         _now: f64,
     ) -> bool {
-        let frame = paint::Frame::new(screen, ppp).stacked(screen, self.stage.split);
-        self.frame = Some(frame);
-        self.atlas.overflowed = false;
-        paint::paint(&mut self.stage, &mut self.atlas, painter, &frame, screen);
-        let more = self.stage.animating() || self.stage.changed || self.atlas.overflowed;
-        self.stage.changed = false;
+        let more = self.presentation.paint(painter, screen, ppp);
         #[cfg(target_arch = "wasm32")]
         self.publish();
         more
@@ -298,7 +283,7 @@ impl StageApp {
     /// Step, animation and overlap state on the canvas for browser checks.
     #[cfg(target_arch = "wasm32")]
     fn publish(&mut self) {
-        let stage = &mut self.stage;
+        let stage = &mut self.presentation.stage;
         let (slide, step) = stage.position();
         let overlaps = if stage.animating() {
             Vec::new()

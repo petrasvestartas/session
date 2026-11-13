@@ -64,6 +64,22 @@ Read `prim`, `Out::flush` and `paint` in the same file. Glyphs accumulate into o
 
 The viewer's scene text lane cannot draw these font glyph IDs. Mathematics therefore uses the font's MATH layout and egui glyph quads. The later 3D picture still uses the real scene and camera.
 
+### Keep the presentation together
+
+The production [presentation owner](../../src/app/stage/presentation.rs) keeps the running deck, its glyph and picture atlas, and the last painted coordinate mapping together:
+
+```rust
+--8<-- "session_viewer/src/app/stage/presentation.rs:stage-presentation"
+```
+
+Its constructor assigns each named picture an atlas index and an aspect ratio in the same pass. Its `paint` method stores the frame used for drawing, clears the previous overflow flag, paints, and returns whether animation, changed state or a newly overflowing atlas requires another frame. It clears `changed` only after calculating that result. The outer application owns the clock tick, camera projection, event routing and GPU submission.
+
+Keeping this owner independent of scene rows lets the later `StageApp` contain the same presentation alongside `Scene3` and pointer state. It does not replace the parser, runtime or painter. Predict what would happen if `changed` were cleared before computing the return value: a static invalidation would no longer request another frame. The presentation regression tests check this transition, picture indices and desktop/upright coordinate round trips.
+
+The [regression fixture](../../src/app/stage/presentation_tests.rs) creates a one-step formula deck and two pictures. It checks that picture IDs still address the correct aspect ratios and pixels. Painting twice must retain glyph output while the repaint request settles from true to false; mapping a slide point to screen coordinates and back must recover it in both viewport shapes. These are CPU egui checks, not GPU or device acceptance.
+
+This ownership boundary is separate from cumulative acceptance. The standalone checkpoint and its recorded browser evidence remain intact; application-mode registration into the cumulative course is still pending.
+
 ### Column and equals alignment
 
 Copy [layout.rs](../lessons/03a-math/src/app/stage/layout.rs) and [object.rs](../lessons/03a-math/src/app/stage/object.rs). An object keeps its content, colour, size, position, fit, opacity and named primitive groups. Layout measures blocks before positioning them.

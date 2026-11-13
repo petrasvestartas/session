@@ -12,7 +12,7 @@ import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
 import { readingBook } from '../src/courseBook';
 import { svgHtml } from './svg';
-import { registerLinkedAsset } from './course-source-assets';
+import { registerLinkedAsset, repositorySourceLink } from './course-source-assets';
 import { archivedPage, originalPage } from './course-archive';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -20,7 +20,6 @@ const SESSION = path.resolve(HERE, '../..');
 const VIEWER = path.join(SESSION, 'session_viewer');
 const DOCS = path.join(VIEWER, 'docs');
 const BASES = [DOCS, SESSION];
-const GITHUB = 'https://github.com/petrasvestartas/session/blob/main/';
 const SKIP_DIRS = new Set(['lessons', 'hooks', 'overrides', 'node_modules', '__pycache__', 'diagrams', 'reconstruction']);
 
 const LANGS = ['rust', 'wgsl', 'html', 'shellscript', 'toml', 'yaml', 'markdown', 'proto', 'json', 'cpp', 'python', 'javascript'];
@@ -290,7 +289,7 @@ export default function coursePlugin(): Plugin {
           const revision = createHash('sha256').update(fs.readFileSync(abs)).digest('hex').slice(0, 12);
           return { url: `${base}course/${key}?v=${revision}`, external: false };
         }
-        if (abs.startsWith(SESSION + path.sep)) return { url: GITHUB + posix(path.relative(SESSION, abs)), external: true };
+        if (abs.startsWith(SESSION + path.sep)) return { url: repositorySourceLink(posix(path.relative(SESSION, abs))), external: true };
       }
       links.push({ from: rel, href, slug: '', frag: '' });
       return { url: href, external: false };
