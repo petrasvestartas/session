@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-39-visible"></a>1. Resolve visibility for every drawing kind
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/39-visible-0a45ef5b8472.png). The inherited comparison scene remains visible; separate constructor checks cover hidden mesh, line, curve and point GPU usage and release of the original curve owner.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>

@@ -1727,13 +1727,13 @@ Run hidden-source checks for meshes, lines, polylines, curves and points. No hid
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
-![Native renderer output for resolve original visibility for every drawing kind.](../screenshots/journey/37d-render.png)
+![Native presentation at this checkpoint.](../screenshots/journey/39-visible-0a45ef5b8472.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited comparison scene remains visible; separate constructor checks cover hidden mesh, line, curve and point GPU usage and release of the original curve owner. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [5.3.5 · Draw original point rows and count their resources](37d-render.md). It does not demonstrate a new feature by itself.
+This scene continues [5.3.5 · Draw original point rows and count their resources](37d-render.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>
