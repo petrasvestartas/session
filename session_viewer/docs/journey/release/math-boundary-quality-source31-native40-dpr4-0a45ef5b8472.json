@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-next-six-case-40-01\\capture-ready.json",
+    "sha256": "6d7194a787f866f277d5cb9e89362ca489fed88fb5ede2c4edbb5b42ede5b18a"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T21:43:07.925Z",
+  "id": "40-colour",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-40-colour-462fea2ecd58aadab17d\\capture.json.gz",
+    "sha256": "2a99e2e4f776e37c2c49c885fac9bff795a707bbd53c895219faa10cd5f3e080",
+    "bytes": 82055
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-next-six-case-40-01\\capture-result.json",
+    "sha256": "98a32d7f62b941ca8f2e570745ec2198335f90de13c095be646269fb8a0a7c3c"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-next-six-40-01-execution.json",
+    "sha256": "10feca7bad2ce28e859cd539120f5d4a9d5867756ca40959ea33af6e6fe5f44a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-next-six-case-40-01\\bounded-terminal.json",
+    "sha256": "8156ddba027588c77aea774ba4c60b3caf8df0aa82a0d22d7d421531feb3f331"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\40-colour-0a45ef5b8472.png",
+    "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\37d-render.png",
+    "sha256": "03ef29f4b2921ac06059b2523f38fbdb26c53307219ecb333b5f2e936f74991f"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened the original2560x1920 PNG and verified exact byte identity with the personally reviewed39a frame: selected yellow block, tall brown object, black original line/polyline and blue marker; correct surface occlusion, no triangulation-edge strokes and retained small raster steps. The colour stage intentionally retains this final comparison scene. Its actual constructor separately invokes prove_colour_pixels: object colour equality, point-colour interpolation and red/blue face colours are checked by real640x480 texture readback. These constructor checks do not mean the final comparison image demonstrates all colour modes; canonical final-image640 verifier and browser interactions remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 40-colour rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-next-six-case-40-01\\publication.json",
+    "sha256": "fd3079f4f537f41e2ca6bb3c24cbd229ded9194b1ba4752ea6372bb20200e82d"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-40-colour-462fea2ecd58aadab17d\\publication.json",
+    "sha256": "acb9430b6408bf023f62d6e774abc10f93d100d42d1d11702fa3298f81c552ba"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-40-colour-462fea2ecd58aadab17d\\retirement.json.gz",
+    "sha256": "29e615be184ac65c74120aa4ec3a7b5653886cec9225e0e05560dedafa5c8d2f"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-40-colour-462fea2ecd58aadab17d\\retired.json",
+    "sha256": "9eac6e67dc2b85d96dc5fead51065378c3d1cfbcb9c3c0416093ef21bc23a699"
+  }
+}

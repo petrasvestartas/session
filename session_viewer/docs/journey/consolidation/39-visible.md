@@ -612,6 +612,8 @@ impl Object {
 
 ## <a id="checkpoint-39a-depth"></a>2. Share surface depth across all ink lanes
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/39a-depth-0a45ef5b8472.png). The comparison scene is unchanged; constructor readbacks separately exercise shared surface and ink depth.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>

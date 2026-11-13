@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-41-normals"></a>1. Retain checked source normals beside display positions
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41-normals-0a45ef5b8472.png). The comparison scene is unchanged; retained source normals do not yet introduce smooth lighting in this frame.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -331,6 +333,8 @@ fn normal_streams_refuse_mismatches_and_nonfinite_values_without_overflow() {
 ```
 
 ## <a id="checkpoint-41a-placement"></a>2. Transform normals with nonuniform surface placement
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41a-placement-0a45ef5b8472.png). The comparison scene is unchanged; normal-placement preparation precedes GPU settings and smooth lighting.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
