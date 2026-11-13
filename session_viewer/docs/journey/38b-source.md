@@ -898,15 +898,15 @@ The original curve owner is prepared. The supplied document fixture shows duplic
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 This checkpoint was rendered independently and has the same native comparison frame as [Sample a validated curve without replacing its source](38a-samples.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native renderer output for retain original curves beside their display samples.](../screenshots/journey/37d-render.png)
+![Native presentation at this original-curve checkpoint.](../screenshots/journey/38b-source-0a45ef5b8472.png?v=0a45ef5b8472)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited blocks, line/path strokes and blue point remain the visible scene; no new curve-control feature is pictured. Physical sizing precedes the actual refinement drain. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [5.3.5 · Draw original point rows and count their resources](37d-render.md). It does not demonstrate a new feature by itself.
+This scene continues [5.3.5 · Draw original point rows and count their resources](37d-render.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

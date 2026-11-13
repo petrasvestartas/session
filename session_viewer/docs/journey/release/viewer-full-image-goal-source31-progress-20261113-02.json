@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "status": "TWO_FRESH_SOURCE31_IMAGE_PRESENTATIONS_PUBLISHED_FULL_1334_SCOPE_ACTIVE",
+  "at": "2026-11-13T20:18:01.194552+00:00",
+  "inventory": 1763,
+  "affected": 1334,
+  "explicitlyUnchanged": 429,
+  "sourceFreeze": {
+    "path": "source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "destinationAudit": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-destination-audit-02.json",
+    "sha256": "5763a687c0556d713b3cfffb876f32712bdc1ae241d6a730ad16cc0b01813da8"
+  },
+  "retainedOriginalBytes": {
+    "exactMatches": 429,
+    "mismatches": 0,
+    "recoveryProofSha256": "564d60bceadb1a6d4e5139b09d676ffd245180a7f560934dd0a12f35111300c3"
+  },
+  "freshImagePresentations": [
+    {
+      "baselineIndex": 170,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38a-samples.png",
+      "versionedImage": "docs/screenshots/journey/38a-samples-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "043b7c37213b35ffa9c3fcaf65d83963fbb88f095f2958ed888681e02d6f6d41",
+      "reader": {
+        "path": "docs/journey/38a-samples.md",
+        "sha256": "d0f8921cbf69f553f28bf02ef4a8f200d472155c1aa74081ebe221921d4b3842"
+      },
+      "servedBrowserVerification": "PENDING"
+    },
+    {
+      "baselineIndex": 171,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38b-source.png",
+      "versionedImage": "docs/screenshots/journey/38b-source-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38b-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "5f344c8990aa7079e15892a71cac24678c7215f32e348ff1c251524c0f469878",
+      "reader": {
+        "path": "docs/journey/38b-source.md",
+        "sha256": "f20d4bd5bbb96a670c1094c45d7d360f624d825b05d783c339ec2cea5ac34f40"
+      },
+      "servedBrowserVerification": "PENDING"
+    }
+  ],
+  "currentSourceFreshImagePresentations": 2,
+  "remainingCurrentSourceImagePresentations": 1332,
+  "olderReceipts": "Historical evidence requires exact source/destination reconciliation; no automatic transfer toSource31.",
+  "scope": "Image regeneration and Root original-pixel review only; canonical fixed-resolution validation and final updated served-site browser checks remain separate. Full objective active.",
+  "previousProgressSnapshot": {
+    "path": "docs/journey/release/viewer-full-image-goal-source31-progress-20261113.json",
+    "sha256": "dcc39d40d2037b1b08a3f89d7b223cecc4fadebaae5d9904497b7e020b535592"
+  }
+}
