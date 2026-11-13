@@ -201,6 +201,8 @@ fn malicious_curve_layouts_return_errors_before_kernel_evaluation() {
 
 ## <a id="checkpoint-38a-samples"></a>2. Sample a validated curve without replacing its source
 
+Recorded native sampling frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38a-samples-0a45ef5b8472.png). The inherited blocks, strokes and point marker remain the visible scene; the new curve behavior requires separate state checks.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -1025,6 +1027,8 @@ mod native_projection_tests {
 ```
 
 ## <a id="checkpoint-38b-source"></a>3. Retain curves beside their display samples
+
+Recorded native source-retention frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38b-source-0a45ef5b8472.png). The inherited blocks, strokes and point marker remain the visible scene; the new curve behavior requires separate state checks.
 
 ### 1. `src/chain.rs`
 

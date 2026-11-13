@@ -902,7 +902,7 @@ The original curve owner is prepared. The supplied document fixture shows duplic
 
 This checkpoint was rendered independently and has the same native comparison frame as [Sample a validated curve without replacing its source](38a-samples.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native presentation at this original-curve checkpoint.](../screenshots/journey/38b-source-0a45ef5b8472.png?v=0a45ef5b8472)
+![Native presentation at this original-curve checkpoint.](../screenshots/journey/38b-source-0a45ef5b8472.png)
 
 *Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited blocks, line/path strokes and blue point remain the visible scene; no new curve-control feature is pictured. Physical sizing precedes the actual refinement drain. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 

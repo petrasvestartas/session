@@ -152,7 +152,7 @@ Run straight, curved, periodic and malformed curve sampling checks. Original con
 
 This checkpoint was rendered independently and has the same native comparison frame as [Validate an original NURBS curve before sampling](38-layout.md). Use its state checks and browser exercise to assess the changed behavior.
 
-![Native comparison scene retained at the curve-sampling checkpoint.](../screenshots/journey/38a-samples-0a45ef5b8472.png?v=0a45ef5b8472)
+![Native comparison scene retained at the curve-sampling checkpoint.](../screenshots/journey/38a-samples-0a45ef5b8472.png)
 
 *Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited blocks, strokes and point marker remain the visible scene at this lesson; curve sampling is checked in code. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 

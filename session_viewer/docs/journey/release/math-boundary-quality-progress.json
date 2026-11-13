@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_FULL_1334_AFFECTED_IMAGE_GOAL",
-  "updatedUtc": "2026-11-13T20:11:19.970947+00:00",
+  "updatedUtc": "2026-11-13T20:43:50.289287+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -355,8 +355,8 @@
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 94,
     "remainingPlannedImageAcceptances": 1332,
-    "physicalJourneyPngs": 566,
-    "uniqueJourneyPngs": 565,
+    "physicalJourneyPngs": 571,
+    "uniqueJourneyPngs": 568,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -2384,7 +2384,13 @@
       "canonicalBehaviorExecuted": false,
       "httpSha256Verified": false,
       "servedChromeVerified": false,
-      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET",
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "anchor": "checkpoint-38a-samples",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      }
     },
     {
       "id": "38b-source",
@@ -2399,7 +2405,13 @@
       "canonicalBehaviorExecuted": false,
       "httpSha256Verified": false,
       "servedChromeVerified": false,
-      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET",
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/38-layout.md",
+        "anchor": "checkpoint-38b-source",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      }
     }
   ],
   "stages": [
@@ -2626,6 +2638,19 @@
     "latestProgressReceipt": {
       "path": "docs/journey/release/viewer-full-image-goal-source31-progress-20261113-02.json",
       "sha256": "1fe83a6cc05f4627e9a6460f581308f9224bd13742249c60f4dd72a90ec3bf84"
+    },
+    "source31PrimaryReaderPlacement": {
+      "path": "docs/journey/release/viewer-source31-native-reader-placement-20261113.json",
+      "sha256": "3e2f17826d03fd481fb33075db8bf90306fc1c4f68361a061a74de7f9a71bc85",
+      "sourceOnly": true,
+      "servedBrowserVerification": "PENDING"
+    },
+    "portableOriginalInventory": {
+      "path": "docs/journey/release/viewer-image-goal-inventory-1763-20261113.json",
+      "sha256": "9625bc0a53699b15fc420d45799da351f7d041a7f9cc386a7cc331c2d3227052",
+      "inventory": 1763,
+      "affected": 1334,
+      "explicitlyUnchanged": 429
     }
   },
   "historicalReducedInventoryMetricsBeforeFullScopeRestoration": {
