@@ -1,10 +1,10 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-12T05:10:27.935354+00:00",
+  "updatedUtc": "2026-11-13T07:13:38.400126+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-27-cad-page-status-metadata.json",
+    "maintainedSourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
     "frozenFiles": 549,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
@@ -185,16 +185,13 @@
       "sha256": "ae4406849a5d423b9f8288b5045a9fe91a0134e76235d4d63bad7ced8b6ba28d"
     },
     "currentDependencyQualification": {
-      "status": "PARTIAL_SOURCE23_NATIVE_EXPANDED_REFINEMENT_IMAGES_ROOT_REVIEWED_RETIRED",
-      "freeze": "source-freeze-23-native-refinement-profile.json",
-      "sourceFiles": 542,
-      "acceptedImages": 2,
-      "historicalFreeze13AcceptedImages": 51,
-      "historicalFreeze15AcceptedImages": 14,
-      "historicalFreeze19AcceptedImages": 5,
-      "historicalFreeze20AcceptedImages": 6,
-      "historicalFreeze22AcceptedImages": 15,
-      "scope": "Historical51freeze13,14freeze15,5freeze19,6freeze20 and15freeze22 retain their exact recorded source/helper scopes. Current source23 has2 expanded-refinement Native78/79 IMAGE acceptances with542pins, rawDPR4, original quality/draw assertions, Root original-pixel review and normal retirement. Default generated files/drivers remain unchanged; no default-profile/canonical640/browser/full-suite acceptance is inferred. DenseSource22 supplement remains separate. Visible34/42."
+      "status": "PARTIAL_SOURCE28_BROWSER59F_ROOT_REVIEWED_RETIRED",
+      "freeze": "source-freeze-28-post-pull-cloud-handoff.json",
+      "sourceFiles": 549,
+      "acceptedImages": 1,
+      "historicalPrimaryImages": 93,
+      "historicalSupportingMeasurementFigures": 1,
+      "scope": "One current-source28 full59f browser callback image case; original DPR1/DPR2 assertions intact, two topic illustrations separately counted, Root original-pixel review and normal retirement. Actual compiler2CPU6GiB/fullcallback8CPU8GiB; canonical validation profile false. Historical93 Native cases and Source26 supporting measurement1 remain separate."
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -282,25 +279,45 @@
       "historicalFreeze15AcceptedImages": 14,
       "historicalFreeze19AcceptedImages": 5,
       "scope": "Only the listed fresh Native IMAGE fixtures. Original draw assertions, raw2560x1920 pixels, Root review and normal ledger retirement. No canonical640 or browser callback claim."
+    },
+    "postPullSource28": {
+      "frozenFiles": 549,
+      "changedUpstreamPins": 18,
+      "freshRuntimeAcceptances": 1,
+      "historicalNativeAcceptances": 93,
+      "historicalSupportingMeasurementFigures": 1,
+      "scope": "Prior receipts preserved with their exact source epochs; fresh Source28 topics/caps/final website QA pending."
+    },
+    "historicalSource23Qualification": {
+      "status": "PARTIAL_SOURCE23_NATIVE_EXPANDED_REFINEMENT_IMAGES_ROOT_REVIEWED_RETIRED",
+      "freeze": "source-freeze-23-native-refinement-profile.json",
+      "sourceFiles": 542,
+      "acceptedImages": 2,
+      "historicalFreeze13AcceptedImages": 51,
+      "historicalFreeze15AcceptedImages": 14,
+      "historicalFreeze19AcceptedImages": 5,
+      "historicalFreeze20AcceptedImages": 6,
+      "historicalFreeze22AcceptedImages": 15,
+      "scope": "Historical51freeze13,14freeze15,5freeze19,6freeze20 and15freeze22 retain their exact recorded source/helper scopes. Current source23 has2 expanded-refinement Native78/79 IMAGE acceptances with542pins, rawDPR4, original quality/draw assertions, Root original-pixel review and normal retirement. Default generated files/drivers remain unchanged; no default-profile/canonical640/browser/full-suite acceptance is inferred. DenseSource22 supplement remains separate. Visible34/42."
     }
   },
   "images": {
     "inventoryTotal": 1752,
     "explicitlyUnchanged": 426,
     "affected": 1326,
-    "newPublishedReviewed": 98,
-    "remainingAffected": 1228,
-    "acceptedForFinalSource": 0,
-    "remainingFinalSourceAcceptance": 1326,
-    "qualificationNote": "Source27 adds one59f finalpage-status metadata correction to unchanged548Source26files. Currentprimarycase0;93historicalNative lineage acceptances and separateSource26supportingmeasurement1 retain exactproofs. Source26full59fcallback passed, but outerstatusfailed; twofailedattempttopicimages notaccepted/reused. Freshsource27 runtimepending.",
+    "newPublishedReviewed": 99,
+    "remainingAffected": 1227,
+    "acceptedForFinalSource": 1,
+    "remainingFinalSourceAcceptance": 1325,
+    "qualificationNote": "Source28 fresh full59f original DPR1/DPR2 callback passed with original assertions, Root all original pixels reviewed,3PNGs published and normal retirement. One primary case plus2 topic illustrations; supporting figures and historical93 cases remain separate. Actual compiler2CPU6GiB, fullcallback8CPU8GiB; canonical validation profile false.37/42 visible complete,5pending.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
-    "acceptedAcrossRendererLineage": 93,
-    "remainingPlannedImageAcceptances": 1233,
-    "physicalJourneyPngs": 558,
-    "uniqueJourneyPngs": 558,
+    "acceptedAcrossRendererLineage": 94,
+    "remainingPlannedImageAcceptances": 1232,
+    "physicalJourneyPngs": 559,
+    "uniqueJourneyPngs": 559,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -636,16 +653,17 @@
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 7,
+    "pending": 5,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 35,
+    "published": 37,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
     "native77Published": 1,
-    "measurementPublished": 1
+    "measurementPublished": 1,
+    "cadTopicIllustrationsPublished": 2
   },
   "published": [
     {
@@ -2170,6 +2188,48 @@
       "httpSha256Verified": false,
       "servedChromeVerified": false,
       "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "59f-cad",
+      "lane": "browser",
+      "kind": "primary-case",
+      "receipt": "docs/journey/release/reader-topic-source28-59f-cad-6d8d8d99bb6e.json",
+      "receiptSha256": "e0fbd40552c23ba0b927ef4d8a9b23315163c542dff52e9b7ff1e958b1dde119",
+      "image": "docs/screenshots/journey/59f-cad-6d8d8d99bb6e.png",
+      "imageSha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e",
+      "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "59f-cad#cad-face-6",
+      "lane": "browser",
+      "kind": "supporting-topic-illustration",
+      "receipt": "docs/journey/release/reader-topic-source28-59f-cad-6d8d8d99bb6e.json",
+      "receiptSha256": "e0fbd40552c23ba0b927ef4d8a9b23315163c542dff52e9b7ff1e958b1dde119",
+      "image": "docs/screenshots/reader-illustrations/59f-cad/cad-face-6-78ff32b131b7.png",
+      "imageSha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f",
+      "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+    },
+    {
+      "id": "59f-cad#cad-edge-13",
+      "lane": "browser",
+      "kind": "supporting-topic-illustration",
+      "receipt": "docs/journey/release/reader-topic-source28-59f-cad-6d8d8d99bb6e.json",
+      "receiptSha256": "e0fbd40552c23ba0b927ef4d8a9b23315163c542dff52e9b7ff1e958b1dde119",
+      "image": "docs/screenshots/reader-illustrations/59f-cad/cad-edge-13-3a739a767531.png",
+      "imageSha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642",
+      "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
+      "rootVisuallyReviewed": true,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
     }
   ],
   "stages": [
@@ -2359,7 +2419,7 @@
     "newAcceptances": 0
   },
   "validationLedgerLatest": {
-    "path": "docs/journey/release/math-boundary-validation-ledger-20261112-03.json",
-    "sha256": "a339aa222e5e68048ac9319ec6a043385445af9d4ecde5928fd526c7dec2e643"
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-01.json",
+    "sha256": "80594c0bbebda1c5b686247b52597ab08d6931911de14a84bd251fc995cb1437"
   }
 }

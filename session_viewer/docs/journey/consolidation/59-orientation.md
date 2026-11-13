@@ -853,6 +853,10 @@ impl Presentation {
 
 ## <a id="checkpoint-59d-identities"></a>5. Pick and highlight an CAD border
 
+![Original circular BRep edge13 selected independently of the face](../../screenshots/reader-illustrations/59f-cad/cad-edge-13-3a739a767531.png)
+
+In the bore example introduced below, original circular BRep edge13 is selected independently of the shaded face. The yellow circular border is the source edge; the white hole stays open.
+
 ### 1. `src/pick_sources.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -1102,6 +1106,10 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-59f-cad"></a>7. Draw the bore and prove its empty hole
+
+![Original source face6 selected around the open bore](../../screenshots/reader-illustrations/59f-cad/cad-face-6-78ff32b131b7.png)
+
+The completed bore example has original source face6 selected in yellow. The hole remains empty; the original GPU pick probe found no face inside it.
 
 ### 1. `src/editor.rs`
 
@@ -1416,7 +1424,7 @@ fn actual_cad_hole_has_no_face_pick_and_integer_faces_retain_original_identity()
 
 ## Build & Run
 
-![Recorded visual output for Lesson 9.5 (59f-cad)](../../screenshots/journey/59f-cad.png)
+![Recorded visual output for Lesson 9.5 (59f-cad)](../../screenshots/journey/59f-cad-6d8d8d99bb6e.png)
 
 ```sh
 cd workspace/journey
