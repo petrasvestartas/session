@@ -1,6 +1,6 @@
 {
-  "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-13T09:21:42.770576+00:00",
+  "status": "COMPLETE_PLANNED_VISIBLE_FIGURES_AND_FINAL_WEBSITE_REVIEW",
+  "updatedUtc": "2026-11-13T09:28:25.131035+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -701,7 +701,9 @@
     "worldLabelIllustrationPublished": 1,
     "unfinishedLinePreviewPublished": 1,
     "allFourTopicIllustrationsPublished": true,
-    "capImageProfilesPublished": 3
+    "capImageProfilesPublished": 3,
+    "imageTaskComplete": true,
+    "finalWebsiteQaComplete": true
   },
   "published": [
     {
@@ -2556,5 +2558,10 @@
   "validationLedgerLatest": {
     "path": "docs/journey/release/math-boundary-validation-ledger-20261113-03.json",
     "sha256": "1f156ab90bd1502531e68e737c824c65dcdec68d63c5a7b3c38a6599a794d535"
+  },
+  "completion": {
+    "receipt": "docs/journey/release/viewer-visible-image-work-complete-20261113.json",
+    "sha256": "803c625357fe16902966b8b9d5d52ac7c6e6178dc805976b1ea6a010ce96def2",
+    "scope": "All42 visible replacements and final static website QA complete. Historical/current full-source callback counts remain separate; no new full matrix run is required by this image-regeneration task."
   }
 }
