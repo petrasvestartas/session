@@ -1,0 +1,280 @@
+{
+  "checkpoint": "docs/lessons/03a-math",
+  "scope": "Standalone mathematics on Windows Intel WebGPU; upright viewport emulation is not a real-phone test; cumulative integration remains unfinished",
+  "browser": "157.0.8103.51",
+  "platform": "win32",
+  "args": [
+    "--enable-unsafe-webgpu",
+    "--ignore-gpu-blocklist",
+    "--use-angle=d3d11"
+  ],
+  "checkerSha256": "377da8c71a300fd9dc9a7fbeaad2d58f79c2fca2978583d4a8053a0489b457a5",
+  "sourceSha256": {
+    "Cargo.lock": "d3d18e75a6df5ccdc6f49fa3052e63d9a3f1450359480d8f63cabd53c1f333ef",
+    "Cargo.toml": "3b85e3c3d72aa388b6c0aa0cae5ddd6f6d958f9dbcad67a95124b07df43524cd",
+    "example.yaml": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a",
+    "index.html": "4aabe275d5ace205f544a88517acdc06daf36cf2747d37262f56de427e8b88ab",
+    "src/app/stage/actions.rs": "5968e4a65362a6bd3236c5dee9b907a55ea1c1a7d27306d51afefa9bf6ade09d",
+    "src/app/stage/check.rs": "40915c98440ce643d1b987983aad3d58077f255d404c4d546c1725f044014f83",
+    "src/app/stage/deck.rs": "cae7e6de073b888c44d0038be57e0af584708edb077fcc6b35220b9cc047e5ec",
+    "src/app/stage/draw.rs": "b5cb855e7654eecb78ce719d60fa8116ef4b418bf9516185b01b5b51e7e1eaf3",
+    "src/app/stage/eval.rs": "43421b37522e480291b3c4b5777f81dee65b12f9b016001f60329ec381207e4d",
+    "src/app/stage/font.rs": "75a961befd0ba7f371e65da9a2a4bf5255501d199aeb0b1e42738c7a4de7772c",
+    "src/app/stage/geometry.rs": "c77eff7f86f710212172b5e5ec2cc509c489298cb1b393aec1f5652f709e8ae9",
+    "src/app/stage/layout.rs": "e959b5bcd302d7504a7752ecf915de732d943eae04a60bd0bdf596f9dbc0e60a",
+    "src/app/stage/matrix.rs": "301a0a21ddbad546003fd83006d05304c25597c772c0486e7bd1ae4bd2dfd9f2",
+    "src/app/stage/morph.rs": "8bcccff2a8e6b66a47f2fedf3ff72045b9731cec7e653531f0ab014cfa869a34",
+    "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+    "src/app/stage/net.rs": "1e6e4931e919648b7841f8e38beca5fd7546ec9ced6552192d6f45c7195ef27a",
+    "src/app/stage/object.rs": "5ca468a78c21cf3111f7e84689a17938bc57b4cdda846f20d5e3d9aa14399055",
+    "src/app/stage/paint.rs": "f349ef5dad794f8e6eff8f99b396aa3ad101def99c06656daf5b069cfdbea997",
+    "src/app/stage/production_tests.rs": "f6b6b2d6c8141d9a8cf665a443fbadcb660e9052ebde3f0730382685d3619787",
+    "src/app/stage/run.rs": "a0a1a0a676ec8b1551a468993f221643d432554164ab5a066674f1e22ed7f5a7",
+    "src/app/stage/tex.rs": "2a758b3235e1918cc90923268040667b55302516cdcb46a94944ae0ca97b51d4",
+    "src/app/stage/tween.rs": "5023fcc4be65742c3b9fbde52ea40bd645a06e3d7c5d4c3f7ac8a65a2d07ca7f",
+    "src/app/stage/view.rs": "6e4a6352576e3940fe0d5b05affe4407c66383d8e36868127da25ebb2b75efb8",
+    "src/browser.rs": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0",
+    "src/lib.rs": "03a4416cdf85b7089d7751dfa6631e9461cf8e2bd936908c3837375ddff1bf07",
+    "src/tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba"
+  },
+  "inputs": {
+    "assets/stage/NewCMMath-Book.otf": "c74561f7468db46411725981ba30ad6f1e14094fa11e843ff8e8369508cf506e",
+    "assets/stage/NewCM10-Book.otf": "005abadbdf039dfabab28d5836ec5ec5d94b61410003ca043e7afcd10115af55",
+    "assets/stage/NewCM10-Bold.otf": "c49c61d51757edffeafc43b4d58925cedf9180f7942fb85a3f21a5319bbed07e",
+    "assets/stage/NewCMMono10-Book.otf": "cd3bdeb3eb3a2e3d1b33a4bfc639c32080a39b78c02da0cca060208202aa046c",
+    "assets/stage/logo-eth.png": "bad3cab4da798a796db2fba804f5400829adecd401baed0c48412aa8de09cfe3",
+    "assets/stage/logo-brg.png": "58eb99570cbb0102ec68d1a78e318510276e3bf7ee7c4605f562e7423c9ca499"
+  },
+  "cases": [
+    {
+      "name": "landscape",
+      "width": 1280,
+      "height": 720,
+      "deviceScaleFactor": 1,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "errors": [],
+      "frames": [
+        {
+          "file": "landscape-step-1.png",
+          "sha256": "548b75621240f113225d85a45d2f1d9770fc8530fd8a3223a1cd86e129cf649c",
+          "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+          "ink": 8664
+        },
+        {
+          "file": "landscape-step-2.png",
+          "sha256": "d9ae314f01b63f5142ee2427a397352805612f278b9f56703443f9d545400ce2",
+          "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd",
+          "ink": 11625
+        },
+        {
+          "file": "landscape-step-3.png",
+          "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+          "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+          "ink": 15330
+        },
+        {
+          "file": "landscape-step-4.png",
+          "sha256": "a3d50b553230d8cbd30623161b148e841358709fdbd78f26e2e6e1014ec37fd0",
+          "pixels": "74e1c3655198062c099ee25bde7f4cb3c183b26b028151b2fb40b28d34c11855",
+          "ink": 16932
+        }
+      ],
+      "previous": {
+        "file": "landscape-previous.png",
+        "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+        "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+        "ink": 15330
+      },
+      "dark": {
+        "file": "landscape-theme.png",
+        "sha256": "d8ae12c50f4bfc41c1cc12dde9fa32c4858727560dd254148349e1a8ddd1f7cf",
+        "pixels": "a9d3e487414ddf8377cb7db877b64d938563804cc368d01ee28add3112c62d32",
+        "ink": 17321
+      },
+      "restored": {
+        "file": "landscape-theme-restored.png",
+        "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+        "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+        "ink": 15330
+      }
+    },
+    {
+      "name": "portrait",
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 2,
+      "adapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
+      "errors": [],
+      "frames": [
+        {
+          "file": "portrait-step-1.png",
+          "sha256": "af83262bfd085ebde9488ae38f2b08e72a395e6db2dfebe0dc5a8b182efe884a",
+          "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+          "ink": 9096
+        },
+        {
+          "file": "portrait-step-2.png",
+          "sha256": "d120079818c13ce7d8d9e117599e40a12a0cc54cefa259c9599f949fd0d30dba",
+          "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363",
+          "ink": 11229
+        },
+        {
+          "file": "portrait-step-3.png",
+          "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+          "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+          "ink": 14473
+        },
+        {
+          "file": "portrait-step-4.png",
+          "sha256": "1c1dfa88b17de15f832f997c22e85236bd099eba97445a6d241c08f7285c68f2",
+          "pixels": "610b81d02e0541253192777c8475252c34e393e16eb5b25bab125a66c06ccc39",
+          "ink": 15424
+        }
+      ],
+      "previous": {
+        "file": "portrait-previous.png",
+        "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+        "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+        "ink": 14473
+      },
+      "dark": {
+        "file": "portrait-theme.png",
+        "sha256": "f79eb96370e4a1073dd754ef26110fe12a972dd204ba9bdc004626b4a1682b57",
+        "pixels": "e4c03ba28c960989bf711a7b6c80a475b1780bbaf867c6b6d779d116e32f53a8",
+        "ink": 15746
+      },
+      "restored": {
+        "file": "portrait-theme-restored.png",
+        "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+        "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+        "ink": 14473
+      }
+    }
+  ],
+  "date": "2026-11-13",
+  "sourceNormalization": "Exact Windows checkout bytes (CRLF where checked out by Git)",
+  "captureDirectory": "docs/screenshots/math-windows",
+  "wasmBuild": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-11-13T20:32:10.3160705Z",
+    "executable": "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+    "arguments": [
+      "build",
+      "--locked",
+      "--dist",
+      "C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/tutorial-math-web",
+      "--public-url",
+      "./"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\lessons\\03a-math",
+    "timeoutSeconds": 590,
+    "jobCommitLimitBytes": 4294967296,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 79.703,
+    "peakJobCommitBytes": 1619800064,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 4280,
+    "descendantsAtCleanup": 2
+  },
+  "browserGuard": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-11-13T20:36:30.3998222Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:/pc/tmp/session-tutorial-main-20261113/session_viewer/target/math-browser-preload.cjs",
+      "C:/pc/tmp/session-tutorial-main-20261113/session_tests/scripts/course/math-browser.cjs",
+      "http://127.0.0.1:8797/",
+      "C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/tutorial-math-browser-d3d"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113",
+    "timeoutSeconds": 180,
+    "jobCommitLimitBytes": 4294967296,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 17.895,
+    "peakJobCommitBytes": 683978752,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 31772,
+    "descendantsAtCleanup": 1
+  },
+  "windowsSoftwareAttempt": {
+    "platform": "windows-job-object",
+    "startedUtc": "2026-11-13T20:34:05.2213176Z",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "arguments": [
+      "--require",
+      "C:/pc/tmp/session-tutorial-main-20261113/session_viewer/target/math-browser-preload.cjs",
+      "C:/pc/tmp/session-tutorial-main-20261113/session_tests/scripts/course/math-browser.cjs",
+      "http://127.0.0.1:8797/",
+      "C:/pc/3_code/code_rust/wood_research/session/session_viewer/target/tutorial-math-browser"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113",
+    "timeoutSeconds": 180,
+    "jobCommitLimitBytes": 4294967296,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 1,
+    "timedOut": false,
+    "elapsedSeconds": 91.215,
+    "peakJobCommitBytes": 491503616,
+    "affinityMask": "0x3",
+    "processors": 2,
+    "processId": 12384,
+    "descendantsAtCleanup": 2,
+    "result": "Failed: first-frame status timed out with the default Vulkan/SwiftShader flags"
+  },
+  "bundleSha256": {
+    "index.html": "25840519344ebd26293256822416896bde689bcce8bac17676bbef39926c167c",
+    "viewer_math_lesson-aae7d14682cb476d.js": "987fa5da499a301602e9bd839315946f5d3e741ab8f7a17ef7ce5600a1c815b2",
+    "viewer_math_lesson-aae7d14682cb476d_bg.wasm": "6395f6a3040cb2bee50d13cd14854c110e5c4e5f4d35743705b8d7c0f232e92b"
+  },
+  "normalizedSourceSha256": {
+    "Cargo.lock": "d3d18e75a6df5ccdc6f49fa3052e63d9a3f1450359480d8f63cabd53c1f333ef",
+    "Cargo.toml": "3b85e3c3d72aa388b6c0aa0cae5ddd6f6d958f9dbcad67a95124b07df43524cd",
+    "example.yaml": "8df5f57f8a57fb33b47f03f13db3d75c86889202b6fe707b17a769a6d4aa7e0a",
+    "index.html": "4aabe275d5ace205f544a88517acdc06daf36cf2747d37262f56de427e8b88ab",
+    "src/app/stage/actions.rs": "5968e4a65362a6bd3236c5dee9b907a55ea1c1a7d27306d51afefa9bf6ade09d",
+    "src/app/stage/check.rs": "40915c98440ce643d1b987983aad3d58077f255d404c4d546c1725f044014f83",
+    "src/app/stage/deck.rs": "cae7e6de073b888c44d0038be57e0af584708edb077fcc6b35220b9cc047e5ec",
+    "src/app/stage/draw.rs": "b5cb855e7654eecb78ce719d60fa8116ef4b418bf9516185b01b5b51e7e1eaf3",
+    "src/app/stage/eval.rs": "43421b37522e480291b3c4b5777f81dee65b12f9b016001f60329ec381207e4d",
+    "src/app/stage/font.rs": "75a961befd0ba7f371e65da9a2a4bf5255501d199aeb0b1e42738c7a4de7772c",
+    "src/app/stage/geometry.rs": "c77eff7f86f710212172b5e5ec2cc509c489298cb1b393aec1f5652f709e8ae9",
+    "src/app/stage/layout.rs": "e959b5bcd302d7504a7752ecf915de732d943eae04a60bd0bdf596f9dbc0e60a",
+    "src/app/stage/matrix.rs": "301a0a21ddbad546003fd83006d05304c25597c772c0486e7bd1ae4bd2dfd9f2",
+    "src/app/stage/morph.rs": "8bcccff2a8e6b66a47f2fedf3ff72045b9731cec7e653531f0ab014cfa869a34",
+    "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+    "src/app/stage/net.rs": "1e6e4931e919648b7841f8e38beca5fd7546ec9ced6552192d6f45c7195ef27a",
+    "src/app/stage/object.rs": "5ca468a78c21cf3111f7e84689a17938bc57b4cdda846f20d5e3d9aa14399055",
+    "src/app/stage/paint.rs": "f349ef5dad794f8e6eff8f99b396aa3ad101def99c06656daf5b069cfdbea997",
+    "src/app/stage/production_tests.rs": "f6b6b2d6c8141d9a8cf665a443fbadcb660e9052ebde3f0730382685d3619787",
+    "src/app/stage/run.rs": "a0a1a0a676ec8b1551a468993f221643d432554164ab5a066674f1e22ed7f5a7",
+    "src/app/stage/tex.rs": "2a758b3235e1918cc90923268040667b55302516cdcb46a94944ae0ca97b51d4",
+    "src/app/stage/tween.rs": "5023fcc4be65742c3b9fbde52ea40bd645a06e3d7c5d4c3f7ac8a65a2d07ca7f",
+    "src/app/stage/view.rs": "6e4a6352576e3940fe0d5b05affe4407c66383d8e36868127da25ebb2b75efb8",
+    "src/browser.rs": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0",
+    "src/lib.rs": "03a4416cdf85b7089d7751dfa6631e9461cf8e2bd936908c3837375ddff1bf07",
+    "src/tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba"
+  }
+}

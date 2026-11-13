@@ -13,6 +13,7 @@ export const work = path.join(viewer, 'workspace/journey');
 export type Files = Record<string, string>;
 export interface Edit { path: string; snippet: string; before: string | null; why: string; copy?: boolean; reuse?: string; supplied?: 'validation' | 'example' | 'move'; rename_field?: boolean }
 export interface Step {
+    authored?: boolean;
     id: string; title: string; page: string; hours: [number, number]; goal: string;
     trace: string; question: string; answer: string; edits: Edit[]; story: string;
     result: string; experiment: string; production: string; browser_status?: string;

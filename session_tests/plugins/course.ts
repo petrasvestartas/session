@@ -85,9 +85,9 @@ function listPages(): string[] {
     }
   };
   walk(DOCS, 0);
-  const book = JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8'));
-  for (const chapter of book.chapters) {
-    for (const lesson of chapter.consolidated || []) out.push(path.join(DOCS, lesson.page));
+  const consolidated = path.join(DOCS, 'journey/consolidation');
+  for (const name of fs.readdirSync(consolidated)) {
+    if (name.endsWith('.md')) out.push(path.join(consolidated, name));
   }
   const arch = path.join(VIEWER, 'ARCHITECTURE.md');
   if (fs.existsSync(arch)) out.push(arch);

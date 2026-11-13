@@ -10,8 +10,9 @@ const viewer = path.resolve(__dirname, '../../../session_viewer');
 const checkpoint = path.join(viewer, 'docs/lessons/03a-math');
 const output = path.resolve(process.argv[3] || path.join(viewer, 'target/math-browser'));
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
-const args = ['--enable-unsafe-webgpu', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
+const args = process.env.MATH_BROWSER_ARGS ? JSON.parse(process.env.MATH_BROWSER_ARGS) : ['--enable-unsafe-webgpu', '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
     '--enable-features=Vulkan', '--use-vulkan=swiftshader'];
+assert(Array.isArray(args) && args.every(arg => typeof arg === 'string'), 'MATH_BROWSER_ARGS must be a JSON array of flags');
 
 async function main() {
     fs.mkdirSync(output, {recursive: true});
@@ -22,7 +23,7 @@ async function main() {
         for (const [name, width, height, deviceScaleFactor] of [['landscape', 1280, 720, 1], ['portrait', 390, 844, 2]]) {
             const page = await browser.newPage({viewport: {width, height}, deviceScaleFactor});
             const errors = [];
-            page.on('pageerror', error => errors.push(error.message));
+            page.on('pageerror', error => { errors.push(error.message); console.error(`${name}: ${error.message}`); });
             page.on('console', message => {
                 if (message.type() === 'error' && !message.text().startsWith('Failed to load resource:'))
                     errors.push(message.text());
@@ -34,7 +35,14 @@ async function main() {
             await page.goto(process.argv[2] || 'http://127.0.0.1:8780/');
             const wait = step => page.waitForFunction(expected =>
                 document.querySelector('#status')?.textContent === `Step ${expected}/4; animated: false`, step,
-                {timeout: 60000});
+                {timeout: 60000}).catch(error => {
+                    fs.writeFileSync(path.join(output, 'failure.json'), JSON.stringify({
+                        viewport: name, step, args, errors, error: error.message,
+                        checkerSha256: digest(fs.readFileSync(__filename)),
+                    }, null, 2) + '\n');
+                    console.error(`${name}: ${JSON.stringify(errors)}`);
+                    throw error;
+                });
             async function capture(label) {
                 await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
                 const png = PNG.sync.read(await page.screenshot());
@@ -92,7 +100,8 @@ async function main() {
             'logo-eth.png', 'logo-brg.png']) inputs[`assets/stage/${name}`] = digest(fs.readFileSync(path.join(viewer, 'assets/stage', name)));
         fs.writeFileSync(path.join(output, 'evidence.json'), JSON.stringify({
             checkpoint: 'docs/lessons/03a-math', scope: 'Full standalone stage core; cumulative integration remains separate',
-            browser: browser.version(), args, sourceSha256, inputs, cases,
+            browser: browser.version(), platform: process.platform, args,
+            checkerSha256: digest(fs.readFileSync(__filename)), sourceSha256, inputs, cases,
         }, null, 2) + '\n');
         console.log(`Passed ${cases.length} viewports: four visible steps, previous-frame equality and theme round trip.`);
     } finally { await browser.close(); }

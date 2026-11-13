@@ -62,7 +62,7 @@ test('the first GPU subject replaces three checkpoints with five final files', (
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(result.files, expected('01-canvas'));
     assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
-    assert.equal(course().steps.length, 1336);
+    assert.equal(course().steps.length, 1330);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));
@@ -96,4 +96,37 @@ test('the dock owns its complete focus adapter before layers are introduced', ()
     assert.deepEqual(expected('03d-input'), files);
     assert.equal(course().steps.filter(step => archived.steps.some((old: {id: string}) => old.id === step.id)).length, 1);
     assert(!course().steps.find(step => step.id === '53u-layers')!.edits.some(edit => edit.path.startsWith('src/command_dock/')));
+});
+
+test('shared vertices and indices have one runnable endpoint and preserve the original source', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/shared-mesh/checkpoints.json'), 'utf8'));
+    const result = collapseSubject(expected('04-input'), archived.steps, snippetSource);
+    assert.deepEqual(result.files, archived.endpoint);
+    assert.deepEqual(expected('05-vertices'), archived.endpoint);
+    assert.deepEqual(expected('06-indices'), archived.endpoint);
+    const subject = course().steps.find(step => step.id === '05-vertices')!;
+    assert.equal(new Set(subject.edits.map(edit => edit.path)).size, subject.edits.length);
+    assert(!course().steps.some(step => step.id === '06-indices'));
+});
+
+
+test('camera state and matrix upload have one endpoint without an intermediate scalar uniform', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/camera-view/checkpoints.json'), 'utf8'));
+    const result = collapseSubject(expected('05-vertices'), archived.steps, snippetSource);
+    assert.deepEqual(result.files, archived.endpoint);
+    for (const id of ['07-uniforms', '08-camera', '09-matrices']) assert.deepEqual(expected(id), archived.endpoint);
+    const subject = course().steps.find(step => step.id === '07-uniforms')!;
+    assert.equal(new Set(subject.edits.map(edit => edit.path)).size, subject.edits.length);
+    assert(!course().steps.some(step => ['08-camera', '09-matrices'].includes(step.id)));
+});
+
+
+test('depth, mesh validation and stable scene identity share one exact executable endpoint', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/depth-scene/checkpoints.json'), 'utf8'));
+    const result = collapseSubject(expected('07-uniforms'), archived.steps, snippetSource);
+    assert.deepEqual(result.files, archived.endpoint);
+    for (const id of ['10-depth', '10a-mesh', '11-scene', '11a-identity']) assert.deepEqual(expected(id), archived.endpoint);
+    const subject = course().steps.find(step => step.id === '10-depth')!;
+    assert.equal(new Set(subject.edits.map(edit => edit.path)).size, subject.edits.length);
+    assert(!course().steps.some(step => ['10a-mesh', '11-scene', '11a-identity'].includes(step.id)));
 });

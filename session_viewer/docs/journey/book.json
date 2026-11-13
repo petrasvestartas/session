@@ -63,32 +63,16 @@
       "title": "Geometry, camera and selection",
       "sections": [
         {
-          "title": "CPU geometry",
+          "title": "Buffers that describe a shared mesh",
           "first": "05-vertices"
         },
         {
-          "title": "Indexed triangles",
-          "first": "06-indices"
-        },
-        {
-          "title": "Shared view settings",
+          "title": "Camera state and matrix uniforms",
           "first": "07-uniforms"
         },
         {
-          "title": "Moving the camera",
-          "first": "08-camera"
-        },
-        {
-          "title": "View matrices",
-          "first": "09-matrices"
-        },
-        {
-          "title": "Depth and validated meshes",
+          "title": "A depth-tested scene with stable objects",
           "first": "10-depth"
-        },
-        {
-          "title": "GPU meshes and object identity",
-          "first": "11-scene"
         },
         {
           "title": "Selection and CPU queries",
@@ -115,35 +99,29 @@
         {
           "id": "05-vertices",
           "title": "Buffers that describe a shared mesh",
-          "page": "journey/consolidation/05-vertices.md",
+          "page": "journey/05-vertices.md",
           "steps": [
-            "05-vertices",
-            "06-indices"
+            "05-vertices"
           ],
-          "checkpoint": "06-indices"
+          "checkpoint": "05-vertices"
         },
         {
           "id": "07-uniforms",
-          "title": "Camera state and the world-to-clip transform",
-          "page": "journey/consolidation/07-uniforms.md",
+          "title": "Camera state and matrix uniforms",
+          "page": "journey/07-uniforms.md",
           "steps": [
-            "07-uniforms",
-            "08-camera",
-            "09-matrices"
+            "07-uniforms"
           ],
-          "checkpoint": "09-matrices"
+          "checkpoint": "07-uniforms"
         },
         {
           "id": "10-depth",
-          "title": "Depth, validated geometry and stable objects",
-          "page": "journey/consolidation/10-depth.md",
+          "title": "A depth-tested scene with stable objects",
+          "page": "journey/10-depth.md",
           "steps": [
-            "10-depth",
-            "10a-mesh",
-            "11-scene",
-            "11a-identity"
+            "10-depth"
           ],
-          "checkpoint": "11a-identity"
+          "checkpoint": "10-depth"
         },
         {
           "id": "12-identity",

@@ -156,7 +156,7 @@ function generatePages(selected?: Set<string>) {
     };
 
     for (const [index, step] of steps.entries()) {
-        if (selected && !selected.has(step.id)) {
+        if (step.authored || selected && !selected.has(step.id)) {
             for (const edit of step.edits) files[edit.path] = edited(files[edit.path], edit, snippetSource(edit.snippet), step.id);
             continue;
         }
@@ -317,7 +317,7 @@ function generatePages(selected?: Set<string>) {
         if (page !== read(file)) write(file, page);
     }
     if (selected) {
-        console.log(`Generated ${selected.size} changed checkpoint pages and refreshed their consolidated implementations.`);
+        console.log(`Processed ${selected.size} selected checkpoints; authored subject pages preserved.`);
         return;
     }
     const hours = steps.reduce((sum, step) => sum.map((n, i) => n + step.hours[i]), [0, 0]);

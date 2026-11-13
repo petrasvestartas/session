@@ -1,324 +1,76 @@
-# 2.1.1 · Let Rust supply the corners
+# Buffers that describe a shared mesh
 
-**Chapter 2 · Geometry, camera and selection · Section 2.1 · CPU geometry** · [Contents](contents.md)
+<a id="checkpoint-05-vertices"></a>
+<a id="checkpoint-06-indices"></a>
 
-**Typing: 12–23 minutes.** [Estimate](typing-load.md).
+Draw a diamond from four shared vertices and six indices without duplicating its corners.
 
-Move the corner positions out of WGSL and into a Rust vertex buffer. Six coordinate pairs draw two triangles forming a rectangle. Shared corners are duplicated here; the next lesson removes that duplication.
+## Prerequisites and ownership
 
-## Type
+Complete [Commands that change the view](04-input.md). This subject owns the vertex/index byte contract and indexed draw: `src/triangle.wgsl`, the mesh buffers in `src/renderer.rs`, and the browser status text. Keep the existing command dock and background model.
 
-Continue from [Make a choice change the picture](04-input.md). [Save or recover your work](recovery.md).
+The current course still rewrites the renderer in later subjects. Consolidating this mesh subject does not resolve those remaining ownership findings or establish production parity.
 
-### 1. `src/triangle.wgsl`
+## Build
 
-Replace the shader. It now receives one position per invocation instead of looking up a hard-coded corner.
+Type the three complete files below, keeping every other file from the previous checkpoint.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```wgsl
-@vertex
-fn vertex(@builtin(vertex_index) index: u32) -> @builtin(position) vec4<f32> {
-    let corners = array<vec2<f32>, 3>(
-        vec2<f32>(-0.6, -0.5),
-        vec2<f32>(0.6, -0.5),
-        vec2<f32>(0.0, 0.6),
-    );
-    return vec4<f32>(corners[index], 0.0, 1.0);
-}
-
-@fragment
-fn fragment() -> @location(0) vec4<f32> {
-    return vec4<f32>(0.9, 0.25, 0.45, 1.0);
-}
-```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
+### The vertex contract
 
 ```wgsl
---8<-- "journey/code/05-vertices-01.wgsl"
+--8<-- "journey/code/05-mesh-1.wgsl"
 ```
 
-### 2. `src/renderer.rs`
+Shader location zero receives one two-component position. The vertex stage extends that position to clip coordinates: z is zero and w is one. The fragment stage supplies the pink colour. Positions now come from a buffer instead of an array selected by the shader's vertex index.
 
-Define six positions and upload their vertex buffer. Describe two f32 coordinates at each eight-byte vertex. Retain the uploaded vertex buffer in Renderer. Bind the vertex buffer and draw all six positions.
-
-<details>
-<summary>Locate the existing block</summary>
+### One vertex, several uses
 
 ```rust
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-}
-
-impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: None,
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        Self { device, queue, pipeline }
-    }
-
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.draw(0..3, 0..1);
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
+--8<-- "journey/code/05-mesh-2.rs"
 ```
 
-</details>
+`POSITIONS` stores four corners in order: left, bottom, right and top. `INDICES` assembles the lower triangle from corners 0, 1 and 2, then the upper triangle from 0, 2 and 3. Corners 0 and 2 form the shared edge. An index chooses a vertex; it is not another position or an offset measured in bytes.
 
-Edit the existing block to match this code; keep unchanged lines:
+Each vertex contains two 32-bit floats, so `array_stride` is eight bytes and location zero uses `Float32x2`. The explicit byte conversion serializes the floats without relying on a Rust struct's layout. Keep the shader input, CPU element size and buffer layout in agreement: wgpu cannot infer that a wrong stride still reads the intended corner.
+
+`DeviceExt::create_buffer_init` allocates each buffer and supplies its initial bytes. `VERTEX` and `INDEX` describe their GPU use. These immutable geometry buffers live with the renderer; drawing another frame does not recreate them.
+
+The draw pass binds the pipeline, the vertex buffer and the index buffer in that order. `Uint16` matches the CPU index type. `draw_indexed` requests six indices and one instance. Its count is six even though only four vertices are stored. The pass ends before the encoder is finished and submitted.
+
+### Keep input and presentation together
 
 ```rust
-use wgpu::util::DeviceExt;
-
-const POSITIONS: [[f32; 2]; 6] = [
-    [-0.6, -0.5], [0.6, -0.5], [0.6, 0.6],
-    [-0.6, -0.5], [0.6, 0.6], [-0.6, 0.6],
-];
-
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
-}
-
-impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
-        let bytes: Vec<u8> = POSITIONS.iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("rectangle positions"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: None,
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 8,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x2],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: None,
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        Self { device, queue, pipeline, vertices }
-    }
-
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_vertex_buffer(0, self.vertices.slice(..));
-            pass.draw(0..POSITIONS.len() as u32, 0..1);
-        }
-        self.queue.submit([encoder.finish()]);
-    }
-}
+--8<-- "journey/code/05-mesh-3.rs"
 ```
 
-<details>
-<summary>Optional patch references</summary>
+The browser still owns the surface and input callbacks. It draws the scene, paints the command dock using the same target, and presents once. Changing the background changes the clear colour; it does not allocate another mesh or change an index.
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+## Run and observe
 
-```text
---8<-- "journey/code/05-vertices-fullscreen-2.rs"
-```
-
-```text
---8<-- "journey/code/05-vertices-fullscreen-3.rs"
-```
-
-```text
---8<-- "journey/code/05-vertices-fullscreen-4.rs"
-```
-
-```text
---8<-- "journey/code/05-vertices-fullscreen-5.rs"
-```
-
-</details>
-
-### 3. `src/browser.rs`
-
-Report that the uploaded corners form a rectangle.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Change the background. The triangle keeps its shape and colour.");
-    Ok(())
-}
-```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
-
-```rust
---8<-- "journey/code/05-vertices-window-1.rs"
-```
-
-## Run and check
-
-In your project:
+From `session_viewer`, assemble the checkpoint in a fresh directory:
 
 ```sh
-cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j1
-CARGO_BUILD_JOBS=1 trunk serve --port 8780
+npm --prefix ../session_tests run course -- reference 05-vertices --output target/shared-mesh
+cd target/shared-mesh
+trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+Run builds through the workspace storage guard and build slot. Open `http://127.0.0.1:8780/`.
 
-The GPU draws a rectangle from six buffered positions. Change one corner in the Rust vertex array, save, and check the changed outline. Restore it.
+A pink diamond fills the centre of the canvas. Its two triangles meet without a gap, and the existing command dock still changes the background.
 
-### Recorded visual result
+## Predict and try
 
-**Previous native render — current verification pending.**
+Predict what happens when position zero moves left while the index list stays unchanged. Both triangles stretch together and their shared edge remains joined. Restore the position.
 
-![Native renderer output for let rust supply the corners.](../screenshots/journey/05-vertices.png)
+Next predict the result of reducing the indexed draw count from six to three: only the lower triangle remains. Restore six before continuing.
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+## Question and answer
 
-<details>
-<summary>Code explanation and diagram</summary>
+Why does moving the left vertex keep both triangles joined?
 
-Describe the buffer layout explicitly: two `f32` values, eight bytes per vertex, matching shader `@location(0)`. Buffer slot and shader location are separate settings even though both are zero here.
+Both triangles reference the same vertex index. Updating that one position changes both uses; there is no second copy to forget.
 
-`iter().flatten()` visits each coordinate, `flat_map` converts it to bytes, and `collect` owns the resulting byte vector. Importing the `DeviceExt` trait enables `create_buffer_init`. It creates and fills GPU storage; the temporary CPU byte vector can then be dropped.
+## Validation
 
-Rust positions → bytes → vertex buffer → vertex layout → shader location 0 → two triangles.
-
-![Rust supplies six coordinate pairs; a vertex buffer and its layout deliver them to the shader.](../illustrations/journey-05.svg)
-
-Who owns the positions, and how does the shader know where each pair of numbers begins?
-
-Rust supplies the positions and uploads their bytes. The renderer retains the GPU buffer. Its vertex layout says that a vertex occupies eight bytes and location 0 contains two f32 values starting at byte zero. The shader reads that location; it no longer chooses corners from its own array.
-
-Study estimate, including typing and experiments: 1–2 hours.
-
-</details>
-
-<details>
-<summary>Optional experiment</summary>
-
-Predict which triangle changes if you move only the first position to [-0.9, -0.5]. Try it. The other occurrence of that corner stays put, opening a mismatch along the shared edge. Restore the value. This is the duplication that indices will remove.
-
-</details>
-
-<details>
-<summary>Check and save your work</summary>
-
-Restore experimental edits, then run from `session_viewer`:
-
-```sh
-npm --prefix ../session_tests run course -- check 2.1.1
-npm --prefix ../session_tests run course -- save 2.1.1
-```
-
-Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
-
-</details>
-
-<details>
-<summary>Viewer coverage and verification</summary>
-
-The maintained viewer uploads mesh vertices into shared GPU storage. This lesson establishes the CPU-to-GPU byte contract used by those uploads. Document identity and shared allocation are separate jobs introduced later.
-
-
-
-[Full validation scope](release.md).
-
-</details>
+The subject replays to the exact former indexed-mesh endpoint; its original two checkpoints and page text are retained in the archive. The native pixel check measures both triangles, their shared edge and the diamond's area. Fresh native, wasm and browser execution of this consolidated subject is pending; source replay alone is not runtime acceptance.

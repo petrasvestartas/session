@@ -14,6 +14,8 @@ Teach each concept once, in its final home, with lean code and source includes r
 
 The old numbered pages are in `archived/`, with URL redirects and a separate navigation group. `lessons/` and `typing/` are retained fixtures for historical reconstruction checks. Passing those checks does not establish current-viewer parity.
 
+Set `authored: true` on a subject whose page is maintained by hand. Generation still replays its edits but preserves that page, including its explanations and source includes. The authored-page regression test checks this contract.
+
 `journey/course.json` holds the cumulative order, teaching, estimates and exact edits. Snippets live in `journey/code`. The tool reconstructs the project from these same snippets; init supplies the dependency lock only. Its ability to replay a replacement is a storage mechanism, not permission to teach successive rewrites of a finished subject.
 
 The modules under `session_tests/scripts/course` have distinct jobs: `model.ts` replays source; `checkpoints.ts` preserves learner files; `render.ts` writes the lesson pages; `verify.ts` invokes Cargo and records evidence. The native Rust harness checks pixel values. The small PNG writer only packages those measured pixels for documentation.

@@ -40,3 +40,25 @@ test('standalone mathematics evidence still names the checked-in sources, assets
         }
     }
 });
+
+
+test('local Windows mathematics receipts retain their tested source and browser captures', () => {
+    const lesson = path.join(viewer, 'docs/lessons/03a-math');
+    const digest = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
+    const native = JSON.parse(fs.readFileSync(path.join(lesson, 'native-windows-evidence.json'), 'utf8'));
+    const browser = JSON.parse(fs.readFileSync(path.join(lesson, 'browser-windows-evidence.json'), 'utf8'));
+    for (const hashes of [native.sourceSha256, browser.normalizedSourceSha256]) {
+        for (const [name, hash] of Object.entries(hashes)) {
+            assert.equal(digest(fs.readFileSync(path.join(lesson, name), 'utf8').replaceAll('\r\n', '\n')), hash, name);
+        }
+    }
+    for (const [name, hash] of Object.entries(native.kernelSources)) {
+        assert.equal(digest(fs.readFileSync(path.join(viewer, '..', name), 'utf8').replaceAll('\r\n', '\n')), hash, name);
+    }
+    for (const record of [native, browser]) for (const [name, hash] of Object.entries(record.inputs)) {
+        assert.equal(digest(fs.readFileSync(path.join(viewer, name))), hash, name);
+    }
+    for (const entry of browser.cases) for (const frame of [...entry.frames, entry.previous, entry.dark, entry.restored]) {
+        assert.equal(digest(fs.readFileSync(path.join(viewer, browser.captureDirectory, frame.file))), frame.sha256, frame.file);
+    }
+});
