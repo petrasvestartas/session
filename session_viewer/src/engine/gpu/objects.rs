@@ -500,6 +500,7 @@ impl InstanceTable {
         (row, grew || grew_t)
     }
 
+    // --8<-- [start:object-placement]
     /// Move one object; writes only its row.
     pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Xform) -> bool {
         let i = row as usize;
@@ -537,6 +538,7 @@ impl InstanceTable {
         true
     }
 
+    // --8<-- [end:object-placement]
     /// Set a row's box and spacing after its geometry changed.
     pub(crate) fn set_geometry_bounds(
         &mut self,
@@ -916,6 +918,7 @@ impl InstanceTable {
         }
     }
 
+    // --8<-- [start:object-reveal]
     /// Set line reveal and point scale multipliers; the default is (1, 1).
     pub fn set_reveal(&mut self, ctx: &GpuCtx, row: u32, trim: f32, scale: f32) {
         if let Some(instance) = self.rows.get_mut(row as usize) {
@@ -926,6 +929,7 @@ impl InstanceTable {
         }
     }
 
+    // --8<-- [end:object-reveal]
     /// Note that geometry changed without a row edit.
     pub(crate) fn geometry_changed(&mut self) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);

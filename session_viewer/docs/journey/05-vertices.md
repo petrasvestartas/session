@@ -73,4 +73,8 @@ Both triangles reference the same vertex index. Updating that one position chang
 
 ## Validation
 
-The subject replays to the exact former indexed-mesh endpoint; its original two checkpoints and page text are retained in the archive. The native pixel check measures both triangles, their shared edge and the diamond's area. Fresh native, wasm and browser execution of this consolidated subject is pending; source replay alone is not runtime acceptance.
+The subject replays to the exact former indexed-mesh endpoint; its original two checkpoints and page text are retained in the archive. The native pixel check measures both triangles, their shared edge and the diamond's area. Fresh wasm and optimized web builds pass, and the WARP native pixel check passes. Chrome interaction checks pass at 1280-by-720 and 390-by-844; the browser reports an Intel default WebGPU adapter. The upright case is viewport emulation, not a physical phone.
+
+[Source-bound validation receipt](release/consolidated-windows-20261113.json) ? [Upright browser frame](../screenshots/consolidated-windows/05-vertices-upright.png). Native evidence uses software rendering; viewport emulation does not establish real-device acceptance.
+
+![Reviewed desktop browser result](../screenshots/consolidated-windows/05-vertices-desktop.png)

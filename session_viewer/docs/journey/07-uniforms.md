@@ -70,7 +70,7 @@ cd target/camera-view
 trunk serve --port 8780
 ```
 
-Use the workspace storage guard and build slot for builds. Open `http://127.0.0.1:8780/`. The initial pink diamond is centred. `Zoom Out` halves its size. `Orbit Right` rotates the view by 45 degrees clockwise, making the diamond appear as an axis-aligned square. `View Reset` restores its original angle and size. `Background` still changes the clear colour.
+Use the workspace storage guard and build slot for builds. Open `http://127.0.0.1:8780/`. The initial pink diamond is centred. `Zoom Out` halves its size. `Orbit Right` rotates the view by 45 degrees clockwise, making the diamond axis-aligned. It is square in clip space; this checkpoint maps the two axes across the canvas independently, so a nonsquare viewport displays a rectangle. `View Reset` restores its original angle and size. `Background` still changes the clear colour. Production camera projection remains part of the unresolved endpoint-parity work.
 
 ## Predict and try
 
@@ -84,4 +84,8 @@ The fourth column contains translation. Multiplication adds that column multipli
 
 ## Validation
 
-Source replay compares this checkpoint with the exact endpoint of the three archived uniform, camera and matrix checkpoints. Camera tests check the fixed centre under rotation and zoom, and bounded positive scale. Fresh native, wasm and browser execution is still pending; preserved source and historical images do not establish fresh runtime acceptance.
+Source replay compares this checkpoint with the exact endpoint of the three archived uniform, camera and matrix checkpoints. Camera tests check the fixed centre under rotation and zoom, and bounded positive scale. Fresh wasm and optimized web builds, four native tests and the WARP pixel check pass. Chrome interaction checks execute `Orbit Right` at desktop and upright dimensions. Production projection and later-subject ownership remain unresolved.
+
+[Source-bound validation receipt](release/consolidated-windows-20261113.json) ? [Upright browser frame](../screenshots/consolidated-windows/07-uniforms-upright.png). Native evidence uses software rendering; viewport emulation does not establish real-device acceptance.
+
+![Reviewed desktop browser result](../screenshots/consolidated-windows/07-uniforms-desktop.png)

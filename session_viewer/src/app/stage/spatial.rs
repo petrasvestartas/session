@@ -40,6 +40,7 @@ fn over(c: Rgba, bg: Rgba) -> Color {
     )
 }
 
+// --8<-- [start:stage-kernel-geometry]
 /// The kernel geometry of a stage object, with its pen.
 /// Kernel geometry of one object; `scale` is the slide scale, so widths shrink with the slide.
 fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geometry> {
@@ -87,6 +88,7 @@ fn geometry(s: &Spatial, bg: Rgba, px: f64, dpr: f64, scale: f64) -> Option<Geom
     }
 }
 
+// --8<-- [end:stage-kernel-geometry]
 /// Distance between two points.
 fn dist(a: [f64; 3], b: [f64; 3]) -> f64 {
     ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
@@ -148,6 +150,7 @@ impl Scene3 {
         self.count = 0;
     }
 
+    // --8<-- [start:stage-scene-rows]
     /// Make the scene show `list`: append new objects, update changed ones, hide missing ones.
     pub fn sync(&mut self, state: &mut State, list: &[Spatial], epoch: u64, bg: Rgba, scale: f64) {
         let logical = state.logical_size();
@@ -273,6 +276,8 @@ impl Scene3 {
         }
     }
 
+    // --8<-- [end:stage-scene-rows]
+    // --8<-- [start:stage-camera-projection]
     /// Put the real camera on the authored view while it moves or after it changes.
     pub fn camera(
         &mut self,
@@ -343,4 +348,5 @@ impl Scene3 {
             ],
         }
     }
+    // --8<-- [end:stage-camera-projection]
 }

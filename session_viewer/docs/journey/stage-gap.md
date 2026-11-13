@@ -2,6 +2,8 @@
 
 The [early mathematics subject](03a-mathematics.md) teaches the complete 2D stage core. Its standalone checkpoint contains 17 production modules, verified by `scripts/course/stage-core.test.ts`. The complete checkpoint passes 24 native tests, a WebAssembly build and browser checks at desktop and upright phone dimensions using software WebGPU. The active cumulative course does not yet include it.
 
+The [real-scene integration subject](stage-scene.md) explains the current row, camera, solver and input boundaries. Its cumulative checkpoint remains pending.
+
 ## Two subjects, one implementation
 
 | Subject | Source under `src/app/stage/` | What the learner implements |

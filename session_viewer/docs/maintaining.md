@@ -51,6 +51,10 @@ For prose-only changes, `verify --stored` checks the recorded source fingerprint
 
 Select checkpoint IDs explicitly; use `verify --all` only for an intentional full sweep. The runtime verifier currently requests one Cargo worker and applies a memory cap and timeout. Run heavy commands through the superproject storage guard and build slot. Generated reference projects stay under `target`; learner files remain under `workspace/journey`. The Rust pixel checks reject an empty or wrongly coloured result and check the input-state round trip.
 
+When the shared cache cannot hold both build profiles, batch the same selected IDs with `verify --web-only CHECKPOINT ...`, then `verify --native-only CHECKPOINT ...`. Coordinate any cache retirement between batches. The web phase records successful wasm and optimized-bundle commands separately in `web-pending.json`; it does not create full acceptance. Native continuation rejects missing or changed source fingerprints, runs the native tests and pixel checks, then writes the complete result. `verify --stored` still requires every phase. Set `COURSE_KEEP_BUNDLES=1` when retaining the optimized bundles for browser interaction checks.
+
+On Windows the canonical native frame harness selects Microsoft WARP through DX12. Set `VIEWER_DXC_PATH` to the absolute path of the task-local DXC 1.9 `dxcompiler.dll`, with its matching `dxil.dll` alongside it. The reviewed tool package is [Microsoft DXC v1.9.2609](https://github.com/microsoft/DirectXShaderCompiler/releases/tag/v1.9.2609); retain its release digest and the DLL hashes with the run. WARP is software rendering, so record hardware browser and real-device acceptance separately.
+
 ## Preserve the destination
 
 The inventory selected by `journey/course.json` fingerprints source and key inputs. `structure` fails on missing or changed source. Review an intentional change before updating the baseline; a refreshed hash is not evidence of teaching or execution. `parity` reconstructs the last active journey checkpoint and compares every file under `src/` with production after removing teaching comments. It reports missing, extra and changed files together; `parity --details` names them. No path aliases or source exclusions hide differences. The historical lesson 37 comparison remains available as `reference-parity`. Neither comparison establishes runtime acceptance.
@@ -89,6 +93,8 @@ npm --prefix ../session_tests run course -- generate
 ```
 
 The capture tool checks actual startup, mouse and keyboard input, canvas results and the pixel round trip. Native rendering cannot substitute for it. Pages include browser captures only when their source fingerprints match. Otherwise they identify native readbacks explicitly.
+
+For an isolated review of already built journey bundles, `docs/capture_journey.cjs` accepts `JOURNEY_OUTPUT` for a separate evidence directory and `JOURNEY_VIEWPORT` as a JSON object containing `width` and `height`. Its defaults preserve the canonical screenshot directory and 900-by-760 viewport. Keep new review outputs separate from images owned by another agent, and identify upright viewport emulation explicitly in the receipt.
 
 ## Foundations and diagrams
 

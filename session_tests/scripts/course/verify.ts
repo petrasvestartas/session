@@ -89,9 +89,21 @@ export function verificationCheckpoints(ids: string[], stored = false, all = fal
     throw Error('Choose verification checkpoint IDs or --all');
 }
 
-export function verify(ids: string[], stored = false, all = process.env.COURSE_VERIFY_ALL === '1') {
+export function webEvidence(id: string, record: any, source: string) {
+    assert.equal(record?.source, source, `${id}: web evidence is stale or missing`);
+    assert(record.commands.every((command: {returncode: number}) => command.returncode === 0));
+    assert(record.commands.some((command: {name: string}) => command.name === `${id}-wasm`));
+    assert(record.commands.some((command: {name: string; args: string[]}) =>
+        command.name === `${id}-web` && command.args.includes('--release')), `${id}: web bundle must be optimized`);
+    return {...record, commands: [...record.commands]};
+}
+
+export function verify(ids: string[], stored = false, all = process.env.COURSE_VERIFY_ALL === '1', phase: 'all' | 'web' | 'native' = 'all') {
+    assert(!stored || phase === 'all', 'Stored acceptance checks require all phases');
     const report = path.join(evidence, 'results.json');
     const records = fs.existsSync(report) ? json(report) : {};
+    const pendingFile = path.join(evidence, 'web-pending.json');
+    const pending = fs.existsSync(pendingFile) ? json(pendingFile) : {};
     const selected = verificationCheckpoints(ids, stored, all);
     for (const id of selected) {
         const step = course().steps.find(step => step.id === id)!;
@@ -112,20 +124,31 @@ export function verify(ids: string[], stored = false, all = process.env.COURSE_V
         delete records[id];
         write(report, JSON.stringify(records, null, 2) + '\n');
         const target = path.join(viewer, 'target', `course-${id}`);
+        const source = signature(id);
+        const record: any = phase === 'native' ? webEvidence(id, pending[id], source)
+            : {source, commands: [], browser: 'not verified'};
         removeGenerated(target, path.join(viewer, 'target'));
         try {
             materialize(expected(id), target, lockFor(id), assetsFor(id));
             assert.deepEqual(compare(expected(id), target), [], `${id}: the build must use the displayed source`);
-            const record: any = {source: signature(id), commands: [], browser: 'not verified'};
-            record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j1'], target));
-            if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', nativeTarget(), '-j1'], target));
-            record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--release', '--public-url', './'], target));
-            const bundle = path.join(evidence, id, 'dist');
-            removeGenerated(bundle, evidence);
-            if (process.env.COURSE_KEEP_BUNDLES === '1') {
-                fs.mkdirSync(path.dirname(bundle), {recursive: true});
-                fs.cpSync(path.join(target, 'dist'), bundle, {recursive: true});
+            if (phase !== 'native') {
+                record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j1'], target));
+                record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--release', '--public-url', './'], target));
+                const bundle = path.join(evidence, id, 'dist');
+                removeGenerated(bundle, evidence);
+                if (process.env.COURSE_KEEP_BUNDLES === '1') {
+                    fs.mkdirSync(path.dirname(bundle), {recursive: true});
+                    fs.cpSync(path.join(target, 'dist'), bundle, {recursive: true});
+                }
+                assert.equal(signature(id), source, `${id}: source changed during web verification`);
+                pending[id] = webEvidence(id, record, source);
+                write(pendingFile, JSON.stringify(pending, null, 2) + '\n');
             }
+            if (phase === 'web') {
+                console.log(`${id}: WebAssembly and release bundle passed; native acceptance pending`);
+                continue;
+            }
+            if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', nativeTarget(), '-j1'], target));
             {
                 const args = step.frame_mode === 'clear' ? 'device, queue' : 'device, queue, format';
                 const constructor = step.frame_constructor || `Renderer::new(${args})`;
@@ -161,8 +184,11 @@ export function verify(ids: string[], stored = false, all = process.env.COURSE_V
                     record.roundtrip = true;
                 }
             }
+            assert.equal(signature(id), source, `${id}: source changed during native verification`);
             records[id] = record;
             write(report, JSON.stringify(records, null, 2) + '\n');
+            delete pending[id];
+            write(pendingFile, JSON.stringify(pending, null, 2) + '\n');
             console.log(`${id}: Rust, WebAssembly and available rendering checks passed`);
         } finally {
             if (process.env.COURSE_KEEP_WORKSPACES !== '1') {

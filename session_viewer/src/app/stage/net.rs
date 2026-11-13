@@ -112,6 +112,7 @@ impl Net {
         m
     }
 
+    // --8<-- [start:stage-net-equilibrium]
     /// `C_rows^T Q C_cols`.
     fn density(&self, rows: &[usize], cols: &[usize]) -> Vec<Vec<f64>> {
         let (cr, cc) = (self.connectivity(rows), self.connectivity(cols));
@@ -157,6 +158,7 @@ impl Net {
         at
     }
 
+    // --8<-- [end:stage-net-equilibrium]
     /// A matrix of the method by its name, with the solved shape where lengths are needed.
     pub fn matrix(&self, name: &str) -> Option<MatrixSpec> {
         let (free, fixed) = (self.free(), self.anchors());

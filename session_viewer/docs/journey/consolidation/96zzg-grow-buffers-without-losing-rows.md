@@ -2,6 +2,55 @@
 
 **Steps:** 14 · **Source:** [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs) · [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs) · [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs) · [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs)
 
+
+## Current object-row contract
+
+Keep one source mesh while changing an object's placement, visibility and appearance through its row. This section owns the row contract needed by the later [stage scene adapter](../stage-scene.md). Prerequisites are buffer alignment, stable object identity, local bounds and camera-relative translation. The historical checkpoint below still needs reconciliation with this current layout; this explanation alone does not establish cumulative parity.
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/instance.rs:object-instance-layout"
+```
+
+The Rust storage row and the shared `Instance` in [scene.wgsl](../../../src/shaders/scene.wgsl) have the same 112-byte stride. Their fields are read by every scene lane, so adding an effect only in one shader would move the next object's address incorrectly.
+
+| Byte offset | Field | Meaning |
+| --- | --- | --- |
+| 0 | `model` | Sixteen floats for rotation and scale; translation is kept separately for precision. |
+| 64 | `color` | Four floating-point tint channels. Flags decide whether the row overrides the source colour. |
+| 80 | `flags` | Selection, visibility, geometry policy and picking eligibility bits. |
+| 84 | `ao_radius` | Contact radius in world units, recomputed when placement changes bounds. |
+| 88 | `spacing` | World-space sample spacing; zero means unknown. |
+| 92 | `_pad` / WGSL `edge_color` | Packed edge RGBA bytes; despite the Rust name, this is meaningful data. |
+| 96 | `effect` | Line reveal, point-size multiplier, and two reserved floats. |
+
+The placeholder row uses identity placement and effects `(1, 1, 0, 0)`: fully revealed lines and normal-sized points. A zero-filled effect would make a valid object disappear. `instance_mirror` checks the Rust/WGSL field order; `shader_validation_and_layouts` checks actual shader member offsets and sizes. A same-sized struct with swapped fields still needs these layout checks.
+
+### Placement writes one row
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/objects.rs:object-placement"
+```
+
+`placed_row` derives the model, full-precision translation and world bounds from the retained local bounds and optional hull. Moving an object updates those values, the camera-inside test box and the geometry revision. The instance buffer receives that one row. When an origin has already been selected, the separate translation buffer receives its displacement relative to that origin. Mesh vertices stay in local coordinates.
+
+This is why translating an object far from zero need not first round every vertex to a large `f32` world coordinate. Local geometry and the double-precision object translation survive; only their camera-relative difference is uploaded for rendering. Updating the matrix without its bounds would leave drawing, culling and queries disagreeing.
+
+### Reveal, visibility and picking are independent
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/objects.rs:object-reveal"
+```
+
+Reveal clamps the line fraction to `[0, 1]` and the point scale to a nonnegative value, then uploads the row. It does not rebuild the source or replace visibility. `set_hidden` toggles the hidden flag; retired rows cannot be revived through visibility or selection. `set_non_pickable` toggles bit 19 while retaining the drawn geometry. The shared shader's picking path excludes that flag, allowing a stage arrow or reference grid to remain visible without becoming a selected document object.
+
+`set_object_color` chooses face or edge channels independently and sets the matching override flag. Passing `None` restores the object's own channel. The stage adapter writes both channels because one authored operation can address either points or lines.
+
+**Predict and try:** during the later stage review, compare a half-revealed segment with a hidden segment. The former keeps its row and draws its revealed part; the latter draws nothing. Giving the same row the non-pickable flag must preserve its image while removing it from picking. Moving it must retain the source vertices and change the row's placement and bounds together.
+
+**Question:** why is reveal stored after the other object fields rather than in a separate per-lane table? **Answer:** the object row gives every lane the same effect values and stable object address. Keeping that contract in one shared layout prevents point, line and arrow renderers from assigning different meanings to the same row.
+
+The maintained viewer's layout and placement tests exercise this contract. The learner checkpoint must adopt it in this owning subject and pass native and browser checks before this section is marked cumulatively integrated.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>

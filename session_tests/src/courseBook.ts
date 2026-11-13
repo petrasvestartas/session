@@ -43,7 +43,9 @@ export function readingBook(steps: Step[], plan: BookPlan) {
     }
     chapter.sections = merged.map((lesson, i) => {
       const number = `${chapter.number}.${i + 1}`;
-      for (const id of lesson.steps) aliases.set(id, {page: lesson.page, anchor: `checkpoint-${id}`});
+      for (const id of lesson.steps) {
+        if (book.byId.get(id)?.page !== lesson.page) aliases.set(id, {page: lesson.page, anchor: `checkpoint-${id}`});
+      }
       return {number, title: lesson.title, lessons: [{...lesson, number,
         chapter: `${chapter.number} · ${chapter.title}`, section: `${number} · ${lesson.title}`} ]};
     });

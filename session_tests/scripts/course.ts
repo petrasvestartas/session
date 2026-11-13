@@ -131,7 +131,9 @@ function main() {
         const ids = [name, ...args].filter(Boolean);
         const stored = ids.includes('--stored');
         const all = ids.includes('--all');
-        verify(ids.filter(id => id !== '--stored' && id !== '--all').map(lessonId), stored, all);
+        if (ids.includes('--web-only') && ids.includes('--native-only')) throw Error('Choose one verification phase');
+        const phase = ids.includes('--web-only') ? 'web' : ids.includes('--native-only') ? 'native' : 'all';
+        verify(ids.filter(id => !['--stored', '--all', '--web-only', '--native-only'].includes(id)).map(lessonId), stored, all, phase);
     } else if (action === 'capture') {
         const rawIds = [name, ...args].filter(Boolean);
         const all = rawIds.includes('--all');

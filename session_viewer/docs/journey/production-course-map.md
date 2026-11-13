@@ -1,4 +1,14 @@
-**Final runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
+# Production source and course coverage
+
+The current cumulative course is **not accepted as the production viewer**. At the integrated November 13 checkpoint it contains 1,330 executable checkpoints in 111 reader subjects. Ownership checking reports 4,919 later-subject rewrites across 305 files. Its final source tree has 318 missing production paths, 707 extra paths and three changed shared files. These failures are not deliberate exclusions.
+
+The [stage integration record](stage-gap.md) separates the accepted standalone mathematics checkpoint from unfinished cumulative integration. The [real-scene subject](stage-scene.md) explains production's scene boundary, but its cumulative checkpoint remains pending. A source mapping, copied file or link does not establish teaching; each production file still needs its implementing lesson and accepted checkpoint, or a reviewed exclusion with a reason.
+
+## Preserved source-specific acceptance
+
+The following records describe the earlier sources named in their receipts. They do not close the current ownership, structural or endpoint-parity failures above.
+
+**Recorded runtime status:** 18/18 source-specific callbacks,18/18 bounded finite features,4/4 original fixtures and5/5 release gates accepted. Final tutorial713 `f339c9ac`, maintained714 `40e317cc`; actual native1,068/1,068 and all7 compiler/package/frame phases pass. [Native proof](release/final-brep-final-native-integration-review.json), [build review](release/final-brep-final-runtime-build-gate-review.json), [finite closure](release/final-four-feature-closure-review.json). Historical results retain their original source scopes.
 
 **Documentation:** Final current-source documentation build and desktop/phone/Chapter22.6 review are complete. The preserved 16.4 measurement page and source bodies pass. [Measured final docs review](release/docs-final-brep-visible-review.json).
 
@@ -8,7 +18,7 @@ All18 finite feature rows are accepted at their exact declared scopes. The machi
 
 The following records are preserved checkpoint history. Their counts, running jobs and remaining-work statements describe their original dates and sources; they are superseded by the current summary above.
 
-# Production source and course coverage map
+## Production source and course coverage map
 
 The production viewer under `session_viewer/src` is the source of the course. This initial audit maps the actual cumulative endpoint, not just similarly named lesson files. It does not accept pending CAD evidence or private proposals.
 

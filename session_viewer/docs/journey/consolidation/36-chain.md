@@ -2,6 +2,42 @@
 
 **Steps:** 10 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
+
+## Current endpoint clearance and curve heads
+
+Draw joined paths whose shafts stop beneath their arrowheads and outside visible endpoint markers. Complete the [stroke-row contract](35-stroke.md#current-stroke-widths-dashes-and-reveal) first. This subject owns connected-segment neighbours, head-only vector rows and endpoint clearance. The historical implementation below still needs reconciliation with these current production sections.
+
+```rust
+--8<-- "session_viewer/src/app/walk/curves.rs:curve-heads"
+```
+
+A curved path keeps its ribbon shaft. Each headed end adds a 64-byte `VectorRow` with `HEAD_ONLY`, so the vector lane paints a head without duplicating the shaft. A start head reverses the first segment to aim outward. The ribbon end receives `HEAD_MARK`; linking opens a closed chain at that end instead of joining through its head. The row also receives `FLAG_HEADS`, enabling the ribbon shader's head-clearance calculation.
+
+The ribbon shader follows at most eight neighbouring chords when finding the cut beneath a curve head. This bounded search avoids an unbounded loop in every vertex. Very finely sampled curves extending beyond that search are not evidence that arbitrary distant chords are clipped. Both the ribbon and arrow shader use the same head proportions and underlap rule so the join has neither a gap nor a protruding shaft.
+
+```rust
+--8<-- "session_viewer/src/app/walk/curves.rs:endpoint-clearance"
+```
+
+Clearance is derived from visible kernel points whose positions match an endpoint within `1e-5` in the converted coordinates. A point's width becomes a signed display radius; the default point uses a three-pen radius. Vector rows receive start and end trims. Ribbon rows receive matching trims, with the interior rows of each chain cleared. The shader projects those radii to pixels and adds the pixel-filter reach before moving visible endpoints inward. Short segments whose clearances consume their length disappear instead of reversing direction. The source line or curve is unchanged.
+
+### Pass arrow arguments field by field
+
+```wgsl
+--8<-- "session_viewer/src/shaders/vector.wgsl"
+```
+
+The storage buffer still uses `VectorRow`. At the function boundary, the vector caller passes `start`, `end`, `radius`, `instance_id`, `color`, `head`, `heads`, `start_trim`, `end_trim`, the vertex index and the overlay flag individually. The plane lane uses the same `arrow_corner` interface. Preserve this distinction: the tested Android driver corrupted `end` and `heads` when the packed row crossed that boundary as a struct, leaving shafts without heads. The [debugging guide](../../debugging.md#probe-a-phone-only-shader-failure) explains how shader probes isolated it.
+
+Inside [arrow.wgsl](../../../src/shaders/arrow.wgsl), hidden or wholly clipped vectors produce an off-screen vertex. Reveal is applied before projection. Near-plane clipping branches before division by `w`; projected endpoints then move to marker boundaries. The 18 vertices select the shaft, end head or start head. Explicit branches preserve valid widths and head choices without evaluating an unused invalid division. Hardware/device acceptance must include the affected phone family; a desktop or software-GPU pass cannot establish that result.
+
+**Predict and try:** put visible points at both ends of a headed line. Increasing point width should shorten the visible arrow at its ends without moving the kernel endpoints. On a curved path, a start head points away from the first chord, and its shaft remains the ribbon rather than an extra straight vector.
+
+**Question:** why not replace the whole curved path with one vector? **Answer:** a vector has one straight shaft. Keeping ribbons for the path and adding head-only rows preserves its curve, source identity and joined dash geometry.
+
+Run the curve-head and endpoint-clearance tests, then review ordinary vectors, both curve ends and plane arrows with the same camera on desktop and phone. Source layout checks and this explanation do not yet accept the cumulative checkpoint.
+
+
 ## <a id="checkpoint-36-chain"></a>1. Retain connected source geometry
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

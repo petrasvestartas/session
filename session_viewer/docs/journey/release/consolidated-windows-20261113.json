@@ -1,0 +1,950 @@
+{
+  "date": "2026-11-13",
+  "scope": "Three consolidated cumulative checkpoints; not final production parity",
+  "nativeRenderer": "Microsoft WARP DX12 software rendering",
+  "browserScope": "Chrome WebGPU, queried default adapter Intel gen-12lp; upright viewport emulation, not a physical phone",
+  "dxc": {
+    "source": "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2609/dxc_2026_09_29.zip",
+    "archiveSha256": "ad31b1fc8443175d204f77a611fdb3ef2ec42759bdc2f1167368de24a4a7e7f1",
+    "githubDigest": "sha256:ad31b1fc8443175d204f77a611fdb3ef2ec42759bdc2f1167368de24a4a7e7f1",
+    "tools": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\tools\\dxc-1.9.2609\\dxcompiler.dll",
+        "version": "1.9.2609.5",
+        "sha256": "0689e2fee0a1c9df8662a59680469f24e2a3ad7ce6bbbcc9284f7a83172bfc59"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\tools\\dxc-1.9.2609\\dxil.dll",
+        "version": "1.9.2609.5",
+        "sha256": "64be2368211d257a038a7d4ea6bb3e24c878eb8d588c7b8414fccf759b69c2ac"
+      }
+    ]
+  },
+  "checker": {
+    "native": "83a0c1ec4562820ceb540cba321d96f20e7cda4f6d8919ee682d8f46c4517537",
+    "browser": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+    "browserNormalized": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7"
+  },
+  "steps": {
+    "05-vertices": {
+      "build": {
+        "source": "1e8c0cb6ea53e7ca57c1527084fc4ca51a842e5896c797241be09a972abe10c5",
+        "commands": [
+          {
+            "name": "05-vertices-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "05-vertices-web",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "05-vertices-frame",
+            "args": [
+              "cargo",
+              "run",
+              "--example",
+              "frame",
+              "--locked",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          }
+        ],
+        "browser": "not verified",
+        "pixels": {
+          "sha256": "62948600f6002415364dae124b73fd712ec0bd1d735e8532cb898466fbd7bc27"
+        }
+      },
+      "normalizedEndpoint": {
+        "Cargo.toml": "838acdab79152eacd5ddad915bb464827a3cf03a694d45d926205cb91bfc5e1d",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "002485f1ee47b89ec34255b27e81615b5c15321a0d2dd3e8081afa979406e781",
+        "src/renderer.rs": "0fe7d3a0883cf9bae78be4bd893cff0bb036cf64233aa066d394ca9cad5e216c",
+        "src/browser.rs": "4f0242983ed25114f2b73e3195fc28482c515d7291ddbf12e5fc272fd23485cb",
+        "src/triangle.wgsl": "c32c080d988804be393cffca727449a4d329b2359e290d15c81aaa67d3c21098",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c"
+      },
+      "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "assets": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      },
+      "nativeFrame": "eadadb7a3fb381456e395a5797010869f941be0f88775b97f0faab692d8ac3d1",
+      "nativeAdapter": "Native frame adapter: AdapterInfo { name: \"Microsoft Basic Render Driver\", vendor: 5140, device: 140, device_type: Cpu, device_pci_bus_id: \"\", driver: \"10.0.26100.9818\", driver_info: \"\", backend: Dx12, subgroup_min_size: 4, subgroup_max_size: 4, transient_saves_memory: false }",
+      "resources": [
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:04:34.2060875Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-05-vertices",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 1.153,
+          "peakJobCommitBytes": 327811072,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 25932,
+          "descendantsAtCleanup": 1
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:04:35.8145217Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+          "arguments": [
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-05-vertices",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 21.99,
+          "peakJobCommitBytes": 329994240,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 18128,
+          "descendantsAtCleanup": 1
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:19:46.7184515Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-05-vertices",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 5.728,
+          "peakJobCommitBytes": 589991936,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 36480,
+          "descendantsAtCleanup": 2
+        }
+      ],
+      "captures": [
+        {
+          "view": "native",
+          "file": "docs/screenshots/consolidated-windows/05-vertices-native.png",
+          "sha256": "07e8092b0394460fb512ea336ff5366a28d3a936db60db0782f51f90c125fb31"
+        },
+        {
+          "view": "desktop",
+          "file": "docs/screenshots/consolidated-windows/05-vertices-desktop.png",
+          "sha256": "221d9cb38a3b06ceff8a7dc757e977df68fcdfc1c8bd40f394baca6d0ae3c76c"
+        },
+        {
+          "view": "upright",
+          "file": "docs/screenshots/consolidated-windows/05-vertices-upright.png",
+          "sha256": "eadba31ac1f188aa228c5fadfc2a012db2ff9096c0b12bd35e758182047dee82"
+        }
+      ],
+      "browser": {
+        "desktop": {
+          "source": "1e8c0cb6ea53e7ca57c1527084fc4ca51a842e5896c797241be09a972abe10c5",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": null,
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T21:22:52.351Z",
+          "status": "Four shared corners make two triangles.",
+          "canvas": "88331c6dcf32d8b9c00a868cf90fb712a121b105ed227af72e3f80f65cb51ad8",
+          "file": "05-vertices-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "d7428d25af940757125b522659f33ef37c8831bada889086a8955d990216f70f",
+          "commands": [],
+          "keyboardRoundtrip": false
+        },
+        "upright": {
+          "source": "1e8c0cb6ea53e7ca57c1527084fc4ca51a842e5896c797241be09a972abe10c5",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": null,
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T21:22:57.025Z",
+          "status": "Four shared corners make two triangles.",
+          "canvas": "cdc653fb01d4165fe717effe3973c0db0af8e001971feaa1ed75e5bdc7609830",
+          "file": "05-vertices-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "d7428d25af940757125b522659f33ef37c8831bada889086a8955d990216f70f",
+          "commands": [],
+          "keyboardRoundtrip": false
+        }
+      },
+      "bundle": {
+        "index.html": "d7428d25af940757125b522659f33ef37c8831bada889086a8955d990216f70f",
+        "viewer_journey-d2a4f855210bdc62.js": "fecaee765c730c2a1fe28e6019d5c9b8ab979a33b9f0adadade99822bde90944",
+        "viewer_journey-d2a4f855210bdc62_bg.wasm": "5118ec8c10fd8b5ee1e7d1936d08f38c65463e713fe799d73c33969815432a5b"
+      }
+    },
+    "07-uniforms": {
+      "build": {
+        "source": "ae71ecf346e2964363b8e38485b23e73c43b8bac491366daf84829f423171449",
+        "commands": [
+          {
+            "name": "07-uniforms-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "07-uniforms-web",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "07-uniforms-tests",
+            "args": [
+              "cargo",
+              "test",
+              "--lib",
+              "--locked",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "07-uniforms-frame",
+            "args": [
+              "cargo",
+              "run",
+              "--example",
+              "frame",
+              "--locked",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          }
+        ],
+        "browser": "not verified",
+        "pixels": {
+          "sha256": "390666160c7e3a3f0278091dca3df27028c65b99d47d81fc1f17a135183c50ae"
+        }
+      },
+      "normalizedEndpoint": {
+        "Cargo.toml": "838acdab79152eacd5ddad915bb464827a3cf03a694d45d926205cb91bfc5e1d",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "b94c16930db19e2c9ec9a58607498620bf65eb1c70e67661335f0903efa71db0",
+        "src/renderer.rs": "6158ff096f265e4c75c468367176e4fed919d277f4622d1d1f5898494174f286",
+        "src/browser.rs": "e834bba432e0591601fe35c34085f1094d6f3a6982d1ad464cd39c30f5f61dc3",
+        "src/triangle.wgsl": "e52e292377205b910620f6f0c153dfe888b6e54d0a6e93e9813b60d9e0777255",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "63fc2623e110c84a01bac19e2541bae035547ace883f0bec1f75c520b0c740ce"
+      },
+      "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "assets": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      },
+      "nativeFrame": "811c29c35a49bc9f1f2a3192c475bcbeaa918f1e17f30a1b788bbbdf000f85a0",
+      "nativeAdapter": "Native frame adapter: AdapterInfo { name: \"Microsoft Basic Render Driver\", vendor: 5140, device: 140, device_type: Cpu, device_pci_bus_id: \"\", driver: \"10.0.26100.9818\", driver_info: \"\", backend: Dx12, subgroup_min_size: 4, subgroup_max_size: 4, transient_saves_memory: false }",
+      "resources": [
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:04:58.9831952Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-07-uniforms",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 1.115,
+          "peakJobCommitBytes": 328855552,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 14312,
+          "descendantsAtCleanup": 1
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:05:00.5112580Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+          "arguments": [
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-07-uniforms",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 22.33,
+          "peakJobCommitBytes": 330215424,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 38960,
+          "descendantsAtCleanup": 1
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:19:53.6273833Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-07-uniforms",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 2.548,
+          "peakJobCommitBytes": 591749120,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 28124,
+          "descendantsAtCleanup": 2
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:19:56.6298200Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-07-uniforms",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 4.692,
+          "peakJobCommitBytes": 590647296,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 27712,
+          "descendantsAtCleanup": 2
+        }
+      ],
+      "captures": [
+        {
+          "view": "native",
+          "file": "docs/screenshots/consolidated-windows/07-uniforms-native.png",
+          "sha256": "54d9c25149bdefa17b6a10d8888e5a80416dfdfea0643eeb489c65a89b895300"
+        },
+        {
+          "view": "desktop",
+          "file": "docs/screenshots/consolidated-windows/07-uniforms-desktop.png",
+          "sha256": "4ec14abaa73171a85c548e8da03e588ad055d2891f827e9170087b40e7c87e74"
+        },
+        {
+          "view": "upright",
+          "file": "docs/screenshots/consolidated-windows/07-uniforms-upright.png",
+          "sha256": "231d20040ad7e49bf09e7b6121e65cc460036dbfbca85856f6fa41740220fae1"
+        }
+      ],
+      "browser": {
+        "desktop": {
+          "source": "ae71ecf346e2964363b8e38485b23e73c43b8bac491366daf84829f423171449",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": null,
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T21:22:53.455Z",
+          "status": "A matrix carries pan, scale and rotation.",
+          "canvas": "797dbd80a4ab20b3712d976de7a293a83d6c899e37fcadc1d4f43c23de4702eb",
+          "file": "07-uniforms-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "47ac524f137e1553dc2cb33ee860a294059ed7ee41e6ff7350058864b705afbe",
+          "commands": [
+            "Orbit Right"
+          ],
+          "keyboardRoundtrip": false
+        },
+        "upright": {
+          "source": "ae71ecf346e2964363b8e38485b23e73c43b8bac491366daf84829f423171449",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": null,
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T21:22:58.128Z",
+          "status": "A matrix carries pan, scale and rotation.",
+          "canvas": "4799bb171d528dde1ef6ea73fc5783ea7d805dfdc1dd864642946cf79de1a9cd",
+          "file": "07-uniforms-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "47ac524f137e1553dc2cb33ee860a294059ed7ee41e6ff7350058864b705afbe",
+          "commands": [
+            "Orbit Right"
+          ],
+          "keyboardRoundtrip": false
+        }
+      },
+      "bundle": {
+        "index.html": "47ac524f137e1553dc2cb33ee860a294059ed7ee41e6ff7350058864b705afbe",
+        "viewer_journey-baf7e53cf411448f.js": "640707307dd86baa11460a93a45423dec3af70a021b7b83d60a394b4218cab08",
+        "viewer_journey-baf7e53cf411448f_bg.wasm": "59cbe3c1a40301a80bc0715e9a5a0f4c841b28843d584ffba434db92432b91b1"
+      }
+    },
+    "10-depth": {
+      "build": {
+        "source": "2a52931a7ff4c5101dd8af191797540e35cd30df172f32bc6691f256930a5deb",
+        "commands": [
+          {
+            "name": "10-depth-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "10-depth-web",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "10-depth-tests",
+            "args": [
+              "cargo",
+              "test",
+              "--lib",
+              "--locked",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "10-depth-frame",
+            "args": [
+              "cargo",
+              "run",
+              "--example",
+              "frame",
+              "--locked",
+              "--target",
+              "x86_64-pc-windows-msvc",
+              "-j1"
+            ],
+            "returncode": 0
+          }
+        ],
+        "browser": "not verified",
+        "pixels": {
+          "sha256": "c287495cd4901c711c19759e18d8fa8a9e1ee2396e546e35f57f62461b081455"
+        }
+      },
+      "normalizedEndpoint": {
+        "Cargo.toml": "838acdab79152eacd5ddad915bb464827a3cf03a694d45d926205cb91bfc5e1d",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "f83f453b59a7d4d6bb195ac24239d5a1188023454d6e235e9b5aaffd47306ba5",
+        "src/renderer.rs": "19a57c0b3aa9f555640757ab9855225dde6cc5898af279dc30e0fee50de57997",
+        "src/browser.rs": "e8fdd0251a4517bed95365df82a4a30bd2020d5049c976753bb9ffc1736c1076",
+        "src/triangle.wgsl": "6b8d00fdd9f759936d0f74e750eabfec0a0a17ebf1a19a4ee9216722219ed21b",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "63fc2623e110c84a01bac19e2541bae035547ace883f0bec1f75c520b0c740ce",
+        "src/mesh.rs": "36da28cba687dfc2c1f7051a9c23d67232b5ab7197bd02232985e9c8e5fe3194",
+        "src/scene.rs": "e299942faec3a82fc9ec3ed06f22ce84e4bb1794cce698938176ec65be1fe098",
+        "src/gpu_mesh.rs": "98e34788a0d400cd37c462c01d6d801ad8b8f2f2b577ae894c40e4419c20e2bb"
+      },
+      "lock": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "assets": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      },
+      "nativeFrame": "c3d705fa6e4a50b65f51b9ab4cef8e1fd96fcaee628547586f0b7e28549d9f0e",
+      "nativeAdapter": "Native frame adapter: AdapterInfo { name: \"Microsoft Basic Render Driver\", vendor: 5140, device: 140, device_type: Cpu, device_pci_bus_id: \"\", driver: \"10.0.26100.9818\", driver_info: \"\", backend: Dx12, subgroup_min_size: 4, subgroup_max_size: 4, transient_saves_memory: false }",
+      "resources": [
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:05:24.0121433Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-10-depth",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 1.159,
+          "peakJobCommitBytes": 333840384,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 33928,
+          "descendantsAtCleanup": 0
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:05:25.6040483Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\trunk.exe",
+          "arguments": [
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-10-depth",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 22.996,
+          "peakJobCommitBytes": 332419072,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 28344,
+          "descendantsAtCleanup": 0
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:20:02.5169585Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-10-depth",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 2.735,
+          "peakJobCommitBytes": 600252416,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 34532,
+          "descendantsAtCleanup": 1
+        },
+        {
+          "platform": "windows-job-object",
+          "startedUtc": "2026-11-13T21:20:05.6742719Z",
+          "executable": "C:\\Users\\Petras\\.cargo\\bin\\cargo.exe",
+          "arguments": [
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1"
+          ],
+          "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-10-depth",
+          "timeoutSeconds": 600,
+          "jobCommitLimitBytes": 4294967296,
+          "swapCapSupported": false,
+          "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+          "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+          "exitCode": 0,
+          "timedOut": false,
+          "elapsedSeconds": 4.657,
+          "peakJobCommitBytes": 589594624,
+          "affinityMask": "0x3",
+          "processors": 2,
+          "processId": 34748,
+          "descendantsAtCleanup": 2
+        }
+      ],
+      "captures": [
+        {
+          "view": "native",
+          "file": "docs/screenshots/consolidated-windows/10-depth-native.png",
+          "sha256": "e6e43badc74a64bf6ec331effd1abc58ce54c5628303ca5b89df7cba3fb4f174"
+        },
+        {
+          "view": "desktop",
+          "file": "docs/screenshots/consolidated-windows/10-depth-desktop.png",
+          "sha256": "fb81c230b70c12f014222aac8801bfdb4ee89c1590668aca97b0fed16034962c"
+        },
+        {
+          "view": "upright",
+          "file": "docs/screenshots/consolidated-windows/10-depth-upright.png",
+          "sha256": "100b600096f9e1e94637bda3e6fe151eec0a50637d1c740e9f0ffbdb4473ce1f"
+        }
+      ],
+      "browser": {
+        "desktop": {
+          "source": "2a52931a7ff4c5101dd8af191797540e35cd30df172f32bc6691f256930a5deb",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": null,
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T21:22:54.673Z",
+          "status": "Scene data owns the meshes; the renderer displays them.",
+          "canvas": "f33740ef6d18022791c356231083b0f51a9ba6a0b51a74b354dbc8d5495dc1d9",
+          "file": "10-depth-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "c13bbd36984d4ca21b7b31d32e4149a5d2ba1008d297959e00cb62402e414a51",
+          "commands": [
+            "Example Triangle"
+          ],
+          "keyboardRoundtrip": false
+        },
+        "upright": {
+          "source": "2a52931a7ff4c5101dd8af191797540e35cd30df172f32bc6691f256930a5deb",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": null,
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-13T21:22:59.220Z",
+          "status": "Scene data owns the meshes; the renderer displays them.",
+          "canvas": "b31a217fa4408d9cde505db7caaa0c6fe21dfae6104abc8c4c3975b39733ec56",
+          "file": "10-depth-browser.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "c13bbd36984d4ca21b7b31d32e4149a5d2ba1008d297959e00cb62402e414a51",
+          "commands": [
+            "Example Triangle"
+          ],
+          "keyboardRoundtrip": false
+        }
+      },
+      "bundle": {
+        "index.html": "c13bbd36984d4ca21b7b31d32e4149a5d2ba1008d297959e00cb62402e414a51",
+        "viewer_journey-4638ea5f5feea816.js": "dbf218c83f58e140bc93e0eff5dc20a772365ccd93cdaa71508be6113ef7c78d",
+        "viewer_journey-4638ea5f5feea816_bg.wasm": "d60a4ce5ceab51e20d5fc76b92e13fdc1f9fd9ea92f2dcdd8c633b8719ab85d5"
+      }
+    }
+  },
+  "browserResources": [
+    {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-11-13T21:22:50.7760832Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--require",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target/math-browser-preload.cjs",
+        "docs/capture_journey.cjs",
+        "05-vertices",
+        "07-uniforms",
+        "10-depth"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 4.275,
+      "peakJobCommitBytes": 556367872,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 21980,
+      "descendantsAtCleanup": 1
+    },
+    {
+      "platform": "windows-job-object",
+      "startedUtc": "2026-11-13T21:22:55.4990666Z",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "arguments": [
+        "--require",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target/math-browser-preload.cjs",
+        "docs/capture_journey.cjs",
+        "05-vertices",
+        "07-uniforms",
+        "10-depth"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\",
+      "timeoutSeconds": 600,
+      "jobCommitLimitBytes": 4294967296,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 3.977,
+      "peakJobCommitBytes": 541810688,
+      "affinityMask": "0x3",
+      "processors": 2,
+      "processId": 31384,
+      "descendantsAtCleanup": 0
+    }
+  ]
+}

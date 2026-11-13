@@ -2,6 +2,36 @@
 
 **Steps:** 7 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
+
+## Current stroke widths, dashes and reveal
+
+Keep the kernel's line or curve unchanged while giving its GPU segments the authored pen and dash pattern. Prerequisites are object rows, projection, buffer alignment and the distinction between local and screen coordinates. The historical checkpoint below still needs this current contract integrated; source explanations do not close that implementation gap.
+
+```rust
+--8<-- "session_viewer/src/engine/gpu/segments.rs:stroke-row-layout"
+```
+
+`StrokeSegment` has a 72-byte stride. Its first 40 bytes contain the endpoints, radius, instance ID, colour and face orientation. Neighbour indices occupy bytes 40 and 44, sag and start clearance occupy 48 and 52, the on/off pair occupies 56 and 60, cumulative dash distance occupies 64, and end clearance occupies 68. [ribbon.wgsl](../../../src/shaders/ribbon.wgsl) declares scalar endpoint components so WGSL padding agrees with these Rust offsets.
+
+The radius field has three meanings. Zero uses the default pen; a negative value multiplies screen pen thickness; a positive value is a world-space radius projected at the endpoint depth. Kernel `width` is a full pen-width multiplier: `encode_width` stores `-width / 2`, except the default or invalid value becomes zero. The shader computes a half-width, so forgetting the division by two doubles the visible stroke.
+
+```rust
+--8<-- "session_viewer/src/app/walk/curves.rs:curve-dash-chain"
+```
+
+The walker emits one row for each nonzero neighbouring pair and retains a chain range. Each row receives the distance accumulated before it, then contributes its own length. The first two finite positive pattern entries become the on/off pair; a single positive entry supplies both lengths. Additional entries produce a warning and are not a longer repeating pattern. No valid positive entry means solid ink.
+
+`dash_coverage` converts both dash lengths and the accumulated offset to placed-world units. It recovers the perspective-correct position along the segment from endpoint depths, then takes the distance modulo the on/off period. This prevents the dash from restarting at every sampled chord. Anti-aliasing softens the on/off boundary using the segment's world distance per screen pixel.
+
+The object's reveal fraction changes each segment's end from `p0` toward `p1` before projection. For a multi-segment path this reveals each segment in parallel; it is not a global arc-length cursor walking the whole chain. Keep that distinction in the lesson experiment and in stage choreography.
+
+**Predict and try:** use two collinear segments of lengths three and two with on/off lengths `(0.5, 0.25)`. The second begins with offset three. Splitting the first segment into more collinear chords must preserve the dash phase. With width two, expect twice the default full screen width, not four times it.
+
+**Question:** why keep a cumulative distance when each row already has two endpoints? **Answer:** endpoints determine that segment's length but not its position within the original path. The retained offset gives every chord one common dash clock.
+
+Native layout and dash tests must pass, then browser review must show continuous dash phase through sampled curves at desktop and upright sizes. These current additions remain pending in the cumulative checkpoint.
+
+
 ## <a id="checkpoint-35-stroke"></a>1. Prepare a stroke without changing its source
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

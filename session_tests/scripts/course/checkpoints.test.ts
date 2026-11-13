@@ -339,9 +339,15 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     const pilot = reading.chapters[0].sections.flatMap(section => section.lessons);
     assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3', '1.4']);
     const consolidated = plan.chapters.flatMap((chapter: {consolidated?: {steps: string[]}[]}) => chapter.consolidated || []);
-    assert.equal(reading.aliases.size, consolidated.reduce((count: number, lesson: {steps: string[]}) => count + lesson.steps.length, 0));
+    const redirected = consolidated.flatMap((lesson: {page: string; steps: string[]}) =>
+        lesson.steps.filter(id => original.byId.get(id)?.page !== lesson.page));
+    assert.deepEqual([...reading.aliases.keys()], redirected);
+    for (const id of ['03-triangle', '03d-input', '05-vertices', '07-uniforms', '10-depth']) {
+        assert(!reading.aliases.has(id), `${id} must render its authored page instead of redirecting to itself`);
+        assert.equal(reading.byId.get(id)?.page, original.byId.get(id)?.page);
+    }
     assert.equal(reading.aliases.get('01-canvas')?.page, 'journey/consolidation/01-canvas.md');
-    assert.equal(reading.aliases.get('03d-input')?.anchor, 'checkpoint-03d-input');
+    assert.equal(reading.aliases.get('04-input')?.anchor, 'checkpoint-04-input');
     assert(!original.byId.has('01a-gpu'));
     assert.deepEqual(expected('01a-gpu'), expected('01-canvas'));
     assert.deepEqual(expected('02-clear'), expected('01-canvas'));

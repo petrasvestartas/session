@@ -2,6 +2,33 @@
 
 **Steps:** 5 · **Source:** [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs)
 
+
+## Kernel Matrix display
+
+Display a retained kernel Matrix component as coloured cells, readable numbers and a world-space title. Prerequisites are decoded components, object-row placement, lane registration, shared ink pipelines and labels. The 2D stage matrix uses mathematical layout; this kernel component belongs to the ordinary 3D scene and its picking, archive and placement rules.
+
+```rust
+--8<-- "session_viewer/src/app/walk/matrix.rs:kernel-matrix-upload"
+```
+
+A component with type name `Matrix` is drawable even without mesh geometry. The walker checks nonzero row and column counts and the data length before emitting a block. It computes the colour range from entries whose magnitude is at least `1e-12`; zero entries receive their separately authored zero colour.
+
+Each block begins with sixteen 32-bit header words: dimensions, object row, cell size, nonzero range and packed colours occupy defined offsets shared with [matrices.rs](../../../src/engine/gpu/matrices.rs) and [matrix.wgsl](../../../src/shaders/matrix.wgsl). The data then uses three words per entry. One is the floating-point value for colour interpolation. The other two hold the whole magnitude, thousandths and sign bit for numeric display. Quantization rounds to three decimals and caps the magnitude before integer conversion. This preserves displayed decimals for values whose `f32` representation is too coarse to carry them.
+
+The GPU lane retains the block starts. A draw uses six vertices for the quad covering a whole matrix; its instance argument identifies the block's first word. The fragment shader locates a cell from local coordinates, reads that entry, shades its fill and edges, and paints the digits with a procedural seven-segment pattern. Digit widths and a fit limit keep a long number inside its cell. The shared ink path supplies coverage and multisample behavior, while the ID pipeline returns the owning object for whole-matrix picking.
+
+```rust
+--8<-- "session_viewer/src/app/walk/matrix.rs:kernel-matrix-title"
+```
+
+A nonempty component name produces a title anchored above the top-left cell. Its height is `0.35 * cell`, and its ink follows `linecolor`. Scene labels place it through the same object transform, with no backing plate. The matrix's bounds reserve the title region as well as the cell rectangle, so fitting includes both. Retain component identity through decoding and archives so reopening a session reconstructs the same matrix and title.
+
+**Predict and try:** compare `1000000.125` with its negative and with zero. The float word determines the cell colour; the integer words retain `.125` and the sign for the numeric drawing. Zero keeps its own colour. Moving the object should move every cell and its title together, and picking any cell should select that one component.
+
+**Question:** why store both a float and integer digit information? **Answer:** colour interpolation needs a continuous approximate value, while text needs stable decimal digits. A large float alone cannot provide both at the desired precision.
+
+Review the matrix packing/layout tests and the retained Matrix render fixture below. Browser acceptance must show digits, selected borders, whole-object picking and a plate-less title through placement and save/reopen. Existing source-bound Matrix proofs keep their recorded scope; cumulative production-tree parity remains pending.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>

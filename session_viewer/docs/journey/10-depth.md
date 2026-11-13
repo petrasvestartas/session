@@ -103,4 +103,8 @@ No. The vector position changes; the ObjectId assigned at insertion stays the sa
 
 ## Validation
 
-Source replay preserves the exact endpoint of the four archived depth, mesh, GPU scene and identity checkpoints. The constructor and scene tests check invalid geometry and identity after removal. Fresh native, wasm and browser execution remains pending; source preservation does not establish runtime acceptance.
+Source replay preserves the exact endpoint of the four archived depth, mesh, GPU scene and identity checkpoints. The constructor and scene tests check invalid geometry and identity after removal. Fresh wasm and optimized web builds, seven native tests and the WARP pixel check pass. Chrome interaction checks execute `Example Triangle` at desktop and upright dimensions. Final production parity and later-subject ownership remain unresolved.
+
+[Source-bound validation receipt](release/consolidated-windows-20261113.json) ? [Upright browser frame](../screenshots/consolidated-windows/10-depth-upright.png). Native evidence uses software rendering; viewport emulation does not establish real-device acceptance.
+
+![Reviewed desktop browser result](../screenshots/consolidated-windows/10-depth-desktop.png)

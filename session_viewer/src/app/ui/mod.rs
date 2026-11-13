@@ -335,6 +335,7 @@ impl Ui {
         repaint
     }
 
+    // --8<-- [start:stage-frame-order]
     /// Paint a stage deck over the whole canvas instead of the panels; true while it animates.
     pub fn stage_frame(&mut self, state: &mut State) -> bool {
         let mut input = self.input.take_egui_input(&state.window);
@@ -390,6 +391,7 @@ impl Ui {
         more
     }
 
+    // --8<-- [end:stage-frame-order]
     /// Write the panel state onto the canvas for browser tests.
     fn publish(&self) {
         if self.controls.is_some()

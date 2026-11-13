@@ -203,6 +203,7 @@ impl StageApp {
         self.stage.changed = true;
     }
 
+    // --8<-- [start:stage-touch]
     /// One finger: swipe left for the next step and right for the one before; a slow drag on the 3D side orbits.
     fn finger(
         &mut self,
@@ -274,6 +275,7 @@ impl StageApp {
         }
     }
 
+    // --8<-- [end:stage-touch]
     /// Paint one frame into the egui painter; true while more frames are needed.
     pub fn paint(
         &mut self,

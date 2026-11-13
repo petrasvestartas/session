@@ -153,6 +153,7 @@ fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
 /// Neighbour code of an end under an arrowhead: no joint, and the ribbon stops at the head's base.
 pub(super) const HEAD_MARK: u32 = u32::MAX - 1;
 
+// --8<-- [start:stroke-row-layout]
 /// A segment with its neighbours, so joints are drawn once.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -168,6 +169,7 @@ pub(super) struct StrokeSegment {
 }
 
 const _: () = assert!(std::mem::size_of::<StrokeSegment>() == 72);
+// --8<-- [end:stroke-row-layout]
 
 /// Link neighbouring segments inside each chain; a headed end joins nothing. `sags` is per
 /// row, zero past its end.

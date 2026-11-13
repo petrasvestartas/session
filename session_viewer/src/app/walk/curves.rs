@@ -7,6 +7,7 @@ use crate::engine::gpu::{CylinderSegment, Instance, Upload};
 use session_rust::AABB;
 use session_rust::{Arrowhead, Line, NurbsCurve, Polyline, Session};
 
+// --8<-- [start:curve-dash-chain]
 fn dash_pair(pattern: &[f64]) -> [f32; 2] {
     let mut lengths = pattern
         .iter()
@@ -63,6 +64,8 @@ pub(super) fn push_polyline(
     }
 }
 
+// --8<-- [end:curve-dash-chain]
+// --8<-- [start:curve-heads]
 /// A head-only vector row at the end of `segment`, aimed along it.
 fn head_row(segment: &CylinderSegment) -> VectorRow {
     VectorRow {
@@ -123,6 +126,7 @@ pub(super) fn push_heads(
     Instance::FLAG_HEADS
 }
 
+// --8<-- [end:curve-heads]
 /// A line as one segment.
 pub fn walk_line(seg: &mut SegRows, lanes: &mut LaneRows, l: &Line, row: u32) -> Row {
     let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
@@ -282,6 +286,7 @@ pub fn walk_nurbscurve_quality(
     }
 }
 
+// --8<-- [start:endpoint-clearance]
 /// Give arrows and strokes the display radii of visible kernel points at their endpoints.
 pub fn endpoint_clearance(up: &mut Upload, session: &Session) {
     let radius = |position: [f32; 3]| {
@@ -323,6 +328,7 @@ pub fn endpoint_clearance(up: &mut Upload, session: &Session) {
     }
     up.seg.ribbon_trims = trims;
 }
+// --8<-- [end:endpoint-clearance]
 
 #[cfg(test)]
 mod tests {

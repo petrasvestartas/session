@@ -1,5 +1,6 @@
 use session_rust::Xform;
 
+// --8<-- [start:object-instance-layout]
 /// One object row as the shaders read it, 112 bytes.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -14,6 +15,7 @@ pub struct Instance {
 }
 
 const _: () = assert!(std::mem::size_of::<Instance>() == 112);
+// --8<-- [end:object-instance-layout]
 
 impl Instance {
     /// Selected: drawn tinted.

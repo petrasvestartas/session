@@ -8,7 +8,9 @@ const {PNG} = require('pngjs');
 const browserFingerprint = require('./journey/checks/fingerprint.cjs');
 const course = JSON.parse(fs.readFileSync('docs/journey/course.json', 'utf8'));
 const builds = JSON.parse(fs.readFileSync('target/course-checks/results.json', 'utf8'));
-const output = 'docs/screenshots/journey';
+const output = process.env.JOURNEY_OUTPUT || 'docs/screenshots/journey';
+const viewportSize = process.env.JOURNEY_VIEWPORT ? JSON.parse(process.env.JOURNEY_VIEWPORT) : {width: 900, height: 760};
+assert(['width', 'height'].every(key => Number.isInteger(viewportSize[key]) && viewportSize[key] >= 100 && viewportSize[key] <= 4096), 'Invalid capture viewport');
 const selected = process.argv.slice(2);
 assert(selected.every(id => course.steps.some(step => step.id === id)), 'Unknown checkpoint');
 const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
@@ -182,6 +184,7 @@ function prepareSample(step) {
 }
 
 async function capture() {
+    fs.mkdirSync(output, {recursive: true});
     for (const step of course.steps.filter(step => !selected.length || selected.includes(step.id))) prepareSample(step);
 
     const args = process.env.VIEWER_CHROME_ARGS ? JSON.parse(process.env.VIEWER_CHROME_ARGS)
@@ -195,7 +198,7 @@ async function capture() {
     let page, checkpoint;
     const errors = [], messages = [];
     try {
-        page = await browser.newPage({viewport: {width: 900, height: 760}, deviceScaleFactor: 1});
+        page = await browser.newPage({viewport: viewportSize, deviceScaleFactor: 1});
         page.on('requestfailed', request => messages.push({url: request.url(), error: request.failure()}));
         page.on('pageerror', error => errors.push(error.message));
         page.on('console', message => {
@@ -206,7 +209,7 @@ async function capture() {
             const id = step.id;
             checkpoint = id;
             errors.length = 0; messages.length = 0;
-            await page.setViewportSize({width: 900, height: 760});
+            await page.setViewportSize(viewportSize);
             await page.goto(new URL(`${id}/dist/`, base).href);
             await page.waitForFunction(() => {
                 const status = document.querySelector('#status')?.textContent || '';
@@ -382,7 +385,13 @@ async function capture() {
             await page.screenshot({path: path.join(output, file), fullPage: true});
             records.steps[id] = {source: builds[id].source, checker: hash(fs.readFileSync(__filename)),
                 extraChecker: step.browser_check ? browserFingerprint(step.browser_check) : null,
-                browser: browser.version(), headless, captured: new Date().toISOString(), status, canvas, file,
+                browser: browser.version(), headless, args, captured: new Date().toISOString(), status, canvas, file,
+                queriedWebGPUAdapter: await page.evaluate(async () => {
+                    const adapter = await navigator.gpu.requestAdapter();
+                    if (!adapter) return null;
+                    const {vendor, architecture, device, description} = adapter.info;
+                    return {vendor, architecture, device, description};
+                }),
                 initialViewport: viewport, initialCanvas: box, screenshotViewport: page.viewportSize(),
                 bundle: hash(fs.readFileSync(`target/course-checks/${id}/dist/index.html`)),
                 commands: (step.browser_actions || []).filter(action => action.command).map(action => action.command),
