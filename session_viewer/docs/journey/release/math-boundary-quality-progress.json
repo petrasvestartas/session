@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-13T09:16:02.134495+00:00",
+  "updatedUtc": "2026-11-13T09:21:42.770576+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -189,7 +189,7 @@
       "freeze": "source-freeze-30-cap-native-lock-graph.json",
       "sourceFiles": 554,
       "acceptedImages": 0,
-      "scope": "Source30: 3 fresh main-page cap image profiles, separate from 94 historical primary cases and earlier supporting recipes. Visible figures 42/42. Full child/prefix callback matrices and canonical validation excluded. Final website QA pending.",
+      "scope": "Source30: three supporting cap main-page image profiles are actually compiled/GPU-qualified, Root-reviewed, published and retired. All42 visible figure updates and final strict115-page website/browser/layout review are complete. Historical94 primary cases, Source29two focused topic recipes and Source26measurement remain separate. CurrentSource30 primary0/1326;1232 lineage destinations remain. No full child/prefix/canonical callback transfer.",
       "supportingCapImageProfiles": 3
     },
     "historicalRenderer13FrozenFiles": 477,
@@ -341,7 +341,7 @@
     "remainingAffected": 1227,
     "acceptedForFinalSource": 0,
     "remainingFinalSourceAcceptance": 1326,
-    "qualificationNote": "Source30: 3 fresh main-page cap image profiles, separate from 94 historical primary cases and earlier supporting recipes. Visible figures 42/42. Full child/prefix callback matrices and canonical validation excluded. Final website QA pending.",
+    "qualificationNote": "Source30: three supporting cap main-page image profiles are actually compiled/GPU-qualified, Root-reviewed, published and retired. All42 visible figure updates and final strict115-page website/browser/layout review are complete. Historical94 primary cases, Source29two focused topic recipes and Source26measurement remain separate. CurrentSource30 primary0/1326;1232 lineage destinations remain. No full child/prefix/canonical callback transfer.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
@@ -2377,7 +2377,7 @@
     },
     {
       "stage": "Image regeneration",
-      "status": "64_RENDERER_LINEAGE_DESTINATIONS_ACCEPTED;13_CURRENT_FREEZE15_DEPENDENCY_QUALIFIED;51_HISTORICAL_FREEZE13;1262_PLAN_REMAIN;5_OF42_VISIBLE_UPDATES_DONE"
+      "status": "42_OF42_VISIBLE_UPDATES_COMPLETE;94_HISTORICAL_PRIMARY_CASES;3_CURRENT_SOURCE30_SUPPORTING_CAP_PROFILES;1232_LINEAGE_DESTINATIONS_REMAIN"
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
