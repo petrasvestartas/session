@@ -13,6 +13,7 @@ import {exactBindgen} from './exact-bindgen.ts';
 import {assetsFor, docs, expected, filesIn, hash, json, lockFor, materialize, read, viewer, write, materializedContent} from './model.ts';
 import {nativeTarget} from './verify.ts';
 import {imageBuildMode, nativeSamplePhase} from './image-low-disk.ts';
+import {capNativeLockIdentity, capNativeLockOverlay} from './image-cap-native-lock.ts';
 
 const self=fileURLToPath(import.meta.url), original=fileURLToPath(new URL('./browser-presentation.ts',import.meta.url));
 const guard=fileURLToPath(new URL('./parallel-image-guard.ps1',import.meta.url));
@@ -38,6 +39,7 @@ function tools(){return Object.fromEntries(['rustc','cargo'].map(exe=>{const r=s
 function sourceCheck(p:any){
     assert.equal(p.helperSha256,sha(self));assert.deepEqual(p.source,bindings(p.id));
     assert.deepEqual(p.buildMode,imageBuildMode());assert.deepEqual(p.group.identity.buildMode,p.buildMode);
+    assert.deepEqual(p.nativeLockGraph || null, capNativeLockIdentity(p.id)?.identity || null);
     for(const[f,digest]of Object.entries(p.pins))assert.equal(sha(f),digest,f);
     assert.deepEqual(manifest(p.native),p.canonicalFiles);
     for(const[name,text]of Object.entries(expected(p.id)))assert.equal(read(path.join(p.native,name)),materializedContent(name,text,p.native),name);
@@ -51,7 +53,8 @@ function sourceCheck(p:any){
 export function prepareIncrementalImageBrowser(id:string,density=2){
     assert.equal(density,2);
     const buildMode=imageBuildMode(), buildPolicy={...policy,incremental:{nativeSample:buildMode.nativeIncremental,wasm:buildMode.wasmIncremental}};
-    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,buildMode,modeHelperSha256:sha(modeHelper),sharedCourseManifest:imageCourseSnapshot()?.sha256||null,manifestHelper:sha(fileURLToPath(new URL('./capture-storage.ts',import.meta.url))),attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy:buildPolicy,toolFiles:compilerTools(),tools:tools()};
+    const nativeLock=capNativeLockIdentity(id);
+    const source=bindings(id),capture=path.join(docs,'capture_journey.cjs'),identity={source,density,buildMode,...(nativeLock?{nativeLockGraph:nativeLock.identity}:{}),modeHelperSha256:sha(modeHelper),sharedCourseManifest:imageCourseSnapshot()?.sha256||null,manifestHelper:sha(fileURLToPath(new URL('./capture-storage.ts',import.meta.url))),attempt:process.env.COURSE_CAPTURE_ATTEMPT||null,helperSha256:sha(self),guardSha256:sha(guard),policy:buildPolicy,toolFiles:compilerTools(),tools:tools()};
     const folder=path.join(root,'cases',id+'-'+hash(JSON.stringify(identity)).slice(0,20)),preparedFile=path.join(folder,'prepared.json');
     if(fs.existsSync(preparedFile)){const p=json(preparedFile);sourceCheck(p);return p;}
     const lookup=browserPreparationFile(id,density),base=fs.existsSync(lookup)?json(lookup):prepareBrowser(id,density);
@@ -60,7 +63,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const renderScaleBridge = source.imageProfile.browser ? browserScaleBridge(read(path.join(native, 'src/browser.rs')), source.imageProfile.browser) : null;
     const capBridge = capImageBridge(native, source.imageProfile.browser);
     const canonicalFiles=manifest(native),canonicalCargo=read(path.join(base.native,'Cargo.toml'));
-    const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,buildMode,modeHelperSha256:identity.modeHelperSha256,policy:buildPolicy,helperSha256:sha(self),guardSha256:sha(guard)};
+    const groupIdentity={cargo:hash(expected(id)['Cargo.toml']),lock:sha(lockFor(id)),...(nativeLock?{nativeLockGraph:nativeLock.identity}:{}),dependencies:source.dependencies,kernel:source.kernel,tools:identity.tools,buildMode,modeHelperSha256:identity.modeHelperSha256,policy:buildPolicy,helperSha256:sha(self),guardSha256:sha(guard)};
     const groupKey='compact-browser-v1',group=path.join(viewer,'target/course-ib',groupKey),workbench=path.join(group,'workspace'),target=cargoTarget();
     const workspace=path.join(folder,'workspace'),dist=path.join(workspace,'target/course-checks',id,'dist');
     const sharedCourseManifest=stageImageCourseManifest(workspace);assert.deepEqual(sharedCourseManifest,base.sharedCourseManifest||null);
@@ -68,6 +71,7 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     fs.mkdirSync(path.join(workspace,'docs/screenshots/journey'),{recursive:true});
     write(path.join(workspace,'target/course-checks/results.json'),JSON.stringify({[id]:{source:source.files}}));
     const pins={...base.pins,...Object.fromEntries(imageCourseManifestInputs(workspace).map(file=>[file,sha(file)])), [self]:sha(self),[modeHelper]:sha(modeHelper),[guard]:sha(guard),[fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url))]:sha(fileURLToPath(new URL('./exact-bindgen.ts',import.meta.url)))};
+    for(const file of nativeLock?.files || [fileURLToPath(new URL('./image-cap-native-lock.ts',import.meta.url))])pins[file]=sha(file);
     const dependencyPaths:any[]=[];let table=false;
     const rebased=canonicalCargo.split('\n').map(line=>{
         if(/^\s*\[/.test(line))table=/(?:^|\.)(?:dependencies|dev-dependencies|build-dependencies)(?:\.|\])/.test(line.trim().slice(1))||/^\s*\[(?:patch\.|replace\])/.test(line);
@@ -79,11 +83,12 @@ export function prepareIncrementalImageBrowser(id:string,density=2){
     const old=rebased.match(/^name\s*=\s*"([^"]+)"/m)![1],packageName='image_incremental',lock=read(path.join(native,'Cargo.lock'));
     assert.equal(lock.split('name = "'+old+'"').length,2);
     const overlayCargo=rebased.replace('name = "'+old+'"','name = "'+packageName+'"').replace('[lib]','[lib]\nname = "viewer_journey"');
-    const overlayLock=lock.replace('name = "'+old+'"','name = "'+packageName+'"');
+    const lockOverlay=capNativeLockOverlay(id,overlayCargo,lock.replace('name = "'+old+'"','name = "'+packageName+'"'));
+    const overlayLock=lockOverlay.lock;
     const p={...base,...identity,status:'PREPARED_INCREMENTAL_IMAGE_BUILD_NOT_EXECUTED',id,density,folder,preparedFile,workspace,dist,native,pins,sharedCourseManifest,
         baseline:{path:baselineFile,sha256:sha(baselineFile),sourceOnlyReused:true,priorBuiltStatus:base.status},canonicalFiles,
         group:{key:groupKey,identity:groupIdentity,folder:group,workbench,target,package:packageName,library:'viewer_journey'},
-        overlay:{renderScaleBridge,...(capBridge ? {capImageBridge:capBridge} : {}),cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},
+        overlay:{renderScaleBridge,...(capBridge ? {capImageBridge:capBridge} : {}),...(lockOverlay.proof?{nativeLockGraph:lockOverlay.proof}:{}),cargo:overlayCargo,lock:overlayLock,dependencyPaths,cargoSha256:hash(overlayCargo),lockSha256:hash(overlayLock)},
         canonicalNativeUnchanged:{path:base.native,files:manifest(base.native)},canonicalBehaviorExecuted:false};
     delete p.bundle;delete p.commands;delete p.imageBuild;delete p.image;
     write(preparedFile,JSON.stringify(p,null,2)+'\n');sourceCheck(p);return p;

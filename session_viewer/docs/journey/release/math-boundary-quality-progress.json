@@ -1,11 +1,11 @@
 {
   "status": "IN_PROGRESS_MATHEMATICAL_BOUNDARY_REGENERATION",
-  "updatedUtc": "2026-11-13T07:59:47.492554+00:00",
+  "updatedUtc": "2026-11-13T09:16:02.134495+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
-    "maintainedSourceFreeze": "source-freeze-29-focused-topic-routes.json",
-    "frozenFiles": 550,
+    "maintainedSourceFreeze": "source-freeze-30-cap-native-lock-graph.json",
+    "frozenFiles": 554,
     "historicalPinnedFiles": 124,
     "historicalSourceCheckpoints": 8,
     "nativeFixturesAdapted": 62,
@@ -185,12 +185,12 @@
       "sha256": "ae4406849a5d423b9f8288b5045a9fe91a0134e76235d4d63bad7ced8b6ba28d"
     },
     "currentDependencyQualification": {
-      "status": "SOURCE29_TWO_FOCUSED_TOPIC_RECIPES_ROOT_REVIEWED_RETIRED",
-      "freeze": "source-freeze-29-focused-topic-routes.json",
-      "sourceFiles": 550,
+      "status": "SOURCE30_CAP_IMAGE_PROFILE_RUNTIME_QUALIFIED",
+      "freeze": "source-freeze-30-cap-native-lock-graph.json",
+      "sourceFiles": 554,
       "acceptedImages": 0,
-      "scope": "Unchanged labels.focused and allownpointtoolDPR1/DPR2 assertions/finalpages passed; inheritedglyphs/commands prefixes excluded. Rootoriginalpixels reviewed and normalpublication/retirement done. Originalcanonicalcallbackfiles unchanged; no wholedefaultcallback/canonicalprofile acceptance.",
-      "supportingTopicIllustrations": 2
+      "scope": "Source30: 3 fresh main-page cap image profiles, separate from 94 historical primary cases and earlier supporting recipes. Visible figures 42/42. Full child/prefix callback matrices and canonical validation excluded. Final website QA pending.",
+      "supportingCapImageProfiles": 3
     },
     "historicalRenderer13FrozenFiles": 477,
     "sectionBorderQualityReview": {
@@ -309,17 +309,28 @@
       "scope": "One current-source28 full59f browser callback image case; original DPR1/DPR2 assertions intact, two topic illustrations separately counted, Root original-pixel review and normal retirement. Actual compiler2CPU6GiB/fullcallback8CPU8GiB; canonical validation profile false. Historical93 Native cases and Source26 supporting measurement1 remain separate."
     },
     "capMsaa4CurrentImageProfile": {
-      "status": "CAP96ZZC_IMAGE_CARGO_LOCK_REFUSED_BEFORE_RUST_COMPILE",
-      "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
-      "actualRustCompilationQualified": false,
-      "actualPipelineQualified": false,
-      "actualImageAccepted": false,
+      "status": "PASS_ACTUAL_RUST_WASM_NVIDIA_PIPELINES_ROOT_REVIEWED_PUBLISHED_RETIRED",
+      "sourceFreeze": "source-freeze-30-cap-native-lock-graph.json",
+      "actualRustCompilationQualified": true,
+      "actualPipelineQualified": true,
+      "actualImageAccepted": true,
       "privateOfflineProposal": {
         "addedPackages": 9,
         "existingVersionsChanged": 0,
         "originalWorkBenchAndCanonicalLocksChanged": false
       },
-      "scope": "First four-sample cap attempt adds0acceptances. Private graph proposal alone is not runtime qualification. Existing historical SSAA/single-sample images remain separately scoped."
+      "scope": "Only the Source30 96zzc image profile: actual four-sample color/depth/primitive/crossings/selectedCoverage, single-sample queries unchanged, one owning Renderer device, same-size color resolve, no integer resolve; allocationGeneration1 across two fresh redraws. 722654672 extra bytes are attachment accounting, not measured VRAM. Full canonical callback excluded; original pixel steps explicitly recorded.",
+      "previousSource29LockFailureRetained": true,
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.json",
+      "receiptSha256": "830b18539137428daf14299a0d5dae5930ec3805250a0bf9de62c79a6a4d1e24"
+    },
+    "historicalSource29Qualification": {
+      "status": "SOURCE29_TWO_FOCUSED_TOPIC_RECIPES_ROOT_REVIEWED_RETIRED",
+      "freeze": "source-freeze-29-focused-topic-routes.json",
+      "sourceFiles": 550,
+      "acceptedImages": 0,
+      "scope": "Unchanged labels.focused and allownpointtoolDPR1/DPR2 assertions/finalpages passed; inheritedglyphs/commands prefixes excluded. Rootoriginalpixels reviewed and normalpublication/retirement done. Originalcanonicalcallbackfiles unchanged; no wholedefaultcallback/canonicalprofile acceptance.",
+      "supportingTopicIllustrations": 2
     }
   },
   "images": {
@@ -330,15 +341,15 @@
     "remainingAffected": 1227,
     "acceptedForFinalSource": 0,
     "remainingFinalSourceAcceptance": 1326,
-    "qualificationNote": "Source29 focused labels and ownpointtoolDPR1/DPR2 assertions passed on NVIDIA; supportingtopics2 plusversionedbrowserprimaryimages. Rootoriginalpixelreview/publication/normalretirement done; inheritedprefixes excluded, no fulldefault/canonicalacceptance. Historical94primarycases andSource26measurement1 separate.39/42visible done;3caps+finalsiteQA pending.",
+    "qualificationNote": "Source30: 3 fresh main-page cap image profiles, separate from 94 historical primary cases and earlier supporting recipes. Visible figures 42/42. Full child/prefix callback matrices and canonical validation excluded. Final website QA pending.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 94,
     "remainingPlannedImageAcceptances": 1232,
-    "physicalJourneyPngs": 563,
-    "uniqueJourneyPngs": 563,
+    "physicalJourneyPngs": 566,
+    "uniqueJourneyPngs": 565,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
       "sha256": "cd1c2cc6f9e83a4a90bd5657a1187c5f3eae032d89fd6e2d8626ca1083787bce",
@@ -670,16 +681,17 @@
       "canonicalBehaviorExecuted": false,
       "scope": "Separate original2mm supporting recipe; no full85aycanonical callback or Native84 acceptance. Not added to1326primary-case acceptance count."
     },
-    "journeyPngInventoryScope": "Recursive docs/screenshots/journey PNGs; topic reader-illustrations and release measurement are separate."
+    "journeyPngInventoryScope": "Recursive docs/screenshots/journey PNGs; topic reader-illustrations and release measurement are separate.",
+    "currentSourceSupportingCapImageProfiles": 3
   },
   "visibleWorkPlan": {
     "planned": 42,
     "densePublished": 1,
-    "pending": 3,
+    "pending": 0,
     "scope": "Visible illustration work plan only; these counts do not represent all historical callback checks or canonical qualification.",
     "historicalAcceptanceCountsUnchanged": true,
     "native91Published": 1,
-    "published": 39,
+    "published": 42,
     "native55Published": 1,
     "native74Published": 1,
     "native75Published": 1,
@@ -688,7 +700,8 @@
     "cadTopicIllustrationsPublished": 2,
     "worldLabelIllustrationPublished": 1,
     "unfinishedLinePreviewPublished": 1,
-    "allFourTopicIllustrationsPublished": true
+    "allFourTopicIllustrationsPublished": true,
+    "capImageProfilesPublished": 3
   },
   "published": [
     {
@@ -734,7 +747,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "38b-source",
@@ -757,10 +770,10 @@
       "image": "docs/screenshots/journey/42k-input.png",
       "imageSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
       "historicalChromeDecodeMatch": true,
-      "currentSitePublication": "NOT_VERIFIED_BY_CURRENT_BUILD_QA"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "43b-view",
@@ -922,7 +935,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "41f-input",
@@ -954,7 +967,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "54p-navigation",
@@ -1018,7 +1031,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "62o-labels",
@@ -1066,7 +1079,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "80za-read-original-projection-planes",
@@ -1082,7 +1095,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
@@ -1162,7 +1175,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "39-visible",
@@ -1242,7 +1255,7 @@
       "historicalChromeDecodeMatch": true,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "41-normals",
@@ -1402,7 +1415,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "76d-exercise-exact-curves-and-rational-control-edits",
@@ -1418,7 +1431,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "80d-exercise-networks-corner-retries-and-exact-original-archives",
@@ -1450,7 +1463,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "71aj-exercise-complete-and-ranged-original-drawings",
@@ -1482,7 +1495,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "88ad-exercise-original-sections-bores-and-ink",
@@ -1514,23 +1527,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
-    },
-    {
-      "id": "96zza-connect-section-primitive-images",
-      "lane": "browser",
-      "receipt": "docs/journey/release/math-boundary-quality-source13-cap-render-scale2-browser96zza-01-ae0d5a4fcfac.json",
-      "receiptSha256": "fbfa6f96dbd8dc290a1b0330185e18ae53899b637a400ed95342b1b235b403a8",
-      "image": "docs/screenshots/journey/96zza-connect-section-primitive-images-browser.png",
-      "imageSha256": "ae0d5a4fcfaca3e30d86e7de46f511d0c6352fca09f1ab7599c35540126ed103",
-      "sourceFreeze": "source-freeze-13.json",
-      "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "historicalChromeDecodeMatch": false,
-      "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
-      "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "SOURCE_ONLY_UNREFERENCED_NOT_PUBLISHED_OR_SERVED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "94c-prove-the-original-comparison-and-inspect-differences",
@@ -1547,7 +1544,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "95f-prove-cache-invalidation-and-honest-performance-reports",
@@ -1581,7 +1578,7 @@
       "historicalChromeDecodeMatch": false,
       "currentSiteReceipt": "docs/journey/release/math-boundary-site-verification-20261101-source13-04-composite.json",
       "currentSiteReceiptSha256": "c3d8725cf762a6d7ca2044796e65230d8a53225a296b4888b90a19703274cf4c",
-      "currentSitePublication": "PUBLISHED_CANONICAL_HTTP_SHA_AND_CHROME_DECODE_VERIFIED"
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
@@ -1835,9 +1832,9 @@
       "image": "docs/screenshots/journey/44l-input-7dada61886fe.png",
       "imageSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "45c-input",
@@ -1847,9 +1844,9 @@
       "image": "docs/screenshots/journey/45c-input-77791d4fa1df.png",
       "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "48d-input",
@@ -1859,9 +1856,9 @@
       "image": "docs/screenshots/journey/48d-input-9b3b2620591a.png",
       "imageSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "49f-input",
@@ -1871,9 +1868,9 @@
       "image": "docs/screenshots/journey/49f-input-b54a77169648.png",
       "imageSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "50d-ownership",
@@ -1883,9 +1880,9 @@
       "image": "docs/screenshots/journey/50d-ownership-deb4457c6d33.png",
       "imageSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "52k-tree",
@@ -1896,9 +1893,9 @@
       "imageSha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2",
       "sourceFreeze": "source-freeze-20-current-snapshot.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "53u-layers",
@@ -1909,9 +1906,9 @@
       "imageSha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1",
       "sourceFreeze": "source-freeze-20-current-snapshot.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "61d-glyphs",
@@ -1922,9 +1919,9 @@
       "imageSha256": "0cc8b191590cb3315c99b28a413dac7756530898a89c4b7f81f0a68dc3ea47d8",
       "sourceFreeze": "source-freeze-20-current-snapshot.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "63h-outline",
@@ -1935,9 +1932,9 @@
       "imageSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
       "sourceFreeze": "source-freeze-20-current-snapshot.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "64t-clouds",
@@ -1948,9 +1945,9 @@
       "imageSha256": "388a151b4d18cbb6f462b54df21921c5647415d8c9b77baec04efe9f2fb792f5",
       "sourceFreeze": "source-freeze-20-current-snapshot.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "65zb-validate-original-manifest-text-and-source-keys",
@@ -1961,9 +1958,9 @@
       "imageSha256": "713353f65147ef47144f8749963c39ee4115adfcb8dd04d22564b1b3e203304d",
       "sourceFreeze": "source-freeze-20-current-snapshot.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "66af-connect-browser-save-open-url-adoption",
@@ -1974,9 +1971,9 @@
       "imageSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "69i-check-sharing-precision-history-and-release",
@@ -1987,9 +1984,9 @@
       "imageSha256": "29ffdc4a7fc918fb5cd159655246d3d5558ec69f47a783d932087fe507d78431",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "69af-exercise-independent-original-cad-reuse",
@@ -2000,9 +1997,9 @@
       "imageSha256": "e5df8d852cd60d767042260544ba48dedb3b8e3b4b8e54ddd7c1f97d63293547",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "71ze-resolve-original-relative-and-polar-coordinates",
@@ -2013,9 +2010,9 @@
       "imageSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "72s-exercise-current-drawing-tools-and-original-persistence",
@@ -2026,9 +2023,9 @@
       "imageSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "73t-build-regular-kernel-polyhedra",
@@ -2039,9 +2036,9 @@
       "imageSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "81za-validate-original-split-inputs-and-name-pieces",
@@ -2052,9 +2049,9 @@
       "imageSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
@@ -2065,9 +2062,9 @@
       "imageSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "83ze-integrate-original-surface-area",
@@ -2078,9 +2075,9 @@
       "imageSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "84zod-explode-supported-original-families",
@@ -2091,9 +2088,9 @@
       "imageSha256": "355e633aaacfb0c20dc27b5521b39f01db8f7d0e933a56d57322fe11da137b16",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "86r-cache-projection-and-finish-current-reports",
@@ -2104,9 +2101,9 @@
       "imageSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "86aq-exercise-finite-color-and-original-picking",
@@ -2117,9 +2114,9 @@
       "imageSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "87ab-exercise-original-clipping-color-and-picking",
@@ -2130,9 +2127,9 @@
       "imageSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "90v-exercise-actual-contacts-cache-and-source-ownership",
@@ -2143,9 +2140,9 @@
       "imageSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "93h-prove-actual-glass-x-ray-and-source-ownership",
@@ -2156,9 +2153,9 @@
       "imageSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15",
       "sourceFreeze": "source-freeze-22-cloud-lifecycle-route.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction",
@@ -2176,9 +2173,9 @@
         "adaptedMathSha256": "6e2d5aa2e1d1d2e9c62d7776f3bba5277a35de406173973abb62ff7074bd6bb8"
       },
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "79zze-fit-the-original-gordon-surface",
@@ -2196,9 +2193,9 @@
         "adaptedMathSha256": "6e2d5aa2e1d1d2e9c62d7776f3bba5277a35de406173973abb62ff7074bd6bb8"
       },
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "85ay-exercise-current-original-commands-together",
@@ -2210,9 +2207,9 @@
       "imageSha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
       "sourceFreeze": "source-freeze-26-browser-cache-graph-retention.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "59f-cad",
@@ -2224,9 +2221,9 @@
       "imageSha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e",
       "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "59f-cad#cad-face-6",
@@ -2238,9 +2235,9 @@
       "imageSha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f",
       "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "59f-cad#cad-edge-13",
@@ -2252,9 +2249,9 @@
       "imageSha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642",
       "sourceFreeze": "source-freeze-28-post-pull-cloud-handoff.json",
       "rootVisuallyReviewed": true,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "62o-labels#primary",
@@ -2267,9 +2264,9 @@
       "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
       "rootVisuallyReviewed": true,
       "fullDefaultCallbackExecuted": false,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "62o-labels#world-label-selected",
@@ -2282,9 +2279,9 @@
       "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
       "rootVisuallyReviewed": true,
       "fullDefaultCallbackExecuted": false,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "48d-input#primary",
@@ -2297,9 +2294,9 @@
       "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
       "rootVisuallyReviewed": true,
       "fullDefaultCallbackExecuted": false,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     },
     {
       "id": "48d-input#unfinished-line-preview",
@@ -2312,9 +2309,57 @@
       "sourceFreeze": "source-freeze-29-focused-topic-routes.json",
       "rootVisuallyReviewed": true,
       "fullDefaultCallbackExecuted": false,
-      "httpSha256Verified": false,
-      "servedChromeVerified": false,
-      "currentSitePublication": "SITE_BUILD_AND_BROWSER_QA_PENDING"
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
+    },
+    {
+      "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "lane": "browser",
+      "kind": "supporting-cap-main-page-image-profile",
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.json",
+      "receiptSha256": "830b18539137428daf14299a0d5dae5930ec3805250a0bf9de62c79a6a4d1e24",
+      "image": "docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.png",
+      "imageSha256": "7998d3f4448657563dfabaf8196fe6d0ce239f671bcf642f572d5a06a0513e5e",
+      "sourceFreeze": "source-freeze-30-cap-native-lock-graph.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
+    },
+    {
+      "id": "96zza-connect-section-primitive-images",
+      "lane": "browser",
+      "kind": "supporting-cap-main-page-image-profile",
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zza-connect-section-primitive-images-1d91f844b3b8.json",
+      "receiptSha256": "20a6820e59fac4c8db4c48f970a475dc06a7dae1180f038815b5bade97f1b64f",
+      "image": "docs/screenshots/journey/96zza-connect-section-primitive-images-1d91f844b3b8.png",
+      "imageSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "sourceFreeze": "source-freeze-30-cap-native-lock-graph.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
+    },
+    {
+      "id": "96zzd-pack-surface-position-normal-and-color",
+      "lane": "browser",
+      "kind": "supporting-cap-main-page-image-profile",
+      "receipt": "docs/journey/release/math-boundary-quality-source30-browser-96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.json",
+      "receiptSha256": "fb1e13bae420517127cc1efd55f49934b6efef5d227e3cd14ae771f43e4f6e71",
+      "image": "docs/screenshots/journey/96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.png",
+      "imageSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "sourceFreeze": "source-freeze-30-cap-native-lock-graph.json",
+      "rootVisuallyReviewed": true,
+      "fullDefaultCallbackExecuted": false,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": true,
+      "servedChromeVerified": true,
+      "currentSitePublication": "PASS_FINAL_SOURCE30_STATIC_SITE_HTTP_IMAGE_AND_BROWSER_QA"
     }
   ],
   "stages": [
@@ -2336,7 +2381,7 @@
     },
     {
       "stage": "Final unchanged-site browser verification and publication",
-      "status": "BUILD04_111_READER_OWNERSHIP_22_CHAPTER_DOM_6_CRITICAL_READERS_22_CANONICAL_PNGS_AND_329_REMOVALS_VERIFIED; REMAINING_CAPTURE_ENTRIES_PENDING"
+      "status": "PASS_FINAL_SOURCE30_STRICT_VUE_BUILD_115_PAGES_22_CHAPTERS_13_PLAINTEXT_PAIRS_55_DISTINCT_CURRENT_FIGURES_AND_7_ROOT_LAYOUT_REVIEWS"
     }
   ],
   "readerCodeSynchronization": {
@@ -2348,21 +2393,26 @@
     "source13": "Five actual reader assemblies match promoted source byte-for-byte; eight checkpoint fingerprints and both extraction stages verified."
   },
   "browserVerification": {
-    "receipt": "docs/journey/release/viewer-site-20261106-06.json",
-    "sha256": "2d4294f43d47934763656b6b212be95ad072ccd17fa21965700969f1a0db9376",
-    "browser": "157.0.8103.38",
-    "pages": 38,
+    "status": "PASS_FINAL_SOURCE30_SITE_BUILD_BROWSER_AND_ROOT_LAYOUT_REVIEW",
+    "receipt": "docs/journey/release/viewer-site-20261113-source30.json",
+    "sha256": "6a2f77782d7eb00a3f7509e8eec558238fd11e66fc9eefb2a05120128bcf5885",
+    "browser": "157.0.8103.51",
+    "pages": 115,
     "chapterRoutes": 22,
-    "sourceReaderPins": 111,
+    "primaryReaderSourcePins": 111,
+    "siteSourcePins": 808,
     "plaintextSourcePairs": 13,
-    "otherRustSourcePreviews": 63,
-    "decodedImageOccurrences": 26,
-    "freshReplacementFigures": 4,
-    "denseRgbFigures": 1,
+    "otherSourcePreviews": 85,
+    "decodedImageOccurrences": 88,
+    "requiredCurrentFigureOccurrences": 61,
+    "uniqueRequiredCurrentFigures": 55,
+    "uniqueRequiredPixelDigests": 53,
+    "rootReviewedLayoutScreenshots": 7,
     "generatorDownloads": 1,
     "errors": 0,
+    "verificationRecordedUtc": "2026-11-13T09:16:02.134495+00:00",
     "noGpuOrWasmRuntimeAcceptanceClaim": true,
-    "verificationRecordedUtc": "2026-11-06T08:12:24.232742+00:00"
+    "rootPersonallyReviewedLayouts": true
   },
   "unusedImageCleanup": {
     "receipt": "docs/journey/release/math-boundary-unused-images-20261101.json",
@@ -2494,8 +2544,8 @@
     "nativeCompiledDrawResume": "ACTUAL_GPU_PASS_WITH_NORMAL_LEDGER_RETIREMENT",
     "nativeDpr4Sizing": "FIRST_ACTUAL55_RAW_DPR4_PASS",
     "guardAdmission": "FIVE_REAL_WINDOWS_JOB_CHECKS_PASS",
-    "capMsaa4": "OPT_IN_SOURCE_AND_FOUR_WGSL_MODULE_CHECKS_PASS_ACTUAL_RUST_PIPELINE_AND_IMAGE_QUALIFICATION_PENDING",
-    "capMsaa4RuntimeAccepted": false
+    "capMsaa4": "PASS_SOURCE30_ACTUAL_RUST_WASM_PIPELINE_GPU_IMAGE_ROOT_REVIEW_PUBLICATION_RETIREMENT",
+    "capMsaa4RuntimeAccepted": true
   },
   "historicalValidationLedger": {
     "receipt": "docs/journey/release/math-boundary-validation-ledger-20261110.json",
@@ -2504,7 +2554,7 @@
     "newAcceptances": 0
   },
   "validationLedgerLatest": {
-    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-02.json",
-    "sha256": "a168e8dda7f6d0524f86b8584f4655f7bed4c584cd4b23424f63e8858f1cc608"
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261113-03.json",
+    "sha256": "1f156ab90bd1502531e68e737c824c65dcdec68d63c5a7b3c38a6599a794d535"
   }
 }

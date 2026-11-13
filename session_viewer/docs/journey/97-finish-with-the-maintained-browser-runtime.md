@@ -1512,7 +1512,7 @@ The historical maintained-runtime record, before the 2026-10-24 export correctio
 
 [Full validation scope](release.md).
 
-To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [historical course bundle server](../archived/journey-release-evidence.md#reproduce) running on port 8781:
 
 ```sh
 npm --prefix ../session_tests run course -- capture 97-finish-with-the-maintained-browser-runtime

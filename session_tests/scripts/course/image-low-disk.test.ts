@@ -169,7 +169,7 @@ test('actual case/group and batch environment expressions bind the low-disk mode
     const identities = [false, true].map(lowDisk => {
         const environment = lowDisk ? {COURSE_IMAGE_LOW_DISK: '1'} : {};
         const buildMode = imageBuildMode(environment), buildPolicy = {incremental: {nativeSample: '0', wasm: buildMode.wasmIncremental}};
-        const context: any = {source: {dependencies: {}, kernel: 'kernel'}, density: 2, buildMode, buildPolicy,
+        const context: any = {source: {dependencies: {}, kernel: 'kernel'}, density: 2, buildMode, buildPolicy, nativeLock: null,
             modeHelper: 'helper.ts', self: 'build.ts', guard: 'guard.ps1', sha: (text: string) => sha(text),
             fileURLToPath: (value: URL) => value.pathname, URL, imageCourseSnapshot: () => null, compilerTools: () => ({}), tools: () => ({}),
             process: {env: environment}, id: 'fixture', hash: sha, expected: () => ({'Cargo.toml': 'manifest'}), lockFor: () => 'lock'};
