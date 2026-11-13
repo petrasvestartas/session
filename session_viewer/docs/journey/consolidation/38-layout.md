@@ -217,6 +217,8 @@ fn malicious_curve_layouts_return_errors_before_kernel_evaluation() {
 
 ## <a id="checkpoint-38a-samples"></a>2. Sample a validated curve without replacing its source
 
+Recorded native sampling frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38a-samples-0a45ef5b8472.png). The inherited blocks, strokes and point marker remain the visible scene; the new curve behavior requires separate state checks.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -1041,6 +1043,8 @@ mod native_projection_tests {
 ```
 
 ## <a id="checkpoint-38b-source"></a>3. Retain curves beside their display samples
+
+Recorded native source-retention frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38b-source-0a45ef5b8472.png). The inherited blocks, strokes and point marker remain the visible scene; the new curve behavior requires separate state checks.
 
 ### 1. `src/chain.rs`
 
@@ -3681,6 +3685,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-38c-controls"></a>4. Draw controls with their curve parent and index
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38c-controls-0a45ef5b8472.png). The inherited blocks, real line/path strokes and blue point remain the visible scene; new curve-control behavior requires separate state checks.
+
 ### 1. `src/scene.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3965,6 +3971,8 @@ fn placed_controls_share_the_original_curve_but_keep_distinct_document_parents()
 ```
 
 ## <a id="checkpoint-38d-input"></a>5. Insert an curve and inspect its controls
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/38d-input-0a45ef5b8472.png). The inherited comparison scene remains visible; constructor checks also cover three curve controls and their GPU upload and release lifecycle. Full interactive input needs separate acceptance.
 
 ### 1. `src/editor.rs`
 

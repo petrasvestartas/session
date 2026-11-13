@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "status": "ONE_FRESH_SOURCE31_IMAGE_PRESENTATION_PUBLISHED_FULL_1334_SCOPE_ACTIVE",
+  "at": "2026-11-13T20:03:25.802047+00:00",
+  "inventory": 1763,
+  "affected": 1334,
+  "explicitlyUnchanged": 429,
+  "sourceFreeze": {
+    "path": "source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "destinationAudit": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\full-goal-source31-destination-audit-02.json",
+    "sha256": "5763a687c0556d713b3cfffb876f32712bdc1ae241d6a730ad16cc0b01813da8"
+  },
+  "retainedOriginalBytes": {
+    "exactMatches": 429,
+    "mismatches": 0,
+    "recoveryProofSha256": "564d60bceadb1a6d4e5139b09d676ffd245180a7f560934dd0a12f35111300c3"
+  },
+  "freshImagePresentations": [
+    {
+      "baselineIndex": 170,
+      "originalLogicalDestination": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38a-samples.png",
+      "versionedImage": "docs/screenshots/journey/38a-samples-0a45ef5b8472.png",
+      "sha256": "0a45ef5b84726e01fc0721c736fd209fd8ab1269fe24a73910d2839ce8e88711",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native38a-dpr4-0a45ef5b8472.json",
+      "receiptSha256": "043b7c37213b35ffa9c3fcaf65d83963fbb88f095f2958ed888681e02d6f6d41",
+      "reader": {
+        "path": "docs/journey/38a-samples.md",
+        "sha256": "d0f8921cbf69f553f28bf02ef4a8f200d472155c1aa74081ebe221921d4b3842"
+      },
+      "servedBrowserVerification": "PENDING"
+    }
+  ],
+  "currentSourceFreshImagePresentations": 1,
+  "remainingCurrentSourceImagePresentations": 1333,
+  "olderReceipts": "Historical evidence requires exact source/destination reconciliation; no automatic transfer toSource31.",
+  "scope": "Image regeneration and Root original-pixel review only; canonical fixed-resolution validation and final updated served-site browser checks remain separate. Full objective active."
+}

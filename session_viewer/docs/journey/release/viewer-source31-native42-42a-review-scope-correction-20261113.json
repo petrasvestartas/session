@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "status": "ROOT_SCOPE_TEXT_CORRECTED_CAPTURE_AND_PIXELS_UNCHANGED",
+  "recordedUtc": "2026-11-13T23:06:41.251466+00:00",
+  "reason": "Root misread cursor picking window as an OS window and object IDs as window IDs in two initial review notes. This explicit correction supersedes those scope statements only; original captures/publication/retirement records are preserved.",
+  "rows": [
+    {
+      "id": "42-window",
+      "originalQualification": {
+        "path": "docs/journey/release/math-boundary-quality-source31-native42-dpr4-bd5d16840cff.json",
+        "sha256": "7df4469ce508c6fb4eda19cd8c0909dd42e3b5f3b1f561ffd365ad014a662ec8"
+      },
+      "image": {
+        "path": "docs/screenshots/journey/42-window-bd5d16840cff.png",
+        "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+      },
+      "originalPublicationSha256": "2646a3f0a02487ea757b6cfd7c7948dc5fd34d91f77b7a468f140fec5c7ecf79",
+      "effectiveRootReview": "Checkpoint42 bounds the cursor picking image, preserves homogeneous depth and decodes a hit. It is not an OS-window lifecycle lesson. The fresh original2560x1920 RGB image matches the personally reviewed41f grid scene. Actual course.frame41f-input.rs executes inherited RGB normal/grid/depth/resource constructor readbacks. This image does not qualify integer cursor readback, cfg(test), canonical final640 checks or browser picking.",
+      "readerChanges": [
+        {
+          "path": "docs/journey/consolidation/42-window.md",
+          "beforeSha256": "e2fe4ed33909bf6ff1c255c9d989d400d3065a509a1d69df3ca3bb35f360ea20",
+          "afterSha256": "d5524ccb5af9b804b9d93bb34b9c4dcad25a04370f631d747dce793ba4eb3eeb",
+          "headingsAndCodePreserved": true
+        },
+        {
+          "path": "docs/journey/42-window.md",
+          "beforeSha256": "c859a967da48a58b44b04ce07a96a8e527d8a78b07e6d8951b2267a1b672b814",
+          "afterSha256": "e6bc023afdb37a8b362f2299dfe72880e087fa7cb8c1218b4a056242881b4369",
+          "headingsAndCodePreserved": true
+        }
+      ]
+    },
+    {
+      "id": "42a-id",
+      "originalQualification": {
+        "path": "docs/journey/release/math-boundary-quality-source31-native42a-dpr4-bd5d16840cff.json",
+        "sha256": "53d019ae0fc7aa0b629203f68c2e5f42f806b780b62859e121a592f4e5a1d4dd"
+      },
+      "image": {
+        "path": "docs/screenshots/journey/42a-id-bd5d16840cff.png",
+        "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+      },
+      "originalPublicationSha256": "e49cde84894fbd79e9b99cad5561ed0fcf27b70586e0d412ebfb8b0c46627f0e",
+      "effectiveRootReview": "Checkpoint42a retains exact integer object IDs in shared GPU settings, with zero for misses/locked occluders and resolution against visible unlocked source rows. These are object IDs, not OS-window IDs. The original2560x1920 RGB grid image and its inherited41f constructor readbacks remain personally reviewed. It does not demonstrate the integer ID attachment, cursor picking, full cfg(test), canonical final640 checks or browser commands.",
+      "readerChanges": [
+        {
+          "path": "docs/journey/consolidation/42-window.md",
+          "beforeSha256": "d5524ccb5af9b804b9d93bb34b9c4dcad25a04370f631d747dce793ba4eb3eeb",
+          "afterSha256": "10f20377073dc42afbd174705d68c923dd6bd898dd9887bbd7d9d5a982332c2d",
+          "headingsAndCodePreserved": true
+        },
+        {
+          "path": "docs/journey/42a-id.md",
+          "beforeSha256": "d387049844196d925681f24d6483832969867d05279350217f12c17cc71ebec1",
+          "afterSha256": "3cd77e6af23c8f7a1e223fb670134067f9cd65a01b4c5ed5070a5b8db22a40ae",
+          "headingsAndCodePreserved": true
+        }
+      ]
+    }
+  ],
+  "originalImagesPersonallyReviewed": true,
+  "captureOrPixelsRewritten": false,
+  "newAcceptanceCreated": false,
+  "scope": "Fresh Native image presentation remains valid; no integer picking/OS-window/full-unit/browser acceptance is created."
+}

@@ -6,6 +6,10 @@ See the [section planes and closed caps diagram in Lesson 17.4](88-copy-original
 
 ## <a id="checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient"></a>1. Share section addresses with outlines and ambient shading
 
+![Selected section with an open circular bore and shared source borders](../../screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.png)
+
+The selected section surrounds the circular opening; outlines and ambient shading read the same section addresses. This image uses four-sample cap coverage and a two-times internal image render scale. Single-pixel steps remain visible along the circular source border.
+
 
 
 ### 1. `src/physical.wgsl`
@@ -966,6 +970,10 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-96zzd-pack-surface-position-normal-and-color"></a>2. Use compact vertices in every surface pass
+
+![Section surface with position, normal and color image channels](../../screenshots/journey/96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.png)
+
+The packed surface channels retain the section shape, original boundaries and visible shading.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">

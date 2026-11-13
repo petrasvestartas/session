@@ -1,0 +1,293 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T07:12:25.576Z",
+  "id": "59f-cad",
+  "lane": "browser",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-59f-cad-51134c5a2a4be65cd356\\capture.json.gz",
+    "sha256": "40cb68697b752ea5dc155b143467c758d3a69dcc780369741caff54138d538be",
+    "bytes": 210768
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\reader-topics-source28-04\\59f-cad\\capture-result.json",
+    "sha256": "da751776292d7431741c62b929eb76fa20378664bb14853ab6c4d8a26acb211f"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source28-topic-59f-cad-04-execution.json",
+    "sha256": "49c7cec09781926ae331feed5bf981f84a077be47171b5ee9854c1357325fa80"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\reader-topics-source28-04\\59f-cad\\bounded-terminal.json",
+    "sha256": "9594a5f686e50b87c497f41b1cc5e216edd7f2532627067598bd21844a3b31b3"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-28-post-pull-cloud-handoff.json",
+    "sha256": "ca2b4cb7f2153e3f4d3d3ed68e4b2d7133ea2b4bb9067ca30648ed8a6f814a0c"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 549
+  },
+  "originalCallback": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\cad.cjs",
+    "sha256": "973f645de69b486dcc5d4f631170c5e1fccdb162c0b8e053a7fc2d66de640005"
+  },
+  "observationClone": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\reader-topics-source26-01\\callbacks\\cad.cjs",
+    "sha256": "d1b2e3e40aa48771ea70c8fca0d25b999c238b04d2bd74c3cbce4404e5dd46a2"
+  },
+  "exactOriginalBytesReversible": true,
+  "callbackComplete": true,
+  "originalCallbackBytesPreserved": true,
+  "images": [
+    {
+      "id": "primary",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\59f-cad-6d8d8d99bb6e.png",
+      "sha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e",
+      "bytes": 82010,
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\incremental-browser-builds\\cases\\59f-cad-0ff20ddd89566ae6cfbf\\workspace\\docs\\screenshots\\journey\\59f-cad-browser.png",
+        "sha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e"
+      }
+    },
+    {
+      "pid": 15444,
+      "at": "2026-11-13T07:10:50.588Z",
+      "type": "reader-image-pending",
+      "id": "cad-face-6",
+      "checkpoint": "59f-cad",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\59f-cad\\cad-face-6-78ff32b131b7.png",
+      "sha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f",
+      "bytes": 48573,
+      "width": 2200,
+      "height": 1600,
+      "before": {
+        "dpr": 2,
+        "viewport": [
+          1100,
+          800
+        ],
+        "css": [
+          1100,
+          800
+        ],
+        "pixels": [
+          2200,
+          1600
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[1.259673314595547,0.0,0.0,0.0,0.0,1.732050807568877,2.2204682539328523e-16,2.220446049250313e-16,0.0,-0.0424999999999996,-1.000010000100001,-1.0,0.0,0.24330638511605754,5.72434087817457,5.724856120377827]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-cads": "[{\"edges\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],\"faces\":[0,1,2,3,4,5,6],\"id\":3,\"source\":\"7ec8b94a-1b64-4fd9-873b-69d7e6f7e8f2\",\"vertices\":82}]",
+          "data-surfaces": "[]",
+          "data-selected-ids": "[]",
+          "data-selection-part": "Object 3 · source face 6",
+          "data-tool": "null",
+          "data-preview-bytes": "0",
+          "data-stroke-usage": "[0,0,0,0]",
+          "data-gpu-stats": "[10, 10, 0, 0]",
+          "data-gpu-usage": "[1, 7272, 1, 160]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":123588,\"generations\":2,\"limited\":null,\"pending\":false,\"qualities\":[[3,0.0006905339660024878,0.0006905339660024878,false]]}",
+          "data-scene-texts": null,
+          "data-scene-text-stats": null,
+          "data-scene-text-gpu": null,
+          "data-text-atlas": null,
+          "data-text-error": null
+        }
+      },
+      "after": {
+        "dpr": 2,
+        "viewport": [
+          1100,
+          800
+        ],
+        "css": [
+          1100,
+          800
+        ],
+        "pixels": [
+          2200,
+          1600
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[1.259673314595547,0.0,0.0,0.0,0.0,1.732050807568877,2.2204682539328523e-16,2.220446049250313e-16,0.0,-0.0424999999999996,-1.000010000100001,-1.0,0.0,0.24330638511605754,5.72434087817457,5.724856120377827]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-cads": "[{\"edges\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],\"faces\":[0,1,2,3,4,5,6],\"id\":3,\"source\":\"7ec8b94a-1b64-4fd9-873b-69d7e6f7e8f2\",\"vertices\":82}]",
+          "data-surfaces": "[]",
+          "data-selected-ids": "[]",
+          "data-selection-part": "Object 3 · source face 6",
+          "data-tool": "null",
+          "data-preview-bytes": "0",
+          "data-stroke-usage": "[0,0,0,0]",
+          "data-gpu-stats": "[10, 10, 0, 0]",
+          "data-gpu-usage": "[1, 7272, 1, 160]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":123588,\"generations\":2,\"limited\":null,\"pending\":false,\"qualities\":[[3,0.0006905339660024878,0.0006905339660024878,false]]}",
+          "data-scene-texts": null,
+          "data-scene-text-stats": null,
+          "data-scene-text-gpu": null,
+          "data-text-atlas": null,
+          "data-text-error": null
+        }
+      },
+      "scope": "Actual unedited canvas PNG after original assertions; full callback and root visual review still required",
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\reader-illustrations\\source28-topic-59f-cad-04\\cad-face-6-dpr2.png",
+        "sha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f"
+      }
+    },
+    {
+      "pid": 15444,
+      "at": "2026-11-13T07:10:50.884Z",
+      "type": "reader-image-pending",
+      "id": "cad-edge-13",
+      "checkpoint": "59f-cad",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\59f-cad\\cad-edge-13-3a739a767531.png",
+      "sha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642",
+      "bytes": 58105,
+      "width": 2200,
+      "height": 1600,
+      "before": {
+        "dpr": 2,
+        "viewport": [
+          1100,
+          800
+        ],
+        "css": [
+          1100,
+          800
+        ],
+        "pixels": [
+          2200,
+          1600
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[1.259673314595547,0.0,0.0,0.0,0.0,1.732050807568877,2.2204682539328523e-16,2.220446049250313e-16,0.0,-0.0424999999999996,-1.000010000100001,-1.0,0.0,0.24330638511605754,5.72434087817457,5.724856120377827]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-cads": "[{\"edges\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],\"faces\":[0,1,2,3,4,5,6],\"id\":3,\"source\":\"7ec8b94a-1b64-4fd9-873b-69d7e6f7e8f2\",\"vertices\":82}]",
+          "data-surfaces": "[]",
+          "data-selected-ids": "[]",
+          "data-selection-part": "Object 3 · original BRep edge 13",
+          "data-tool": "null",
+          "data-preview-bytes": "0",
+          "data-stroke-usage": "[0,0,0,0]",
+          "data-gpu-stats": "[14, 14, 0, 0]",
+          "data-gpu-usage": "[1, 7272, 1, 160]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":123588,\"generations\":2,\"limited\":null,\"pending\":false,\"qualities\":[[3,0.0006905339660024878,0.0006905339660024878,false]]}",
+          "data-scene-texts": null,
+          "data-scene-text-stats": null,
+          "data-scene-text-gpu": null,
+          "data-text-atlas": null,
+          "data-text-error": null
+        }
+      },
+      "after": {
+        "dpr": 2,
+        "viewport": [
+          1100,
+          800
+        ],
+        "css": [
+          1100,
+          800
+        ],
+        "pixels": [
+          2200,
+          1600
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[1.259673314595547,0.0,0.0,0.0,0.0,1.732050807568877,2.2204682539328523e-16,2.220446049250313e-16,0.0,-0.0424999999999996,-1.000010000100001,-1.0,0.0,0.24330638511605754,5.72434087817457,5.724856120377827]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-cads": "[{\"edges\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],\"faces\":[0,1,2,3,4,5,6],\"id\":3,\"source\":\"7ec8b94a-1b64-4fd9-873b-69d7e6f7e8f2\",\"vertices\":82}]",
+          "data-surfaces": "[]",
+          "data-selected-ids": "[]",
+          "data-selection-part": "Object 3 · original BRep edge 13",
+          "data-tool": "null",
+          "data-preview-bytes": "0",
+          "data-stroke-usage": "[0,0,0,0]",
+          "data-gpu-stats": "[14, 14, 0, 0]",
+          "data-gpu-usage": "[1, 7272, 1, 160]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":123588,\"generations\":2,\"limited\":null,\"pending\":false,\"qualities\":[[3,0.0006905339660024878,0.0006905339660024878,false]]}",
+          "data-scene-texts": null,
+          "data-scene-text-stats": null,
+          "data-scene-text-gpu": null,
+          "data-text-atlas": null,
+          "data-text-error": null
+        }
+      },
+      "scope": "Actual unedited canvas PNG after original assertions; full callback and root visual review still required",
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\reader-illustrations\\source28-topic-59f-cad-04\\cad-edge-13-dpr2.png",
+        "sha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642"
+      }
+    }
+  ],
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected every original pixel through twelve unfiltered, unresampled quadrant tiles covering the1800x1520 primary and both2200x1600 topic PNGs. Primary: fully framed blue bore block in the original isometric view, clear open hole, shaded cylindrical wall and source borders, no triangulation wires. Topic face6: front/top source view, yellow selected face around the empty white bore; remaining rim blue. Topic edge13: original circular BRep border highlighted yellow independently while the face returns blue; empty hole stays clear. Command dock is present and unobscured. Selection IDs, GPU pick/empty-hole assertions and observer before/after equality passed in the complete original DPR1/DPR2 callback. No staged-scope claim beyond59f and no canonical2CPU profile acceptance; compiler2CPU6GiB/full callback8CPU8GiB as actually recorded.",
+  "canonicalBehaviorExecuted": true,
+  "canonicalValidationProfile": false,
+  "canonicalBehaviorProfile": false,
+  "scope": "Full original DPR1/DPR2 callback assertions executed with reversible GPU observers and DPR2 screenshots. No assertions removed. Three original source callbacks produce four separate topic illustrations; only this case is qualified. Root reviewed original pixels; old aliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\reader-topics-source28-04\\59f-cad\\publication.json",
+    "sha256": "98dacf82790be80c4546179676a00980a82170ff0c5537bbca6aabb5833d1272"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-59f-cad-51134c5a2a4be65cd356\\retirement.json.gz",
+    "sha256": "39cceba40df712fe105fefc8e64528eb28758d4aedaee4966e79ea451ccd6ca9"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-59f-cad-51134c5a2a4be65cd356\\retired.json",
+    "sha256": "270dcf5d772fb1e44836ab87e91556284b000b082e1c791158fd838df890c676"
+  }
+}

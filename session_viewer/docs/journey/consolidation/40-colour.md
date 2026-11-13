@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-40-colour"></a>1. Carry the mesh colour mode into display data
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/40-colour-0a45ef5b8472.png). The comparison scene is unchanged; constructor readbacks separately check object, point and face colour modes.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -204,6 +206,8 @@ fn incomplete_active_arrays_use_object_colour_without_source_mutation() {
 ```
 
 ## <a id="checkpoint-40a-input"></a>2. Compare colour modes through actual input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/40a-input-0a45ef5b8472.png). The comparison scene is unchanged; keyboard and pointer interactions require separate browser checks.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -517,6 +521,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-40b-indices"></a>3. Draw meshes beyond the sixteen-bit index limit
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/40b-indices-0a45ef5b8472.png). The comparison scene is unchanged; a separate constructor readback draws a Uint32 triangle referencing vertex 65,536.
 
 ### 1. `src/mesh.rs`
 

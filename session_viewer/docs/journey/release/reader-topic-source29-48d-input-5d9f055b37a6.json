@@ -1,0 +1,186 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T07:56:11.507Z",
+  "id": "48d-input",
+  "lane": "browser",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-48d-input-8542c2b4b72cbec85327\\capture.json.gz",
+    "sha256": "5fc88e798ae81dcba44a24eb81b20d1d2e04115a1f3d3d16c10cfefae56b4fb5",
+    "bytes": 218957
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\focused-topics-source29-01\\48d-input\\capture-result.json",
+    "sha256": "b092256a85b032a4f27485975d4dafa265abe83fece433502c9cca3118d435e6"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source29-focused-48d-input-01-execution.json",
+    "sha256": "d7170cb1d51615ecf292a5fac77a5e850287e665a91c31c49791852f43f04e61"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\focused-topics-source29-01\\48d-input\\bounded-terminal.json",
+    "sha256": "3cfe3a4c8324e0bf90367fa7d7088e16471dafdfa0e007cfbdb8d9bbf59617e8"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-29-focused-topic-routes.json",
+    "sha256": "73d30772ff51d507a87bf72e20385cdabbde35118dea1335f486644404247ee8"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 550
+  },
+  "originalCallback": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\point-tools.cjs",
+    "sha256": "c593b71e9ae615a34e581e3e070ee63d17e7fd117d0cbad36700835d07bbecd9"
+  },
+  "observationClone": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\reader-topics-source26-01\\callbacks\\point-tools.cjs",
+    "sha256": "1b49ee6338395f380d059d1fd0bca4b8254192384b2862a310dbe6fff0b1da16"
+  },
+  "exactOriginalBytesReversible": true,
+  "focusedExport": null,
+  "excludedInheritedPrefix": "    await require('./commands.cjs')(original, helpers);",
+  "callbackComplete": false,
+  "focusedOwnAssertionsComplete": true,
+  "inheritedPrefixExecuted": false,
+  "originalCallbackBytesPreserved": true,
+  "images": [
+    {
+      "id": "primary",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\48d-input-5d9f055b37a6.png",
+      "sha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3",
+      "bytes": 25458,
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\48d-input-6e8b6292325d8a952a89\\48d-input-dpr2.png",
+        "sha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3"
+      }
+    },
+    {
+      "pid": 35704,
+      "at": "2026-11-13T07:53:36.257Z",
+      "type": "reader-image-pending",
+      "id": "unfinished-line-preview",
+      "checkpoint": "48d-input",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\48d-input\\unfinished-line-preview-32e9793e694b.png",
+      "sha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f",
+      "bytes": 20142,
+      "width": 1920,
+      "height": 1280,
+      "before": {
+        "dpr": 2,
+        "viewport": [
+          960,
+          640
+        ],
+        "css": [
+          960,
+          640
+        ],
+        "pixels": [
+          1920,
+          1280
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[0.3849001794597504,0.0,0.0,0.0,0.0,0.5773502691896256,2.2204460492503132e-17,0.0,0.0,1.281975124255709e-16,-0.1,0.0,0.0,0.0,0.8,1.0]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[]",
+          "data-cads": null,
+          "data-surfaces": null,
+          "data-selected-ids": "[]",
+          "data-selection-part": "",
+          "data-tool": "{\"cursor\":[0.4979645968522251,0.0,0.0],\"name\":\"Line\",\"points\":[[-0.5,0.0,0.0]]}",
+          "data-preview-bytes": "76",
+          "data-stroke-usage": "[0,0,3,132]",
+          "data-gpu-stats": "[2, 2, 0, 0]",
+          "data-gpu-usage": "[0, 0, 0, 0]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":0,\"generations\":0,\"limited\":null,\"pending\":false,\"qualities\":[]}",
+          "data-scene-texts": null,
+          "data-scene-text-stats": null,
+          "data-scene-text-gpu": null,
+          "data-text-atlas": null,
+          "data-text-error": null
+        }
+      },
+      "after": {
+        "dpr": 2,
+        "viewport": [
+          960,
+          640
+        ],
+        "css": [
+          960,
+          640
+        ],
+        "pixels": [
+          1920,
+          1280
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[0.3849001794597504,0.0,0.0,0.0,0.0,0.5773502691896256,2.2204460492503132e-17,0.0,0.0,1.281975124255709e-16,-0.1,0.0,0.0,0.0,0.8,1.0]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[]",
+          "data-cads": null,
+          "data-surfaces": null,
+          "data-selected-ids": "[]",
+          "data-selection-part": "",
+          "data-tool": "{\"cursor\":[0.4979645968522251,0.0,0.0],\"name\":\"Line\",\"points\":[[-0.5,0.0,0.0]]}",
+          "data-preview-bytes": "76",
+          "data-stroke-usage": "[0,0,3,132]",
+          "data-gpu-stats": "[2, 2, 0, 0]",
+          "data-gpu-usage": "[0, 0, 0, 0]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":0,\"generations\":0,\"limited\":null,\"pending\":false,\"qualities\":[]}",
+          "data-scene-texts": null,
+          "data-scene-text-stats": null,
+          "data-scene-text-gpu": null,
+          "data-text-atlas": null,
+          "data-text-error": null
+        }
+      },
+      "scope": "Actual unedited canvas PNG after original assertions; focused own-assertion completion and root visual review still required",
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\reader-illustrations\\source29-focused-48d-input-01\\unfinished-line-preview-dpr2.png",
+        "sha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f"
+      }
+    }
+  ],
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected every original1920x1280 pixel in eight unfiltered/unresampled960x640 quadrant tiles covering both PNGs. Primary shows the diagonal yellow temporary Line with a clear endpoint cursor on an otherwise empty canvas. Topic shows the horizontal orthographic yellow rubber band and round endpoint cursor; complete line and cursor are inside the canvas. Both show the readable Line point2of2 and Cancel dock; no committed geometry, unintended mesh wires or dock overlap. Original ownDPR1/DPR2 perspective/orthographic invalid-input, Cancel, commit, Undo/Redo, Escape, Point, emptyEnter and release assertions completed. Topic receipt proves0primary strokes,76temporarybytes and unchanged primaryGPU tuple before/after hover and screenshot. Exactly inheritedcommands callback excluded, original canonicalfile bytes unchanged; no fulldefault/canonicalprofile acceptance. Compiler2CPU6GiB/exportedimagehost8CPU8GiB as recorded.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "canonicalBehaviorProfile": false,
+  "scope": "Own focused DPR1/DPR2 assertions and final-page setup executed; inherited prefix callbacks excluded. Labels uses unchanged focused export; point-tools excludes one inherited command callback call with all own assertions retained. No full/default callback or canonical profile acceptance. Root original pixels reviewed; aliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\focused-topics-source29-01\\48d-input\\publication.json",
+    "sha256": "022ee49fb69ba186300c1645c2a151c79fa81af2c5ba14d185a839f5bee634ea"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-48d-input-8542c2b4b72cbec85327\\retirement.json.gz",
+    "sha256": "dce914bee4211918f772b41b1247eed0af83dd18352b580668dde416e0d45dc3"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-48d-input-8542c2b4b72cbec85327\\retired.json",
+    "sha256": "4f9c7db912479991ef869692e70bba14cd1db6d9f43805a5a76ffb086ddfcdc0"
+  }
+}

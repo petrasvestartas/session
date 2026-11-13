@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-41-normals"></a>1. Retain checked source normals beside display positions
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41-normals-0a45ef5b8472.png). The comparison scene is unchanged; retained source normals do not yet introduce smooth lighting in this frame.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -332,6 +334,8 @@ fn normal_streams_refuse_mismatches_and_nonfinite_values_without_overflow() {
 
 ## <a id="checkpoint-41a-placement"></a>2. Transform normals with nonuniform surface placement
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41a-placement-0a45ef5b8472.png). The comparison scene is unchanged; normal-placement preparation precedes GPU settings and smooth lighting.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -514,6 +518,8 @@ fn reflections_flattening_and_extreme_scale_keep_finite_oriented_normals() {
 ```
 
 ## <a id="checkpoint-41b-drawing"></a>3. Draw smooth normals and sharp surface faces
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41b-drawing-0a45ef5b8472.png). The comparison scene is unchanged; separate constructor readbacks check smooth lighting, sharp faces and placed normals.
 
 See the [typed CPU buffers and GPU uploads diagram in Lesson 3.6](31-settings.md).
 
@@ -902,6 +908,8 @@ fn invalid_initial_normal_placement_does_not_consume_an_object_identity() {
 ```
 
 ## <a id="checkpoint-41c-view"></a>4. Reveal oriented world normals in the renderer
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41c-view-0a45ef5b8472.png). The comparison scene is unchanged; separate constructor readbacks verify oriented normal colours for sharp, smooth and winding specimens.
 
 
 
@@ -1658,6 +1666,8 @@ fn normal_view_changes_without_consuming_source_history() {
 
 ## <a id="checkpoint-41ca-input"></a>5. Inspect smooth normals and face winding through commands
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41ca-input-0a45ef5b8472.png). The comparison scene is unchanged; normal-inspection keyboard and menu commands require separate browser checks.
+
 ### 1. `src/normal_example.rs`
 
 Create the file and type:
@@ -1967,6 +1977,8 @@ fn normal_commands_preserve_original_attributes_history_and_roundtrips() {
 ```
 
 ## <a id="checkpoint-41d-grid"></a>6. Bound the ground grid and its camera depth range
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41d-grid-0a45ef5b8472.png). The comparison scene is unchanged; grid bounds and depth-range preparation precede the grid drawing lane.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -2346,6 +2358,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-41e-drawing"></a>7. Draw a depth-correct grid with shared stroke buffers
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41e-drawing-0a45ef5b8472.png). The comparison scene is unchanged; separate constructor readbacks verify grid axes, depth occlusion and shared-buffer reuse.
+
 ### 1. `src/depth.rs`
 
 **Locate this existing block:**
@@ -2645,6 +2659,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-41f-input"></a>8. Inspect the ground grid through actual commands
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/41f-input-bd5d16840cff.png). The editor grid command now enables the visible ground grid and coloured axes; browser bindings require separate checks.
 
 ### 1. `src/editor.rs`
 

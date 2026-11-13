@@ -1413,11 +1413,11 @@ Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and 
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
-![Native renderer output for inspect the ground grid through actual commands.](../screenshots/journey/42k-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/41f-input-bd5d16840cff.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The editor grid command now enables the visible ground grid and coloured axes; browser bindings require separate checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

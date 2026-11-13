@@ -1,0 +1,186 @@
+{
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-13T07:47:25.025Z",
+  "id": "62o-labels",
+  "lane": "browser",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-62o-labels-c3330558dbf732a0b553\\capture.json.gz",
+    "sha256": "86cd5d5a9429b821edd097a565ba60375755eaea20d3bd33ba50589c6633b7f7",
+    "bytes": 240776
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\focused-topics-source29-01\\62o-labels\\capture-result.json",
+    "sha256": "c3c3555d8fe4255f6fc930e6a6bbdc2184834afa164e108626169ab2e4bfc043"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source29-focused-62o-labels-01-execution.json",
+    "sha256": "87d4592858c1ba7656a65c63bda090eca92b6ef87c918a03f81f2dd4413d1f6a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\focused-topics-source29-01\\62o-labels\\bounded-terminal.json",
+    "sha256": "c17705865228ceecce8d93380d6ab15a54ac1638f5b9002c4ba5ef18cffd3742"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-29-focused-topic-routes.json",
+    "sha256": "73d30772ff51d507a87bf72e20385cdabbde35118dea1335f486644404247ee8"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 550
+  },
+  "originalCallback": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\checks\\browser\\labels.cjs",
+    "sha256": "1ee88e243f5553944bc4c3863d6625c31ad9d38d5ac666df5e2c13376296ba8a"
+  },
+  "observationClone": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\reader-topics-source26-01\\callbacks\\labels.cjs",
+    "sha256": "67a20238beb8ed5b2a93d470634e3cb57fa842d06d10da898082bd68b7616392"
+  },
+  "exactOriginalBytesReversible": true,
+  "focusedExport": "focused",
+  "excludedInheritedPrefix": null,
+  "callbackComplete": false,
+  "focusedOwnAssertionsComplete": true,
+  "inheritedPrefixExecuted": false,
+  "originalCallbackBytesPreserved": true,
+  "images": [
+    {
+      "id": "primary",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\62o-labels-5d17764a4e31.png",
+      "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "bytes": 106722,
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-presentation\\exported-scenes\\62o-labels-7d610c990988de345c15\\62o-labels-dpr2.png",
+        "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1"
+      }
+    },
+    {
+      "pid": 8944,
+      "at": "2026-11-13T07:45:52.459Z",
+      "type": "reader-image-pending",
+      "id": "world-label-selected",
+      "checkpoint": "62o-labels",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\62o-labels\\world-label-selected-5d17764a4e31.png",
+      "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "bytes": 106722,
+      "width": 2200,
+      "height": 1600,
+      "before": {
+        "dpr": 2,
+        "viewport": [
+          1100,
+          800
+        ],
+        "css": [
+          1100,
+          800
+        ],
+        "pixels": [
+          2200,
+          1600
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[1.0909090909090906,0.4514157417226387,0.43301703206254,0.4330127018922194,-0.6298366572977736,0.7818749999999999,0.7500075000750006,0.7499999999999999,0.0,1.4787499999999996,-0.5000050000500006,-0.5000000000000001,0.0,-0.26795755562461143,6.047530473919689,6.048057304345683]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-cads": "[{\"edges\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],\"faces\":[0,1,2,3,4,5,6],\"id\":3,\"source\":\"19cd4225-77e5-4161-b4dc-7701da627d8f\",\"vertices\":82}]",
+          "data-surfaces": "[]",
+          "data-selected-ids": "[4]",
+          "data-selection-part": "Object 4",
+          "data-tool": "null",
+          "data-preview-bytes": "0",
+          "data-stroke-usage": "[0,0,0,0]",
+          "data-gpu-stats": "[12, 12, 0, 0]",
+          "data-gpu-usage": "[1, 25704, 1, 160]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":166596,\"generations\":3,\"limited\":null,\"pending\":false,\"qualities\":[[3,0.000244140625,0.000244140625,false]]}",
+          "data-scene-texts": "[{\"guid\":\"c2cac1d6-6dd7-468b-a264-3b75d1c2b86b\",\"id\":4,\"model\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],\"source\":{\"guid\":\"c2cac1d6-6dd7-468b-a264-3b75d1c2b86b\",\"label\":{\"clip\":null,\"color\":[255,255,255,255],\"font_size\":18.0,\"id\":1,\"line_height\":26.0,\"object\":null,\"placement\":{\"WorldPlane\":{\"right\":[1.0,0.0,0.0],\"up\":[0.0,1.0,0.0],\"world\":[-1.5,0.0,1.0],\"world_height\":0.22}},\"text\":\"Original CAD · Ø25 · Ω\"},\"locked\":false,\"name\":\"Original CAD label\",\"visible\":true}}]",
+          "data-scene-text-stats": "{\"preparations\":5,\"skipped_preparations\":97,\"shape_count\":2,\"shaping_ms\":4.100000008940697,\"requested_glyphs\":0,\"distinct_raster_keys\":0,\"new_raster_keys\":0,\"raster_images\":19,\"new_raster_images\":0,\"raster_image_capacity_bytes\":311445,\"atlas_resets\":1,\"preparation_ms\":0.0,\"active_instance_bytes\":0,\"missing_glyphs\":0,\"nameplate_capacity_bytes\":40,\"world_plane_buffer_bytes\":512,\"world_plane_texture_bytes\":1503304,\"world_plane_rasterizations\":2}",
+          "data-scene-text-gpu": "[552,1503304,2,1]",
+          "data-text-atlas": "[2,5,97,19,311445,1]",
+          "data-text-error": ""
+        }
+      },
+      "after": {
+        "dpr": 2,
+        "viewport": [
+          1100,
+          800
+        ],
+        "css": [
+          1100,
+          800
+        ],
+        "pixels": [
+          2200,
+          1600
+        ],
+        "gpu": {
+          "adapters": [
+            {
+              "vendor": "nvidia",
+              "description": "",
+              "fallback": false
+            }
+          ],
+          "errors": []
+        },
+        "attrs": {
+          "data-camera-matrix": "[1.0909090909090906,0.4514157417226387,0.43301703206254,0.4330127018922194,-0.6298366572977736,0.7818749999999999,0.7500075000750006,0.7499999999999999,0.0,1.4787499999999996,-0.5000050000500006,-0.5000000000000001,0.0,-0.26795755562461143,6.047530473919689,6.048057304345683]",
+          "data-render-matrix": null,
+          "data-render-origin": null,
+          "data-row-placements": "[[\"ObjectId(3)\",[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]]]",
+          "data-cads": "[{\"edges\":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14],\"faces\":[0,1,2,3,4,5,6],\"id\":3,\"source\":\"19cd4225-77e5-4161-b4dc-7701da627d8f\",\"vertices\":82}]",
+          "data-surfaces": "[]",
+          "data-selected-ids": "[4]",
+          "data-selection-part": "Object 4",
+          "data-tool": "null",
+          "data-preview-bytes": "0",
+          "data-stroke-usage": "[0,0,0,0]",
+          "data-gpu-stats": "[12, 12, 0, 0]",
+          "data-gpu-usage": "[1, 25704, 1, 160]",
+          "data-path-gpu": "[0,0,0,0]",
+          "data-math-display": "{\"bytes\":166596,\"generations\":3,\"limited\":null,\"pending\":false,\"qualities\":[[3,0.000244140625,0.000244140625,false]]}",
+          "data-scene-texts": "[{\"guid\":\"c2cac1d6-6dd7-468b-a264-3b75d1c2b86b\",\"id\":4,\"model\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0],\"source\":{\"guid\":\"c2cac1d6-6dd7-468b-a264-3b75d1c2b86b\",\"label\":{\"clip\":null,\"color\":[255,255,255,255],\"font_size\":18.0,\"id\":1,\"line_height\":26.0,\"object\":null,\"placement\":{\"WorldPlane\":{\"right\":[1.0,0.0,0.0],\"up\":[0.0,1.0,0.0],\"world\":[-1.5,0.0,1.0],\"world_height\":0.22}},\"text\":\"Original CAD · Ø25 · Ω\"},\"locked\":false,\"name\":\"Original CAD label\",\"visible\":true}}]",
+          "data-scene-text-stats": "{\"preparations\":5,\"skipped_preparations\":97,\"shape_count\":2,\"shaping_ms\":4.100000008940697,\"requested_glyphs\":0,\"distinct_raster_keys\":0,\"new_raster_keys\":0,\"raster_images\":19,\"new_raster_images\":0,\"raster_image_capacity_bytes\":311445,\"atlas_resets\":1,\"preparation_ms\":0.0,\"active_instance_bytes\":0,\"missing_glyphs\":0,\"nameplate_capacity_bytes\":40,\"world_plane_buffer_bytes\":512,\"world_plane_texture_bytes\":1503304,\"world_plane_rasterizations\":2}",
+          "data-scene-text-gpu": "[552,1503304,2,1]",
+          "data-text-atlas": "[2,5,97,19,311445,1]",
+          "data-text-error": ""
+        }
+      },
+      "scope": "Actual unedited canvas PNG after original assertions; focused own-assertion completion and root visual review still required",
+      "originalRaw": {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\reader-illustrations\\source29-focused-62o-labels-01\\world-label-selected-dpr2.png",
+        "sha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1"
+      }
+    }
+  ],
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected all original2200x1600 pixels in four unfiltered/unresampled1100x800 quadrant tiles. Primary and selected-label topic are byte-identical, verified by equal fullSHA256, so the same complete raster review covers both original PNGs. The full Original CAD · Ø25 · Ω label is readable on its yellow selected plate, the transform controls remain visible, and the blue bore block and empty hole are fully framed with clear source borders and no triangulation wires. No glyph clipping, missing-glyph box or command-dock overlap. Exact focused label selection/move/Undo/Redo/release assertions ran at originalDPR1/DPR2; inherited glyphs callback was excluded and the earlier fullcallback600s timeout remains a separate failure. Compiler2CPU6GiB and exportedimagehost8CPU8GiB as actually recorded. No fulldefault/canonicalprofile acceptance.",
+  "canonicalBehaviorExecuted": false,
+  "canonicalValidationProfile": false,
+  "canonicalBehaviorProfile": false,
+  "scope": "Own focused DPR1/DPR2 assertions and final-page setup executed; inherited prefix callbacks excluded. Labels uses unchanged focused export; point-tools excludes one inherited command callback call with all own assertions retained. No full/default callback or canonical profile acceptance. Root original pixels reviewed; aliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\focused-topics-source29-01\\62o-labels\\publication.json",
+    "sha256": "f1b5f0f02ad2a3ea1491c599465165d8e8cf0444f9f240652a6500035b6ce2e1"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-62o-labels-c3330558dbf732a0b553\\retirement.json.gz",
+    "sha256": "ed58a52f825c88e6061eea33d2dc8ebb3c0386377247a2939f7c844b2604b836"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\browser-62o-labels-c3330558dbf732a0b553\\retired.json",
+    "sha256": "3320684bcb77c045aa1327115396bf1f72a6bb2cee3024c3811cd5823217235f"
+  }
+}

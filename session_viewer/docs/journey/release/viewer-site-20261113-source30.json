@@ -1,0 +1,2399 @@
+{
+  "schema": 1,
+  "status": "PASS_FINAL_SOURCE30_SITE_BUILD_BROWSER_AND_ROOT_LAYOUT_REVIEW",
+  "recordedUtc": "2026-11-13T09:16:02.134495+00:00",
+  "scope": "Actual strict Vue build and HTTP/browser checks of current static tutorial content, source-preview/plaintext bytes and Root-reviewed image delivery/layout. No new GPU, WASM runtime, geometry, full callback or performance acceptance.",
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-30-cap-native-lock-graph.json",
+    "sha256": "5086b393591dbd7a0bdccb468b0f6420858f6fcd2f5a8391e10d8cbcd741eb3f"
+  },
+  "counts": {
+    "pages": 115,
+    "chapterRoutes": 22,
+    "primaryReaderSourcePins": 111,
+    "siteSourcePins": 808,
+    "plaintextSourcePairs": 13,
+    "otherSourcePreviews": 85,
+    "decodedImageOccurrences": 88,
+    "requiredCurrentFigureOccurrences": 61,
+    "uniqueRequiredCurrentFigures": 55,
+    "uniqueRequiredPixelDigests": 53,
+    "rootReviewedLayoutScreenshots": 7,
+    "generatorDownloads": 1,
+    "errors": 0
+  },
+  "browserVersion": "157.0.8103.51",
+  "strictLinkChecking": true,
+  "buildResources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\build-resources.json",
+    "sha256": "85b04b1afe5b691c8c2081323823b7185cb6fa5d8080db5a0e47e49fe18e14d3"
+  },
+  "browserResources": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-resources.json",
+    "sha256": "9d50d25397ffcc511c726914957b3048e0cb6e24a2434dc6550dd790c354faef"
+  },
+  "browserResult": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-check.json",
+    "sha256": "6541f4cd85c6a14c7e73ed849df20e8efea3a54959343e3f873e3ad027f8ac1e"
+  },
+  "plan": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\plan.json",
+    "sha256": "c31b68fd2614f7144c160753d786c760d7a693e2fb8606f9bb318d365801c8ab"
+  },
+  "rootLayoutReview": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\root-layout-review.json",
+    "sha256": "d43322d203cf93e0f27364e4d7f0962d14a281925c6d54f95f23e62d4fa0f70b"
+  },
+  "buildAndQaResourcePolicy": {
+    "processors": 2,
+    "jobMemoryLimitMiB": 2048,
+    "minimumFreePhysicalMemoryMiB": 3072,
+    "actualStageCapSeconds": 600,
+    "officialFifo": true,
+    "workspaceStorageGuard": true
+  },
+  "buildSourceAndQaUnchanged": true,
+  "qaRevisionRebind": {
+    "currentSourceRevisionTokensDerivedFromVerifiedBytes": true,
+    "all13AssertionsRetained": true
+  },
+  "sourcePreviewChecks": [
+    {
+      "slug": "journey/consolidation/85-copy-current-original-command-recipes",
+      "label": "graph::show",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/ui/graph.rs.txt?v=6ed37b504001",
+      "contentType": "text/plain",
+      "sourceSha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
+      "builtSha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
+      "servedSha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9"
+    },
+    {
+      "slug": "journey/consolidation/85-copy-current-original-command-recipes",
+      "label": "State::panel_action",
+      "url": "http://127.0.0.1:60997/docs/course/src/state/panel.rs.txt?v=64ab32057ea1",
+      "contentType": "text/plain",
+      "sourceSha256": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9",
+      "builtSha256": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9",
+      "servedSha256": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9"
+    },
+    {
+      "slug": "journey/consolidation/85-copy-current-original-command-recipes",
+      "label": "CommandAgent::new",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/agent.rs.txt?v=555a699f8286",
+      "contentType": "text/plain",
+      "sourceSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
+      "builtSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
+      "servedSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b"
+    },
+    {
+      "slug": "journey/consolidation/85-copy-current-original-command-recipes",
+      "label": "Ui::agent and type_into",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/ui/phone.rs.txt?v=40633a8dc339",
+      "contentType": "text/plain",
+      "sourceSha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
+      "builtSha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
+      "servedSha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182"
+    },
+    {
+      "slug": "journey/consolidation/96za-address-original-controls-with-family-keys",
+      "label": "GESTURES",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/gesture/mod.rs.txt?v=e018ed601444",
+      "contentType": "text/plain",
+      "sourceSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "builtSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "servedSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5"
+    },
+    {
+      "slug": "journey/consolidation/96za-address-original-controls-with-family-keys",
+      "label": "control::GESTURE",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/gesture/control.rs.txt?v=e58ecb9d4da6",
+      "contentType": "text/plain",
+      "sourceSha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
+      "builtSha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
+      "servedSha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22"
+    },
+    {
+      "slug": "journey/consolidation/96za-address-original-controls-with-family-keys",
+      "label": "begin_control_drag",
+      "url": "http://127.0.0.1:60997/docs/course/src/state/edit.rs.txt?v=ae99d6455cb0",
+      "contentType": "text/plain",
+      "sourceSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "builtSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "servedSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd"
+    },
+    {
+      "slug": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "label": "spare preview rows",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/upload_padding.rs.txt?v=2717e9326433",
+      "contentType": "text/plain",
+      "sourceSha256": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0",
+      "builtSha256": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0",
+      "servedSha256": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0"
+    },
+    {
+      "slug": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "label": "Allocation bookkeeping",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/scene_sync/allocation.rs.txt?v=ecb2566170ad",
+      "contentType": "text/plain",
+      "sourceSha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
+      "builtSha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
+      "servedSha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13"
+    },
+    {
+      "slug": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "label": "compaction policies",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/scene_sync/compaction.rs.txt?v=1f1e4598b7b7",
+      "contentType": "text/plain",
+      "sourceSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
+      "builtSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
+      "servedSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a"
+    },
+    {
+      "slug": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "label": "GPU tomb reuse",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/scene_sync/tombs.rs.txt?v=28a67ed93264",
+      "contentType": "text/plain",
+      "sourceSha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
+      "builtSha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
+      "servedSha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d"
+    },
+    {
+      "slug": "journey/consolidation/62-source",
+      "label": "maintained text-quality page source",
+      "url": "http://127.0.0.1:60997/docs/course/assets/text-quality.html.txt?v=c295d5e07595",
+      "contentType": "text/plain",
+      "sourceSha256": "c295d5e07595f875cfef61d66a3cd178de6155e07a9cb00b1ee2ba7622b106fc",
+      "builtSha256": "c295d5e07595f875cfef61d66a3cd178de6155e07a9cb00b1ee2ba7622b106fc",
+      "servedSha256": "c295d5e07595f875cfef61d66a3cd178de6155e07a9cb00b1ee2ba7622b106fc"
+    },
+    {
+      "slug": "journey/consolidation/50-placements",
+      "label": "history notes",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/scene_sync/notes.rs.txt?v=fa02d60b45d4",
+      "contentType": "text/plain",
+      "sourceSha256": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba",
+      "builtSha256": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba",
+      "servedSha256": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba"
+    }
+  ],
+  "otherSourcePreviewChecks": [
+    {
+      "key": "src/engine/gpu/render.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/render.rs.txt?v=024ab39d6ee3",
+      "contentType": "text/plain",
+      "sourceSha256": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+      "builtSha256": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+      "servedSha256": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+      "rawServedSha256": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921"
+    },
+    {
+      "key": "src/engine/gpu/pass.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/pass.rs.txt?v=cce6cc842567",
+      "contentType": "text/plain",
+      "sourceSha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+      "builtSha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+      "servedSha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+      "rawServedSha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6"
+    },
+    {
+      "key": "src/engine/gpu/targets.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/targets.rs.txt?v=f16908f3fd29",
+      "contentType": "text/plain",
+      "sourceSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+      "builtSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+      "servedSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+      "rawServedSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140"
+    },
+    {
+      "key": "src/engine/gpu/frame.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/frame.rs.txt?v=4e4d3a6251be",
+      "contentType": "text/plain",
+      "sourceSha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228",
+      "builtSha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228",
+      "servedSha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228",
+      "rawServedSha256": "4e4d3a6251be85d0bc246ffbead385bd0361a11b4b73245f9980710fa0032228"
+    },
+    {
+      "key": "src/app/session_io.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/session_io.rs.txt?v=ca46739b5e8d",
+      "contentType": "text/plain",
+      "sourceSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
+      "builtSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
+      "servedSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
+      "rawServedSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be"
+    },
+    {
+      "key": "src/app/command/mod.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/mod.rs.txt?v=cac847942016",
+      "contentType": "text/plain",
+      "sourceSha256": "cac847942016bd4f01d5478dba67d45eb5dc45990a01ec41a969a6e7cad0b860",
+      "builtSha256": "cac847942016bd4f01d5478dba67d45eb5dc45990a01ec41a969a6e7cad0b860",
+      "servedSha256": "cac847942016bd4f01d5478dba67d45eb5dc45990a01ec41a969a6e7cad0b860",
+      "rawServedSha256": "cac847942016bd4f01d5478dba67d45eb5dc45990a01ec41a969a6e7cad0b860"
+    },
+    {
+      "key": "src/app/hierarchy.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/hierarchy.rs.txt?v=aa96dc988461",
+      "contentType": "text/plain",
+      "sourceSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c",
+      "builtSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c",
+      "servedSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c",
+      "rawServedSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c"
+    },
+    {
+      "key": "src/app/scene.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/scene.rs.txt?v=f4ef36d31f2d",
+      "contentType": "text/plain",
+      "sourceSha256": "f4ef36d31f2d9176ed6bc66a16e9871c8a8f175d74c3b22bb7d40d436265eebc",
+      "builtSha256": "f4ef36d31f2d9176ed6bc66a16e9871c8a8f175d74c3b22bb7d40d436265eebc",
+      "servedSha256": "f4ef36d31f2d9176ed6bc66a16e9871c8a8f175d74c3b22bb7d40d436265eebc",
+      "rawServedSha256": "f4ef36d31f2d9176ed6bc66a16e9871c8a8f175d74c3b22bb7d40d436265eebc"
+    },
+    {
+      "key": "src/camera.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/camera.rs.txt?v=be1baf4e1136",
+      "contentType": "text/plain",
+      "sourceSha256": "be1baf4e1136824f315f4b61bd7db24641e582218771b1593c7c8690667c1aee",
+      "builtSha256": "be1baf4e1136824f315f4b61bd7db24641e582218771b1593c7c8690667c1aee",
+      "servedSha256": "be1baf4e1136824f315f4b61bd7db24641e582218771b1593c7c8690667c1aee",
+      "rawServedSha256": "be1baf4e1136824f315f4b61bd7db24641e582218771b1593c7c8690667c1aee"
+    },
+    {
+      "key": "src/state.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/state.rs.txt?v=4620b4a7f37a",
+      "contentType": "text/plain",
+      "sourceSha256": "4620b4a7f37aaff1027824f9a2bccb9ede8a5c161271d1051c278ea66cdeaaf1",
+      "builtSha256": "4620b4a7f37aaff1027824f9a2bccb9ede8a5c161271d1051c278ea66cdeaaf1",
+      "servedSha256": "4620b4a7f37aaff1027824f9a2bccb9ede8a5c161271d1051c278ea66cdeaaf1",
+      "rawServedSha256": "4620b4a7f37aaff1027824f9a2bccb9ede8a5c161271d1051c278ea66cdeaaf1"
+    },
+    {
+      "key": "src/engine/gpu/objects.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/objects.rs.txt?v=36e9f5efcd2c",
+      "contentType": "text/plain",
+      "sourceSha256": "36e9f5efcd2cd03cfd2066e564af89c7aad9915332f56a7ce9bbd59aeedda6a2",
+      "builtSha256": "36e9f5efcd2cd03cfd2066e564af89c7aad9915332f56a7ce9bbd59aeedda6a2",
+      "servedSha256": "36e9f5efcd2cd03cfd2066e564af89c7aad9915332f56a7ce9bbd59aeedda6a2",
+      "rawServedSha256": "36e9f5efcd2cd03cfd2066e564af89c7aad9915332f56a7ce9bbd59aeedda6a2"
+    },
+    {
+      "key": "src/app/command/verbs/project_to_plane.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/verbs/project_to_plane.rs.txt?v=11dc267a1a5d",
+      "contentType": "text/plain",
+      "sourceSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
+      "builtSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
+      "servedSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
+      "rawServedSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb"
+    },
+    {
+      "key": "src/app/command/verbs/extend.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/verbs/extend.rs.txt?v=c86295b7fd43",
+      "contentType": "text/plain",
+      "sourceSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "builtSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "servedSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "rawServedSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3"
+    },
+    {
+      "key": "src/app/splitting.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/splitting.rs.txt?v=a0dbae4879d7",
+      "contentType": "text/plain",
+      "sourceSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976",
+      "builtSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976",
+      "servedSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976",
+      "rawServedSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976"
+    },
+    {
+      "key": "src/app/command/verbs/measure.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/verbs/measure.rs.txt?v=004c72cbad5f",
+      "contentType": "text/plain",
+      "sourceSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
+      "builtSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
+      "servedSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
+      "rawServedSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d"
+    },
+    {
+      "key": "src/engine/gpu/ssao.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/ssao.rs.txt?v=7a3fcb7e4a38",
+      "contentType": "text/plain",
+      "sourceSha256": "7a3fcb7e4a3861b5ffe02243e1c480163c77cc9a24c13187b754a96137237ef0",
+      "builtSha256": "7a3fcb7e4a3861b5ffe02243e1c480163c77cc9a24c13187b754a96137237ef0",
+      "servedSha256": "7a3fcb7e4a3861b5ffe02243e1c480163c77cc9a24c13187b754a96137237ef0",
+      "rawServedSha256": "7a3fcb7e4a3861b5ffe02243e1c480163c77cc9a24c13187b754a96137237ef0"
+    },
+    {
+      "key": "src/engine/gpu/ssao/pipelines.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/ssao/pipelines.rs.txt?v=3c87e0aa1941",
+      "contentType": "text/plain",
+      "sourceSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569",
+      "builtSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569",
+      "servedSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569",
+      "rawServedSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569"
+    },
+    {
+      "key": "src/app/manifest.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/manifest.rs.txt?v=c75d33f25078",
+      "contentType": "text/plain",
+      "sourceSha256": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
+      "builtSha256": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
+      "servedSha256": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
+      "rawServedSha256": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066"
+    },
+    {
+      "key": "src/app/stream.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/stream.rs.txt?v=17b125e85e51",
+      "contentType": "text/plain",
+      "sourceSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+      "builtSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+      "servedSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+      "rawServedSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299"
+    },
+    {
+      "key": "src/app/range_gate.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/range_gate.rs.txt?v=7191b2de72b0",
+      "contentType": "text/plain",
+      "sourceSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+      "builtSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+      "servedSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+      "rawServedSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a"
+    },
+    {
+      "key": "src/app/walk/sheet.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/sheet.rs.txt?v=c5148556dd5a",
+      "contentType": "text/plain",
+      "sourceSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+      "builtSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+      "servedSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+      "rawServedSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f"
+    },
+    {
+      "key": "src/app/sheet_query.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/sheet_query.rs.txt?v=9ff2b40923ab",
+      "contentType": "text/plain",
+      "sourceSha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+      "builtSha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+      "servedSha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+      "rawServedSha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7"
+    },
+    {
+      "key": "src/app/cplane.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/cplane.rs.txt?v=5d111336f0ee",
+      "contentType": "text/plain",
+      "sourceSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff",
+      "builtSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff",
+      "servedSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff",
+      "rawServedSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff"
+    },
+    {
+      "key": "src/lib.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/lib.rs.txt?v=00044656512e",
+      "contentType": "text/plain",
+      "sourceSha256": "00044656512ecfbca45237adafeaeeefbd7f4a6b97c29c04708bd2640807a263",
+      "builtSha256": "00044656512ecfbca45237adafeaeeefbd7f4a6b97c29c04708bd2640807a263",
+      "servedSha256": "00044656512ecfbca45237adafeaeeefbd7f4a6b97c29c04708bd2640807a263",
+      "rawServedSha256": "00044656512ecfbca45237adafeaeeefbd7f4a6b97c29c04708bd2640807a263"
+    },
+    {
+      "key": "src/engine/pipelines/mod.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/pipelines/mod.rs.txt?v=50590524bc79",
+      "contentType": "text/plain",
+      "sourceSha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5",
+      "builtSha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5",
+      "servedSha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5",
+      "rawServedSha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5"
+    },
+    {
+      "key": "src/command_dock/mod.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/command_dock/mod.rs.txt?v=a54df69dcade",
+      "contentType": "text/plain",
+      "sourceSha256": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+      "builtSha256": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+      "servedSha256": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+      "rawServedSha256": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25"
+    },
+    {
+      "key": "src/command_dock/view.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/command_dock/view.rs.txt?v=2b6c7b55d125",
+      "contentType": "text/plain",
+      "sourceSha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+      "builtSha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+      "servedSha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+      "rawServedSha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204"
+    },
+    {
+      "key": "src/app/command/tool.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/tool.rs.txt?v=0ffab8dd44bb",
+      "contentType": "text/plain",
+      "sourceSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c",
+      "builtSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c",
+      "servedSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c",
+      "rawServedSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c"
+    },
+    {
+      "key": "src/app/snap.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/snap.rs.txt?v=174fe242e49e",
+      "contentType": "text/plain",
+      "sourceSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
+      "builtSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
+      "servedSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
+      "rawServedSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd"
+    },
+    {
+      "key": "src/app/deform.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/deform.rs.txt?v=fa4a31723cc2",
+      "contentType": "text/plain",
+      "sourceSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe",
+      "builtSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe",
+      "servedSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe",
+      "rawServedSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe"
+    },
+    {
+      "key": "src/state/edit.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/state/edit.rs.txt?v=ae99d6455cb0",
+      "contentType": "text/plain",
+      "sourceSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "builtSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "servedSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
+      "rawServedSha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd"
+    },
+    {
+      "key": "src/app/command/tool/gather.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/tool/gather.rs.txt?v=acb5cc3b8b42",
+      "contentType": "text/plain",
+      "sourceSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
+      "builtSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
+      "servedSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
+      "rawServedSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a"
+    },
+    {
+      "key": "src/app/command/tool/surfacing.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/tool/surfacing.rs.txt?v=ef9ef71fcb06",
+      "contentType": "text/plain",
+      "sourceSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+      "builtSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+      "servedSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+      "rawServedSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce"
+    },
+    {
+      "key": "src/app/layers.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/layers.rs.txt?v=196e1a664f8d",
+      "contentType": "text/plain",
+      "sourceSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d",
+      "builtSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d",
+      "servedSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d",
+      "rawServedSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d"
+    },
+    {
+      "key": "src/app/ui/layers.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/ui/layers.rs.txt?v=3ed1b04e06c3",
+      "contentType": "text/plain",
+      "sourceSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+      "builtSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+      "servedSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+      "rawServedSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba"
+    },
+    {
+      "key": "src/app/gesture/mod.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/gesture/mod.rs.txt?v=e018ed601444",
+      "contentType": "text/plain",
+      "sourceSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "builtSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "servedSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5",
+      "rawServedSha256": "e018ed6014446a434e463e9aeccc63d09cdf6d652a0385123eff1310ae0135f5"
+    },
+    {
+      "key": "src/engine/gpu/arena.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/arena.rs.txt?v=7f0d4e53f55d",
+      "contentType": "text/plain",
+      "sourceSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+      "builtSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+      "servedSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+      "rawServedSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441"
+    },
+    {
+      "key": "src/engine/gpu/buffers.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/buffers.rs.txt?v=8c14a571bdf8",
+      "contentType": "text/plain",
+      "sourceSha256": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+      "builtSha256": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+      "servedSha256": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+      "rawServedSha256": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7"
+    },
+    {
+      "key": "src/engine/gpu/slots.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/slots.rs.txt?v=ef303f3f3e53",
+      "contentType": "text/plain",
+      "sourceSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+      "builtSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+      "servedSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+      "rawServedSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd"
+    },
+    {
+      "key": "src/engine/gpu/pick.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/pick.rs.txt?v=8dae0bfee0fd",
+      "contentType": "text/plain",
+      "sourceSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+      "builtSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+      "servedSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+      "rawServedSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0"
+    },
+    {
+      "key": "src/app/selection.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/selection.rs.txt?v=3d635d3895cb",
+      "contentType": "text/plain",
+      "sourceSha256": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
+      "builtSha256": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
+      "servedSha256": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
+      "rawServedSha256": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb"
+    },
+    {
+      "key": "src/engine/gpu/faces.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/faces.rs.txt?v=b48b373d830c",
+      "contentType": "text/plain",
+      "sourceSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+      "builtSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+      "servedSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+      "rawServedSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71"
+    },
+    {
+      "key": "src/app/walk/mesh_topology.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/mesh_topology.rs.txt?v=9a207b8d0152",
+      "contentType": "text/plain",
+      "sourceSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+      "builtSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+      "servedSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+      "rawServedSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc"
+    },
+    {
+      "key": "src/engine/gpu/triangle_tiles.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/triangle_tiles.rs.txt?v=3e8350bd2d29",
+      "contentType": "text/plain",
+      "sourceSha256": "3e8350bd2d2925da1701533ec0d25a28804df4ca314f92fde720b61d458d7967",
+      "builtSha256": "3e8350bd2d2925da1701533ec0d25a28804df4ca314f92fde720b61d458d7967",
+      "servedSha256": "3e8350bd2d2925da1701533ec0d25a28804df4ca314f92fde720b61d458d7967",
+      "rawServedSha256": "3e8350bd2d2925da1701533ec0d25a28804df4ca314f92fde720b61d458d7967"
+    },
+    {
+      "key": "src/app/scene_instances.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/scene_instances.rs.txt?v=614aa01d7777",
+      "contentType": "text/plain",
+      "sourceSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+      "builtSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+      "servedSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+      "rawServedSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9"
+    },
+    {
+      "key": "src/engine/gpu/instanced.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/instanced.rs.txt?v=f6fe9bb471dc",
+      "contentType": "text/plain",
+      "sourceSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+      "builtSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+      "servedSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+      "rawServedSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db"
+    },
+    {
+      "key": "src/app/walk/brep_shapes.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/brep_shapes.rs.txt?v=e8f417ea6574",
+      "contentType": "text/plain",
+      "sourceSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+      "builtSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+      "servedSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+      "rawServedSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a"
+    },
+    {
+      "key": "src/engine/text.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/text.rs.txt?v=7ad70d8aa3b0",
+      "contentType": "text/plain",
+      "sourceSha256": "7ad70d8aa3b0eabdbeed302b50af41174a767d85f46faabf8d592012b111edab",
+      "builtSha256": "7ad70d8aa3b0eabdbeed302b50af41174a767d85f46faabf8d592012b111edab",
+      "servedSha256": "7ad70d8aa3b0eabdbeed302b50af41174a767d85f46faabf8d592012b111edab",
+      "rawServedSha256": "7ad70d8aa3b0eabdbeed302b50af41174a767d85f46faabf8d592012b111edab"
+    },
+    {
+      "key": "src/engine/gpu/text.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/text.rs.txt?v=ac22022ad4c3",
+      "contentType": "text/plain",
+      "sourceSha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+      "builtSha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+      "servedSha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+      "rawServedSha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a"
+    },
+    {
+      "key": "src/engine/gpu/text_plane.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/text_plane.rs.txt?v=c359f7b06e9d",
+      "contentType": "text/plain",
+      "sourceSha256": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
+      "builtSha256": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
+      "servedSha256": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
+      "rawServedSha256": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524"
+    },
+    {
+      "key": "src/engine/gpu/text_plate.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/text_plate.rs.txt?v=b7ec607e1759",
+      "contentType": "text/plain",
+      "sourceSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+      "builtSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+      "servedSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+      "rawServedSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1"
+    },
+    {
+      "key": "src/app/walk/curves.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/curves.rs.txt?v=7636ec4156ad",
+      "contentType": "text/plain",
+      "sourceSha256": "7636ec4156ad8dcc670af913f6a006dfb9e740c1cf6e6b1d0af1d3a97aa3c674",
+      "builtSha256": "7636ec4156ad8dcc670af913f6a006dfb9e740c1cf6e6b1d0af1d3a97aa3c674",
+      "servedSha256": "7636ec4156ad8dcc670af913f6a006dfb9e740c1cf6e6b1d0af1d3a97aa3c674",
+      "rawServedSha256": "7636ec4156ad8dcc670af913f6a006dfb9e740c1cf6e6b1d0af1d3a97aa3c674"
+    },
+    {
+      "key": "src/engine/gpu/segments.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/segments.rs.txt?v=723678e531f8",
+      "contentType": "text/plain",
+      "sourceSha256": "723678e531f8b1e6faa359317f3edf2aec169b14f9b5a5750e286410e6f25bb7",
+      "builtSha256": "723678e531f8b1e6faa359317f3edf2aec169b14f9b5a5750e286410e6f25bb7",
+      "servedSha256": "723678e531f8b1e6faa359317f3edf2aec169b14f9b5a5750e286410e6f25bb7",
+      "rawServedSha256": "723678e531f8b1e6faa359317f3edf2aec169b14f9b5a5750e286410e6f25bb7"
+    },
+    {
+      "key": "src/engine/gpu/surface_outline.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/surface_outline.rs.txt?v=09a039805de7",
+      "contentType": "text/plain",
+      "sourceSha256": "09a039805de7a6bd14b6a9741c667bfa414efbf6c0b1aa52dda775da1747fdcd",
+      "builtSha256": "09a039805de7a6bd14b6a9741c667bfa414efbf6c0b1aa52dda775da1747fdcd",
+      "servedSha256": "09a039805de7a6bd14b6a9741c667bfa414efbf6c0b1aa52dda775da1747fdcd",
+      "rawServedSha256": "09a039805de7a6bd14b6a9741c667bfa414efbf6c0b1aa52dda775da1747fdcd"
+    },
+    {
+      "key": "src/engine/gpu/cloud.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/cloud.rs.txt?v=ebf520f190ed",
+      "contentType": "text/plain",
+      "sourceSha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+      "builtSha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+      "servedSha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+      "rawServedSha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5"
+    },
+    {
+      "key": "src/engine/gpu/lod.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/lod.rs.txt?v=75dc349e43f4",
+      "contentType": "text/plain",
+      "sourceSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+      "builtSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+      "servedSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+      "rawServedSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08"
+    },
+    {
+      "key": "src/engine/gpu/splat.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/splat.rs.txt?v=e6dec1c7a48b",
+      "contentType": "text/plain",
+      "sourceSha256": "e6dec1c7a48ba729540eca1fb11093dfb1dde6fec799e3545e3545bb7494e273",
+      "builtSha256": "e6dec1c7a48ba729540eca1fb11093dfb1dde6fec799e3545e3545bb7494e273",
+      "servedSha256": "e6dec1c7a48ba729540eca1fb11093dfb1dde6fec799e3545e3545bb7494e273",
+      "rawServedSha256": "e6dec1c7a48ba729540eca1fb11093dfb1dde6fec799e3545e3545bb7494e273"
+    },
+    {
+      "key": "src/app/walk/brep.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/brep.rs.txt?v=70445217fd80",
+      "contentType": "text/plain",
+      "sourceSha256": "70445217fd807ad33298028463c53990c631a11730f3f0baa8eaf7f5cda3bcb5",
+      "builtSha256": "70445217fd807ad33298028463c53990c631a11730f3f0baa8eaf7f5cda3bcb5",
+      "servedSha256": "70445217fd807ad33298028463c53990c631a11730f3f0baa8eaf7f5cda3bcb5",
+      "rawServedSha256": "70445217fd807ad33298028463c53990c631a11730f3f0baa8eaf7f5cda3bcb5"
+    },
+    {
+      "key": "src/app/walk/brep_edges.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/brep_edges.rs.txt?v=360e6c481e26",
+      "contentType": "text/plain",
+      "sourceSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47",
+      "builtSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47",
+      "servedSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47",
+      "rawServedSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47"
+    },
+    {
+      "key": "src/app/walk/brep_orient.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/walk/brep_orient.rs.txt?v=7d8191649691",
+      "contentType": "text/plain",
+      "sourceSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+      "builtSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+      "servedSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+      "rawServedSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315"
+    },
+    {
+      "key": "src/state/cloud_query.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/state/cloud_query.rs.txt?v=5aa517e86ec9",
+      "contentType": "text/plain",
+      "sourceSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+      "builtSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+      "servedSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+      "rawServedSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999"
+    },
+    {
+      "key": "src/app/cloud_query.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/cloud_query.rs.txt?v=96e5ea670b08",
+      "contentType": "text/plain",
+      "sourceSha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+      "builtSha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+      "servedSha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+      "rawServedSha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c"
+    },
+    {
+      "key": "src/app/fetch.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/fetch.rs.txt?v=57d886ea7820",
+      "contentType": "text/plain",
+      "sourceSha256": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed",
+      "builtSha256": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed",
+      "servedSha256": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed",
+      "rawServedSha256": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed"
+    },
+    {
+      "key": "src/engine/gpu/device.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/device.rs.txt?v=6d8d81150175",
+      "contentType": "text/plain",
+      "sourceSha256": "6d8d81150175551c886ba7dc412b384c2ef9be30fbc9ffc3fff53cbff6f67a1c",
+      "builtSha256": "6d8d81150175551c886ba7dc412b384c2ef9be30fbc9ffc3fff53cbff6f67a1c",
+      "servedSha256": "6d8d81150175551c886ba7dc412b384c2ef9be30fbc9ffc3fff53cbff6f67a1c",
+      "rawServedSha256": "6d8d81150175551c886ba7dc412b384c2ef9be30fbc9ffc3fff53cbff6f67a1c"
+    },
+    {
+      "key": "src/engine/gpu/timing.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/engine/gpu/timing.rs.txt?v=9165356ffbe6",
+      "contentType": "text/plain",
+      "sourceSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+      "builtSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+      "servedSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+      "rawServedSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/lib.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/lib.rs.txt?v=522894766ec4",
+      "contentType": "text/plain",
+      "sourceSha256": "522894766ec42a2a7648c1ce93f7100f4786d2f8ccc462b00980c1377b40e331",
+      "builtSha256": "522894766ec42a2a7648c1ce93f7100f4786d2f8ccc462b00980c1377b40e331",
+      "servedSha256": "522894766ec42a2a7648c1ce93f7100f4786d2f8ccc462b00980c1377b40e331",
+      "rawServedSha256": "522894766ec42a2a7648c1ce93f7100f4786d2f8ccc462b00980c1377b40e331"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/browser.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/browser.rs.txt?v=4a5fb8fd6f0d",
+      "contentType": "text/plain",
+      "sourceSha256": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0",
+      "builtSha256": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0",
+      "servedSha256": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0",
+      "rawServedSha256": "4a5fb8fd6f0dba5b464f54bb96cdd14bd93cf803edbcd37deb167a35e064a7a0"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/paint.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/paint.rs.txt?v=2b7daad50da0",
+      "contentType": "text/plain",
+      "sourceSha256": "2b7daad50da086021af9915b72363aab90626cd7ad36afa571daa16b51233eb9",
+      "builtSha256": "2b7daad50da086021af9915b72363aab90626cd7ad36afa571daa16b51233eb9",
+      "servedSha256": "2b7daad50da086021af9915b72363aab90626cd7ad36afa571daa16b51233eb9",
+      "rawServedSha256": "2b7daad50da086021af9915b72363aab90626cd7ad36afa571daa16b51233eb9"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/font.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/font.rs.txt?v=12a1aee6ebe2",
+      "contentType": "text/plain",
+      "sourceSha256": "12a1aee6ebe22b347550d33fc82bcaebf5c88ab06e786d63c8eceb1c090fa248",
+      "builtSha256": "12a1aee6ebe22b347550d33fc82bcaebf5c88ab06e786d63c8eceb1c090fa248",
+      "servedSha256": "12a1aee6ebe22b347550d33fc82bcaebf5c88ab06e786d63c8eceb1c090fa248",
+      "rawServedSha256": "12a1aee6ebe22b347550d33fc82bcaebf5c88ab06e786d63c8eceb1c090fa248"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/tex.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/tex.rs.txt?v=0cfa7d231e0d",
+      "contentType": "text/plain",
+      "sourceSha256": "0cfa7d231e0d60ac75f62ed52acef0d5a93d1e424cdedd510273c41e39ffb03b",
+      "builtSha256": "0cfa7d231e0d60ac75f62ed52acef0d5a93d1e424cdedd510273c41e39ffb03b",
+      "servedSha256": "0cfa7d231e0d60ac75f62ed52acef0d5a93d1e424cdedd510273c41e39ffb03b",
+      "rawServedSha256": "0cfa7d231e0d60ac75f62ed52acef0d5a93d1e424cdedd510273c41e39ffb03b"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/layout.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/layout.rs.txt?v=6ba02c44a500",
+      "contentType": "text/plain",
+      "sourceSha256": "6ba02c44a500ceda9cbbb62df1436e0f75216f6e7cab0725c43dbdd99f4d367b",
+      "builtSha256": "6ba02c44a500ceda9cbbb62df1436e0f75216f6e7cab0725c43dbdd99f4d367b",
+      "servedSha256": "6ba02c44a500ceda9cbbb62df1436e0f75216f6e7cab0725c43dbdd99f4d367b",
+      "rawServedSha256": "6ba02c44a500ceda9cbbb62df1436e0f75216f6e7cab0725c43dbdd99f4d367b"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/object.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/object.rs.txt?v=4812c102d966",
+      "contentType": "text/plain",
+      "sourceSha256": "4812c102d966a3da39ce3cb6ccb33e001a497627c4646466f632bc4bd4726504",
+      "builtSha256": "4812c102d966a3da39ce3cb6ccb33e001a497627c4646466f632bc4bd4726504",
+      "servedSha256": "4812c102d966a3da39ce3cb6ccb33e001a497627c4646466f632bc4bd4726504",
+      "rawServedSha256": "4812c102d966a3da39ce3cb6ccb33e001a497627c4646466f632bc4bd4726504"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/matrix.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/matrix.rs.txt?v=d36e7e9bff78",
+      "contentType": "text/plain",
+      "sourceSha256": "d36e7e9bff78b6042a43a5c9933e97a803b81e067a585f42ca0f0333d5341371",
+      "builtSha256": "d36e7e9bff78b6042a43a5c9933e97a803b81e067a585f42ca0f0333d5341371",
+      "servedSha256": "d36e7e9bff78b6042a43a5c9933e97a803b81e067a585f42ca0f0333d5341371",
+      "rawServedSha256": "d36e7e9bff78b6042a43a5c9933e97a803b81e067a585f42ca0f0333d5341371"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/tween.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/tween.rs.txt?v=c322e10fedf3",
+      "contentType": "text/plain",
+      "sourceSha256": "c322e10fedf3a32642e2f7a84ba9db20b6ea6d0daee5d54e80f645bfa73cea17",
+      "builtSha256": "c322e10fedf3a32642e2f7a84ba9db20b6ea6d0daee5d54e80f645bfa73cea17",
+      "servedSha256": "c322e10fedf3a32642e2f7a84ba9db20b6ea6d0daee5d54e80f645bfa73cea17",
+      "rawServedSha256": "c322e10fedf3a32642e2f7a84ba9db20b6ea6d0daee5d54e80f645bfa73cea17"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/actions.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/actions.rs.txt?v=8b740380007e",
+      "contentType": "text/plain",
+      "sourceSha256": "8b740380007e5a9b53e40b71bf8fab95e101b8e9890045a3f4d68094172fea21",
+      "builtSha256": "8b740380007e5a9b53e40b71bf8fab95e101b8e9890045a3f4d68094172fea21",
+      "servedSha256": "8b740380007e5a9b53e40b71bf8fab95e101b8e9890045a3f4d68094172fea21",
+      "rawServedSha256": "8b740380007e5a9b53e40b71bf8fab95e101b8e9890045a3f4d68094172fea21"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/draw.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/draw.rs.txt?v=47aec29e3120",
+      "contentType": "text/plain",
+      "sourceSha256": "47aec29e3120183404f2f8d1b571a347288f50912ab10e0056f0879fe0bc5077",
+      "builtSha256": "47aec29e3120183404f2f8d1b571a347288f50912ab10e0056f0879fe0bc5077",
+      "servedSha256": "47aec29e3120183404f2f8d1b571a347288f50912ab10e0056f0879fe0bc5077",
+      "rawServedSha256": "47aec29e3120183404f2f8d1b571a347288f50912ab10e0056f0879fe0bc5077"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/run.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/run.rs.txt?v=482220875307",
+      "contentType": "text/plain",
+      "sourceSha256": "4822208753078b0c783daacc7c093c7db7c9f292c44b668da4b5ea52b618765c",
+      "builtSha256": "4822208753078b0c783daacc7c093c7db7c9f292c44b668da4b5ea52b618765c",
+      "servedSha256": "4822208753078b0c783daacc7c093c7db7c9f292c44b668da4b5ea52b618765c",
+      "rawServedSha256": "4822208753078b0c783daacc7c093c7db7c9f292c44b668da4b5ea52b618765c"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/morph.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/morph.rs.txt?v=331fd4455036",
+      "contentType": "text/plain",
+      "sourceSha256": "331fd4455036f3c436ddcfc598838248d3709245c40b275117187b755a052808",
+      "builtSha256": "331fd4455036f3c436ddcfc598838248d3709245c40b275117187b755a052808",
+      "servedSha256": "331fd4455036f3c436ddcfc598838248d3709245c40b275117187b755a052808",
+      "rawServedSha256": "331fd4455036f3c436ddcfc598838248d3709245c40b275117187b755a052808"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/deck.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/deck.rs.txt?v=c03c34b1f644",
+      "contentType": "text/plain",
+      "sourceSha256": "c03c34b1f644cf29e84cadf30a82f5972ff36bce46ad22db158786a2a3993ef6",
+      "builtSha256": "c03c34b1f644cf29e84cadf30a82f5972ff36bce46ad22db158786a2a3993ef6",
+      "servedSha256": "c03c34b1f644cf29e84cadf30a82f5972ff36bce46ad22db158786a2a3993ef6",
+      "rawServedSha256": "c03c34b1f644cf29e84cadf30a82f5972ff36bce46ad22db158786a2a3993ef6"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/eval.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/eval.rs.txt?v=a9ecba3030ab",
+      "contentType": "text/plain",
+      "sourceSha256": "a9ecba3030abbc87c41e0eb03db01a02cbf3b9d5e269aa4dbb546e2d34268209",
+      "builtSha256": "a9ecba3030abbc87c41e0eb03db01a02cbf3b9d5e269aa4dbb546e2d34268209",
+      "servedSha256": "a9ecba3030abbc87c41e0eb03db01a02cbf3b9d5e269aa4dbb546e2d34268209",
+      "rawServedSha256": "a9ecba3030abbc87c41e0eb03db01a02cbf3b9d5e269aa4dbb546e2d34268209"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/check.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/check.rs.txt?v=7be4635d8e2a",
+      "contentType": "text/plain",
+      "sourceSha256": "7be4635d8e2ab8bfad770a600dae76c42f68f64f85967ac68ee27e61952ad7fd",
+      "builtSha256": "7be4635d8e2ab8bfad770a600dae76c42f68f64f85967ac68ee27e61952ad7fd",
+      "servedSha256": "7be4635d8e2ab8bfad770a600dae76c42f68f64f85967ac68ee27e61952ad7fd",
+      "rawServedSha256": "7be4635d8e2ab8bfad770a600dae76c42f68f64f85967ac68ee27e61952ad7fd"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/geometry.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/geometry.rs.txt?v=11e2b083f7d8",
+      "contentType": "text/plain",
+      "sourceSha256": "11e2b083f7d839bdb2be443eb819dd0595edb6d2d845478505a42f520c55cfea",
+      "builtSha256": "11e2b083f7d839bdb2be443eb819dd0595edb6d2d845478505a42f520c55cfea",
+      "servedSha256": "11e2b083f7d839bdb2be443eb819dd0595edb6d2d845478505a42f520c55cfea",
+      "rawServedSha256": "11e2b083f7d839bdb2be443eb819dd0595edb6d2d845478505a42f520c55cfea"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/view.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/view.rs.txt?v=b50e3feafc8b",
+      "contentType": "text/plain",
+      "sourceSha256": "b50e3feafc8b854a8fa0c692764676fee78d5b100cbdfdeedce10e73f7f13ee8",
+      "builtSha256": "b50e3feafc8b854a8fa0c692764676fee78d5b100cbdfdeedce10e73f7f13ee8",
+      "servedSha256": "b50e3feafc8b854a8fa0c692764676fee78d5b100cbdfdeedce10e73f7f13ee8",
+      "rawServedSha256": "b50e3feafc8b854a8fa0c692764676fee78d5b100cbdfdeedce10e73f7f13ee8"
+    },
+    {
+      "key": "docs/lessons/03a-math/src/app/stage/net.rs",
+      "url": "http://127.0.0.1:60997/docs/course/docs/lessons/03a-math/src/app/stage/net.rs.txt?v=a416406cc4d6",
+      "contentType": "text/plain",
+      "sourceSha256": "a416406cc4d64a47d009dd395a0f6bd65440397aae7dbea20d8afa95c8b707e6",
+      "builtSha256": "a416406cc4d64a47d009dd395a0f6bd65440397aae7dbea20d8afa95c8b707e6",
+      "servedSha256": "a416406cc4d64a47d009dd395a0f6bd65440397aae7dbea20d8afa95c8b707e6",
+      "rawServedSha256": "a416406cc4d64a47d009dd395a0f6bd65440397aae7dbea20d8afa95c8b707e6"
+    },
+    {
+      "key": "src/app/command/verbs/mod.rs",
+      "url": "http://127.0.0.1:60997/docs/course/src/app/command/verbs/mod.rs.txt?v=9a9c55b6f4d0",
+      "contentType": "text/plain",
+      "sourceSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+      "builtSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+      "servedSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+      "rawServedSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f"
+    }
+  ],
+  "allCheckedPages": [
+    {
+      "slug": "journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges",
+      "sourceSha256": "5572895b997334537bd2b13d0d2e8b35171fcc07868a3b172e4c2c9ee19646e4",
+      "assetSha256": "29b60e14676236de5844f4fb17ba7885781f9823677973646d2811ed7e81fab2",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate",
+      "sourceSha256": "68604b51b9594b1e4abc8928aacd6bfee0c42d8b55f3b2f48f0a90d36c11e8ea",
+      "assetSha256": "f1bc4f00e5476c35d1d11fe507a3043ec707c6c761a7453b6cd02bba200dba92",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes",
+      "sourceSha256": "0b3836b104744779e7e96f48c961e121b9b040d5921074edd6ab0bed28ce1a99",
+      "assetSha256": "05d6b5e730d30c3c136f362da14868ded3e49dd9737ec3d9f95ba36abb9ddc49",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits",
+      "sourceSha256": "d204094e6556a932d94949f68d1041fd818e87e3ad27eb921e57f19c0f22bb92",
+      "assetSha256": "0406f1d018e67f98754c21b9c8db2c7d05a7d4974e680b8220bf22e7fa808cd1",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/85-copy-current-original-command-recipes",
+      "sourceSha256": "6bed093cae8d15d822abe631a3bce5697e10bc312e021c327b6d34e48151615e",
+      "assetSha256": "df397f4149720f9e0b97d45f17b8bee461a634e8ba68edbf3a4e0b0f9bd3d29e",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/91-include-visible-section-coverage",
+      "sourceSha256": "caec08746cf1994b4c00b37a7a8073b29c89d2d50ac0bfbcd8a167aa67289254",
+      "assetSha256": "4dc227903de86deb11405bcb8e9c848db33b77cb66dd991faf9df89a2f3c1360",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/68-reserve-page-bytes-before-reading",
+      "sourceSha256": "8602156600f0f2580c0defc53d065412f95202b35cdef31cee1efb294a5053a4",
+      "assetSha256": "381ca32a600e2955d7e6f8bb4278425fca9a4b01544fa269c65e01ecc69bc8d1",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/71-read-original-sheet-entity-metadata",
+      "sourceSha256": "5bbc8cdde20d1dacd05e4d622f9c9af7258b04805fa1ed2dcf24224eebe5db11",
+      "assetSha256": "58bec6163d5186e338c5981d80b9e11099e671ff1e24aa2ffe06cd8df3696567",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/03-triangle",
+      "sourceSha256": "9d8f83cc7422068ab24c14c9348e3a8edcae12f623b54f7a9306b9522f9c20c4",
+      "assetSha256": "b69b65af6ab0abd37832a3461c546074c7a44bea2dd2c021b4c540ca152f1133",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "sourceSha256": "80913ffd38c671b1cb7280238e30c8c226d6a91429c2bd837e1133d5add13aba",
+      "assetSha256": "19535ac2613d77de9847d8e7c65d448bd96d0eee96c0b693e90c5ffdb17c0f56",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/51-handles",
+      "sourceSha256": "a65bd08e7f604e743a705563a3da8ac3e35bf4063126f4764635ec0898fdb8bb",
+      "assetSha256": "5424acb0b60aaad3731c8ec607a9b813fd59e39dd9fd64c762adc96f88684341",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/66-read-scene-manifests",
+      "sourceSha256": "fe844bf433a7ffacfc217b1e6972e6de44342194b27df2d8403d70f32521bb74",
+      "assetSha256": "bb9582d618125815a5d7e3fed86da6e1b9a9e2c048c218d8c139effd58b974dd",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms",
+      "sourceSha256": "0e4c7e783b013a21a66b4c80279ef030c96bbca06a157055af2d448c52574ba2",
+      "assetSha256": "d90faf6dd23f99f477a0d3c030356843225ee52cfcfce52bbad6ab91d48b0727",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "sourceSha256": "5b3a412124478e8f97279ec98a123ec13f02d57444b2c48dccd33534fb13064b",
+      "assetSha256": "f8f735d6e28d89e88ef9b97a5b73e63e9b2a1b275338e5f8d5b6119338d57659",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/53-flags",
+      "sourceSha256": "68e9913e845573035e6054f9a857e6b62922115be868343103ba86c12bee0f94",
+      "assetSha256": "2bf00bda473874f0a5648e140adbaa8ce9565254301fd821d663ac15fbdfe50a",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzu-separate-primitive-addresses-from-selection",
+      "sourceSha256": "1794ed28e12ab09feec26cdf9a916b4b030e5eaa362443f5570c003bf19efbaf",
+      "assetSha256": "3d1e52383403dfe690353f54fbea85ba49a650985a65a1a18343d2f0cfcb0818",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/44-topology",
+      "sourceSha256": "dad5a905f6177885c376e5e5f00688292a366a263294f5f9a42993b488bf60f6",
+      "assetSha256": "3805217e323f446baa6267ab5bbbde8b638e8ba3e7029a2c05d006ec7b39d2db",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/87-copy-current-original-plane-modes",
+      "sourceSha256": "5ee2110c09c568218685a9ee5bf0e8c7da9e8acb6663d15eb78cb5bd03ca4c40",
+      "assetSha256": "2c55cfcd4b49bbc104f12e733d8347f60a7dadfb866fd3878d3531902e9d6721",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96za-address-original-controls-with-family-keys",
+      "sourceSha256": "88c2d82dc7977152d75cf3ebcb829411ba6e444078303bf1597973f9ce16a6c6",
+      "assetSha256": "c1f027aed721a4b873f500b36c5db92f7f2c69ea5ffe593efc22740b010e404e",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids",
+      "sourceSha256": "4a9cba3d847cad2d3c341b78ddc5e3b657ec1922707b8dd098031cbfa1c6283a",
+      "assetSha256": "43bf92774e041cd32824739330cd58cfd8bb0b180e4777db89f9a358da6daa15",
+      "decodedImages": 2
+    },
+    {
+      "slug": "journey/consolidation/96zh-bind-the-shared-geometry-as-storage",
+      "sourceSha256": "19806eeb98fa5c99236cfc8a1bb0c683da93d9e186713bca1cf40e5b091cce84",
+      "assetSha256": "3984186a06900cef6d82ec970721deae14d444b02c82f857d3f45b402e8f3bce",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink",
+      "sourceSha256": "373d2f631efa00d071c9a63c92c068a4051892b75b963749eb7bc06ce634f5f9",
+      "assetSha256": "d09ed2f815c29d0d3847442e3ef2b8d8b67ce764ecef1e43294aedb72bbd2cba",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "sourceSha256": "5fdafd8072a1a72bfbe655506a00aaff54e0c2b8430ef92c98b145d78e1eb8a1",
+      "assetSha256": "26e90f6da9c6f14c90c548716e84ac1c423b44bf334f0d23d9c0391a2b7e4776",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/69j-preserve-per-instance-original-colours",
+      "sourceSha256": "302bf9038ed2a30742130209a9eeaf73288f478496639f18a24a319751d91298",
+      "assetSha256": "de4aa2bf4ea0f4c8cec64c06b66cc377f1416131e974a92a5d35df6987555c25",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzg-grow-buffers-without-losing-rows",
+      "sourceSha256": "8eaea82a72a6c5f8799c67f1081b673088f398d08d71f65d7c12c423938eb331",
+      "assetSha256": "3265cd77662d59ec7b864cb65305cd82c3f82310e8f975ae2e127fa047335182",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/62-source",
+      "sourceSha256": "b3b0d60e2bec6b43214bde4a8e6a87b5eddfaa9fd928d82064c0b2d180a57a35",
+      "assetSha256": "83c87fe052f3fe9e7cddf6a4bd2b9b1d47ad96013ca4949e42ac9d93fcde2361",
+      "decodedImages": 2
+    },
+    {
+      "slug": "journey/consolidation/96zzzs-allocate-stable-object-record-rows",
+      "sourceSha256": "205a8c9141543f0ec30bafb4d0f52fbbd0803ec3276ccf630d3ef9d8b75e2d51",
+      "assetSha256": "2fe977324a5e3b8397b756d736b9994e0d154df07b1b6e61d23cea4f3fad167b",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/38-layout",
+      "sourceSha256": "aa6b74c6bfd987e4b218ca9f0466264a48e9c82ae5d5cf967ac8d1ce4f2a8a92",
+      "assetSha256": "dd750168fb7d0b16f75f1362bc1342325f53b737cfe6bf773202429f6fe9cfa3",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/31-settings",
+      "sourceSha256": "75b5095dd20c7f309fd0e7294b75b58c4014194ea64f85c79ba306b49fc3e25f",
+      "assetSha256": "3d45f49f600574b59d932ef8c65ed43d19faf979266312a9a37f69498afaff4a",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/54-camera",
+      "sourceSha256": "47a93f981173d9cabad3f1d50ce8be2c1fe4e8d7950d0ef3484c2b7b37cf4b2d",
+      "assetSha256": "b1afed3917b72e00503e59fd959f2cd7347f0d9c4a5c888344d630ab4d87db8c",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzzn-respect-original-boundary-pens",
+      "sourceSha256": "db0534c9b12d2e13499fabc23bb8938bc3a18259017d1c3cb6b0669cf080d2de",
+      "assetSha256": "38e66c2817e94a4dc976bd9d4add29a49fdaf49ac54b4bb0b575fbe79b7fb8fa",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/81-project-originals-through-the-current-plane-algorithms",
+      "sourceSha256": "dd73f1ce9a87c82fade9c0678e750c872fbdd9ca90c0b9b42da78f548e459d35",
+      "assetSha256": "f1b0e1ba5fcb52a64efc7e8b7a2a2b8396df334ebb3019d784ed1a468e183b66",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/69-validate-original-definition-references",
+      "sourceSha256": "e5d0b21f5c71cf217a40df7d9830ff3f754777f8e0a4b08edb9df94f3aacc710",
+      "assetSha256": "b1ca3f4e3684c0a0e48e1def36667f4af7e6efdab5333b29c2f16dcf65e0f047",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/45-order",
+      "sourceSha256": "a977ded7fc52a32aadd1b84a0529810de532413f333295684d8da5f522f0c8c9",
+      "assetSha256": "7bca20acb34165cfffd252fa1aaace3516469816cb7a7bbe28f3e1c0aaa88447",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/88-copy-original-closedness-and-winding",
+      "sourceSha256": "59fe80d3108a511416fba9d341e39e0debef8326c20cb05e4382e5e271d5a1c6",
+      "assetSha256": "0240a210bcce8654e78fead38206e4eff9661fe51ff24f8b274e28a39f6001ca",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/32g-keys",
+      "sourceSha256": "52849111a209ed1689fb50ec5ad079dbd8e1e9a4b4895f48cabb94c1e8a99dd5",
+      "assetSha256": "348112caa281edebfe30ccf6b248b21c31a9675deba19b30692f700eb05ec0f5",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/42-window",
+      "sourceSha256": "5d15f6905f89260958f1cb175539827dab05af5d40da21714e46d47e814e9426",
+      "assetSha256": "c3b19f91c8184c5db6b22dd890756882aec43137cb177f635a6d6d50f69d02a2",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/22a-records",
+      "sourceSha256": "853eda70056301e1779e3a6fe3a5b57db1001f8833e72a28a8cd47c0fcd800d9",
+      "assetSha256": "86f12ded797e5c0f113d2ffbaa9a0739ec64c2bf907d584ae3a564967a1f6689",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/86s-test-visibility-at-the-original-center-line",
+      "sourceSha256": "3f0691a4df29683600fa0dbd661a5aa033d6ea93e0431630d6a4b76cb9b35175",
+      "assetSha256": "aeff94551830327360c4ab40df8590704c86fd7b5aef41f943bf3c0e148d566a",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/64f-projection",
+      "sourceSha256": "bf3e39c0eeb167462b0e5122e83eca5a0657bb9a2552ec9d8522fc642bdd5350",
+      "assetSha256": "837cdff67dd2f24bb29485e4f3e1632722d4580b1e5617a4e63d4c05f9355f78",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/90-copy-maintained-original-contact-radius",
+      "sourceSha256": "df33a7dcb872cdbdab8eb50aa24f093da4555c728ab93751ad78d30bcb4fc1e2",
+      "assetSha256": "6ffce664bd3df477fe67f9a247b9b699364db4d692163f79beb2c89319833daa",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96s-resolve-feature-rows-to-original-element-owners",
+      "sourceSha256": "52af886a665a1375d7f44d26f2ac4731ceb0e6f72e697b798a114e49f2839926",
+      "assetSha256": "a64f7f7dba758d9e784360bc4a1f40dbc31fd705922ce925bd70c1293ebc9679",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/34gc-messages",
+      "sourceSha256": "010ce33e1f13a2738ddb5bcf7cd41e411cbbf47b4426840e9a2fdaea9dada9e4",
+      "assetSha256": "364e7f048b7179897181a3be4e66b4368b2045dd03aa73562ba67ab2412995bd",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms",
+      "sourceSha256": "b44eab72b826aab11ad3578f61ed2b2fc4ba9e9c74377191afb53564b88eaf21",
+      "assetSha256": "3f3bfb7f80d35ab0dddc7e23049f796542b18adef1493c5a346fa917944d5350",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs",
+      "sourceSha256": "b55f16c4fb71760b08ae2ba7a5d92f4df4be0a7bd54ee4d99ee5a5c745235b1e",
+      "assetSha256": "01ff7af66925b5a1dc2333849c6aa8269d2a4bc26827db69dad8bba53c3a7fda",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/41-normals",
+      "sourceSha256": "a882cc06101d6df26505a310f59d19b30581c5ced7ec10d1596132fb701367c7",
+      "assetSha256": "f4b5306c513503a0f0ae4170b354be855a394baec509a08436dedd29230ddafd",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient",
+      "sourceSha256": "c04c850e9f7eea6f283f32f98f5eb70f98c658c8d87b9ccb15c78301811022db",
+      "assetSha256": "569f1f29537128d9ab613e73dc6d5e0ccd19d926f578326aa6ee7306b57a9cd4",
+      "decodedImages": 2
+    },
+    {
+      "slug": "journey/consolidation/29-identity",
+      "sourceSha256": "47eefa2f784197cf9604da281bb8b23bcca5ebfb15642c84a037f0b9fc9abbd6",
+      "assetSha256": "dd8774cfbe73aa094b5826da5afab2fbcb68b76399a82a956e1e5530f7b47e95",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes",
+      "sourceSha256": "6f4b1c9b2b1a40dd435ad5b27474e5edfc696de61f74d60ff65d35f1e358104b",
+      "assetSha256": "463fa2d61efcf71353cb474bf677ac2c9cb5157a0b79ce0006c00b291c8dba10",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/74-copy-current-solid-geometry-and-question-definitions",
+      "sourceSha256": "38da6e4581ab505ebd91e372eb59ac46df23491e95410e314e46b025bc313189",
+      "assetSha256": "7f1cb89c2f01746a170e8cde825cb694456547f1ebe687aca4a3ab8693b7b90a",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/27-placement",
+      "sourceSha256": "c3a3ee230261af85b3e410cc30cc0665fd0ce2b29e5d56bb20e55e5813753224",
+      "assetSha256": "032799f13b983f9f4f6f186a74550709b600eca61a49d6d66ea2912f37554ec2",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons",
+      "sourceSha256": "052690af1e095b4f423cc636126011b0368a1ae2f5cb23e334f9670f7c247acb",
+      "assetSha256": "04169c8a531b38174754717243bc1470ce4dfb3b9d7304fb8803eda898da5bd9",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/92-link-current-wood-element-builders",
+      "sourceSha256": "77c3bae844d10ffb6b16efb19db1dbec7d0e88c3c7b3d57d4585cd3e80a7359d",
+      "assetSha256": "0a69933badf6c09a7149ac6c408061515e38cc8f4446cacfcb16f44fe86fad02",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/86-copy-finite-tile-allocation-rules",
+      "sourceSha256": "ae091989c56fe8616f48b9bc0fff8579b0c013e0cfce74f81cf14a8ec8271320",
+      "assetSha256": "6f76d1eb60d330d00ebc81fc5f5b96ca55c551977fc04fca75d8840a697cb0f0",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/55-validation",
+      "sourceSha256": "4bd9238a04365c721e83f33ed3fde0d1c2fd86037b02ec7d4173126b67de7d90",
+      "assetSha256": "616f2971665885048be0dfcf4508a254b421ce3ad34cd71d562132d389b5dd83",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/36-chain",
+      "sourceSha256": "2f2a9ac33365d510695577607380cd61663f5c9e92688e1467051e34508eeda9",
+      "assetSha256": "a216779ce07c661dc3ec0bcabc64b76a58b42135ecb5b887e749bfccde5918ab",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/10-depth",
+      "sourceSha256": "bf993901125bfde0293474a24b0cf98ea581ab76bf05855b11541d68b08989ee",
+      "assetSha256": "63e9d4028f62806a7a8435da6019f9d2d3fc9fb1f0a42e3a08f9e027ac32bdb7",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/48-coordinates",
+      "sourceSha256": "b718d4ac27dc739aee2f2bffc1d1e57e91103bf87a6750d3307f72379b442224",
+      "assetSha256": "c5c7ba285e63b3e7d68a3d708392830ba253a261f50af66380c408440906d216",
+      "decodedImages": 3
+    },
+    {
+      "slug": "journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes",
+      "sourceSha256": "fcbf969d1a35f95793d800dfeeae85fb102ea08801f3e7d5b0d14ef14dda056f",
+      "assetSha256": "727183d5911b583da98a09b59ab96a5ff1f3aec83dfa5eca663dcd7d1766ec34",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/19a-viewport",
+      "sourceSha256": "6b6e57461ef9b7b7af26d0866675789433b42bc5d9ed346956ed81618bd2980b",
+      "assetSha256": "3783158342c229251fb9ad56f34577e50e7470ff040251398ea24ed10e62b2f9",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/66za-own-original-range-read-permits",
+      "sourceSha256": "b791f08fd8c36dc7b23ee0dc2dd8bef01458c766116c55848fa79515b5a69815",
+      "assetSha256": "a0b62ae4f4c12a19bc88eb51a615d2934bdf9718718bf2cfa33e54a240d52929",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/49-settings",
+      "sourceSha256": "67678cbad2d2fc4591e9dcd36a7543565675a730326f8da35ccb23539843c043",
+      "assetSha256": "1a655a09f8a98d45e3bb56ce7d124e069b42d3c6816fb58c4239da505b43d16e",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/46-tool-panel",
+      "sourceSha256": "5a247fa8f3c789975e1374db51f619c91f7adcd6ca2d312a17b0d59b1efb050c",
+      "assetSha256": "b597ab7e8d48dd969dcb317a091612640700cac05fb8efb6708a128f550c9f2c",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/79-retain-current-loft-section-order-and-degree-options",
+      "sourceSha256": "671a2f47c3c295d08f48ac5f2350370b24267e08777522d0819b97bfbc94eb27",
+      "assetSha256": "a4c1c547a32860d19dfe1a8a8597f472d7feb6d2103a55a023568db4bd2abf3a",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/47-registry",
+      "sourceSha256": "90c92df6381ce2bae9d659766ff9b377ac95ac063807f5ac41c076cc6f868cfc",
+      "assetSha256": "acfeed8e518c34c4f8ab6eebd34e86e8f4f19ad1bf534db8e4df3a563f365e2a",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/63-radius",
+      "sourceSha256": "f7ec04d1c7bc20a4c3fb109523c73441e85aeebb1cf8a19816842eccb086db3c",
+      "assetSha256": "c8f06b8e66dba8c6a1ad46ecde94a5cef50599b2e450ad53af975241ab059436",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/75-reuse-current-round-solid-builders",
+      "sourceSha256": "46d22e9a3e9d77456085e4a5a112ed2f44a5fbd49ba824eb8448234dff3981d9",
+      "assetSha256": "0201334661814ac9701983ee5a3d8290329b111b7600c82f9a1e3bc8d5aee3be",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/59-orientation",
+      "sourceSha256": "c1896200f7a180c1cd9d81c43c7aab99cea7a4e5a81bbe10bd45847ce9fb704b",
+      "assetSha256": "874035452423263822f096791a75a5bf378f4466db64f4d4e702fedc96139f1c",
+      "decodedImages": 3
+    },
+    {
+      "slug": "journey/consolidation/65-originals",
+      "sourceSha256": "e04092e9784d3215b59e363b2f90ffa4302e79170077a9f2297bab392e3b1e01",
+      "assetSha256": "c1b23e72f78b43e65f81c9877817059803729cb76178c8761fdbba214422d498",
+      "decodedImages": 2
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+      "sourceSha256": "fb114218f8e789e918857c05cd80c17411393f9700a2e551d55e78dc68648617",
+      "assetSha256": "fb1e22a2e2fb6470159117d50f42a207a69aa157857dd2d02be202105fefa967",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/43-ticket",
+      "sourceSha256": "d3f6b6c3ba213e7e59a9c1a06f2154af53444d9e2d5da47e8cf8f40303e518dc",
+      "assetSha256": "91c112e3a820c2a48b596a0450930c44ab4cd31a0a222b297ef5cf6d4137687b",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/50-placements",
+      "sourceSha256": "45dccdbbf2c99bed1c1e4e8e7359d596d814799c4e38858ce0c296b20dfc4d7f",
+      "assetSha256": "9c126f99b99f5ab582e6c46e9de5d91d186d7323cc95b2a27bce7cd522261fc0",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96i-separate-own-and-hosted-element-features",
+      "sourceSha256": "f83cfe77cb525a751da4f66df6893fde531e84b460dd3d35b32963f63c2f9ef2",
+      "assetSha256": "5d307033d7aef61598b6152de49297c63466221b842f2f15f475501b57d99f0b",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/93-classify-original-solids-independently-of-clipping",
+      "sourceSha256": "ff407d65963c133c15abac1def348beae3862b6c5ddc8250c7fe5dd1a3bbccd4",
+      "assetSha256": "daf6c6de63fe19fe3ad7c0803555ec228081aeca4fe710b5d1419a4f99a26998",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/82-divide-current-original-curve-families",
+      "sourceSha256": "aeabe540a5449fdefb4431fcc0530477aceb1e77660ad24c99681f6ce41df76a",
+      "assetSha256": "168121cb92c0b2cb6269045043178c29e1710b635d6fe56a5158a0bf30f23b96",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/13a-history",
+      "sourceSha256": "ec5bfafe863212e3d4873bbc44b1c0a4badf64c3e5f38a7436b1f1ba79006134",
+      "assetSha256": "f690c0d4b78709a762391b6b8567a80e0e96a34ffec0c3071396fca47c30137c",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/35-stroke",
+      "sourceSha256": "6f34316d2bac95e318efa76aec3f502afb3a7876f4f0de563fce33662c8e278a",
+      "assetSha256": "b7940466bf21b5a34994e665eb510bb013b88e4a727f233ccf8d64f66ee9bae8",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/34e-schema",
+      "sourceSha256": "927a5feecb6154ee3e0ecf63fb6ebb1cb9f65ea89c53404269d5b57352248628",
+      "assetSha256": "521400bbd4448aed0a8a8071aa6cb98dfbe6487b7a1a249e302852e0f81f8bbe",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/17-solid",
+      "sourceSha256": "ca1edfeee51f90f5bd14c759caa29f2f2c552add4742bfc17e31c2b91289121a",
+      "assetSha256": "bbac62b7ca4b0b400db728d1e645fcfb87fe145d850a4a38a000b56009c658c9",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin",
+      "sourceSha256": "2619fd871fddb0be3969b03e9136719275f1c7ffc8d151a702962aa94f57525c",
+      "assetSha256": "a13af0a054c0ea533d4c8addd5b5613016d69fd705f9b5b74d0ba552243b9b65",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/52g-rows",
+      "sourceSha256": "39976d3f96895c17e2b9e7e6ae28d0bcdc7f8fee93171b4420ced1efe7584abf",
+      "assetSha256": "ef446d3469ccee55a4c5a62c5021191f5332e6f4cef79a81a5ac829fa10e66fb",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/37-point",
+      "sourceSha256": "137e289350eb183e61d60fea5b55b147a5f8ca94f2c024b74e66df24fe7c59a4",
+      "assetSha256": "86114ecf1dc67bde314185ceb5005393442adc1b8c9201cfa80d29b288ea9beb",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/01-canvas",
+      "sourceSha256": "77939ebbf074e8ce28112d125c219572f5dc4e3119a7b4e6ea5326143676ff90",
+      "assetSha256": "592a9b1f1489a5d89987da70d742de12e42951c8b64d599236af3c13e1c03188",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/07-uniforms",
+      "sourceSha256": "ac402d7b0f4be69d15180a324d4a9998e8784b506ee06272242ca7fc773b28ed",
+      "assetSha256": "18543dfa73ab344e193d679ade5333b84bb55895e841d3ae2989d8e7825f6199",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/34g-heartbeat",
+      "sourceSha256": "7d883cb4685bff83dc774d1d13a1a9ee8e3abdcccb36d67161eef0b5e5a4aeb1",
+      "assetSha256": "e861758345d6451e08cde426c3eecb3eca9f4e497fe001e67d38e207db25237d",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/67-supply-checked-array-layout-readers",
+      "sourceSha256": "07618106f596995e1e0530bbf718885777737a435fb14cb4d540d7117183078c",
+      "assetSha256": "0a5960ad65bb51d9e1fe143de2f841ccb46af6f92101b1abc642a9819e68b8ed",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/70-evaluate-source-ancestry-once-per-document",
+      "sourceSha256": "67186112fb6752dc45ec4bee679ba24bac143540213ad8f3e6e8752972d6f576",
+      "assetSha256": "1f3dd2a97a9ba686183d0f541d60c95b7db3284b2a4220359dd5a1da02c53583",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/89-copy-density-scaled-depth-reduction",
+      "sourceSha256": "f96fd4424a1e73a5ac9f10c9d431e9278ad15ec8f9c9b794f820682ba8558d1f",
+      "assetSha256": "a49b3417056242c098c41fb9b105bd3298badb78aeb01b07fae7afacf3d179f0",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/83-split-original-faces-without-separating-the-solid",
+      "sourceSha256": "de20482b63d4bcf5c52ab404405bc7ad4baf3aa85f4ad7b2e95599b54d0a90af",
+      "assetSha256": "fb86654bb1928b625193dc18e31e052370a55e1a994ca80b57ca5fd757a5b31f",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/34-fault",
+      "sourceSha256": "dc14a0fd371c4a191d389780a54edb6e6be3497dfdf73394d79c715207c22d77",
+      "assetSha256": "3ccc185eab8a4a92ee10a5dfaed678ef2c3b685bbea27d31782a93ac9f0dc4c3",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/52-tree",
+      "sourceSha256": "57316cdc2978e42ab0fac63f20a7d003774958ea94006c05ada6e5f518653875",
+      "assetSha256": "d2b35a5bbdfdd26a901b90c95b0337a39db020f0ee6ddb04a2f92c6da8d41461",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/97-finish-with-the-maintained-browser-runtime",
+      "sourceSha256": "8a545df5bb7f0173d33167c3be5a9f92ea9e7522c94080babc8af828a1cbb8f6",
+      "assetSha256": "0f1d1bbcb2b570552126b566bcf15f51acb149ead1fafdd4fb140aa55b6f0bb6",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/15-perspective",
+      "sourceSha256": "6a4cbffca1ce2a352f6afed15be8138d0249e4ac007e1d2297e9723a39bec07b",
+      "assetSha256": "0602905972bff2cd2c1d2a92db1e266f3e545056a78c024e30896257ee7c4c2e",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/12-identity",
+      "sourceSha256": "45b3704a636c908892315f0f70fdd836d3ad7db5e44fe4882d2b245af9ff2353",
+      "assetSha256": "b8b9a35a5151bf316f8c122a224d40cd1c5796b16f447cb7af72349fc1c7f8ab",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/61-atlas",
+      "sourceSha256": "d4722dc9246f35b4c4cfecd37f76298788215ac1722aeba76ee9469d940b4fd6",
+      "assetSha256": "311535d78e03dd97e663a12e0155e8f3891a9bbea3df75e934ae04cb48f43e01",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/56-chains",
+      "sourceSha256": "ff3f50c85ce8fd56f4e55b5b18f29b7f6f3c98aac33caaabedf52b99f2cb7eb0",
+      "assetSha256": "51189e0a60f6573b8196a4e8aa0726ea2880de045f3fa8c73d497ba1eb3743d0",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves",
+      "sourceSha256": "62ac8ceb3c770965421779f1e5661b23cee66ccd50189655ff0badf6355b3d75",
+      "assetSha256": "b7212028da3d098e225ea82ec3948d48542680c48222446c4907104880ecbb95",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/39-visible",
+      "sourceSha256": "7e809686886ed331294b3970449c10c9bb1eb7d7ab2c2aa7835ce46ad52a63c5",
+      "assetSha256": "6c3cfc1353350fa21a1372a572426a21691909cde9b4b730c6e632f2ebb3e54f",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/76-copy-exact-planar-curve-definitions",
+      "sourceSha256": "e6d23dd1c8888c9ed981b1b746ff47e242e213703705051da8239a1fa9223f02",
+      "assetSha256": "bee34daec3a0230126b1d9bb5ea70923bb8ef10ba62eddeeb90affc0e16358b2",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/64-nodes",
+      "sourceSha256": "2228e17d4800b74d173cedcec3a9fea5fbe747d49a14297e6c3fa2827cef9b9e",
+      "assetSha256": "5fe7b2f98f69ded9b79c2ef9be474403f72fb5ab48fdce25c1775bf986f07014",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/40-colour",
+      "sourceSha256": "e003323ebd36654994bf9dea582ebbe2a82ccbe103ae279b80d72299dac9042f",
+      "assetSha256": "91c45019719c9928ae60fe0d34fb1c9fec41eb44dc7cdb0b3e87dfbefbb942b3",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/95-record-comparable-large-scene-conditions",
+      "sourceSha256": "ff109c6315c5d822d2893bbd41d6a1bf370c58cdc4233ab13aa9c4f7f0347883",
+      "assetSha256": "4db2aa4f968ccc9c72992499f2b41f631f6898ee2f0f069dce5ac03fb6e0f47f",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/05-vertices",
+      "sourceSha256": "23e7a2e3575e4671024f83bd288439a6f82458ede478f722a72d8d4d405d6788",
+      "assetSha256": "d1b19033cdfd86765e64c93a709180210d1b8fd3da91912df9e8747ccc9ef3bb",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/60ba-validation",
+      "sourceSha256": "a3240defcbf6796e8db2c3473520d6ee8b667df9aabe577cacf8b6f7b2f427b3",
+      "assetSha256": "bd4974b49509c16aef4ccf9a6dc43aa89635544e2cbc9dbf67c369a5dfaf331b",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/02-clear",
+      "sourceSha256": "63434f5b76cdac876e40787d3b094758e3f9f6b0d85d2ee403bedc64b4b5b040",
+      "assetSha256": "231b2ebd1809b26abc2eb523e248443273ef97a45cb0a17d5e4617a61a9761af",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/04-input",
+      "sourceSha256": "4444c57e771c3d08adde8c2de66bfa64ea367c77a4eb51a0e4b7e18ba38a9d2d",
+      "assetSha256": "6a7b7184303c39d9d6a68f1e34cc0f0decf95647175500a826a7e84951284676",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/33-owner",
+      "sourceSha256": "29d29484b9b9a3eee3234f22b1bdecc059a6e6bb26e0c535b7b619aad543118d",
+      "assetSha256": "8823e463c439f011603b291be76ba77d6f6173a04f1d366d1c061d3e8bd92dbd",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/94-declare-the-rendering-comparison-contract",
+      "sourceSha256": "29916a8d12e5947ef74b3411e6c78fa071df4fd6c204dcef01e65684b34ac05e",
+      "assetSha256": "c83073b049d27d141c7cf04ffa43bec2e2f1be7361653a242fd6d95c9bbf621f",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/03a-mathematics",
+      "sourceSha256": "9950fcb058cb7c4a2587f33a2a6e9fcd034053ddab29d4300dfd68c395a4b870",
+      "assetSha256": "fd596d6ead3d7f8a8c2b6ee69efbd6ec0a5dc224d7b341d5a2c664435f053c00",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/58-uses",
+      "sourceSha256": "5e2e406ba278c43264fb7a9dbbb2a7eaee181c6e90179be2bdcb74dc5bc68898",
+      "assetSha256": "0ddab6d990a15dd7ebfadb100098c7d37a3e2451b78a566f8fcac9a8d587d9b9",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/60-fonts",
+      "sourceSha256": "598eda4bc0235c03c581a7a238923ba9ad61093a204434405db677253bdeaaf0",
+      "assetSha256": "2a7685980b5d976eb3772beffcf5db4114fb0f02e6319c32f81a8747a075d4af",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/consolidation/57-parameters",
+      "sourceSha256": "9fa91f9e2c910cd89611c0bcd036a66e99152cbd6e955bb0d5bc3e0031dc4066",
+      "assetSha256": "062b02ae009e7f50a7cfa4a05895ed85eae421634ba16ef24cf0912a97d546b4",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/consolidation/70za-read-original-sheet-metadata-records",
+      "sourceSha256": "a389750ff2ac503538f372205e4e84c542f0bf76539d7362773ac3829ed1f899",
+      "assetSha256": "3e847c4002cd2c60d7d9af6bad48b14a9f79a59aee6143f247ef1beeb22876c6",
+      "decodedImages": 1
+    },
+    {
+      "slug": "journey/current-command-grammar",
+      "sourceSha256": "54a22555eb6ea1c973762e7efbd2f927d26b6eae5ad10a057d7df2c4e0372163",
+      "assetSha256": "8c5e93a4aed67dc05f6c02ad2e7f9745e984a66c51b551d42512ad8b3c757772",
+      "decodedImages": 0
+    },
+    {
+      "slug": "journey/recovery",
+      "sourceSha256": "fcee9d6f3adac7c9ec45516b5198e32441cee564c34136532a2f800d8f2bc3fc",
+      "assetSha256": "0ad7fa17b366982aad52b8b945326b2602c1412f032704fd5e0910fb37d0bbaa",
+      "decodedImages": 0
+    }
+  ],
+  "requiredCurrentImages": [
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/85ay-exercise-current-original-commands-together-browser.png?v=ff75097852eb",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 16.5 (85ay-exercise-current-original-commands-together)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\85ay-exercise-current-original-commands-together-browser.png",
+      "sourceSha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181",
+      "builtSha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181",
+      "servedSha256": "ff75097852ebbc3d3bc9bd3608eed959ee6140a5738beeb4365a43ecb880a181",
+      "reader": "journey/consolidation/85-copy-current-original-command-recipes.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer-browser.png?v=c8320a5ff6b5",
+      "width": 2200,
+      "height": 1600,
+      "alt": "Recorded visual output for Lesson 12.4 (68ac-connect-current-pages-to-the-browser-renderer)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\68ac-connect-current-pages-to-the-browser-renderer-browser.png",
+      "sourceSha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "builtSha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "servedSha256": "c8320a5ff6b5093f1a701d154095601f720177fdc59ef817b92d2b471cd57ebf",
+      "reader": "journey/consolidation/68-reserve-page-bytes-before-reading.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates-ea5a1a49286b.png?v=ea5a1a49286b",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 14.1 (71ze-resolve-original-relative-and-polar-coordinates)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\71ze-resolve-original-relative-and-polar-coordinates-ea5a1a49286b.png",
+      "sourceSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624",
+      "builtSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624",
+      "servedSha256": "ea5a1a49286be00faab550c4b43cf1bd9496656e66350c5382909ddd64619624",
+      "reader": "journey/consolidation/71-read-original-sheet-entity-metadata.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/51zf-handles.png?v=6b7cb7dba7db",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 7.6 (51zf-handles)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51zf-handles.png",
+      "sourceSha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "builtSha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "servedSha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee",
+      "reader": "journey/consolidation/51-handles.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/66af-connect-browser-save-open-url-adoption-0f28c3277327.png?v=0f28c3277327",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 12.1 (66af-connect-browser-save-open-url-adoption)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\66af-connect-browser-save-open-url-adoption-0f28c3277327.png",
+      "sourceSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "builtSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "servedSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "reader": "journey/consolidation/66-read-scene-manifests.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/53u-layers-aeab6de33013.png?v=aeab6de33013",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 8.3 (53u-layers)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers-aeab6de33013.png",
+      "sourceSha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1",
+      "builtSha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1",
+      "servedSha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1",
+      "reader": "journey/consolidation/53-flags.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/44l-input-7dada61886fe.png?v=7dada61886fe",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 6.3 (44l-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44l-input-7dada61886fe.png",
+      "sourceSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2",
+      "builtSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2",
+      "servedSha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2",
+      "reader": "journey/consolidation/44-topology.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/87ab-exercise-original-clipping-color-and-picking-9195e2d48345.png?v=9195e2d48345",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 17.3 (87ab-exercise-original-clipping-color-and-picking)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\87ab-exercise-original-clipping-color-and-picking-9195e2d48345.png",
+      "sourceSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c",
+      "builtSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c",
+      "servedSha256": "9195e2d483456145c2d400d84f9496f0313fbd3150cd66abb25af7240302ee5c",
+      "reader": "journey/consolidation/87-copy-current-original-plane-modes.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/journey/release/current85ay-visible-two-mm-98aee8bf1e8c.png?v=98aee8bf1e8c",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Temporary 2 mm distance annotation above the original solid",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\release\\current85ay-visible-two-mm-98aee8bf1e8c.png",
+      "sourceSha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
+      "builtSha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
+      "servedSha256": "98aee8bf1e8c849c76d98ffc4696f48ac29e4f8060a7f045c8bdd17181729948",
+      "reader": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/84zod-explode-supported-original-families-355e633aaacf.png?v=355e633aaacf",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 16.4 (84zod-explode-supported-original-families)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\84zod-explode-supported-original-families-355e633aaacf.png",
+      "sourceSha256": "355e633aaacfb0c20dc27b5521b39f01db8f7d0e933a56d57322fe11da137b16",
+      "builtSha256": "355e633aaacfb0c20dc27b5521b39f01db8f7d0e933a56d57322fe11da137b16",
+      "servedSha256": "355e633aaacfb0c20dc27b5521b39f01db8f7d0e933a56d57322fe11da137b16",
+      "reader": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/96zza-connect-section-primitive-images-1d91f844b3b8.png?v=1d91f844b3b8",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Closed section cap with original primitive addresses",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zza-connect-section-primitive-images-1d91f844b3b8.png",
+      "sourceSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "builtSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "servedSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "reader": "journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/69af-exercise-independent-original-cad-reuse-e5df8d852cd6.png?v=e5df8d852cd6",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 13.2 (69af-exercise-independent-original-cad-reuse)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\69af-exercise-independent-original-cad-reuse-e5df8d852cd6.png",
+      "sourceSha256": "e5df8d852cd60d767042260544ba48dedb3b8e3b4b8e54ddd7c1f97d63293547",
+      "builtSha256": "e5df8d852cd60d767042260544ba48dedb3b8e3b4b8e54ddd7c1f97d63293547",
+      "servedSha256": "e5df8d852cd60d767042260544ba48dedb3b8e3b4b8e54ddd7c1f97d63293547",
+      "reader": "journey/consolidation/69j-preserve-per-instance-original-colours.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/reader-illustrations/62o-labels/world-label-selected-5d17764a4e31.png?v=5d17764a4e31",
+      "width": 2200,
+      "height": 1600,
+      "alt": "Selected world label Original CAD \u00b7 \u00d825 \u00b7 \u03a9 on its yellow plate",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\62o-labels\\world-label-selected-5d17764a4e31.png",
+      "sourceSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "builtSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "servedSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "reader": "journey/consolidation/62-source.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/62o-labels-5d17764a4e31.png?v=5d17764a4e31",
+      "width": 2200,
+      "height": 1600,
+      "alt": "Recorded visual output for Lesson 10.4 (62o-labels)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\62o-labels-5d17764a4e31.png",
+      "sourceSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "builtSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "servedSha256": "5d17764a4e31ef507a1b3bff976a47b9446d5e57fc50f09503c6c7afde5313f1",
+      "reader": "journey/consolidation/62-source.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/38d-input-browser.png?v=eab4aad534e5",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 5.4 (38d-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38d-input-browser.png",
+      "sourceSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "builtSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "servedSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "reader": "journey/consolidation/38-layout.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/81za-validate-original-split-inputs-and-name-pieces-b9c270157425.png?v=b9c270157425",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 16.1 (81za-validate-original-split-inputs-and-name-pieces)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\81za-validate-original-split-inputs-and-name-pieces-b9c270157425.png",
+      "sourceSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
+      "builtSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
+      "servedSha256": "b9c270157425ad0185da119eec8d2fd05f7da160481c138061a4f3b086255574",
+      "reader": "journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/69i-check-sharing-precision-history-and-release-29ffdc4a7fc9.png?v=29ffdc4a7fc9",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 13.1 (69i-check-sharing-precision-history-and-release)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\69i-check-sharing-precision-history-and-release-29ffdc4a7fc9.png",
+      "sourceSha256": "29ffdc4a7fc918fb5cd159655246d3d5558ec69f47a783d932087fe507d78431",
+      "builtSha256": "29ffdc4a7fc918fb5cd159655246d3d5558ec69f47a783d932087fe507d78431",
+      "servedSha256": "29ffdc4a7fc918fb5cd159655246d3d5558ec69f47a783d932087fe507d78431",
+      "reader": "journey/consolidation/69-validate-original-definition-references.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/45c-input-77791d4fa1df.png?v=77791d4fa1df",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 6.4 (45c-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\45c-input-77791d4fa1df.png",
+      "sourceSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "builtSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "servedSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "reader": "journey/consolidation/45-order.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/88ad-exercise-original-sections-bores-and-ink-browser.png?v=6f63dba1bccb",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 17.4 (88ad-exercise-original-sections-bores-and-ink)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\88ad-exercise-original-sections-bores-and-ink-browser.png",
+      "sourceSha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "builtSha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "servedSha256": "6f63dba1bccbcc4ef44f31cd9168a4d61bc2f5695e4934c5c6d93f39157a8bf6",
+      "reader": "journey/consolidation/88-copy-original-closedness-and-winding.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/42k-input.png?v=618cbc4930c1",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 6.1 (42k-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42k-input.png",
+      "sourceSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "builtSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "servedSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "reader": "journey/consolidation/42-window.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/86aq-exercise-finite-color-and-original-picking-7d0a558b1a54.png?v=7d0a558b1a54",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 17.2 (86aq-exercise-finite-color-and-original-picking)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\86aq-exercise-finite-color-and-original-picking-7d0a558b1a54.png",
+      "sourceSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a",
+      "builtSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a",
+      "servedSha256": "7d0a558b1a54f02a6f1d8d3cb793bb27c69cbb30047b6911cd2fc94ef6df5b2a",
+      "reader": "journey/consolidation/86s-test-visibility-at-the-original-center-line.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/64t-clouds-388a151b4d18.png?v=388a151b4d18",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 11.3 (64t-clouds)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\64t-clouds-388a151b4d18.png",
+      "sourceSha256": "388a151b4d18cbb6f462b54df21921c5647415d8c9b77baec04efe9f2fb792f5",
+      "builtSha256": "388a151b4d18cbb6f462b54df21921c5647415d8c9b77baec04efe9f2fb792f5",
+      "servedSha256": "388a151b4d18cbb6f462b54df21921c5647415d8c9b77baec04efe9f2fb792f5",
+      "reader": "journey/consolidation/64f-projection.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership-b86cbe35a606.png?v=b86cbe35a606",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 18.2 (90v-exercise-actual-contacts-cache-and-source-ownership)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\90v-exercise-actual-contacts-cache-and-source-ownership-b86cbe35a606.png",
+      "sourceSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856",
+      "builtSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856",
+      "servedSha256": "b86cbe35a60642454f7c6c198798a56736c033a48e482798f91fb74401be4856",
+      "reader": "journey/consolidation/90-copy-maintained-original-contact-radius.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/72s-exercise-current-drawing-tools-and-original-persistence-a2491194a1e6.png?v=a2491194a1e6",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 14.2 (72s-exercise-current-drawing-tools-and-original-persistence)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\72s-exercise-current-drawing-tools-and-original-persistence-a2491194a1e6.png",
+      "sourceSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317",
+      "builtSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317",
+      "servedSha256": "a2491194a1e6a0c0a741058c33241034788a99818e18b6fc22a160d17b405317",
+      "reader": "journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/41f-input-browser.png?v=71cbaa873aac",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 5.7 (41f-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\41f-input-browser.png",
+      "sourceSha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "builtSha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "servedSha256": "71cbaa873aac502c188019d4521394ecfdacde96386ed7811b5a04e5f592cd79",
+      "reader": "journey/consolidation/41-normals.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.png?v=7998d3f44486",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Selected section with an open circular bore and shared source borders",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zzc-share-section-addresses-with-outlines-and-ambient-7998d3f44486.png",
+      "sourceSha256": "7998d3f4448657563dfabaf8196fe6d0ce239f671bcf642f572d5a06a0513e5e",
+      "builtSha256": "7998d3f4448657563dfabaf8196fe6d0ce239f671bcf642f572d5a06a0513e5e",
+      "servedSha256": "7998d3f4448657563dfabaf8196fe6d0ce239f671bcf642f572d5a06a0513e5e",
+      "reader": "journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.png?v=1d91f844b3b8",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Section surface with position, normal and color image channels",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\96zzd-pack-surface-position-normal-and-color-1d91f844b3b8.png",
+      "sourceSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "builtSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "servedSha256": "1d91f844b3b888a6ea6a8e705ef64eae33fb4b666d40c0db78a5ea3bb30f373e",
+      "reader": "journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/73t-build-regular-kernel-polyhedra-16c8e50c00e4.png?v=16c8e50c00e4",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 14.3 (73t-build-regular-kernel-polyhedra)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\73t-build-regular-kernel-polyhedra-16c8e50c00e4.png",
+      "sourceSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51",
+      "builtSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51",
+      "servedSha256": "16c8e50c00e4651b57159133205c25b8ea88be061dae9d3a03705fb01a445c51",
+      "reader": "journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png?v=a3e266d8d28a",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 18.4 (92o-prove-element-recipes-source-history-and-archives)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\92o-prove-element-recipes-source-history-and-archives.png",
+      "sourceSha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+      "builtSha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+      "servedSha256": "a3e266d8d28ada1a8a7027404da85061e65abb7a85f41f938ac924d7befda08b",
+      "reader": "journey/consolidation/92-link-current-wood-element-builders.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/86r-cache-projection-and-finish-current-reports-68d4d01e7068.png?v=68d4d01e7068",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 17.1 (86r-cache-projection-and-finish-current-reports)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\86r-cache-projection-and-finish-current-reports-68d4d01e7068.png",
+      "sourceSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7",
+      "builtSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7",
+      "servedSha256": "68d4d01e70687d070c0e7326eda8a3252c6a36258a3cdcee1f4164678c58bba7",
+      "reader": "journey/consolidation/86-copy-finite-tile-allocation-rules.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/reader-illustrations/48d-input/unfinished-line-preview-32e9793e694b.png?v=32e9793e694b",
+      "width": 1920,
+      "height": 1280,
+      "alt": "Temporary Line rubber band and endpoint cursor before commit",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\48d-input\\unfinished-line-preview-32e9793e694b.png",
+      "sourceSha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f",
+      "builtSha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f",
+      "servedSha256": "32e9793e694b1cbaec81da175361870848c4dcad3a2fa41aa9642481a2e6865f",
+      "reader": "journey/consolidation/48-coordinates.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/48d-input-5d9f055b37a6.png?v=5d9f055b37a6",
+      "width": 1920,
+      "height": 1280,
+      "alt": "Command dock waiting for the second Line point",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\48d-input-5d9f055b37a6.png",
+      "sourceSha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3",
+      "builtSha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3",
+      "servedSha256": "5d9f055b37a6404f11e348e2db9a7ab85b499808f3d93a2645722d052a53abb3",
+      "reader": "journey/consolidation/48-coordinates.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/48d-input-9b3b2620591a.png?v=9b3b2620591a",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 7.3 (48d-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\48d-input-9b3b2620591a.png",
+      "sourceSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce",
+      "builtSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce",
+      "servedSha256": "9b3b2620591a17c2254d1918564831884df6ffafbdbab33d446544f6cfc282ce",
+      "reader": "journey/consolidation/48-coordinates.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-ef0c9bde35d4.png?v=ef0c9bde35d4",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 15.2 (78m-exercise-profiles-exact-surfaces-and-one-undo-transaction)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\78m-exercise-profiles-exact-surfaces-and-one-undo-transaction-ef0c9bde35d4.png",
+      "sourceSha256": "ef0c9bde35d4b145c797c51b57e36f5c066e4eda5974e0cead240b8815f141f1",
+      "builtSha256": "ef0c9bde35d4b145c797c51b57e36f5c066e4eda5974e0cead240b8815f141f1",
+      "servedSha256": "ef0c9bde35d4b145c797c51b57e36f5c066e4eda5974e0cead240b8815f141f1",
+      "reader": "journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/66af-connect-browser-save-open-url-adoption-0f28c3277327.png?v=0f28c3277327",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 12.3 (67m-cancel-range-work-when-its-runtime-closes)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\66af-connect-browser-save-open-url-adoption-0f28c3277327.png",
+      "sourceSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "builtSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "servedSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "reader": "journey/consolidation/66za-own-original-range-read-permits.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/49f-input-b54a77169648.png?v=b54a77169648",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 7.4 (49f-input)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\49f-input-b54a77169648.png",
+      "sourceSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624",
+      "builtSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624",
+      "servedSha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624",
+      "reader": "journey/consolidation/49-settings.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/79zze-fit-the-original-gordon-surface-fea8d18aee2b.png?v=fea8d18aee2b",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 15.3 (79zze-fit-the-original-gordon-surface)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\79zze-fit-the-original-gordon-surface-fea8d18aee2b.png",
+      "sourceSha256": "fea8d18aee2b8737bb461e295624cdb0efbaba3e785f711b219dd316365d444e",
+      "builtSha256": "fea8d18aee2b8737bb461e295624cdb0efbaba3e785f711b219dd316365d444e",
+      "servedSha256": "fea8d18aee2b8737bb461e295624cdb0efbaba3e785f711b219dd316365d444e",
+      "reader": "journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/63h-outline-136856a71f43.png?v=136856a71f43",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 11.1 (63h-outline)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\63h-outline-136856a71f43.png",
+      "sourceSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+      "builtSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+      "servedSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+      "reader": "journey/consolidation/63-radius.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/reader-illustrations/59f-cad/cad-edge-13-3a739a767531.png?v=3a739a767531",
+      "width": 2200,
+      "height": 1600,
+      "alt": "Original circular BRep edge13 selected independently of the face",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\59f-cad\\cad-edge-13-3a739a767531.png",
+      "sourceSha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642",
+      "builtSha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642",
+      "servedSha256": "3a739a7675310b9916569c12cac767bdbceb636e5a0a57cd880a9f5a1f0ec642",
+      "reader": "journey/consolidation/59-orientation.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/reader-illustrations/59f-cad/cad-face-6-78ff32b131b7.png?v=78ff32b131b7",
+      "width": 2200,
+      "height": 1600,
+      "alt": "Original source face6 selected around the open bore",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\reader-illustrations\\59f-cad\\cad-face-6-78ff32b131b7.png",
+      "sourceSha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f",
+      "builtSha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f",
+      "servedSha256": "78ff32b131b7be9d3ee0fbd27ef1183b2f269195d1297df548b6d6b5465a0e7f",
+      "reader": "journey/consolidation/59-orientation.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/59f-cad-6d8d8d99bb6e.png?v=6d8d8d99bb6e",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 9.5 (59f-cad)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\59f-cad-6d8d8d99bb6e.png",
+      "sourceSha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e",
+      "builtSha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e",
+      "servedSha256": "6d8d8d99bb6e73a7a33e72d0c9decfc8581d7fcdd69ed24bcc7b45287fd3018e",
+      "reader": "journey/consolidation/59-orientation.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/65c-dense-original-rgb-msaa4-6e2782ba0485.png?v=6e2782ba0485",
+      "width": 1280,
+      "height": 960,
+      "alt": "Dense synthetic RGB point cloud with 196,608 mesh-derived samples",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65c-dense-original-rgb-msaa4-6e2782ba0485.png",
+      "sourceSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d",
+      "builtSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d",
+      "servedSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d",
+      "reader": "journey/consolidation/65-originals.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/65zb-validate-original-manifest-text-and-source-keys-713353f65147.png?v=713353f65147",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 11.4 (65zb-validate-original-manifest-text-and-source-keys)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65zb-validate-original-manifest-text-and-source-keys-713353f65147.png",
+      "sourceSha256": "713353f65147ef47144f8749963c39ee4115adfcb8dd04d22564b1b3e203304d",
+      "builtSha256": "713353f65147ef47144f8749963c39ee4115adfcb8dd04d22564b1b3e203304d",
+      "servedSha256": "713353f65147ef47144f8749963c39ee4115adfcb8dd04d22564b1b3e203304d",
+      "reader": "journey/consolidation/65-originals.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/42k-input.png?v=618cbc4930c1",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 6.2 (43b-view)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42k-input.png",
+      "sourceSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "builtSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "servedSha256": "618cbc4930c1729c68cbdb2bb40c8e0c49a4e1fd7f10a8e6362152b20728a753",
+      "reader": "journey/consolidation/43-ticket.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/50d-ownership-deb4457c6d33.png?v=deb4457c6d33",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 7.5 (50d-ownership)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership-deb4457c6d33.png",
+      "sourceSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68",
+      "builtSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68",
+      "servedSha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68",
+      "reader": "journey/consolidation/50-placements.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/93h-prove-actual-glass-x-ray-and-source-ownership-77fc952a84a5.png?v=77fc952a84a5",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 18.5 (93h-prove-actual-glass-x-ray-and-source-ownership)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\93h-prove-actual-glass-x-ray-and-source-ownership-77fc952a84a5.png",
+      "sourceSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15",
+      "builtSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15",
+      "servedSha256": "77fc952a84a5445a887c05caa783f7a4ac74508323200d19089140db82a17e15",
+      "reader": "journey/consolidation/93-classify-original-solids-independently-of-clipping.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-69b2646efefa.png?v=69b2646efefa",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 16.2 (82g-exercise-curve-pieces-source-inheritance-and-one-step-undo)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\82g-exercise-curve-pieces-source-inheritance-and-one-step-undo-69b2646efefa.png",
+      "sourceSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5",
+      "builtSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5",
+      "servedSha256": "69b2646efefab55b0eb7ec47d6f4c5ac53f581bfb0b8bb064315a74e33440ae5",
+      "reader": "journey/consolidation/82-divide-current-original-curve-families.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/52k-tree-363e6b24f861.png?v=363e6b24f861",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 8.2 (52k-tree)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree-363e6b24f861.png",
+      "sourceSha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2",
+      "builtSha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2",
+      "servedSha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2",
+      "reader": "journey/consolidation/52g-rows.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/66af-connect-browser-save-open-url-adoption-0f28c3277327.png?v=0f28c3277327",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 12.2 (67si-validate-complete-octrees-before-range-streaming)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\66af-connect-browser-save-open-url-adoption-0f28c3277327.png",
+      "sourceSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "builtSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "servedSha256": "0f28c3277327b3f3a119bc95246f66eec89f06b413199dd83f45105c35b2360d",
+      "reader": "journey/consolidation/67-supply-checked-array-layout-readers.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/70d-exercise-rotated-and-mirrored-original-references-browser.png?v=f29b36e90c38",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 13.3 (70d-exercise-rotated-and-mirrored-original-references)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\70d-exercise-rotated-and-mirrored-original-references-browser.png",
+      "sourceSha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1",
+      "builtSha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1",
+      "servedSha256": "f29b36e90c3876eee3eb244356d262ac0f5a6e477b900afad6061bd379ca03b1",
+      "reader": "journey/consolidation/70-evaluate-source-ancestry-once-per-document.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png?v=3b94ceefea16",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 18.1 (89h-exercise-actual-depth-levels-and-cache-release)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\89h-exercise-actual-depth-levels-and-cache-release.png",
+      "sourceSha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "builtSha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "servedSha256": "3b94ceefea168f23075b924aa3714a456813518e9a3d76fe55fc9b793dee3b07",
+      "reader": "journey/consolidation/89-copy-density-scaled-depth-reduction.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/83ze-integrate-original-surface-area-4f466ce3b25c.png?v=4f466ce3b25c",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 16.3 (83ze-integrate-original-surface-area)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\83ze-integrate-original-surface-area-4f466ce3b25c.png",
+      "sourceSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8",
+      "builtSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8",
+      "servedSha256": "4f466ce3b25c7af566e6e34ac67fd3b214008ccb5c4ed8afe6a449b2ca1267d8",
+      "reader": "journey/consolidation/83-split-original-faces-without-separating-the-solid.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/61d-glyphs-0cc8b191590c.png?v=0cc8b191590c",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 10.3 (61d-glyphs)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\61d-glyphs-0cc8b191590c.png",
+      "sourceSha256": "0cc8b191590cb3315c99b28a413dac7756530898a89c4b7f81f0a68dc3ea47d8",
+      "builtSha256": "0cc8b191590cb3315c99b28a413dac7756530898a89c4b7f81f0a68dc3ea47d8",
+      "servedSha256": "0cc8b191590cb3315c99b28a413dac7756530898a89c4b7f81f0a68dc3ea47d8",
+      "reader": "journey/consolidation/61-atlas.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/80za-read-original-projection-planes.png?v=d6dc0acb2df7",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 15.4 (80za-read-original-projection-planes)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\80za-read-original-projection-planes.png",
+      "sourceSha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "builtSha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "servedSha256": "d6dc0acb2df7ccc576b9cead052b6844c57c1f402d519751e1ade7fba1e0240a",
+      "reader": "journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/38d-input-browser.png?v=eab4aad534e5",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 5.5 (39a-depth)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\38d-input-browser.png",
+      "sourceSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "builtSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "servedSha256": "eab4aad534e577eed392934b152db65e8cde83c87bc5974c2598b107c59f4802",
+      "reader": "journey/consolidation/39-visible.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits-browser.png?v=154b3e32a7c7",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 14.6 (76d-exercise-exact-curves-and-rational-control-edits)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\76d-exercise-exact-curves-and-rational-control-edits-browser.png",
+      "sourceSha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+      "builtSha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+      "servedSha256": "154b3e32a7c72bbe44ba9319c69c320177d5d55da8383309d3808e49d0d65cc4",
+      "reader": "journey/consolidation/76-copy-exact-planar-curve-definitions.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/63h-outline-136856a71f43.png?v=136856a71f43",
+      "width": 2560,
+      "height": 1920,
+      "alt": "Recorded visual output for Lesson 11.2 (64e-identity)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\63h-outline-136856a71f43.png",
+      "sourceSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+      "builtSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+      "servedSha256": "136856a71f43149188d1e53781f9fe2a02189ebadeb688aa530b4a1356774d19",
+      "reader": "journey/consolidation/64-nodes.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/40b-indices-browser.png?v=92fdfa1b7918",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 5.6 (40b-indices)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\40b-indices-browser.png",
+      "sourceSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "builtSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "servedSha256": "92fdfa1b791821e8003f060ea076b48c4d8041e079b0316072ba0c3bfd7dbb31",
+      "reader": "journey/consolidation/40-colour.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png?v=d510a8435bc9",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 18.7 (95f-prove-cache-invalidation-and-honest-performance-reports)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "sourceSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "builtSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "servedSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "reader": "journey/consolidation/95-record-comparable-large-scene-conditions.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences-browser.png?v=d510a8435bc9",
+      "width": 1800,
+      "height": 1520,
+      "alt": "Recorded visual output for Lesson 18.6 (94c-prove-the-original-comparison-and-inspect-differences)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\94c-prove-the-original-comparison-and-inspect-differences-browser.png",
+      "sourceSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "builtSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "servedSha256": "d510a8435bc916220923a9fafa87d8e3c0ccd7b035b345f7fecd2e63121eb36b",
+      "reader": "journey/consolidation/94-declare-the-rendering-comparison-contract.md"
+    },
+    {
+      "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/70za-read-original-sheet-metadata-records.png?v=ada90df919c9",
+      "width": 1280,
+      "height": 960,
+      "alt": "Recorded visual output for Lesson 13.4 (70za-read-original-sheet-metadata-records)",
+      "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\70za-read-original-sheet-metadata-records.png",
+      "sourceSha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "builtSha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "servedSha256": "ada90df919c9465e0fcc6dfb1a0fdf660e33896f74e6801ac1c06056425c484a",
+      "reader": "journey/consolidation/70za-read-original-sheet-metadata-records.md"
+    }
+  ],
+  "denseIllustration": {
+    "url": "http://127.0.0.1:60997/docs/course/docs/screenshots/journey/65c-dense-original-rgb-msaa4-6e2782ba0485.png?v=6e2782ba0485",
+    "width": 1280,
+    "height": 960,
+    "alt": "Dense synthetic RGB point cloud with 196,608 mesh-derived samples",
+    "sourceImage": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\65c-dense-original-rgb-msaa4-6e2782ba0485.png",
+    "sourceSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d",
+    "builtSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d",
+    "servedSha256": "6e2782ba0485eec668401e909c4c71140bf203c5364d931f59b57d60e621341d"
+  },
+  "visualScreenshots": [
+    {
+      "id": "measurement",
+      "slug": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-measurement.png",
+      "sha256": "97a429d2351b708ddddfb862822cd53cf4f52c98e93652c8b428ef60944ceb56",
+      "requiresRootReview": true
+    },
+    {
+      "id": "world-label",
+      "slug": "journey/consolidation/62-source",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-world-label.png",
+      "sha256": "deb9f68817f4153eaf2c6e8b55a6f4b42d94372bb964202eb8aae12083d57f9e",
+      "requiresRootReview": true
+    },
+    {
+      "id": "section-cap",
+      "slug": "journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-section-cap.png",
+      "sha256": "da6bf7344fd84b81aa3bc740f40f7679ba0a9630381cdcc3fa1090c5c6336682",
+      "requiresRootReview": true
+    },
+    {
+      "id": "line-preview",
+      "slug": "journey/consolidation/48-coordinates",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-line-preview.png",
+      "sha256": "4f5d74085d4953af9959c221c073ed363cf6f5a5b1a5985d257349837c9a7dea",
+      "requiresRootReview": true
+    },
+    {
+      "id": "smooth-loft",
+      "slug": "journey/consolidation/79-retain-current-loft-section-order-and-degree-options",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-smooth-loft.png",
+      "sha256": "3729da8eb485799dae957a685846f02bd74b47e1d49587051f96f94599d8ee51",
+      "requiresRootReview": true
+    },
+    {
+      "id": "cad-face",
+      "slug": "journey/consolidation/59-orientation",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-cad-face.png",
+      "sha256": "294a07dfd793c083922e76b949798fec3ee8f52e6a1dbfd3a0aff53c26c43e6e",
+      "requiresRootReview": true
+    },
+    {
+      "id": "dense-cloud",
+      "slug": "journey/consolidation/65-originals",
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\final-site-source30-05\\browser-visual-dense-cloud.png",
+      "sha256": "e47b90ad59ae9cb22a0409da4b9d529317e8d796b7b037e64625cf8e160a2aaf",
+      "requiresRootReview": true
+    }
+  ],
+  "previousFailedAttemptsPreserved": {
+    "firstBuildOuterStderrFailure": "final-site-source30-01",
+    "strictBuildBrokenLegacyLink": "final-site-source30-02",
+    "strictBuildPassButQaStaleExpectedRevisionTokens": "final-site-source30-03",
+    "boundedQaLargestReaderMemoryLimit": "final-site-source30-04"
+  },
+  "legacyLinkCorrection": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\97-finish-with-the-maintained-browser-runtime.md",
+    "beforeSha256": "ad940a85d47fed21d78e36d98b259fe160c70af13aa5a35d159ac93e270bd25f",
+    "afterSha256": "8a545df5bb7f0173d33167c3be5a9f92ea9e7522c94080babc8af828a1cbb8f6",
+    "oldTarget": "release.md#reproduce",
+    "newTarget": "../archived/journey-release-evidence.md#reproduce",
+    "historicalEvidencePreserved": true
+  },
+  "oldAliasesPixelsAndVueCssPreserved": true,
+  "ownedEphemeralQaServerClosed": true,
+  "foreignPreviewProcessesStopped": false,
+  "historicalValidationCountsChanged": false,
+  "reader77EncodingCorrection": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\journey\\consolidation\\77-copy-current-transformation-and-source-edit-algorithms.md",
+    "beforeSha256": "4ca747b59517a70b0f1098ac33991d51090680aae2ee2077f04f4930e1a76f14",
+    "afterSha256": "0e4c7e783b013a21a66b4c80279ef030c96bbca06a157055af2d448c52574ba2",
+    "corruptSeparatorsCorrectedOutsideCode": 6,
+    "allCodeFencesByteIdentical": true,
+    "maintainedRendererAndCallbacksChanged": false
+  },
+  "qaContextPolicy": "Fresh browser context per reader; close previous DOM/module/request ownership before next page. Largest reader first. Same2CPU2GiB/600second resource policy and every prior assertion retained."
+}
