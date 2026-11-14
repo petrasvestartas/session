@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-56-chains"></a>1. Connect CAD edge chains
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/56-chains-2336125cd76e.png). Native presentation of the inherited parametric roof with original visible boundaries and correct far-boundary occlusion. Constructor and image presentation only; CAD edge-chain algorithms, canonical pixel validation and browser interaction remain separate.
+
 ### 1. `src/cad_edges.rs`
 
 **Locate this existing block:**

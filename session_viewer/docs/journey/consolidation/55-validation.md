@@ -1773,6 +1773,8 @@ pub mod cad_edges;
 
 ## <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>10. Follow isoparametric boundaries
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55zb-follow-original-isoparametric-boundaries-2336125cd76e.png). Native presentation of the inherited parametric roof with original visible boundaries and correct far-boundary occlusion. Constructor and image presentation only; isoparametric boundary algorithms, canonical pixel validation and browser interaction remain separate.
+
 ### 1. `src/cad_edges.rs`
 
 **Locate this existing block:**
@@ -1877,6 +1879,8 @@ pub struct EdgeChain {
 ```
 
 ## <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>11. Follow constrained trim labels
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55zc-follow-original-constrained-trim-labels-2336125cd76e.png). Native presentation of the inherited parametric roof with original visible boundaries and correct far-boundary occlusion. Constructor and image presentation only; constrained trim-label algorithms, canonical pixel validation and browser interaction remain separate.
 
 ### 1. `src/cad_edges.rs`
 
