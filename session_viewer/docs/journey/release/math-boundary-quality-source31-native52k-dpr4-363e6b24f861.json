@@ -1,0 +1,72 @@
+{
+  "preexistingImageReused": true,
+  "publisherAmendment": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-panel-six-case-52k-01\\publisher-exact-reuse-amendment.json",
+    "sha256": "c119c21a90b7f4e264de62886ddce3636adcc2aa91b6cafc0fdd16530ff6df89"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-panel-six-case-52k-01\\capture-ready.json",
+    "sha256": "5c259dd51f719214037e0fe55c9bd980610e9d3645eba1061a0f6a323ec8e367"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T11:08:34.622Z",
+  "id": "52k-tree",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-9da6a0fe8da6b259a645\\capture.json.gz",
+    "sha256": "455916dee842e502c209b4ca144cf74d26cf6909cbd148fbbc9df64e1f0c8984",
+    "bytes": 104574
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-panel-six-case-52k-01\\capture-result.json",
+    "sha256": "6cf6e1655dd3e5f526ccab0e3a3780c13f8c67f3bb9010345432a9612bfec71d"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-panel-six-52k-01-execution.json",
+    "sha256": "07fb378478fd62a0adbcdfb3eeff26da64e56cfe0127124aeb7e441c2a713856"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-panel-six-case-52k-01\\bounded-terminal.json",
+    "sha256": "dd4875a563fb36e2ef6d4cd68827bec4b267be07d8b1298b2ba768713c7bb6c3"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally opened original2560x1920 PNG: a brown top beam and right upright remain visible; the selected editable left parent is gold, with RGB arrows/grips, white pivot and smooth foreground arcs. Black source face boundaries are clean; no triangulation strokes. Actual52k nested-source fixture also executes visible(attribute), pick_id(attribute)==None and pick_usage()[3]==0 constructor assertions; those are not established by pixels alone. No rendered tree GUI, callback/full-unit/canonical640pixel/browser/currentMain acceptance is claimed.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 52k-tree rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-panel-six-case-52k-01\\publication.json",
+    "sha256": "e0cdd922ae7679208145351120df90999647722ad321dde64a4ea8777e88e54e"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-9da6a0fe8da6b259a645\\publication.json",
+    "sha256": "772852857bfb1ec61e0c73e67eae34f3dd9e1f5d471e079d658c619adc306c0b"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-9da6a0fe8da6b259a645\\retirement.json.gz",
+    "sha256": "8dd231b9433ec745031d0ac8f59320ea714ebbd32826698430745374cf278f4d"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-52k-tree-9da6a0fe8da6b259a645\\retired.json",
+    "sha256": "1a397e981a46f86f439058a8c05e81df6f8183b6f7331407f7377915aa9fc96a"
+  }
+}

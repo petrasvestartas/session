@@ -51,6 +51,8 @@
 
 ## <a id="checkpoint-53-flags"></a>1. Separate layer presentation from sources
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53-flags-363e6b24f861.png). The actual52k fixture shows an editable selected parent and visible readonly source attributes; attribute pick exclusion is a constructor assertion. Tree GUI and full interaction behavior require separate acceptance.
+
 The `Layers On`, `Layers Off` and `Layers All` commands control the panel and its expanded rows. Use the row visibility controls, `Hide` or `Show` to change object visibility. Closing the panel preserves the scene's visibility state.
 
 ### 1. `src/view_flags.rs`

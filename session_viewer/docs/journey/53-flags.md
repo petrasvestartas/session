@@ -56,15 +56,15 @@ Continue the nested-frame exercise from52k. This preparation connects one layer 
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The nested frame and selected editable parent remain visible with original source edges.
 
-![Native renderer output for separate layer presentation from original sources.](../screenshots/journey/52k-tree.png)
+![Native presentation at this checkpoint.](../screenshots/journey/53-flags-363e6b24f861.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The actual52k fixture shows an editable selected parent and visible readonly source attributes; attribute pick exclusion is a constructor assertion. Tree GUI and full interaction behavior require separate acceptance. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [8.1.12 · Exercise nested source ownership and exact undo](52k-tree.md). It does not demonstrate a new feature by itself.
+This scene continues [8.1.12 · Exercise nested source ownership and exact undo](52k-tree.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>
