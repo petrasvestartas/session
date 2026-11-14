@@ -50,21 +50,7 @@ Create this file with the complete contents below.
 --8<-- "journey/code/56a-shared-math-display-29.rs"
 ```
 
-### 4. `Cargo.toml`
-
-Enable the existing viewer-display kernel feature used by bounded CAD display preparation.
-
-Replace this exact existing code:
-
-```toml
-session_rust = { path = "../../../session_rust", default-features = false }
-```
-
-with the replacement below.
-
-```toml
---8<-- "journey/code/56a-shared-math-display-30.toml"
-```
+The kernel's `viewer-display` feature is already enabled by the mathematics subject. These CAD helpers use that retained dependency; this subject needs no manifest replacement.
 
 ## Run and check
 

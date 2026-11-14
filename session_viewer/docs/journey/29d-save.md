@@ -18,7 +18,7 @@ Enable the browser object URL and download anchor APIs. These features do not ch
 <summary>Locate the existing block</summary>
 
 ```toml
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions"] }
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Location"] }
 ```
 
 </details>
@@ -26,7 +26,7 @@ web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/29d-save-01.toml"
+--8<-- "journey/code/29d-save-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `src/file_output.rs`

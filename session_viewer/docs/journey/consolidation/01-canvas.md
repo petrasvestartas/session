@@ -4,7 +4,7 @@ Create a browser canvas and paint its first frame through wgpu.
 
 ## Prerequisites and ownership
 
-Install the course's Rust, WebAssembly and Trunk prerequisites. This subject introduces `Cargo.toml`, `index.html`, `src/lib.rs`, `src/browser.rs` and `src/renderer.rs`.
+Install the course's Rust, WebAssembly and Trunk prerequisites. This subject introduces `Cargo.toml`, `index.html`, `src/lib.rs`, `src/browser.rs`, `src/renderer.rs`, and the entry and registration modules under `examples/course/`.
 
 This is the active [first-frame checkpoint](../01-canvas.md). It replaces the former `01-canvas`, `01a-gpu` and `02-clear` executable steps while preserving their cumulative endpoint. Later rendering subjects still replace these files, so their integration must be designed before this subject can satisfy the finished-file rule.
 
@@ -24,7 +24,7 @@ Create the manifest with the locked wgpu and browser dependencies.
 Create the file and type:
 
 ```toml
---8<-- "journey/code/01-frame-1.toml"
+--8<-- "journey/code/01-canvas-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `index.html`
@@ -39,12 +39,12 @@ Create the file and type:
 
 ### 3. `src/lib.rs`
 
-Start asynchronous GPU setup from the WebAssembly entry point.
+Register the browser, renderer and fixed WebAssembly entry modules.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/01-frame-3.rs"
+--8<-- "journey/code/01-canvas-cumulative-2-lib.rs"
 ```
 
 ### 4. `src/renderer.rs`
@@ -69,9 +69,33 @@ Create the file and type:
 
 </details>
 
+## Register startup
+
+The fixed browser entry selects one constructor from the registration table and forwards startup errors to its error sink. A constructor returns a pinned future because GPU setup is asynchronous; the common return type lets the table hold different constructors. Only the chosen constructor runs. Later subjects register content here without replacing the entry implementation.
+
+`Start` is a function-pointer type. Each table entry pairs a name with one such function; `&str` borrows the name without copying its bytes. An asynchronous function returns a future, which represents work that can pause while the GPU request is pending. `Box` gives that future an owned allocation, `Pin` keeps it at a stable address while it is polled, and `dyn Future` lets different constructors share this return type. `Result<(), JsValue>` carries either successful completion or a browser error into the common error sink.
+
+Before adding another mode, predict what `?tutorial=missing-mode` will do. It must show a contextual startup error rather than silently choosing the viewer. Restore `?tutorial=viewer` to draw the white frame. This is the same runnable checkpoint, selected through a different URL input.
+
+### `examples/course/registration.rs`
+
+Register the page lifetime startup and constructor once.
+
+```rust
+--8<-- "journey/code/01-canvas-cumulative-registration.rs"
+```
+
+### `examples/course/entry.rs`
+
+Register the page lifetime startup and constructor once.
+
+```rust
+--8<-- "journey/code/01-canvas-cumulative-entry.rs"
+```
+
 ## Run and observe
 
-From `session_viewer`, run `npm --prefix ../session_tests run course -- init` to supply the dependency lock. Put the five files above in `workspace/journey`, preserving their paths. In that project, run `trunk serve --port 8780` with the workspace build guards and shared Cargo target described in [Maintaining](../../maintaining.md).
+From `session_viewer`, run `npm --prefix ../session_tests run course -- init` to supply the dependency lock. Put the seven files above in `workspace/journey`, preserving their paths. In that project, run `trunk serve --port 8780` with the workspace build guards and shared Cargo target described in [Maintaining](../../maintaining.md).
 
 Open `http://127.0.0.1:8780/`. The GPU clears the canvas to white. The hidden status element contains “The GPU painted the canvas.” A white page alone does not prove GPU startup; inspect that status and check the browser console for errors. This checkpoint draws once; reload after resizing.
 

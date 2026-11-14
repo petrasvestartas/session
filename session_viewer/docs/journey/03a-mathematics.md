@@ -1,10 +1,12 @@
 # A slide of mathematics
 
+<a id="checkpoint-03a-mathematics"></a>
+
 Lay out equations and matrices, animate a matching transform, and step forward and backward through a YAML deck.
 
 ## Prerequisites and ownership
 
-Complete the first wgpu frame and egui painting subjects. This subject owns the stage's font, TeX, painter, column layout, matrix layout, object state, clock, action playback, matching transform and deck format. The runnable checkpoint is `docs/lessons/03a-math`.
+Complete the first wgpu frame and egui painting subjects. This subject owns the stage's font, TeX, painter, column layout, matrix layout, object state, clock, action playback, matching transform and deck format. The cumulative checkpoint is `03a-mathematics`, immediately after first egui painting. Keep the same project; the registry also retains the first-painting constructor.
 
 Use the production directory names: `src/app/stage/`. The supplied support modules `geometry.rs`, `view.rs` and `net.rs` keep the deck runtime complete; the later scene subject explains their geometry, camera and force-density work. They do not allocate viewer scene rows here. `spatial.rs` and the application's `StageApp` wiring belong to that later subject.
 
@@ -12,26 +14,34 @@ The kernel stays a path dependency. Geometry interpolation calls the live kernel
 
 ## Build
 
-Copy the checkpoint's [manifest](../lessons/03a-math/Cargo.toml), [lock](../lessons/03a-math/Cargo.lock), [page](../lessons/03a-math/index.html), [module declarations](../lessons/03a-math/src/lib.rs) and [browser harness](../lessons/03a-math/src/browser.rs). The harness connects this subject to wgpu and egui; cumulative application integration remains pending.
+Use the [complete cumulative checkpoint](checkpoints/03a-mathematics.md) for the exact file changes. The sections below explain the mechanisms in those files.
 
-Copy the complete source modules linked below. Type the named sections as you study their mechanisms. Keep those implementations together: adding a matrix or a deck later must not require replacing the painter or parser.
+Apply this subject's manifest, module registrations, complete implementation files and supplied tests to the existing cumulative project. The dependencies stay in the project's manifest and share its Cargo cache. Install the named font, logo and deck assets before building; their paths are relative to the project, so the same checkpoint runs from the course workspace or a materialized verification directory.
+
+The fixed entry point reads `?tutorial=math` or `?tutorial=viewer`, selects a registered constructor, and reports startup errors through the registered error sink. Exactly one constructor acquires the canvas and GPU device for the page. Changing modes reloads the page; it does not leave a second renderer running.
+
+This is the small wiring exception to finished implementation ownership: later subjects add a constructor, choose a default, or register diagnostics. They do not replace the entry point, the mathematics implementation, or its tests. The maintained-runtime reference appendix unregisters the tutorial entry and uses its existing production startup owner. That appendix is a comparison endpoint; it does not finish the learner implementation or change the earlier mathematics code. Dependency declarations and Rust module declarations register code, while the implementations they expose stay finished.
+
+The module declarations expose the deck, font, painter and presentation interfaces while keeping layout and action helpers private. A trait implementation is available once its module is compiled; callers do not need access to the private `math_mode` module. The later scene subject registers `mode` and `spatial` without changing these completed implementations.
+
+Copy the complete modules linked below. Type the named sections as you study their mechanisms. Keep the implementation together: adding scene geometry later does not require replacing the painter or parser.
 
 ### Frame and letterbox
 
-Type the coordinate mapping in [paint.rs](../lessons/03a-math/src/app/stage/paint.rs); keep authored positions independent of the browser's dimensions.
+Type the coordinate mapping in [paint.rs](code/03a-mathematics-cumulative-18-paint.rs); keep authored positions independent of the browser's dimensions.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/paint.rs:frame"
+--8<-- "journey/code/03a-mathematics-cumulative-18-paint.rs:frame"
 ```
 
 The design space is 1600 × 900. An 800 × 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates.
 
 ### Font metrics and TeX
 
-Copy [font.rs](../lessons/03a-math/src/app/stage/font.rs) and [tex.rs](../lessons/03a-math/src/app/stage/tex.rs). Read `Fonts::new`: dividing font units by units-per-em gives layout units independent of raster size.
+Copy [font.rs](code/03a-mathematics-cumulative-8-font.rs) and [tex.rs](code/03a-mathematics-cumulative-23-tex.rs). Read `Fonts::new`: dividing font units by units-per-em gives layout units independent of raster size.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/font.rs:metrics"
+--8<-- "journey/code/03a-mathematics-cumulative-8-font.rs:metrics"
 ```
 
 Ink bounds and horizontal advance describe different things. Advancing by ink width would collapse deliberate spaces around glyphs. The font's OpenType MATH table supplies fraction gaps, script offsets and delimiter construction. A tall delimiter can use a larger glyph or an assembly of extender pieces.
@@ -39,13 +49,13 @@ Ink bounds and horizontal advance describe different things. Advancing by ink wi
 Trace the lexer before following the layout: commands, groups, scripts and raw text must be distinct tokens before dimensions are measured.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/tex.rs:lexer"
+--8<-- "journey/code/03a-mathematics-cumulative-23-tex.rs:lexer"
 ```
 
 A fraction has separate numerator and denominator boxes. Layout positions them around the math axis and emits a rule between them. A square root needs a radical and an overbar; it is not a Unicode character pasted before a string.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/tex.rs:typeset"
+--8<-- "journey/code/03a-mathematics-cumulative-23-tex.rs:typeset"
 ```
 
 `Expr` carries positioned primitives, width, height, depth, an optional equals-sign offset and named parts. It also records unknown commands. Prose permits `$...$` mathematics; code uses the monospace face. These content forms share the painter rather than creating another rendering lane.
@@ -55,7 +65,7 @@ A fraction has separate numerator and denominator boxes. Layout positions them a
 Type the atlas implementation; cache a raster by font, glyph ID and pixel size.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/paint.rs:atlas"
+--8<-- "journey/code/03a-mathematics-cumulative-18-paint.rs:atlas"
 ```
 
 Swash converts a glyph ID into coverage pixels. A cached space consumes no texture area. Bearings locate the raster relative to its baseline; one-pixel gutters separate atlas entries. Layout remains in em units, the object's size converts em to slide units, and the frame plus display density determines raster pixels.
@@ -66,12 +76,12 @@ The viewer's scene text lane cannot draw these font glyph IDs. Mathematics there
 
 ### Keep the presentation together
 
-The production presentation owner is exercised by the separate mode probe. The standalone checkpoint still connects its stage and atlas directly in `browser.rs`; cumulative application wiring remains pending.
+The cumulative mathematics constructor owns one `Presentation`. Input and frame rendering use its production `Mode<()>` implementation; the empty host means that no viewer scene is required yet.
 
 The production [presentation owner](../../src/app/stage/presentation.rs) keeps the running deck, its glyph and picture atlas, and the last painted coordinate mapping together:
 
 ```rust
---8<-- "session_viewer/src/app/stage/presentation.rs:stage-presentation"
+--8<-- "journey/code/03a-mathematics-cumulative-19-presentation.rs:stage-presentation"
 ```
 
 Its constructor assigns each named picture an atlas index and an aspect ratio in the same pass. Its `paint` method stores the frame used for drawing, clears the previous overflow flag, paints, and returns whether animation, changed state or a newly overflowing atlas requires another frame. It clears `changed` only after calculating that result. The outer application owns the clock tick, camera projection, event routing and GPU submission.
@@ -80,40 +90,44 @@ Keeping this owner independent of scene rows lets the later `StageApp` contain t
 
 The [regression fixture](../../src/app/stage/presentation_tests.rs) creates a one-step formula deck and two pictures. It checks that picture IDs still address the correct aspect ratios and pixels. Painting twice must retain glyph output while the repaint request settles from true to false; mapping a slide point to screen coordinates and back must recover it in both viewport shapes. These are CPU egui checks, not GPU or device acceptance.
 
-This ownership boundary is separate from cumulative acceptance. The standalone checkpoint and its recorded browser evidence remain intact; application-mode registration into the cumulative course is still pending.
+The supplied presentation tests exercise the same owner. Preserve the standalone checkpoint and its receipts as historical evidence; this cumulative checkpoint needs its own native and browser acceptance.
 
 ### Register content without owning the application
 
 A mode receives input and produces egui output; it does not acquire another surface or create another GPU device. Read [the application contract](../../src/app/mode.rs). `Host` is a Rust type parameter: the early mathematics mode works with an empty host, while the later scene mode receives the viewer state. The mathematics implementation never accesses the host, so adding a camera later does not require changing its painter.
 
 ```rust
---8<-- "session_viewer/src/app/stage/math_mode.rs:math-mode"
+--8<-- "journey/code/03a-mathematics-cumulative-11-math_mode.rs:math-mode"
 ```
+
+Read `Loaded::open`: loading produces a mode only after its inputs are ready, with an explicit starting time. The host is borrowed mutably for work that needs application resources.
+
+```rust
+--8<-- "journey/code/03a-mathematics-cumulative-2-mode.rs:application-mode"
+```
+
+The mode advances the stage clock before entering egui's UI pass. The browser driver supplies event timestamps in milliseconds and egui time in seconds; confusing these units changes animation duration. Pointer events return false here because scene manipulation belongs to the later scene adapter. `FullOutput` carries texture and shape changes back to the GPU owner for submission.
 
 `Mode<Host>` uses a trait object so the application stores one active content implementation without knowing its concrete type. `Frame` carries the logical canvas rectangle, canvas dimensions, pixel density and current time; these are observations supplied by the application, not a second clock. The background is four normalized colour channels, so this interface does not require a GPU device.
 
 The frame callback ticks the existing clock, runs egui once and returns both the output and repaint request. The application uploads textures and presents. Key input calls the presentation's navigation implementation; the scene adapter uses that same implementation. Pointer handling remains the later scene adapter's responsibility. The loaded-mode factory consumes its payload exactly once, using ownership rather than a second copy of the deck and fonts.
 
-Predict whether replacing the empty host with a scene requires changing this implementation: it does not, because none of these operations reads host data. The scene adapter instead owns a separate callback that applies its camera before painting and synchronizes geometry afterwards. This interface passes the native mode probe and full application native and WebAssembly compilation. Optimized browser equivalence and adoption by the cumulative application's owning subject remain pending; the standalone browser harness is the currently runnable subject host.
+Predict whether replacing the empty host with a scene requires changing this implementation: it does not, because none of these operations reads host data. The scene adapter instead owns a separate callback that applies its camera before painting and synchronizes geometry afterwards. This interface passes the native mode probe and full application native and WebAssembly compilation. The cumulative constructor uploads the returned egui textures, records its draw pass and presents. A key uses the browser event timestamp, so an animation starts at the time of the input even after a long idle interval. Resizing reconfigures the canvas and marks the presentation dirty.
 
 ### Column and equals alignment
 
-Copy [layout.rs](../lessons/03a-math/src/app/stage/layout.rs) and [object.rs](../lessons/03a-math/src/app/stage/object.rs). An object keeps its content, colour, size, position, fit, opacity and named primitive groups. Layout measures blocks before positioning them.
+Copy [layout.rs](code/03a-mathematics-cumulative-10-layout.rs) and [object.rs](code/03a-mathematics-cumulative-17-object.rs). An object keeps its content, colour, size, position, fit, opacity and named primitive groups. Layout measures blocks before positioning them.
 
 Follow `relayout`: stacking determines vertical positions; fitting determines a common usable scale; equals alignment offsets each expression by its own `Expr::align`. Left-aligning `x=1` and `x+y=2` cannot align their equals signs because their left sides have different widths. Rows lay out formulas and matrices together.
 
-The frame passed to the painter chooses the appropriate side's mapping:
-
-```rust
---8<-- "lessons/03a-math/src/browser.rs:column"
-```
+`Presentation::paint` builds the current frame and applies the stage split before passing that mapping to the painter. The column layout keeps authored positions independent of the viewport.
 
 ### Matrices and addresses
 
-Copy [matrix.rs](../lessons/03a-math/src/app/stage/matrix.rs). Measure entries before choosing cell width and height; centre each entry using its full height and depth.
+Copy [matrix.rs](code/03a-mathematics-cumulative-12-matrix.rs). Measure entries before choosing cell width and height; centre each entry using its full height and depth.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/matrix.rs:cells"
+--8<-- "journey/code/03a-mathematics-cumulative-12-matrix.rs:cells"
 ```
 
 Each matrix cell has a rounded fill and zero or more glyph primitives. Groups such as `0,1`, `0,:`, `:,1`, `cells` and `entries` retain primitive indices. A later action can address a row without guessing coordinates. Entry ink is chosen for contrast against its cell fill.
@@ -122,10 +136,10 @@ Named net matrices select a square-pattern representation above 14 rows or colum
 
 ### Clock, actions and drawing
 
-Copy [tween.rs](../lessons/03a-math/src/app/stage/tween.rs), [actions.rs](../lessons/03a-math/src/app/stage/actions.rs) and [draw.rs](../lessons/03a-math/src/app/stage/draw.rs). Sample motion from time and endpoints rather than repeatedly adding a distance per frame.
+Copy [tween.rs](code/03a-mathematics-cumulative-24-tween.rs), [actions.rs](code/03a-mathematics-cumulative-3-actions.rs) and [draw.rs](code/03a-mathematics-cumulative-6-draw.rs). Sample motion from time and endpoints rather than repeatedly adding a distance per frame.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/tween.rs:clock"
+--8<-- "journey/code/03a-mathematics-cumulative-24-tween.rs:clock"
 ```
 
 A transition starting at 100 ms with duration 200 ms reaches its midpoint at 200 ms and its endpoint at 300 ms. Easing changes the speed along that interval. Retargeting starts from the sampled current value, so an interruption does not jump back to an old starting value.
@@ -133,7 +147,7 @@ A transition starting at 100 ms with duration 200 ms reaches its midpoint at 200
 `actions.rs` updates object state and schedules effects. `draw.rs` converts that state into primitives, including fade-out snapshots and rounded boxes. Removing an object must retain enough drawing data to finish its disappearance. The runtime advances pending actions and retires completed animations:
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/run.rs:clock"
+--8<-- "journey/code/03a-mathematics-cumulative-22-run.rs:clock"
 ```
 
 A thing moves only when the movement is the idea. Use a matching transform for a rewritten equation. Use appearance for a newly introduced object. Colour changes can identify an addressed matrix row without moving it elsewhere.
@@ -161,49 +175,57 @@ Predict the midpoint of a line and the same line with reversed endpoints: both e
 
 ### Steps, slides and stepping backward
 
-Copy [run.rs](../lessons/03a-math/src/app/stage/run.rs). A chapter owns the shared scene and its slides; each slide contains steps. The runtime flattens those steps for navigation while retaining slide boundaries.
+Copy [run.rs](code/03a-mathematics-cumulative-22-run.rs). A chapter owns the shared scene and its slides; each slide contains steps. The runtime flattens those steps for navigation while retaining slide boundaries.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/run.rs:navigation"
+--8<-- "journey/code/03a-mathematics-cumulative-22-run.rs:navigation"
 ```
 
 Advancing first finishes any running step. Going backward rebuilds the chapter and replays actions without animation up to the requested position. It does not invert every mutation. Replay restores removed objects, colours and transforms using the same action semantics as forward navigation.
 
 ### Matching transform
 
-Copy [morph.rs](../lessons/03a-math/src/app/stage/morph.rs). Match explicit named parts first, then pair equal symbols without using either primitive twice.
+Copy [morph.rs](code/03a-mathematics-cumulative-14-morph.rs). Match explicit named parts first, then pair equal symbols without using either primitive twice.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/morph.rs:matching"
+--8<-- "journey/code/03a-mathematics-cumulative-14-morph.rs:matching"
 ```
 
 Matched primitives interpolate their positions and sizes. Unmatched old primitives fade out; unmatched new primitives fade in. Longest-common-subsequence matching preserves the order of repeated symbols. In `x+y` becoming `x+y+z`, the existing symbols retain their identity while the new term appears.
 
 ### Deck data and errors
 
-Copy [deck.rs](../lessons/03a-math/src/app/stage/deck.rs), [eval.rs](../lessons/03a-math/src/app/stage/eval.rs) and [check.rs](../lessons/03a-math/src/app/stage/check.rs), together with the supplied [geometry](../lessons/03a-math/src/app/stage/geometry.rs), [view](../lessons/03a-math/src/app/stage/view.rs) and [net](../lessons/03a-math/src/app/stage/net.rs) modules.
+Copy [deck.rs](code/03a-mathematics-cumulative-5-deck.rs), [eval.rs](code/03a-mathematics-cumulative-7-eval.rs) and [check.rs](code/03a-mathematics-cumulative-4-check.rs), together with the supplied [geometry](code/03a-mathematics-cumulative-9-geometry.rs), [view](code/03a-mathematics-cumulative-25-view.rs) and [net](code/03a-mathematics-cumulative-16-net.rs) modules.
 
 ```rust
---8<-- "lessons/03a-math/src/app/stage/deck.rs:schema"
+--8<-- "journey/code/03a-mathematics-cumulative-5-deck.rs:schema"
 ```
 
 An index names chapter files. The chapter parser expands short keys and author blocks into actions. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths.
 
-Type the lesson's [example.yaml](../lessons/03a-math/example.yaml). Its two slides exercise equals alignment, matching, a matrix and a row address.
+Type the lesson's [example.yaml](code/03a-mathematics-cumulative-27-example.yaml). Its two slides exercise equals alignment, matching, a matrix and a row address.
 
 ```yaml
---8<-- "lessons/03a-math/example.yaml:deck"
+--8<-- "journey/code/03a-mathematics-cumulative-27-example.yaml:deck"
 ```
 
 The next scene subject uses the same schema and runtime. It adds the adapter that turns `Spatial` descriptions into kernel geometry and GPU rows; it does not replace the 2D implementation.
 
 ## Run and observe
 
-From `docs/lessons/03a-math`, run `trunk serve --port 8780` through the workspace storage guard and build slot. Set `CARGO_TARGET_DIR` to the shared course Cargo cache and `CARGO_BUILD_JOBS=2`; use the same cache for native and wasm checks. Open `http://127.0.0.1:8780/`.
+Serve the materialized `03a-mathematics` checkpoint through the workspace storage guard and build slot. Use the shared Cargo cache and the repository's current resource limits. Open the checkpoint with `?tutorial=math`; opening `?tutorial=viewer` instead displays the preceding triangle and painted command line.
 
-The first step aligns two equations. Right arrow advances to a matching rewrite, then a matrix and its coloured first row. Left arrow rebuilds the previous state. `T` changes the stage theme. The left scene region stays empty because this subject does not allocate 3D scene rows. Reload after changing the viewport size; the supplied browser harness has no resize integration yet.
+The first step aligns two equations. Right arrow advances to a matching rewrite, then a matrix and its coloured first row. Left arrow reconstructs the previous state. Up and Down move between slides. `T` changes the theme. The scene region stays empty because this subject allocates no 3D rows. Resizing updates the letterbox and pixel density without changing the authored deck state.
 
-Run native checks with `REGEN_PROTO=0 cargo test --locked --lib --target x86_64-unknown-linux-gnu -j2`, also through the guard and shared cache. Use your native host target on another platform. Tests include parser and layout facts, the lesson deck, replay, and the production suite that plays all five shipped decks.
+Run the library's native tests through the same guard and shared cache, with `REGEN_PROTO=0` and the host target. The 27 tests cover parser and layout facts, the lesson deck, clocks, matching, replay, all five shipped production decks, and presentation ownership. The browser check must separately verify the four steps, previous-frame equality, theme and resize round trips in desktop and upright emulated viewports.
+
+The fourth step colours the addressed matrix row. These are captures of this cumulative checkpoint, with an empty scene region and the same authored mathematics in both layouts:
+
+![Desktop mathematics checkpoint with its coloured matrix row](../screenshots/journey/03a-cumulative-mathematics-landscape-20261114.png)
+
+![Emulated upright mathematics checkpoint with its coloured matrix row](../screenshots/journey/03a-cumulative-mathematics-portrait-20261114.png)
+
+[Source, test and capture receipt](release/cumulative-mathematics-registration-windows-20261114.json).
 
 ## Predict and try
 
@@ -219,11 +241,8 @@ The action stream already describes how to construct every state. Replaying that
 
 ## Validation
 
-The source-parity test passes for all 17 stage-core modules, comparing exact nonblank lines after removing teaching markers and normalizing shared logo paths. A fresh [Windows native run](../lessons/03a-math/native-windows-evidence.json) passes all 24 tests, including playback of the five production decks. The recorded cloud run also passes 24 native tests and its WebAssembly build. Chromium with Vulkan/SwiftShader passes four visible deck steps at 1280 × 720 (density 1) and 390 × 844 (density 2), exact previous-frame reconstruction and a theme round trip. This is software WebGPU evidence, not a hardware-driver or real-phone test. A fresh [Windows browser run](../lessons/03a-math/browser-windows-evidence.json) passes the same interaction checks on Chrome 157 with the Intel gen-12lp adapter, using desktop and upright emulated viewports. The Windows Vulkan/SwiftShader attempt timed out and is recorded as a failure. The [cloud browser record](../lessons/03a-math/full-browser-evidence.json) fingerprints its tested source; the older formula-only record remains historical. Cumulative course integration remains unfinished. The browser harness is a subject test host, not a replacement for the production application's event loop.
+The [source-bound mathematics checkpoint](release/cumulative-mathematics-registration-windows-20261114.json) passes 27 native CPU/egui tests, optimized WebAssembly compilation and Trunk bundling. The same bundle passes four-step playback, backward replay, theme and resize round trips, the earlier painting mode, and contextual startup errors at 1280 × 720 and emulated upright 390 × 844 dimensions. All 22 new captures match the previously reviewed originals byte for byte; the new desktop and upright matrix frames were also opened for visual review.
 
+The active course inserts this implementation immediately after first painting. Source checks preserve all 28 finished mathematics and support files through later subjects; 20 production implementations match after removing teaching markers. This does not accept the entire course or its final maintained-runtime startup, whose wasm/browser checks remain pending. The local course changes are not yet published.
 
-![Full stage core: aligned equations in the browser.](../screenshots/math-full/landscape-step-1.png)
-
-![The matrix row at upright phone dimensions.](../screenshots/math-full/portrait-step-4.png)
-
-Reproduce browser checks after serving the built checkpoint with `node ../session_tests/scripts/course/math-browser.cjs http://127.0.0.1:8780/`. Supply Playwright and pngjs through `NODE_PATH` if installed outside `session_tests`; `CHROMIUM` selects the browser executable. The check rejects blank images, unchanged steps, runtime errors and failed navigation round trips. Its captures go to `target/math-browser`. `MATH_BROWSER_ARGS` accepts a JSON array of browser flags; the Windows hardware run uses `--enable-unsafe-webgpu`, `--ignore-gpu-blocklist` and `--use-angle=d3d11`. The receipt records the actual adapter and flags. These options do not change the interaction or pixel assertions.
+The [archived standalone subject](../archived/journey-03a-mathematics-standalone.md) retains its sources and 24-test/browser receipts as separate historical evidence. Software WebGPU, a browser adapter query, emulated upright dimensions and a physical phone are distinct acceptance scopes.

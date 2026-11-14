@@ -800,19 +800,6 @@ mod file_input;
 #[cfg(target_arch = "wasm32")]
 mod file_output;
 
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen(start)]
-pub fn start() {
-    console_error_panic_hook::set_once();
-    #[cfg(target_arch = "wasm32")]
-    wasm_bindgen_futures::spawn_local(async {
-        if let Err(error) = browser::run().await {
-            browser_report::fatal(&format!("Cannot draw: {error:?}"));
-            browser::report(&format!("Cannot draw: {error:?}"));
-        }
-    });
-}
 
 #[cfg(any(test, target_arch = "wasm32"))]
 mod command_dock;
@@ -1667,7 +1654,7 @@ mod camera_reverse_tests;
 After that block, append this supplied code:
 
 ```text
---8<-- "journey/code/96zzzzzza-match-physical-camera-defaults-and-limits-08.rs" skip=16111
+--8<-- "journey/code/96zzzzzza-match-physical-camera-defaults-and-limits-cumulative-7-lib.rs" skip=16111
 ```
 
 </details>

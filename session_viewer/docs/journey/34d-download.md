@@ -869,36 +869,13 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-### 4. `src/lib.rs`
+### 4. `examples/course/registration.rs`
 
-Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed.
-
-<details>
-<summary>Locate the existing block</summary>
+Replace the `REPORT` registration with this error sink. Startup failures are recorded by the diagnostic reporter and displayed by the browser adapter. The fixed entry still calls one sink; its implementation stays unchanged.
 
 ```rust
-            browser::report(&format!("Cannot draw: {error:?}"));
+--8<-- "journey/code/34d-download-cumulative-report.rs"
 ```
-
-</details>
-
-Edit the existing block to match this code; keep unchanged lines:
-
-```rust
-            browser_report::fatal(&format!("Cannot draw: {error:?}"));
-            browser::report(&format!("Cannot draw: {error:?}"));
-```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/34d-download-08.rs"
-```
-
-</details>
 
 ## Run and check
 

@@ -2,7 +2,7 @@
 
 Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, such as **1.1**. Original chapter.section.checkpoint numbers and URLs remain available for recovery and source comparison. The [daily plan](daily-plan.md) keeps stopping points within each lesson.
 
-[Production source and coverage map](production-course-map.md) · **109 reader-facing subjects; 1,310 active runnable checkpoints**. Navigation grouping is not executable consolidation. Historical routes and archived sources remain available; the final maintained-runtime comparison is a reference appendix.
+[Production source and coverage map](production-course-map.md) · **110 reader-facing subjects; 1,311 active runnable checkpoints**. Navigation grouping is not executable consolidation. Historical routes and archived sources remain available; the final maintained-runtime comparison is a reference appendix.
 
 [Progress and remaining work](roadmap.md) · [Visual review and known issues](visual-review.md). Existing lesson links and saved checkpoints remain valid.
 
@@ -10,13 +10,13 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 1 · Browser, Rust and the GPU
 
-**Automated Chrome checks: 0 of 4 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
+**Automated Chrome checks: 0 of 5 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
-**Critical browser-scene review: 0 of 4 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
+**Critical browser-scene review: 0 of 5 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
 **Critical visual review pending.** This recorded reference is not an accepted visual-quality result.
 
-**Previous native render — fresh verification pending.** [1.4.1 · Make a choice change the picture](04-input.md).
+**Previous native render — fresh verification pending.** [1.5.1 · Make a choice change the picture](04-input.md).
 
 ![Chapter 1: Make a choice change the picture. Previous native render — fresh verification pending.](../screenshots/journey/04-input-light.png)
 
@@ -28,25 +28,29 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 - [1.2 · Shaders and first egui painting](03-triangle.md)
 
-### 1.3 · The command dock
+### 1.3 · A slide of mathematics
 
-- [1.3 · The command dock](03d-input.md)
+- [1.3 · A slide of mathematics](03a-mathematics.md)
 
-### 1.4 · Commands that change the view
+### 1.4 · The command dock
 
-- [1.4 · Commands that change the view](consolidation/04-input.md)
+- [1.4 · The command dock](03d-input.md)
+
+### 1.5 · Commands that change the view
+
+- [1.5 · Commands that change the view](consolidation/04-input.md)
 
 ## 2 · Geometry, camera and selection
 
-**Automated Chrome checks: 1 of 4 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
+**Automated Chrome checks: 0 of 4 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
-**Critical browser-scene review: 1 of 4 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
+**Critical browser-scene review: 0 of 4 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
-**Critical browser-scene review accepted.** Personally reviewed: clear scene and readable dock.
+**Critical visual review pending.** This recorded reference is not an accepted visual-quality result.
 
-**Current Chrome capture — critically reviewed scene.** [2.4.1 · Select, navigate and undo](12-identity.md). Captured 2026-11-14.
+**Previous native render — fresh verification pending.** [2.4.1 · Select, navigate and undo](12-identity.md).
 
-![Chapter 2: Select, navigate and undo. Current Chrome capture — critically reviewed scene.](../screenshots/journey/runtime-20261114/12-identity-desktop.png)
+![Chapter 2: Select, navigate and undo. Previous native render — fresh verification pending.](../screenshots/journey/12-identity.png)
 
 ### 2.1 · Buffers that describe a shared mesh
 
@@ -66,15 +70,15 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 3 · Documents, editing and ownership
 
-**Automated Chrome checks: 2 of 85 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
+**Automated Chrome checks: 0 of 85 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
-**Critical browser-scene review: 2 of 85 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
+**Critical browser-scene review: 0 of 85 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
-**Critical browser-scene review accepted.** Personally reviewed: clear scene and readable dock.
+**Critical visual review pending.** This recorded reference is not an accepted visual-quality result.
 
-**Current Chrome capture — critically reviewed scene.** [3.2.1 · One drawing size and one captured gesture](19a-viewport.md). Captured 2026-11-14.
+**Previous native render — fresh verification pending.** [3.13.45 · Prove failed restoration cannot partly commit](32gja-failures.md).
 
-![Chapter 3: One drawing size and one captured gesture. Current Chrome capture — critically reviewed scene.](../screenshots/journey/runtime-20261114/19a-viewport-desktop.png)
+![Chapter 3: Prove failed restoration cannot partly commit. Previous native render — fresh verification pending.](../screenshots/journey/32gja-failures.png)
 
 ### 3.1 · Kernel geometry and one editor
 

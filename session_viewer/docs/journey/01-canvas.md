@@ -6,7 +6,7 @@
 
 Plan several study sessions for this subject. Save at file boundaries; its executable checkpoint remains one complete subject.
 
-Create one browser application with five files: the manifest, HTML page, entry point, renderer and surface adapter. Keep these files in the same project throughout the course.
+Create one browser application with a manifest, HTML page, module root, renderer, surface adapter, fixed entry point and constructor registration table. Keep these files in the same project throughout the course.
 
 ## Type
 
@@ -19,7 +19,7 @@ Create the manifest with the locked wgpu and browser dependencies.
 Create the file and type:
 
 ```toml
---8<-- "journey/code/01-frame-1.toml"
+--8<-- "journey/code/01-canvas-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `index.html`
@@ -34,12 +34,12 @@ Create the file and type:
 
 ### 3. `src/lib.rs`
 
-Start asynchronous GPU setup from the WebAssembly entry point.
+Register the browser, renderer and fixed WebAssembly entry modules.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/01-frame-3.rs"
+--8<-- "journey/code/01-canvas-cumulative-2-lib.rs"
 ```
 
 ### 4. `src/renderer.rs`
@@ -60,6 +60,30 @@ Create the file and type:
 
 ```rust
 --8<-- "journey/code/01-frame-5.rs"
+```
+
+## Register startup
+
+The fixed browser entry selects one constructor from the registration table and forwards startup errors to its error sink. A constructor returns a pinned future because GPU setup is asynchronous; the common return type lets the table hold different constructors. Only the chosen constructor runs. Later subjects register content here without replacing the entry implementation.
+
+`Start` is a function-pointer type. Each table entry pairs a name with one such function; `&str` borrows the name without copying its bytes. An asynchronous function returns a future, which represents work that can pause while the GPU request is pending. `Box` gives that future an owned allocation, `Pin` keeps it at a stable address while it is polled, and `dyn Future` lets different constructors share this return type. `Result<(), JsValue>` carries either successful completion or a browser error into the common error sink.
+
+Before adding another mode, predict what `?tutorial=missing-mode` will do. It must show a contextual startup error rather than silently choosing the viewer. Restore `?tutorial=viewer` to draw the white frame. This is the same runnable checkpoint, selected through a different URL input.
+
+### `examples/course/registration.rs`
+
+Register the page lifetime startup and constructor once.
+
+```rust
+--8<-- "journey/code/01-canvas-cumulative-registration.rs"
+```
+
+### `examples/course/entry.rs`
+
+Register the page lifetime startup and constructor once.
+
+```rust
+--8<-- "journey/code/01-canvas-cumulative-entry.rs"
 ```
 
 ## Run and check

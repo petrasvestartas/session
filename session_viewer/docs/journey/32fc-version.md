@@ -26,7 +26,7 @@ prost = "=0.14.4"
 After that block, type:
 
 ```toml
---8<-- "journey/code/32fc-version-01.toml" skip=18
+--8<-- "journey/code/32fc-version-cumulative-kernel-feature-0.toml" skip=18
 ```
 
 ### 2. `src/lib.rs`

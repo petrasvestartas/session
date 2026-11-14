@@ -68,7 +68,7 @@ log = "=0.4.34"
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/67d-own-cancellable-range-requests-cargo.toml"
+--8<-- "journey/code/67d-own-cancellable-range-requests-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `src/range_fetch.rs`

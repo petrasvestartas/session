@@ -68,7 +68,7 @@ log = "=0.4.34"
 Update the existing block with this supplied code; keep unchanged lines:
 
 ```text
---8<-- "journey/code/68u-decode-bounded-cancellable-source-streams-cargo.toml"
+--8<-- "journey/code/68u-decode-bounded-cancellable-source-streams-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `src/source_unpack.rs`

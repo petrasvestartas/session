@@ -18,14 +18,8 @@ Add fixed protobuf and browser byte-reading dependencies for the import sequence
 <summary>Locate the existing block</summary>
 
 ```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "FocusOptions"] }
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "FocusOptions", "Location"] }
 console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-session_rust = { path = "../../../session_rust", default-features = false }
 ```
 
 </details>
@@ -33,7 +27,7 @@ session_rust = { path = "../../../session_rust", default-features = false }
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/23-import-dock-01.toml"
+--8<-- "journey/code/22a-records-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `src/document.rs`

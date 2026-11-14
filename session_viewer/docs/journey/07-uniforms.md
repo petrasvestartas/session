@@ -57,7 +57,7 @@ The browser translates the dock's submitted text into camera operations. `Orbit 
 Register the camera alongside the existing modules:
 
 ```rust
---8<-- "journey/code/07-view-5.rs"
+--8<-- "journey/code/07-uniforms-cumulative-4-lib.rs"
 ```
 
 ## Run and observe

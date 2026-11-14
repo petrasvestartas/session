@@ -37,11 +37,11 @@ A pipeline joins the shader entry points, target format and primitive state. Kee
 Add the egui dependencies in `Cargo.toml` and register the new modules in `src/lib.rs`:
 
 ```toml
---8<-- "journey/code/03-paint-4.toml"
+--8<-- "journey/code/03-triangle-cumulative-kernel-feature-2.toml"
 ```
 
 ```rust
---8<-- "journey/code/03-paint-6.rs"
+--8<-- "journey/code/03-triangle-cumulative-3-lib.rs"
 ```
 
 Copy the shared font configuration into `src/command_dock/theme.rs` and its module declaration into `src/command_dock/mod.rs`:

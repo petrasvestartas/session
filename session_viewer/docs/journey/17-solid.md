@@ -71,7 +71,7 @@ Resetting the view retains its current aspect ratio. Undo and redo restore docum
 The browser adapter translates dock commands and canvas input into actions, calls `Editor::apply`, and reports an error before attempting a display upload. On `Change::Scene` it synchronizes the renderer from the editor's scene and selection. Both change kinds then draw through the same current camera and background. The editor itself never submits GPU commands.
 
 ```rust
---8<-- "journey/code/17-editor-7.rs"
+--8<-- "journey/code/17-solid-cumulative-5-lib.rs"
 ```
 
 The module declaration registers the editor in this crate. It does not create a second application or a second document owner.

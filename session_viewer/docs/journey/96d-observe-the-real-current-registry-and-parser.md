@@ -65,7 +65,6 @@ Expose the maintained registry observation as a native example.
 <summary>Locate the existing block</summary>
 
 ```toml
-name = "reference"
 path = "src/reference_example.rs"
 ```
 
@@ -74,7 +73,7 @@ path = "src/reference_example.rs"
 After that block, type:
 
 ```toml
---8<-- "journey/code/96d-observe-the-real-current-registry-and-parser-04.rs" skip=53
+--8<-- "journey/code/96d-observe-the-real-current-registry-and-parser-cumulative-kernel-feature-3.toml" skip=53
 ```
 
 ## Run and check

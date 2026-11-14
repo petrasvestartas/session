@@ -54,8 +54,6 @@ Expose the complete file-reader component while preparing its browser integratio
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
-
-use wasm_bindgen::prelude::*;
 ```
 
 </details>
@@ -63,7 +61,7 @@ use wasm_bindgen::prelude::*;
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/22e-file-reader-register.rs"
+--8<-- "journey/code/22e-file-reader-cumulative-2-lib.rs"
 ```
 
 ## Run and check

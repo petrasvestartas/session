@@ -88,6 +88,13 @@ function listPages(): string[] {
   for (const name of fs.readdirSync(consolidated)) {
     if (name.endsWith('.md')) out.push(path.join(consolidated, name));
   }
+  const journey = path.join(DOCS, 'journey/course.json');
+  if (fs.existsSync(journey)) {
+    for (const step of JSON.parse(fs.readFileSync(journey, 'utf8')).steps) {
+      const file = path.join(DOCS, step.page);
+      if (!out.includes(file)) out.push(file);
+    }
+  }
   const arch = path.join(VIEWER, 'ARCHITECTURE.md');
   if (fs.existsSync(arch)) out.push(arch);
   return out;
@@ -245,7 +252,7 @@ export default function coursePlugin(): Plugin {
     const rel = posix(path.relative(SESSION, file));
     let raw = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
     const alias = readerBook.aliases.get(slug.replace(/^journey\//, ''));
-    if (alias) {
+    if (alias && pageSlug(path.join(DOCS, alias.page)) !== slug) {
       const target = pageSlug(path.join(DOCS, alias.page));
       const redirect = `/course/${target}#${alias.anchor}`;
       const title = raw.match(/^# (.+)/)?.[1] || slug;

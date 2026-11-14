@@ -1,3 +1,4 @@
+import './cumulative-math.test.ts';
 import {changedBlocks, lineContext} from './line-diff.ts';
 import {instructions, replaceImplementation} from './render.ts';
 import {courseBook, readingBook} from '../../src/courseBook.ts';
@@ -12,7 +13,7 @@ import {pathToFileURL} from 'node:url';
 import {save, restore, savedPath} from './checkpoints.ts';
 import {dependencyInputs} from './dependency-inputs.ts';
 import {removeGenerated, verificationCheckpoints} from './verify.ts';
-import {expected, edited, typingLoad, fingerprint, withExpectedSequence, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines} from './model.ts';
+import {expected, edited, typingLoad, fingerprint, withExpectedSequence, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines, snippetSource} from './model.ts';
 const browserFingerprint = createRequire(import.meta.url)(path.join(viewer, 'docs/journey/checks/fingerprint.cjs'));
 
 test('building all checkpoints requires explicit scope while stored checks stay read-only', () => {
@@ -292,7 +293,7 @@ test('compact teaching blocks reconstruct unique edits with repeated context and
 test('compact teaching blocks preserve every canonical edit', () => {
     const files: Record<string, string> = {};
     for (const step of course().steps) for (const edit of step.edits) {
-        const before = edit.before || '', code = read(path.join(viewer, 'docs', edit.snippet));
+        const before = edit.before || '', code = snippetSource(edit.snippet);
         const original = files[edit.path] || '';
         const wanted = edited(files[edit.path], edit, code);
         if (edit.before && !edit.copy && before.split('\n').length >= 60 && !code.startsWith(before)) {
@@ -315,7 +316,8 @@ test('book chapters preserve the complete prerequisite order and stable lesson r
     assert.deepEqual(lessons.map(lesson => lesson.id), data.steps.filter(step => step.id !== plan.comparison).map(step => step.id));
     assert.equal(book.byId.size, lessons.length);
     assert.equal(new Set(lessons.map(lesson => lesson.number)).size, lessons.length);
-    assert(lessons.every(lesson => /^\d+\.\d+\.\d+$/.test(lesson.number) && lesson.page === `journey/${lesson.id}.md`));
+    assert(lessons.every(lesson => /^\d+\.\d+\.\d+$/.test(lesson.number) && lesson.page === data.steps.find(step => step.id === lesson.id)?.page));
+    assert.equal(book.byId.get('03a-mathematics')?.page, 'journey/checkpoints/03a-mathematics.md');
     assert.equal(lessons[0].number, '1.1.1');
     assert.equal(book.byId.get('96zzzzzzc-draw-the-construction-grid-as-physical-lines')?.number, '21.5.3');
     assert.equal(book.comparison?.id, plan.comparison);
@@ -337,17 +339,17 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     const reading = readingBook(data.steps, plan);
     assert.equal(reading.chapters.length, 22);
     const pilot = reading.chapters[0].sections.flatMap(section => section.lessons);
-    assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3', '1.4']);
+    assert.deepEqual(pilot.map(lesson => lesson.number), ['1.1', '1.2', '1.3', '1.4', '1.5']);
     const consolidated = plan.chapters.flatMap((chapter: {consolidated?: {steps: string[]}[]}) => chapter.consolidated || []);
     const redirected = consolidated.flatMap((lesson: {page: string; steps: string[]}) =>
         lesson.steps.filter(id => original.byId.get(id)?.page !== lesson.page));
     assert.deepEqual([...reading.aliases.keys()], redirected);
-    for (const id of ['03-triangle', '03d-input', '05-vertices', '07-uniforms', '10-depth']) {
+    for (const id of ['03-triangle', '03d-input', '04-input', '05-vertices', '07-uniforms', '10-depth']) {
         assert(!reading.aliases.has(id), `${id} must render its authored page instead of redirecting to itself`);
         assert.equal(reading.byId.get(id)?.page, original.byId.get(id)?.page);
     }
     assert.equal(reading.aliases.get('01-canvas')?.page, 'journey/consolidation/01-canvas.md');
-    assert.equal(reading.aliases.get('04-input')?.anchor, 'checkpoint-04-input');
+    assert.equal(reading.byId.get('04-input')?.page, 'journey/04-input.md');
     assert(!original.byId.has('01a-gpu'));
     assert.deepEqual(expected('01a-gpu'), expected('01-canvas'));
     assert.deepEqual(expected('02-clear'), expected('01-canvas'));

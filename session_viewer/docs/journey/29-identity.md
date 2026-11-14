@@ -26,7 +26,7 @@ prost = "=0.14.4"
 After that block, type:
 
 ```toml
---8<-- "journey/code/29-identity-01.toml" skip=18
+--8<-- "journey/code/29-identity-cumulative-kernel-feature-0.toml" skip=18
 ```
 
 ### 2. `src/scene.rs`

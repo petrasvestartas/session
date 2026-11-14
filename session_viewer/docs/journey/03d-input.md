@@ -85,14 +85,26 @@ Use `src/browser.rs`, `src/lib.rs` and `Cargo.toml`:
 ```
 
 ```rust
---8<-- "journey/code/03-dock-8.rs"
+--8<-- "journey/code/03d-input-cumulative-7-lib.rs"
 ```
 
 ```toml
---8<-- "journey/code/03-dock-6.toml"
+--8<-- "journey/code/03d-input-cumulative-kernel-feature-8.toml"
 ```
 
 The browser retains the panel with the renderer, routes input into it, and presents the resulting frame. It uses the existing scene and egui passes. A command may change retained UI state without changing a single scene pixel.
+
+## Register startup
+
+Register the command-dock constructor as the default viewer mode, retaining the mathematics constructor. The first-frame subject owns the fixed entry and explains its asynchronous constructor type. This registration changes which completed implementation starts; it does not replace the entry or the mathematics files.
+
+### `examples/course/registration.rs`
+
+Select the viewer for the input subject; mathematics remains registered.
+
+```rust
+--8<-- "journey/code/03d-input-cumulative-default.rs"
+```
 
 ## Run and observe
 

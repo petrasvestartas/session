@@ -10,17 +10,18 @@ Existing intermediate checkpoints remain listed while their implementations are 
 
 | Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Study sessions |
 | --- | ---: | ---: | --- | --- | --- |
-| [1.1.1 · Rust and the first GPU frame](01-canvas.md) | 151 | 5768 | 58–116 min | 2–4 h | Several sittings; one checkpoint |
+| [1.1.1 · Rust and the first GPU frame](01-canvas.md) | 182 | 6792 | 68–136 min | 2–4 h | Several sittings; one checkpoint |
 | [1.2.1 · Shaders and first egui painting](03-triangle.md) | 176 | 7443 | 75–149 min | 2–4 h | Several sittings; one checkpoint |
-| [1.3.1 · The command dock](03d-input.md) | 1062 | 42028 | 421–841 min | 3–6 h | Several sittings; one checkpoint |
-| [1.4.1 · Make a choice change the picture](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | One sitting |
+| [1.3.1 · A slide of mathematics](03a-mathematics.md) | 9598 | 331212 | 3313–6625 min | 8–12 h | Several sittings; one checkpoint |
+| [1.4.1 · The command dock](03d-input.md) | 1063 | 42075 | 421–842 min | 3–6 h | Several sittings; one checkpoint |
+| [1.5.1 · Make a choice change the picture](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | One sitting |
 | [2.1.1 · Buffers that describe a shared mesh](05-vertices.md) | 34 | 1568 | 16–32 min | 2–4 h | One sitting |
 | [2.2.1 · Camera state and matrix uniforms](07-uniforms.md) | 141 | 4273 | 43–86 min | 3–5 h | Several sittings; one checkpoint |
 | [2.3.1 · A depth-tested scene with stable objects](10-depth.md) | 263 | 9206 | 93–185 min | 3–5 h | Several sittings; one checkpoint |
-| [2.4.1 · Select, navigate and undo](12-identity.md) | 392 | 15381 | 154–308 min | 4–7 h | Several sittings; one checkpoint |
+| [2.4.1 · Select, navigate and undo](12-identity.md) | 392 | 15412 | 155–309 min | 4–7 h | Several sittings; one checkpoint |
 | [3.1.1 · Kernel geometry and one editor](17-solid.md) | 213 | 8152 | 82–164 min | 3–5 h | Several sittings; one checkpoint |
-| [3.2.1 · One drawing size and one captured gesture](19a-viewport.md) | 456 | 15861 | 159–318 min | 3–5 h | Several sittings; one checkpoint |
-| [3.3.1 · Validate a raw mesh record](22a-records.md) | 61 | 2521 | 26–51 min | 0.75–1.25 h | One sitting |
+| [3.2.1 · One drawing size and one captured gesture](19a-viewport.md) | 456 | 15873 | 159–318 min | 3–5 h | Several sittings; one checkpoint |
+| [3.3.1 · Validate a raw mesh record](22a-records.md) | 61 | 2533 | 26–51 min | 0.75–1.25 h | One sitting |
 | [3.3.2 · Validate session identity and build a sample file](22b-session.md) | 61 | 2789 | 28–56 min | 0.75–1.25 h | One sitting |
 | [3.3.3 · Decode and prepare the whole import](22c-decode.md) | 17 | 655 | 7–14 min | 0.75–1.25 h | One sitting |
 | [3.3.4 · Commit an import as one undoable action](22d-import.md) | 17 | 701 | 8–15 min | 0.75–1.25 h | One sitting |
@@ -47,7 +48,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [3.10.2 · Write a snapshot from the editable sources](29a-snapshot.md) | 31 | 1288 | 13–26 min | 1–2 h | One sitting |
 | [3.10.3 · Reopen source geometry with its placement](29b-placements.md) | 24 | 1153 | 12–24 min | 1–2 h | One sitting |
 | [3.10.4 · Prove the saved document reopens faithfully](29c-roundtrip.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
-| [3.10.5 · Download the editable document from the command line](29d-save.md) | 46 | 2339 | 24–47 min | 1–2 h | One sitting |
+| [3.10.5 · Download the editable document from the command line](29d-save.md) | 46 | 2351 | 24–48 min | 1–2 h | One sitting |
 | [3.11.1 · Report the result that actually committed](30-feedback.md) | 29 | 1498 | 15–30 min | 1–2 h | One sitting |
 | [3.11.2 · Give a pending read an explicit ticket](30a-tickets.md) | 64 | 1728 | 18–35 min | 1–2 h | One sitting |
 | [3.11.3 · Cancel reads without accepting their late result](30b-cancel.md) | 31 | 1546 | 16–31 min | 1–2 h | One sitting |
@@ -85,7 +86,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [3.13.25 · Ignore old reload results before decoding them](32ge-stale.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
 | [3.13.26 · Give each source request its own owner](32gf-request.md) | 45 | 1447 | 15–29 min | 1–2 h | One sitting |
 | [3.13.27 · Prove cancelled work releases its source owners](32gfa-ownership.md) | 54 | 2544 | 26–51 min | 1–2 h | One sitting |
-| [3.13.28 · Read a source response within its byte limit](32gg-fetch.md) | 40 | 2331 | 24–47 min | 1–2 h | One sitting |
+| [3.13.28 · Read a source response within its byte limit](32gg-fetch.md) | 40 | 2709 | 28–55 min | 1–2 h | One sitting |
 | [3.13.29 · Pair reload ownership with a browser abort controller](32gga-flight.md) | 35 | 1164 | 12–24 min | 1–2 h | One sitting |
 | [3.13.30 · Deliver only the current completed reload batch](32ggb-delivery.md) | 30 | 1381 | 14–28 min | 1–2 h | One sitting |
 | [3.13.31 · Restore editable sources through the command line](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | One sitting |
@@ -105,18 +106,18 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [3.13.45 · Prove failed restoration cannot partly commit](32gja-failures.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
 | [4.1.1 · Own browser listeners instead of forgetting callbacks](33-owner.md) | 50 | 1978 | 20–40 min | 1–2 h | One sitting |
 | [4.1.2 · Dispose the viewer without leaving pending work alive](33a-runtime.md) | 49 | 1847 | 19–37 min | 1–2 h | One sitting |
-| [4.1.3 · Keep a cached viewer ready for Back navigation](33b-cache.md) | 3 | 202 | 3–5 min | 1–2 h | One sitting |
+| [4.1.3 · Keep a cached viewer ready for Back navigation](33b-cache.md) | 3 | 693 | 7–14 min | 1–2 h | One sitting |
 | [4.2.1 · Keep the first GPU failure with its device](34-fault.md) | 20 | 537 | 6–11 min | 1–2 h | One sitting |
 | [4.2.2 · Stop the viewer when its GPU device fails](34a-stop.md) | 28 | 1468 | 15–30 min | 1–2 h | One sitting |
 | [4.2.3 · Describe a viewer run without keeping its document](34b-report.md) | 38 | 1031 | 11–21 min | 1–2 h | One sitting |
 | [4.2.4 · Keep recent events without losing the first failure](34ba-events.md) | 30 | 1340 | 14–27 min | 1–2 h | One sitting |
-| [4.2.5 · Read live diagnostic context outside the GPU runtime](34c-browser.md) | 51 | 2341 | 24–47 min | 1–2 h | One sitting |
-| [4.2.6 · Download diagnostics through the real command line](34d-download.md) | 26 | 1233 | 13–25 min | 1–2 h | One sitting |
+| [4.2.5 · Read live diagnostic context outside the GPU runtime](34c-browser.md) | 51 | 2847 | 29–57 min | 1–2 h | One sitting |
+| [4.2.6 · Download diagnostics through the real command line](34d-download.md) | 26 | 1277 | 13–26 min | 1–2 h | One sitting |
 | [4.2.7 · Check the bounded shape of a report](34e-schema.md) | 19 | 1244 | 13–25 min | 1–2 h | One sitting |
 | [4.2.8 · Admit only supported bounded saved JSON](34ea-decode.md) | 16 | 678 | 7–14 min | 1–2 h | One sitting |
 | [4.2.9 · Choose a recent failure without blaming active tabs](34eb-recency.md) | 18 | 843 | 9–17 min | 1–2 h | One sitting |
 | [4.2.10 · Prove saved-run exclusions before adopting storage](34ec-proof.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
-| [4.2.11 · Read previous reports from real browser storage](34f-storage.md) | 51 | 1996 | 20–40 min | 1–2 h | One sitting |
+| [4.2.11 · Read previous reports from real browser storage](34f-storage.md) | 51 | 2549 | 26–51 min | 1–2 h | One sitting |
 | [4.2.12 · Retain only three diagnostic runs](34fa-retain.md) | 30 | 1729 | 18–35 min | 1–2 h | One sitting |
 | [4.2.13 · Retrieve saved failure evidence through the command line](34fb-store.md) | 45 | 2366 | 24–48 min | 1–2 h | One sitting |
 | [4.2.14 · Preserve unsupported telemetry while pruning](34fc-retention.md) | 20 | 1053 | 11–22 min | 1–2 h | One sitting |
@@ -129,7 +130,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [4.2.21 · Give pending startup a revocable ticket](34gbc-authority.md) | 19 | 478 | 5–10 min | 0.5–1 h | One sitting |
 | [4.2.22 · Refuse GPU results after final page exit](34gbca-startup.md) | 38 | 1491 | 15–30 min | 0.75–1.25 h | One sitting |
 | [4.2.23 · Bound browser failure messages](34gc-messages.md) | 18 | 834 | 9–17 min | 0.5–1 h | One sitting |
-| [4.2.24 · Observe uncaught browser failures](34gca-errors.md) | 38 | 1713 | 18–35 min | 0.75–1.25 h | One sitting |
+| [4.2.24 · Observe uncaught browser failures](34gca-errors.md) | 38 | 2279 | 23–46 min | 0.75–1.25 h | One sitting |
 | [4.2.25 · Retain adapter identity in the report](34gd-adapter.md) | 34 | 1384 | 14–28 min | 0.75–1.25 h | One sitting |
 | [4.2.26 · Read the viewer’s adapter identity](34gda-browser.md) | 66 | 2801 | 29–57 min | 0.75–1.25 h | One sitting |
 | [4.2.27 · Retain measured loading phases](34gdb-phases.md) | 61 | 2671 | 27–54 min | 0.75–1.25 h | One sitting |
@@ -138,11 +139,11 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [4.2.30 · Measure a completed CPU operation](34gde-measure.md) | 33 | 1075 | 11–22 min | 0.5–0.75 h | One sitting |
 | [4.2.31 · Measure each document preparation phase](34gdea-import.md) | 46 | 2146 | 22–43 min | 0.75–1.25 h | One sitting |
 | [4.2.32 · Measure upload preparation and GPU completion](34gdf-upload.md) | 28 | 1282 | 13–26 min | 0.5–1 h | One sitting |
-| [4.2.33 · Measure accepted source fetches](34gdg-network.md) | 41 | 2118 | 22–43 min | 0.75–1.25 h | One sitting |
+| [4.2.33 · Measure accepted source fetches](34gdg-network.md) | 41 | 2723 | 28–55 min | 0.75–1.25 h | One sitting |
 | [4.2.34 · Record accepted file revisions](34gdga-revision.md) | 34 | 1738 | 18–35 min | 0.5–1 h | One sitting |
 | [4.2.35 · Keep the document outside the GPU runtime](34ge-owner.md) | 24 | 1291 | 13–26 min | 0.5–1 h | One sitting |
 | [4.2.36 · Permit one conservative recovery reload](34gea-policy.md) | 15 | 447 | 5–9 min | 0.25–0.5 h | One sitting |
-| [4.2.37 · Recover once at reduced canvas density](34geb-reload.md) | 40 | 2000 | 20–40 min | 0.75–1.25 h | One sitting |
+| [4.2.37 · Recover once at reduced canvas density](34geb-reload.md) | 40 | 2653 | 27–54 min | 0.75–1.25 h | One sitting |
 | [5.1.1 · Prepare a stroke without changing its source](35-stroke.md) | 33 | 1339 | 14–27 min | 0.5–1 h | One sitting |
 | [5.1.2 · Retain line owners in document history](35a-document.md) | 52 | 2128 | 22–43 min | 0.75–1.25 h | One sitting |
 | [5.1.3 · Extrude a stroke in screen pixels](35b-extrude.md) | 44 | 1971 | 20–40 min | 0.75–1.25 h | One sitting |
@@ -341,7 +342,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [9.1.10 · Follow original isoparametric boundaries](55zb-follow-original-isoparametric-boundaries.md) | 75 | 1827 | 19–37 min | 0.5–1 h | One sitting |
 | [9.1.11 · Follow original constrained trim labels](55zc-follow-original-constrained-trim-labels.md) | 74 | 2291 | 23–46 min | 0.5–1 h | One sitting |
 | [9.2.1 · Connect original CAD edge chains](56-chains.md) | 49 | 1347 | 14–27 min | 0.5–1 h | One sitting |
-| [9.2.2 · Mesh incident faces with shared boundary constraints](56a-shared.md) | 202 | 14272 | 143–286 min | 0.5–1 h | Several sittings; one checkpoint |
+| [9.2.2 · Mesh incident faces with shared boundary constraints](56a-shared.md) | 201 | 14165 | 142–284 min | 0.5–1 h | Several sittings; one checkpoint |
 | [9.2.3 · Prove straight and circular shared boundaries](56b-boundaries.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
 | [9.3.1 · Keep the trimmed face connected to its surface](57-parameters.md) | 17 | 1198 | 12–24 min | 0.5–1 h | One sitting |
 | [9.3.2 · Prove trimmed curved faces and open holes](57a-trims.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
@@ -429,7 +430,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [11.2.10 · Project original cloud rows to bounded point splats](64ha-project-original-cloud-rows-to-bounded-point-splats.md) | 96 | 2835 | 29–57 min | 0.5–1 h | One sitting |
 | [11.2.11 · Rasterize source point discs with integer ownership](64hb-rasterize-source-point-discs-with-integer-ownership.md) | 45 | 1592 | 16–32 min | 0.5–1 h | One sitting |
 | [11.2.12 · Encode original cloud normals and resolve point targets](64hc-encode-original-cloud-normals-and-resolve-point-targets.md) | 45 | 1645 | 17–33 min | 0.5–1 h | One sitting |
-| [11.2.13 · Check cloud shaders on the actual browser device](64hd-check-cloud-shaders-on-the-actual-browser-device.md) | 27 | 1356 | 14–28 min | 0.5–1 h | One sitting |
+| [11.2.13 · Check cloud shaders on the actual browser device](64hd-check-cloud-shaders-on-the-actual-browser-device.md) | 27 | 2030 | 21–41 min | 0.5–1 h | One sitting |
 | [11.2.14 · Upload original point columns once per shared source](64i-columns.md) | 87 | 2758 | 28–56 min | 0.5–1 h | One sitting |
 | [11.2.15 · Own the cached cloud images and frame identity](64j-targets.md) | 83 | 1949 | 20–39 min | 0.5–1 h | One sitting |
 | [11.2.16 · Bind source storage and cached pixels explicitly](64k-layouts.md) | 71 | 2596 | 26–52 min | 0.5–1 h | One sitting |
@@ -446,7 +447,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [11.3.2 · Recover original IDs from integer cloud pixels](65a-addresses.md) | 8 | 450 | 5–9 min | 0.5–1 h | One sitting |
 | [11.3.3 · Enter source controls with the current command or F10](65b-controls.md) | 14 | 1660 | 17–34 min | 0.5–1 h | One sitting |
 | [11.3.4 · Pick original points and prove source query reuse](65c-cloud-point.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
-| [11.3.5 · Read original manifest records and placements](65za-read-original-manifest-records-and-placements.md) | 101 | 2897 | 29–58 min | 0.5–1 h | One sitting |
+| [11.3.5 · Read original manifest records and placements](65za-read-original-manifest-records-and-placements.md) | 101 | 3602 | 37–73 min | 0.5–1 h | Several sittings; one checkpoint |
 | [11.3.6 · Validate original manifest text and source keys](65zb-validate-original-manifest-text-and-source-keys.md) | 89 | 2763 | 28–56 min | 0.5–1 h | One sitting |
 | [12.1.1 · Parse and bound original scene manifests](66-read-scene-manifests.md) | 83 | 2864 | 29–58 min | 0.5–1 h | One sitting |
 | [12.1.2 · Compare live byte revisions](66a-compare-live-byte-revisions.md) | 35 | 978 | 10–20 min | 0.5–1 h | One sitting |
@@ -1180,7 +1181,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [20.2.1 · Share section addresses with outlines and ambient shading](96zzc-share-section-addresses-with-outlines-and-ambient.md) | 45 | 1860 | 19–38 min | 0.5–1 h | One sitting |
 | [20.2.2 · Use compact vertices in every surface pass](96zzd-pack-surface-position-normal-and-color.md) | 46 | 2580 | 26–52 min | 0.5–1 h | One sitting |
 | [20.2.3 · Retain RGBA in prepared displays](96zze-retain-rgba-in-prepared-displays.md) | 27 | 1363 | 14–28 min | 0.5–1 h | One sitting |
-| [20.2.4 · Start with current browser display defaults](96zzf-start-with-current-browser-display-defaults.md) | 58 | 2176 | 22–44 min | 0.5–1 h | One sitting |
+| [20.2.4 · Start with current browser display defaults](96zzf-start-with-current-browser-display-defaults.md) | 58 | 2957 | 30–60 min | 0.5–1 h | One sitting |
 | [20.3.1 · Grow buffers without losing rows](96zzg-grow-buffers-without-losing-rows.md) | 52 | 2513 | 26–51 min | 0.5–1 h | One sitting |
 | [20.3.2 · Prepare shared compact mesh ranges](96zzh-prepare-shared-compact-mesh-ranges.md) | 36 | 1813 | 19–37 min | 0.5–1 h | One sitting |
 | [20.3.3 · Upload compact ranges to shared GPU storage](96zzi-upload-compact-ranges-to-shared-gpu-storage.md) | 43 | 2285 | 23–46 min | 0.5–1 h | One sitting |
@@ -1319,11 +1320,11 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [22.6.3 · Show original ink families](96zzzzzzzo-show-original-ink-families.md) | 46 | 2922 | 30–59 min | 1–2 h | One sitting |
 | [22.6.4 · Apply semantic view controls](96zzzzzzzp-apply-semantic-view-controls.md) | 39 | 2688 | 27–54 min | 1–2 h | One sitting |
 | [22.6.5 · Draw original CAD wire curves](96zzzzzzzq-draw-original-cad-wire-curves.md) | 3785 | 173898 | 1739–3478 min | 1–2 h | Several sittings; one checkpoint |
-| [Reference comparison · Compare with the maintained browser runtime](97-finish-with-the-maintained-browser-runtime.md) | 30 | 2272 | 23–46 min | 0.5–1 h | One sitting |
+| [Reference comparison · Compare with the maintained browser runtime](97-finish-with-the-maintained-browser-runtime.md) | 27 | 2237 | 23–45 min | 0.5–1 h | One sitting |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 1310 current checkpoints.
+- [x] Count the exact source edits for all 1311 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.

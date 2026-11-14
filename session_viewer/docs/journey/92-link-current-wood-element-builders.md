@@ -20,10 +20,7 @@ Link current Wood element builders beside the original kernel.
 <summary>Locate the existing block</summary>
 
 ```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "ReadableWritablePair", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+png = "0.17"
 ```
 
 </details>
@@ -31,7 +28,7 @@ web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/92-link-current-wood-element-builders-01-console.rs"
+--8<-- "journey/code/92-link-current-wood-element-builders-cumulative-kernel-feature-0.toml"
 ```
 
 ## Run and check

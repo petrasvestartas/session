@@ -250,9 +250,9 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 1.3.24 · [Return accepted application commands](03cn-handoff.md) — Keep editing local and return accepted names to the caller.
 
-- [ ] 1.3.1 · [Hand commands to the application](03d-input.md) — Return accepted commands while keeping editing inside Panel.
+- [ ] 1.4.1 · [Hand commands to the application](03d-input.md) — Return accepted commands while keeping editing inside Panel.
 
-- [ ] 1.4.1 · [Make a choice change the picture](04-input.md) — Use a command to switch backgrounds without changing the triangle.
+- [ ] 1.5.1 · [Make a choice change the picture](04-input.md) — Use a command to switch backgrounds without changing the triangle.
 
 - [ ] 2.1.1 · [Let Rust supply the corners](05-vertices.md) — Draw a rectangle from six positions stored in a GPU buffer.
 
@@ -272,7 +272,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 2.7.2 · [Name objects independently of their rows](11a-identity.md) — Keep object identity stable when removal changes vector order.
 
-- [x] 2.4.1 · [Display selection by object identity](12-identity.md) — Select and delete objects using stable identities, then highlight the selected object.
+- [ ] 2.4.1 · [Display selection by object identity](12-identity.md) — Select and delete objects using stable identities, then highlight the selected object.
 
 - [ ] 2.8.2 · [Convert screen positions back to the scene](12a-coordinates.md) — Undo the camera transform before querying CPU geometry.
 
@@ -292,7 +292,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 2.12.1 · [Walk around the model](16-orbit.md) — Orbit and tilt a perspective camera while keeping its target in place.
 
-- [x] 3.1.1 · [Bring a solid into the scene](17-solid.md) — Create a kernel box, convert it to display data, and add it as one undoable scene object.
+- [ ] 3.1.1 · [Bring a solid into the scene](17-solid.md) — Create a kernel box, convert it to display data, and add it as one undoable scene object.
 
 - [ ] 3.2.1 · [Read the shape through light](18-light.md) — Shade the box faces according to their direction, using the same mesh and renderer.
 
@@ -302,7 +302,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 3.3.1 · [Route browser input through the editor](19-actions.md) — Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
 
-- [x] 3.2.1 · [Measure a safe drawing size](19a-viewport.md) — Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
+- [ ] 3.2.1 · [Measure a safe drawing size](19a-viewport.md) — Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
 
 - [ ] 3.4.1 · [Resize canvas, depth and camera together](20-resize.md) — Resize the drawing buffer, depth attachment and camera together, including on dense displays.
 - [ ] 3.4.2 · [Remember the pointer that starts a drag](20a-press.md) — Retain one pointer and produce movement relative to its previous position.

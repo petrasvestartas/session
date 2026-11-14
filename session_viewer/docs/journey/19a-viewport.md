@@ -86,13 +86,13 @@ The command dock receives each event first. Only an unconsumed event reaches sce
 The wheel listener is explicitly nonpassive because accepted zoom events prevent browser scrolling. Both window and canvas listeners retain one callback for the page lifetime. The callback applies an editor action, updates scene display data only for `Change::Scene`, then resizes and presents through the existing renderer.
 
 ```toml
---8<-- "journey/code/19a-final-7.toml"
+--8<-- "journey/code/19a-viewport-cumulative-kernel-feature-7.toml"
 ```
 
 The manifest enables the browser event and pointer-capture APIs used by this adapter. Register the modules and their native tests:
 
 ```rust
---8<-- "journey/code/19a-final-2.rs"
+--8<-- "journey/code/19a-viewport-cumulative-8-lib.rs"
 ```
 
 ## Run and observe

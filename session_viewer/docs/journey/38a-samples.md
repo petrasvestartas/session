@@ -76,39 +76,16 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ### 2. `src/lib.rs`
 
-Register actual sampled geometry checks.
-
-<details>
-<summary>Locate the existing block</summary>
+Register the sampled-curve tests and shared mathematics quality module. Replace the consecutive module-declaration block beginning with `mod curve_layout_tests;` and ending with `mod browser_phase;` with this complete block. Preserve surrounding declarations.
 
 ```rust
-pub mod curve;
+--8<-- "journey/code/38a-samples-cumulative-1-lib.rs"
 ```
-
-</details>
-
-After that block, type:
-
-```rust
-#[cfg(test)]
-mod curve_sample_tests;
-```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/38a-samples-02.rs"
-```
-
-</details>
 
 <details>
 <summary>Supplied validation fixture</summary>
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+Copy this fixture to verify sampled geometry independently of the browser.
 
 ### 3. `src/curve_sample_tests.rs`
 

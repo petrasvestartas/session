@@ -26,11 +26,11 @@ Keep the preceding project's files except for the nine files below. Type each co
 ### Dependencies and module declarations
 
 ```toml
---8<-- "journey/code/12-selection-9.toml"
+--8<-- "journey/code/12-identity-cumulative-kernel-feature-0.toml"
 ```
 
 ```rust
---8<-- "journey/code/12-selection-6.rs"
+--8<-- "journey/code/12-identity-cumulative-1-lib.rs"
 ```
 
 The module declarations make `history` and `picking` part of the same crate as the existing scene and camera. They do not create separate programs or separate GPU devices.

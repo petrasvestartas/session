@@ -18,10 +18,26 @@ Pin the production text renderer and explicit glyph coverage parser.
 <summary>Locate the existing block</summary>
 
 ```toml
-serde_json = "1.0"
+ttf-parser = { version = "0.25", default-features = false, features = ["opentype-layout", "std"] }
+serde_yaml_ng = "0.10"
+png = "0.17"
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
+prost = "=0.14.4"
+sha2 = "=0.10.8"
+uuid = { version = "=1.26.1", features = ["v4", "js"] }
+js-sys = "=0.3.105"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+session_rust = { path = "../../../session_rust", default-features = false, features = ["viewer-display"] }
+getrandom = { version = "=0.2.17", features = ["js"] }
 
-[dev-dependencies]
-pollster = "=0.4.0"
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 ```
 
 </details>
@@ -29,7 +45,7 @@ pollster = "=0.4.0"
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/60-fonts-01.rs"
+--8<-- "journey/code/60-fonts-cumulative-kernel-feature-0.toml"
 ```
 
 ### 2. `index.html`

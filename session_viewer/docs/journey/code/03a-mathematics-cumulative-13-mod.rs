@@ -1,25 +1,25 @@
-pub mod actions;
-pub mod check;
+mod actions;
+mod check;
 pub mod deck;
-pub mod draw;
+mod draw;
 pub mod eval;
-pub mod geometry;
-pub mod layout;
-pub mod matrix;
-pub mod net;
-pub mod object;
-pub mod run;
-pub mod view;
 pub mod font;
-pub mod tex;
+mod geometry;
+mod layout;
+mod matrix;
+mod math_mode;
+mod morph;
+pub mod net;
+mod object;
 pub mod paint;
-pub mod tween;
-pub mod morph;
 pub mod presentation;
-pub mod math_mode;
-#[cfg(test)]
-mod motion_tests;
-#[cfg(test)]
-mod production_tests;
 #[cfg(test)]
 mod presentation_tests;
+pub mod run;
+#[cfg(test)]
+mod tests;
+pub mod tex;
+mod tween;
+mod view;
+#[cfg(test)]
+mod motion_tests;

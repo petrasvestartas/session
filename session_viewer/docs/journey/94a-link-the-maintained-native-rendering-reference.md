@@ -18,7 +18,6 @@ Link the exact maintained viewer from the reconstructed checkpoint.
 <summary>Locate the existing block</summary>
 
 ```toml
-pollster = "=0.4.0"
 log = "=0.4.34"
 ```
 
@@ -27,7 +26,7 @@ log = "=0.4.34"
 After that block, type:
 
 ```toml
---8<-- "journey/code/94a-link-the-maintained-native-rendering-reference-01.rs" skip=36
+--8<-- "journey/code/94a-link-the-maintained-native-rendering-reference-cumulative-kernel-feature-0.toml" skip=36
 ```
 
 ## Run and check

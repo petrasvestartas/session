@@ -35,7 +35,6 @@ Expose the maintained reference as a native example.
 <summary>Locate the existing block</summary>
 
 ```toml
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 current_viewer = { package = "session_viewer", path = "../.." }
 ```
 
@@ -44,7 +43,7 @@ current_viewer = { package = "session_viewer", path = "../.." }
 After that block, type:
 
 ```toml
---8<-- "journey/code/94b-read-actual-maintained-frames-without-source-mutation-02.rs" skip=121
+--8<-- "journey/code/94b-read-actual-maintained-frames-without-source-mutation-cumulative-kernel-feature-1.toml" skip=121
 ```
 
 <details>

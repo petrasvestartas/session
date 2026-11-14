@@ -74,7 +74,7 @@ Depth and colour attachments must have matching dimensions and sample counts. `r
 Register the three new owners:
 
 ```rust
---8<-- "journey/code/10-scene-7.rs"
+--8<-- "journey/code/10-depth-cumulative-6-lib.rs"
 ```
 
 ## Run and observe

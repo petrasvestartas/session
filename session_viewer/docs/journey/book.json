@@ -12,6 +12,10 @@
           "first": "03-triangle"
         },
         {
+          "title": "A slide of mathematics",
+          "first": "03a-mathematics"
+        },
+        {
           "title": "The command dock",
           "first": "03d-input"
         },
@@ -40,6 +44,15 @@
           "checkpoint": "03-triangle"
         },
         {
+          "id": "03a-mathematics",
+          "title": "A slide of mathematics",
+          "page": "journey/03a-mathematics.md",
+          "steps": [
+            "03a-mathematics"
+          ],
+          "checkpoint": "03a-mathematics"
+        },
+        {
           "id": "03d-input",
           "title": "The command dock",
           "page": "journey/03d-input.md",
@@ -51,7 +64,7 @@
         {
           "id": "04-input",
           "title": "Commands that change the view",
-          "page": "journey/consolidation/04-input.md",
+          "page": "journey/04-input.md",
           "steps": [
             "04-input"
           ],

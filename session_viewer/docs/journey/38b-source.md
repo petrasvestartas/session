@@ -854,12 +854,10 @@ Create this file with the complete contents below.
 
 ### 7. `src/lib.rs`
 
-Register the mathematical presentation cache beside the quality module.
-
-After the preceding edits, replace the complete file with the contents below.
+Register the shared mathematics view module; the earlier sampled-curve test registration stays intact. Replace the consecutive module-declaration block beginning with `mod diagnostic_shape_tests;` and ending with `pub mod math_quality;` with this complete block. Preserve surrounding declarations.
 
 ```rust
---8<-- "journey/code/38b-source-math-display-5.rs"
+--8<-- "journey/code/38b-source-cumulative-13-lib.rs"
 ```
 
 ### 8. `src/scene.rs`

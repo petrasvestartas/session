@@ -12214,7 +12214,7 @@ Keep the maintained viewer available to native tests and examples without compil
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cumulative-kernel-feature-219.toml"
 ```
 
 ### 166. `src/lib.rs`
@@ -22064,7 +22064,7 @@ Record the actual pulled and locally corrected production source inventory at th
           },
           {
             "status": "??",
-            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cumulative-kernel-feature-219.toml"
           },
           {
             "status": "??",
@@ -30630,7 +30630,7 @@ Record the actual pulled and locally corrected production source inventory at th
           },
           {
             "status": "??",
-            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cumulative-kernel-feature-219.toml"
           },
           {
             "status": "??",
@@ -35915,7 +35915,7 @@ Record the actual pulled and locally corrected production source inventory at th
           },
           {
             "status": "??",
-            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cumulative-kernel-feature-219.toml"
           },
           {
             "status": "??",
@@ -41306,7 +41306,7 @@ Record the actual pulled and locally corrected production source inventory at th
           },
           {
             "status": "??",
-            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-dependency-cargo.toml"
+            "path": "session_viewer/docs/journey/code/96zzzzzzzq-draw-original-cad-wire-curves-cumulative-kernel-feature-219.toml"
           },
           {
             "status": "??",
