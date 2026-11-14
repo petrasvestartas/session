@@ -51,15 +51,15 @@ Continue the existing selection exercise. The action registry is ready; command-
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The two original selected boxes retain their shared primary geometry.
 
-![Native renderer output for register the existing editor command factories.](../screenshots/journey/45c-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/47a-actions-77791d4fa1df.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Two selected box owners with original boundary ink; inherited45c fixture, action registry behavior untested. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [6.4.5 · Collect multiple objects with Shift-click and commands](45c-input.md). It does not demonstrate a new feature by itself.
+This scene continues [6.4.5 · Collect multiple objects with Shift-click and commands](45c-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>
