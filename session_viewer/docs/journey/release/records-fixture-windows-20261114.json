@@ -1,0 +1,89 @@
+{
+  "recordedUtc": "2026-11-14T19:29:30.651189+00:00",
+  "status": "Fixture generated and decoded successfully",
+  "scope": "Generate sample.pb from exact source67 specimen/example against native73 kernel. Thin wrapper fixture generation only; no full viewer example or application WASM/browser acceptance.",
+  "nativeSourceFingerprint": "267a2bf720f9bf9bede97f23982589f413b8ff196e6f2da1de2b3636566e3340",
+  "outputs": [
+    {
+      "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-cargo\\x86_64-pc-windows-msvc\\debug\\examples\\records_fixture.exe",
+      "bytes": 2290688,
+      "sha256": "bbe7377acb9bfd6e839771cbe7aaa1d48b861ec9afb97c864bb1bd83c0695be2"
+    },
+    {
+      "path": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\records-fixture05\\sample.pb",
+      "bytes": 3473,
+      "sha256": "0f7944a9b4d439102b4cf2b213c5def6ddcbef035275c87bfc5ac9c2e11be7c1"
+    }
+  ],
+  "postguards": {
+    "passed": true,
+    "pins": 28446,
+    "absences": 87
+  },
+  "decode": {
+    "scope": "Independent protoc decoding of generated fixture; not app/browser acceptance",
+    "commands": [
+      "C:\\Users\\Petras\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\protoc-bin-vendored-win32-3.3.0\\bin\\protoc.exe",
+      "--decode=session_proto.Session",
+      "--proto_path=C:\\pc\\tmp\\session-tutorial-main-20261113\\session_proto",
+      "session.proto"
+    ],
+    "protocSha256": "ab254642d458b8f307f5a2aefd87f9f7ec426c5c1c5e551e68a845dc14113c0e",
+    "sampleSha256": "0f7944a9b4d439102b4cf2b213c5def6ddcbef035275c87bfc5ac9c2e11be7c1",
+    "bytes": 3473,
+    "meshes": 3,
+    "vertices": 24,
+    "faces": 18,
+    "names": [
+      "Left post",
+      "Right post",
+      "Top beam"
+    ]
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-14T19:27:52.8382394Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-records-fixture05",
+      "timeout",
+      "175s",
+      "node",
+      "--max-old-space-size=1024",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\records-fixture05\\run.mjs"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\records-fixture05",
+    "timeoutSeconds": 180,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 10.341,
+    "peakJobCommitBytes": 593420288,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 30912,
+    "descendantsAtCleanup": 2
+  },
+  "evidence": {
+    "target/records-fixture05/plan.json": "5197a19132e3cc998072a1e899fb04edc66a8bd1f482089404279550a7fc846e",
+    "target/records-fixture05/result.json": "c7d8f3051bd37b7618e87875fc4385af1348220ec447308b53303f350b9bcb64",
+    "target/records-fixture05/resources.json": "9f509d7c8172656353d6bb72898168832f51297835aa11254ca5392db455f9b4",
+    "target/records-fixture05/decode.json": "3ca38584b1e0007d424734357c5b8be75e77ed445ef5299ffba5c6870ec631a6",
+    "target/records-fixture04/dispatch-failure.json": "734976663636117e99f1322d25f2d79065fc9d2f73a5dfe5f890548e08a63b72"
+  }
+}

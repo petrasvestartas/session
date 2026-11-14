@@ -340,143 +340,143 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [ ] 3.7.2 · [Fit and step history from the keyboard](26a-keys.md) — Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
 
-- [ ] 3.8.1 · [Give each object a placement](27-placement.md) — Keep local mesh coordinates and an independent object placement.
+- [ ] 3.4.1 · [Give each object a placement](27-placement.md) — Keep local mesh coordinates and an independent object placement.
 
-- [ ] 3.8.2 · [Ask geometry questions in world coordinates](27a-world.md) — Use placement for scene bounds, selected bounds and ray picking.
+- [ ] 3.4.2 · [Ask geometry questions in world coordinates](27a-world.md) — Use placement for scene bounds, selected bounds and ray picking.
 
-- [ ] 3.8.3 · [Apply object placement on the GPU](27b-model.md) — Send a separate model matrix for each draw while retaining local vertex buffers.
+- [ ] 3.4.3 · [Apply object placement on the GPU](27b-model.md) — Send a separate model matrix for each draw while retaining local vertex buffers.
 
-- [ ] 3.8.4 · [Move a placed object with a typed offset](27c-move.md) — Translate selected geometry through the existing command and history route.
+- [ ] 3.4.4 · [Move a placed object with a typed offset](27c-move.md) — Translate selected geometry through the existing command and history route.
 
-- [ ] 3.8.5 · [Prove placement and history agree](27d-history.md) — Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
+- [ ] 3.4.5 · [Prove placement and history agree](27d-history.md) — Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
 
-- [ ] 3.9.1 · [Prepare a display from an owned source mesh](28-record.md) — Give source geometry a shared owner and prepare its display before committing an object.
+- [ ] 3.5.1 · [Prepare a display from an owned source mesh](28-record.md) — Give source geometry a shared owner and prepare its display before committing an object.
 
-- [ ] 3.9.2 · [Retain the imported mesh behind each row](28a-imported.md) — Insert imported source geometry and its prepared display together.
+- [ ] 3.5.2 · [Retain the imported mesh behind each row](28a-imported.md) — Insert imported source geometry and its prepared display together.
 
-- [ ] 3.9.3 · [Give generated objects the same source owner](28b-generated.md) — Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
+- [ ] 3.5.3 · [Give generated objects the same source owner](28b-generated.md) — Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
 
-- [ ] 3.9.4 · [Prove source ownership survives editing](28c-ownership.md) — Connect local source geometry, display caches, provenance and document history.
+- [ ] 3.5.4 · [Prove source ownership survives editing](28c-ownership.md) — Connect local source geometry, display caches, provenance and document history.
 
-- [ ] 3.10.1 · [Give each saved object a stable identity](29-identity.md) — Distinguish a scene object from the original geometry it shares.
+- [ ] 3.6.1 · [Give each saved object a stable identity](29-identity.md) — Distinguish a scene object from the original geometry it shares.
 
-- [ ] 3.10.2 · [Write a snapshot from the editable sources](29a-snapshot.md) — Serialize live source meshes and their placements without changing the editor.
+- [ ] 3.6.2 · [Write a snapshot from the editable sources](29a-snapshot.md) — Serialize live source meshes and their placements without changing the editor.
 
-- [ ] 3.10.3 · [Reopen source geometry with its placement](29b-placements.md) — Validate stored placements before reconstructing source-backed objects.
+- [ ] 3.6.3 · [Reopen source geometry with its placement](29b-placements.md) — Validate stored placements before reconstructing source-backed objects.
 
-- [ ] 3.10.4 · [Prove the saved document reopens faithfully](29c-roundtrip.md) — Check exact local source data, attributes, identities and placement through saving and loading.
+- [ ] 3.6.4 · [Prove the saved document reopens faithfully](29c-roundtrip.md) — Check exact local source data, attributes, identities and placement through saving and loading.
 
-- [ ] 3.10.5 · [Download the editable document from the command line](29d-save.md) — Connect Save to a browser download and reopen the actual downloaded document.
+- [ ] 3.6.5 · [Download the editable document from the command line](29d-save.md) — Connect Save to a browser download and reopen the actual downloaded document.
 
-- [ ] 3.11.1 · [Report the result that actually committed](30-feedback.md) — Keep failed reads and imports visible in command history without claiming success.
+- [ ] 3.7.1 · [Report the result that actually committed](30-feedback.md) — Keep failed reads and imports visible in command history without claiming success.
 
-- [ ] 3.11.2 · [Give a pending read an explicit ticket](30a-tickets.md) — Describe latest-read ownership, cancellation and one-shot completion in native Rust.
+- [ ] 3.7.2 · [Give a pending read an explicit ticket](30a-tickets.md) — Describe latest-read ownership, cancellation and one-shot completion in native Rust.
 
-- [ ] 3.11.3 · [Cancel reads without accepting their late result](30b-cancel.md) — Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
+- [ ] 3.7.3 · [Cancel reads without accepting their late result](30b-cancel.md) — Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
 
-- [ ] 3.11.4 · [Replace a document as one reversible change](30c-replace.md) — Prepare a whole replacement before changing live rows, then commit it through existing history.
+- [ ] 3.7.4 · [Replace a document as one reversible change](30c-replace.md) — Prepare a whole replacement before changing live rows, then commit it through existing history.
 
-- [ ] 3.11.5 · [Choose append or replace before opening the picker](30d-bridge.md) — Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
+- [ ] 3.7.5 · [Choose append or replace before opening the picker](30d-bridge.md) — Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
 
-- [ ] 3.11.6 · [Prove recovery at the transaction and display boundaries](30e-recovery.md) — Test partial replacement failure, preserved selection/Redo and placement upload limits.
+- [ ] 3.7.6 · [Prove recovery at the transaction and display boundaries](30e-recovery.md) — Test partial replacement failure, preserved selection/Redo and placement upload limits.
 
-- [ ] 3.12.1 · [Keep selection out of the vertex data](31-settings.md) — Put placement and selection in an explicitly packed object uniform.
+- [ ] 3.8.1 · [Keep selection out of the vertex data](31-settings.md) — Put placement and selection in an explicitly packed object uniform.
 
-- [ ] 3.12.2 · [Give immutable GPU geometry one owner](31a-geometry.md) — Separate vertex/index storage from each object’s uniform and retain its CPU source.
+- [ ] 3.8.2 · [Give immutable GPU geometry one owner](31a-geometry.md) — Separate vertex/index storage from each object’s uniform and retain its CPU source.
 
-- [ ] 3.12.3 · [Reuse uploads while their geometry is alive](31b-cache.md) — Cache GPU geometry by its retained CPU allocation and release dead cache entries.
+- [ ] 3.8.3 · [Reuse uploads while their geometry is alive](31b-cache.md) — Cache GPU geometry by its retained CPU allocation and release dead cache entries.
 
-- [ ] 3.12.4 · [Update only changed object settings](31c-incremental.md) — Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
+- [ ] 3.8.4 · [Update only changed object settings](31c-incremental.md) — Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
 
-- [ ] 3.13.1 · [Find the owners retained by history](32-history.md) — Inspect undo/redo roots and release both branches explicitly.
+- [ ] 3.9.1 · [Find the owners retained by history](32-history.md) — Inspect undo/redo roots and release both branches explicitly.
 
-- [ ] 3.13.2 · [Count shared CPU displays once](32a-cpu.md) — Account for active/history rows, retained sources/documents and unique display payloads.
+- [ ] 3.9.2 · [Count shared CPU displays once](32a-cpu.md) — Account for active/history rows, retained sources/documents and unique display payloads.
 
-- [ ] 3.13.3 · [Count each shared GPU buffer once](32b-gpu.md) — Measure live document buffer sizes separately from cumulative allocation counters.
+- [ ] 3.9.3 · [Count each shared GPU buffer once](32b-gpu.md) — Measure live document buffer sizes separately from cumulative allocation counters.
 
-- [ ] 3.13.4 · [Close the document without resetting the view](32c-close.md) — Drop active rows and both history branches while preserving the local ID counter and camera.
+- [ ] 3.9.4 · [Close the document without resetting the view](32c-close.md) — Drop active rows and both history branches while preserving the local ID counter and camera.
 
-- [ ] 3.13.5 · [Close through the command line and revoke reads](32d-command.md) — Wire Close into the dock and cancel pending delivery before closing the editor.
+- [ ] 3.9.5 · [Close through the command line and revoke reads](32d-command.md) — Wire Close into the dock and cancel pending delivery before closing the editor.
 
-- [ ] 3.13.6 · [Prove release does not retain the old document](32e-release.md) — Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.
+- [ ] 3.9.6 · [Prove release does not retain the old document](32e-release.md) — Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.
 
-- [ ] 3.13.7 · [Keep row metadata separate from editable geometry](32f-metadata.md) — Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
+- [ ] 3.9.7 · [Keep row metadata separate from editable geometry](32f-metadata.md) — Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
 
-- [ ] 3.13.8 · [Ask whether an editable source is available](32fa-access.md) — Route saving, source accounting and owner checks through borrowed source accessors.
+- [ ] 3.9.8 · [Ask whether an editable source is available](32fa-access.md) — Route saving, source accounting and owner checks through borrowed source accessors.
 
-- [ ] 3.13.9 · [Make editable ownership a private row boundary](32fb-boundary.md) — Finish migrating owner checks and prevent other modules from bypassing source availability.
+- [ ] 3.9.9 · [Make editable ownership a private row boundary](32fb-boundary.md) — Finish migrating owner checks and prevent other modules from bypassing source availability.
 
-- [ ] 3.13.10 · [Record a reload version without retaining geometry](32fc-version.md) — Own a small document header, a distinct import ID and an exact file fingerprint.
+- [ ] 3.9.10 · [Record a reload version without retaining geometry](32fc-version.md) — Own a small document header, a distinct import ID and an exact file fingerprint.
 
-- [ ] 3.13.11 · [Attach one origin to an imported document](32fd-origin.md) — Share one geometry-free origin across imported rows and history.
+- [ ] 3.9.11 · [Attach one origin to an imported document](32fd-origin.md) — Share one geometry-free origin across imported rows and history.
 
-- [ ] 3.13.12 · [Give a reload URL an explicit owner](32fe-location.md) — Retain an owned Blob URL through imports and history, then release it with its last owner.
+- [ ] 3.9.12 · [Give a reload URL an explicit owner](32fe-location.md) — Retain an owned Blob URL through imports and history, then release it with its last owner.
 
-- [ ] 3.13.13 · [Adopt the selected file as a reloadable source](32ff-bridge.md) — Transfer the accepted File through synchronous delivery and create its URL at adoption.
+- [ ] 3.9.13 · [Adopt the selected file as a reloadable source](32ff-bridge.md) — Transfer the accepted File through synchronous delivery and create its URL at adoption.
 
-- [ ] 3.13.14 · [Separate loaded and released editable ownership](32fg-state.md) — Represent source residency without changing retained display, identity or placement.
+- [ ] 3.9.14 · [Separate loaded and released editable ownership](32fg-state.md) — Represent source residency without changing retained display, identity or placement.
 
-- [ ] 3.13.15 · [Protect sources that cannot be unloaded faithfully](32fh-policy.md) — Require a reload location, original kernel allocation and unchanged row metadata.
+- [ ] 3.9.15 · [Protect sources that cannot be unloaded faithfully](32fh-policy.md) — Require a reload location, original kernel allocation and unchanged row metadata.
 
-- [ ] 3.13.16 · [Unload sources across active and history roots](32fi-history.md) — Release a validated whole-origin set without clearing Undo/Redo or changing placements.
+- [ ] 3.9.16 · [Unload sources across active and history roots](32fi-history.md) — Release a validated whole-origin set without clearing Undo/Redo or changing placements.
 
-- [ ] 3.13.17 · [Prove unloading preserves placed history](32fj-proof.md) — Observe imported kernel expiration while retained displays and placements survive Undo/Redo.
+- [ ] 3.9.17 · [Prove unloading preserves placed history](32fj-proof.md) — Observe imported kernel expiration while retained displays and placements survive Undo/Redo.
 
-- [ ] 3.13.18 · [Unload editable sources through the command line](32fk-command.md) — Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
+- [ ] 3.9.18 · [Unload editable sources through the command line](32fk-command.md) — Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
 
-- [ ] 3.13.19 · [Protect history and future reload tickets](32fl-guards.md) — Verify whole-origin protection, independent duplicate imports and checked release epochs.
+- [ ] 3.9.19 · [Protect history and future reload tickets](32fl-guards.md) — Verify whole-origin protection, independent duplicate imports and checked release epochs.
 
-- [ ] 3.13.20 · [Identify the source release a reload belongs to](32g-keys.md) — Borrow the current imported release identity and epoch before asking for source data.
+- [ ] 3.9.20 · [Identify the source release a reload belongs to](32g-keys.md) — Borrow the current imported release identity and epoch before asking for source data.
 
-- [ ] 3.13.21 · [Prepare original kernel data without rebuilding its display](32ga-prepare.md) — Validate an immutable source version and restore its Session into a private reload candidate.
+- [ ] 3.9.21 · [Prepare original kernel data without rebuilding its display](32ga-prepare.md) — Validate an immutable source version and restore its Session into a private reload candidate.
 
-- [ ] 3.13.22 · [Adopt restored source owners as one residency change](32gb-adopt.md) — Validate current releases and all matching history rows before adopting any kernel candidate.
+- [ ] 3.9.22 · [Adopt restored source owners as one residency change](32gb-adopt.md) — Validate current releases and all matching history rows before adopting any kernel candidate.
 
-- [ ] 3.13.23 · [Prove source restoration preserves display and history](32gc-roundtrip.md) — Restore exact source coordinates and editing without reallocating retained display owners.
+- [ ] 3.9.23 · [Prove source restoration preserves display and history](32gc-roundtrip.md) — Restore exact source coordinates and editing without reallocating retained display owners.
 
-- [ ] 3.13.24 · [Reject stale or inconsistent source batches atomically](32gd-rejections.md) — Keep rows cold on changed versions, missing source identity and obsolete release keys.
+- [ ] 3.9.24 · [Reject stale or inconsistent source batches atomically](32gd-rejections.md) — Keep rows cold on changed versions, missing source identity and obsolete release keys.
 
-- [ ] 3.13.25 · [Ignore old reload results before decoding them](32ge-stale.md) — Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
+- [ ] 3.9.25 · [Ignore old reload results before decoding them](32ge-stale.md) — Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
 
-- [ ] 3.13.26 · [Give each source request its own owner](32gf-request.md) — Give each source request its own owner.
+- [ ] 3.9.26 · [Give each source request its own owner](32gf-request.md) — Give each source request its own owner.
 
-- [ ] 3.13.27 · [Prove cancelled work releases its source owners](32gfa-ownership.md) — Prove cancelled work releases its source owners.
+- [ ] 3.9.27 · [Prove cancelled work releases its source owners](32gfa-ownership.md) — Prove cancelled work releases its source owners.
 
-- [ ] 3.13.28 · [Read a source response within its byte limit](32gg-fetch.md) — Read a source response within its byte limit.
+- [ ] 3.9.28 · [Read a source response within its byte limit](32gg-fetch.md) — Read a source response within its byte limit.
 
-- [ ] 3.13.29 · [Pair reload ownership with a browser abort controller](32gga-flight.md) — Pair reload ownership with a browser abort controller.
+- [ ] 3.9.29 · [Pair reload ownership with a browser abort controller](32gga-flight.md) — Pair reload ownership with a browser abort controller.
 
-- [ ] 3.13.30 · [Deliver only the current completed reload batch](32ggb-delivery.md) — Deliver only the current completed reload batch.
+- [ ] 3.9.30 · [Deliver only the current completed reload batch](32ggb-delivery.md) — Deliver only the current completed reload batch.
 
-- [ ] 3.13.31 · [Restore editable sources through the command line](32gh-command.md) — Restore editable sources through the command line.
+- [ ] 3.9.31 · [Restore editable sources through the command line](32gh-command.md) — Restore editable sources through the command line.
 
-- [ ] 3.13.32 · [Cancel reloads when their document context changes](32gha-cancel.md) — Cancel reloads when their document context changes.
+- [ ] 3.9.32 · [Cancel reloads when their document context changes](32gha-cancel.md) — Cancel reloads when their document context changes.
 
-- [ ] 3.13.33 · [Capture the requested edit before waiting](32gi-capture.md) — Retain the original object and arguments before any source request starts.
+- [ ] 3.9.33 · [Capture the requested edit before waiting](32gi-capture.md) — Retain the original object and arguments before any source request starts.
 
-- [ ] 3.13.34 · [Load only the sources the requested edit needs](32gia-scope.md) — Select source requests from the original edit target, with Save covering the active document.
+- [ ] 3.9.34 · [Load only the sources the requested edit needs](32gia-scope.md) — Select source requests from the original edit target, with Save covering the active document.
 
-- [ ] 3.13.35 · [Move the original target from its current placement](32gib-move.md) — Apply a captured Move to its original target, composing with the placement that exists at replay time.
+- [ ] 3.9.35 · [Move the original target from its current placement](32gib-move.md) — Apply a captured Move to its original target, composing with the placement that exists at replay time.
 
-- [ ] 3.13.36 · [Delete the original target while keeping later selection](32giba-delete.md) — Delete a captured target by identity without redirecting the command to a later selection.
+- [ ] 3.9.36 · [Delete the original target while keeping later selection](32giba-delete.md) — Delete a captured target by identity without redirecting the command to a later selection.
 
-- [ ] 3.13.37 · [Route captured Move, Delete and Save results](32gibb-reply.md) — Return a scene change or original-precision save bytes from a captured intent.
+- [ ] 3.9.37 · [Route captured Move, Delete and Save results](32gibb-reply.md) — Return a scene change or original-precision save bytes from a captured intent.
 
-- [ ] 3.13.38 · [Own the intent with its pending source ticket](32gic-owner.md) — Store source keys and captured intent in one pending owner that current completion can consume once.
+- [ ] 3.9.38 · [Own the intent with its pending source ticket](32gic-owner.md) — Store source keys and captured intent in one pending owner that current completion can consume once.
 
-- [ ] 3.13.39 · [Pair captured intent with complete source bodies](32gica-reply.md) — Build a completion value that retains captured intent and rejects incomplete source-body pairings.
+- [ ] 3.9.39 · [Pair captured intent with complete source bodies](32gica-reply.md) — Build a completion value that retains captured intent and rejects incomplete source-body pairings.
 
-- [ ] 3.13.40 · [Carry captured intent through browser completion](32gicb-bridge.md) — Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
+- [ ] 3.9.40 · [Carry captured intent through browser completion](32gicb-bridge.md) — Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
 
-- [ ] 3.13.41 · [Validate restoration before replaying the command](32gid-complete.md) — Complete source restoration and replay the captured operation only after current document validation.
+- [ ] 3.9.41 · [Validate restoration before replaying the command](32gid-complete.md) — Complete source restoration and replay the captured operation only after current document validation.
 
-- [ ] 3.13.42 · [Deliver restored edit and Save results to the dock](32gie-response.md) — Route validated scene edits and original-precision downloads back to the captured command history.
+- [ ] 3.9.42 · [Deliver restored edit and Save results to the dock](32gie-response.md) — Route validated scene edits and original-precision downloads back to the captured command history.
 
-- [ ] 3.13.43 · [Automatically restore sources for Move, Delete and Save](32gif-auto.md) — Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
+- [ ] 3.9.43 · [Automatically restore sources for Move, Delete and Save](32gif-auto.md) — Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
 
-- [ ] 3.13.44 · [Prove restored Save keeps the source doubles](32gj-precision.md) — Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
+- [ ] 3.9.44 · [Prove restored Save keeps the source doubles](32gj-precision.md) — Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
 
-- [ ] 3.13.45 · [Prove failed restoration cannot partly commit](32gja-failures.md) — Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.
+- [ ] 3.9.45 · [Prove failed restoration cannot partly commit](32gja-failures.md) — Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.
 
 - [ ] 4.1.1 · [Own browser listeners instead of forgetting callbacks](33-owner.md) — Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
 

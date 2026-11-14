@@ -1,0 +1,168 @@
+{
+  "recordedUtc": "2026-11-14T19:19:46.788278+00:00",
+  "status": "Documentation checks passed; complete run failed unresolved course audits",
+  "scope": "Documentation rendering only. No records application WASM/browser, hardware or physical-device acceptance.",
+  "nativeCheckpoint": "267a2bf720f9bf9bede97f23982589f413b8ff196e6f2da1de2b3636566e3340",
+  "sourceFiles": {
+    "docs/journey/22a-records.md": "838c8187534bd471a7ae95faa13f3e63f84679c982633509cd4b09a91dfb9ef7",
+    "docs/journey/17-solid.md": "89df0fd8b75e2d0eef3cbdaa13172f4a1712d60500f52beee910224b2c25d74a",
+    "docs/journey/19a-viewport.md": "ef351a096d43e0830d40b361ea6c7838fcb84636cf44340885735bdc24dc9ccd",
+    "docs/journey/course.json": "7dec0ced36db75cd6c4b9854690cb35eac7ab0953c02843672adc8ebdae7d8a3",
+    "docs/journey/book.json": "a3e79422c787511fba0aba056dae10ac2427dd1b418a99f8e4df9bd08a0cef15"
+  },
+  "tests": {
+    "passed": 20,
+    "failed": 0
+  },
+  "strictSite": {
+    "pages": 1728,
+    "assets": 991,
+    "passed": true
+  },
+  "browser": {
+    "status": "passed",
+    "scope": "Documentation rendering, native receipt and historical route navigation only; records application WASM/browser acceptance remains pending.",
+    "records": [
+      {
+        "id": "records-goal",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "file": "records-goal-1280.png",
+        "sha256": "a67f546fe07b9db849c3dc504dd9acdb502a024c81d31b881606003e7b0d617c"
+      },
+      {
+        "id": "22a-records-validation",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "file": "22a-records-validation-1280.png",
+        "sha256": "1043f9490243f47f978ab8d01e92b4c0d42a7d03833c70fd34b2c60614805f2a"
+      },
+      {
+        "id": "17-solid-validation",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "file": "17-solid-validation-1280.png",
+        "sha256": "3eba39977aa9a5007aefe0b4923bbd2cc39f1cb91b73b8c5585f7207db567e2c"
+      },
+      {
+        "id": "19a-viewport-validation",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "file": "19a-viewport-validation-1280.png",
+        "sha256": "30fdaccab167c60f8a7be809bda13d859576fa281d529f3b00a8dd1aeefaa890"
+      },
+      {
+        "id": "records-goal",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "file": "records-goal-390.png",
+        "sha256": "8388504e677d177fc1ad97c58a29f8dd4ea187cc6bad956b638beee69cb43a4d"
+      },
+      {
+        "id": "22a-records-validation",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "file": "22a-records-validation-390.png",
+        "sha256": "b2392c04d6acf76df9754959a4a2bdc1b156560db07feb5c7125412c8fe59ea9"
+      },
+      {
+        "id": "17-solid-validation",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "file": "17-solid-validation-390.png",
+        "sha256": "aa183b94e6183444bb00a4d1db79c591c67121534a37cf4854d24f7be3460247"
+      },
+      {
+        "id": "19a-viewport-validation",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "file": "19a-viewport-validation-390.png",
+        "sha256": "8d157a90de8fdb659dd2a9b5bd67bebd762612034add09acfc8bc6ce352d2090"
+      }
+    ],
+    "errors": []
+  },
+  "visualReview": {
+    "reviewedImages": 8,
+    "finding": "Desktop and upright text wraps within the viewport; headings, goal, prerequisite links, pending-validation status and native-receipt link are visible. No navigation overlay obscures upright content."
+  },
+  "audits": {
+    "structure": "FAILED: repeated 52g-rows-205a3b9411c0.png without image_same_as declaration",
+    "ownership": {
+      "passed": false,
+      "laterSubjectRewrites": 4801,
+      "affectedFiles": 306,
+      "moduleRegistrations": 430
+    },
+    "parity": {
+      "passed": false,
+      "missing": 299,
+      "extra": 709,
+      "changed": 5
+    }
+  },
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-14T19:16:40.5365402Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-records-docs03",
+      "timeout",
+      "590s",
+      "node",
+      "--max-old-space-size=2048",
+      "--import",
+      "./scripts/typescript.mjs",
+      "../session_viewer/target/records-docs03.mjs"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+    "timeoutSeconds": 595,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 1,
+    "timedOut": false,
+    "elapsedSeconds": 126.779,
+    "peakJobCommitBytes": 1774927872,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 40700,
+    "descendantsAtCleanup": 1
+  },
+  "evidence": {
+    "target/records-docs03/plan.json": "c561a7aedb42000b2da4bf3aa9e077f52ee339412017f25cb06097c8dc352538",
+    "target/records-docs03/result.json": "ab4292a36df8ea0c5b5754400c210a279d955c77996456e80ed29c3d120cd444",
+    "target/records-docs03/resources.json": "6bd156ce52bafa44682de05f864f8ddd7a81e47cea14a6115166313aeec5eb11",
+    "target/records-docs03/prior-vue-output-validity-closure.json": "cb85834a58dfa0cd02e89e7dfed39c2e0de79910add48352bbe1d8a8835ff63d",
+    "target/records-docs-browser01/result.json": "9449867c885aca7f7fa5bcb9cfc9f3a48d8f439b7a12112917501f8afc67910c"
+  }
+}

@@ -103,7 +103,7 @@ Add a box and choose `View Isometric`. Resize the window: the box keeps its prop
 
 A small left click picks; a left drag beyond four pixels does not become a click even when it ends at its starting position. Type a command while the dock has focus: those keys must not navigate the scene.
 
-![Historical viewport frame after wheel zoom and Pan Right in desktop Chrome.](../screenshots/journey/runtime-20261114/19a-viewport-desktop.png)
+[Historical viewport frame after wheel zoom and Pan Right in desktop Chrome.](../screenshots/journey/runtime-20261114/19a-viewport-desktop.png)
 
 [Upright input check and its cropped view](../screenshots/journey/runtime-20261114/19a-viewport-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/19a-viewport-native.png)
 

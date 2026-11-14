@@ -10,7 +10,7 @@ const edit = (path: string, before: string | null, snippet: string) => ({path, b
 const load = (source: string) => source;
 
 test('consolidated browser checks wait for the runtime startup message', () => {
-    for (const id of ['12-identity', '17-solid', '19a-viewport']) {
+    for (const id of ['12-identity', '17-solid', '19a-viewport', '22a-records']) {
         const step = course().steps.find(step => step.id === id)!;
         assert(currentExpected(id)['src/browser.rs'].includes(`report(${JSON.stringify(step.browser_status)});`),
             `${id}: acceptance status belongs in the validation prose, not the expected runtime message`);
@@ -71,7 +71,7 @@ test('the first GPU subject retains its five-file historical endpoint beside the
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(result.files, expected('01-canvas'));
     assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
-    assert.equal(course().steps.length, 1311);
+    assert.equal(course().steps.length, 1298);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));
@@ -139,6 +139,30 @@ test('viewport and captured input preserve the eight-checkpoint endpoint and arc
     assert.equal(preservation.pages.length, 9);
     for (const page of preservation.pages)
         assert.equal(hash(fs.readFileSync(path.join(docs, page.archive), 'utf8').replaceAll('\r\n', '\n')), page.sha256, page.page);
+});
+
+test('records retain the fourteen-step cumulative endpoint and every original page', () => {
+    const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/records-input/checkpoints.json'), 'utf8'));
+    const preservation = JSON.parse(fs.readFileSync(path.join(docs, 'archived/records-input/preservation.json'), 'utf8'));
+    assert.equal(archived.steps.length, 14);
+    assert.deepEqual(archived.before, currentExpected('19a-viewport'));
+    const result = collapseSubject(archived.before, archived.steps, snippetSource);
+    assert.deepEqual(result.files, archived.endpoint);
+    assert.equal(fingerprint(result.files), '267a2bf720f9bf9bede97f23982589f413b8ff196e6f2da1de2b3636566e3340');
+    for (const step of archived.steps) assert.deepEqual(currentExpected(step.id), archived.endpoint, step.id);
+    const subject = course().steps.find(step => step.id === '22a-records')!;
+    assert.equal(subject.edits.length, 19);
+    assert.equal(new Set(subject.edits.map(edit => edit.path)).size, 19);
+    assert.equal(course().steps.filter(step => preservation.originalIds.includes(step.id)).length, 1);
+    assert.equal(fingerprint(currentExpected(course().steps.at(-1)!.id)), preservation.destination);
+    assert.equal(preservation.pages.length, 15);
+    for (const page of preservation.pages)
+        assert.equal(hash(fs.readFileSync(path.join(docs, page.archive), 'utf8').replaceAll('\r\n', '\n')), page.sha256, page.page);
+    const lesson = fs.readFileSync(path.join(docs, subject.page), 'utf8');
+    assert(lesson.includes(subject.question) && lesson.includes(subject.answer));
+    assert.deepEqual([...lesson.matchAll(/--8<-- "([^"]+)"/g)].map(match => match[1]), subject.edits.map(edit => edit.snippet));
+    for (const edit of subject.edits) assert(lesson.includes(`--8<-- "${edit.snippet}"`), edit.path);
+    for (const step of archived.steps) assert(lesson.includes(`id="checkpoint-${step.id}"`), step.id);
 });
 
 test('shader, font preparation and painting collapse to the exact runnable endpoint', () => {

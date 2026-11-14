@@ -82,7 +82,7 @@ From `session_viewer`, check your handwritten project with `npm --prefix ../sess
 
 Type `Example Box`, then `View Isometric`. A shaded grey solid appears behind the two triangles. Run `Select Next` three times: the box becomes yellow. `Undo` removes that box, and `Redo` restores it. Pan the view between those commands; history must leave that view in place.
 
-![Historical editor frame: the kernel box is selected through the editor action route.](../screenshots/journey/runtime-20261114/17-solid-desktop.png)
+[Historical editor frame: the kernel box is selected through the editor action route.](../screenshots/journey/runtime-20261114/17-solid-desktop.png)
 
 [Upright input check and its cropped view](../screenshots/journey/runtime-20261114/17-solid-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/17-solid-native.png)
 

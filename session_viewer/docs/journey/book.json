@@ -143,24 +143,8 @@
           "first": "19a-viewport"
         },
         {
-          "title": "Validated files and asynchronous loading",
+          "title": "Validated files, bounds and useful projections",
           "first": "22a-records"
-        },
-        {
-          "title": "Opening files and scene bounds",
-          "first": "23-import"
-        },
-        {
-          "title": "Fit and projection changes",
-          "first": "24-fit"
-        },
-        {
-          "title": "Named projections",
-          "first": "25-projection"
-        },
-        {
-          "title": "Object framing and keyboard history",
-          "first": "26-selected"
         },
         {
           "title": "Object placement and transforms",
@@ -209,24 +193,11 @@
         {
           "id": "22a-records",
           "title": "Validated files, bounds and useful projections",
-          "page": "journey/consolidation/22a-records.md",
+          "page": "journey/22a-records.md",
           "steps": [
-            "22a-records",
-            "22b-session",
-            "22c-decode",
-            "22d-import",
-            "22e-file-reader",
-            "23-import",
-            "23a-bounds",
-            "23b-fit-camera",
-            "24-fit",
-            "24a-projection",
-            "24b-projection-actions",
-            "25-projection",
-            "26-selected",
-            "26a-keys"
+            "22a-records"
           ],
-          "checkpoint": "26a-keys"
+          "checkpoint": "22a-records"
         },
         {
           "id": "27-placement",

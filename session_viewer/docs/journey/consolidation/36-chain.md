@@ -18,7 +18,11 @@ The production [vector entry point](../../../src/shaders/vector.wgsl) reads a 64
 | `vid` | Vertices 0 through 5 describe the shaft, 6 through 11 the end head, and 12 through 17 the start head. |
 | `over` | Selects the overlay treatment used by plane-axis arrows. |
 
-Clearance is applied after projection and before head sizing. When both clearances leave no usable span, the helper emits a dead vertex. For two heads, each receives half the shared length budget; the shaft tucks under the head bases to avoid a gap, while fragment seams prevent double blending.
+Clearance is applied after projection and before head sizing. If either marker requests clearance and the remaining span is two pixels or shorter, the helper emits a dead vertex. For two heads, each receives half the shared length budget; the shaft tucks under the head bases to avoid a gap, while fragment seams prevent double blending.
+
+Before the available-length cap, the default head length is the greater of twelve pen widths and seven shaft half-widths. Heads on an ordinary arrow share at most sixty percent of its remaining projected length. Head-only geometry uses a finite million-pixel cap instead of sharing a shaft; its half-base width is 0.55 times its head length. These are screen-space dimensions, so zooming a world-sized shaft can also change the width-derived head size.
+
+Near-plane intersection divides only inside the branch for an endpoint that was cut. Direction normalization likewise runs only for a nonzero projected span. Keeping those divisions conditional prevents an unused calculation from producing a nonfinite value. A cut endpoint does not retain its authored arrowhead, because the clipping plane is not the geometry's original tip.
 
 Keep the storage row and function interface distinct. On the Android device tested on 2026-11-11, passing a struct with a scalar packed behind a `vec3` changed `end` and `heads` inside the function. Passing individual fields preserves the required values. Conditional divisions, head sizing and part selection use explicit branches. The [phone shader probe](../../debugging.md#probe-a-phone-only-shader-failure) explains how to inspect those values on the affected driver.
 

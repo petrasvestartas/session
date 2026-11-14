@@ -21,89 +21,76 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [2.4.1 · Select, navigate and undo](12-identity.md) | 392 | 15412 | 155–309 min | 4–7 h | Several sittings; one checkpoint |
 | [3.1.1 · Kernel geometry and one editor](17-solid.md) | 213 | 8152 | 82–164 min | 3–5 h | Several sittings; one checkpoint |
 | [3.2.1 · One drawing size and one captured gesture](19a-viewport.md) | 456 | 15873 | 159–318 min | 3–5 h | Several sittings; one checkpoint |
-| [3.3.1 · Validate a raw mesh record](22a-records.md) | 61 | 2533 | 26–51 min | 0.75–1.25 h | One sitting |
-| [3.3.2 · Validate session identity and build a sample file](22b-session.md) | 61 | 2789 | 28–56 min | 0.75–1.25 h | One sitting |
-| [3.3.3 · Decode and prepare the whole import](22c-decode.md) | 17 | 655 | 7–14 min | 0.75–1.25 h | One sitting |
-| [3.3.4 · Commit an import as one undoable action](22d-import.md) | 17 | 701 | 8–15 min | 0.75–1.25 h | One sitting |
-| [3.3.5 · Prepare asynchronous file delivery](22e-file-reader.md) | 42 | 1770 | 18–36 min | 0.75–1.25 h | One sitting |
-| [3.4.1 · Open a file through the command line](23-import.md) | 44 | 2156 | 22–44 min | 0.75–1.25 h | One sitting |
-| [3.4.2 · Measure the displayed scene bounds](23a-bounds.md) | 43 | 1268 | 13–26 min | 0.75–1.25 h | One sitting |
-| [3.4.3 · Fit the camera around the bounds](23b-fit-camera.md) | 17 | 791 | 8–16 min | 0.75–1.25 h | One sitting |
-| [3.5.1 · Run Fit through the command line](24-fit.md) | 8 | 277 | 3–6 min | 0.75–1.25 h | One sitting |
-| [3.5.2 · Build perspective and orthographic camera matrices](24a-projection.md) | 22 | 776 | 8–16 min | 0.75–1.25 h | One sitting |
-| [3.5.3 · Fit and change projection through the editor](24b-projection-actions.md) | 7 | 374 | 4–8 min | 0.75–1.25 h | One sitting |
-| [3.6.1 · Run the named projection commands](25-projection.md) | 22 | 899 | 9–18 min | 0.25–0.5 h | One sitting |
-| [3.7.1 · Frame one object without changing its size](26-selected.md) | 25 | 988 | 10–20 min | 1–2 h | One sitting |
-| [3.7.2 · Fit and step history from the keyboard](26a-keys.md) | 44 | 1890 | 19–38 min | 0.5–1 h | One sitting |
-| [3.8.1 · Give each object a placement](27-placement.md) | 23 | 936 | 10–19 min | 1–2 h | One sitting |
-| [3.8.2 · Ask geometry questions in world coordinates](27a-world.md) | 10 | 699 | 7–14 min | 1–2 h | One sitting |
-| [3.8.3 · Apply object placement on the GPU](27b-model.md) | 30 | 1611 | 17–33 min | 1–2 h | One sitting |
-| [3.8.4 · Move a placed object with a typed offset](27c-move.md) | 44 | 2066 | 21–42 min | 1–2 h | One sitting |
-| [3.8.5 · Prove placement and history agree](27d-history.md) | 2 | 29 | 1–1 min | 1–2 h | One sitting |
-| [3.9.1 · Prepare a display from an owned source mesh](28-record.md) | 24 | 703 | 8–15 min | 1–2 h | One sitting |
-| [3.9.2 · Retain the imported mesh behind each row](28a-imported.md) | 16 | 765 | 8–16 min | 1–2 h | One sitting |
-| [3.9.3 · Give generated objects the same source owner](28b-generated.md) | 23 | 1432 | 15–29 min | 1–2 h | One sitting |
-| [3.9.4 · Prove source ownership survives editing](28c-ownership.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
-| [3.10.1 · Give each saved object a stable identity](29-identity.md) | 9 | 416 | 5–9 min | 1–2 h | One sitting |
-| [3.10.2 · Write a snapshot from the editable sources](29a-snapshot.md) | 31 | 1288 | 13–26 min | 1–2 h | One sitting |
-| [3.10.3 · Reopen source geometry with its placement](29b-placements.md) | 24 | 1153 | 12–24 min | 1–2 h | One sitting |
-| [3.10.4 · Prove the saved document reopens faithfully](29c-roundtrip.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
-| [3.10.5 · Download the editable document from the command line](29d-save.md) | 46 | 2351 | 24–48 min | 1–2 h | One sitting |
-| [3.11.1 · Report the result that actually committed](30-feedback.md) | 29 | 1498 | 15–30 min | 1–2 h | One sitting |
-| [3.11.2 · Give a pending read an explicit ticket](30a-tickets.md) | 64 | 1728 | 18–35 min | 1–2 h | One sitting |
-| [3.11.3 · Cancel reads without accepting their late result](30b-cancel.md) | 31 | 1546 | 16–31 min | 1–2 h | One sitting |
-| [3.11.4 · Replace a document as one reversible change](30c-replace.md) | 13 | 442 | 5–9 min | 1–2 h | One sitting |
-| [3.11.5 · Choose append or replace before opening the picker](30d-bridge.md) | 43 | 2645 | 27–53 min | 1–2 h | One sitting |
-| [3.11.6 · Prove recovery at the transaction and display boundaries](30e-recovery.md) | 20 | 978 | 10–20 min | 1–2 h | One sitting |
-| [3.12.1 · Keep selection out of the vertex data](31-settings.md) | 19 | 732 | 8–15 min | 1–2 h | One sitting |
-| [3.12.2 · Give immutable GPU geometry one owner](31a-geometry.md) | 48 | 1861 | 19–38 min | 1–2 h | One sitting |
-| [3.12.3 · Reuse uploads while their geometry is alive](31b-cache.md) | 51 | 1991 | 20–40 min | 1–2 h | One sitting |
-| [3.12.4 · Update only changed object settings](31c-incremental.md) | 41 | 1942 | 20–39 min | 1–2 h | One sitting |
-| [3.13.1 · Find the owners retained by history](32-history.md) | 38 | 1455 | 15–30 min | 1–2 h | One sitting |
-| [3.13.2 · Count shared CPU displays once](32a-cpu.md) | 72 | 2979 | 30–60 min | 1–2 h | One sitting |
-| [3.13.3 · Count each shared GPU buffer once](32b-gpu.md) | 19 | 700 | 7–14 min | 1–2 h | One sitting |
-| [3.13.4 · Close the document without resetting the view](32c-close.md) | 41 | 1996 | 20–40 min | 1–2 h | One sitting |
-| [3.13.5 · Close through the command line and revoke reads](32d-command.md) | 10 | 449 | 5–9 min | 1–2 h | One sitting |
-| [3.13.6 · Prove release does not retain the old document](32e-release.md) | 23 | 1390 | 14–28 min | 1–2 h | One sitting |
-| [3.13.7 · Keep row metadata separate from editable geometry](32f-metadata.md) | 62 | 2785 | 28–56 min | 1–2 h | One sitting |
-| [3.13.8 · Ask whether an editable source is available](32fa-access.md) | 8 | 457 | 5–10 min | 1–2 h | One sitting |
-| [3.13.9 · Make editable ownership a private row boundary](32fb-boundary.md) | 7 | 487 | 5–10 min | 1–2 h | One sitting |
-| [3.13.10 · Record a reload version without retaining geometry](32fc-version.md) | 52 | 2009 | 21–41 min | 1–2 h | One sitting |
-| [3.13.11 · Attach one origin to an imported document](32fd-origin.md) | 9 | 587 | 6–12 min | 1–2 h | One sitting |
-| [3.13.12 · Give a reload URL an explicit owner](32fe-location.md) | 37 | 1612 | 17–33 min | 1–2 h | One sitting |
-| [3.13.13 · Adopt the selected file as a reloadable source](32ff-bridge.md) | 31 | 2306 | 24–47 min | 1–2 h | One sitting |
-| [3.13.14 · Separate loaded and released editable ownership](32fg-state.md) | 32 | 1712 | 18–35 min | 1–2 h | One sitting |
-| [3.13.15 · Protect sources that cannot be unloaded faithfully](32fh-policy.md) | 35 | 2044 | 21–41 min | 1–2 h | One sitting |
-| [3.13.16 · Unload sources across active and history roots](32fi-history.md) | 32 | 1590 | 16–32 min | 1–2 h | One sitting |
-| [3.13.17 · Prove unloading preserves placed history](32fj-proof.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
-| [3.13.18 · Unload editable sources through the command line](32fk-command.md) | 13 | 767 | 8–16 min | 1–2 h | One sitting |
-| [3.13.19 · Protect history and future reload tickets](32fl-guards.md) | 42 | 2498 | 25–50 min | 1–2 h | One sitting |
-| [3.13.20 · Identify the source release a reload belongs to](32g-keys.md) | 47 | 1837 | 19–37 min | 1–2 h | One sitting |
-| [3.13.21 · Prepare original kernel data without rebuilding its display](32ga-prepare.md) | 36 | 1529 | 16–31 min | 1–2 h | One sitting |
-| [3.13.22 · Adopt restored source owners as one residency change](32gb-adopt.md) | 30 | 1568 | 16–32 min | 1–2 h | One sitting |
-| [3.13.23 · Prove source restoration preserves display and history](32gc-roundtrip.md) | 2 | 34 | 1–1 min | 1–2 h | One sitting |
-| [3.13.24 · Reject stale or inconsistent source batches atomically](32gd-rejections.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
-| [3.13.25 · Ignore old reload results before decoding them](32ge-stale.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
-| [3.13.26 · Give each source request its own owner](32gf-request.md) | 45 | 1447 | 15–29 min | 1–2 h | One sitting |
-| [3.13.27 · Prove cancelled work releases its source owners](32gfa-ownership.md) | 54 | 2544 | 26–51 min | 1–2 h | One sitting |
-| [3.13.28 · Read a source response within its byte limit](32gg-fetch.md) | 40 | 2709 | 28–55 min | 1–2 h | One sitting |
-| [3.13.29 · Pair reload ownership with a browser abort controller](32gga-flight.md) | 35 | 1164 | 12–24 min | 1–2 h | One sitting |
-| [3.13.30 · Deliver only the current completed reload batch](32ggb-delivery.md) | 30 | 1381 | 14–28 min | 1–2 h | One sitting |
-| [3.13.31 · Restore editable sources through the command line](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | One sitting |
-| [3.13.32 · Cancel reloads when their document context changes](32gha-cancel.md) | 3 | 275 | 3–6 min | 1–2 h | One sitting |
-| [3.13.33 · Capture the requested edit before waiting](32gi-capture.md) | 72 | 2957 | 30–60 min | 1–2 h | One sitting |
-| [3.13.34 · Load only the sources the requested edit needs](32gia-scope.md) | 13 | 531 | 6–11 min | 1–2 h | One sitting |
-| [3.13.35 · Move the original target from its current placement](32gib-move.md) | 13 | 721 | 8–15 min | 1–2 h | One sitting |
-| [3.13.36 · Delete the original target while keeping later selection](32giba-delete.md) | 14 | 649 | 7–13 min | 1–2 h | One sitting |
-| [3.13.37 · Route captured Move, Delete and Save results](32gibb-reply.md) | 51 | 2495 | 25–50 min | 1–2 h | One sitting |
-| [3.13.38 · Own the intent with its pending source ticket](32gic-owner.md) | 24 | 861 | 9–18 min | 1–2 h | One sitting |
-| [3.13.39 · Pair captured intent with complete source bodies](32gica-reply.md) | 19 | 616 | 7–13 min | 1–2 h | One sitting |
-| [3.13.40 · Carry captured intent through browser completion](32gicb-bridge.md) | 16 | 1120 | 12–23 min | 1–2 h | One sitting |
-| [3.13.41 · Validate restoration before replaying the command](32gid-complete.md) | 11 | 486 | 5–10 min | 1–2 h | One sitting |
-| [3.13.42 · Deliver restored edit and Save results to the dock](32gie-response.md) | 23 | 1316 | 14–27 min | 1–2 h | One sitting |
-| [3.13.43 · Automatically restore sources for Move, Delete and Save](32gif-auto.md) | 36 | 2412 | 25–49 min | 1–2 h | One sitting |
-| [3.13.44 · Prove restored Save keeps the source doubles](32gj-precision.md) | 10 | 349 | 4–7 min | 1–2 h | One sitting |
-| [3.13.45 · Prove failed restoration cannot partly commit](32gja-failures.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
+| [3.3.1 · Validated files, bounds and useful projections](22a-records.md) | 692 | 30278 | 303–606 min | 4–6 h | Several sittings; one checkpoint |
+| [3.4.1 · Give each object a placement](27-placement.md) | 23 | 936 | 10–19 min | 1–2 h | One sitting |
+| [3.4.2 · Ask geometry questions in world coordinates](27a-world.md) | 10 | 699 | 7–14 min | 1–2 h | One sitting |
+| [3.4.3 · Apply object placement on the GPU](27b-model.md) | 30 | 1611 | 17–33 min | 1–2 h | One sitting |
+| [3.4.4 · Move a placed object with a typed offset](27c-move.md) | 44 | 2066 | 21–42 min | 1–2 h | One sitting |
+| [3.4.5 · Prove placement and history agree](27d-history.md) | 2 | 29 | 1–1 min | 1–2 h | One sitting |
+| [3.5.1 · Prepare a display from an owned source mesh](28-record.md) | 24 | 703 | 8–15 min | 1–2 h | One sitting |
+| [3.5.2 · Retain the imported mesh behind each row](28a-imported.md) | 16 | 765 | 8–16 min | 1–2 h | One sitting |
+| [3.5.3 · Give generated objects the same source owner](28b-generated.md) | 23 | 1432 | 15–29 min | 1–2 h | One sitting |
+| [3.5.4 · Prove source ownership survives editing](28c-ownership.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
+| [3.6.1 · Give each saved object a stable identity](29-identity.md) | 9 | 416 | 5–9 min | 1–2 h | One sitting |
+| [3.6.2 · Write a snapshot from the editable sources](29a-snapshot.md) | 31 | 1288 | 13–26 min | 1–2 h | One sitting |
+| [3.6.3 · Reopen source geometry with its placement](29b-placements.md) | 24 | 1153 | 12–24 min | 1–2 h | One sitting |
+| [3.6.4 · Prove the saved document reopens faithfully](29c-roundtrip.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
+| [3.6.5 · Download the editable document from the command line](29d-save.md) | 46 | 2351 | 24–48 min | 1–2 h | One sitting |
+| [3.7.1 · Report the result that actually committed](30-feedback.md) | 29 | 1498 | 15–30 min | 1–2 h | One sitting |
+| [3.7.2 · Give a pending read an explicit ticket](30a-tickets.md) | 64 | 1728 | 18–35 min | 1–2 h | One sitting |
+| [3.7.3 · Cancel reads without accepting their late result](30b-cancel.md) | 31 | 1546 | 16–31 min | 1–2 h | One sitting |
+| [3.7.4 · Replace a document as one reversible change](30c-replace.md) | 13 | 442 | 5–9 min | 1–2 h | One sitting |
+| [3.7.5 · Choose append or replace before opening the picker](30d-bridge.md) | 43 | 2645 | 27–53 min | 1–2 h | One sitting |
+| [3.7.6 · Prove recovery at the transaction and display boundaries](30e-recovery.md) | 20 | 978 | 10–20 min | 1–2 h | One sitting |
+| [3.8.1 · Keep selection out of the vertex data](31-settings.md) | 19 | 732 | 8–15 min | 1–2 h | One sitting |
+| [3.8.2 · Give immutable GPU geometry one owner](31a-geometry.md) | 48 | 1861 | 19–38 min | 1–2 h | One sitting |
+| [3.8.3 · Reuse uploads while their geometry is alive](31b-cache.md) | 51 | 1991 | 20–40 min | 1–2 h | One sitting |
+| [3.8.4 · Update only changed object settings](31c-incremental.md) | 41 | 1942 | 20–39 min | 1–2 h | One sitting |
+| [3.9.1 · Find the owners retained by history](32-history.md) | 38 | 1455 | 15–30 min | 1–2 h | One sitting |
+| [3.9.2 · Count shared CPU displays once](32a-cpu.md) | 72 | 2979 | 30–60 min | 1–2 h | One sitting |
+| [3.9.3 · Count each shared GPU buffer once](32b-gpu.md) | 19 | 700 | 7–14 min | 1–2 h | One sitting |
+| [3.9.4 · Close the document without resetting the view](32c-close.md) | 41 | 1996 | 20–40 min | 1–2 h | One sitting |
+| [3.9.5 · Close through the command line and revoke reads](32d-command.md) | 10 | 449 | 5–9 min | 1–2 h | One sitting |
+| [3.9.6 · Prove release does not retain the old document](32e-release.md) | 23 | 1390 | 14–28 min | 1–2 h | One sitting |
+| [3.9.7 · Keep row metadata separate from editable geometry](32f-metadata.md) | 62 | 2785 | 28–56 min | 1–2 h | One sitting |
+| [3.9.8 · Ask whether an editable source is available](32fa-access.md) | 8 | 457 | 5–10 min | 1–2 h | One sitting |
+| [3.9.9 · Make editable ownership a private row boundary](32fb-boundary.md) | 7 | 487 | 5–10 min | 1–2 h | One sitting |
+| [3.9.10 · Record a reload version without retaining geometry](32fc-version.md) | 52 | 2009 | 21–41 min | 1–2 h | One sitting |
+| [3.9.11 · Attach one origin to an imported document](32fd-origin.md) | 9 | 587 | 6–12 min | 1–2 h | One sitting |
+| [3.9.12 · Give a reload URL an explicit owner](32fe-location.md) | 37 | 1612 | 17–33 min | 1–2 h | One sitting |
+| [3.9.13 · Adopt the selected file as a reloadable source](32ff-bridge.md) | 31 | 2306 | 24–47 min | 1–2 h | One sitting |
+| [3.9.14 · Separate loaded and released editable ownership](32fg-state.md) | 32 | 1712 | 18–35 min | 1–2 h | One sitting |
+| [3.9.15 · Protect sources that cannot be unloaded faithfully](32fh-policy.md) | 35 | 2044 | 21–41 min | 1–2 h | One sitting |
+| [3.9.16 · Unload sources across active and history roots](32fi-history.md) | 32 | 1590 | 16–32 min | 1–2 h | One sitting |
+| [3.9.17 · Prove unloading preserves placed history](32fj-proof.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
+| [3.9.18 · Unload editable sources through the command line](32fk-command.md) | 13 | 767 | 8–16 min | 1–2 h | One sitting |
+| [3.9.19 · Protect history and future reload tickets](32fl-guards.md) | 42 | 2498 | 25–50 min | 1–2 h | One sitting |
+| [3.9.20 · Identify the source release a reload belongs to](32g-keys.md) | 47 | 1837 | 19–37 min | 1–2 h | One sitting |
+| [3.9.21 · Prepare original kernel data without rebuilding its display](32ga-prepare.md) | 36 | 1529 | 16–31 min | 1–2 h | One sitting |
+| [3.9.22 · Adopt restored source owners as one residency change](32gb-adopt.md) | 30 | 1568 | 16–32 min | 1–2 h | One sitting |
+| [3.9.23 · Prove source restoration preserves display and history](32gc-roundtrip.md) | 2 | 34 | 1–1 min | 1–2 h | One sitting |
+| [3.9.24 · Reject stale or inconsistent source batches atomically](32gd-rejections.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
+| [3.9.25 · Ignore old reload results before decoding them](32ge-stale.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
+| [3.9.26 · Give each source request its own owner](32gf-request.md) | 45 | 1447 | 15–29 min | 1–2 h | One sitting |
+| [3.9.27 · Prove cancelled work releases its source owners](32gfa-ownership.md) | 54 | 2544 | 26–51 min | 1–2 h | One sitting |
+| [3.9.28 · Read a source response within its byte limit](32gg-fetch.md) | 40 | 2709 | 28–55 min | 1–2 h | One sitting |
+| [3.9.29 · Pair reload ownership with a browser abort controller](32gga-flight.md) | 35 | 1164 | 12–24 min | 1–2 h | One sitting |
+| [3.9.30 · Deliver only the current completed reload batch](32ggb-delivery.md) | 30 | 1381 | 14–28 min | 1–2 h | One sitting |
+| [3.9.31 · Restore editable sources through the command line](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | One sitting |
+| [3.9.32 · Cancel reloads when their document context changes](32gha-cancel.md) | 3 | 275 | 3–6 min | 1–2 h | One sitting |
+| [3.9.33 · Capture the requested edit before waiting](32gi-capture.md) | 72 | 2957 | 30–60 min | 1–2 h | One sitting |
+| [3.9.34 · Load only the sources the requested edit needs](32gia-scope.md) | 13 | 531 | 6–11 min | 1–2 h | One sitting |
+| [3.9.35 · Move the original target from its current placement](32gib-move.md) | 13 | 721 | 8–15 min | 1–2 h | One sitting |
+| [3.9.36 · Delete the original target while keeping later selection](32giba-delete.md) | 14 | 649 | 7–13 min | 1–2 h | One sitting |
+| [3.9.37 · Route captured Move, Delete and Save results](32gibb-reply.md) | 51 | 2495 | 25–50 min | 1–2 h | One sitting |
+| [3.9.38 · Own the intent with its pending source ticket](32gic-owner.md) | 24 | 861 | 9–18 min | 1–2 h | One sitting |
+| [3.9.39 · Pair captured intent with complete source bodies](32gica-reply.md) | 19 | 616 | 7–13 min | 1–2 h | One sitting |
+| [3.9.40 · Carry captured intent through browser completion](32gicb-bridge.md) | 16 | 1120 | 12–23 min | 1–2 h | One sitting |
+| [3.9.41 · Validate restoration before replaying the command](32gid-complete.md) | 11 | 486 | 5–10 min | 1–2 h | One sitting |
+| [3.9.42 · Deliver restored edit and Save results to the dock](32gie-response.md) | 23 | 1316 | 14–27 min | 1–2 h | One sitting |
+| [3.9.43 · Automatically restore sources for Move, Delete and Save](32gif-auto.md) | 36 | 2412 | 25–49 min | 1–2 h | One sitting |
+| [3.9.44 · Prove restored Save keeps the source doubles](32gj-precision.md) | 10 | 349 | 4–7 min | 1–2 h | One sitting |
+| [3.9.45 · Prove failed restoration cannot partly commit](32gja-failures.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
 | [4.1.1 · Own browser listeners instead of forgetting callbacks](33-owner.md) | 50 | 1978 | 20–40 min | 1–2 h | One sitting |
 | [4.1.2 · Dispose the viewer without leaving pending work alive](33a-runtime.md) | 49 | 1847 | 19–37 min | 1–2 h | One sitting |
 | [4.1.3 · Keep a cached viewer ready for Back navigation](33b-cache.md) | 3 | 693 | 7–14 min | 1–2 h | One sitting |
@@ -1324,7 +1311,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 1311 current checkpoints.
+- [x] Count the exact source edits for all 1298 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.

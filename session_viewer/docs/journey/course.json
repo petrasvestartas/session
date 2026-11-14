@@ -991,8 +991,22 @@
       "assets": []
     },
     {
+      "id": "22a-records",
+      "title": "Validated files, bounds and useful projections",
+      "page": "journey/22a-records.md",
+      "hours": [
+        4,
+        6
+      ],
+      "goal": "Open a validated frame, fit its bounds in either projection and undo the entire import.",
+      "trace": "file request -> validated kernel source -> scene transaction; bounds -> camera fit",
+      "question": "Why does an imported object need both a viewer ID and a source GUID?",
+      "answer": "The viewer ID identifies one scene occurrence. The source GUID identifies geometry in its retained kernel document, so repeated imports can preserve authored references without sharing scene identity.",
+      "result": "Three frame parts import together; fitting preserves proportions and one undo removes the complete import.",
+      "experiment": "Select an oversized file while an older valid file is still being read. Predict which completion may change the scene.",
+      "production": "File admission retains source identity. Production State-based command registration and the complete decoder remain unfinished integration work.",
       "tests": true,
-      "frame": "journey/checks/22-shortcuts.rs",
+      "frame": "journey/checks/26-selected.rs",
       "frame_constructor": "make_renderer(device, queue, format)",
       "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_actions": [
@@ -1003,1060 +1017,135 @@
           "command": "View Isometric"
         },
         {
-          "wheel": -120
+          "command": "Select Next"
         },
         {
-          "command": "Pan Right"
+          "command": "Fit Selected"
         }
       ],
-      "browser_check": "journey/checks/browser/navigation.cjs",
-      "id": "22a-records",
-      "title": "Validate a raw mesh record",
-      "page": "journey/22a-records.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.",
-      "story": "Define the source owners and check protobuf mesh records before building kernel objects. Accept finite coordinates, valid vertex references, triangles or quads, and object colours within the stated size limits.\n\nThe validator borrows a record and returns Result<(), &str>. It inspects stored triangulation without constructing a Session or changing the scene.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22a-records.svg)",
-      "result": "Inspect the supplied state fixtures. A valid box passes; non-finite coordinates and missing vertex references are rejected.",
-      "question": "Why validate raw records before constructing a Session?",
-      "answer": "Invalid indices and unsupported forms should return a controlled error before kernel construction begins.",
-      "experiment": "Inspect the supplied record-validation fixture. Change one face vertex key to a missing key on paper and predict why the loader rejects it.",
-      "trace": "Raw proto::Mesh → validation → accepted record or error",
-      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
-      "browser_caption": "Native checks validate raw mesh records. Chrome retains the earlier wheel and command route; file delivery is connected after decoding and document ownership.",
+      "browser_check": "journey/checks/browser/records.cjs",
+      "story": "Validate a complete document before mutation, retain its source ownership and frame bounds through the narrower projection angle.",
+      "browser_caption": "Historical endpoint; current cumulative browser acceptance pending.",
+      "checks": "Native record, bounds, projection and key-policy tests; browser checks cover actual file selection, stale reads, import undo/redo, fitting in both projections and text-owned shortcuts.",
       "edits": [
-        {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/22a-records-cumulative-kernel-feature-0.toml",
-          "before": "web-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\n",
-          "why": "Add fixed protobuf and browser byte-reading dependencies for the import sequence."
-        },
         {
           "path": "src/document.rs",
           "before": null,
-          "snippet": "journey/code/22a-records-document.rs",
-          "why": "Reject unsupported mesh records before kernel construction; check finite coordinates and referenced vertex keys."
+          "snippet": "journey/code/22a-final-2.rs",
+          "why": "Validate complete records before constructing retained kernel sources."
         },
         {
-          "path": "src/lib.rs",
-          "before": "pub mod navigation;\n",
-          "snippet": "journey/code/22a-records-register.rs",
-          "why": "Register the raw-record validator."
-        }
-      ],
-      "lock": "journey/release/cumulative-math-04.lock"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/22-shortcuts.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
+          "path": "src/scene.rs",
+          "before": "use crate::mesh::Mesh;\nuse std::rc::Rc;\n\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub struct ObjectId(u32);\n\n#[derive(Clone)]\npub struct Object {\n    pub id: ObjectId,\n    pub mesh: Rc<Mesh>,\n}\n\n#[derive(Clone)]\npub struct Scene {\n    objects: Vec<Object>,\n    next_id: u32,\n    extra: Option<ObjectId>,\n}\n\nimpl Scene {\n    pub fn demo() -> Self {\n        let pink = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid pink triangle\");\n        let turquoise = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid turquoise triangle\");\n        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };\n        scene.insert(pink).expect(\"ID available\");\n        scene.insert(turquoise).expect(\"ID available\");\n        scene\n    }\n\n    pub fn restore(&mut self, mut saved: Self) {\n        saved.next_id = saved.next_id.max(self.next_id);\n        *self = saved;\n    }\n\n    pub fn objects(&self) -> &[Object] {\n        &self.objects\n    }\n\n    pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {\n        let next = self.next_id.checked_add(1).ok_or(\"Object IDs exhausted\")?;\n        let id = ObjectId(self.next_id);\n        self.next_id = next;\n        self.objects.push(Object { id, mesh: Rc::new(mesh) });\n        Ok(id)\n    }\n\n    pub fn remove(&mut self, id: ObjectId) -> bool {\n        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };\n        self.objects.remove(index);\n        if self.extra == Some(id) {\n            self.extra = None;\n        }\n        true\n    }\n\n    pub fn contains(&self, id: ObjectId) -> bool {\n        self.objects.iter().any(|object| object.id == id)\n    }\n\n    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {\n        if self.objects.is_empty() {\n            return None;\n        }\n        let index = self.objects.iter().position(|object| Some(object.id) == current)\n            .map_or(0, |index| index + 1);\n        Some(self.objects[index % self.objects.len()].id)\n    }\n\n    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {\n        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);\n        source.transform(&session_rust::Xform::translation(0.9, 0.0, 0.4));\n        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));\n        self.insert(Mesh::from_kernel(&source)?)\n    }\n\n    pub fn toggle_extra(&mut self) {\n        if let Some(id) = self.extra.take() {\n            self.remove(id);\n        } else {\n            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n            self.extra = Some(self.insert(extra).expect(\"ID available\"));\n        }\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn removal_moves_a_row_without_changing_its_identity() {\n        let mut scene = Scene::demo();\n        let first = scene.objects()[0].id;\n        let second = scene.objects()[1].id;\n        assert!(scene.remove(first));\n        assert_eq!(scene.objects()[0].id, second);\n        assert_eq!(scene.next(None), Some(second));\n        assert!(!scene.contains(first));\n        scene.toggle_extra();\n        assert_ne!(scene.objects()[1].id, first);\n        assert_ne!(scene.objects()[1].id, second);\n    }\n\n    #[test]\n    fn toggling_the_extra_object_uses_its_id_after_other_removals() {\n        let mut scene = Scene::demo();\n        scene.toggle_extra();\n        let extra = scene.objects()[2].id;\n        scene.remove(scene.objects()[0].id);\n        scene.toggle_extra();\n        assert!(!scene.contains(extra));\n        assert_eq!(scene.objects().len(), 1);\n    }\n}\n",
+          "snippet": "journey/code/22a-final-7.rs",
+          "why": "Attach retained source references to viewer occurrences and expose bounds."
         },
         {
-          "command": "View Isometric"
-        },
-        {
-          "wheel": -120
-        },
-        {
-          "command": "Pan Right"
-        }
-      ],
-      "browser_check": "journey/checks/browser/navigation.cjs",
-      "id": "22b-session",
-      "title": "Validate session identity and build a sample file",
-      "page": "journey/22b-session.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Validate a real Session and its source identities before browser import.",
-      "story": "Retain a shared Session with its display meshes and source GUIDs. Validate the supported session shape and flat tree before decoding it into kernel objects.\n\nHashSet compares unique mesh GUIDs with tree row names. The specimen builder creates three named meshes and writes their protobuf bytes to sample.pb.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22b-session.svg)",
-      "result": "Download the [supplied sample.pb](fixtures/sample-23.pb) for the next browser import exercise. Its three meshes have distinct source identities; the supplied validation checks also cover duplicate GUIDs.",
-      "question": "Why keep GUID separate from ObjectId?",
-      "answer": "GUID names a source mesh. ObjectId will name a particular viewer import, so the same source can be imported more than once.",
-      "experiment": "Change the top beam width in the specimen, write sample.pb again, then restore the original value.",
-      "trace": "Source GUIDs and flat rows → validated Session shape; specimen → sample.pb",
-      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
-      "browser_caption": "Native checks validate session GUIDs and flat rows. The example writes the real sample file; Chrome still retains the earlier input route.",
-      "edits": [
-        {
-          "path": "src/document.rs",
-          "before": "use std::rc::Rc;\n",
-          "snippet": "journey/code/22b-session-import.rs",
-          "why": "Import the GUID set used by session validation."
-        },
-        {
-          "path": "src/document.rs",
-          "before": "pub fn validate_mesh",
-          "snippet": "journey/code/22b-session-validator.rs",
-          "why": "Check supported geometry, unique GUIDs and one flat tree row per mesh."
+          "path": "src/editor.rs",
+          "before": "use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};\n\npub enum Action {\n    Pick([f32; 2]),\n    AddBox,\n    ToggleExtra,\n    SelectNext,\n    Delete,\n    Undo,\n    Redo,\n    Background,\n    Zoom(f32),\n    Pan(f32, f32),\n    Orbit(f64, f64),\n    Isometric,\n    ResetView,\n}\n\n#[derive(Debug, PartialEq, Eq)]\npub enum Change {\n    View,\n    Scene,\n}\n\npub struct Editor {\n    pub scene: Scene,\n    pub selected: Option<ObjectId>,\n    pub camera: Camera,\n    pub background: Background,\n    history: History,\n}\n\nimpl Default for Editor {\n    fn default() -> Self {\n        Self {\n            scene: Scene::demo(),\n            selected: None,\n            camera: Camera::default(),\n            background: Background::default(),\n            history: History::default(),\n        }\n    }\n}\n\nimpl Editor {\n    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {\n        match action {\n            Action::Pick(screen) => {\n                self.selected = self.camera.ray(screen)\n                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));\n            }\n            Action::AddBox => {\n                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;\n            }\n            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),\n            Action::SelectNext => self.selected = self.scene.next(self.selected),\n            Action::Delete => {\n                if let Some(id) = self.selected.take() {\n                    self.history.edit(&mut self.scene, |scene| { scene.remove(id); });\n                }\n            }\n            Action::Undo => { self.history.undo(&mut self.scene); }\n            Action::Redo => { self.history.redo(&mut self.scene); }\n            view => {\n                match view {\n                    Action::Background => self.background.toggle(),\n                    Action::Zoom(factor) => self.camera.zoom(factor),\n                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),\n                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),\n                    Action::Isometric => self.camera.isometric(),\n                    Action::ResetView => {\n                        let aspect = self.camera.aspect;\n                        self.camera = Camera { aspect, ..Camera::default() };\n                    }\n                    _ => unreachable!(\"Document actions were handled above\"),\n                }\n                return Ok(Change::View);\n            }\n        }\n        // Deletion and history travel can invalidate selection; repair it in one place.\n        self.selected = self.selected.filter(|id| self.scene.contains(*id));\n        Ok(Change::Scene)\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn resetting_the_view_preserves_its_current_aspect() {\n        let mut editor = Editor::default();\n        editor.camera.aspect = 2.0;\n        editor.apply(Action::Zoom(2.0)).unwrap();\n        editor.apply(Action::ResetView).unwrap();\n        assert_eq!(editor.camera.aspect, 2.0);\n        assert_eq!(editor.camera.distance, 3.0);\n    }\n\n    #[test]\n    fn undo_changes_the_document_without_rewinding_the_view() {\n        let mut editor = Editor::default();\n        editor.apply(Action::AddBox).unwrap();\n        editor.apply(Action::Zoom(2.0)).unwrap();\n        editor.apply(Action::Background).unwrap();\n        editor.apply(Action::Undo).unwrap();\n        assert_eq!(editor.scene.objects().len(), 2);\n        assert_eq!(editor.camera.distance, 1.5);\n        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);\n    }\n\n    #[test]\n    fn undo_repairs_selection_and_empty_delete_preserves_redo() {\n        let mut editor = Editor::default();\n        editor.apply(Action::AddBox).unwrap();\n        for _ in 0..3 {\n            editor.apply(Action::SelectNext).unwrap();\n        }\n        let box_id = editor.selected.unwrap();\n        editor.apply(Action::Undo).unwrap();\n        assert!(editor.selected.is_none());\n        editor.apply(Action::Delete).unwrap();\n        editor.apply(Action::Redo).unwrap();\n        assert!(editor.scene.contains(box_id));\n    }\n\n    #[test]\n    fn picking_a_moved_view_uses_the_editors_current_camera() {\n        let mut editor = Editor::default();\n        editor.apply(Action::Pan(0.2, 0.1)).unwrap();\n        let point = session_rust::Point::new(0.2, 0.3, 0.75);\n        let screen = editor.camera.view_projection().transform_point(&point);\n        assert_eq!(editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap(), Change::Scene);\n        assert_eq!(editor.selected, Some(editor.scene.objects()[1].id));\n        assert_eq!(editor.apply(Action::Zoom(2.0)).unwrap(), Change::View);\n    }\n}\n",
+          "snippet": "journey/code/22a-final-8.rs",
+          "why": "Apply import as one transaction and fitting as a view change."
         },
         {
           "path": "src/specimen.rs",
           "before": null,
-          "snippet": "journey/code/23-import-02.rs",
-          "why": "Build a small three-piece frame with the real kernel. This is our file specimen, not a second renderer or a new file format."
+          "snippet": "journey/code/22a-final-4.rs",
+          "why": "Construct the three-piece frame with kernel geometry."
         },
         {
           "path": "examples/sample.rs",
           "before": null,
-          "snippet": "journey/code/23-import-03.rs",
-          "why": "Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.",
-          "copy": true
-        },
-        {
-          "path": "src/lib.rs",
-          "before": "pub mod document;\n",
-          "snippet": "journey/code/22b-session-register.rs",
-          "why": "Register the specimen builder."
-        },
-        {
-          "path": "src/document.rs",
-          "before": "\n#[cfg(test)]\nmod record_checks {\n    use super::validate_mesh;\n\n    #[test]\n    fn raw_mesh_records_are_checked_before_construction() {\n        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();\n        assert!(validate_mesh(&record).is_ok());\n        record.vertices.values_mut().next().unwrap().x = f64::NAN;\n        assert!(validate_mesh(&record).is_err());\n        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);\n        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;\n        assert!(validate_mesh(&record).is_err());\n    }\n}\n",
-          "snippet": "journey/code/22b-session-tests.rs",
-          "why": "Check that the specimen passes validation and duplicate source GUIDs are rejected."
-        }
-      ],
-      "image_same_as": "22a-records"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/22-shortcuts.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "wheel": -120
-        },
-        {
-          "command": "Pan Right"
-        }
-      ],
-      "browser_check": "journey/checks/browser/navigation.cjs",
-      "id": "22c-decode",
-      "title": "Decode and prepare the whole import",
-      "page": "journey/22c-decode.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.",
-      "story": "Bound byte length, decode the protobuf message, validate it, then construct one shared Session and every display mesh. Return Loaded only when the whole preparation succeeds.\n\nThe ? operator stops at the first error. No scene or history is changed here, so a bad later mesh cannot leave a partial import.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22c-decode.svg)",
-      "result": "Inspect the supplied state fixtures. Invalid bytes, oversized data and unsupported records are refused before scene insertion.",
-      "question": "Why prepare all meshes before editing the scene?",
-      "answer": "A preparation error then leaves the current scene, selection and redo branch untouched.",
-      "experiment": "Read the six malformed-record cases and predict which validation rule rejects each one.",
-      "trace": "Bytes → decoded record → validation → shared Session and prepared Mesh values",
-      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
-      "browser_caption": "Native checks exercise actual byte decoding and preparation failures. Chrome retains the earlier input route until the completed import is connected.",
-      "edits": [
-        {
-          "path": "src/document.rs",
-          "before": "use session_rust::{proto, Session};\n",
-          "snippet": "journey/code/22c-decode-message.rs",
-          "why": "Import the protobuf decoding trait."
-        },
-        {
-          "path": "src/document.rs",
-          "before": "pub fn validate(message:",
-          "snippet": "journey/code/22c-decode-load.rs",
-          "why": "Decode bounded bytes and prepare every display mesh before returning a Loaded document."
-        },
-        {
-          "path": "src/document.rs",
-          "before": "pub fn validate_mesh",
-          "snippet": "journey/code/22c-decode-private.rs",
-          "why": "Keep mesh validation private to the completed loader."
-        },
-        {
-          "path": "src/document.rs",
-          "before": "\n#[cfg(test)]\nmod record_checks {\n    use super::validate_mesh;\n\n    #[test]\n    fn raw_mesh_records_are_checked_before_construction() {\n        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();\n        assert!(validate_mesh(&record).is_ok());\n        record.vertices.values_mut().next().unwrap().x = f64::NAN;\n        assert!(validate_mesh(&record).is_err());\n        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);\n        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;\n        assert!(validate_mesh(&record).is_err());\n    }\n}\n",
-          "snippet": "journey/code/22c-decode-remove-record-check.rs",
-          "why": "Replace the preparation-only record check with the complete loader checks."
-        },
-        {
-          "path": "src/document.rs",
-          "before": "\n#[cfg(test)]\nmod session_checks {\n    use prost::Message;\n\n    #[test]\n    fn the_specimen_has_distinct_meshes_and_flat_rows() {\n        let mut record = session_rust::proto::Session::decode(crate::specimen::bytes().as_slice()).unwrap();\n        assert!(super::validate(&record).is_ok());\n        let meshes = &mut record.objects.as_mut().unwrap().meshes;\n        meshes[1].guid = meshes[0].guid.clone();\n        assert!(super::validate(&record).is_err());\n    }\n}\n",
-          "snippet": "journey/code/22c-decode-remove-session-check.rs",
-          "why": "Replace the preparation-only session check with byte-level loader checks."
+          "snippet": "journey/code/22a-final-5.rs",
+          "why": "Write the same specimen used by document tests."
         },
         {
           "path": "src/document_tests.rs",
           "before": null,
-          "snippet": "journey/code/22c-decode-tests.rs",
-          "why": "Optional authoring fixture. Reject malformed bytes, oversize files and unsupported records before construction.",
-          "copy": true
+          "snippet": "journey/code/22a-final-6.rs",
+          "why": "Check source identity, admission and transactional import."
         },
-        {
-          "path": "src/lib.rs",
-          "before": "pub mod specimen;\n",
-          "snippet": "journey/code/22c-decode-register.rs",
-          "why": "Register the byte-level loader checks."
-        }
-      ],
-      "image_same_as": "22a-records"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/23-import.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "wheel": -120
-        },
-        {
-          "command": "Pan Right"
-        }
-      ],
-      "browser_check": "journey/checks/browser/navigation.cjs",
-      "id": "22d-import",
-      "title": "Commit an import as one undoable action",
-      "page": "journey/22d-import.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.",
-      "story": "Attach the retained source Session and GUID to every imported object. Prepare bytes before starting History::try_edit, then insert the whole loaded file as one document action.\n\nRc::clone shares source ownership. Local ObjectId remains unique across imports; snapshots retain the same source allocation on Undo and Redo.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22d-import.svg)",
-      "result": "Inspect the supplied state fixtures. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.",
-      "question": "Why retain Rc<Session> on imported rows?",
-      "answer": "Display arrays omit source metadata. Shared Session ownership keeps that information available without copying it into each row.",
-      "experiment": "Trace the supplied two-import fixture. Compare local IDs, source GUIDs and source allocation identity; browser file selection connects in the next lesson.",
-      "trace": "Loaded document → one history edit → rows with source identity → display",
-      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
-      "browser_caption": "Native checks apply the import through Editor and render its three orange pieces. Chrome retains the previous input route until file reads are connected.",
-      "edits": [
-        {
-          "path": "src/scene.rs",
-          "before": "    pub mesh: Rc<Mesh>,\n",
-          "snippet": "journey/code/23-import-06.rs",
-          "why": "An imported display object remembers the document and source GUID it came from. Demo objects have no source document."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "self.objects.push(Object { id, mesh: Rc::new(mesh) });",
-          "snippet": "journey/code/23-import-07.rs",
-          "why": "Keep the existing insertion path for demo objects."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "    pub fn remove(&mut self, id: ObjectId) -> bool {\n",
-          "snippet": "journey/code/23-import-08.rs",
-          "why": "All imported rows share one retained source session. History will wrap this entire insertion in one transaction."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "    Pick([f32; 2]),\n",
-          "snippet": "journey/code/23-import-09.rs",
-          "why": "Make file import an ordinary document action."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "            Action::AddBox => {\n",
-          "snippet": "journey/code/23-import-10.rs",
-          "why": "Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene."
-        },
-        {
-          "path": "src/document_tests.rs",
-          "before": "use crate::{document, specimen};\nuse prost::Message;\nuse session_rust::proto;\n\n",
-          "snippet": "journey/code/22d-import-test-imports.rs",
-          "why": "Optional authoring fixture. Import editor actions and shared-owner comparison for transaction checks.",
-          "copy": true
-        },
-        {
-          "path": "src/document_tests.rs",
-          "before": "#[test]\nfn malformed_and_unsupported_records_are_refused_before_construction()",
-          "snippet": "journey/code/22d-import-tests.rs",
-          "why": "Optional authoring fixture. Check whole-file Undo/Redo, failed import and repeated source identities.",
-          "copy": true
-        }
-      ]
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/23-import.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "wheel": -120
-        },
-        {
-          "command": "Pan Right"
-        }
-      ],
-      "browser_check": "journey/checks/browser/navigation.cjs",
-      "id": "22e-file-reader",
-      "title": "Prepare asynchronous file delivery",
-      "page": "journey/22e-file-reader.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.",
-      "story": "Add the hidden file input and its reader. A shared request number identifies the latest selection; await reads the selected Blob, then a custom event returns owned bytes.\n\nThe reader owns no mutable Editor borrow while waiting. Its browser-event registration and Open command are connected in the next step.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22e-file-reader.svg)",
-      "result": "The file reader compiles while the existing scene remains available. File selection connects next.",
-      "question": "Why compare the request number after await?",
-      "answer": "An older read may finish after a newer selection. Its result must not replace the current request.",
-      "experiment": "Find the post-await request comparison. Predict which read is ignored if the second selection finishes first.",
-      "trace": "Selected File → request token → await array_buffer → owned byte event",
-      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
-      "browser_caption": "WebAssembly compilation establishes the file-reader bindings. Chrome independently retains navigation and commands. Actual chooser, completion and latest-request acceptance follow in the connected browser step.",
-      "edits": [
         {
           "path": "src/file_input.rs",
           "before": null,
-          "snippet": "journey/code/23-import-13.rs",
-          "why": "Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback."
+          "snippet": "journey/code/22a-final-9.rs",
+          "why": "Reject stale asynchronous file completions."
         },
         {
           "path": "index.html",
-          "snippet": "journey/code/23-import-fullscreen-1.html",
-          "before": "<body>\n  <p id=\"status\" role=\"status\" hidden>Waiting for Rust…</p>\n  <canvas id=\"canvas\" tabindex=\"0\" width=\"640\" height=\"480\" aria-label=\"Viewer drawing\"></canvas>\n</body>\n</html>\n",
-          "why": "Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/22e-file-reader-cumulative-2-lib.rs",
-          "before": "pub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n",
-          "why": "Expose the complete file-reader component while preparing its browser integration."
-        }
-      ],
-      "image_same_as": "22d-import"
-    },
-    {
-      "id": "23-import",
-      "title": "Open a file through the command line",
-      "page": "journey/23-import.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Import a real mesh-session file, keep its source identity, and undo the whole import as one action.",
-      "trace": "Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw",
-      "question": "Why do we retain the session after creating the arrays that the renderer needs?",
-      "answer": "The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.",
-      "story": "Type Open to activate the hidden picker. Route selection through the reader and completed bytes through Action::Import in the callback that owns Editor.\n\nThe callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.\n\n![The command opens a picker; completed bytes reach one editor transaction.](../illustrations/journey-direct-23-import.svg)",
-      "result": "Download the [supplied sample.pb](fixtures/sample-23.pb). Type Open in the browser and choose that file; one Undo removes all three orange pieces and Redo restores them.",
-      "experiment": "Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.",
-      "production": "The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.",
-      "image_result": "This native frame imports the generated sample.pb bytes, chooses Isometric and draws the three orange pieces alongside the original triangles. It checks a known point on the beam and the orange pixel area. The browser picker, asynchronous completion and latest-request behaviour still require a browser run.",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "frame": "journey/checks/23-import.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "tests": true,
-      "edits": [
-        {
-          "path": "src/lib.rs",
-          "before": "pub mod file_input;\n",
-          "snippet": "journey/code/23-import-reader-private.rs",
-          "why": "Keep the reader internal now that the browser callback owns file delivery."
+          "before": "<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Session Viewer</title>\n  <link data-trunk rel=\"rust\">\n  <style>\n    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }\n    canvas { display: block; width: 100%; height: 100%; outline: none; background: #fff; }\n    #status:not([hidden]) { position: fixed; bottom: 32px; left: 8px; right: 8px; margin: 0; padding: 8px; background: white; font: 14px system-ui; }\n  </style>\n</head>\n<body>\n  <p id=\"status\" role=\"status\" hidden>Waiting for Rust…</p>\n  <canvas id=\"canvas\" tabindex=\"0\" width=\"640\" height=\"480\" aria-label=\"Viewer drawing\"></canvas>\n</body>\n</html>\n",
+          "snippet": "journey/code/22a-final-10.html",
+          "why": "Provide the hidden file chooser."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/23-import-window-1.rs",
-          "before": "        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Box\",\n            \"Example Triangle\",\n            \"Select Next\",\n",
-          "why": "Add Open to the vocabulary."
+          "before": "use crate::background::Background;\nuse crate::editor::{Action, Change, Editor};\nuse crate::gesture::Gesture;\nuse crate::renderer::Renderer;\nuse crate::viewport::Viewport;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n        if let Some(status) = document.get_element_by_id(\"status\") {\n            status.set_text_content(Some(message));\n            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n        }\n    }\n}\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\")\n        .ok_or(\"Missing canvas\")?\n        .dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n        memory_budget_thresholds: Default::default(),\n        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance\n        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance\n        .request_adapter(&wgpu::RequestAdapterOptions {\n            compatible_surface: Some(&surface),\n            ..Default::default()\n        })\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter\n        .request_device(&wgpu::DeviceDescriptor::default())\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface\n        .get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut editor = Editor::default();\n    let mut renderer = Renderer::new(\n        device,\n        queue,\n        config.format.add_srgb_suffix(),\n        &editor.scene,\n    );\n    renderer.resize(Viewport { width, height });\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Box\",\n            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n            \"Undo\",\n            \"Redo\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"View Reset\",\n        ],\n    );\n    panel.update(None, &canvas)?;\n    if resize(\n        &window,\n        &canvas,\n        &surface,\n        &mut config,\n        &mut renderer,\n        &mut editor,\n    ) {\n        panel.update(None, &canvas)?;\n        present(\n            &surface,\n            &renderer,\n            &editor.background,\n            &editor.camera.uniform(),\n            &mut panel,\n        )?;\n    }\n    let input_canvas = canvas.clone();\n    let browser_window = window.clone();\n    let pointer_canvas = canvas.clone();\n    let mut gesture = Gesture::default();\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };\n        let action = if let Some(line) = line {\n            let action = match line.as_str() {\n                \"example box\" => Action::AddBox,\n                \"example triangle\" => Action::ToggleExtra,\n                \"select next\" => Action::SelectNext,\n                \"delete\" => Action::Delete,\n                \"undo\" => Action::Undo,\n                \"redo\" => Action::Redo,\n                \"background\" => Action::Background,\n                \"zoom in\" => Action::Zoom(2.0),\n                \"zoom out\" => Action::Zoom(0.5),\n                \"pan left\" => Action::Pan(-0.25, 0.0),\n                \"pan right\" => Action::Pan(0.25, 0.0),\n                \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => Action::Isometric,\n                \"view reset\" => Action::ResetView,\n                _ => return,\n            };\n            Some(action)\n        } else if !panel.consumed {\n            navigation_action(&event, &pointer_canvas, &mut gesture)\n        } else {\n            None\n        };\n        if let Some(action) = action {\n            match editor.apply(action) {\n                Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),\n                Ok(Change::View) => {}\n                Err(error) => {\n                    report(error);\n                    return;\n                }\n            }\n        }\n        if resize(\n            &browser_window,\n            &pointer_canvas,\n            &surface,\n            &mut config,\n            &mut renderer,\n            &mut editor,\n        ) {\n            if let Err(error) = panel.update(None, &input_canvas) {\n                report(&format!(\"Cannot lay out commands: {error:?}\"));\n                return;\n            }\n            if let Err(error) = present(\n                &surface,\n                &renderer,\n                &editor.background,\n                &editor.camera.uniform(),\n                &mut panel,\n            ) {\n                report(&format!(\"Cannot redraw: {error:?}\"));\n            }\n        }\n    });\n    for name in [\n        \"pointerdown\",\n        \"pointermove\",\n        \"pointerup\",\n        \"pointercancel\",\n        \"lostpointercapture\",\n        \"contextmenu\",\n        \"keydown\",\n        \"keyup\",\n        \"blur\",\n    ] {\n        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        update.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.\");\n    Ok(())\n}\n\nfn navigation_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n    gesture: &mut Gesture,\n) -> Option<Action> {\n    let action = match event.type_().as_str() {\n        \"wheel\" => {\n            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;\n            let mode = wheel.delta_mode();\n            crate::navigation::wheel(\n                wheel.delta_y(),\n                mode,\n                canvas.get_bounding_client_rect().height(),\n            )\n        }\n        \"keydown\" => {\n            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;\n            if key.is_composing() || key.alt_key() {\n                return None;\n            }\n            if key.key() == \"Escape\" {\n                gesture.cancel();\n                event.prevent_default();\n                return None;\n            }\n            return None;\n        }\n        _ => return pointer_action(event, canvas, gesture),\n    }?;\n    event.prevent_default();\n    Some(action)\n}\n\nfn pointer_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n    gesture: &mut Gesture,\n) -> Option<Action> {\n    match event.type_().as_str() {\n        \"contextmenu\" => {\n            event.prevent_default();\n            return None;\n        }\n        \"blur\" | \"resize\" => {\n            gesture.cancel();\n            return None;\n        }\n        _ => {}\n    }\n    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;\n    let id = pointer.pointer_id();\n    let position = [pointer.client_x() as f64, pointer.client_y() as f64];\n    let motion = match event.type_().as_str() {\n        \"pointerdown\" => {\n            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {\n                event.prevent_default();\n                let options = web_sys::FocusOptions::new();\n                options.set_prevent_scroll(true);\n                if canvas.focus_with_options(&options).is_err()\n                    || canvas.set_pointer_capture(id).is_err()\n                {\n                    gesture.cancel();\n                }\n            }\n            None\n        }\n        \"pointermove\" => gesture.move_to(id, position),\n        \"pointerup\" => {\n            let motion = gesture.release(id, position);\n            let _ = canvas.release_pointer_capture(id);\n            motion\n        }\n        \"pointercancel\" | \"lostpointercapture\" => {\n            gesture.cancel_pointer(id);\n            None\n        }\n        _ => None,\n    }?;\n    let rect = canvas.get_bounding_client_rect();\n    motion.action([rect.left(), rect.top(), rect.width(), rect.height()])\n}\n\nfn resize(\n    window: &web_sys::Window,\n    canvas: &web_sys::HtmlCanvasElement,\n    surface: &wgpu::Surface<'_>,\n    config: &mut wgpu::SurfaceConfiguration,\n    renderer: &mut Renderer,\n    editor: &mut Editor,\n) -> bool {\n    let rect = canvas.get_bounding_client_rect();\n    let limit = renderer.device.limits().max_texture_dimension_2d;\n    let Some(size) = Viewport::from_css(\n        rect.width(),\n        rect.height(),\n        window.device_pixel_ratio(),\n        limit,\n    ) else {\n        return false;\n    };\n    if size.width != config.width || size.height != config.height {\n        canvas.set_width(size.width);\n        canvas.set_height(size.height);\n        config.width = size.width;\n        config.height = size.height;\n        surface.configure(&renderer.device, config);\n        renderer.resize(size);\n    }\n    editor.camera.aspect = size.aspect();\n    true\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    transform: &[f32; 16],\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => {\n            return Err(JsValue::from_str(&format!(\n                \"Surface unavailable: {other:?}\"\n            )));\n        }\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view, background, transform);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n}\n",
+          "snippet": "journey/code/22a-final-11.rs",
+          "why": "Deliver current file results and camera commands."
         },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/23-import-window-2.rs",
-          "before": "    let browser_window = window.clone();\n    let pointer_canvas = canvas.clone();\n    let mut gesture = Gesture::default();\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n",
-          "why": "Own a shared request number for asynchronous file reads."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/23-import-window-3.rs",
-          "before": "                return;\n            }\n        };\n        let action = if let Some(line) = line {\n            let action = match line.as_str() {\n                \"example box\" => Action::AddBox,\n                \"example triangle\" => Action::ToggleExtra,\n                \"select next\" => Action::SelectNext,\n                \"delete\" => Action::Delete,\n                \"undo\" => Action::Undo,\n                \"redo\" => Action::Redo,\n                \"background\" => Action::Background,\n                \"zoom in\" => Action::Zoom(2.0),\n                \"zoom out\" => Action::Zoom(0.5),\n                \"pan left\" => Action::Pan(-0.25, 0.0),\n                \"pan right\" => Action::Pan(0.25, 0.0),\n                \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => Action::Isometric,\n                \"view reset\" => Action::ResetView,\n                _ => return,\n            };\n            Some(action)\n        } else if !panel.consumed {\n            navigation_action(&event, &pointer_canvas, &mut gesture)\n        } else {\n",
-          "why": "Route file selection and completion events through the editor; Open activates the hidden file picker."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/23-import-window-4.rs",
-          "before": "                }\n            }\n        }\n        if resize(\n            &browser_window,\n            &pointer_canvas,\n",
-          "why": "Report successful import as one undoable edit."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/23-import-window-5.rs",
-          "before": "    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.\");\n",
-          "why": "Register file selection and byte-completion events."
-        }
-      ],
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_caption": "The actual Open command imports the sample through the picker. Chrome checks whole-import Undo/Redo, malformed and oversized selections, and an older held read completing after a newer failure; the capture restores the initial imported fixture.",
-      "browser_check": "journey/checks/browser/import.cjs",
-      "image_same_as": "22d-import"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/23-import.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "browser_check": "journey/checks/browser/import.cjs",
-      "id": "23a-bounds",
-      "title": "Measure the displayed scene bounds",
-      "page": "journey/23a-bounds.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.",
-      "story": "Accumulate displayed vertex coordinates into Bounds. Its centre is the midpoint of the minimum and maximum; its radius encloses the box corners.\n\nScene::bounds returns Option<Bounds>. The first vertex starts the box; an empty scene returns None instead of invented dimensions.\n\n![The current fitting responsibility and its inputs.](../illustrations/journey-direct-23a-bounds.svg)",
-      "result": "Inspect the supplied state fixtures. Known corners give the expected centre and radius; a scene with no objects has no bounds.",
-      "question": "Why return None for an empty scene?",
-      "answer": "There is no geometry to frame. The caller can leave the current camera unchanged.",
-      "experiment": "Change one corner in the bounds test and calculate the midpoint before running it.",
-      "trace": "Displayed vertices → coordinate minima/maxima → centre and radius",
-      "production": "Fitting changes camera parameters, not document geometry. Later lessons add tighter corner fitting, selected bounds and camera-relative coordinates.",
-      "browser_caption": "Native checks establish bounds and the empty case. Chrome retains actual file import and view commands until Fit is connected.",
-      "edits": [
         {
           "path": "src/bounds.rs",
           "before": null,
-          "snippet": "journey/code/24-fit-01.rs",
-          "why": "Store coordinate minima/maxima; compute the centre and enclosing-sphere radius from them."
+          "snippet": "journey/code/22a-final-12.rs",
+          "why": "Accumulate bounds and derive a fitting sphere."
         },
         {
-          "path": "src/scene.rs",
-          "before": "    pub fn objects(&self) -> &[Object] {\n",
-          "snippet": "journey/code/24-fit-03.rs",
-          "why": "Accumulate displayed vertices into f64 bounds; return None for an empty scene."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/24-fit-fullscreen-1.rs",
-          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\n",
-          "why": "Register the bounds module beside Camera."
+          "path": "src/camera.rs",
+          "before": "use session_rust::{Point, Quaternion, Vector, Xform};\n\npub struct Ray {\n    pub origin: Point,\n    pub direction: Vector,\n    pub max_distance: f64,\n}\n\npub struct Camera {\n    pub target: [f64; 3],\n    pub distance: f64,\n    pub orientation: Quaternion,\n    pub aspect: f64,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self {\n            target: [0.0; 3],\n            distance: 3.0,\n            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),\n            aspect: 640.0 / 480.0,\n        }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        let right = self.orientation.rotate_vector(Vector::x_axis());\n        let up = self.orientation.rotate_vector(Vector::z_axis());\n        for i in 0..3 {\n            self.target[i] += dx as f64 * right[i] + dy as f64 * up[i];\n        }\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.distance = (self.distance / factor as f64).clamp(0.2, 50.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.orbit(radians as f64, 0.0);\n    }\n\n    pub fn orbit(&mut self, yaw: f64, pitch: f64) {\n        let right = self.orientation.rotate_vector(Vector::x_axis());\n        let turn = Quaternion::from_axis_angle(Vector::z_axis(), yaw);\n        let tilt = Quaternion::from_axis_angle(right, pitch);\n        self.orientation = (turn * (tilt * self.orientation.duplicate())).normalized();\n    }\n\n    pub fn isometric(&mut self) {\n        let turn = Quaternion::from_axis_angle(Vector::z_axis(), -std::f64::consts::FRAC_PI_6);\n        let right = turn.rotate_vector(Vector::x_axis());\n        let tilt = Quaternion::from_axis_angle(right, -std::f64::consts::FRAC_PI_6);\n        self.orientation = (tilt * turn).normalized();\n    }\n\n    pub fn view_projection(&self) -> Xform {\n        let forward = self.orientation.rotate_vector(Vector::y_axis());\n        let up = self.orientation.rotate_vector(Vector::z_axis());\n        let target = Point::new(self.target[0], self.target[1], self.target[2]);\n        let eye = Point::new(\n            self.target[0] - forward[0] * self.distance,\n            self.target[1] - forward[1] * self.distance,\n            self.target[2] - forward[2] * self.distance,\n        );\n        let view = Xform::look_at_right_handed(&eye, &target, &up);\n        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);\n        projection * view\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        self.view_projection().to_f32()\n    }\n\n    pub fn ray(&self, screen: [f32; 2]) -> Option<Ray> {\n        if screen.iter().any(|value| !value.is_finite() || value.abs() > 1.0) {\n            return None;\n        }\n        let inverse = self.view_projection().inverse()?;\n        let origin = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 0.0));\n        let end = inverse.transform_point(&Point::new(screen[0] as f64, screen[1] as f64, 1.0));\n        let delta = &end - &origin;\n        let max_distance = delta.magnitude();\n        if !max_distance.is_finite() || max_distance <= 0.0 {\n            return None;\n        }\n        Some(Ray { origin, direction: delta.normalized(), max_distance })\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn the_target_stays_centred_after_pan_zoom_and_turn() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(0.7);\n        camera.orbit(0.3, 0.2);\n        let target = Point::new(camera.target[0], camera.target[1], camera.target[2]);\n        let screen = camera.view_projection().transform_point(&target);\n        assert!(screen[0].abs() < 1.0e-9 && screen[1].abs() < 1.0e-9);\n        assert!((0.0..1.0).contains(&screen[2]));\n    }\n\n    #[test]\n    fn repeated_orbit_keeps_the_camera_axes_orthonormal() {\n        let mut camera = Camera::default();\n        for _ in 0..1_000 {\n            camera.orbit(0.01, 0.02);\n        }\n        let right = camera.orientation.rotate_vector(Vector::x_axis());\n        let forward = camera.orientation.rotate_vector(Vector::y_axis());\n        let up = camera.orientation.rotate_vector(Vector::z_axis());\n        for axis in [&right, &forward, &up] {\n            assert!((axis.magnitude() - 1.0).abs() < 1.0e-10);\n        }\n        assert!(right.dot(&forward).abs() < 1.0e-10);\n        assert!(right.dot(&up).abs() < 1.0e-10);\n        assert!(forward.dot(&up).abs() < 1.0e-10);\n    }\n\n    #[test]\n    fn a_projected_point_lies_on_its_unprojected_ray() {\n        let camera = Camera::default();\n        let world = Point::new(0.4, 0.2, 0.75);\n        let screen = camera.view_projection().transform_point(&world);\n        let ray = camera.ray([screen[0] as f32, screen[1] as f32]).unwrap();\n        let offset = &world - &ray.origin;\n        assert!(offset.cross(&ray.direction).magnitude() < 1.0e-6);\n        assert!(offset.dot(&ray.direction) > 0.0);\n        assert!(offset.magnitude() < ray.max_distance);\n        assert!(camera.ray([f32::NAN, 0.0]).is_none());\n    }\n}\n",
+          "snippet": "journey/code/22a-final-14.rs",
+          "why": "Fit bounds in perspective and orthographic projection."
         },
         {
           "path": "src/fit_tests.rs",
           "before": null,
-          "snippet": "journey/code/23a-bounds-tests.rs",
-          "why": "Optional authoring fixture. Check measured bounds and the empty-scene result.",
-          "copy": true
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/24-fit-fullscreen-2.rs",
-          "before": "#[cfg(test)]\nmod document_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
-          "why": "Register the native Fit tests."
-        }
-      ],
-      "image_same_as": "22d-import"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/23b-fit-camera.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "browser_check": "journey/checks/browser/import.cjs",
-      "id": "23b-fit-camera",
-      "title": "Fit the camera around the bounds",
-      "page": "journey/23b-fit-camera.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.",
-      "story": "Aim the camera at the bounds centre and back away until its enclosing sphere fits the smaller horizontal or vertical half-angle. Preserve orientation and keep a small margin.\n\nStore the measured radius on Camera. Use it for zoom limits and far depth reach. Keep the near plane at one ten-thousandth of eye distance, independently of scene size, so nearby CAD geometry remains visible when zooming into a large model.\n\n![The current fitting responsibility and its inputs.](../illustrations/journey-direct-23b-fit-camera.svg)",
-      "result": "Inspect the supplied state fixtures. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.",
-      "question": "Why use the smaller half-angle?",
-      "answer": "That direction limits the visible space. Using only the vertical angle would crop a scene in a tall window.",
-      "experiment": "Change the 1.1 margin to 1.4, predict a smaller drawing, then restore it.",
-      "trace": "Bounds centre/radius and aspect → camera target, distance and clipping",
-      "production": "Fitting changes camera parameters, not document geometry. Later lessons add tighter corner fitting, selected bounds and camera-relative coordinates.",
-      "browser_caption": "Native checks fit across scale and aspect, and GPU readback renders the fitted frame. Chrome retains the earlier file and command route until Fit reaches Editor.",
-      "edits": [
-        {
-          "path": "src/camera.rs",
-          "before": "    pub distance: f64,\n",
-          "snippet": "journey/code/24-fit-04.rs",
-          "why": "Keep the fitted scene scale with the camera. Distance says where the eye is; radius says how large the scene is."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "            distance: 3.0,\n",
-          "snippet": "journey/code/24-fit-05.rs",
-          "why": "The original small demonstration scene starts with a one-unit radius. Fit will measure the real bounds."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "    pub fn pan(&mut self, dx: f32, dy: f32) {\n",
-          "snippet": "journey/code/24-fit-06.rs",
-          "why": "Fit the enclosing sphere through the smaller half-angle: distance = radius × 1.1 / sin(angle)."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "            self.distance = (self.distance / factor as f64).clamp(0.2, 50.0);\n",
-          "snippet": "journey/code/24-fit-07.rs",
-          "why": "Scale zoom limits with scene radius to prevent a jump after fitting a large model."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);\n",
-          "snippet": "journey/code/24-fit-08.rs",
-          "why": "Scale near and far clipping planes with camera distance and scene radius."
-        },
-        {
-          "path": "src/fit_tests.rs",
-          "before": "use crate::bounds::Bounds;\n\n#[test]\nfn bounds_measure_vertices_and_define_the_empty_case() {\n    let mut bounds = Bounds::point([-2.0, 1.0, 0.0]);\n    bounds.include([2.0, 3.0, 2.0]);\n    assert_eq!(bounds.centre(), [0.0, 2.0, 1.0]);\n    assert!((bounds.radius() - 6.0_f64.sqrt()).abs() < 1.0e-12);\n    let mut scene = crate::scene::Scene::demo();\n    assert!(scene.bounds().is_some());\n    while let Some(id) = scene.next(None) { scene.remove(id); }\n    assert!(scene.bounds().is_none());\n}\n",
-          "snippet": "journey/code/23b-fit-camera-tests.rs",
-          "why": "Optional authoring fixture. Check projected corners, preserved orientation and zoom after fitting.",
-          "copy": true
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "pub struct Ray {",
-          "snippet": "journey/code/23b-fit-camera-near.rs",
-          "why": "Keep the current near fraction independent of scene radius."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "ew_projection().transform_point(&world);\n        let ray = camera.ray([screen[0] as f32, screen[1] as f32]).unwrap();\n        let offset = &world - &ray.origin;\n        assert!(offset.cross(&ray.direction).magnitude() < 1.0e-6);\n        assert!(offset.dot(&ray.direction) > 0.0);\n        assert!(offset.magnitude() < ray.max_distance);\n        assert!(camera.ray([f32::NAN, 0.0]).is_none());\n    }\n}\n",
-          "snippet": "journey/code/23b-fit-camera-depth-tests.rs",
-          "why": "Supply geometric near-cut or f32 depth-resolution checks in original millimetre coordinates.",
-          "copy": true
-        }
-      ]
-    },
-    {
-      "id": "24-fit",
-      "title": "Run Fit through the command line",
-      "page": "journey/24-fit.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Frame all current objects without rotating them or changing the document.",
-      "trace": "Typed Fit → Editor → Scene::bounds → Camera::fit → redraw",
-      "question": "Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?",
-      "answer": "Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.",
-      "story": "Add Fit to Action and the command vocabulary. Editor measures scene bounds and asks Camera to fit them when geometry exists.\n\nFit returns a view change. It retains selection and document history, and reuses the current geometry buffers. An empty scene leaves the camera unchanged.\n\n![The Fit command connects measured bounds to the camera without a document edit.](../illustrations/journey-direct-24-fit.svg)",
-      "edits": [
-        {
-          "path": "src/editor.rs",
-          "before": "    ResetView,\n",
-          "snippet": "journey/code/24-fit-09.rs",
-          "why": "Fit is an explicit action, like Isometric. Import still changes the document; Fit only changes how you look at it."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "                    Action::Isometric => self.camera.isometric(),\n",
-          "snippet": "journey/code/24-fit-10.rs",
-          "why": "Fit only when scene bounds exist; preserve document history and mesh uploads."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/24-fit-window-1.rs",
-          "before": "            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"View Reset\",\n        ],\n    );\n",
-          "why": "Add Fit to the vocabulary."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/24-fit-window-2.rs",
-          "before": "                    \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                    \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                    \"view isometric\" => Action::Isometric,\n                    \"view reset\" => Action::ResetView,\n                    _ => return,\n                };\n",
-          "why": "Route Fit through the editor action."
-        },
-        {
-          "path": "src/fit_tests.rs",
-          "before": "use crate::{bounds::Bounds, camera::Camera};\nuse session_rust::Point;\n\n",
-          "snippet": "journey/code/24-fit-test-imports.rs",
-          "why": "Optional authoring fixture. Import editor actions for fitting and document-history checks.",
-          "copy": true
-        },
-        {
-          "path": "src/fit_tests.rs",
-          "before": "            assert!((camera.distance - distance / 1.01_f32 as f64).abs() < distance * 1.0e-10);\n        }\n    }\n}\n\n",
-          "snippet": "journey/code/24-fit-editor-tests.rs",
-          "why": "Optional authoring fixture. Check imported bounds, selection, history and empty or single-point scenes.",
-          "copy": true
-        }
-      ],
-      "tests": true,
-      "result": "Open sample.pb, type Pan Right, then Fit. The whole scene returns with a margin while keeping its viewing direction.",
-      "experiment": "Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.",
-      "production": "Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.",
-      "frame": "journey/checks/24-fit.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Fit"
-        }
-      ],
-      "browser_caption": "The orange frame and both triangles are centred together after three pans and Fit scene. Chrome also checks that a second Fit leaves the drawing unchanged, that Fit recovers after another pan, and that the imported file remains one undoable action.",
-      "image_result": "The native check imports the three-piece frame, chooses Isometric, pans three times, then fits. It checks every vertex against the view and verifies the visible orange beam. Browser command delivery needs the separate Chrome run.",
-      "image_same_as": "23b-fit-camera"
-    },
-    {
-      "tests": true,
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Fit"
-        }
-      ],
-      "id": "24a-projection",
-      "title": "Build perspective and orthographic camera matrices",
-      "page": "journey/24a-projection.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.",
-      "story": "Add Projection to Camera and choose the matching matrix. Give orthographic projection the same target-plane half-height as perspective: distance × tan(30°).\n\nProjection is a small Copy enum. Inverse-matrix picking remains shared: perspective rays spread out, while orthographic rays have separate origins and parallel directions.\n\n![The current projection responsibility and its inputs.](../illustrations/journey-direct-24a-projection.svg)\n\nKeep the orthographic depth interval tied to scene reach, without the perspective far-plane multiplier. This preserves useful depth separation for thin CAD parts.",
-      "result": "Inspect the supplied state fixtures. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.",
-      "question": "Why can one picking method support both projections?",
-      "answer": "It inverts the selected camera matrix. The resulting near and far points define the correct ray for that matrix.",
-      "experiment": "Switch the browser between perspective and orthographic projection. Predict how distance changes apparent object size in perspective, then compare the drawing.",
-      "trace": "Projection enum → camera matrix → drawing and inverse-matrix rays",
-      "production": "Drawing and picking consume the same selected camera matrix. Later lessons add tighter fitting, named views and reversed depth without putting view choices into document history.",
-      "frame": "journey/checks/24a-projection.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_caption": "Native checks establish projection scale and ray geometry; GPU readback draws orthographic geometry. Chrome retains the existing perspective Fit command route until mode commands are connected.",
-      "edits": [
-        {
-          "path": "src/camera.rs",
-          "before": "pub struct Ray {\n",
-          "snippet": "journey/code/25-projection-01.rs",
-          "why": "Name the projection choices with an enum; derive copying and equality for this small value."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "    pub aspect: f64,\n",
-          "snippet": "journey/code/25-projection-02.rs",
-          "why": "Projection belongs to the view, alongside its orientation and size. It is not a property of an object."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "            aspect: 640.0 / 480.0,\n",
-          "snippet": "journey/code/25-projection-03.rs",
-          "why": "Start with the perspective view you already know. Reset view will restore this default too."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "        let half_y = 30.0_f64.to_radians();\n",
-          "snippet": "journey/code/25-projection-04.rs",
-          "why": "Use the shared angle so fitting and drawing cannot quietly use different fields of view."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);\n",
-          "snippet": "journey/code/25-projection-06.rs",
-          "why": "Choose the projection matrix; match orthographic size at the target plane and retain visible depth in 0–1."
+          "snippet": "journey/code/22a-final-13.rs",
+          "why": "Check fitted corners in wide and upright viewports."
         },
         {
           "path": "src/projection_tests.rs",
           "before": null,
-          "snippet": "journey/code/24a-projection-tests.rs",
-          "why": "Optional authoring fixture. Check target-plane scale, depth-independent size and parallel picking rays.",
-          "copy": true
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/25-projection-fullscreen-1.rs",
-          "before": "#[cfg(test)]\nmod fit_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
-          "why": "Register the new checks without changing the production browser entry point."
-        },
-        {
-          "path": "src/camera.rs",
-          "before": "]*(gap-distance),camera.target[2]+forward[2]*(gap-distance));\n   let matrix=camera.view_projection();let inside=matrix.transform_point(&point(distance*NEAR_FRACTION*2.));let cut=matrix.transform_point(&point(distance*NEAR_FRACTION*0.5));\n   assert!((0.0..1.0).contains(&inside[2]),\"near geometry remains in view: {inside:?}\");assert!(cut[2]<0.,\"the near plane still cuts ahead of the eye\");\n  }\n }\n}\n",
-          "snippet": "journey/code/24a-projection-depth-tests.rs",
-          "why": "Supply geometric near-cut or f32 depth-resolution checks in original millimetre coordinates.",
-          "copy": true
-        }
-      ]
-    },
-    {
-      "tests": true,
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Pan Right"
-        },
-        {
-          "command": "Fit"
-        }
-      ],
-      "id": "24b-projection-actions",
-      "title": "Fit and change projection through the editor",
-      "page": "journey/24b-projection-actions.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.",
-      "story": "Fit an enclosing sphere using the selected projection. Perspective uses the smaller half-angle; orthographic uses the smaller half-extent.\n\nCarry Projection in an editor action. Changing it preserves camera parameters and document history; Reset View still restores the perspective default.\n\n![The current projection responsibility and its inputs.](../illustrations/journey-direct-24b-projection-actions.svg)",
-      "result": "Inspect the supplied state fixtures. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.",
-      "question": "Why keep projection outside document history?",
-      "answer": "It changes how the document is seen. Undo should restore geometry while retaining the current view choice.",
-      "experiment": "Read the close-orthographic picking test and predict what Reset View does to its projection choice.",
-      "trace": "Selected projection → fit opening; Action::Projection → view-only change",
-      "production": "Drawing and picking consume the same selected camera matrix. Later lessons add tighter fitting, named views and reversed depth without putting view choices into document history.",
-      "frame": "journey/checks/25-projection.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_caption": "Native checks and GPU readback establish editor mode changes, orthographic fitting and close picking. Chrome retains the previous Fit route until the named projection commands are connected.",
-      "edits": [
-        {
-          "path": "src/camera.rs",
-          "before": "        self.distance = self.radius * 1.1 / half_x.min(half_y).sin();\n",
-          "snippet": "journey/code/25-projection-05.rs",
-          "why": "Fit the sphere through a perspective half-angle or the smaller orthographic half-extent."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "    Fit,\n",
-          "snippet": "journey/code/25-projection-07.rs",
-          "why": "Carry the requested projection in Action for the named view commands."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "                    Action::Isometric => self.camera.isometric(),\n",
-          "snippet": "journey/code/25-projection-08.rs",
-          "why": "Change projection without moving the camera or creating a document history entry."
-        },
-        {
-          "path": "src/projection_tests.rs",
-          "before": "use crate::camera::{Camera, Projection};\nuse session_rust::{Point, Vector};\n\n",
-          "snippet": "journey/code/24b-projection-test-imports.rs",
-          "why": "Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks.",
-          "copy": true
-        },
-        {
-          "path": "src/projection_tests.rs",
-          "before": "    assert!(camera.ray([-0.5, 0.0]).unwrap().direction\n        .cross(&camera.ray([0.5, 0.0]).unwrap().direction).magnitude() > 0.1);\n}\n\n",
-          "snippet": "journey/code/24b-projection-editor-tests.rs",
-          "why": "Optional authoring fixture. Check orthographic fitting, close selection, view history and reset.",
-          "copy": true
-        }
-      ]
-    },
-    {
-      "id": "25-projection",
-      "title": "Run the named projection commands",
-      "page": "journey/25-projection.md",
-      "hours": [
-        0.25,
-        0.5
-      ],
-      "goal": "Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.",
-      "trace": "Named View command → Projection value → Editor → camera matrix and reported mode",
-      "question": "Why can the same ray-picking code work in both views even though their rays have different shapes?",
-      "answer": "Camera builds the selected projection and combines it with the same view transform. Drawing uses that matrix. Picking inverts it and maps a screen point at depths 0 and 1 back into the world. Those two points define the correct ray for either matrix. Perspective rays spread out; orthographic rays are parallel. Their different origins and directions come from the matrix, not a second picking routine.",
-      "edits": [
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/25-projection-window-1.rs",
-          "before": "            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"Fit\",\n            \"View Reset\",\n        ],\n",
-          "why": "Add the two named projection commands."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/25-projection-window-2.rs",
-          "before": "                    \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                    \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                    \"view isometric\" => Action::Isometric,\n                    \"fit\" => Action::Fit,\n                    \"view reset\" => Action::ResetView,\n                    _ => return,\n",
-          "why": "Map each projection command to its enum value."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/25-projection-window-3.rs",
-          "before": "                }\n            }\n        }\n        if event.type_() == \"viewer-file\" {\n            report(\"File imported. Undo removes the entire import.\");\n        }\n",
-          "why": "Refresh the reported projection after applying an action."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/25-projection-window-4.rs",
-          "before": "    Ok(())\n}\n\nfn navigation_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Expose the current projection on the canvas for inspection."
-        }
-      ],
-      "tests": true,
-      "story": "Add View Perspective and View Orthographic to the command vocabulary and route them to Action::Projection. Report the active projection on the canvas after applying an action.\n\nThe commands preserve target-plane scale and view parameters. Fit remains explicit; run it after switching if perspective crops nearby geometry.\n\n![Named view commands choose the camera projection through Editor.](../illustrations/journey-direct-25-projection.svg)",
-      "result": "Type View Orthographic, Fit, then View Perspective. The target stays fixed while depth changes relative sizes.",
-      "experiment": "Switch modes while looking squarely at the two original triangles. Which one changes size more? Their depths differ, and neither lies on the target plane. Now orbit: the mode should stay selected while the viewing direction changes. Explain why Isometric and Orthographic are not synonyms.",
-      "production": "The production camera uses this same target-plane scale relationship. Its tighter fitting, units, named views and camera-relative coordinates come next. Production also uses reversed depth for precision; this checkpoint keeps the existing 0-near/1-far depth convention. Switching modes deliberately preserves the view parameters rather than automatically refitting; run Fit if the new perspective clips or crops a nearby part.",
-      "frame": "journey/checks/25-projection.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_actions": [
-        {
-          "file": "sample.pb"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "View Orthographic"
-        },
-        {
-          "command": "Fit"
-        }
-      ],
-      "browser_caption": "Chrome types the two projection commands, verifies exact round trips, selects visible faces in both modes and fits at wide and tall viewport sizes.",
-      "image_result": "The native frame imports the orange frame, sets an isometric direction, selects orthographic projection and fits all objects. It checks projected vertex bounds, beam colour and nearest-object picking. Browser controls need their own Chrome check.",
-      "image_same_as": "24b-projection-actions"
-    },
-    {
-      "id": "26-selected",
-      "title": "Frame one object without changing its size",
-      "page": "journey/26-selected.md",
-      "hours": [
-        1,
-        2
-      ],
-      "goal": "Run Fit Selected while keeping geometry, selection and document history unchanged.",
-      "trace": "Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame",
-      "question": "Does fitting an object change its coordinates or only the camera?",
-      "answer": "Only the camera target and distance change. The selected object keeps the same shared mesh and stable ID. Bounds are measured in existing model coordinates; fitting changes their screen coverage, not their physical dimensions.",
-      "story": "Make `Fit Selected` use one object's bounds with the same fitting policy as `Fit`.\n\nScene finds the object by `ObjectId`. `?` returns `None` for a missing ID or empty mesh. Start bounds from its first vertex so the origin does not enlarge every box.\n\nEditor uses `Option::and_then` to request bounds only when selection exists, then passes them to Camera. No second fitting formula is needed.\n\nFitting changes pixels occupied by the object, preserving its model coordinates and shared mesh. It changes neither document units nor object size.\n\n![The selected ID chooses bounds; fitting changes the camera and leaves the shared mesh alone.](../illustrations/journey-26.svg)",
-      "result": "Type `Select Next`, then `Fit Selected`. The selected object fills the view with a margin. Geometry, selection and Undo history stay unchanged.",
-      "experiment": "Select Next repeatedly and run Fit Selected after each selection. Predict the camera target from that object’s minimum and maximum coordinates. Then compare perspective and orthographic fits. Explain why neither operation should create an undo entry.",
-      "production": "The maintained viewer fits selected display rows and their world-space bounds. This checkpoint establishes stable selection and camera-only fitting. Local placements, inherited transforms and multiple selected objects will extend the bounds query in later lessons.",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Fit Selected"
-        }
-      ],
-      "browser_caption": "Fit Selected frames the first triangle without deleting the added box or changing object coordinates.",
-      "frame": "journey/checks/26-selected.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "tests": true,
-      "edits": [
-        {
-          "path": "src/scene.rs",
-          "before": "    pub fn objects(&self) -> &[Object] {\n",
-          "snippet": "journey/code/26-selected-01.rs",
-          "why": "Find one stable ID and collect only its displayed vertices. An absent ID or empty mesh returns None."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "    Fit,\n    Projection(crate::camera::Projection),\n",
-          "snippet": "journey/code/26-selected-02.rs",
-          "why": "Name a separate action for fitting the selection."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "                    Action::ResetView => {\n",
-          "snippet": "journey/code/26-selected-03.rs",
-          "why": "Borrow the selected ID, ask Scene for its bounds, and reuse Camera::fit. Neither the mesh nor document history changes."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "            \"Fit\",\n            \"View Reset\",\n",
-          "snippet": "journey/code/26-selected-04.rs",
-          "why": "Expose Fit Selected in the existing command vocabulary."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "                    \"fit\" => Action::Fit,\n                    \"view reset\" => Action::ResetView,\n",
-          "snippet": "journey/code/26-selected-05.rs",
-          "why": "Translate the named command into the new action."
-        },
-        {
-          "path": "src/lib.rs",
-          "before": "#[cfg(test)]\nmod projection_tests;\n",
-          "snippet": "journey/code/26-selected-06.rs",
-          "why": "Register the focused state checks."
+          "snippet": "journey/code/22a-final-15.rs",
+          "why": "Check projection, ray and depth consistency."
         },
         {
           "path": "src/selected_fit_tests.rs",
           "before": null,
-          "snippet": "journey/code/26-selected-07.rs",
-          "why": "Optional authoring fixture. Check both projection modes, selection, shared mesh identity, history and the empty-selection case.",
-          "copy": true
-        }
-      ]
-    },
-    {
-      "id": "26a-keys",
-      "title": "Fit and step history from the keyboard",
-      "page": "journey/26a-keys.md",
-      "hours": [
-        0.5,
-        1
-      ],
-      "goal": "Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.",
-      "trace": "keyboard press → text ownership → existing command → editor action → redraw",
-      "question": "Why must Ctrl+Z stay with a nonempty focused command field?",
-      "answer": "It edits the text being typed. Document history must change only when that text does not own the shortcut.",
-      "result": "Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.",
-      "experiment": "Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.",
-      "production": "This carries the October 4 F and history shortcuts into the course. H/S hide and show arrive with visibility policies in chapter 53. Existing named commands and mouse navigation remain available.",
-      "tests": true,
-      "frame": "journey/checks/26-selected.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
+          "snippet": "journey/code/22a-final-16.rs",
+          "why": "Check selected fitting and independent view history."
         },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Fit Selected"
-        }
-      ],
-      "browser_check": "journey/checks/browser/shortcuts.cjs",
-      "story": "Classify a key before the panel can focus on its printable letter. F belongs to the unfocused canvas. History keys belong to the document when no nonempty focused text field owns them.\n\nBoth Ctrl and Cmd use the same policy. Ignore repeated, composing and Alt-modified events. Echo the existing command and reuse the normal action route, preserving one history transaction.\n\n![Keyboard ownership decides whether a press edits text or requests an existing action.](../illustrations/journey-26a.svg)",
-      "browser_caption": "Actual keyboard input checks selected and whole-scene fitting, Undo/Redo, platform modifiers and command-text ownership.",
-      "checks": "Native key policy checks and Chrome exercise actual keys, text editing, camera-only Fit and exact document history round trips.",
-      "edits": [
         {
           "path": "src/shortcuts.rs",
           "before": null,
-          "snippet": "journey/code/26a-keys-01.rs",
-          "why": "Classify canvas Fit and available history keys without owning browser or document state."
-        },
-        {
-          "path": "src/panel.rs",
-          "before": "    pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {",
-          "snippet": "journey/code/26a-keys-02.rs",
-          "why": "Use current text focus and content to decide shortcut ownership."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };",
-          "snippet": "journey/code/26a-keys-03.rs",
-          "why": "Echo an accepted shortcut through the same command route before the panel consumes typing."
-        },
-        {
-          "path": "src/browser.rs",
-          "before": "                    \"fit\" => Action::Fit,",
-          "snippet": "journey/code/26a-keys-04.rs",
-          "why": "Make canvas F fit the selection when present; otherwise fit the whole scene."
-        },
-        {
-          "path": "src/lib.rs",
-          "before": "pub mod navigation;",
-          "snippet": "journey/code/26a-keys-05.rs",
-          "why": "Register the shared shortcut policy."
+          "snippet": "journey/code/22a-final-17.rs",
+          "why": "Classify shortcuts using text ownership and modifiers."
         },
         {
           "path": "src/shortcuts_tests.rs",
           "before": null,
-          "snippet": "journey/code/26a-keys-tests.rs",
-          "why": "Copy the modifier and text-ownership checks.",
-          "copy": true
+          "snippet": "journey/code/22a-final-19.rs",
+          "why": "Check composition, focus and shortcut modifiers."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "use crate::command_dock::{self, CommandLine, Commands as _, theme};\nuse crate::renderer::Renderer;\n\nstruct Commands(&'static [&'static str]);\n\nimpl command_dock::Commands for Commands {\n    fn canonical(&self, line: &str) -> String {\n        let line = line.split_whitespace().collect::<Vec<_>>().join(\" \");\n        self.0\n            .iter()\n            .find(|name| name.eq_ignore_ascii_case(&line))\n            .map_or(line.clone(), |name| (*name).into())\n    }\n    fn choosing_option(&self, _: &str) -> bool {\n        false\n    }\n    fn accept(&self, line: &str) -> (String, bool) {\n        (self.canonical(line), true)\n    }\n    fn completions(&self, line: &str) -> Vec<&'static str> {\n        crate::command_vocabulary::ranked(self.0.as_ref(), line)\n    }\n    fn browse(&self, line: &str) -> Vec<&'static str> {\n        self.completions(line)\n    }\n}\n\npub struct Panel {\n    commands: Commands,\n    pub consumed: bool,\n    pointer_owned: bool,\n    top: f32,\n    controls: Option<Vec<command_dock::Control>>,\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n    events: Vec<egui::Event>,\n    output: Option<egui::FullOutput>,\n    screen: egui_wgpu::ScreenDescriptor,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat, commands: &'static [&'static str]) -> Self {\n        let context = egui::Context::default();\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { commands: Commands(commands), consumed: false, pointer_owned: false, top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,\n            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {\n            focus_command: true,\n            ..Default::default()\n        } }\n    }\n\n    pub fn command(&self) -> &str { &self.model.command }\n\n    pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }\n\n    pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {\n        if event.is_composing() { return false; }\n        let modifiers = egui::Modifiers {\n            alt: event.alt_key(), ctrl: event.ctrl_key(), shift: event.shift_key(),\n            mac_cmd: event.meta_key(), command: event.ctrl_key() || event.meta_key(),\n        };\n        let text = event.type_() == \"keydown\" && event.key().chars().count() == 1\n            && !modifiers.command && !modifiers.alt;\n        if text {\n            if !self.context.egui_wants_keyboard_input() { self.model.focus_command = true; }\n            self.context.memory_mut(|memory| memory.request_focus(egui::Id::new(\"command-input\")));\n            self.model.command_open = true;\n        }\n        if !self.context.egui_wants_keyboard_input() { return false; }\n        if let Some(key) = egui::Key::from_name(&event.key()) {\n            self.events.push(egui::Event::Key {\n                key, physical_key: None, pressed: event.type_() == \"keydown\",\n                repeat: event.repeat(), modifiers,\n            });\n        }\n        if text { self.events.push(egui::Event::Text(event.key())); }\n        event.prevent_default();\n        true\n    }\n\n    pub fn pointer(&mut self, event: &web_sys::PointerEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {\n        let rect = canvas.get_bounding_client_rect();\n        let pos = egui::pos2((event.client_x() as f64 - rect.left()) as f32, (event.client_y() as f64 - rect.top()) as f32);\n        let over = pos.y >= self.top || self.model.completion_rect.is_some_and(|r| r.contains(pos));\n        let owned = over || self.pointer_owned;\n        if event.type_() == \"pointerdown\" {\n            self.pointer_owned = over;\n            if !over {\n                self.model.command_open = false;\n                self.model.focus_command = false;\n                self.context.memory_mut(|memory| memory.surrender_focus(egui::Id::new(\"command-input\")));\n            }\n        }\n        self.events.push(egui::Event::PointerMoved(pos));\n        if matches!(event.type_().as_str(), \"pointercancel\" | \"lostpointercapture\") {\n            for button in [egui::PointerButton::Primary, egui::PointerButton::Middle, egui::PointerButton::Secondary] {\n                self.events.push(egui::Event::PointerButton { pos, button, pressed: false, modifiers: Default::default() });\n            }\n            self.events.push(egui::Event::PointerGone);\n        } else if matches!(event.type_().as_str(), \"pointerdown\" | \"pointerup\") {\n            let button = match event.button() { 0 => egui::PointerButton::Primary, 1 => egui::PointerButton::Middle, _ => egui::PointerButton::Secondary };\n            self.events.push(egui::Event::PointerButton { pos, button, pressed: event.type_() == \"pointerdown\", modifiers: Default::default() });\n        }\n        if matches!(event.type_().as_str(), \"pointerup\" | \"pointercancel\" | \"lostpointercapture\") { self.pointer_owned = false; }\n        if owned { event.prevent_default(); }\n        owned\n    }\n\n    pub fn wheel(&mut self, event: &web_sys::WheelEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {\n        let rect = canvas.get_bounding_client_rect();\n        let pos = egui::pos2((event.client_x() as f64 - rect.left()) as f32, (event.client_y() as f64 - rect.top()) as f32);\n        self.events.push(egui::Event::PointerMoved(pos));\n        self.events.push(egui::Event::MouseWheel {\n            unit: match event.delta_mode() { 1 => egui::MouseWheelUnit::Line, 2 => egui::MouseWheelUnit::Page, _ => egui::MouseWheelUnit::Point },\n            phase: egui::TouchPhase::Move, delta: egui::vec2(-event.delta_x() as f32, -event.delta_y() as f32), modifiers: Default::default(),\n        });\n        let over = pos.y >= self.top || self.model.completion_rect.is_some_and(|r| r.contains(pos));\n        if over { event.prevent_default(); }\n        over\n    }\n\n    pub fn inspect(&self) -> String {\n        serde_json::json!({\"controls\": self.controls, \"command\": self.model.command, \"history\": self.model.history,\n            \"pointer_owned\": self.pointer_owned,\n            \"top\": self.top, \"focused\": self.context.egui_wants_keyboard_input(),\n            \"completion_rect\": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()\n    }\n\n    pub fn answer(&mut self, line: &str, message: &str) {\n        self.model.remember(format!(\"> {line}\\n{message}\"));\n        self.model.status = message.into();\n    }\n\n    pub fn update(\n        &mut self,\n        event: Option<&web_sys::Event>,\n        canvas: &web_sys::HtmlCanvasElement,\n    ) -> Result<Option<String>, wasm_bindgen::JsValue> {\n        use wasm_bindgen::JsCast;\n        let rect = canvas.get_bounding_client_rect();\n        self.screen.size_in_pixels = [canvas.width(), canvas.height()];\n        self.screen.pixels_per_point = canvas.width() as f32 / rect.width() as f32;\n        self.consumed = false;\n        if let Some(event) = event {\n            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { self.consumed = self.key(key); }\n            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {\n                self.consumed = self.pointer(pointer, canvas);\n                if event.type_() == \"pointerdown\" {\n                    let options = web_sys::FocusOptions::new(); options.set_prevent_scroll(true);\n                    canvas.focus_with_options(&options)?;\n                    event.prevent_default();\n                }\n            }\n            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() { self.consumed = self.wheel(wheel, canvas); }\n        }\n        let line = self.prepare();\n        canvas.set_attribute(\"data-command-ui\", &self.inspect())?;\n        let Some(line) = line else { return Ok(None); };\n        if line == \"Escape\" { return Ok(None); }\n        if line.eq_ignore_ascii_case(\"Help\") {\n            self.answer(&line, &self.commands.0.join(\" · \"));\n            return Ok(None);\n        }\n        if !self.commands.0.iter()\n            .any(|name| name.eq_ignore_ascii_case(&line))\n        {\n            self.answer(&line, \"Unknown command. Type Help.\");\n            return Ok(None);\n        }\n        self.answer(&line, \"Command submitted.\");\n        Ok(Some(line.to_ascii_lowercase()))\n    }\n\n    fn prepare(&mut self) -> Option<String> {\n        let size = self.screen.size_in_pixels;\n        let mut input = egui::RawInput {\n            focused: true,\n            events: std::mem::take(&mut self.events),\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32) / self.screen.pixels_per_point,\n            )),\n            ..Default::default()\n        };\n        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point = Some(self.screen.pixels_per_point);\n        self.controls = Some(Vec::new());\n        let mut line = None;\n        let output = self.context.run_ui(input, |root| {\n            command_dock::draw(root, &mut self.model, &mut self.controls, &mut line, &self.commands, true);\n        });\n        if let Some(control) = self.controls.as_ref().and_then(|items| items.iter().find(|item| item.key == \"command/resize\")) {\n            self.top = control.rect[1];\n        }\n        if let Some(previous) = self.output.as_mut() { previous.append(output); }\n        else { self.output = Some(output); }\n        line\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let Some(output) = self.output.take() else { return; };\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);\n        }\n        let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);\n        let mut encoder = renderer.device.create_command_encoder(&Default::default());\n        let mut buffers = self.painter.update_buffers(\n            &renderer.device, &renderer.queue, &mut encoder, &jobs, &self.screen,\n        );\n        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n            label: Some(\"command panel\"),\n            color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                view: target, resolve_target: None, depth_slice: None,\n                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },\n            })],\n            ..Default::default()\n        });\n        self.painter.render(&mut pass.forget_lifetime(), &jobs, &self.screen);\n        buffers.push(encoder.finish());\n        renderer.queue.submit(buffers);\n        for id in output.textures_delta.free { self.painter.free_texture(&id); }\n    }\n}\n",
+          "snippet": "journey/code/22a-final-18.rs",
+          "why": "Route accepted nonrepeated shortcuts through commands."
+        },
+        {
+          "path": "Cargo.toml",
+          "before": "[package]\nname = \"viewer_journey\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\ncrate-type = [\"cdylib\", \"rlib\"]\n\n[workspace]\n\n[dependencies]\nwinit = \"0.30\"\nswash = \"=0.2.10\"\nttf-parser = { version = \"0.25\", default-features = false, features = [\"opentype-layout\", \"std\"] }\nserde_yaml_ng = \"0.10\"\npng = \"0.17\"\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false, features = [\"viewer-display\"] }\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\nserde = { version = \"1.0\", features = [\"derive\"] }\nserde_json = \"1.0\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
+          "snippet": "journey/code/22a-final-1.toml",
+          "why": "Enable file events and protobuf decoding."
         },
         {
           "path": "src/lib.rs",
-          "before": "pub mod shortcuts;",
-          "snippet": "journey/code/26a-keys-06.rs",
-          "why": "Register the native checks."
+          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\npub mod history;\npub mod editor;\npub mod viewport;\npub mod gesture;\npub mod navigation;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n#[cfg(test)]\n#[path = \"command_dock/tool_buttons_tests.rs\"]\nmod tool_buttons_tests;\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_vocabulary;\n\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "snippet": "journey/code/22a-final-3.rs",
+          "why": "Register file, bounds and shortcut modules and tests."
         }
       ],
-      "image_same_as": "26-selected"
+      "authored": true,
+      "lock": "journey/release/cumulative-math-04.lock",
+      "assets": []
     },
     {
       "id": "27-placement",
@@ -88307,6 +87396,19 @@
     "20c-motion": "19a-viewport",
     "21-gestures": "19a-viewport",
     "21a-wheel": "19a-viewport",
-    "22-shortcuts": "19a-viewport"
+    "22-shortcuts": "19a-viewport",
+    "22b-session": "22a-records",
+    "22c-decode": "22a-records",
+    "22d-import": "22a-records",
+    "22e-file-reader": "22a-records",
+    "23-import": "22a-records",
+    "23a-bounds": "22a-records",
+    "23b-fit-camera": "22a-records",
+    "24-fit": "22a-records",
+    "24a-projection": "22a-records",
+    "24b-projection-actions": "22a-records",
+    "25-projection": "22a-records",
+    "26-selected": "22a-records",
+    "26a-keys": "22a-records"
   }
 }

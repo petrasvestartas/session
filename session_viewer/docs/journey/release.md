@@ -1,8 +1,8 @@
 # Course status
 
-- The course has **1,311 checkpoints across 110 reader subjects**. [Cumulative mathematics](03a-mathematics.md), [command handling](04-input.md), and [six mesh-to-viewport checkpoints](release/cumulative-six-runtime-windows-20261114.json) have native, WASM and desktop/upright browser evidence.
-- The six checkpoints retain mathematics, pass 29 to 56 native tests each, and have 92 reviewed browser captures. Upright viewport emulation does not establish physical-phone acceptance; final-reference WASM startup remains unverified.
-- Completion remains open: **97 unconsolidated subjects**, 25 inventory gaps, 4,842 later-subject rewrites across 306 files, and endpoint parity of 299 missing, 709 extra and five changed files. See the [completion contract](completion-contract.md).
+- The course has **1,298 checkpoints across 110 subjects**. [Records and fitting](22a-records.md) consolidates fourteen checkpoints, archives fifteen pages and passes [73 native tests](release/records-native-windows-20261114.json).
+- Early mathematics, commands and six mesh-to-viewport checkpoints have native, WASM and browser evidence. Records passes [20 documentation tests, a strict site build and eight browser captures](release/records-docs-windows-20261114.json); its application WASM/browser acceptance remains pending.
+- Remaining: **96 unconsolidated subjects**, 4,801 ownership rewrites, structural/inventory differences, production parity and final-reference WASM startup. Viewport emulation does not establish physical-phone acceptance. See the [completion contract](completion-contract.md).
 
 ## Reproduce
 

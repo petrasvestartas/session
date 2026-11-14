@@ -34,7 +34,7 @@ Work through one coherent subject at a time and save partial work at file bounda
 
 - [3.2 · One drawing size and one captured gesture](19a-viewport.md)
 
-- [3.3 · Validated files, bounds and useful projections](consolidation/22a-records.md)
+- [3.3 · Validated files, bounds and useful projections](22a-records.md)
 
 - [3.4 · Local sources, world placement and display caches](consolidation/27-placement.md)
 
@@ -326,4 +326,5 @@ This route covers the authored learner implementation. [Current-viewer parity re
 | 6 | [2.4.1 · Select, navigate and undo](12-identity.md) | 155–309 min |
 | 7 | [3.1.1 · Kernel geometry and one editor](17-solid.md) | 82–164 min |
 | 8 | [3.2.1 · One drawing size and one captured gesture](19a-viewport.md) | 159–318 min |
+| 9 | [3.3.1 · Validated files, bounds and useful projections](22a-records.md) | 303–606 min |
 

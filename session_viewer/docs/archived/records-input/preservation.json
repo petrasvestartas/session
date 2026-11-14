@@ -1,0 +1,130 @@
+{
+  "status": "73 native tests; WASM/browser and finished ownership pending",
+  "originalIds": [
+    "22a-records",
+    "22b-session",
+    "22c-decode",
+    "22d-import",
+    "22e-file-reader",
+    "23-import",
+    "23a-bounds",
+    "23b-fit-camera",
+    "24-fit",
+    "24a-projection",
+    "24b-projection-actions",
+    "25-projection",
+    "26-selected",
+    "26a-keys"
+  ],
+  "pages": [
+    {
+      "page": "journey/22a-records.md",
+      "archive": "archived/journey-22a-records.md",
+      "sha256": "c3cb6bd637b3eb3de3138f545b47d4faf9dbcba305156dd40d94394eb2d0025d"
+    },
+    {
+      "page": "journey/22b-session.md",
+      "archive": "archived/journey-22b-session.md",
+      "sha256": "876790f7ef2e8d49e334593885deb9023c4a80d67eeae524b4a968c108c36cd7"
+    },
+    {
+      "page": "journey/22c-decode.md",
+      "archive": "archived/journey-22c-decode.md",
+      "sha256": "99cb44a58400471a9094c0e202e38178a79ea5efa24a7c2568172e892ab43bf1"
+    },
+    {
+      "page": "journey/22d-import.md",
+      "archive": "archived/journey-22d-import.md",
+      "sha256": "4cb805093160f10835fb69c6b948da853f2bbf65c384cd96bae7a66f95e927fc"
+    },
+    {
+      "page": "journey/22e-file-reader.md",
+      "archive": "archived/journey-22e-file-reader.md",
+      "sha256": "f3a8f845edfaba3037a475a9502e6ba0ca93f02bb05972b36a5249eb932cccdb"
+    },
+    {
+      "page": "journey/23-import.md",
+      "archive": "archived/journey-23-import.md",
+      "sha256": "ed6a3073fd4822df4deb8d0a5d974e5521d615a3893680f6d1ce201fdbe4dd4f"
+    },
+    {
+      "page": "journey/23a-bounds.md",
+      "archive": "archived/journey-23a-bounds.md",
+      "sha256": "84fef5e398741eac1a7847df5ef8bffed4475e266d06c30a1a98b0a815539c7e"
+    },
+    {
+      "page": "journey/23b-fit-camera.md",
+      "archive": "archived/journey-23b-fit-camera.md",
+      "sha256": "3c3ca3e1bfb9d7e74edc2ab80aa59f6b50275ab6d74e35cc35fd713b40148b24"
+    },
+    {
+      "page": "journey/24-fit.md",
+      "archive": "archived/journey-24-fit.md",
+      "sha256": "494f7c86824954c77be730d84d710c0c7a0d6f123db3cab6470862f52db75d05"
+    },
+    {
+      "page": "journey/24a-projection.md",
+      "archive": "archived/journey-24a-projection.md",
+      "sha256": "fb612c73e80efe4b1162284b2003aceae78475297afa62968f29dc1291d9a6b5"
+    },
+    {
+      "page": "journey/24b-projection-actions.md",
+      "archive": "archived/journey-24b-projection-actions.md",
+      "sha256": "eb17dab2a4329eda95f7084127c854b393131aac4e2712a8a88f403fb26c096b"
+    },
+    {
+      "page": "journey/25-projection.md",
+      "archive": "archived/journey-25-projection.md",
+      "sha256": "bc8701f625475413113d4a381265a300f7e71db2b20f06889c6b6511a6fcb8d2"
+    },
+    {
+      "page": "journey/26-selected.md",
+      "archive": "archived/journey-26-selected.md",
+      "sha256": "2b4d8c3fef943154a064097097d20852653565819124e5e3b00ba30264e9117a"
+    },
+    {
+      "page": "journey/26a-keys.md",
+      "archive": "archived/journey-26a-keys.md",
+      "sha256": "4293be8206efb77caa38eb3cc7e7f50e1a345e277165245189c58dd970c2db2e"
+    },
+    {
+      "page": "journey/consolidation/22a-records.md",
+      "archive": "archived/journey-consolidation-22a-records.md",
+      "sha256": "bc4783e091f2d1e06a073f48ab99ed56b8e63e8c71d4cc4e584eaccd31a17e51"
+    }
+  ],
+  "endpoint": "267a2bf720f9bf9bede97f23982589f413b8ff196e6f2da1de2b3636566e3340",
+  "destination": "936b0017f357f86dd8908bb545f8f0dc811c503107e64e1113d07ab0338abb33",
+  "existingFilesRevisited": [
+    "Cargo.toml",
+    "src/lib.rs",
+    "src/scene.rs",
+    "src/editor.rs",
+    "index.html",
+    "src/browser.rs",
+    "src/camera.rs",
+    "src/panel.rs"
+  ],
+  "originalSections": [
+    {
+      "title": "Validated files, bounds and useful projections",
+      "first": "22a-records"
+    },
+    {
+      "title": "Opening files and scene bounds",
+      "first": "23-import"
+    },
+    {
+      "title": "Fit and projection changes",
+      "first": "24-fit"
+    },
+    {
+      "title": "Named projections",
+      "first": "25-projection"
+    },
+    {
+      "title": "Object framing and keyboard history",
+      "first": "26-selected"
+    }
+  ]
+}

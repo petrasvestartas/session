@@ -2,7 +2,7 @@
 
 Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, such as **1.1**. Original chapter.section.checkpoint numbers and URLs remain available for recovery and source comparison. The [daily plan](daily-plan.md) keeps stopping points within each lesson.
 
-[Production source and coverage map](production-course-map.md) · **110 reader-facing subjects; 1,311 active runnable checkpoints**. Navigation grouping is not executable consolidation. Historical routes and archived sources remain available; the final maintained-runtime comparison is a reference appendix.
+[Production source and coverage map](production-course-map.md) · **110 reader-facing subjects; 1,298 active runnable checkpoints**. Navigation grouping is not executable consolidation. Historical routes and archived sources remain available; the final maintained-runtime comparison is a reference appendix.
 
 [Progress and remaining work](roadmap.md) · [Visual review and known issues](visual-review.md). Existing lesson links and saved checkpoints remain valid.
 
@@ -70,13 +70,13 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ## 3 · Documents, editing and ownership
 
-**Automated Chrome checks: 0 of 85 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
+**Automated Chrome checks: 0 of 72 checkpoints current.** Other records remain historical or unverified; follow the [active validation queue](roadmap.md) and reuse matching proof.
 
-**Critical browser-scene review: 0 of 85 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
+**Critical browser-scene review: 0 of 72 checkpoints recorded.** A supporting image is a reference, not approval of the entire chapter.
 
 **Critical visual review pending.** This recorded reference is not an accepted visual-quality result.
 
-**Previous native render — fresh verification pending.** [3.13.45 · Prove failed restoration cannot partly commit](32gja-failures.md).
+**Previous native render — fresh verification pending.** [3.9.45 · Prove failed restoration cannot partly commit](32gja-failures.md).
 
 ![Chapter 3: Prove failed restoration cannot partly commit. Previous native render — fresh verification pending.](../screenshots/journey/32gja-failures.png)
 
@@ -90,7 +90,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ### 3.3 · Validated files, bounds and useful projections
 
-- [3.3 · Validated files, bounds and useful projections](consolidation/22a-records.md)
+- [3.3 · Validated files, bounds and useful projections](22a-records.md)
 
 ### 3.4 · Local sources, world placement and display caches
 
