@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-44-topology"></a>1. Preserve source faces and edges
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44-topology-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Original topology conservation and source face/edge identity require separate checks; interactive part modes and highlights arrive at44l.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -313,6 +315,8 @@ mod mesh_parts_tests;
 
 ## <a id="checkpoint-44a-tags"></a>2. Tag the kind of a picked part
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44a-tags-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Source part-kind tags and integer decoding need separate checks; interactive part modes and highlights arrive at44l.
+
 ### 1. `src/sub_id.rs`
 
 Create the file and type:
@@ -483,6 +487,8 @@ fn tagged_zero_addresses_and_largest_addresses_roundtrip_without_kind_collisions
 ```
 
 ## <a id="checkpoint-44b-sources"></a>3. Map visible ink back to sources
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44b-sources-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Original ink-source and part mapping require separate decoding checks; interactive part modes and highlights arrive at44l.
 
 ### 1. `src/pick_sources.rs`
 

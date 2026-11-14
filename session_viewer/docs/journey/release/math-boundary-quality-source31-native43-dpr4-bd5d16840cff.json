@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-43-01\\capture-ready.json",
+    "sha256": "7f5242e0d169666612689c897773e86f706c30cef338b74e84a829c90ad7c677"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T00:06:25.004Z",
+  "id": "43-ticket",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-43-ticket-c0d41ec991a889796b2c\\capture.json.gz",
+    "sha256": "e9098de0ad40652567b532907bef0c01f09775889f79cd7eb94b7d1b92dc0af4",
+    "bytes": 90941
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-43-01\\capture-result.json",
+    "sha256": "24384141ffeee36a9103f5e80af7baeedf3246a0714262ce3a27274dae80bd02"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-43-01-execution.json",
+    "sha256": "b9a38dc38c16099de4b24f2c36cd15fcef47f08c364753d47d2916c7ff8f0720"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-43-01\\bounded-terminal.json",
+    "sha256": "42e12343311ad4dbca2a241eaa4881e7d99cc6eb9f7c730400a576b94ebef58e"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\43-ticket-bd5d16840cff.png",
+    "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42-window.png",
+    "sha256": "4d71ed6c07bb50dcbf89e23c7baef3c9a5a5f72d1485fe6310315760119a4d63"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed original2560x1920 PNG: selected yellow solid left, shaded brown solid right, black connected ink and blue point, gray grid and BRG axes. No triangulation-edge strokes appear on solid faces; raster edge steps and grid/axis crossings remain. The exact inherited41f RGB pixels are unchanged. Lesson43 introduces checked request tickets and camera/viewport/density signatures; this frame does not exercise supersession, invalidation or stale-view rejection. Actual inherited constructor GPU checks passed as recorded. Copied cfg(test), canonical640pixel checks and real browser input acceptance remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 43-ticket rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-ticket-six-case-43-01\\publication.json",
+    "sha256": "9515711e68b9499daac8700b754926ccf157e4c25eb5f0bbf708659e8514fde1"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-43-ticket-c0d41ec991a889796b2c\\publication.json",
+    "sha256": "9477662be1cdddfdbc8bd2b6128447211e4ac72dcd56a0e2417885b6cfc09541"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-43-ticket-c0d41ec991a889796b2c\\retirement.json.gz",
+    "sha256": "efe8a27165551c6e8e2a479b4bfc7993c9cb5ddb061171f5da43f19b7bf801b5"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-43-ticket-c0d41ec991a889796b2c\\retired.json",
+    "sha256": "cfcefa74d9d35f7508f93ba7efa12eb81bf584fd53804205e43c17df17857561"
+  }
+}
