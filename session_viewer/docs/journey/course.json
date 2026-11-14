@@ -1025,7 +1025,7 @@
       ],
       "browser_check": "journey/checks/browser/records.cjs",
       "story": "Validate a complete document before mutation, retain its source ownership and frame bounds through the narrower projection angle.",
-      "browser_caption": "Historical endpoint; current cumulative browser acceptance pending.",
+      "browser_caption": "Current cumulative browser import, fitting and keyboard checks passed at desktop and upright dimensions; physical-device and finished ownership acceptance remain pending.",
       "checks": "Native record, bounds, projection and key-policy tests; browser checks cover actual file selection, stale reads, import undo/redo, fitting in both projections and text-owned shortcuts.",
       "edits": [
         {

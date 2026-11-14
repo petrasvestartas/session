@@ -2,11 +2,9 @@
   <div class="course-index">
     <h1>Viewer course</h1>
     <p class="lead">
-      Learn the existing Session Viewer's implementation, from GPU ownership to its developed rendering paths.
-      {{ consolidatedChapterCount }} of {{ chapterGroups.length }} chapters are consolidated. The route currently has
-      {{ readerLessonCount.toLocaleString('en-US') }} reader-facing lessons.
-      <template v-if="consolidatedChapterCount < chapterGroups.length">Consolidation of the remaining chapters is pending.</template>
-      Rendering reconciliation and runtime acceptance remain pending.
+      Build the Session Viewer from Rust and wgpu fundamentals to its production rendering paths.
+      The route organizes {{ readerLessonCount.toLocaleString('en-US') }} reader-facing subjects.
+      Consolidating their runnable checkpoints, reconciling rendering and completing runtime acceptance remain in progress.
       The complete implementation reference stays available below.
     </p>
     <p><router-link to="/course/journey/contents">Book contents: chapters and sections</router-link></p>
@@ -35,7 +33,6 @@ import { groups, pages } from 'virtual:course';
 import { latestCodingLesson } from '../courseOrder';
 const latestLesson = latestCodingLesson(pages);
 const chapterGroups = groups.filter(group => /^\d+ · /.test(group.title));
-const consolidatedChapterCount = chapterGroups.filter(group => group.slugs.every(slug => /^\d+\.\d+ · /.test(pages[slug]?.title))).length;
 const readerLessonCount = chapterGroups
   .reduce((count, group) => count + group.slugs.length, 0);
 </script>

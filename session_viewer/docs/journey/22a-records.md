@@ -200,6 +200,10 @@ Build the sample executable under the repository's resource guards, then open it
 
 Undo once: all three imported parts should disappear together. Redo should restore their identities and source ownership. Import a malformed file after creating a redo branch: the scene, selection and redo branch should survive. Repeat at a wide and an upright viewport; fitting should preserve geometry proportions.
 
+![Current cumulative browser result after importing and fitting the frame.](../screenshots/journey/records-fitted-20261114-landscape.png)
+
+The [upright browser result](../screenshots/journey/records-fitted-20261114-portrait.png) keeps the imported frame and existing triangles inside the viewport after Fit. The initial camera and Fit Selected can leave other objects outside the view.
+
 ## Predict and try
 
 Begin reading one valid file, then select an oversized file before the first read finishes. Predict which result is allowed to change the scene. The newer selection owns the request counter even though it is rejected before reading; the old successful read must not import later or overwrite the rejection message.
@@ -214,8 +218,8 @@ The viewer ID identifies one scene occurrence. The source GUID identifies geomet
 
 ## Validation
 
-The 67-file cumulative checkpoint retains early mathematics and passes 73 native library tests. Its source matches the retained fourteen-step endpoint exactly. WASM, browser interaction and finished-subject ownership acceptance remain pending. Its restricted importer is not the maintained production decoder; eight existing files still change here. Source equivalence and native tests do not establish browser or production acceptance.
+The 67-file cumulative checkpoint passes 73 native library tests, optimized WASM and Trunk builds, and desktop/upright browser checks. Actual file selection, stale reads, transactional import, projection fitting, keyboard ownership and early mathematics navigation passed. The [runtime receipt](release/records-runtime-windows-20261114.json) binds these results to the exact source and captured frames. Viewport emulation does not establish physical-phone or selected hardware-adapter acceptance.
 
-The [native receipt](release/records-native-windows-20261114.json) records the source hashes, test names, compiler features and measured resource use. The [documentation receipt](release/records-docs-windows-20261114.json) records the strict build, twenty regression tests and desktop/upright page checks. The [fixture receipt](release/records-fixture-windows-20261114.json) records generation and independent decoding of the three meshes; application browser acceptance remains pending.
+The restricted importer is not the maintained production decoder; eight existing files still change here. Finished-subject ownership and production parity remain unfinished. The earlier [native](release/records-native-windows-20261114.json), [documentation](release/records-docs-windows-20261114.json) and [fixture](release/records-fixture-windows-20261114.json) receipts retain their original validation scopes.
 
 Continue with [Local sources, world placement and display caches](consolidation/27-placement.md).
