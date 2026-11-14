@@ -14602,7 +14602,8 @@
           "why": "Register the component and copied checks."
         }
       ],
-      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata."
+      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
+      "image_same_as": "41f-input"
     },
     {
       "id": "44d-pulling",
@@ -14687,7 +14688,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44c-resolve"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44e-pipeline",
@@ -14736,7 +14737,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44c-resolve"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44f-metadata",
@@ -14779,7 +14780,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44c-resolve"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44g-edge-ink",
@@ -15095,8 +15096,7 @@
           "why": "Register the component and copied checks."
         }
       ],
-      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44g-edge-ink"
+      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata."
     },
     {
       "id": "44ia-original-ink",
@@ -15139,7 +15139,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44g-edge-ink"
+      "image_same_as": "44i-ink-highlight"
     },
     {
       "id": "44j-face-highlight",
@@ -15243,7 +15243,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44g-edge-ink"
+      "image_same_as": "44i-ink-highlight"
     },
     {
       "id": "44k-selection",
@@ -15341,7 +15341,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44g-edge-ink"
+      "image_same_as": "44i-ink-highlight"
     },
     {
       "id": "44l-input",
