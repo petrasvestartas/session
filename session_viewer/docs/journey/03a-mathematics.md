@@ -80,6 +80,20 @@ The [regression fixture](../../src/app/stage/presentation_tests.rs) creates a on
 
 This ownership boundary is separate from cumulative acceptance. The standalone checkpoint and its recorded browser evidence remain intact; application-mode registration into the cumulative course is still pending.
 
+### Register content without owning the application
+
+A mode receives input and produces egui output; it does not acquire another surface or create another GPU device. Read [the application contract](../../src/app/mode.rs). `Host` is a Rust type parameter: the early mathematics mode works with an empty host, while the later scene mode receives the viewer state. The mathematics implementation never accesses the host, so adding a camera later does not require changing its painter.
+
+```rust
+--8<-- "session_viewer/src/app/stage/math_mode.rs:math-mode"
+```
+
+`Mode<Host>` uses a trait object so the application stores one active content implementation without knowing its concrete type. `Frame` carries the logical canvas rectangle, canvas dimensions, pixel density and current time; these are observations supplied by the application, not a second clock. The background is four normalized colour channels, so this interface does not require a GPU device.
+
+The frame callback ticks the existing clock, runs egui once and returns both the output and repaint request. The application uploads textures and presents. Key input calls the presentation's navigation implementation; the scene adapter uses that same implementation. Pointer handling remains the later scene adapter's responsibility. The loaded-mode factory consumes its payload exactly once, using ownership rather than a second copy of the deck and fonts.
+
+Predict whether replacing the empty host with a scene requires changing this implementation: it does not, because none of these operations reads host data. The scene adapter instead owns a separate callback that applies its camera before painting and synchronizes geometry afterwards. This interface passes the native mode probe and full application native and WebAssembly compilation. Optimized browser equivalence and adoption by the cumulative application's owning subject remain pending; the standalone browser harness is the currently runnable subject host.
+
 ### Column and equals alignment
 
 Copy [layout.rs](../lessons/03a-math/src/app/stage/layout.rs) and [object.rs](../lessons/03a-math/src/app/stage/object.rs). An object keeps its content, colour, size, position, fit, opacity and named primitive groups. Layout measures blocks before positioning them.

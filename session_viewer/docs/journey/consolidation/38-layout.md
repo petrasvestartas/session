@@ -18,6 +18,31 @@ The checkpoint below exercises source ownership and visible sampled curves. Its 
 
 **Steps:** 5 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
+## Production curve ends and marker clearance
+
+The maintained viewer samples the original NURBS evaluator at the parameters selected by display quality. Those points form one ribbon chain. A head uses the first or last displayed segment for its direction, while the document keeps the original curve and its arrowhead policy.
+
+Read the complete end-head construction in the owning walker:
+
+```rust
+--8<-- "session_viewer/src/app/walk/curves.rs:curve-heads"
+```
+
+`HEAD_ONLY` gives the vector lane responsibility for the triangular head without adding a second shaft. The start head reverses the first segment so its tip points outward. The ribbon's corresponding head flag stops its body under the head; both records retain the same object identity, colour and width. A zero-length terminal segment supplies no direction, so it emits no heads.
+
+Endpoint clearance is a separate upload operation:
+
+```rust
+--8<-- "session_viewer/src/app/walk/curves.rs:endpoint-clearance"
+```
+
+A visible kernel point within the rendered-position tolerance supplies its encoded display radius. A point with default width supplies the default marker clearance. The upload stores these radii on vector ends and ribbon segments; interior chain segments have their trims cleared. The shader converts the encoded radius at the endpoint's depth and adds filter clearance before drawing. Hiding the marker removes its clearance contribution without changing the original curve.
+
+Predict the result of hiding a point placed exactly at a headed curve end: the visible arrow reaches farther toward the original endpoint. Changing curve sampling quality can change the terminal chord direction, but must preserve the curve's owner and requested start/end heads.
+
+Why keep the original curve when the GPU draws ribbons? Evaluation, bounds and document edits need the authored geometry; display samples are a quality-dependent approximation. These production mechanisms are taught here, but their cumulative checkpoint adoption and fresh browser acceptance remain pending.
+
+
 ## <a id="checkpoint-38-layout"></a>1. Validate an NURBS curve before sampling
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

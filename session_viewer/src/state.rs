@@ -45,7 +45,7 @@ pub struct State {
     pub view_frame: [f64; 4], // the canvas part the panels leave free: left, top, right, bottom in fractions
     load_camera: crate::camera::CameraPose, // the view before loading started
     pub scene: Scene,         // the loaded documents
-    pub(crate) stage: Option<Box<crate::app::stage::StageApp>>, // a running stage deck, painted by egui
+    pub(crate) mode: Option<Box<dyn crate::app::mode::Mode<State>>>,
     pub needs_frame: bool,        // draw again on the next redraw
     gpu_stopped: bool,            // failure handled; never submit again
     pub interacting: bool,        // a drag or pinch is in progress
@@ -84,7 +84,7 @@ impl State {
             load_camera: camera.pose(),
             camera,
             scene,
-            stage: None,
+            mode: None,
             needs_frame: true,
             gpu_stopped: false,
             interacting: false,
@@ -620,12 +620,10 @@ impl State {
             .view_proj_anchored(self.aspect(), &rebase.anchor);
         let input = FrameInput {
             view_proj,
-            clear: if let Some(stage) = &self.stage {
-                let c = stage.presentation.stage.palette("bg");
+            clear: self.mode.as_ref().map_or(CLEAR, |mode| {
+                let c = mode.background();
                 wgpu::Color { r: c[0] as f64, g: c[1] as f64, b: c[2] as f64, a: 1.0 }
-            } else {
-                CLEAR
-            },
+            }),
             now_ms,
         };
         self.dirty |= rebase.moved

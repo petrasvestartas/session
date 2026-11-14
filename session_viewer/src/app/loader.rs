@@ -95,7 +95,7 @@ fn clear_scene() {
 
 /// Hand a loaded stage deck to the event loop.
 pub(crate) fn post_stage(loaded: super::stage::Loaded) {
-    post(Msg::Stage(Box::new(loaded)));
+    post(Msg::Mode(Box::new(loaded)));
 }
 
 /// Send one message to the event loop; false when it is gone.

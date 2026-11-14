@@ -32,6 +32,7 @@ pub mod loader; // register:loader
 pub mod manifest; // register:manifest
 pub mod mesh_preview; // register:mesh_preview
 pub mod modeling; // register:modeling
+pub mod mode; // register:mode
 pub mod stage;
 #[cfg(any(target_arch = "wasm32", test))] // register:range_gate
 pub mod range_gate; // register:range_gate

@@ -2,6 +2,15 @@
 
 **Steps:** 7 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
+## Authored width and projected radius
+
+The maintained [width encoder](../../../src/app/walk/encode.rs) maps a finite positive authored width other than the default value `1` to a negative half-width. Default, nonpositive and nonfinite widths use zero. The [stroke shader](../../../src/shaders/ribbon.wgsl) interprets zero as the default pen, negative radius as a pen multiplier and positive radius as a world-space radius. These are encoded meanings, so applying an absolute value at upload would change the result.
+
+For a world-space radius, orthographic projection scales by viewport height and camera height; perspective projection also divides by endpoint depth. A screen pen stays readable as the camera moves away. Predict the difference between a negative encoded radius and a positive world radius when zooming out: the pen retains its screen width while the world-space stroke becomes thinner.
+
+Why halve the authored width? Extrusion offsets both sides of the centerline by a radius; treating the full width as that offset would double the visible stroke. This production convention still needs adoption and rendered-width acceptance in the cumulative checkpoint.
+
+
 
 ## Current stroke widths, dashes and reveal
 

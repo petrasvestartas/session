@@ -58,7 +58,7 @@ pub enum Msg {
     SavedScene(Box<app::scene::Scene>), // a saved session loaded; register:commands
     Hydrated(Box<app::scene::Hydrated>), // a released document's objects are back; register:editing
     Fonts(Vec<Vec<u8>>),           // the whole label fonts, main font first; register:loading
-    Stage(Box<app::stage::Loaded>), // a stage deck with its fonts
+    Mode(Box<dyn app::mode::Loaded<State>>),
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -186,8 +186,8 @@ impl ApplicationHandler<Msg> for App {
             Msg::File(doc, source) => state.append(doc, source),
             Msg::Hydrated(back) => state.hydrated(*back), // register:editing
             Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
-            Msg::Stage(loaded) => {
-                state.stage = Some(Box::new(app::stage::StageApp::new(*loaded, engine::performance::now_ms())));
+            Msg::Mode(loaded) => {
+                state.mode = Some(loaded.open(engine::performance::now_ms()));
                 state.request_frame();
             }
             Msg::Texts(texts) => state.set_texts(texts), // register:scene_text
@@ -217,7 +217,7 @@ impl ApplicationHandler<Msg> for App {
             return;
         }
 
-        let taken = if self.state.as_ref().is_some_and(|s| s.stage.is_some()) {
+        let taken = if self.state.as_ref().is_some_and(|s| s.mode.is_some()) {
             false
         } else {
             self.panels_take(&event) // the panels get the event first; register:egui
@@ -253,8 +253,8 @@ impl ApplicationHandler<Msg> for App {
                     state.needs_frame = true;
                 } else {
                     // panels lay out, then the scene draws; a deck has only its two DOM arrows
-                    let repaint = if state.stage.is_some() {
-                        self.ui.as_mut().is_some_and(|ui| ui.stage_frame(state))
+                    let repaint = if state.mode.is_some() {
+                        self.ui.as_mut().is_some_and(|ui| ui.mode_frame(state))
                     } else {
                         self.ui.as_mut().is_some_and(|ui| ui.frame(state)) // register:egui
                     };
@@ -273,20 +273,20 @@ impl ApplicationHandler<Msg> for App {
             WindowEvent::KeyboardInput { event, .. } => {
                 if !viewer_focused() || event.state != ElementState::Pressed {
                     false
-                } else if let Some(stage) = state.stage.as_mut() {
-                    stage.key(event.logical_key.as_ref(), engine::performance::now_ms())
+                } else if let Some(mode) = state.mode.as_mut() {
+                    mode.key(event.logical_key.as_ref(), engine::performance::now_ms())
                 } else if event.repeat {
                     false
                 } else {
                     self.input.key(state, event.logical_key.as_ref())
                 }
             }
-            other if state.stage.is_some() => {
+            other if state.mode.is_some() => {
                 let scale = state.window.scale_factor();
                 let now = engine::performance::now_ms();
-                let mut stage = state.stage.take();
-                let used = stage.as_mut().is_some_and(|s| s.pointer(&other, scale, now, &mut state.camera));
-                state.stage = stage;
+                let mut mode = state.mode.take();
+                let used = mode.as_mut().is_some_and(|mode| mode.pointer(&other, scale, now, state));
+                state.mode = mode;
                 used
             }
             other => self.input.mouse(state, &other),

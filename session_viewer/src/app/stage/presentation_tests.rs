@@ -89,3 +89,36 @@ fn painting_retains_coordinates_and_settles_without_losing_glyphs() {
         assert!(!output.shapes.is_empty());
     }
 }
+
+#[test]
+fn mathematics_mode_navigates_and_paints_without_a_scene_host() {
+    use crate::app::mode::{Frame, Mode};
+    use winit::keyboard::{Key, NamedKey};
+
+    let mut p = presentation();
+    let mut host = 42usize;
+    let context = egui::Context::default();
+    context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+    let screen = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(390.0, 844.0));
+    let mode: &mut dyn Mode<usize> = &mut p;
+    assert!(!mode.key(Key::Character("unknown"), 125.0));
+    assert!(mode.key(Key::Named(NamedKey::ArrowRight), 125.0));
+    let light = mode.background();
+    for (now, key) in [(10_000.0, None), (20_000.0, Some("t"))] {
+        if let Some(key) = key {
+            assert!(mode.key(Key::Character(key), now - 1000.0));
+        }
+        let (output, _) = mode.frame(
+            &mut host,
+            &context,
+            egui::RawInput { screen_rect: Some(screen), ..Default::default() },
+            Frame { screen, logical: [390.0, 844.0], pixels_per_point: 1.0, now },
+        );
+        assert!(!output.shapes.is_empty());
+    }
+    assert_ne!(mode.background(), light);
+    assert!(mode.key(Key::Named(NamedKey::ArrowLeft), 20_000.0));
+    assert_eq!(host, 42);
+    assert_eq!(p.stage.progress().0, 0);
+    assert!(p.stage.errors.is_empty());
+}

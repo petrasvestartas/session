@@ -35,6 +35,35 @@ impl Presentation {
         }
     }
 
+    /// Keys: arrows and page keys step, up/down jump slides, digits open chapters, T swaps white and black.
+    pub fn key(&mut self, key: winit::keyboard::Key<&str>, now: f64) -> bool {
+        use winit::keyboard::{Key, NamedKey};
+        let stage = &mut self.stage;
+        match key {
+            Key::Named(
+                NamedKey::ArrowRight | NamedKey::PageDown | NamedKey::Space | NamedKey::Enter,
+            ) => stage.next(now),
+            Key::Named(NamedKey::ArrowLeft | NamedKey::PageUp | NamedKey::Backspace) => {
+                stage.prev(now)
+            }
+            Key::Named(NamedKey::ArrowDown) => stage.slide(1, now),
+            Key::Named(NamedKey::ArrowUp) => stage.slide(-1, now),
+            Key::Named(NamedKey::Home) => stage.chapter_go(stage.chapter, now),
+            Key::Character(" ") => stage.next(now),
+            Key::Character(c) if c == "r" || c == "R" => stage.cam_serial += 1,
+            Key::Character(c) if c == "t" || c == "T" => {
+                stage.set_theme(stage.theme.toggled(), now)
+            }
+            Key::Character(c) => match c.parse::<usize>() {
+                Ok(n) if n >= 1 && n <= stage.chapters.len() => stage.chapter_go(n - 1, now),
+                _ => return false,
+            },
+            _ => return false,
+        }
+        stage.changed = true;
+        true
+    }
+
     pub fn paint(&mut self, painter: &egui::Painter, screen: egui::Rect, ppp: f32) -> bool {
         let frame = paint::Frame::new(screen, ppp).stacked(screen, self.stage.split);
         self.frame = Some(frame);

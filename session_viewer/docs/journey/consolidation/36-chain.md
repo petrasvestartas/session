@@ -2,6 +2,48 @@
 
 **Steps:** 10 · **Source:** [app/walk/curves.rs](../../../src/app/walk/curves.rs) · [engine/gpu/segments.rs](../../../src/engine/gpu/segments.rs) · [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../src/shaders/vector.wgsl)
 
+## Production arrow arguments and endpoint clearance
+
+The production [vector entry point](../../../src/shaders/vector.wgsl) reads a 64-byte `VectorRow` and passes its fields to [the shared arrow implementation](../../../src/shaders/arrow.wgsl). The [plane entry point](../../../src/shaders/plane.wgsl) supplies the same arguments for grid lines and axis arrows.
+
+| Argument | Meaning in the shared calculation |
+| --- | --- |
+| `start`, `end` | Object-space endpoints. Instance placement precedes projection; reveal interpolates the end from the start. |
+| `radius` | Zero selects the default pen, positive values use world units, and negative values scale the pen width. Perspective conversion uses each clipped endpoint's depth. |
+| `instance_id` | Selects placement, reveal, visibility and selection from the object row. |
+| `ink` | Packed colour passed to fragment coverage. |
+| `head_pens` | Head length in pen widths; zero selects the default. The result also respects shaft width and available projected length. |
+| `heads` | End, start and head-only flags. A near-plane cut suppresses the corresponding source-end head. |
+| `start_trim`, `end_trim` | Endpoint marker radii converted to screen clearance, including the pixel filter's reach. These move the complete arrow's endpoints. |
+| `vid` | Vertices 0 through 5 describe the shaft, 6 through 11 the end head, and 12 through 17 the start head. |
+| `over` | Selects the overlay treatment used by plane-axis arrows. |
+
+Clearance is applied after projection and before head sizing. When both clearances leave no usable span, the helper emits a dead vertex. For two heads, each receives half the shared length budget; the shaft tucks under the head bases to avoid a gap, while fragment seams prevent double blending.
+
+Keep the storage row and function interface distinct. On the Android device tested on 2026-11-11, passing a struct with a scalar packed behind a `vec3` changed `end` and `heads` inside the function. Passing individual fields preserves the required values. Conditional divisions, head sizing and part selection use explicit branches. The [phone shader probe](../../debugging.md#probe-a-phone-only-shader-failure) explains how to inspect those values on the affected driver.
+
+Predict the effect of increasing `end_trim` on a short arrow: its visible tip moves away from the endpoint marker, its head may shrink, and sufficient clearance suppresses the arrow. Why does the head move too? Clearance defines the visible endpoint before either the shaft or head is constructed.
+
+The cumulative checkpoint here still uses `chain.wgsl` and its 72-byte connected-stroke row. The production interface above is explained, but adopting it into this owning checkpoint and verifying its device behavior remain unfinished.
+
+
+## Production dash phase along a chain
+
+The maintained walker emits one ribbon per nonzero adjacent pair and records the cumulative length before that segment. Read the complete chain construction:
+
+```rust
+--8<-- "session_viewer/src/app/walk/curves.rs:curve-dash-chain"
+```
+
+Each dash record contains the on length, off length and accumulated offset. Repeated points add neither a segment nor distance. The parser ignores nonfinite and nonpositive pattern entries, uses the first two positive lengths, repeats a single length for the off interval, and warns when additional positive lengths are supplied. No usable length produces a solid stroke.
+
+The [ribbon fragment calculation](../../../src/shaders/ribbon.wgsl) converts the current segment's screen fraction to a depth-corrected world fraction. It scales authored dash lengths and the accumulated offset by the segment's placed-to-local length ratio, then takes the distance modulo the on/off period. The period is measured along the line rather than restarted at each vertex. Width and dash coverage are separate factors in the final fragment coverage.
+
+Predict a two-segment chain whose first segment ends halfway through an on interval: the second segment continues that interval. Resetting its offset to zero would create a visible phase jump at the joint. Splitting a straight segment into two collinear segments should preserve the pattern when their placement scale is the same.
+
+Why store the offset instead of counting pixels in the shader? Each instance draws independently; the offset carries the preceding chain distance, while the current segment supplies its projection. The production path is explained here; integrating it into this cumulative checkpoint and checking its rendered pixels remain pending.
+
+
 
 ## Current endpoint clearance and curve heads
 

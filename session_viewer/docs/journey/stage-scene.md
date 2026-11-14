@@ -4,7 +4,7 @@ Animate kernel geometry beside a mathematical column, with labels and matrix ent
 
 ## Prerequisites and ownership
 
-Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene-facing parts of `geometry.rs`, `spatial.rs`, `view.rs`, `net.rs` and `StageApp` in `src/app/stage/mod.rs`. The 2D runtime and painter remain owned by the earlier mathematics subject.
+Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene-facing parts of `geometry.rs`, `spatial.rs`, `view.rs`, `net.rs` `mode.rs`, and `StageApp` in `src/app/stage/mod.rs`. The 2D runtime and painter remain owned by the earlier mathematics subject.
 
 **Cumulative checkpoint pending.** The source explanations below follow the maintained viewer. The current learner program still has incompatible application wiring; [the registration boundary](stage-gap.md#application-registration-still-required) must be implemented before this subject becomes an active cumulative checkpoint. Running the maintained viewer is useful for studying the result, but does not prove that the learner's preceding program reaches it.
 
@@ -83,7 +83,7 @@ The small elimination routine has no pivoting or singular-system recovery. Teach
 ### Preserve the frame order
 
 ```rust
---8<-- "session_viewer/src/app/ui/mod.rs:stage-frame-order"
+--8<-- "session_viewer/src/app/stage/mode.rs:stage-frame-order"
 ```
 
 The UI temporarily takes the stage out of `State` so it can borrow the remaining state for camera and scene updates. It restores the stage before submission. Time advances first. The camera is applied and its lens is installed before `StageApp::paint` collects the mathematical primitives and the frame's spatial descriptions. `Scene3::sync` then updates the real rows from that newly collected list.
