@@ -5762,7 +5762,8 @@
       },
       "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET",
       "inventoryReconciliationReceipt": "docs/journey/release/viewer-special-destination-source31-native54p-20261114.json",
-      "inventoryReconciliationReceiptSha256": "4177c66b098605f743ce1055ab1cfce71d8a3b3c40a630894c4829a7ec51bdcf"
+      "inventoryReconciliationReceiptSha256": "4177c66b098605f743ce1055ab1cfce71d8a3b3c40a630894c4829a7ec51bdcf",
+      "baselineIndex": 1327
     },
     {
       "id": "55-validation",
