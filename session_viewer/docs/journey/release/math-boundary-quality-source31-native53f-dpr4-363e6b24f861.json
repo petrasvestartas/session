@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-case-53f-01\\publish.mjs",
+    "sha256": "1422dbbf98ab17a94a8b7827480ad83854811bf9939a2f9e615962382c0b3846"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-case-53f-01\\publish-original-template.mjs",
+    "sha256": "78ef6fbe8a1f9d8e5af13a91b271556416b4577c46eebcd0911322c2b3bfb89b"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-case-53f-01\\capture-ready.json",
+    "sha256": "6a33e358f3483ad216b83bbbd332f5c0bddaae2ab74131bc27bed5e56c00df4c"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T13:08:01.836Z",
+  "id": "53f-portable",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53f-portable-5e2ab343d90171700057\\capture.json.gz",
+    "sha256": "b5029dbe1c98307c41f1d1c72944a0a631020339d9cd4effa6386947b41efd80",
+    "bytes": 105426
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-case-53f-01\\capture-result.json",
+    "sha256": "b08791b63b424ce70ba24e5cf80b19cde6c42181e5e4e844495dd5bffa138f55"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-53f-01-execution.json",
+    "sha256": "5d9078b6d1aed6aba57cf28040b3d211839c3d86daf407149cdcd7106f2ff29a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-case-53f-01\\bounded-terminal.json",
+    "sha256": "b93de591b356789b3c01b85377b20cd4f7ba2e1527bf2fe5c20c31851af9edef"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53f-portable-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally opened this capture original 2560x1920 PNG using original-detail display before publication. Actual inherited52k fixture shows a gold selected editable parent, brown visible readonly top beam and right upright, smooth RGB handle arcs and clean black box boundaries without triangulation strokes. Existing readonly visibility/pick exclusions are constructor scope only. This53f presentation does not accept portable UUID persistence, tree GUI, canonical640pixel checks, browser or full currentMain behavior.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 53f-portable rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-tree-identity-six-case-53f-01\\publication.json",
+    "sha256": "b27be808c74f8dc90c2e6698720b4052722731516456510a2bde5c241fe32c2a"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53f-portable-5e2ab343d90171700057\\publication.json",
+    "sha256": "d26595506a644ca9cd56e963f819325f6ab8616b15a56717be88084144bb0add"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53f-portable-5e2ab343d90171700057\\retirement.json.gz",
+    "sha256": "a2f62b4d96b0c34973e9a9801d662a4e3d8fd6a742852b60844cad095423f78b"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53f-portable-5e2ab343d90171700057\\retired.json",
+    "sha256": "eef70ed970dc0fffef75e9fae03f572625845c242e3f14ac1ee7eac24ebf840f"
+  }
+}
