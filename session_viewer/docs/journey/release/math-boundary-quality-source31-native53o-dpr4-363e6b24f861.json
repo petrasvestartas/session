@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53o-01\\publish.mjs",
+    "sha256": "af491b9020fa456c9ab609b1b32761911ebb79f5e8dea0d9981cefbe98ad04c9"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53o-01\\publish-original-template.mjs",
+    "sha256": "9cb10925e99b3b6b3d231428b7a5c8f118ee5dd70e79aceb815fa95a59c82e5d"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53o-01\\capture-ready.json",
+    "sha256": "5820131f723ca2a2546ab22d3c56516bb30b590d37bbc3810a76d046b8f3708f"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T14:21:28.139Z",
+  "id": "53o-palette",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53o-palette-1c0dfbf7c7405776d389\\capture.json.gz",
+    "sha256": "1312726b47becc94feee31961c24aee45dc10ea5b1e807b61e8bf63fdab48fcc",
+    "bytes": 105969
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53o-01\\capture-result.json",
+    "sha256": "db205d0488a0633f826151a1d33d69f85ff3aa7fddd658af2b351a93ee0365bf"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-53o-01-execution.json",
+    "sha256": "a011f0ac53d6afdc1e4067a1907bf52a335a94d42f9e7b30c0b57dfbc0c2e2a1"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53o-01\\bounded-terminal.json",
+    "sha256": "e2d2d287619d52f2c8d60fdfc87160f4f57a981fca706dfde7895e70a7fc3310"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53o-palette-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed full2560x1920 original53o PNG in original-detail display before publication, with exact bytes also matching original53l. Actual inherited52k scene retains selected gold editable parent, visible brown readonly attributes, clean black boundaries and smooth RGB handles without triangulation wires. Constructor readonly/pick scope only; nine-swatch/RGB-slider/palette interaction, tree GUI, canonical640pixel/browser/full currentMain behavior require separate checks.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 53o-palette rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53o-01\\publication.json",
+    "sha256": "94dc4410cea538af3b8d4f6cc0d17852c4efc1c7674fe4d1d35d1791b39e9bbb"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53o-palette-1c0dfbf7c7405776d389\\publication.json",
+    "sha256": "4d841c4f4f9275b39333011cf51908eff9dc032c1a549827d359281189afde26"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53o-palette-1c0dfbf7c7405776d389\\retirement.json.gz",
+    "sha256": "7afd6de6a3ba24109df17ff4db2246c2f06fec7a3cca649f269304fa7a48fd22"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53o-palette-1c0dfbf7c7405776d389\\retired.json",
+    "sha256": "462210241f6cd46fca52142b91dd46dab7112e1a9b1f1f0f54d4ded2f38e3dfe"
+  }
+}

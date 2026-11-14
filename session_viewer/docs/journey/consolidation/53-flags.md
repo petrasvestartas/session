@@ -4184,6 +4184,8 @@ fn rename(scene: &mut Scene, key: &str, label: &str) -> Result<(), &'static str>
 
 ## <a id="checkpoint-53l-delete-duplicate"></a>14. Delete and duplicate complete layer contents
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53l-delete-duplicate-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Layer deletion and duplication require separate state checks.
+
 ### 1. `src/layer_edit.rs`
 
 **Locate this existing block:**
@@ -4263,6 +4265,8 @@ fn duplicate(scene: &mut Scene, key: &str) -> Result<(), &'static str> {
 ```
 
 ## <a id="checkpoint-53m-actions"></a>15. Commit group edits through one history boundary
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53m-actions-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Group edits and their history boundary require separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4356,6 +4360,8 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-53n-routing"></a>16. Create geometry on the current layer or Created
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53n-routing-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Routing new geometry to current layers or Created requires separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4646,6 +4652,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53o-palette"></a>17. Supply nine colour swatches and RGB sliders
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53o-palette-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Palette swatches and RGB slider interaction require separate GUI checks.
 
 ### 1. `src/layer_palette.rs`
 
