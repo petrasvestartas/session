@@ -3708,6 +3708,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-51v-press"></a>24. Capture a valid handle without editing the document
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51v-press-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; pointer-press routing remains separately unverified.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3893,6 +3895,8 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-51w-release"></a>25. Preview captured motion and commit one release
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51w-release-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; release and commit interaction remains separately unverified.
 
 ### 1. `src/editor.rs`
 
@@ -4102,6 +4106,8 @@ Replace it with:
 
 ## <a id="checkpoint-51x-number-model"></a>26. Own one handle’s number-field state
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51x-number-model-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric-model and interactive entry behavior remain separately unverified.
+
 ### 1. `src/number_box.rs`
 
 Create the file and type:
@@ -4165,6 +4171,8 @@ pub mod number_box;
 ```
 
 ## <a id="checkpoint-51y-number-field"></a>27. Draw the number field beside its handle
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51y-number-field-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric-field parsing and focused entry remain separately unverified.
 
 ### 1. `src/number_box.rs`
 
@@ -4270,6 +4278,8 @@ pub fn draw(
 ```
 
 ## <a id="checkpoint-51z-number-submit"></a>28. Apply precise typed handle values once
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51z-number-submit-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric submission and transform commit remain separately unverified.
 
 ### 1. `src/editor.rs`
 
@@ -4499,6 +4509,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51za-panel"></a>29. Route field input through the shared canvas panel
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51za-panel-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; numeric-panel rendering and interaction remain separately unverified.
 
 ### 1. `src/panel.rs`
 
