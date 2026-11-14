@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-51-handles"></a>1. Name move, rotation and scale handles
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51-handles-deb4457c6d33.png). This inherited two-box Move preview preserves selected gold faces and a temporary yellow band; it does not yet display handle geometry.
+
 ### 1. `src/gizmo.rs`
 
 Create the file and type:
@@ -172,6 +174,8 @@ pub mod gizmo;
 ```
 
 ## <a id="checkpoint-51a-rays"></a>2. Measure handle rays in world coordinates
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51a-rays-deb4457c6d33.png). The inherited two-box Move preview remains visible; ray construction and live picking need separate validation.
 
 
 
@@ -301,6 +305,8 @@ fn about(pivot: &Point, m: Xform) -> Xform {
 ```
 
 ## <a id="checkpoint-51b-pivot"></a>3. Keep handle state at one original-world pivot
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51b-pivot-deb4457c6d33.png). This inherited two-box Move preview keeps source and display models separate; a pivot gizmo is not part of this recorded fixture.
 
 ### 1. `src/gizmo.rs`
 

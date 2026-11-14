@@ -1528,15 +1528,15 @@ Continue the snapped-line exercise. The browser can now present edit previews; a
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The saved line and temporary snapped band remain.
 
-![Native renderer output for present temporary edits through a separate scene view.](../screenshots/journey/49f-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/50b-display-b54a77169648.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited saved black line remains visible beneath the yellow temporary band ending at a circular End-snap cursor; this figure does not yet demonstrate object placements. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [7.4.8 · Snap actual drawing input through the command dock](49f-input.md). It does not demonstrate a new feature by itself.
+This scene continues [7.4.8 · Snap actual drawing input through the command dock](49f-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

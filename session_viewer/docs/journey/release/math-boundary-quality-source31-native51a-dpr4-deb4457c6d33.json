@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51a-01\\capture-ready.json",
+    "sha256": "2dee9f28e1d01ff0e4b90fe0f2cd216d6c2e3245deab2ba08e6c8e5e83fabcfa"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T03:39:36.260Z",
+  "id": "51a-rays",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51a-rays-612a53daeb9a8c606773\\capture.json.gz",
+    "sha256": "ac981fbc04222f4c3bd47b360938ef5b2b4614e21663d9aab0762591cb7c1904",
+    "bytes": 99914
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51a-01\\capture-result.json",
+    "sha256": "f7ebbb0bb7ac108178113cd356875333b4db2b2e65b0372bf26a8dd82b56280e"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-51a-01-execution.json",
+    "sha256": "15677cb8c4f61078398f0ab1a18eb5537484692ef1e48257895b114c086af251"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51a-01\\bounded-terminal.json",
+    "sha256": "1edccfc91d802a96daff6acd53e9c957281a21679c7a2d65e66fed0b570dfffc"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51a-rays-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened actual original2560x1920PNG; viewer returned white placeholder. Exact fileSHA equals personally inspected50d original from same holder: two separated selected gold boxes with black face boundaries and shaded sides, no triangulation wires, short yellow Move band and circular endpoint on white. Actual inherited50d fixture checks saved/display model separation and mesh/settings reuse; no ray geometry/liveGUI/browser/canonical640/full-unit acceptance inferred.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 51a-rays rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51a-01\\publication.json",
+    "sha256": "c22c0569d36cf51a471ea2968bbd87bacec3ba86ba094f2ee32a6c0ffe65ec24"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51a-rays-612a53daeb9a8c606773\\publication.json",
+    "sha256": "7befd2a45cbd7057e182fbf4ce5286c6d9d25a59faa7e065a5560679315ba850"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51a-rays-612a53daeb9a8c606773\\retirement.json.gz",
+    "sha256": "adf7f483f407b4ad7ee15937a02fd2974b31c10a22155bcd7f3372c2c6fc9636"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51a-rays-612a53daeb9a8c606773\\retired.json",
+    "sha256": "fd2c9cf680af420b6894af45619a66e9288c6ffc8fa967aaaedadff88692adca"
+  }
+}
