@@ -68,6 +68,8 @@ The panel limits displayed nodes, indexed rows and graph edges separately. `visi
 
 ## <a id="checkpoint-52-tree"></a>1. Validate and place a nested source tree
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52-tree-205a3b9411c0.png). Inherited 51zf handles fixture at raw DPR4: selected boxes with black mathematical boundaries and RGB handle arrows, grips and smooth rotation arcs. Tree UI and interaction require separate acceptance.
+
 ### 1. `src/hierarchy.rs`
 
 Create the file and type:
@@ -163,6 +165,8 @@ pub mod hierarchy;
 
 ## <a id="checkpoint-52a-records"></a>2. Keep lightweight tree records outside kernel ownership
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52a-records-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks.
+
 ### 1. `src/hierarchy.rs`
 
 **Locate this existing block:**
@@ -221,6 +225,8 @@ pub struct ObjectId(u32);
 ```
 
 ## <a id="checkpoint-52b-index"></a>3. Index descendants and read-only attribute groups
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52b-index-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks.
 
 ### 1. `src/hierarchy.rs`
 
@@ -352,6 +358,8 @@ impl Forest {
 ```
 
 ## <a id="checkpoint-52c-load"></a>4. Import nested source identities and precise placements
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52c-load-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks.
 
 ### 1. `src/document.rs`
 
@@ -597,6 +605,8 @@ pub struct Scene {
 ```
 
 ## <a id="checkpoint-52d-preview"></a>5. Carry parent-owned descendants in one preview
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52d-preview-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks.
 
 ### 1. `src/scene.rs`
 
@@ -853,6 +863,8 @@ Replace it with:
 
 ## <a id="checkpoint-52e-edits"></a>6. Commit parent moves and deletions as one transaction
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52e-edits-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -1069,6 +1081,8 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-52f-save"></a>7. Save nested rows and their local placements
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52f-save-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree records, persistence and interaction require separate state checks.
 
 ### 1. `src/hierarchy.rs`
 

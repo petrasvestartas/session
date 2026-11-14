@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-pipeline-six-case-51j-01\\capture-ready.json",
+    "sha256": "d8f877fccca57e7a0cf11649245db5fdf380fb26d90a5cc81a2aeb91b8a83c4c"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T04:16:37.939Z",
+  "id": "51j-pipelines",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51j-pipelines-356ea0fc50b85c40e7f8\\capture.json.gz",
+    "sha256": "e80457c033ebe1f28e650dd50037e2b18859fff20cd7e965d12c8f9bee6f706d",
+    "bytes": 101633
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-pipeline-six-case-51j-01\\capture-result.json",
+    "sha256": "6e31943add0e66ab975cbe04199076946e42a243ea23447449de3d9032d69948"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-pipeline-six-51j-01-execution.json",
+    "sha256": "9b68e7b21d29247b421b2c538850adf4eeecdd7e5a3100c7537ffdc56464d3ed"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-pipeline-six-case-51j-01\\bounded-terminal.json",
+    "sha256": "45f3fbbc15a139f9adf8065e31e43a7d4f99448adb3d272f6be4c776f8b77ce4"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51j-pipelines-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened the original 2560x1920 PNG; the viewer returned a white placeholder. Its exact SHA matches the personally inspected 51h original in this holder: separated gold selected boxes, shaded sides, black face boundaries, a short yellow Move band and circular endpoint on white, without triangulation wires. The inherited 50d fixture checks saved/display models and mesh/settings reuse. Handle pipeline behavior, GUI, browser, canonical640 and full-unit acceptance are not established by this image.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 51j-pipelines rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-handle-pipeline-six-case-51j-01\\publication.json",
+    "sha256": "5e7db2bce050173c832116193ce1ed96d639e65c8bd9143ed965de351b85ed29"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51j-pipelines-356ea0fc50b85c40e7f8\\publication.json",
+    "sha256": "288754ef4680c5ac619fe819547d4020dfb7fcf00de3193e7889404dbaf20c62"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51j-pipelines-356ea0fc50b85c40e7f8\\retirement.json.gz",
+    "sha256": "48ea7ef2fb85301d14e119cb391d891d03504310f8394d5a9cbd17a819f43e0a"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51j-pipelines-356ea0fc50b85c40e7f8\\retired.json",
+    "sha256": "1d9308cff0eb2e0e170ab94faeb696ea1c6280bc6540d92dfe678857617367d2"
+  }
+}
