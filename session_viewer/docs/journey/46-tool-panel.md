@@ -462,15 +462,15 @@ Inspect the copied tool_buttons_tests, then repeat the two-box selection and Und
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The native frame retains the two original selected boxes. The shared egui panel gains input ownership without changing scene geometry.
 
-![Native renderer output for give active tools ownership of the command panel.](../screenshots/journey/45c-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/46-tool-panel-77791d4fa1df.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited45c scene shows two gold selected box owners, dark original boundaries and no triangulation diagonals. The tool-panel widgets are not shown by this offscreen frame; GUI and browser behavior require separate checks. Perspective and edge raster stepping retained. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [6.4.5 · Collect multiple objects with Shift-click and commands](45c-input.md). It does not demonstrate a new feature by itself.
+This scene continues [6.4.5 · Collect multiple objects with Shift-click and commands](45c-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

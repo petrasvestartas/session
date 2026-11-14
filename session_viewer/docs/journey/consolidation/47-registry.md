@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-47-registry"></a>1. Separate browser requests from editor actions
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/47-registry-77791d4fa1df.png). Inherited45c scene shows two gold selected box owners and dark original boundaries without triangulation diagonals. Command-registry listing/dispatch, panel widgets and GUI/browser behavior require separate checks; perspective and edge raster stepping retained.
+
 ### 1. `src/commands.rs`
 
 Create the file and type:

@@ -1029,13 +1029,13 @@ Close; Example Box; Select Next; Move -2,0,0; Example Box; Fit. Click one box an
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 A real native frame shows both original boxes selected with black source boundaries. The per-row selection settings reuse the primary geometry.
 
-![Native renderer output for collect multiple objects with shift-click and commands.](../screenshots/journey/45c-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/45c-input-77791d4fa1df.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Two programmatically selected original box owners render gold with dark original boundaries and no triangulation diagonals. Both fit the viewport; perspective and boundary raster stepping remain. This does not establish actual keyboard/pointer SelectAll or GUI behavior; exact historical PNG bytes are preserved. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
