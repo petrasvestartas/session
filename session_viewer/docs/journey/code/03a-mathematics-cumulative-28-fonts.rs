@@ -1,0 +1,24 @@
+pub fn fonts() -> Result<crate::app::stage::font::Fonts, String> {
+    crate::app::stage::font::Fonts::new(vec![
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/stage/NewCMMath-Book.otf"
+        ))
+        .to_vec(),
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/stage/NewCM10-Book.otf"
+        ))
+        .to_vec(),
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/stage/NewCM10-Bold.otf"
+        ))
+        .to_vec(),
+        include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/stage/NewCMMono10-Book.otf"
+        ))
+        .to_vec(),
+    ])
+}

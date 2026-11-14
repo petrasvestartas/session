@@ -1,0 +1,467 @@
+{
+  "scope": "Private cumulative mathematics checkpoint after first painting; active course integration and final runtime remain pending",
+  "status": "native-wasm-and-two-emulated-browser-layouts-passed",
+  "native": {
+    "scope": "Actual materialized cumulative mathematics checkpoint, native CPU/egui only",
+    "status": "passed",
+    "tests": 27,
+    "failed": 0,
+    "ignored": 0,
+    "target": "x86_64-pc-windows-msvc",
+    "lockSha256": "a221b657ef3baafec36ba2486310fc5ff6d376fab61102520ee3d1ef8a8715e8",
+    "materializationProofSha256": "5940e8200fbeec5f27f3b0dd3e0d91b251f5fbde1141050dd40107880a7406e0",
+    "evidence": [
+      {
+        "name": "plan.json",
+        "sha256": "01d10a59f3075b3f800977ac608e5f083a3fdfae389f651845a510738c2af1c9"
+      },
+      {
+        "name": "entry-check.json",
+        "sha256": "af268e2c96b8591d7e4315f07943c2ecdb9f989422c3afe63f89ed2f5c57ad29"
+      },
+      {
+        "name": "dependency-review.json",
+        "sha256": "5bd2f3da9b83cbbd0b592324f03354d02b4dbeadbbd745b147b445cd6a1ca46d"
+      },
+      {
+        "name": "result.json",
+        "sha256": "5b298fb4e3a0cbd1ca36dbe760dc749f7bdf85d7742446eebba1ac796058893c"
+      },
+      {
+        "name": "resources.json",
+        "sha256": "f991feec6bed28fbf82fc8fb41df4f989925d4a7611f4518003299eb79fe0cfd"
+      },
+      {
+        "name": "protection-after.json",
+        "sha256": "2f6622564421a99463dae4c586a993ab47ff17fdfd7ed4f084510ee676b00120"
+      },
+      {
+        "name": "external-after-check.json",
+        "sha256": "ff4b8351a287a1dcf79450bba39c8e8a85f006599b6cd8bfe7024e5d9f5b8665"
+      }
+    ],
+    "limitations": [
+      "No WebAssembly or browser acceptance",
+      "No final maintained-runtime startup acceptance",
+      "Draft not integrated into active course",
+      "Not a GPU or physical-device test"
+    ]
+  },
+  "wasm": {
+    "result": {
+      "commands": [
+        {
+          "name": "cumulative-math-wasm01",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--release",
+            "--message-format=json",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "cumulative-math-trunk01",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        }
+      ],
+      "failure": null,
+      "elapsedSeconds": 228.608,
+      "scope": "Actual draft cumulative mathematics optimized wasm and Trunk build; browser and final endpoint acceptance pending"
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-14T08:45:23.0393508Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-cumulative-math-wasm01",
+        "timeout",
+        "590s",
+        "node",
+        "--import",
+        "./scripts/typescript.mjs",
+        "../session_viewer/target/cumulative-math-wasm01.mjs"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+      "timeoutSeconds": 595,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 229.559,
+      "peakJobCommitBytes": 1952522240,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 23868,
+      "descendantsAtCleanup": 1
+    },
+    "postcheck": {
+      "inputs": 216,
+      "rootPins": 555,
+      "baselineExisting": 7109,
+      "protected": 887,
+      "absent": 11,
+      "allMatched": true,
+      "bundle": [
+        {
+          "path": "C:/pc/tmp/session-tutorial-main-20261113/session_viewer/target/cumulative-math-course/dist/index.html",
+          "bytes": 1593,
+          "sha256": "11417bf6f028d6f209051f6e627bb12e302a81b57830b1e3b71b7573b1105476"
+        },
+        {
+          "path": "C:/pc/tmp/session-tutorial-main-20261113/session_viewer/target/cumulative-math-course/dist/viewer_journey-73a72eefaa87af79.js",
+          "bytes": 65008,
+          "sha256": "6ec1e9275510bc034118e2969407840cb42576d96fff6042aa85890e17d65cca"
+        },
+        {
+          "path": "C:/pc/tmp/session-tutorial-main-20261113/session_viewer/target/cumulative-math-course/dist/viewer_journey-73a72eefaa87af79_bg.wasm",
+          "bytes": 4127692,
+          "sha256": "2bd356d45e4102d11ebba6ecfabeaf04a725cc50008c9c0887e98a4436b1d17d"
+        },
+        {
+          "path": "C:/pc/tmp/session-tutorial-main-20261113/session_viewer/target/cumulative-math-course/dist/snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+          "bytes": 849,
+          "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+        }
+      ]
+    }
+  },
+  "browser": {
+    "checkpoint": "target/cumulative-math-course",
+    "scope": "Actual materialized cumulative mathematics draft using production Presentation/Mode; final endpoint and active course integration remain unaccepted",
+    "browser": "157.0.8103.51",
+    "platform": "win32",
+    "args": [
+      "--enable-unsafe-webgpu",
+      "--ignore-gpu-blocklist",
+      "--use-angle=d3d11"
+    ],
+    "checkerSha256": "43ea1b7845e89865238d2f43303b900594d37051c8f4d01610ca60b19b9f51e6",
+    "sourceSha256": {
+      "Cargo.lock": "a221b657ef3baafec36ba2486310fc5ff6d376fab61102520ee3d1ef8a8715e8",
+      "Cargo.toml": "58a246c9879a947378c1d703b035d2a3c3a3d31db75826b9556e2abfd76cca5b",
+      "dist/index.html": "11417bf6f028d6f209051f6e627bb12e302a81b57830b1e3b71b7573b1105476",
+      "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+      "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+      "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+      "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+      "examples/course/registration.rs": "01cfc2f6fe720ae7ee9e9fc0c814ae5a59714f082e4b6eb39c272dd33c2ce46c",
+      "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+      "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+      "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+      "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+      "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+      "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+      "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+      "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+      "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+      "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+      "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+      "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+      "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+      "src/app/stage/mod.rs": "44e63c9d375bd98ac71e53cb10b6f9faacc35b7cf2a91ac00f544603f66b45df",
+      "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+      "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+      "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+      "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+      "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+      "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+      "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+      "src/app/stage/production_tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+      "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+      "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+      "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+      "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+      "src/browser.rs": "b0bf04b472c4c9272b8a3d900017b33660c163dc6d3025c567118b06497b431b",
+      "src/command_dock/mod.rs": "042d4154c99ae9c127781a9b42f5ac03397f4629726717c0c8977d5ffef4e269",
+      "src/command_dock/theme.rs": "a58c159c99eb8ce26501405ce4c74ff96e8a4cf5d6138a0412756bd7d13b73e6",
+      "src/lib.rs": "600d3804a841aeda85da022e683aae65358f2ae4f4e01cea6b6a1bfdd49e5fc6",
+      "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+      "src/panel.rs": "4d4db2e608ba7ca5c91fd0556410abb8b251c04f5d6c792679d949d116e4c66c",
+      "src/renderer.rs": "5c5ed7065408f45f479aa272ce8cb65a58821daabefcdb9712671e7b5e1bf8b4"
+    },
+    "inputs": {
+      "assets/stage/NewCMMath-Book.otf": "c74561f7468db46411725981ba30ad6f1e14094fa11e843ff8e8369508cf506e",
+      "assets/stage/NewCM10-Book.otf": "005abadbdf039dfabab28d5836ec5ec5d94b61410003ca043e7afcd10115af55",
+      "assets/stage/NewCM10-Bold.otf": "c49c61d51757edffeafc43b4d58925cedf9180f7942fb85a3f21a5319bbed07e",
+      "assets/stage/NewCMMono10-Book.otf": "cd3bdeb3eb3a2e3d1b33a4bfc639c32080a39b78c02da0cca060208202aa046c",
+      "assets/stage/logo-eth.png": "bad3cab4da798a796db2fba804f5400829adecd401baed0c48412aa8de09cfe3",
+      "assets/stage/logo-brg.png": "58eb99570cbb0102ec68d1a78e318510276e3bf7ee7c4605f562e7423c9ca499"
+    },
+    "cases": [
+      {
+        "name": "landscape",
+        "width": 1280,
+        "height": 720,
+        "deviceScaleFactor": 1,
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        },
+        "errors": [],
+        "frames": [
+          {
+            "file": "landscape-step-1.png",
+            "sha256": "548b75621240f113225d85a45d2f1d9770fc8530fd8a3223a1cd86e129cf649c",
+            "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+            "ink": 8664
+          },
+          {
+            "file": "landscape-step-2.png",
+            "sha256": "d9ae314f01b63f5142ee2427a397352805612f278b9f56703443f9d545400ce2",
+            "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd",
+            "ink": 11625
+          },
+          {
+            "file": "landscape-step-3.png",
+            "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+            "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+            "ink": 15330
+          },
+          {
+            "file": "landscape-step-4.png",
+            "sha256": "a3d50b553230d8cbd30623161b148e841358709fdbd78f26e2e6e1014ec37fd0",
+            "pixels": "74e1c3655198062c099ee25bde7f4cb3c183b26b028151b2fb40b28d34c11855",
+            "ink": 16932
+          }
+        ],
+        "previous": {
+          "file": "landscape-previous.png",
+          "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+          "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+          "ink": 15330
+        },
+        "dark": {
+          "file": "landscape-theme.png",
+          "sha256": "d8ae12c50f4bfc41c1cc12dde9fa32c4858727560dd254148349e1a8ddd1f7cf",
+          "pixels": "a9d3e487414ddf8377cb7db877b64d938563804cc368d01ee28add3112c62d32",
+          "ink": 17321
+        },
+        "restored": {
+          "file": "landscape-theme-restored.png",
+          "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+          "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+          "ink": 15330
+        },
+        "firstSlide": {
+          "file": "landscape-slide-up.png",
+          "sha256": "548b75621240f113225d85a45d2f1d9770fc8530fd8a3223a1cd86e129cf649c",
+          "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+          "ink": 8664
+        },
+        "nextSlide": {
+          "file": "landscape-slide-down.png",
+          "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+          "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+          "ink": 15330
+        },
+        "resized": {
+          "file": "landscape-resize-roundtrip.png",
+          "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3",
+          "pixels": "29cbf4a4d4c0ee8d7ef47dc8cae4485feed1b13fb39a96b8a0d20cfcd23ca2a7",
+          "ink": 15330
+        },
+        "viewerFrame": {
+          "file": "landscape-viewer-mode.png",
+          "sha256": "8dd7b0ae818d002cff66c17185ced49d28d048f229fae6eb7552fb8cb4b2b369",
+          "pixels": "ba5408bab7760b1ec15a39b89169c09d49ad54b2a4a97ed305470e4e214a4b25",
+          "ink": 152292
+        },
+        "unknownMode": "Cannot draw: JsValue(\"Unknown tutorial mode: missing-mode\")"
+      },
+      {
+        "name": "portrait",
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 2,
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        },
+        "errors": [],
+        "frames": [
+          {
+            "file": "portrait-step-1.png",
+            "sha256": "af83262bfd085ebde9488ae38f2b08e72a395e6db2dfebe0dc5a8b182efe884a",
+            "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+            "ink": 9096
+          },
+          {
+            "file": "portrait-step-2.png",
+            "sha256": "d120079818c13ce7d8d9e117599e40a12a0cc54cefa259c9599f949fd0d30dba",
+            "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363",
+            "ink": 11229
+          },
+          {
+            "file": "portrait-step-3.png",
+            "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+            "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+            "ink": 14473
+          },
+          {
+            "file": "portrait-step-4.png",
+            "sha256": "1c1dfa88b17de15f832f997c22e85236bd099eba97445a6d241c08f7285c68f2",
+            "pixels": "610b81d02e0541253192777c8475252c34e393e16eb5b25bab125a66c06ccc39",
+            "ink": 15424
+          }
+        ],
+        "previous": {
+          "file": "portrait-previous.png",
+          "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+          "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+          "ink": 14473
+        },
+        "dark": {
+          "file": "portrait-theme.png",
+          "sha256": "f79eb96370e4a1073dd754ef26110fe12a972dd204ba9bdc004626b4a1682b57",
+          "pixels": "e4c03ba28c960989bf711a7b6c80a475b1780bbaf867c6b6d779d116e32f53a8",
+          "ink": 15746
+        },
+        "restored": {
+          "file": "portrait-theme-restored.png",
+          "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+          "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+          "ink": 14473
+        },
+        "firstSlide": {
+          "file": "portrait-slide-up.png",
+          "sha256": "af83262bfd085ebde9488ae38f2b08e72a395e6db2dfebe0dc5a8b182efe884a",
+          "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+          "ink": 9096
+        },
+        "nextSlide": {
+          "file": "portrait-slide-down.png",
+          "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+          "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+          "ink": 14473
+        },
+        "resized": {
+          "file": "portrait-resize-roundtrip.png",
+          "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c",
+          "pixels": "d6b87125d0e1215909212b18097446d4350d3b8908b2e539d25f3aab2645c2ec",
+          "ink": 14473
+        },
+        "viewerFrame": {
+          "file": "portrait-viewer-mode.png",
+          "sha256": "94db53c463e44916b346035bd8a7e8736c5a256393828e5035c027203c9ea723",
+          "pixels": "9598c3e110793d719dca19cd9ddb8ce286ce7258685493479b657bbe35298f67",
+          "ink": 218046
+        },
+        "unknownMode": "Cannot draw: JsValue(\"Unknown tutorial mode: missing-mode\")"
+      }
+    ]
+  },
+  "visualReview": {
+    "scope": "Twelve original captures personally inspected; roundtrip duplicate frames checked by pixel equality in browser checker",
+    "images": [
+      {
+        "name": "landscape-step-1.png",
+        "sha256": "548b75621240f113225d85a45d2f1d9770fc8530fd8a3223a1cd86e129cf649c"
+      },
+      {
+        "name": "landscape-step-2.png",
+        "sha256": "d9ae314f01b63f5142ee2427a397352805612f278b9f56703443f9d545400ce2"
+      },
+      {
+        "name": "landscape-step-3.png",
+        "sha256": "fad1f8747c312c6e785ad6d002743a3d22c003f9f56de46fb690efcca1f2ccd3"
+      },
+      {
+        "name": "landscape-step-4.png",
+        "sha256": "a3d50b553230d8cbd30623161b148e841358709fdbd78f26e2e6e1014ec37fd0"
+      },
+      {
+        "name": "landscape-theme.png",
+        "sha256": "d8ae12c50f4bfc41c1cc12dde9fa32c4858727560dd254148349e1a8ddd1f7cf"
+      },
+      {
+        "name": "landscape-viewer-mode.png",
+        "sha256": "8dd7b0ae818d002cff66c17185ced49d28d048f229fae6eb7552fb8cb4b2b369"
+      },
+      {
+        "name": "portrait-step-1.png",
+        "sha256": "af83262bfd085ebde9488ae38f2b08e72a395e6db2dfebe0dc5a8b182efe884a"
+      },
+      {
+        "name": "portrait-step-2.png",
+        "sha256": "d120079818c13ce7d8d9e117599e40a12a0cc54cefa259c9599f949fd0d30dba"
+      },
+      {
+        "name": "portrait-step-3.png",
+        "sha256": "88e2ff8f44a5d9ebc14def4162e65e8ab6ec1877cebda0005fb2627582bf6f0c"
+      },
+      {
+        "name": "portrait-step-4.png",
+        "sha256": "1c1dfa88b17de15f832f997c22e85236bd099eba97445a6d241c08f7285c68f2"
+      },
+      {
+        "name": "portrait-theme.png",
+        "sha256": "f79eb96370e4a1073dd754ef26110fe12a972dd204ba9bdc004626b4a1682b57"
+      },
+      {
+        "name": "portrait-viewer-mode.png",
+        "sha256": "94db53c463e44916b346035bd8a7e8736c5a256393828e5035c027203c9ea723"
+      }
+    ],
+    "findings": [
+      "Aligned equals signs, fraction/radical ink and all matrix cells readable at both sizes.",
+      "Matrix first row changes colour, dark theme preserves contrast.",
+      "Scene area intentionally empty; upright mathematics remains in the lower column region.",
+      "Viewer selection shows the earlier triangle and painted command line; its first-painting aspect stretch is retained."
+    ],
+    "physicalDeviceAcceptance": false
+  },
+  "earlySourceBinding": {
+    "files": 40,
+    "exactPreviouslyValidatedMaterialization": true,
+    "scope": "Early native/wasm/browser source identity only; changed final reference still untested"
+  },
+  "publishedImages": [
+    {
+      "file": "screenshots/journey/03a-cumulative-mathematics-landscape-20261114.png",
+      "sha256": "a3d50b553230d8cbd30623161b148e841358709fdbd78f26e2e6e1014ec37fd0",
+      "originalCapture": "landscape-step-4.png"
+    },
+    {
+      "file": "screenshots/journey/03a-cumulative-mathematics-portrait-20261114.png",
+      "sha256": "1c1dfa88b17de15f832f997c22e85236bd099eba97445a6d241c08f7285c68f2",
+      "originalCapture": "portrait-step-4.png"
+    }
+  ],
+  "limitations": [
+    "Not active-course or final maintained-runtime startup acceptance.",
+    "Browser upright dimensions are emulated; no physical phone acceptance.",
+    "Queried Intel adapter does not establish which device rendered these frames.",
+    "Historical standalone24-test receipts remain separate."
+  ]
+}

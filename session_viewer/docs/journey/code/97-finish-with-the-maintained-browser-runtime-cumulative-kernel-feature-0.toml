@@ -1,0 +1,2 @@
+png = "0.17"
+current_viewer = { package = "session_viewer", path = "../.." }

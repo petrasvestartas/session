@@ -2,6 +2,8 @@
 
 The [early mathematics subject](03a-mathematics.md) teaches the complete 2D stage core. Its standalone checkpoint contains 17 production modules, verified by `scripts/course/stage-core.test.ts`. The complete checkpoint passes 24 native tests, a WebAssembly build and browser checks at desktop and upright phone dimensions using software WebGPU. The active cumulative course does not yet include it. Its 17 copied modules comprise the 14 mathematics-core modules plus `geometry`, `view` and `net` support. `Presentation` and the generic mathematics mode are checked by the separate production-mode probe; they are not yet wired into that standalone browser harness.
 
+The private cumulative checkpoint now retains those implementations and uses production `Presentation` and `Mode<()>`. It passes 27 native tests, optimized wasm/Trunk compilation and browser checks at desktop and emulated upright dimensions. [Its separate receipt](release/cumulative-mathematics-windows-20261114.json) binds the actual source, resources and reviewed captures. The active course insertion and final maintained-runtime startup are still pending; these results do not transfer to the standalone harness or physical phones.
+
 The [real-scene integration subject](stage-scene.md) explains the current row, camera, solver and input boundaries. Its cumulative checkpoint remains pending.
 
 ## Two subjects, one implementation
@@ -10,6 +12,8 @@ The [real-scene integration subject](stage-scene.md) explains the current row, c
 | --- | --- | --- |
 | A slide of mathematics, after first egui painting | font, tex, paint, layout, matrix, object, tween, actions, draw, run, morph, deck, eval, check, presentation, presentation_tests, math_mode | Frame mapping, glyph metrics, TeX, atlas, ordered painting, column alignment, matrices, time, actions, replay, matching, deck errors and presentation ownership/painting tests. |
 | A slide in the real scene, after camera, rows, strokes, arrows, markers and loading | geometry, view, net, spatial, mode, mod | Kernel geometry, scene-row updates, camera fitting and label projection, spatial motion, net solve, input and loading. |
+
+The early subject also owns `src/app/mode.rs`: its registration section explains the loaded-to-running transition, borrowed host, event handling and frame result. `presentation_tests.rs` teaches atlas picture identity and repaint settling. The production `tests.rs` remains a regression fixture: the lesson explains its complete-deck replay and contextual failure checks, and the checkpoint runs an adapted fixture with project-relative font paths. This fixture adaptation is not production-source parity.
 
 The first checkpoint supplies `geometry.rs`, `view.rs` and `net.rs` as support files because the deck and runtime refer to their types. Their implementation is retained for the later subject. Supplying a file is not evidence that its subject has been taught.
 

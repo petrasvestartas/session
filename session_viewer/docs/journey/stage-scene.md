@@ -4,7 +4,7 @@ Animate kernel geometry beside a mathematical column, with labels and matrix ent
 
 ## Prerequisites and ownership
 
-Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene-facing parts of `geometry.rs`, `spatial.rs`, `view.rs`, `net.rs`, `mode.rs`, and `StageApp` in `src/app/stage/mod.rs`. The 2D runtime and painter remain owned by the earlier mathematics subject.
+Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene adapter in `spatial.rs`, the scene-host implementation in `mode.rs`, and `StageApp` in `src/app/stage/mod.rs`. It reuses the completed mathematics modules, including `geometry.rs`, `view.rs` and `net.rs`. The explanations below connect their existing outputs to scene rows, cameras and displayed matrices; scene integration must not rewrite those finished implementations.
 
 **Cumulative checkpoint pending.** The source explanations below follow the maintained viewer. The current learner program still has incompatible application wiring; [the registration boundary](stage-gap.md#application-registration-still-required) must be implemented before this subject becomes an active cumulative checkpoint. Running the maintained viewer is useful for studying the result, but does not prove that the learner's preceding program reaches it.
 

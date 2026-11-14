@@ -1,0 +1,1 @@
+pub const REPORT: fn(&str) = |message| { crate::browser_report::fatal(message); crate::browser::report(message); };
