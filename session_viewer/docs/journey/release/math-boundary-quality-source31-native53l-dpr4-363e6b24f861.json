@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53l-01\\publish.mjs",
+    "sha256": "1f3d478ea1af9cd2540711597038fce164073be75cf0eddef200daadf27f0bfc"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53l-01\\publish-original-template.mjs",
+    "sha256": "8eb3c9790f24d4bb8e287e3333e59e021257e199c495ce57620dee86f3935e89"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53l-01\\capture-ready.json",
+    "sha256": "ec92923dc004c8070ec2cfa98dca329a25dddcb82b2c919b988b93517c995bc2"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T14:15:33.296Z",
+  "id": "53l-delete-duplicate",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53l-delete-duplicate-48805892134aa70c11e5\\capture.json.gz",
+    "sha256": "8878367f46a7d78fc1d976ab538ad8ee97fadfcbd511a170f157c34012a7bc37",
+    "bytes": 105996
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53l-01\\capture-result.json",
+    "sha256": "1552c91bee7c649c9854794ffdbe4c5fda13163b0dbff079fed70a4a6e61105b"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-53l-01-execution.json",
+    "sha256": "75d9b8eee07983bee2b45479904b2c60e0855d802cecbdd15bae71eeb6396c34"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53l-01\\bounded-terminal.json",
+    "sha256": "37e60e05127578554e08a7492f6f2bd209ad440cae46019c108f2d488914ff8a"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53l-delete-duplicate-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this full2560x1920 original capture in original-detail display before publication. Actual inherited52k fixture shows selected editable gold parent, visible brown readonly top beam/right upright, smooth RGB handles and clean black boundaries without triangulation strokes. Existing readonly/pick constructor assertions are scoped separately. This53l presentation does not accept layer duplication/deletion, tree GUI, canonical640pixel/browser/full currentMain behavior.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 53l-delete-duplicate rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-actions-six-case-53l-01\\publication.json",
+    "sha256": "960033cc485fea408f262b758f7be703bb8f738cdbad7312a981b7081039c1e5"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53l-delete-duplicate-48805892134aa70c11e5\\publication.json",
+    "sha256": "4d9b5bb87bdb528cdee918839bb68a0ffbd61a5587d4112552f5a6b98920f4df"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53l-delete-duplicate-48805892134aa70c11e5\\retirement.json.gz",
+    "sha256": "4e1f567a81a525deb04f369b7a93cc71ca081748e0df572ec92a7c62fac4cebb"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53l-delete-duplicate-48805892134aa70c11e5\\retired.json",
+    "sha256": "20f2157ff294ad2b8017f70af4497bb59a6c80d49cec33cc82feeb1dad31145b"
+  }
+}

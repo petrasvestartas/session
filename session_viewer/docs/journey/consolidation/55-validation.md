@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-55-validation"></a>1. Validate surface control storage
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55-validation-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; canonical validation checks and browser interactions require separate acceptance.
+
 ### 1. `src/surface.rs`
 
 Create the file and type:
@@ -153,6 +155,8 @@ pub mod surface;
 ```
 
 ## <a id="checkpoint-55a-grid"></a>2. Keep UV coordinates beside world samples
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55a-grid-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; no debug grid is visible, and grid controls require separate state/browser checks.
 
 ### 1. `src/surface.rs`
 

@@ -46,15 +46,15 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The nested frame and selected editable parent remain visible with original source edges.
 
-![Native renderer output for delete and duplicate complete layer contents.](../screenshots/journey/52k-tree.png)
+![Native presentation at this checkpoint.](../screenshots/journey/53l-delete-duplicate-363e6b24f861.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited52k scene retains editable-parent selection and visible readonly attributes. Layer deletion and duplication require separate state checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [8.1.12 · Exercise nested source ownership and exact undo](52k-tree.md). It does not demonstrate a new feature by itself.
+This scene continues [8.1.12 · Exercise nested source ownership and exact undo](52k-tree.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

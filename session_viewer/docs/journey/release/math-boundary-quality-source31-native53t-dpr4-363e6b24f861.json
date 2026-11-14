@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-case-53t-01\\publish.mjs",
+    "sha256": "b54d49942294c35e2f4b950ade0d3c997f10affae7dc620da723e0abc52d61d9"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-case-53t-01\\publish-original-template.mjs",
+    "sha256": "cd81043bac042ca33d97d8e36d85954b88aec7a087be3bbdf9441f871037cfa1"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-case-53t-01\\capture-ready.json",
+    "sha256": "94a770671d7563fe31a820a40ccf26ab2394677d7a38a3b8987d0fd3832e94d5"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T14:58:54.898Z",
+  "id": "53t-input",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53t-input-bba6004749f4d7b43adb\\capture.json.gz",
+    "sha256": "90af14b035a63f2484c1b0d7fdb3d2784d79e4b495a2740d5076c5e4422a7626",
+    "bytes": 105877
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-case-53t-01\\capture-result.json",
+    "sha256": "c6274b514be16342db575e9df7d7cc5a2b4f87b143bd2b8c3491b88c2fd1fac0"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-53t-01-execution.json",
+    "sha256": "e3a53c90fb7dc7af7208b8840794bf6ec3973f68c1bf14011c6ed7f13e91f642"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-case-53t-01\\bounded-terminal.json",
+    "sha256": "280c9217cf4c1193d2df7d2a8acb994aca7b132e85dd129ccb2c96f484769b3d"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53t-input-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Original-detail view returned duplicate placeholder; originalPNG bytes independently equal full2560x1920 53s original personally inspected within this admission. Gold selected editable upright, visible brown readonly beam/right upright, black box boundaries and RGB handles/arcs, no triangulation wires. Actual inherited52k constructor scene only. Input routing, popup ownership, rename error handling and layer-control GUI interactions require separate checks; no canonical640/browser/fullMain acceptance.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 53t-input rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-layer-controls-six-case-53t-01\\publication.json",
+    "sha256": "592a116a692a9a0a408dfb5681230e8947ce06e430615401b575c87a74640eb0"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53t-input-bba6004749f4d7b43adb\\publication.json",
+    "sha256": "3d265fcd325dd28efa9a389360912caeb336d99e0ceea603a153e906de580a0b"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53t-input-bba6004749f4d7b43adb\\retirement.json.gz",
+    "sha256": "1ebc933c8149c6344489eb1ff7c5aa01610b689ec9accfc35d969a92388ba69c"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53t-input-bba6004749f4d7b43adb\\retired.json",
+    "sha256": "ad9c132930a56ee16caaa6c821d0994508f6f7c90fe36b5cdcecb033e1352b40"
+  }
+}

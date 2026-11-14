@@ -90,15 +90,15 @@ Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving reb
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 Blue Posts retain original black boundaries and the independent brown source beam.
 
-![Native renderer output for select original projected geometry in one source pass.](../screenshots/journey/53u-layers.png)
+![Native presentation at this checkpoint.](../screenshots/journey/54d-samples-aeab6de33013.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Sample gestures and camera interaction require separate checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [8.3.1 · Navigate and fit inside the free canvas](54-camera.md). It does not demonstrate a new feature by itself.
+This scene continues [8.3.1 · Navigate and fit inside the free canvas](54-camera.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

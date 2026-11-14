@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54k-01\\publish.mjs",
+    "sha256": "912258800557ff0d23c614a1ac157967ba6a5509c00841b63b71ef8c0ece3fb7"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54k-01\\publish-original-template.mjs",
+    "sha256": "614d9dde77f2be508c78c73ad490a02e3badbf2a842c4321f28d593178989221"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54k-01\\capture-ready.json",
+    "sha256": "8738b7fa6e2289b737d56523d0e1cda0b7f9a55aae2d71eaf372fac3bd93b8d4"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T16:08:17.138Z",
+  "id": "54k-overlay",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54k-overlay-9d74a885ed2f92c0fa4a\\capture.json.gz",
+    "sha256": "b7f645082312da513aff80282c28a9d0867d761f684f66826d8cb2da9a993473",
+    "bytes": 108052
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54k-01\\capture-result.json",
+    "sha256": "e3dc1344b1a0acb9ac936e14dd236c68ebc0991077abd6167bb2e1a3c7287d9c"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-54k-01-execution.json",
+    "sha256": "5ebfad5d546fb3dcdd476085fbb8de823e0637d8e0080261e5052cfc445e8c5c"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54k-01\\bounded-terminal.json",
+    "sha256": "6b453d738fba024f3b7134405335d96ef97aed421a8e13b51b7f2df1ab696a68"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54k-overlay-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Original-detail view returned duplicate placeholder; originalPNG bytes independently equal full2560x1920 54j image personally inspected this admission. Blue Posts, independent brown beam and black original boundaries, no triangulation wires. Actual inherited53u constructor colour/pick checks only. Overlay ownership and camera/input routing, canonical640 pixel verification, browser and fullMain acceptance remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 54k-overlay rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54k-01\\publication.json",
+    "sha256": "5e8ff1faab7e62822f33551efd74a2104fda14582104951602f032819421e4ba"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54k-overlay-9d74a885ed2f92c0fa4a\\publication.json",
+    "sha256": "a8bcf4d146f9d3dbdf4c7f999588a241d76b4fe483dfc14bad4e26946d7c9451"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54k-overlay-9d74a885ed2f92c0fa4a\\retirement.json.gz",
+    "sha256": "7997ae66d7116e288ceee1a1c4c8d18cea033b615ab063ee3bb7d15b48b7de68"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54k-overlay-9d74a885ed2f92c0fa4a\\retired.json",
+    "sha256": "84a79027b8b2c83ea842d7b9794876320b9fca8465ae97190a9249ddb2ae4dcc"
+  }
+}
