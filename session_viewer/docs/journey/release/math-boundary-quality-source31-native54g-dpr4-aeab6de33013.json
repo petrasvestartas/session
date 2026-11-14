@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54g-01\\publish.mjs",
+    "sha256": "f4bacec3a92c0570d793aae87cf372991c37ad3588839993e3e00b709e052f32"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54g-01\\publish-original-template.mjs",
+    "sha256": "a4f9d886ac49b335d2253d7d0d5748597f4b4f3424e193de9de815be68d233f9"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54g-01\\capture-ready.json",
+    "sha256": "83e206a1fb8e5845410bd88031b11f450e54aac04248f9e7e36f49ca5fb14b90"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T16:02:04.838Z",
+  "id": "54g-drag-actions",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54g-drag-actions-beb282563255557a3566\\capture.json.gz",
+    "sha256": "6a7830e7fa0ee944f5a1a324732e4e8c3ef42f2a7c0e7fd99bb4a1fb269c1828",
+    "bytes": 107893
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54g-01\\capture-result.json",
+    "sha256": "b8fcb786d2606b17be1bfc607665a4dc5af0230cebb098f800acdcf39e44f8b7"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-54g-01-execution.json",
+    "sha256": "7014e0f4505ee06dfec7393ab246f09446f3d313f14d4b2fb674727d5e3fa2cd"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54g-01\\bounded-terminal.json",
+    "sha256": "21381069335b6f377e6487343795274d092439f1b8f228441764f790a5895689"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54g-drag-actions-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected full original2560x1920 PNG: blue Posts faces with shaded sides, unrelated brown source beam, clear original black boundaries and clean white background, no triangulation strokes. Actual inherited53u constructor colour override and readonly attribute/pick checks only. Drag-action routing and camera gestures, canonical640 pixel validation, browser and fullMain acceptance remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 54g-drag-actions rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54g-01\\publication.json",
+    "sha256": "7f05c29fa73ec71197d3ca13f559e1aef22e1e754f9796fbbe1ef93af1c9278b"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54g-drag-actions-beb282563255557a3566\\publication.json",
+    "sha256": "e910cc613b94d0690dc5732287f780eb0a86ee33bcc2643ba668ed60b220cfe8"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54g-drag-actions-beb282563255557a3566\\retirement.json.gz",
+    "sha256": "c12ed6615b1d9caa74a2a414e64e9a011abbd69f191a20b60a1cfc3513497378"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54g-drag-actions-beb282563255557a3566\\retired.json",
+    "sha256": "89d606080fe03065087854f3f02c50e7b45b8b4f1024513f66a82e609603d4f5"
+  }
+}

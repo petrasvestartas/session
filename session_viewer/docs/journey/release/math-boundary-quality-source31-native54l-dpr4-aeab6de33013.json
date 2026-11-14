@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54l-01\\publish.mjs",
+    "sha256": "18b085acce9bf76b4df7a60130100ba03a40779d3db967b0ac89b124401f95b1"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54l-01\\publish-original-template.mjs",
+    "sha256": "c695ec2ef1b4fd1a89aaccdf38e393ae1b745127c345cfc6ff4345759e330849"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54l-01\\capture-ready.json",
+    "sha256": "1e4d385d65e7e90bb91f71411c38fa7b5344cc751eda3ab6f9fc378252d212a4"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T16:09:46.103Z",
+  "id": "54l-navigation",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54l-navigation-1b850fabee35ef10636e\\capture.json.gz",
+    "sha256": "edb988ab94574df661370cb69b0a580392ed7493c27b3e33ea77bb89b9e94910",
+    "bytes": 108100
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54l-01\\capture-result.json",
+    "sha256": "35fb711485246ac9935e12fdf052897c1db03c38ee21eb8d196235ce2417ba57"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-54l-01-execution.json",
+    "sha256": "2fce1c56dc6b7cbbaa8917e8e8f41535f27574d6186755a6df606f913d21b53f"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54l-01\\bounded-terminal.json",
+    "sha256": "58b0fa73bd574fd89a0527a86b4990f0fb0a8eb54fd495fe160a5c3f78f171d5"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54l-navigation-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Original-detail view returned duplicate placeholder; originalPNG bytes independently equal full2560x1920 54j image personally inspected this admission. Blue Posts and independent brown source beam retain clear original black boundaries with no triangulation strokes. Actual inherited53u constructor colour/pick checks only. Navigation, camera and pointer interaction, canonical640 pixels, browser and fullMain acceptance remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 54l-navigation rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-routing-six-case-54l-01\\publication.json",
+    "sha256": "fced7b80d88c41a9902471889b8239d417a11292c3a836214a087e6e72b3b3e9"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54l-navigation-1b850fabee35ef10636e\\publication.json",
+    "sha256": "c03ce4fd02732941e9d97313db3333af2e961dd84331ffcd3440d2cee0b73c6b"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54l-navigation-1b850fabee35ef10636e\\retirement.json.gz",
+    "sha256": "554c05901de795f2d65e7ef29f7bd9835eaa24a5ecf5af295aabd6cdc6be5f01"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54l-navigation-1b850fabee35ef10636e\\retired.json",
+    "sha256": "29f83ad5d61c1c73242e00d0fb31d04078775668cbcfd2a2ce5b95d08d4e379b"
+  }
+}

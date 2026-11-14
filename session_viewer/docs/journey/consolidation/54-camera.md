@@ -2843,6 +2843,8 @@ impl Editor {
 
 ## <a id="checkpoint-54g-drag-actions"></a>9. Apply held released and cancelled drag outcomes
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54g-drag-actions-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Drag-action routing and camera gestures require separate checks.
+
 ### 1. `src/editor.rs`
 
 **Locate this existing block:**
@@ -2978,6 +2980,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-54h-mouse"></a>10. Capture mouse gestures in CSS pixels
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54h-mouse-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Mouse and camera input routing require separate interaction checks.
 
 ### 1. `src/gesture.rs`
 
@@ -3387,6 +3391,8 @@ fn cancellation_never_selects_and_allows_a_fresh_press() {
 
 ## <a id="checkpoint-54i-touch"></a>11. Orbit with one finger and pan pinch with two
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54i-touch-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Touch and camera interaction require separate checks.
+
 ### 1. `src/touch.rs`
 
 Create the file and type:
@@ -3520,6 +3526,8 @@ pub mod touch;
 
 ## <a id="checkpoint-54j-taps"></a>12. Finish taps double taps and touch cancellation
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54j-taps-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Tap and camera input routing require separate checks.
+
 ### 1. `src/touch.rs`
 
 **Locate this existing block:**
@@ -3573,6 +3581,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-54k-overlay"></a>13. Draw a thin selection rectangle above the canvas
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54k-overlay-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Overlay ownership and camera input require separate interaction checks.
 
 ### 1. `src/panel.rs`
 
@@ -3792,6 +3802,8 @@ pub struct Panel {
 ```
 
 ## <a id="checkpoint-54l-navigation"></a>14. Route mouse touch and wheel after panel input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54l-navigation-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Navigation and camera interaction require separate checks.
 
 ### 1. `src/browser.rs`
 
