@@ -647,13 +647,13 @@ The drawing now includes black original mesh boundaries. Rendering diagonals sta
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.
 
-![Native renderer output for draw original boundary edges consistently.](../screenshots/journey/44g-edge-ink.png)
+![Native presentation at this checkpoint.](../screenshots/journey/44g-edge-ink-5c3b10f59b3a.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Original source boundaries and source-face joins are now drawn with black ink, while filled faces remain free of triangulation diagonals. Raster/close-edge/grid-axis limitations remain. Apparent contours and interactive part highlights belong to later stages. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

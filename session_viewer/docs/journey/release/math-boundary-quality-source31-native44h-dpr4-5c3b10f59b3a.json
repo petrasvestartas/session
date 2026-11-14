@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44h-01\\capture-ready.json",
+    "sha256": "e3c15270ff68d180502d8aee1d24b91c30fb08c6346b0fd0768775bf8842b8e5"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T00:54:02.163Z",
+  "id": "44h-mode-gpu",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44h-mode-gpu-5d0b31fd1f4cd3d7ece7\\capture.json.gz",
+    "sha256": "183a2b76bed6bdb6c2312703756b599e0e37a12568b9b039237859464b1890bc",
+    "bytes": 93665
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44h-01\\capture-result.json",
+    "sha256": "33846b67d23f9329f5a2c3fbbbcd51c5293d3efc145bf63c4e356bca5f5b9a9e"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-44h-01-execution.json",
+    "sha256": "538d6c460a377d40acd62c71ce6987d169ae7af040d96df5b451117c6482b690"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44h-01\\bounded-terminal.json",
+    "sha256": "ebb3de853874eaeb81660e1fe91682268b6540545ba3b27fe7419fb6dbe25dee"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44h-mode-gpu-5c3b10f59b3a.png",
+    "sha256": "5c3b10f59b3a47e7b126ae321bd4ab3a59beca22a519843295c020e4181c86ab"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44g-edge-ink.png",
+    "sha256": "20fc6a73a74fc2fc184016263782d81a202a23ad295f781fb9eafc25983e2ed4"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened original2560x1920 PNG and additionally viewed fitted rendering after original-detail placeholder. ExactSHA equals the44g original personally viewed at full resolution. Black original source boundaries and face joins outline the yellow and brown solids; no triangulation diagonals cross filled faces. Connected black stroke, blue point, grid and axes remain, with raster/close-edge/grid-axis limitations. This44h RGB frame does not independently demonstrate integer source-part picking or the later interactive part highlight. Apparent-contour, canonical640/full-unit and browser acceptance remain separate from executed constructor probes.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 44h-mode-gpu rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44h-01\\publication.json",
+    "sha256": "4edb7d295eb76ec9dd765f193bc44c7978ec242ef64552c6b517fd7bfc1945bc"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44h-mode-gpu-5d0b31fd1f4cd3d7ece7\\publication.json",
+    "sha256": "b17bed09a00534b6ff85e8457b53a0b97b17514f2de4913b2c4a52550fa21075"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44h-mode-gpu-5d0b31fd1f4cd3d7ece7\\retirement.json.gz",
+    "sha256": "c69d5c6d1aa304ae22624f911fb0216e506aca9a3e29bd3105e043405afbe96e"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44h-mode-gpu-5d0b31fd1f4cd3d7ece7\\retired.json",
+    "sha256": "65f807ee9eb0b02822d3c27d24c26f02980ad526007f7aa25b7cb7ca83bfbb19"
+  }
+}

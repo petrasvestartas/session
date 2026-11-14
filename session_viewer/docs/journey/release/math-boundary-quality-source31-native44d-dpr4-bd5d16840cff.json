@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44d-01\\capture-ready.json",
+    "sha256": "949aa9e672cfcfd4d03e313dbf8c6ce9073e87c631aea194cbf9e8def4e4eeef"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T00:48:20.119Z",
+  "id": "44d-pulling",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44d-pulling-58bf69439127f6879869\\capture.json.gz",
+    "sha256": "d52a56418020e3975d575b0545b04518c143727eb4b89599c5c2e97fc635f4f9",
+    "bytes": 93292
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44d-01\\capture-result.json",
+    "sha256": "1fecaba48e05bb80428a85ba7a1db4ff83ca1e1801d4bbfac1dd7efbaef37707"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-44d-01-execution.json",
+    "sha256": "b62dd3ee3581485c1c5afc89cdcc11413d652a0435fe20905e4a4ba55c28d832"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44d-01\\bounded-terminal.json",
+    "sha256": "e3bfa5944acc58b590301b1ef005b96bb48d1164028bead869a0605ee3a4a250"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44d-pulling-bd5d16840cff.png",
+    "sha256": "bd5d16840cffd615b28eb70df1b4a47fe4b22f199938fd1b9a709160279c5e4b"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\42-window.png",
+    "sha256": "4d71ed6c07bb50dcbf89e23c7baef3c9a5a5f72d1485fe6310315760119a4d63"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened the original2560x1920 PNG and additionally viewed its fitted rendering after the original-detail tool displayed a placeholder. Exact SHA matches the44c original personally viewed at full resolution. The scene shows yellow selected and brown shaded solids, connected black stroke, blue point, grid and axes; filled faces have no triangulation wires. Raster steps and grid/axis crossings remain. This inherited41f RGB image does not independently demonstrate vertex-pulled source-face identities. Constructor GPU probes, canonical640/full-unit and browser scopes remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 44d-pulling rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-part-six-case-44d-01\\publication.json",
+    "sha256": "cdb8aca39ddf3462d422e1b552afcd6a717414f4f5f593d8d04ef914608bf481"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44d-pulling-58bf69439127f6879869\\publication.json",
+    "sha256": "2dcc95a1b777aea3b3ed20e17506d585d05b704889c879c726541d192f5c9898"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44d-pulling-58bf69439127f6879869\\retirement.json.gz",
+    "sha256": "3256adeba63fdaae129cbd8d591a30287806474fc7ce9261e7f8513651f9fd9f"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44d-pulling-58bf69439127f6879869\\retired.json",
+    "sha256": "0ad2fe5b3f7840b5025e8cbb7cc7bdfdbe48be0ca60d4c9ced58cc6f13b56ef4"
+  }
+}
