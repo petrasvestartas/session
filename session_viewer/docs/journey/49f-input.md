@@ -1060,13 +1060,13 @@ Close; Line; -0.65,-0.35,0; 0.65,0.35,0. Start Line again and type -0.5,0.5,0. H
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The saved black line remains; the yellow band and cursor snap to its endpoint without creating another source.
 
-![Native renderer output for snap actual drawing input through the command dock.](../screenshots/journey/49f-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/49f-input-b54a77169648.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Saved black source line and yellow preview band meet at circular endpoint cursor; programmatic End snap, live interaction untested. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

@@ -609,6 +609,8 @@ pub mod snap_bins;
 
 ## <a id="checkpoint-49d-index"></a>5. Choose snap kinds before grid fallback
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49d-index-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, spatial indexing behavior untested.
+
 ### 1. `src/snap_index.rs`
 
 Create the file and type:
@@ -788,6 +790,8 @@ pub mod snap_index;
 ```
 
 ## <a id="checkpoint-49e-cache"></a>6. Invalidate snap caches after source edits
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49e-cache-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, spatial-cache behavior untested.
 
 ### 1. `src/editor.rs`
 
@@ -992,6 +996,8 @@ pub struct Editor {
 
 ## <a id="checkpoint-49ea-state"></a>7. Preserve drafts while snapping
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49ea-state-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, retained spatial state behavior untested.
+
 ### 1. `src/tool.rs`
 
 **Locate this existing block:**
@@ -1176,6 +1182,8 @@ pub enum Action {
 ```
 
 ## <a id="checkpoint-49f-input"></a>8. Snap actual drawing input through the command dock
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49f-input-b54a77169648.png). Saved black source line and yellow preview band meet at circular endpoint cursor; programmatic End snap, live interaction untested.
 
 ### 1. `src/commands.rs`
 

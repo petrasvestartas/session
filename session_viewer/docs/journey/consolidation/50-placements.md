@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-50-placements"></a>1. Address placements across geometry lanes
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/50-placements-b54a77169648.png). Saved black source line and yellow endpoint-snapped preview; inherited49f fixture, object placements untested.
+
 ### 1. `src/scene.rs`
 
 **Locate this existing block:**
@@ -108,6 +110,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-50a-preview"></a>2. Keep temporary placements outside the document
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/50a-preview-b54a77169648.png). Saved black source line and yellow endpoint-snapped preview; inherited49f fixture, object-placement preview untested.
 
 The maintained Viewer connects committed edits to rendering through [history notes](../../../src/app/scene_sync/notes.rs). Kernel operations identify changes to geometry, placement, presence or a subtree; Undo visits the transaction in reverse order. Scene synchronization merges these notes by document and object before updating display rows. This lesson keeps the same distinction between a temporary preview and one committed history edit, but its scene-based preview does not implement that per-operation invalidation stream.
 

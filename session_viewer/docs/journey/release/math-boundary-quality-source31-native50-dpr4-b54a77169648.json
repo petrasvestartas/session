@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-50-01\\capture-ready.json",
+    "sha256": "c5ea95de09bbe68e10b9fe40b8d91c9eb92b5996b67833ffca11d1473ade0823"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T02:42:14.030Z",
+  "id": "50-placements",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50-placements-afbaf7e6c40ce82dd1f7\\capture.json.gz",
+    "sha256": "6432b9c28ec1b13417aa807d8179f7c0ed6455cb6b2759f2c08753c78920a949",
+    "bytes": 99236
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-50-01\\capture-result.json",
+    "sha256": "200e027030a6c42c0bedf9b826e8cdf85eff20427ec3514e0f771e648bd8fc4e"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-50-01-execution.json",
+    "sha256": "20be5a03c5e9ccda489b65742f752745e830602c26937cc5726aff54d1a64b38"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-50-01\\bounded-terminal.json",
+    "sha256": "11675458a752ce02023d58b1d15cb65093086e6c72c9244ead211f6f09ec7915"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50-placements-b54a77169648.png",
+    "sha256": "b54a771696487752219b8fcbeaa277439e9fb53f4e0e388b5c36461136b3c624"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\49f-input.png",
+    "sha256": "0fa8ca71f68a61674dcee0acd0e5ab5bf0158eccd2d2b2aa29ba3b9643ed88a3"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened original2560x1920 PNG and inspected fitted rendering after original-detail placeholder. ExactSHA equals49f original personally viewed fullresolution: saved black line rises from lowerleft to upperright, yellow temporary band from upperleft meets circular yellow endpoint cursor on white. Both bands/cursor fully visible; black source ink stays visible away from preview. Actual inherited49f fixture saves one line and programmatically snaps another draft to its original endpoint, asserting End kind/cursor/prompt/one savedline/76previewbytes plusGPU source-midpoint ink. Static snapped-preview rendering only; object placement/transform behavior, live keyboard/pointer/browser and canonical640/fullunit remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 50-placements rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-snap-six-case-50-01\\publication.json",
+    "sha256": "d1076cef80f74b67b507224d6d3d191ac863642c610addaa255f008e36e65510"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50-placements-afbaf7e6c40ce82dd1f7\\publication.json",
+    "sha256": "6424c675325048680ad9207e8e92281baace01ce847a3153e59e2f1a38172ec5"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50-placements-afbaf7e6c40ce82dd1f7\\retirement.json.gz",
+    "sha256": "c872c1f49b214c3a157a6470f6ef90f2a52df8630d34f1d63144707ec243e311"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50-placements-afbaf7e6c40ce82dd1f7\\retired.json",
+    "sha256": "44ce04590e7cc0d255faab5f981128063182f37ad8bf4b1e11d22f61f159dd6a"
+  }
+}
