@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-case-53d-01\\publish.mjs",
+    "sha256": "bcf100d6e5a8bc0672111155f9160e427cf0027fb2e67f2cbf27a1e2212bd2d1"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-case-53d-01\\publish-original-template.mjs",
+    "sha256": "e251207a87daa4bf6b029bae858d812acb30c7c658027a1ce2734c1507e4f3af"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-case-53d-01\\capture-ready.json",
+    "sha256": "dc8ca711a3976b8c7c0bcfdae2e5341e26bceabe34ecded557a5df23860563ba"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T12:02:09.065Z",
+  "id": "53d-hide-show",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53d-hide-show-6dd8a093185f6bcc783f\\capture.json.gz",
+    "sha256": "3cd65c93f26ea65cc5716be36090521f3e6159e9827d079d7b647b48f0df06e7",
+    "bytes": 105107
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-case-53d-01\\capture-result.json",
+    "sha256": "a3fd6b0b274bec8d32217d488620397cf2dae0c58a943008a8ecc2dec2533ce4"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-53d-01-execution.json",
+    "sha256": "525d23ce01c235e405b244dd688f295a5308eeccb771e97b3b33e92de9b58e3a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-case-53d-01\\bounded-terminal.json",
+    "sha256": "e87162a84f208ddc520e41b6821ccce80df202a7478221f7db7f9336eac561af"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53d-hide-show-363e6b24f861.png",
+    "sha256": "363e6b24f861d845612d9f171a0a8dfb1e52491e0643c1c8ec207b012215ceb2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\52k-tree.png",
+    "sha256": "67756c3364a5685e12e6b9f005aa34c7a1bcb11038f76b65d1bf310a9cf89c80"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Original PNG opened; duplicate placeholder returned. Exact SHA/bytes equal personally viewed original53a2560x1920: gold selected left parent, brown topbeam/right upright, clean black source boundaries, RGB arrows/grips/white pivot and smooth arcs/no triangulation strokes. Actual inherited52k fixture includes separate constructor visibility/pick exclusion assertions. Pixels do not demonstrate hide/show transitions or tree GUI; canonical640pixel/full-unit/browser/currentMain acceptance separate. Holder stopped at its120second-next-case threshold; this existing fifth image is reviewed and normally retired within the original600second total deadline. Sixth case was not prepared or captured.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 53d-hide-show rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-flags-six02-case-53d-01\\publication.json",
+    "sha256": "fad59d7645df5ed5fcf9287169f19c278287e47d28467939150c815d37d542f4"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53d-hide-show-6dd8a093185f6bcc783f\\publication.json",
+    "sha256": "cf5e58bd95081651d0df874f6baa1a8d422209c61ab4875a5f04fa4c77e50bd7"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53d-hide-show-6dd8a093185f6bcc783f\\retirement.json.gz",
+    "sha256": "851c6e74f4e2fa1a1b8d35d289d5d889994fbb48849f1cc2fa82c2d781042af2"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-53d-hide-show-6dd8a093185f6bcc783f\\retired.json",
+    "sha256": "099fc8253e2207744be30c5b9ca3ea14c34d783237526a7be7ab89f18159d800"
+  }
+}
