@@ -124,6 +124,8 @@ pub mod commands;
 
 ## <a id="checkpoint-47a-actions"></a>2. Register the existing editor command factories
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/47a-actions-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, action registry behavior untested.
+
 ### 1. `src/commands.rs`
 
 **Locate this existing block:**
@@ -224,6 +226,8 @@ pub const HOSTS: &[(&str, Host)] = &[
 ```
 
 ## <a id="checkpoint-47b-parse"></a>3. Parse the longest command and validate its arguments
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/47b-parse-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, command parsing behavior untested.
 
 ### 1. `src/commands.rs`
 
@@ -447,6 +451,8 @@ mod selection_cycle_tests;
 ```
 
 ## <a id="checkpoint-47c-route"></a>4. Route the command field through the typed registry
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/47c-route-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, command routing behavior untested.
 
 ### 1. `src/panel.rs`
 

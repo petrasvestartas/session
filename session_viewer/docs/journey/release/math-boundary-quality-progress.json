@@ -1,6 +1,6 @@
 {
   "status": "IN_PROGRESS_FULL_1334_AFFECTED_IMAGE_GOAL",
-  "updatedUtc": "2026-11-14T01:40:16.071317+00:00",
+  "updatedUtc": "2026-11-14T02:02:06.335350+00:00",
   "scope": "Viewer tutorial rendering and screenshots only. Chair, Boolean and physical geometry validation belong to the separate geometry task.",
   "preserved": "Existing Vue style, site structure and Gemini content. Historical immutable review receipts retain their original dates and scope.",
   "sourceQualification": {
@@ -333,7 +333,7 @@
       "supportingTopicIllustrations": 2
     },
     "source31ImageQualification": {
-      "nativeImages": 53,
+      "nativeImages": 59,
       "sourceTestsPassed": 9,
       "originalPixelRootReview": true,
       "canonicalPixelAssertionsExecuted": false,
@@ -344,18 +344,18 @@
     "inventoryTotal": 1763,
     "explicitlyUnchanged": 429,
     "affected": 1334,
-    "newPublishedReviewed": 152,
-    "remainingAffected": 1281,
-    "acceptedForFinalSource": 53,
-    "remainingFinalSourceAcceptance": 1281,
-    "qualificationNote": "Full original1334 affected destinations retained, including eight previously removed entries pending explicit reconciliation. Source31 fresh Native image presentations compiled, Root-reviewed, published and normally retired:53/1334;1281 require current-source reconciliation/regeneration. Earlier primary/supporting evidence remains dated and separate. Current whole canonical validation is not claimed.",
+    "newPublishedReviewed": 158,
+    "remainingAffected": 1275,
+    "acceptedForFinalSource": 59,
+    "remainingFinalSourceAcceptance": 1275,
+    "qualificationNote": "Full original1334 affected destinations retained, including eight previously removed entries pending explicit reconciliation. Source31 fresh Native image presentations compiled, Root-reviewed, published and normally retired:59/1334;1275 require current-source reconciliation/regeneration. Earlier primary/supporting evidence remains dated and separate. Current whole canonical validation is not claimed.",
     "removedUnusedImages": 330,
     "removedUnusedAffected": 8,
     "retiredUnusedSource13Acceptances": 2,
     "acceptedHistoricalFreeze13": 51,
     "acceptedAcrossRendererLineage": 94,
-    "remainingPlannedImageAcceptances": 1281,
-    "physicalJourneyPngs": 620,
+    "remainingPlannedImageAcceptances": 1275,
+    "physicalJourneyPngs": 626,
     "uniqueJourneyPngs": 570,
     "denseRgbIllustration": {
       "receipt": "docs/journey/release/dense-original-rgb-msaa4-source22-20261112.json",
@@ -3490,6 +3490,132 @@
         "servedBrowserVerified": false
       },
       "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+    },
+    {
+      "id": "47a-actions",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native47a-dpr4-77791d4fa1df.json",
+      "receiptSha256": "7d11dd7c0f4b80551a81cc3d5eb6de8d8aaa7f12949a572e802368888938a726",
+      "image": "docs/screenshots/journey/47a-actions-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/47-registry.md",
+        "anchor": "checkpoint-47a-actions",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      },
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+    },
+    {
+      "id": "47b-parse",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native47b-dpr4-77791d4fa1df.json",
+      "receiptSha256": "69e66afded24bad3215f3f44ab93ed94d0378bc630d57585a95c9b64e8c6dceb",
+      "image": "docs/screenshots/journey/47b-parse-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/47-registry.md",
+        "anchor": "checkpoint-47b-parse",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      },
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+    },
+    {
+      "id": "47c-route",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native47c-dpr4-77791d4fa1df.json",
+      "receiptSha256": "1dfe1443213c481eb42fa069437609bd84b0e63674453be259a624dfcb14a56c",
+      "image": "docs/screenshots/journey/47c-route-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/47-registry.md",
+        "anchor": "checkpoint-47c-route",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      },
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+    },
+    {
+      "id": "48-coordinates",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native48-dpr4-77791d4fa1df.json",
+      "receiptSha256": "c8e68dbeb83293d34ecbc2c54630626b98b9bcc301c021e1d0c9b38963f705be",
+      "image": "docs/screenshots/journey/48-coordinates-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/48-coordinates.md",
+        "anchor": "checkpoint-48-coordinates",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      },
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+    },
+    {
+      "id": "48a-draft",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native48a-dpr4-77791d4fa1df.json",
+      "receiptSha256": "b45c5d4c7613ce19f116fb103f0b817bcdab8a9570f084c8fcb2996da8ae7f85",
+      "image": "docs/screenshots/journey/48a-draft-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/48-coordinates.md",
+        "anchor": "checkpoint-48a-draft",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      },
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
+    },
+    {
+      "id": "48b-preview",
+      "lane": "native",
+      "kind": "native-image-presentation-raw-dpr4",
+      "receipt": "docs/journey/release/math-boundary-quality-source31-native48b-dpr4-77791d4fa1df.json",
+      "receiptSha256": "bec2b2c9577ed9ee4b0ec2567a49cd4688df7a062363d6e7e0bf4d3783089dd1",
+      "image": "docs/screenshots/journey/48b-preview-77791d4fa1df.png",
+      "imageSha256": "77791d4fa1dfc00e3a6d285bb084b95b6403d7ff787aaa4a7ffdc975b24fae5e",
+      "sourceFreeze": "source-freeze-31-stage-aware-native-density.json",
+      "rootVisuallyReviewed": true,
+      "canonicalBehaviorExecuted": false,
+      "httpSha256Verified": false,
+      "servedChromeVerified": false,
+      "primaryReaderPlacement": {
+        "path": "docs/journey/consolidation/48-coordinates.md",
+        "anchor": "checkpoint-48b-preview",
+        "sourceOnly": true,
+        "servedBrowserVerified": false
+      },
+      "currentSitePublication": "PENDING_SERVED_BROWSER_CHECK_AFTER_FULL_IMAGE_SET"
     }
   ],
   "stages": [
@@ -3688,8 +3814,8 @@
     }
   },
   "validationLedgerLatest": {
-    "path": "docs/journey/release/math-boundary-validation-ledger-20261114-04.json",
-    "sha256": "eab31d404596381fd6a77b1affe48ad3efa47ec6245407250c9276d395c08723"
+    "path": "docs/journey/release/math-boundary-validation-ledger-20261114-05.json",
+    "sha256": "f9e61f900add3c2cf9d422a1859ab4b7239431e45645d7b01c7eeb19441a4a7c"
   },
   "completion": {
     "status": "VISIBLE_MILESTONE_ONLY_FULL_GOAL_ACTIVE",
@@ -3711,11 +3837,11 @@
     "fullGoalComplete": false,
     "unchangedExactByteMatches": 429,
     "unchangedMismatches": 0,
-    "currentSourceImagePresentationsPublishedReviewed": 53,
-    "currentSourceRemainingImagePresentations": 1281,
+    "currentSourceImagePresentationsPublishedReviewed": 59,
+    "currentSourceRemainingImagePresentations": 1275,
     "latestProgressReceipt": {
-      "path": "docs/journey/release/viewer-full-image-goal-source31-progress-20261114-04.json",
-      "sha256": "fc6772c3b7455def2e4dba336af9d13c043a26877222b341242b3e95340fd68b"
+      "path": "docs/journey/release/viewer-full-image-goal-source31-progress-20261114-05.json",
+      "sha256": "07ada132e2f1f1d88c5a2deafa2f66cdffe8480d39a708db0260199a78b332fc"
     },
     "source31PrimaryReaderPlacement": {
       "path": "docs/journey/release/viewer-source31-native-reader-placement-20261113.json",
