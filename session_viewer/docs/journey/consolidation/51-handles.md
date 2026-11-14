@@ -1321,6 +1321,8 @@ pub mod widget_layout;
 
 ## <a id="checkpoint-51h-shader"></a>10. Draw a local handle tile and its canvas rectangle
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51h-shader-deb4457c6d33.png). The inherited two-box Move preview remains visible; this figure does not display the handle shader output.
+
 ### 1. `src/widget.wgsl`
 
 Create the file and type:
@@ -1391,6 +1393,8 @@ fn fs_composite(in: Composite) -> @location(0) vec4<f32> {
 
 ## <a id="checkpoint-51i-image"></a>11. Bind the widget’s own sampled image
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51i-image-deb4457c6d33.png). This inherited two-box Move preview does not display handle image sampling; its selected faces and temporary band remain unchanged.
+
 ### 1. `src/widget_pipelines.rs`
 
 Create the file and type:
@@ -1442,6 +1446,8 @@ pub mod widget_pipelines;
 ```
 
 ## <a id="checkpoint-51j-pipelines"></a>12. Separate handle depth from scene depth
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51j-pipelines-deb4457c6d33.png). The inherited two-box Move preview remains the recorded scene; handle pipeline behavior needs separate validation.
 
 ### 1. `src/widget_pipelines.rs`
 
@@ -1553,6 +1559,8 @@ pub fn composite(
 
 ## <a id="checkpoint-51k-tile"></a>13. Own color, depth and resolve textures together
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51k-tile-deb4457c6d33.png). This inherited two-box Move preview does not yet show handle tiles; the recorded scene stays unchanged.
+
 
 
 ### 1. `src/widget.rs`
@@ -1660,6 +1668,8 @@ pub mod widget;
 
 ## <a id="checkpoint-51l-upload"></a>14. Upload handle geometry once
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51l-upload-deb4457c6d33.png). The inherited two-box Move preview is unchanged; handle upload behavior requires separate validation.
+
 See the [typed CPU buffers and GPU uploads diagram in Lesson 3.6](31-settings.md).
 
 ### 1. `src/widget.rs`
@@ -1765,6 +1775,8 @@ struct Tile {
 ```
 
 ## <a id="checkpoint-51m-prepare"></a>15. Write only current handle placement
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51m-prepare-deb4457c6d33.png). This inherited two-box Move preview does not establish handle preparation behavior; that runtime validation remains separate.
 
 ### 1. `src/widget.rs`
 
