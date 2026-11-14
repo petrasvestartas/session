@@ -13796,7 +13796,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "42h-owner",
@@ -13848,7 +13848,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "42i-copy",
@@ -13900,7 +13900,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "42j-read",
@@ -13964,7 +13964,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "42k-input",
@@ -14096,7 +14096,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "43-ticket",
@@ -14165,7 +14165,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "43a-flight",
@@ -14238,7 +14238,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "43b-view",
@@ -14344,7 +14344,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44-topology",
@@ -14430,7 +14430,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44a-tags",
@@ -14492,7 +14492,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44b-sources",
@@ -14535,7 +14535,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "41f-input"
     },
     {
       "id": "44c-resolve",
@@ -14602,8 +14602,7 @@
           "why": "Register the component and copied checks."
         }
       ],
-      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata."
     },
     {
       "id": "44d-pulling",
@@ -14688,7 +14687,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "44c-resolve"
     },
     {
       "id": "44e-pipeline",
@@ -14737,7 +14736,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "44c-resolve"
     },
     {
       "id": "44f-metadata",
@@ -14780,7 +14779,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "42f-mesh"
+      "image_same_as": "44c-resolve"
     },
     {
       "id": "44g-edge-ink",

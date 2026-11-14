@@ -57,15 +57,15 @@ Run the checks. The bounded image allocator is ready and does not change visible
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.
 
-![Native renderer output for own a small id image, depth target and readback buffer.](../screenshots/journey/42k-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/42g-image-bd5d16840cff.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited RGB grid frame remains unchanged. Bounded integer-image, depth-target and padded-readback allocation require separate resource and integer picking checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [5.7.8 · Inspect the ground grid through actual commands](41f-input.md). It does not demonstrate a new feature by itself.
+This scene continues [5.7.8 · Inspect the ground grid through actual commands](41f-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

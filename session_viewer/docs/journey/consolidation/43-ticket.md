@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-43-ticket"></a>1. Name the request and view that produced a hit
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/43-ticket-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Checked request tickets, view signatures and stale-result rejection require separate state and picking checks.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -268,6 +270,8 @@ mod pick_view_tests;
 ```
 
 ## <a id="checkpoint-43a-flight"></a>2. Carry checked tickets through GPU mapping
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/43a-flight-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Ticketed GPU-map completion, superseded requests and scene-adoption invalidation require separate picking and freshness checks.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -748,6 +752,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-43b-view"></a>3. Reject results from an old view or interrupted input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/43b-view-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Stale-view and interrupted-input rejection require separate request, camera, viewport, density and focus checks.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
