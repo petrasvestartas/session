@@ -25,6 +25,9 @@ function watchPublicPlugin() {
 // Production is served at /session/docs/ next to the viewer (DOCS_BASE overrides it); the dev
 // server keeps /session/ so the minitest URL localhost:8769/session/tests#/tests still works.
 export default defineConfig(({ command }) => ({
+  define: {
+    'import.meta.env.DOCS_BUILT_AT': JSON.stringify(new Date().toISOString()),
+  },
   base: command === 'build' ? process.env.DOCS_BASE || '/session/docs/' : '/session/',
   plugins: [vue(), watchPublicPlugin(), coursePlugin()],
   build: {

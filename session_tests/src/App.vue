@@ -1,12 +1,33 @@
 <template>
   <MainLayout></MainLayout>
+  <div class="docs-build">Docs built <time :datetime="builtAt">{{ buildLabel }}</time></div>
 </template>
 
 <script setup lang="ts">
 import MainLayout from './components/layout/MainLayout.vue'
+
+const builtAt = import.meta.env.DOCS_BUILT_AT
+const buildLabel = builtAt.replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
 </script>
 
 <style>
+.main-layout {
+  padding-bottom: max(28px, calc(24px + env(safe-area-inset-bottom)));
+}
+
+.docs-build {
+  position: fixed;
+  right: max(36px, env(safe-area-inset-right));
+  bottom: max(4px, env(safe-area-inset-bottom));
+  z-index: 201;
+  padding: 3px 6px;
+  background: #ffffff;
+  color: #555555;
+  font: 11px/1.4 system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 /* Plain look: system fonts, black text, greys for rules and muted text, white background. */
 :root {
   --fg: #000000;
