@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-55-01\\publish.mjs",
+    "sha256": "6258e2c675113600770d8ac2209ba7fa73bb4ea0d359b862be6260485bee9ee6"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-55-01\\publish-original-template.mjs",
+    "sha256": "97f7e21088845b1bb2f58c38d36c7444f52044860c7a0ecee5cad28e147fc0a0"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-55-01\\capture-ready.json",
+    "sha256": "0f7b2b7ba90f8d12145d92eab820be15245e76bcd71a4fe8e2e2fd91e8578451"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T16:51:39.619Z",
+  "id": "55-validation",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55-validation-9ec197f2f5b95515d418\\capture.json.gz",
+    "sha256": "08b7503b38a9624db296e1ca39b111d98007d7765389ef66909797948c0d54f5",
+    "bytes": 109005
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-55-01\\capture-result.json",
+    "sha256": "da70ef8025a0ab278c2c62d929ba807e18c5eb8d24e75d4f2a0579eb6b216712"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-55-01-execution.json",
+    "sha256": "7499a185504fb2402f8e53770c8b7add41c1cbb4857916e4361bf47ee81524d1"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-55-01\\bounded-terminal.json",
+    "sha256": "3a6d3689c9b06790471e4b7bbf23abe778088de506a5e1bffe4ba1e05c5a3a57"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55-validation-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened this original PNG at original detail and verified exact SHA256 equality to the full54m original personally viewed. The actual55-validation fixture is53u-layers: two blue Posts and an unrelated brown beam, clean original black boundaries without triangulation wires. This is fresh Rust/NVIDIA raw-DPR4 inherited constructor presentation only. It is not the historical roof fixture; canonical validation checks and browser interactions were not executed by this capture.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 55-validation rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-finish-six-case-55-01\\publication.json",
+    "sha256": "df2761d410c0cec9c3ee0128ce6126b5a76c25266630a4198be757f3414ddce6"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55-validation-9ec197f2f5b95515d418\\publication.json",
+    "sha256": "a98f257f246b5647d7f827050eec8a647554629fc07ee21eee0afd5ddaff5bea"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55-validation-9ec197f2f5b95515d418\\retirement.json.gz",
+    "sha256": "1438ede5cd76ba27cd9e1b239e0a2492086f2e65730af3986703bd8db5e73e9b"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55-validation-9ec197f2f5b95515d418\\retired.json",
+    "sha256": "6e3bcba7306da115eb3bc7249c410c83d5cdd66d6c2321cc91b036c379bfea5b"
+  }
+}

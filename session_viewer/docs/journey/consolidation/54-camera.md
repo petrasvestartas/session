@@ -4098,6 +4098,8 @@ Replace it with:
 
 ## <a id="checkpoint-54m-pick-release"></a>15. Retain the press pick through a quick release
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54m-pick-release-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; pick-release interaction requires separate state/browser checks.
+
 ### 1. `src/browser.rs`
 
 **Locate this existing block:**
@@ -4341,6 +4343,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-54n-cancellation"></a>16. Cancel owned gestures and preserve normal capture release
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54n-cancellation-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; cancellation/input behavior requires separate state/browser checks.
+
 ### 1. `src/browser.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -4417,6 +4421,8 @@ Replace it with:
 
 ## <a id="checkpoint-54o-frame"></a>17. Expose drag ownership and centre the available drawing
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54o-frame-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; camera framing behavior requires separate state/browser checks.
+
 ### 1. `src/browser.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -4492,6 +4498,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-54p-navigation"></a>18. Exercise current navigation selection and delayed answers
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54p-navigation-aeab6de33013.png). The actual53u fixture retains two blue Posts, original black boundaries and the unrelated brown beam; navigation input behavior requires separate state/browser checks.
 
 ### 1. `src/navigation_complete_tests.rs`
 
