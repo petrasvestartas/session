@@ -1,5 +1,22 @@
 # 8.1 · Nested original sources and exact parent edits
 
+## Current hierarchy and panel ownership
+
+Keep document identities, nested visibility and editable layer names consistent while the scene changes. Prerequisites are validated session decoding, stable object identities and reversible document edits. The runnable historical checkpoint below exercises nested sources; adopting the complete production hierarchy into that checkpoint remains pending.
+
+Read `Hierarchy::refresh` and `build` in [hierarchy.rs](../../../src/app/hierarchy.rs). The cache follows `Scene::row_revision`. Its flat node array puts parents before children; `end` marks the first index after a subtree, while `rows` addresses a separate array of object rows. A panel index is temporary. Geometry lookup uses the document plus GUID, and visibility lamps use the document plus full group path, so equal names in different documents do not share a switch. Rebuilding retains expanded nodes by name and remembers missing ones so undo can restore their expansion.
+
+A lamp remembers only the identities it actually hid. Trace `lamp_off`, `lamp_on` and `keep_covered`: reopening a parent does not reveal an object already hidden independently or still covered by another lamp. Feature lines have a `Pick` containing the owning element row, feature indices and whether they represent interactions or attributes. These lines select parts without inventing independent source objects. Read `feature_lines` and `own_lines` together to follow both kinds of element content.
+
+The panel limits displayed nodes, indexed rows and graph edges separately. `visible` skips the descendants of collapsed nodes; the panel pages the resulting list in groups of 128. Large scenes can retain group lines while omitting per-object lines. A truncated hierarchy is a bounded panel representation, not permission to delete source geometry.
+
+[Layer operations](../../../src/app/layers.rs) edit the document tree and update its row revision. The [egui panel](../../../src/app/ui/layers.rs) owns the temporary rename text and keyboard focus. Its registered `Hooks::apply` applies a completed rename before processing the click that ended editing. `keys_taken` protects the focused field; `holds_escape` reports an active rename. The persistent document and the current text field therefore have different lifetimes.
+
+**Predict and try:** in the nested-source checkpoint, collapse and expand a parent and predict which descendants are listed. For the production visibility exercise, hide a child, then hide and reopen its parent: the child must remain hidden while the other children reappear. The native tests `a_layer_lamp_keeps_the_lamps_below` and `an_element_lamp_keeps_its_parts` encode that contract; browser interaction acceptance for the cumulative integration is still required.
+
+**Question:** why not store only one hidden flag on the parent? **Answer:** reopening it would lose which children were hidden independently. Remembering the identities hidden by each lamp preserves those choices through overlapping visibility controls.
+
+
 **Steps:** 7 · **Source:** [app/hierarchy.rs](../../../src/app/hierarchy.rs) · [app/layers.rs](../../../src/app/layers.rs) · [app/ui/layers.rs](../../../src/app/ui/layers.rs) · [app/gesture/mod.rs](../../../src/app/gesture/mod.rs)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

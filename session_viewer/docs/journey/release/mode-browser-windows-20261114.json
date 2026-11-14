@@ -16710,5 +16710,6 @@
   "visualReview": {
     "desktop": "Two clear side-by-side panels; equilibrium diagram and force polygon left, aligned equations right. No visible overlap in reviewed final frame.",
     "upright": "Scene above equations, both within the narrow viewport; labels and footer remain visible. Emulated viewport, not a physical phone."
-  }
+  },
+  "normalizedChecker": "fec5315c78eeafa5e2c0303ee85bdbd076bd5c6181f7ac5c671b40e3e56a621d"
 }
