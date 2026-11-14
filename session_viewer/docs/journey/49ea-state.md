@@ -701,15 +701,15 @@ Run the supplied checks after 49f. Browser forwarding remains the earlier free-p
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier temporary line band and cursor remain, without a saved line.
 
-![Native renderer output for preserve drafts while snapping.](../screenshots/journey/48d-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/49ea-state-9b3b2620591a.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Yellow unfinished-line band and circular cursor; inherited48d fixture, retained spatial state behavior untested. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [7.3.5 · Draw points and lines through the shared command dock](48d-input.md). It does not demonstrate a new feature by itself.
+This scene continues [7.3.5 · Draw points and lines through the shared command dock](48d-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51-01\\capture-ready.json",
+    "sha256": "acccf75c3dd5c31367a4683a3d776cef26d49e3509c8622cbb448f0da2a833ed"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T03:38:46.200Z",
+  "id": "51-handles",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51-handles-c7a1d586e07a767dc90e\\capture.json.gz",
+    "sha256": "841765f8f50aeb788fd9796dd52251651561526a80feba23f5a1d486ba424e8d",
+    "bytes": 99970
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51-01\\capture-result.json",
+    "sha256": "5a537849ce5c66d05eff9b0cb99c82c078a3ba68cef52193499b40fad10f9059"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-51-01-execution.json",
+    "sha256": "59dd8dfd4f55bcc64d79aa8c30be0f48a198fd228cfe9771dd5b0c40ad780723"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51-01\\bounded-terminal.json",
+    "sha256": "eda6dba6517a0014a5aa3a4a4cd1ba3b7ef0df5609b5d65933761d47a0e89e69"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\51-handles-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened actual original2560x1920PNG; image viewer returned a white placeholder. Exact fileSHA matches personally inspected50d original from this holder: two separated gold selected boxes, black face/outer boundaries without triangle wires, shaded sides, short rising yellow preview band with circular endpoint between boxes. Actual inherited50d Move display fixture preserves saved models/offsets display/reuses mesh settings programmatically; no handle geometry/liveGUI/browser/canonical640/full-unit acceptance inferred.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 51-handles rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-51-01\\publication.json",
+    "sha256": "96829037cab36dc20d195cbf7e74c2c982ed7a0278ed7f42fad28b863f0909b8"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51-handles-c7a1d586e07a767dc90e\\publication.json",
+    "sha256": "1385d868df19f5d71402aa2f37ad9ccc827a7611a2c7066974ad9e655309b581"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51-handles-c7a1d586e07a767dc90e\\retirement.json.gz",
+    "sha256": "aa18e276d2bba5948d6b1f2c6738561f81928d7d2295000f1eaa308da68b7f3b"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-51-handles-c7a1d586e07a767dc90e\\retired.json",
+    "sha256": "ff6f85cf176283dc43b7253682276c709a55c36da3785bc30be877d2e8b9517c"
+  }
+}

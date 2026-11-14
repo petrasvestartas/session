@@ -57,11 +57,11 @@ Local handle vertex packing and sampling are prepared; the earlier Move drawing 
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
-![Native renderer output for pack and sample local handle vertices.](../screenshots/journey/50d-ownership.png)
+![Native presentation at this checkpoint.](../screenshots/journey/51ez-pack-and-sample-local-handle-vertices-deb4457c6d33.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. This inherited two-box Move preview does not display the local handle vertices; packing and sampling need separate source and runtime checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

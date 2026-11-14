@@ -1,0 +1,76 @@
+{
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-50d-01\\publish-existing-exact-image.mjs",
+    "sha256": "940530597180fb33842258dcdb2fbee59bba314e764ecedaa9bdfc93094c6a1a"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-50d-01\\publish.mjs",
+    "sha256": "64f9c68c08cecbd33467395fabd4863d940103eb9a75817539fb12fa14f53b54"
+  },
+  "preexistingImageReused": true,
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-50d-01\\capture-ready.json",
+    "sha256": "37bfbe4a11940ed77dc043303d999823ccc8bb19a99ae8360dca5e3de999a753"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T03:37:51.846Z",
+  "id": "50d-ownership",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-ac0df845944c94d5b96a\\capture.json.gz",
+    "sha256": "df6ac53c38853f06818cec6761cb6d23d69903bb1c1f6dc83cf8f65018583b81",
+    "bytes": 99798
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-50d-01\\capture-result.json",
+    "sha256": "7168447c59fc83fe97b59258f97b2b5b78da3cf3e8acd854dc07adb737291fa3"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-50d-01-execution.json",
+    "sha256": "a42d61bbabbf9df5f523377ed38397da8149f0c18ac4bfb898a719111d7276f8"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-50d-01\\bounded-terminal.json",
+    "sha256": "b9c77473f0c910c218245e4364747449fe0091448e632293959c40fc0bb21df2"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership-deb4457c6d33.png",
+    "sha256": "deb4457c6d332860e5262a8cc4b53ad80e18bf9ee12aa74e56d0a676a960da68"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\50d-ownership.png",
+    "sha256": "7229782badb63f944c0e0921f6fd70b0f706185b081c64db27749e1fb266bb7a"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected original2560x1920PNG: two separated selected gold boxes on white, black outer/face boundaries with no triangulation wires, narrow side on left box and broad shaded left side on right; short rising yellow move band and circular endpoint between them. Actual50d fixture programmatically preserves saved model matrices, offsets display models0.4 and reuses mesh/settings allocations; no liveGUI/handles/rays/pivot/browser/canonical640/full-unit acceptance inferred. Fresh pixels exactly match preserved historical50d image; reuse only via explicitcompanion.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 50d-ownership rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-placement-six-case-50d-01\\publication.json",
+    "sha256": "4073fa6ddcef06b0994477b8500e152704782f1c84dfbf4b78b3e3dc811002b6"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-ac0df845944c94d5b96a\\publication.json",
+    "sha256": "0eefbfe514198f8665848483bd63503d7ac5df3b34f0b60dde03447760c19c61"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-ac0df845944c94d5b96a\\retirement.json.gz",
+    "sha256": "d43f0c7d7ec35ab3725453f33559b3e4d2688d00f9ae03e9c5a8e78577cef67a"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-50d-ownership-ac0df845944c94d5b96a\\retired.json",
+    "sha256": "3ad98df1763f694038503197d0a460d6fbdf316ac34218f211a46746409fafd1"
+  }
+}
