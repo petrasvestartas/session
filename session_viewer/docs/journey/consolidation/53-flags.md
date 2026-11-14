@@ -3170,6 +3170,8 @@ fn canvas_delete_hide_show_keep_focused_text_and_modifiers_owned_by_the_field() 
 
 ## <a id="checkpoint-53e-properties"></a>7. Apply eye lock and independent colour properties
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53e-properties-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; property controls and GUI interaction require separate acceptance.
+
 ### 1. `src/layer_properties.rs`
 
 Create the file and type:
