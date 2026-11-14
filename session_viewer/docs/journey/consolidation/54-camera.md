@@ -438,6 +438,8 @@ pub enum Action {
 
 ## <a id="checkpoint-54a-selection"></a>3. Apply visible selection and modifier precedence
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54a-selection-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Selection gestures and camera interactions require separate checks.
+
 ### 1. `src/shortcuts.rs`
 
 **Locate this existing block:**
@@ -658,6 +660,8 @@ pub enum Action {
 
 ## <a id="checkpoint-54b-finger"></a>4. Keep touch handles reachable without enlarging them
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54b-finger-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Finger and camera input interactions require separate checks.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -868,6 +872,8 @@ Replace it with:
 
 ## <a id="checkpoint-54c-rectangle"></a>5. Distinguish window and crossing rectangles
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54c-rectangle-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Rectangle selection and drag ownership require separate interaction checks.
+
 ### 1. `src/rect_select.rs`
 
 Create the file and type:
@@ -991,6 +997,8 @@ pub mod rect_select;
 ```
 
 ## <a id="checkpoint-54d-samples"></a>6. Select projected geometry in one source pass
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54d-samples-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Sample gestures and camera interaction require separate checks.
 
 ### 1. `src/rect_select.rs`
 
@@ -1255,6 +1263,8 @@ mod rect_select_tests;
 
 ## <a id="checkpoint-54e-drag"></a>7. Freeze a released drag until its pick answers
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54e-drag-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Dragging and camera interaction require separate checks.
+
 ### 1. `src/canvas_drag.rs`
 
 Create the file and type:
@@ -1420,6 +1430,8 @@ pub mod canvas_drag;
 ```
 
 ## <a id="checkpoint-54f-drag-state"></a>8. Own drag previews outside document history
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54f-drag-state-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the independent brown source beam. Drag-state ownership and camera input require separate interaction checks.
 
 ### 1. `src/editor.rs`
 

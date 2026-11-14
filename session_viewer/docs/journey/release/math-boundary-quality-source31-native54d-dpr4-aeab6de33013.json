@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54d-01\\publish.mjs",
+    "sha256": "df1c6a4522260fc93d7bb822c9fdc1ddfd2c74fc488195890061256a2bac7639"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54d-01\\publish-original-template.mjs",
+    "sha256": "6784f79e3f5950bb3fc8c1f59b665348d6e89697c99eb5fb62e6b3aaa8a25822"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54d-01\\capture-ready.json",
+    "sha256": "4feaa2121b57caacafd27892bdb3b16d22d51d8f195fab8c250ac5015b325bd2"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T15:29:22.937Z",
+  "id": "54d-samples",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54d-samples-cfd54ab1bf59f81d3031\\capture.json.gz",
+    "sha256": "591345ee341c5f6d7c1f4173a2a7b5215cd44f41c02ff8a97c3fa9ca3f52e539",
+    "bytes": 107412
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54d-01\\capture-result.json",
+    "sha256": "c81f7eef5639296fb6acffa8b1140545c59c543af652153c7a9636cf02e0787e"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-54d-01-execution.json",
+    "sha256": "988d62be815a1e6223ad172cc667f1542123c12f04c2589f98e88f6dff0fb5d3"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54d-01\\bounded-terminal.json",
+    "sha256": "c9352b28c5f387ad614daea1c80d9ef1c0ad4418719d6a065994dc591129f0a1"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\54d-samples-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally inspected the full original2560x1920 PNG: blue Posts with shaded sides, brown source beam, clear original black box boundaries and clean white background, no triangulation wires. Actual inherited53u constructor colour override and readonly attribute/pick checks only. Sample gestures and camera input, canonical640 pixel verification, browser and fullMain remain unaccepted by this image.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 54d-samples rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-camera-input-six-case-54d-01\\publication.json",
+    "sha256": "b95c77376b9d31717004f06c7ff6367d739e1447adcbea6c719b4a3f448193df"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54d-samples-cfd54ab1bf59f81d3031\\publication.json",
+    "sha256": "a7ed3120279f270e9abe1fde8df541fabb85fd88ee58801f15110828bdbbc549"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54d-samples-cfd54ab1bf59f81d3031\\retirement.json.gz",
+    "sha256": "716782530f6416ff5388abf498bd6ff7b9da09f7f6dae13485c2b1caf791381a"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-54d-samples-cfd54ab1bf59f81d3031\\retired.json",
+    "sha256": "ea7a3279ae91837db7ba33b147b159d1d7042d71c5d2cc8a864ec11a9bf8949a"
+  }
+}
