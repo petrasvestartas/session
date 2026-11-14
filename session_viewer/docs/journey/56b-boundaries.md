@@ -78,7 +78,7 @@ The blue parametric roof and black domain boundaries remain visible.
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-This reference image is shared with [9.1.8 · Draw and pick the original parametric roof](55g-surface.md). It does not demonstrate a new feature by itself.
+This historical reference image is retained here for the following lessons. It does not establish acceptance of their current source.
 
 <details>
 <summary>Code explanation and diagram</summary>

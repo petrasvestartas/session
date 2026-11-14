@@ -60,7 +60,7 @@ The blue CAD bore and its black original borders remain visible.
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-This reference image is shared with [9.1.8 · Draw and pick the original parametric roof](55g-surface.md). It does not demonstrate a new feature by itself.
+This historical reference image is shared with [Shared boundaries](56b-boundaries.md). It does not establish acceptance of the current source.
 
 <details>
 <summary>Code explanation and diagram</summary>

@@ -142,7 +142,7 @@ The blue parametric roof and black domain boundaries remain visible.
 
 *This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-This reference image is shared with [9.1.9 · Read original edge-use samples](55za-read-original-edge-use-samples.md). It does not demonstrate a new feature by itself.
+This historical reference image is shared with [Shared boundary constraints](56a-shared.md). It does not establish acceptance of the current source.
 
 <details>
 <summary>Code explanation and diagram</summary>

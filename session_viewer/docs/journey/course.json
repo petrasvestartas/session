@@ -21075,8 +21075,7 @@
           "why": "Bound mathematical display refinement while retaining original source identity."
         }
       ],
-      "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55za-read-original-edge-use-samples"
+      "image_result": "The blue parametric roof and black domain boundaries remain visible."
     },
     {
       "id": "56b-boundaries",
@@ -21117,8 +21116,7 @@
           "copy": true
         }
       ],
-      "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_result": "The blue parametric roof and black domain boundaries remain visible."
     },
     {
       "id": "57-parameters",
@@ -21158,7 +21156,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "57a-trims",
@@ -21200,7 +21198,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "58-uses",
@@ -21240,7 +21238,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "58a-periodic",
@@ -21282,7 +21280,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "58za-match-original-face-edge-directions",
@@ -21319,7 +21317,7 @@
           "why": "Compile the one original face-orientation owner."
         }
       ],
-      "image_same_as": "55zc-follow-original-constrained-trim-labels"
+      "image_same_as": "56a-shared"
     },
     {
       "id": "59-orientation",
@@ -21353,7 +21351,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55za-read-original-edge-use-samples"
+      "image_same_as": "56a-shared"
     },
     {
       "id": "59a-face-data",
@@ -21393,7 +21391,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55za-read-original-edge-use-samples"
+      "image_same_as": "56a-shared"
     },
     {
       "id": "59b-display",
@@ -21433,7 +21431,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "59c-source-row",
@@ -21497,7 +21495,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "59d-identities",
@@ -21555,7 +21553,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "59e-cache",
@@ -21595,7 +21593,7 @@
         }
       ],
       "image_result": "The blue parametric roof and black domain boundaries remain visible.",
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "59f-cad",
@@ -21711,7 +21709,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface",
+      "image_same_as": "56b-boundaries",
       "lock": "journey/release/cumulative-math-15.lock"
     },
     {
@@ -21761,7 +21759,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60b-coverage",
@@ -21804,7 +21802,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60ba-validation",
@@ -21847,7 +21845,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60bb-shaping",
@@ -21890,7 +21888,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60c-document",
@@ -21933,7 +21931,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60d-reuse",
@@ -21976,7 +21974,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60e-font-reload",
@@ -22019,7 +22017,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60f-diagnostics",
@@ -22068,7 +22066,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "60g-text-shaping",
@@ -22112,7 +22110,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "61-atlas",
@@ -22161,7 +22159,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "61a-coverage",
@@ -22204,7 +22202,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "61b-specimen",
@@ -22253,7 +22251,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "61c-renderer",
@@ -22314,7 +22312,7 @@
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.ttf"
       ],
-      "image_same_as": "55g-surface"
+      "image_same_as": "56b-boundaries"
     },
     {
       "id": "61d-glyphs",
