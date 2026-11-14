@@ -376,6 +376,8 @@ fn typed_factor(value: f64) -> f64 {
 
 ## <a id="checkpoint-51c-hit"></a>4. Pick handles in a stable priority order
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51c-hit-deb4457c6d33.png). The inherited two-box Move preview is retained; handle hit geometry and live picking require separate checks.
+
 ### 1. `src/gizmo.rs`
 
 **Locate this existing block:**
@@ -461,6 +463,8 @@ fn typed_factor(value: f64) -> f64 {
 
 ## <a id="checkpoint-51d-grab"></a>5. Capture the handle’s grab
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51d-grab-deb4457c6d33.png). The inherited two-box Move preview stays unchanged; the grab gesture needs separate runtime validation.
+
 ### 1. `src/gizmo.rs`
 
 **Locate this existing block:**
@@ -537,6 +541,8 @@ fn typed_factor(value: f64) -> f64 {
 ```
 
 ## <a id="checkpoint-51e-transform"></a>6. Derive handle transforms and quarter-turn snapping
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51e-transform-deb4457c6d33.png). The inherited two-box Move preview shows source and display model separation; this figure does not establish handle transformations.
 
 ### 1. `src/gizmo.rs`
 
@@ -965,6 +971,8 @@ mod gizmo_tests;
 
 ## <a id="checkpoint-51ez-pack-and-sample-local-handle-vertices"></a>7. Pack and sample local handle vertices
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51ez-pack-and-sample-local-handle-vertices-deb4457c6d33.png). This inherited two-box Move preview does not display the local handle vertices; packing and sampling need separate source and runtime checks.
+
 ### 1. `src/widget_mesh.rs`
 
 Create the file and type:
@@ -1061,6 +1069,8 @@ pub mod widget_mesh;
 ```
 
 ## <a id="checkpoint-51f-mesh"></a>8. Build local arrows balls and rotation arcs
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51f-mesh-deb4457c6d33.png). The inherited two-box Move preview does not yet display a handle mesh; its gold faces and temporary band remain unchanged.
 
 
 
@@ -1178,6 +1188,8 @@ fn sphere(
 ```
 
 ## <a id="checkpoint-51g-layout"></a>9. Keep handles constant in CSS pixels
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51g-layout-deb4457c6d33.png). The inherited two-box Move preview remains the recorded scene; handle pipeline layout requires separate validation.
 
 ### 1. `src/widget_layout.rs`
 
