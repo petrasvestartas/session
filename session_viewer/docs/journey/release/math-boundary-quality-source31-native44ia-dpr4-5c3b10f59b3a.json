@@ -1,0 +1,67 @@
+{
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44ia-01\\capture-ready.json",
+    "sha256": "8654a80db5611ac30a50a52fcca4b6728654d3982b76e586f6d5d0d7c0f4011a"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T01:12:17.999Z",
+  "id": "44ia-original-ink",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44ia-original-ink-e9e8f3b7e9f52779dc05\\capture.json.gz",
+    "sha256": "3ed1e07496cf426cd6a8a01916c874088372d4049ee87461cf821b5723ecfabe",
+    "bytes": 94073
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44ia-01\\capture-result.json",
+    "sha256": "48421f77d86bea962eb2573242467422a4e0026de9a9166a854562a885920f52"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-44ia-01-execution.json",
+    "sha256": "e27eb60ef62622f0a4791123f0f580d9c11915e2c894ad1b2d69c9a29fa9436a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44ia-01\\bounded-terminal.json",
+    "sha256": "a7c7c93bf3dabc2810c0bdff18faabd6e8558fb98d764a338c5d06ce309704b0"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44ia-original-ink-5c3b10f59b3a.png",
+    "sha256": "5c3b10f59b3a47e7b126ae321bd4ab3a59beca22a519843295c020e4181c86ab"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44g-edge-ink.png",
+    "sha256": "20fc6a73a74fc2fc184016263782d81a202a23ad295f781fb9eafc25983e2ed4"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened original2560x1920 PNG and also viewed its fitted rendering after original-detail placeholder. ExactSHA equals the44i original personally viewed at full resolution. Inherited yellow and brown solids retain black source boundaries and face joins, with no filled-face triangulation diagonals; connected stroke, blue point, grid and axes remain. Raster stepping, close right-side edges and grid/axis crossings persist. This shared RGB frame does not establish new original-ink source-key behavior or interactive highlighting. Executed constructor probes, canonical640/full-unit, apparent-contour and browser scopes remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 44ia-original-ink rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44ia-01\\publication.json",
+    "sha256": "403de88751adca941ccdaca6ec0f9555f33ab1f76233f878ddd823fc2e9d1d20"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44ia-original-ink-e9e8f3b7e9f52779dc05\\publication.json",
+    "sha256": "2ab8ee03e06a7b0431e57ef6cc84f119fcfad5639cc5d9c9bdfea7a37201efe8"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44ia-original-ink-e9e8f3b7e9f52779dc05\\retirement.json.gz",
+    "sha256": "ba95e5deb6acdd47505e852030bdcb45715ece82778db4682ae088574ffdb65b"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44ia-original-ink-e9e8f3b7e9f52779dc05\\retired.json",
+    "sha256": "8ee4b33985ee80bca5db80b6b8d6906622e563bc78ce7f37dd530f5e8297fab7"
+  }
+}

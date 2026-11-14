@@ -1075,13 +1075,13 @@ Close; Example Box; Fit; Select Face, then click a face and type Selection. Repe
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 A real native GPU frame shows one original box face highlighted while the neighbouring faces and black boundary edges retain their own presentation.
 
-![Native renderer output for select and inspect original faces, edges and controls.](../screenshots/journey/44l-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/44l-input-7dada61886fe.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Dedicated original Face(1) selection is rendered gold on the box, with gray neighboring faces and dark original boundaries; no triangulation diagonals. Boundary raster stepping remains. Programmatic fixture selection does not establish actual pointer or browser interaction; earlier-fixture GPU probes are not transferred. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
