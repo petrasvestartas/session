@@ -48,6 +48,8 @@
 
 ## <a id="checkpoint-49-settings"></a>1. Separate object and grid snapping
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49-settings-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, settings controls untested.
+
 ### 1. `src/snap.rs`
 
 Create the file and type:
@@ -199,6 +201,8 @@ pub mod snap;
 
 ## <a id="checkpoint-49a-math"></a>2. Keep snap math in world and plane coordinates
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49a-math-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, expression parsing untested.
+
 ### 1. `src/snap_math.rs`
 
 Create the file and type:
@@ -342,6 +346,8 @@ pub mod snap_math;
 ```
 
 ## <a id="checkpoint-49b-sources"></a>3. Collect targets from placed geometry
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49b-sources-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, source filtering behavior untested.
 
 ### 1. `src/snap_sources.rs`
 
@@ -518,6 +524,8 @@ pub mod snap_sources;
 ```
 
 ## <a id="checkpoint-49c-bins"></a>4. Search nearby screen cells
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/49c-bins-9b3b2620591a.png). Yellow unfinished-line band and circular cursor; inherited48d fixture, screen-bin indexing untested.
 
 ### 1. `src/snap_bins.rs`
 

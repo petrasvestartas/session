@@ -1307,13 +1307,13 @@ Close; Line; -0.65,-0.35,0. Move the cursor over the drawing: the yellow band is
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The real native texture shows an unfinished yellow band and cursor. The scene contains no saved line.
 
-![Native renderer output for draw points and lines through the shared command dock.](../screenshots/journey/48d-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/48d-input-9b3b2620591a.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Yellow unfinished-line band and circular cursor with no saved line; static48d fixture, live interaction untested. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

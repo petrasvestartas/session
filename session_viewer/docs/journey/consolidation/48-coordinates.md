@@ -636,6 +636,8 @@ fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
 
 ## <a id="checkpoint-48c-commit"></a>4. Commit completed tools in one Undo transaction
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48c-commit-77791d4fa1df.png). Two selected box owners with original boundary ink; inherited45c fixture, draft commitment is not demonstrated.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -1507,6 +1509,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-48d-input"></a>5. Draw points and lines through the shared command dock
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/48d-input-9b3b2620591a.png). Yellow unfinished-line band and circular cursor with no saved line; static48d fixture, live interaction untested.
 
 ![Command dock waiting for the second Line point](../../screenshots/journey/48d-input-5d9f055b37a6.png)
 
