@@ -4756,6 +4756,8 @@ pub mod layer_palette;
 
 ## <a id="checkpoint-53p-panel-state"></a>18. Resolve layer presentation for real tree controls
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53p-panel-state-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Layer panel presentation requires separate GUI checks.
+
 ### 1. `src/tree_panel.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -4895,6 +4897,8 @@ pub struct TreePanel {
 ```
 
 ## <a id="checkpoint-53q-properties-ui"></a>19. Draw eye lock and independent colour menus
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53q-properties-ui-363e6b24f861.png). The inherited52k scene retains selected editable-parent geometry and visible readonly attributes. Properties and menu GUI behavior require separate interaction checks.
 
 ### 1. `src/tree_panel.rs`
 
