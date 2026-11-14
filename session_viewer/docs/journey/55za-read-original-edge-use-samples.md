@@ -56,11 +56,11 @@ Boundary lookup can read an original edge-use sample without changing the displa
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
-![Native renderer output for read original edge-use samples.](../screenshots/journey/55zc-follow-original-constrained-trim-labels.png)
+![Native presentation at this checkpoint.](../screenshots/journey/55za-read-original-edge-use-samples-2336125cd76e.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Native presentation of the inherited parametric roof: original visible boundaries, smooth surface and correctly occluded far boundary. Constructor and image presentation only; source-sampling algorithms, canonical pixel validation and browser interaction remain separate. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

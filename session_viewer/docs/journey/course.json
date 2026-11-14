@@ -18036,7 +18036,8 @@
           "why": "Expose original line, polyline and curve names for their tree rows."
         }
       ],
-      "image_result": "Two selected boxes and their source-independent handles remain.\n\nThis checkpoint was rendered independently and has the same native comparison frame as [Save nested rows and their local placements](52f-save.md). Use its state checks and browser exercise to assess the changed behavior."
+      "image_result": "Two selected boxes and their source-independent handles remain.\n\nThis checkpoint was rendered independently and has the same native comparison frame as [Save nested rows and their local placements](52f-save.md). Use its state checks and browser exercise to assess the changed behavior.",
+      "image_same_as": "52-tree"
     },
     {
       "id": "52h-expansion",

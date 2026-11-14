@@ -931,13 +931,13 @@ Type Close, Example Surface, Fit and View Isometric. The blue parametric roof dr
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The blue curved parametric roof uses smooth analytic normals and black domain boundaries; interior tessellation lines remain absent.
 
-![Native renderer output for draw and pick the original parametric roof.](../screenshots/journey/55g-surface.png)
+![Native presentation at this checkpoint.](../screenshots/journey/55g-surface-2336125cd76e.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The actual AddSurface/Fit/Isometric constructor shows a smooth blue parametric roof with visible original black boundaries and no triangulation wires; its central far boundary is correctly occluded. Apparent contours arrive at63f/63g/63h. Canonical fixed-pixel and browser checks remain separate. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-case-55za-01\\publish.mjs",
+    "sha256": "162478169ad62b4341b713d341254e5e8e642c51c1fbb4ab81f88a3e1407fb0a"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-case-55za-01\\publish-original-template.mjs",
+    "sha256": "38e113375b1aaca844e94aa393a0785656b98d0e81806a74fd6bbe0c91450153"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-case-55za-01\\capture-ready.json",
+    "sha256": "b83e0ed559ddddaf89ea6d20daef3c5235b3a53074753f8c2c4a42739f3febbc"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T18:15:07.015Z",
+  "id": "55za-read-original-edge-use-samples",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55za-read-original-edge-use-samples-c66ae7e4800a86fd4997\\capture.json.gz",
+    "sha256": "4b0c4525b8ab94c1d5bb432e84b47feaeeb13d7b8527cf977b88a9dfb13c93ed",
+    "bytes": 110103
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-case-55za-01\\capture-result.json",
+    "sha256": "7ce7e36f178f4a8cbc1c42ad7c586218f6c9a730346d2bb9cfd72ae4161e09c8"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-55za-01-execution.json",
+    "sha256": "c7f15e16cf9a697dd38d38e69b69beaef2371b4885d0a1e0e0749231e740ec9a"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-case-55za-01\\bounded-terminal.json",
+    "sha256": "dcbe31e4f4d7cb3bac656690f9ec07003e723a020b0487987e10a81dd8e35fb6"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55za-read-original-edge-use-samples-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels.png",
+    "sha256": "56f6f5a4bf1ac72b0a8d31a78e80b8b4b71881310dca4530ea0dcfcc7a3a3915"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this full original 2560x1920 rawDPR4 PNG. Smooth blue parametric roof, visible original black boundaries and no triangulation wires; the central far-boundary gap is correct occlusion. Apparent contours arrive at63f/63g/63h, so no earlier silhouette line is required. Actual inherited55g-surface constructor fixture asserts one face,64 original edge-use samples and four boundary curves. This qualifies the staged roof constructor/draw presentation only; it does not qualify edge-use algorithms, canonical640pixel assertions or GUI source/selection/callback behavior.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 55za-read-original-edge-use-samples rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-four-lowdisk-case-55za-01\\publication.json",
+    "sha256": "32b60d170476b4c4a711236823b9312d29d18c1d8e6202afc4891449136303b5"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55za-read-original-edge-use-samples-c66ae7e4800a86fd4997\\publication.json",
+    "sha256": "80b6361bcd41d1ef9e994c94cf1420741760aaf3ca5be8562800503b647f9d71"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55za-read-original-edge-use-samples-c66ae7e4800a86fd4997\\retirement.json.gz",
+    "sha256": "15d904ae0f04abb4fb3df89a90c69cf2b5b08afd12bfcfbc9257ca26a3689b5d"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55za-read-original-edge-use-samples-c66ae7e4800a86fd4997\\retired.json",
+    "sha256": "3354e52a29cbc96b300e16c371c1eee5592f1675e76a28fb4115de69d4b0f8f8"
+  }
+}

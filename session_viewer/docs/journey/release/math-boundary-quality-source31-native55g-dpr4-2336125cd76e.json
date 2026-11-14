@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55g-01\\publish.mjs",
+    "sha256": "636fc6548403f0e11fb76ffe6da2b52470b6779ef635d83b72f943726adc7cce"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55g-01\\publish-original-template.mjs",
+    "sha256": "b2d068cb9952e278d15e43b95c1aa56bb1143a297b989d67f69b43a0dc91e977"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55g-01\\capture-ready.json",
+    "sha256": "31f77ba5615cd5cfe55751ed93013b214d3a019619b5835d0869721002f5f850"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T17:27:49.821Z",
+  "id": "55g-surface",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55g-surface-96e1a8b4d5a5e61eed5e\\capture.json.gz",
+    "sha256": "36e410f2de1f4da22f3b3af344225959d83f8bc3534b2ee41d7882b78c62c52e",
+    "bytes": 109164
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55g-01\\capture-result.json",
+    "sha256": "5fccb9aa00ee7859265350a787641f2da3fd5ad6c20c311ab01190167855db82"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-55g-01-execution.json",
+    "sha256": "d870f8c77db59efb3acea6a9e9caa9a4cd5b44a24fda0e8005dfdfa39df5d3c7"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55g-01\\bounded-terminal.json",
+    "sha256": "8a348c3199930779493abaf40dcb93ef3836c06d742e41b2f7a771735b3e6b59"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55g-surface-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55g-surface.png",
+    "sha256": "157b8682f836186112519db9b368c91edf48644301713a44b34a6c973613c19b"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this original2560x1920 PNG. The actual55g AddSurface/Fit/Isometric fixture shows a smoothly shaded blue parametric roof with original black boundaries where visible and no triangulation wires. The central far-boundary portion is correctly occluded by the surface; apparent contours are introduced only at63f/63g/63h, so no black line or early silhouette patch is required here. Constructor assertions retain one face,64 source edge samples and4 boundary curves. This accepts the fresh Rust/NVIDIA raw-DPR4 staged constructor presentation only; canonical fixed-pixel and browser interactions were not executed by this capture.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 55g-surface rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55g-01\\publication.json",
+    "sha256": "5174dc9de1c7eb9eaab101cb92a270cdd052309714f60627c3a68c11ff980153"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55g-surface-96e1a8b4d5a5e61eed5e\\publication.json",
+    "sha256": "15273afc94bcacbb222f89876caefabf766b2d656a74e3832e970148dba30cdb"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55g-surface-96e1a8b4d5a5e61eed5e\\retirement.json.gz",
+    "sha256": "f377cec892fd4b106e2d346a2afb61f064dc082a4e2446d8e5b99e87a38bf081"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55g-surface-96e1a8b4d5a5e61eed5e\\retired.json",
+    "sha256": "0c5fc14ae3ef2a8b5913d2d7de20397a240176a4d8ea6d81b4e4962d9fc3158f"
+  }
+}

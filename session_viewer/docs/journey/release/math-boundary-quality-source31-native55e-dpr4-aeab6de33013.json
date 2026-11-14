@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55e-01\\publish.mjs",
+    "sha256": "70e2cdd6cf8d8e4f568f2756f21fd914291bacfe4bfda0dc1da6d9ba912f290f"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55e-01\\publish-original-template.mjs",
+    "sha256": "2d1b7236780d7eb71c9a7ed741795cd36f99125d6c5034849cae04dcd85a21a9"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55e-01\\capture-ready.json",
+    "sha256": "ce636a380b4d834c3beb7312b2ab4623de6b5e8e79420afd74c58b323bde0165"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T17:24:09.179Z",
+  "id": "55e-identities",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55e-identities-29b02097e89547c6fb61\\capture.json.gz",
+    "sha256": "f7eb3ceb4e7b01575c9169e2dc2dc38702c624ade1fa2ee0260e51b7be8dfaad",
+    "bytes": 108980
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55e-01\\capture-result.json",
+    "sha256": "71ba2193feb2af454c97f3a86e9217ef52f97eb44dbffb43d39aa0ff698e2dc0"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-55e-01-execution.json",
+    "sha256": "fb1364175925789dd69be169850261fd2f6c3e77e5451fc5dd45ee1ae757fe3d"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55e-01\\bounded-terminal.json",
+    "sha256": "e8c8b1cce8f3f4a6a84fb4fc38bc0d903d661e21259c6e1741364bf16ee31fed"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55e-identities-aeab6de33013.png",
+    "sha256": "aeab6de3301305b4cd9f51b8d4cdb4d705b40e3b1b7c62a2411aaa1e2145eae1"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\53u-layers.png",
+    "sha256": "c5e76ea8992ae69a7682aa4e2cea4af082cc1f8bad6a41fd0300c196df07b7e9"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root opened this original PNG at original detail; duplicate display corroborated by exact SHA256 equality to fulloriginal55b personally viewed. The actual55e fixture remains53u-layers: two blue Posts and an independent brown beam, clean original black boundaries without triangulation wires. This accepts fresh Rust/NVIDIA raw-DPR4 inherited constructor presentation only; source identity behavior, canonical state checks and browser interactions were not executed by this capture.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 55e-identities rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-surface-validation-six-case-55e-01\\publication.json",
+    "sha256": "90ced7ac966422e0d9b5fbcb1d5eea85cbdb5f27b4b0fb470cf8aff00a74d4de"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55e-identities-29b02097e89547c6fb61\\publication.json",
+    "sha256": "fc17ef56f5e97db8e86c44a6b01ceb7d6c7032d77a2a375962400fcb4cd46577"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55e-identities-29b02097e89547c6fb61\\retirement.json.gz",
+    "sha256": "f80fb425f7a3205f7a12055c885e3c2a5b0983a5436e89063f5f861c08a1ba03"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-55e-identities-29b02097e89547c6fb61\\retired.json",
+    "sha256": "813ca4554a1475d4d38033885cf18cb44a8aa5e81dde7fcf5d20636210d5b6b9"
+  }
+}

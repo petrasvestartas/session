@@ -1,0 +1,76 @@
+{
+  "preexistingImageReused": false,
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-56-01\\publish.mjs",
+    "sha256": "e0b23f207e98fa8bcb8f2d2f1bd88da7aa0d6b5705468fda30e78793adc4f95b"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-56-01\\publish-original-template.mjs",
+    "sha256": "05ff6f4a9685265729aa09b58339812e077f199aa95359fa253a6ece046b733b"
+  },
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-56-01\\capture-ready.json",
+    "sha256": "acc8d9b0a84d5122da4d269efb6ef51bfdff32c25ee138ff8cffde94e2433311"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T18:42:12.508Z",
+  "id": "56-chains",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56-chains-f5433b3063faa2d75c98\\capture.json.gz",
+    "sha256": "fd5748304f49a31b81eeed03763c75419b6b81c70aff896b8c24315c46faec6c",
+    "bytes": 109378
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-56-01\\capture-result.json",
+    "sha256": "be6df49506a39d8521a683981f87d63fd3dcd0ad894855b97c0b7e43497fee77"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-56-01-execution.json",
+    "sha256": "bdab0a780615261c8e2bc5246728544414c0f29780b4209941ce4e4843884907"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-56-01\\bounded-terminal.json",
+    "sha256": "1f5dff03cfc5d57239a39a974ee252837af0cccba3d9ca6f0904c7ec18f12f83"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\56-chains-2336125cd76e.png",
+    "sha256": "2336125cd76efe41a0418b87dbf27dda53d4f1b922926dea89b31cd62f877a3e"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\55zc-follow-original-constrained-trim-labels.png",
+    "sha256": "56f6f5a4bf1ac72b0a8d31a78e80b8b4b71881310dca4530ea0dcfcc7a3a3915"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed this full original2560x1920 rawDPR4 PNG. Smooth blue parametric roof, original visible black boundaries, no triangulation wires and correctly occluded central far boundary. Apparent contours arrive only at63f/63g/63h; no early silhouette patch is required. The actual inherited55g-surface constructor asserts one face,64 original edge-use samples and four boundary curves. This qualifies roof constructor/image presentation, not CAD edge-chain algorithms, canonical640pixel checks or GUI interactions. Exact pixels also match the full55za original.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 56-chains rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-edge-boundary-three48-case-56-01\\publication.json",
+    "sha256": "826b654cb57f07a663a1b3bf68e55f73bbdc88c95869ba1b4a465ee42cd25ba6"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56-chains-f5433b3063faa2d75c98\\publication.json",
+    "sha256": "1709528629d69ce751fa85822510cbeb7e5f6209b3ca63892012df48e4463faf"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56-chains-f5433b3063faa2d75c98\\retirement.json.gz",
+    "sha256": "1da2145cbd624464ee5f1c1a8dd6818e1ef449f7bc4147501ca71e19799a6d4b"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-56-chains-f5433b3063faa2d75c98\\retired.json",
+    "sha256": "7ff2b79aef5fbef4c667261a83fee8e9d5e4772cc09ff21ccc7b1e440671270c"
+  }
+}
