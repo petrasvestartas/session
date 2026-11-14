@@ -84,8 +84,10 @@ The fourth column contains translation. Multiplication adds that column multipli
 
 ## Validation
 
-Source replay compares this checkpoint with the exact endpoint of the three archived uniform, camera and matrix checkpoints. Camera tests check the fixed centre under rotation and zoom, and bounded positive scale. Fresh wasm and optimized web builds, four native tests and the WARP pixel check pass. Chrome interaction checks execute `Orbit Right` at desktop and upright dimensions. Production projection and later-subject ownership remain unresolved.
+The cumulative checkpoint passes 31 native library tests and its optimized WASM build. Browser checks exercise the scene and retained mathematics at desktop and emulated upright dimensions. Zoom, pan, orbit and reset match the camera transform; the command dock and mathematics navigation remain available. [Source-bound runtime receipt](release/cumulative-six-runtime-windows-20261114.json).
 
-[Source-bound validation receipt](release/consolidated-windows-20261113.json) ? [Upright browser frame](../screenshots/consolidated-windows/07-uniforms-upright.png). Native evidence uses software rendering; viewport emulation does not establish real-device acceptance.
+![Current cumulative desktop browser result](../screenshots/journey/cumulative-six-20261114/07-uniforms/landscape-pan-orbit.png)
 
-![Reviewed desktop browser result](../screenshots/consolidated-windows/07-uniforms-desktop.png)
+[Upright browser result](../screenshots/journey/cumulative-six-20261114/07-uniforms/portrait-pan-orbit.png). Clip-space coordinates stretch with the canvas aspect; large zoom can clip the geometry. These checks use viewport emulation and do not establish physical-device or selected hardware-adapter acceptance. Full-course structure, finished-subject ownership and production parity remain unresolved.
+
+The [native-only receipt](release/cumulative-native-six-windows-20261114.json) preserves the earlier test milestone. Historical references: [Historical GPU and browser receipt](release/consolidated-windows-20261113.json), [Upright browser frame](../screenshots/consolidated-windows/07-uniforms-upright.png).

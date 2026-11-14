@@ -103,8 +103,10 @@ No. The vector position changes; the ObjectId assigned at insertion stays the sa
 
 ## Validation
 
-Source replay preserves the exact endpoint of the four archived depth, mesh, GPU scene and identity checkpoints. The constructor and scene tests check invalid geometry and identity after removal. Fresh wasm and optimized web builds, seven native tests and the WARP pixel check pass. Chrome interaction checks execute `Example Triangle` at desktop and upright dimensions. Final production parity and later-subject ownership remain unresolved.
+The cumulative checkpoint passes 34 native library tests and its optimized WASM build. Browser checks exercise the scene and retained mathematics at desktop and emulated upright dimensions. The near pink triangle covers the later-drawn turquoise triangle. The extra green triangle appears and disappears through its command. [Source-bound runtime receipt](release/cumulative-six-runtime-windows-20261114.json).
 
-[Source-bound validation receipt](release/consolidated-windows-20261113.json) ? [Upright browser frame](../screenshots/consolidated-windows/10-depth-upright.png). Native evidence uses software rendering; viewport emulation does not establish real-device acceptance.
+![Current cumulative desktop browser result](../screenshots/journey/cumulative-six-20261114/10-depth/landscape-extra.png)
 
-![Reviewed desktop browser result](../screenshots/consolidated-windows/10-depth-desktop.png)
+[Upright browser result](../screenshots/journey/cumulative-six-20261114/10-depth/portrait-extra.png). Clip-space coordinates stretch with the canvas aspect. These checks use viewport emulation and do not establish physical-device or selected hardware-adapter acceptance. Full-course structure, finished-subject ownership and production parity remain unresolved.
+
+The [native-only receipt](release/cumulative-native-six-windows-20261114.json) preserves the earlier test milestone. Historical references: [Historical GPU and browser receipt](release/consolidated-windows-20261113.json), [Upright browser frame](../screenshots/consolidated-windows/10-depth-upright.png).

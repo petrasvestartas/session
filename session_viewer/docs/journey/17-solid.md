@@ -82,7 +82,7 @@ From `session_viewer`, check your handwritten project with `npm --prefix ../sess
 
 Type `Example Box`, then `View Isometric`. A shaded grey solid appears behind the two triangles. Run `Select Next` three times: the box becomes yellow. `Undo` removes that box, and `Redo` restores it. Pan the view between those commands; history must leave that view in place.
 
-![Current editor checkpoint: the kernel box is selected through the editor action route.](../screenshots/journey/runtime-20261114/17-solid-desktop.png)
+![Historical editor frame: the kernel box is selected through the editor action route.](../screenshots/journey/runtime-20261114/17-solid-desktop.png)
 
 [Upright input check and its cropped view](../screenshots/journey/runtime-20261114/17-solid-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/17-solid-native.png)
 
@@ -104,10 +104,12 @@ Selection changes display colour, so it needs a GPU display update. It does not 
 
 ## Validation
 
-The checkpoint passes 19 native library tests and the unchanged 640-by-480 WARP pixel test, optimized WebAssembly/Trunk builds, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. Browser checks cover editor actions, empty Delete preserving redo, restoration of selection and picking through a moved camera. [Source-bound commands, images and scope](release/history-editor-viewport-windows-20261114.json) distinguish native WARP software rendering from Chrome?s reported Intel gen-12lp adapter.
+The cumulative checkpoint passes 46 native library tests and its optimized WASM build. Browser checks exercise the scene and retained mathematics at desktop and emulated upright dimensions. The kernel box can be selected through a moved camera; empty deletion preserves redo and document restoration. [Source-bound runtime receipt](release/cumulative-six-runtime-windows-20261114.json).
 
-The upright viewport is emulated and its fixed camera crops the right side of the scene. This is functional input evidence, not full phone composition or physical-device acceptance. The [original checkpoints](../archived/kernel-editor/checkpoints.json) and [illustrated sequence](../archived/journey-consolidation-17-solid.md) remain available.
+![Current cumulative desktop browser result](../screenshots/journey/cumulative-six-20261114/17-solid/landscape-interacted.png)
 
-Finished-subject ownership is incomplete: later subjects still change scene, editor and browser code. This subject reuses history without modifying it. Preserving the cumulative endpoint does not establish production parity or resolve those ownership conflicts.
+[Upright browser result](../screenshots/journey/cumulative-six-20261114/17-solid/portrait-interacted.png). The scene clips at the upright viewport edges with these camera settings; fitting is a later subject. These checks use viewport emulation and do not establish physical-device or selected hardware-adapter acceptance. Full-course structure, finished-subject ownership and production parity remain unresolved. Later subjects still replace scene, editor and browser implementations; history itself remains unchanged here.
+
+The [native-only receipt](release/cumulative-native-six-windows-20261114.json) preserves the earlier test milestone. Historical references: [historical browser receipt](release/history-editor-viewport-windows-20261114.json), [original checkpoints](../archived/kernel-editor/checkpoints.json), [illustrated sequence](../archived/journey-consolidation-17-solid.md).
 
 Continue with [One drawing size and one captured gesture](consolidation/19a-viewport.md).

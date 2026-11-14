@@ -103,7 +103,7 @@ Add a box and choose `View Isometric`. Resize the window: the box keeps its prop
 
 A small left click picks; a left drag beyond four pixels does not become a click even when it ends at its starting position. Type a command while the dock has focus: those keys must not navigate the scene.
 
-![Current viewport checkpoint after wheel zoom and Pan Right in desktop Chrome.](../screenshots/journey/runtime-20261114/19a-viewport-desktop.png)
+![Historical viewport frame after wheel zoom and Pan Right in desktop Chrome.](../screenshots/journey/runtime-20261114/19a-viewport-desktop.png)
 
 [Upright input check and its cropped view](../screenshots/journey/runtime-20261114/19a-viewport-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/19a-viewport-native.png)
 
@@ -123,8 +123,12 @@ The aspect determines the projection into the colour image, and the depth attach
 
 ## Validation
 
-The checkpoint passes 29 native library tests and the unchanged 640-by-480 WARP pixel test, optimized WebAssembly/Trunk builds, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. Browser checks cover captured dragging outside the canvas, release and cancellation, resize, sticky drag classification, wheel-unit equivalence, undo/redo retaining zoom, and dock input ownership. [Source-bound commands, images and scope](release/history-editor-viewport-windows-20261114.json) distinguish native WARP software rendering from Chrome?s reported Intel gen-12lp adapter.
+The cumulative checkpoint passes 56 native library tests and its optimized WASM build. Browser checks exercise the scene and retained mathematics at desktop and emulated upright dimensions. Pointer capture, cancellation, wheel units and dock event ownership preserve the document and camera state. [Source-bound runtime receipt](release/cumulative-six-runtime-windows-20261114.json).
 
-At the emulated upright size, the fixed camera crops geometry at the viewport edges. Zoom Out can reveal more of the scene; automatic fitting is a later camera subject. This does not establish full phone composition or physical-device acceptance. The eight original checkpoints remain archived. Later subjects still revise browser and renderer implementations, so the finished-subject rule remains unmet.
+![Current cumulative desktop browser result](../screenshots/journey/cumulative-six-20261114/19a-viewport/landscape-interacted.png)
+
+[Upright browser result](../screenshots/journey/cumulative-six-20261114/19a-viewport/portrait-interacted.png). The scene clips at the upright viewport edges with these camera settings; fitting is a later subject. These checks use viewport emulation and do not establish physical-device or selected hardware-adapter acceptance. Full-course structure, finished-subject ownership and production parity remain unresolved. Later subjects still replace browser and renderer implementations.
+
+The [native-only receipt](release/cumulative-native-six-windows-20261114.json) preserves the earlier test milestone. Historical references: [historical browser receipt](release/history-editor-viewport-windows-20261114.json).
 
 Continue with [Validated files, bounds and useful projections](consolidation/22a-records.md).

@@ -1,0 +1,3225 @@
+{
+  "date": "2026-11-14",
+  "scope": "Current cumulative six checkpoints with retained early mathematics. Native tests and actual optimized WASM/browser checks; not full-course completion.",
+  "sourceCommit": "1b5e58d58287acc93c6914d20119bddce5710f34",
+  "lockSha256": "b245e7e47eb3ff828f663c8e97946ddbb947a0518347a80f3b4c571387eabca1",
+  "checkpoints": [
+    {
+      "id": "05-vertices",
+      "fingerprint": "6f392716600a2ff818d25628547e51852b6f339d7d2ffde383bdf5d6fb78414e",
+      "sourceSnapshotSha256": "bd8a54152ad351c8ef40105499b3e9fec1bb7a62ba182f3d0fc4db1175634485",
+      "sourceFiles": {
+        "Cargo.toml": "72c32e4763c699db006be9d9d428e52210f9e06a2713e4565ca7f7889436fd81",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "d7e47fb700aa35c912134bf1fa956c36efa546381452042b339296d2b98ecc88",
+        "src/renderer.rs": "0fe7d3a0883cf9bae78be4bd893cff0bb036cf64233aa066d394ca9cad5e216c",
+        "src/browser.rs": "4f0242983ed25114f2b73e3195fc28482c515d7291ddbf12e5fc272fd23485cb",
+        "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+        "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+        "src/triangle.wgsl": "c32c080d988804be393cffca727449a4d329b2359e290d15c81aaa67d3c21098",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+        "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+        "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+        "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+        "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+        "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+        "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+        "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+        "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+        "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+        "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+        "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+        "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+        "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+        "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+        "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+        "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+        "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+        "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+        "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+        "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+        "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+        "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+        "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+        "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+        "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+        "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+        "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+        "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c"
+      },
+      "native": {
+        "status": "passed",
+        "passed": 29,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "tests": [
+          "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+          "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+          "app::stage::motion_tests::explicit_parts_survive_reordering",
+          "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+          "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+          "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+          "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+          "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+          "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+          "app::stage::tests::a_chapter_block_fills_its_holes",
+          "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+          "app::stage::tests::both_grounds_name_the_same_colours",
+          "app::stage::tests::decks_play_through",
+          "app::stage::tests::decks_rest_cleanly_at_every_step",
+          "app::stage::tests::expressions_resolve_points",
+          "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+          "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+          "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+          "app::stage::tests::parts_keep_their_tex_as_key",
+          "app::stage::tests::text_keeps_its_spaces",
+          "app::stage::tests::the_ground_swaps_at_the_same_step",
+          "app::stage::tests::unknown_commands_are_reported",
+          "math_tests::equals_alignment_survives_different_left_sides",
+          "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+          "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+          "math_tests::letterbox_round_trip_and_upright_column",
+          "math_tests::unknown_command_is_reported",
+          "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+          "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus"
+        ],
+        "command": [
+          "cargo",
+          "test",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "--message-format=json"
+        ],
+        "logSha256": "60d938ad8097f05c40ea45a65ffcc7330a46fd8d50ceffd564638c260138c994"
+      },
+      "wasm": {
+        "status": "passed",
+        "evidence": [
+          {
+            "file": "mesh05-wasm01/review.json",
+            "sha256": "04d033b47a428232ed89506e60dc5e4e17c9d273c6a2b1ab3545746f2457ad41"
+          },
+          {
+            "file": "mesh05-browser01/review.json",
+            "sha256": "4f3d8e91b6cee6e8a768359f4a39d92476938131bfd3e25d1b8c9173988685fb"
+          }
+        ],
+        "commands": [
+          {
+            "name": "mesh05-wasm01",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--release",
+              "--offline",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1",
+              "--message-format=json"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "mesh05-trunk01",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          }
+        ],
+        "bundle": [
+          {
+            "path": "index.html",
+            "bytes": 1593,
+            "sha256": "6bb3747ed6119111391fcdfa7b5410251494c0b34a54e0329a8287734c05961f"
+          },
+          {
+            "path": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "bytes": 849,
+            "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104"
+          },
+          {
+            "path": "viewer_journey-726fe9d5baa15171.js",
+            "bytes": 69987,
+            "sha256": "37388f135291efe0dbc710ef612606b992a80dc881b7cdebc8f8cc2fe0aec926"
+          },
+          {
+            "path": "viewer_journey-726fe9d5baa15171_bg.wasm",
+            "bytes": 4343450,
+            "sha256": "59b689514fedfb5736b6b657307344781a3e1e871f41f2ebfa28f49182689198"
+          }
+        ],
+        "compilerLogSha256": "8569dc2deacf30abb11dc7e3c839d49c6d606ac0d05e6581cfad01dfda1e8d78",
+        "trunkLogSha256": "148d61f8927427409905cb9d03fd26c5c39e431b1b5beed66cc434e47eed9c33"
+      },
+      "browser": {
+        "status": "passed",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 720,
+            "dpr": 1
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "dpr": 2
+          }
+        ],
+        "checkerSha256": "b98a9f3079dbafe267c060b37b12455cb3a9204f9b29b383ff93f05e7d170eb9",
+        "cases": [
+          {
+            "name": "landscape",
+            "width": 1280,
+            "height": 720,
+            "dpr": 1,
+            "initial": {
+              "file": "landscape-white.png",
+              "sha256": "63409240644398dab0d161b7dd8da5b2efda0b3c7dc549fa61b56fbc1bb82ddc",
+              "pixels": "4b56f6101d2b7fbc6310ad56781273abd067fffeb599d4cb7e40a2e9f90c8fa7",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ],
+              "geometryChecks": {
+                "interiorChecks": 378,
+                "exteriorChecks": 406,
+                "contract": "Both triangles fill the diamond; samples near rasterized boundaries excluded"
+              }
+            },
+            "typed": {
+              "file": "landscape-typed.png",
+              "sha256": "5bf80f338b4b0cde5154cb453f4b1ab9e14a0ae5fbc5b2df025fb1553f8fe265",
+              "pixels": "8039a63128e797ce832712880ceaaf3ed1bcdc1930c17611d417f636ad664ce0",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "grey": {
+              "file": "landscape-grey.png",
+              "sha256": "15403094f1264f22cdf2890e1f7318c34f599f7271a378b7a1bbf4ef881f34ea",
+              "pixels": "b8d45df3a4bbfb5c63f836802caf48e581737c6022efc9efccc27ca166dfd832",
+              "upper": "f8494994ce3999926548ca01f5ad1c9643b5ec4c25ed7bb9439f0b2c5f91bcc4",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                244,
+                244,
+                244
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "restored": {
+              "file": "landscape-restored.png",
+              "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+              "pixels": "b96ca018be71db54674e82f9864033a13ee79d9dd29a8a682151fe238957f658",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "help": {
+              "file": "landscape-help.png",
+              "sha256": "01ab588b27fd20a7033e39fd0546e5b6771cf614c783f502a014cd5485871850",
+              "pixels": "2df21438d418bbd10e857f398af3c0db4fd6659b8075244b3abd26acf171fb89",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "math": {
+              "file": "landscape-math.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+              "upper": "2c2cb9585acf46d46f68e9c79ee5aa7c152c670adce99c1a032269f47c6c3a5d",
+              "diamondMask": "d8d630ede91cd1513b2c7e803c171f6da5c6c137785c4b36518f14c8c4bd4a08",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "next": {
+              "file": "landscape-math-next.png",
+              "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+              "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd",
+              "upper": "658832a9faa01593b6fa21cb03c4349e76baa590912bab434245aeb9bab74be4",
+              "diamondMask": "d8d630ede91cd1513b2c7e803c171f6da5c6c137785c4b36518f14c8c4bd4a08",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "errors": []
+          },
+          {
+            "name": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "initial": {
+              "file": "portrait-white.png",
+              "sha256": "4214502aa5c61779c690114dd8e88be4c8f53ece203877b1c639498abfdad2aa",
+              "pixels": "46501912caab3088fd90bef3aa21d5999b392cc7e563c96d393a3a991c7ff064",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ],
+              "geometryChecks": {
+                "interiorChecks": 378,
+                "exteriorChecks": 406,
+                "contract": "Both triangles fill the diamond; samples near rasterized boundaries excluded"
+              }
+            },
+            "typed": {
+              "file": "portrait-typed.png",
+              "sha256": "46d881ab57c96a0cb0c6e8503e55e8e53deba58a0554ebc48967fcb1a01864bc",
+              "pixels": "e1790d7e57a3e192b05f3e6fc4fa9fb5c5e68ebad8bc9631fca30ed0c0fbcb89",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "grey": {
+              "file": "portrait-grey.png",
+              "sha256": "76aac626a6c2919883421f81e2c65592677c340f6380cf77c372972801e1c7ee",
+              "pixels": "a807e034cd77b22e5df923732886f9b22afdf923233190ef3f21dbb6b3495bb8",
+              "upper": "6d0554ae9aa1c011ccfd3a6b33eca6e2bad092152fe33c4efdefd2835e98e01f",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                244,
+                244,
+                244
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "restored": {
+              "file": "portrait-restored.png",
+              "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+              "pixels": "5e59581b08c47366207d0d6971f8f1c3eb53b7b707e9309d073af593bb4a8845",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "help": {
+              "file": "portrait-help.png",
+              "sha256": "b919e51f4319890480c2e87ae134ba97ba11002df9b0a4a3b3bc934a5f8c2bbe",
+              "pixels": "7f84aa2b0934a85f935f839ca485b01d8b357ad8307209e9ff34b52bbd01f318",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "math": {
+              "file": "portrait-math.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+              "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+              "diamondMask": "22077cad6f74e20ccfd53a635b65a9ba85793988c3ae3005e7b02214dcde429d",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "next": {
+              "file": "portrait-math-next.png",
+              "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+              "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363",
+              "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+              "diamondMask": "22077cad6f74e20ccfd53a635b65a9ba85793988c3ae3005e7b02214dcde429d",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "errors": []
+          }
+        ],
+        "captures": [
+          {
+            "file": "landscape-grey.png",
+            "sha256": "15403094f1264f22cdf2890e1f7318c34f599f7271a378b7a1bbf4ef881f34ea",
+            "bytes": 12004
+          },
+          {
+            "file": "landscape-help.png",
+            "sha256": "01ab588b27fd20a7033e39fd0546e5b6771cf614c783f502a014cd5485871850",
+            "bytes": 11985
+          },
+          {
+            "file": "landscape-math-next.png",
+            "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+            "bytes": 28366
+          },
+          {
+            "file": "landscape-math.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-restored.png",
+            "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+            "bytes": 12000
+          },
+          {
+            "file": "landscape-typed.png",
+            "sha256": "5bf80f338b4b0cde5154cb453f4b1ab9e14a0ae5fbc5b2df025fb1553f8fe265",
+            "bytes": 14082
+          },
+          {
+            "file": "landscape-white.png",
+            "sha256": "63409240644398dab0d161b7dd8da5b2efda0b3c7dc549fa61b56fbc1bb82ddc",
+            "bytes": 11793
+          },
+          {
+            "file": "portrait-grey.png",
+            "sha256": "76aac626a6c2919883421f81e2c65592677c340f6380cf77c372972801e1c7ee",
+            "bytes": 19969
+          },
+          {
+            "file": "portrait-help.png",
+            "sha256": "b919e51f4319890480c2e87ae134ba97ba11002df9b0a4a3b3bc934a5f8c2bbe",
+            "bytes": 19602
+          },
+          {
+            "file": "portrait-math-next.png",
+            "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+            "bytes": 33579
+          },
+          {
+            "file": "portrait-math.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-restored.png",
+            "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+            "bytes": 19960
+          },
+          {
+            "file": "portrait-typed.png",
+            "sha256": "46d881ab57c96a0cb0c6e8503e55e8e53deba58a0554ebc48967fcb1a01864bc",
+            "bytes": 25521
+          },
+          {
+            "file": "portrait-white.png",
+            "sha256": "4214502aa5c61779c690114dd8e88be4c8f53ece203877b1c639498abfdad2aa",
+            "bytes": 19362
+          }
+        ],
+        "publishedFigures": [
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/05-vertices/landscape-white.png",
+            "sha256": "63409240644398dab0d161b7dd8da5b2efda0b3c7dc549fa61b56fbc1bb82ddc"
+          },
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/05-vertices/portrait-white.png",
+            "sha256": "4214502aa5c61779c690114dd8e88be4c8f53ece203877b1c639498abfdad2aa"
+          }
+        ],
+        "originalCapturesPersonallyReviewed": true
+      }
+    },
+    {
+      "id": "07-uniforms",
+      "fingerprint": "3f4e313b2293b813fe4286d38573bacf4cdc75c0b272b775f9f7c9b38b275530",
+      "sourceSnapshotSha256": "534e242bead096096a4b05e1f18caa39a363fe9b31cd7ed411b3e63a75f41e0e",
+      "sourceFiles": {
+        "Cargo.toml": "72c32e4763c699db006be9d9d428e52210f9e06a2713e4565ca7f7889436fd81",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "b7b9d4bb492e0ed0c1b2edf08d27eb89237824ee0438c6a561ea985843fd7903",
+        "src/renderer.rs": "6158ff096f265e4c75c468367176e4fed919d277f4622d1d1f5898494174f286",
+        "src/browser.rs": "e834bba432e0591601fe35c34085f1094d6f3a6982d1ad464cd39c30f5f61dc3",
+        "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+        "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+        "src/triangle.wgsl": "e52e292377205b910620f6f0c153dfe888b6e54d0a6e93e9813b60d9e0777255",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+        "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+        "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+        "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+        "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+        "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+        "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+        "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+        "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+        "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+        "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+        "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+        "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+        "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+        "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+        "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+        "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+        "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+        "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+        "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+        "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+        "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+        "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+        "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+        "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+        "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+        "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+        "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+        "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "63fc2623e110c84a01bac19e2541bae035547ace883f0bec1f75c520b0c740ce"
+      },
+      "native": {
+        "status": "passed",
+        "passed": 31,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "tests": [
+          "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+          "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+          "app::stage::motion_tests::explicit_parts_survive_reordering",
+          "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+          "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+          "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+          "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+          "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+          "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+          "app::stage::tests::a_chapter_block_fills_its_holes",
+          "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+          "app::stage::tests::both_grounds_name_the_same_colours",
+          "app::stage::tests::decks_play_through",
+          "app::stage::tests::decks_rest_cleanly_at_every_step",
+          "app::stage::tests::expressions_resolve_points",
+          "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+          "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+          "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+          "app::stage::tests::parts_keep_their_tex_as_key",
+          "app::stage::tests::text_keeps_its_spaces",
+          "app::stage::tests::the_ground_swaps_at_the_same_step",
+          "app::stage::tests::unknown_commands_are_reported",
+          "camera::tests::panned_target_stays_at_the_screen_centre_when_zooming",
+          "camera::tests::zoom_stays_positive_and_bounded",
+          "math_tests::equals_alignment_survives_different_left_sides",
+          "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+          "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+          "math_tests::letterbox_round_trip_and_upright_column",
+          "math_tests::unknown_command_is_reported",
+          "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+          "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus"
+        ],
+        "command": [
+          "cargo",
+          "test",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "--message-format=json"
+        ],
+        "logSha256": "9fda375bab3ee8fbb71c435560922f254ec8ebb29c1e153eae1b93c7352a08a8"
+      },
+      "wasm": {
+        "status": "passed",
+        "evidence": [
+          {
+            "file": "wasm-browser-pair01/review.json",
+            "sha256": "82372b53a373e07c1df2f79d2bddfe3799ce32e5ab539568b93f5b654f0b54c3"
+          }
+        ],
+        "commands": [
+          {
+            "name": "pair01-07-uniforms-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--release",
+              "--offline",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1",
+              "--message-format=json"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "pair01-07-uniforms-trunk",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "pair01-07-uniforms-browser",
+            "args": [
+              "node",
+              "--require",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\math-browser-preload.cjs",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\cumulative-uniform07-browser01.cjs",
+              "http://127.0.0.1:8807/",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\wasm-browser-pair01\\07-uniforms\\captures"
+            ],
+            "returncode": 0
+          }
+        ],
+        "bundle": [
+          {
+            "path": "index.html",
+            "sha256": "7be0ed94880e31c6abe3c58fb62e3a98fa3e97550b03a4e2e703ec3c6c4636ca",
+            "bytes": 1593
+          },
+          {
+            "path": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "bytes": 849
+          },
+          {
+            "path": "viewer_journey-60d82a82b89d1aed.js",
+            "sha256": "d8c71f18041711124d0dc596dae445701ee35afc12f7d26db5a1d0fe3e9753c6",
+            "bytes": 70158
+          },
+          {
+            "path": "viewer_journey-60d82a82b89d1aed_bg.wasm",
+            "sha256": "b7d9855aa59c73c7102f4a8af957f453a5f953081b34c51a1e5c713edc629466",
+            "bytes": 4344770
+          }
+        ],
+        "commandLogs": [
+          {
+            "name": "pair01-07-uniforms-wasm",
+            "sha256": "e7e9c1f3bbd17aff513be3e41977db052378efad215e91e81877582e669c2155"
+          },
+          {
+            "name": "pair01-07-uniforms-trunk",
+            "sha256": "078f58208b0af3eb7f39fb25ef6458a4e0ae8bb54ed90debb22123ed563da250"
+          },
+          {
+            "name": "pair01-07-uniforms-browser",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      "browser": {
+        "status": "passed",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 720,
+            "dpr": 1
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "dpr": 2
+          }
+        ],
+        "checkerSha256": "845e41d9027890835b8b084e1c99c9f845bb0f804a2e6aa5928cf1c854bad7b3",
+        "cases": [
+          {
+            "name": "landscape",
+            "width": 1280,
+            "height": 720,
+            "dpr": 1,
+            "initial": {
+              "file": "landscape-white.png",
+              "sha256": "63409240644398dab0d161b7dd8da5b2efda0b3c7dc549fa61b56fbc1bb82ddc",
+              "pixels": "4b56f6101d2b7fbc6310ad56781273abd067fffeb599d4cb7e40a2e9f90c8fa7",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ],
+              "geometryChecks": {
+                "interiorChecks": 378,
+                "exteriorChecks": 406,
+                "contract": "Both triangles fill the diamond; samples near rasterized boundaries excluded"
+              }
+            },
+            "typed": {
+              "file": "landscape-typed.png",
+              "sha256": "5bf80f338b4b0cde5154cb453f4b1ab9e14a0ae5fbc5b2df025fb1553f8fe265",
+              "pixels": "8039a63128e797ce832712880ceaaf3ed1bcdc1930c17611d417f636ad664ce0",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "grey": {
+              "file": "landscape-grey.png",
+              "sha256": "15403094f1264f22cdf2890e1f7318c34f599f7271a378b7a1bbf4ef881f34ea",
+              "pixels": "b8d45df3a4bbfb5c63f836802caf48e581737c6022efc9efccc27ca166dfd832",
+              "upper": "f8494994ce3999926548ca01f5ad1c9643b5ec4c25ed7bb9439f0b2c5f91bcc4",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                244,
+                244,
+                244
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "restored": {
+              "file": "landscape-restored.png",
+              "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+              "pixels": "b96ca018be71db54674e82f9864033a13ee79d9dd29a8a682151fe238957f658",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "help": {
+              "file": "landscape-help.png",
+              "sha256": "335579df09ddeeb81863421b27a40c32d0fc370ea37ae8dd0dc43ab836f46083",
+              "pixels": "803e95162fcaba55128b3659a42aa9d9a6eda457eae8a4e28de0e0248ef5c1f5",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "transforms": [
+              {
+                "file": "landscape-zoom-in.png",
+                "sha256": "e326fbbc0ee23d17ccc6b6166bb10e640f409ae6e62bb4fb89ddf8ba4507bda1",
+                "pixels": "22e343c8b1bd100f539c61b119e8fb95f8d8f78c72c458a1cdaca88ad73b107a",
+                "upper": "66a9be2b1a685cef4b72ec3968ce386c2b24470ca9b053b6e10c00bd8dcf77d4",
+                "diamondMask": "dd9f7a52355556cfd4c0baf79d497e9b78e0a32be5d8df3d59141fcaa5e5f79e",
+                "diamondPixels": 578304,
+                "corner": [
+                  255,
+                  255,
+                  255
+                ],
+                "diamond": [
+                  244,
+                  137,
+                  179
+                ],
+                "scale": 2,
+                "angle": 0,
+                "center": [
+                  0,
+                  0
+                ],
+                "inside": 691,
+                "outside": 65
+              },
+              {
+                "file": "landscape-pan-right.png",
+                "sha256": "806379435cd5770629da1846342ffce76480e90640912ee46d454955121d4f42",
+                "pixels": "26f2f019c0dab30dd6afd0ac125541e4bfc881fba0f2ccc61c281c9d7db68a5c",
+                "upper": "8cbbcee748e1acf0348db78d8df574fbe2faa3973571a5058487d87e2c94bd4c",
+                "diamondMask": "ab13dd6fb6081ea8f9dbe379f5c53c1680ba5fbf7407bb99809719c975fe201b",
+                "diamondPixels": 165888,
+                "corner": [
+                  255,
+                  255,
+                  255
+                ],
+                "diamond": [
+                  244,
+                  137,
+                  179
+                ],
+                "scale": 1,
+                "angle": 0,
+                "center": [
+                  0.25,
+                  0
+                ],
+                "inside": 249,
+                "outside": 504
+              },
+              {
+                "file": "landscape-pan-orbit.png",
+                "sha256": "3c17ebf85e5ef0713101e4ac23987fe938d6697e1ff342687b86e13d31eb0290",
+                "pixels": "a6f434945f414640422bb58d6f9d7597c469ac94feb220dc58de2ef88f4f831e",
+                "upper": "fdaef7683462a3be1255b49a94af67cfcac84dd528e172176571a77a2a4d3080",
+                "diamondMask": "f42be5a0f444afbbc214a6c8f1d354ce64dc50b090dafd8e93d2e947be32f82a",
+                "diamondPixels": 165615,
+                "corner": [
+                  255,
+                  255,
+                  255
+                ],
+                "diamond": [
+                  244,
+                  137,
+                  179
+                ],
+                "scale": 1,
+                "angle": 0.7853981633974483,
+                "center": [
+                  0.25,
+                  0
+                ],
+                "inside": 256,
+                "outside": 468
+              }
+            ],
+            "zoomRestored": {
+              "file": "landscape-zoom-restored.png",
+              "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+              "pixels": "b96ca018be71db54674e82f9864033a13ee79d9dd29a8a682151fe238957f658",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "viewReset": {
+              "file": "landscape-view-reset.png",
+              "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+              "pixels": "b96ca018be71db54674e82f9864033a13ee79d9dd29a8a682151fe238957f658",
+              "upper": "b64c0bfdccfa5ab75c44e86ebf0678779a0734f02b4026b4b66ecd4812b6d716",
+              "diamondMask": "36fd149ce2ec97d0787d44836af9334583da8fa9c24630809f3e83c317a99602",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "math": {
+              "file": "landscape-math.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+              "upper": "2c2cb9585acf46d46f68e9c79ee5aa7c152c670adce99c1a032269f47c6c3a5d",
+              "diamondMask": "d8d630ede91cd1513b2c7e803c171f6da5c6c137785c4b36518f14c8c4bd4a08",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "next": {
+              "file": "landscape-math-next.png",
+              "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+              "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd",
+              "upper": "658832a9faa01593b6fa21cb03c4349e76baa590912bab434245aeb9bab74be4",
+              "diamondMask": "d8d630ede91cd1513b2c7e803c171f6da5c6c137785c4b36518f14c8c4bd4a08",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "errors": []
+          },
+          {
+            "name": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "initial": {
+              "file": "portrait-white.png",
+              "sha256": "4214502aa5c61779c690114dd8e88be4c8f53ece203877b1c639498abfdad2aa",
+              "pixels": "46501912caab3088fd90bef3aa21d5999b392cc7e563c96d393a3a991c7ff064",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ],
+              "geometryChecks": {
+                "interiorChecks": 378,
+                "exteriorChecks": 406,
+                "contract": "Both triangles fill the diamond; samples near rasterized boundaries excluded"
+              }
+            },
+            "typed": {
+              "file": "portrait-typed.png",
+              "sha256": "46d881ab57c96a0cb0c6e8503e55e8e53deba58a0554ebc48967fcb1a01864bc",
+              "pixels": "e1790d7e57a3e192b05f3e6fc4fa9fb5c5e68ebad8bc9631fca30ed0c0fbcb89",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "grey": {
+              "file": "portrait-grey.png",
+              "sha256": "76aac626a6c2919883421f81e2c65592677c340f6380cf77c372972801e1c7ee",
+              "pixels": "a807e034cd77b22e5df923732886f9b22afdf923233190ef3f21dbb6b3495bb8",
+              "upper": "6d0554ae9aa1c011ccfd3a6b33eca6e2bad092152fe33c4efdefd2835e98e01f",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                244,
+                244,
+                244
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "restored": {
+              "file": "portrait-restored.png",
+              "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+              "pixels": "5e59581b08c47366207d0d6971f8f1c3eb53b7b707e9309d073af593bb4a8845",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "help": {
+              "file": "portrait-help.png",
+              "sha256": "64450b226f5254dc9dee8c2bafac4844ea59bb98bf961b7dfef9ecfa99ca678d",
+              "pixels": "90e81d1984837cf46319d6a1952908ad3e139b9ab14f4570c2a413b1d4e76b09",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "transforms": [
+              {
+                "file": "portrait-zoom-in.png",
+                "sha256": "bd656e284623c2f711ced90fc6142ffc901ab3d8ab90a4cd610d3c2016af094d",
+                "pixels": "c7e4c54c55d97f0d0ac0e48335a16357cc60f72d7d856e7932b743c5efb6f5f9",
+                "upper": "2b58523cb7fd867b513d8fb50e7e3736196091699c4a421b41c7650eb9030da7",
+                "diamondMask": "3192351023c8dbd5a918fbf624b1b21063497093fae2f262525ac99e5bf8fc27",
+                "diamondPixels": 825880,
+                "corner": [
+                  255,
+                  255,
+                  255
+                ],
+                "diamond": [
+                  244,
+                  137,
+                  179
+                ],
+                "scale": 2,
+                "angle": 0,
+                "center": [
+                  0,
+                  0
+                ],
+                "inside": 691,
+                "outside": 65
+              },
+              {
+                "file": "portrait-pan-right.png",
+                "sha256": "3eb36e4c440cc4e1bc865ac68917a6284e1341f7ec6ec69fa8cc977214ff505c",
+                "pixels": "98b0a2ae6acc5c05087636ac7356da468ec12d62147fe767b37e5f34c5fe4a1c",
+                "upper": "f47973a1d49a90a6683a9b3765b2e1c080da13669f26b1d23c0b52325f3536c0",
+                "diamondMask": "a6f6ecaec51f7dc1a240620f0017cce70eced90f29d36710dbe1a81ac10c6bce",
+                "diamondPixels": 236988,
+                "corner": [
+                  255,
+                  255,
+                  255
+                ],
+                "diamond": [
+                  244,
+                  137,
+                  179
+                ],
+                "scale": 1,
+                "angle": 0,
+                "center": [
+                  0.25,
+                  0
+                ],
+                "inside": 249,
+                "outside": 504
+              },
+              {
+                "file": "portrait-pan-orbit.png",
+                "sha256": "a65e6030614658f5794614711105396b463997f4df952e3d3ac32ad50bb0441a",
+                "pixels": "f941695462a6d55ca140c41a69cd70f830eb6518d2cc2b4457f5d672cf97a195",
+                "upper": "e521a004adcea7c7aff1dd4373ff3ed87cfc7090db15a0efa748c4bb3099ae4b",
+                "diamondMask": "b717dc801f6f72ea1ff876dac37dab5369785643eb5869e23d05000a14dd0735",
+                "diamondPixels": 236996,
+                "corner": [
+                  255,
+                  255,
+                  255
+                ],
+                "diamond": [
+                  244,
+                  137,
+                  179
+                ],
+                "scale": 1,
+                "angle": 0.7853981633974483,
+                "center": [
+                  0.25,
+                  0
+                ],
+                "inside": 256,
+                "outside": 468
+              }
+            ],
+            "zoomRestored": {
+              "file": "portrait-zoom-restored.png",
+              "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+              "pixels": "5e59581b08c47366207d0d6971f8f1c3eb53b7b707e9309d073af593bb4a8845",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "viewReset": {
+              "file": "portrait-view-reset.png",
+              "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+              "pixels": "5e59581b08c47366207d0d6971f8f1c3eb53b7b707e9309d073af593bb4a8845",
+              "upper": "56205e4a5dba664cfb78daeab73c454f28856a124f16a72f0d665bb7a4e89a6a",
+              "diamondMask": "0a4a28a8bb5f71c799e328aec6279f3b544fcb5c3093bbe0e9e122af1c5c731a",
+              "diamondPixels": 236996,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "math": {
+              "file": "portrait-math.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+              "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+              "diamondMask": "22077cad6f74e20ccfd53a635b65a9ba85793988c3ae3005e7b02214dcde429d",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "next": {
+              "file": "portrait-math-next.png",
+              "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+              "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363",
+              "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+              "diamondMask": "22077cad6f74e20ccfd53a635b65a9ba85793988c3ae3005e7b02214dcde429d",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "errors": []
+          }
+        ],
+        "captures": [
+          {
+            "file": "landscape-grey.png",
+            "sha256": "15403094f1264f22cdf2890e1f7318c34f599f7271a378b7a1bbf4ef881f34ea",
+            "bytes": 12004
+          },
+          {
+            "file": "landscape-help.png",
+            "sha256": "335579df09ddeeb81863421b27a40c32d0fc370ea37ae8dd0dc43ab836f46083",
+            "bytes": 16041
+          },
+          {
+            "file": "landscape-math-next.png",
+            "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+            "bytes": 28366
+          },
+          {
+            "file": "landscape-math.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-pan-orbit.png",
+            "sha256": "3c17ebf85e5ef0713101e4ac23987fe938d6697e1ff342687b86e13d31eb0290",
+            "bytes": 9313
+          },
+          {
+            "file": "landscape-pan-right.png",
+            "sha256": "806379435cd5770629da1846342ffce76480e90640912ee46d454955121d4f42",
+            "bytes": 11997
+          },
+          {
+            "file": "landscape-restored.png",
+            "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+            "bytes": 12000
+          },
+          {
+            "file": "landscape-typed.png",
+            "sha256": "5bf80f338b4b0cde5154cb453f4b1ab9e14a0ae5fbc5b2df025fb1553f8fe265",
+            "bytes": 14082
+          },
+          {
+            "file": "landscape-view-reset.png",
+            "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+            "bytes": 12000
+          },
+          {
+            "file": "landscape-white.png",
+            "sha256": "63409240644398dab0d161b7dd8da5b2efda0b3c7dc549fa61b56fbc1bb82ddc",
+            "bytes": 11793
+          },
+          {
+            "file": "landscape-zoom-in.png",
+            "sha256": "e326fbbc0ee23d17ccc6b6166bb10e640f409ae6e62bb4fb89ddf8ba4507bda1",
+            "bytes": 12763
+          },
+          {
+            "file": "landscape-zoom-restored.png",
+            "sha256": "41560f73c842d3002b79d814af240e1424166c107b27f60d1c4c8fc72dfadb5d",
+            "bytes": 12000
+          },
+          {
+            "file": "portrait-grey.png",
+            "sha256": "76aac626a6c2919883421f81e2c65592677c340f6380cf77c372972801e1c7ee",
+            "bytes": 19969
+          },
+          {
+            "file": "portrait-help.png",
+            "sha256": "64450b226f5254dc9dee8c2bafac4844ea59bb98bf961b7dfef9ecfa99ca678d",
+            "bytes": 21463
+          },
+          {
+            "file": "portrait-math-next.png",
+            "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+            "bytes": 33579
+          },
+          {
+            "file": "portrait-math.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-pan-orbit.png",
+            "sha256": "a65e6030614658f5794614711105396b463997f4df952e3d3ac32ad50bb0441a",
+            "bytes": 16751
+          },
+          {
+            "file": "portrait-pan-right.png",
+            "sha256": "3eb36e4c440cc4e1bc865ac68917a6284e1341f7ec6ec69fa8cc977214ff505c",
+            "bytes": 19966
+          },
+          {
+            "file": "portrait-restored.png",
+            "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+            "bytes": 19960
+          },
+          {
+            "file": "portrait-typed.png",
+            "sha256": "46d881ab57c96a0cb0c6e8503e55e8e53deba58a0554ebc48967fcb1a01864bc",
+            "bytes": 25521
+          },
+          {
+            "file": "portrait-view-reset.png",
+            "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+            "bytes": 19960
+          },
+          {
+            "file": "portrait-white.png",
+            "sha256": "4214502aa5c61779c690114dd8e88be4c8f53ece203877b1c639498abfdad2aa",
+            "bytes": 19362
+          },
+          {
+            "file": "portrait-zoom-in.png",
+            "sha256": "bd656e284623c2f711ced90fc6142ffc901ab3d8ab90a4cd610d3c2016af094d",
+            "bytes": 20821
+          },
+          {
+            "file": "portrait-zoom-restored.png",
+            "sha256": "47d3cb88a6d9fe3463dd029b267547411adbc0ebf36054d314ce40ec5b1aa713",
+            "bytes": 19960
+          }
+        ],
+        "publishedFigures": [
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/07-uniforms/landscape-pan-orbit.png",
+            "sha256": "3c17ebf85e5ef0713101e4ac23987fe938d6697e1ff342687b86e13d31eb0290"
+          },
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/07-uniforms/portrait-pan-orbit.png",
+            "sha256": "a65e6030614658f5794614711105396b463997f4df952e3d3ac32ad50bb0441a"
+          }
+        ],
+        "originalCapturesPersonallyReviewed": true
+      }
+    },
+    {
+      "id": "10-depth",
+      "fingerprint": "9f47373390f505e1ff32132495e561501c33842325e3ac4b449a22757ab3a572",
+      "sourceSnapshotSha256": "4905976dce3f89c384bf5b85e8df1dc1febb7197de1a545dc904196b25a4db27",
+      "sourceFiles": {
+        "Cargo.toml": "72c32e4763c699db006be9d9d428e52210f9e06a2713e4565ca7f7889436fd81",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "b175c3442a56286ece1ae40d3380397ede8ba9bf6d5210ee6815a75cf36407b8",
+        "src/renderer.rs": "19a57c0b3aa9f555640757ab9855225dde6cc5898af279dc30e0fee50de57997",
+        "src/browser.rs": "e8fdd0251a4517bed95365df82a4a30bd2020d5049c976753bb9ffc1736c1076",
+        "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+        "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+        "src/triangle.wgsl": "6b8d00fdd9f759936d0f74e750eabfec0a0a17ebf1a19a4ee9216722219ed21b",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+        "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+        "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+        "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+        "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+        "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+        "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+        "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+        "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+        "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+        "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+        "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+        "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+        "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+        "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+        "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+        "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+        "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+        "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+        "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+        "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+        "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+        "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+        "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+        "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+        "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+        "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+        "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+        "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "63fc2623e110c84a01bac19e2541bae035547ace883f0bec1f75c520b0c740ce",
+        "src/mesh.rs": "36da28cba687dfc2c1f7051a9c23d67232b5ab7197bd02232985e9c8e5fe3194",
+        "src/scene.rs": "e299942faec3a82fc9ec3ed06f22ce84e4bb1794cce698938176ec65be1fe098",
+        "src/gpu_mesh.rs": "98e34788a0d400cd37c462c01d6d801ad8b8f2f2b577ae894c40e4419c20e2bb"
+      },
+      "native": {
+        "status": "passed",
+        "passed": 34,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "tests": [
+          "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+          "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+          "app::stage::motion_tests::explicit_parts_survive_reordering",
+          "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+          "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+          "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+          "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+          "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+          "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+          "app::stage::tests::a_chapter_block_fills_its_holes",
+          "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+          "app::stage::tests::both_grounds_name_the_same_colours",
+          "app::stage::tests::decks_play_through",
+          "app::stage::tests::decks_rest_cleanly_at_every_step",
+          "app::stage::tests::expressions_resolve_points",
+          "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+          "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+          "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+          "app::stage::tests::parts_keep_their_tex_as_key",
+          "app::stage::tests::text_keeps_its_spaces",
+          "app::stage::tests::the_ground_swaps_at_the_same_step",
+          "app::stage::tests::unknown_commands_are_reported",
+          "camera::tests::panned_target_stays_at_the_screen_centre_when_zooming",
+          "camera::tests::zoom_stays_positive_and_bounded",
+          "math_tests::equals_alignment_survives_different_left_sides",
+          "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+          "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+          "math_tests::letterbox_round_trip_and_upright_column",
+          "math_tests::unknown_command_is_reported",
+          "mesh::tests::invalid_connections_and_nonfinite_vertices_are_rejected",
+          "scene::tests::removal_moves_a_row_without_changing_its_identity",
+          "scene::tests::toggling_the_extra_object_uses_its_id_after_other_removals",
+          "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+          "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus"
+        ],
+        "command": [
+          "cargo",
+          "test",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "--message-format=json"
+        ],
+        "logSha256": "87478ca99fae7913873ddefe5e66d808052b0a174f314518f5dd03735ea22c5a"
+      },
+      "wasm": {
+        "status": "passed",
+        "evidence": [
+          {
+            "file": "wasm-browser-pair01/review.json",
+            "sha256": "82372b53a373e07c1df2f79d2bddfe3799ce32e5ab539568b93f5b654f0b54c3"
+          }
+        ],
+        "commands": [
+          {
+            "name": "pair01-10-depth-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--release",
+              "--offline",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1",
+              "--message-format=json"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "pair01-10-depth-trunk",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "pair01-10-depth-browser",
+            "args": [
+              "node",
+              "--require",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\math-browser-preload.cjs",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\cumulative-depth10-browser01.cjs",
+              "http://127.0.0.1:8807/",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\wasm-browser-pair01\\10-depth\\captures"
+            ],
+            "returncode": 0
+          }
+        ],
+        "bundle": [
+          {
+            "path": "index.html",
+            "sha256": "5d2f0e34962cf9e1624c1c5b61e8971db50c0a9159272c0a7c4269b69f9a1f3f",
+            "bytes": 1593
+          },
+          {
+            "path": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "bytes": 849
+          },
+          {
+            "path": "viewer_journey-b286f74e5539ff76.js",
+            "sha256": "1bbc67ce8fbff1bb0d3af850ad92e8f03635dccadf011e488cfe0719fcb87a3d",
+            "bytes": 70157
+          },
+          {
+            "path": "viewer_journey-b286f74e5539ff76_bg.wasm",
+            "sha256": "6cdab9ad3e7ee512ed4791c9968b73e81255c539b94c4391437468f5d3af76c8",
+            "bytes": 4349088
+          }
+        ],
+        "commandLogs": [
+          {
+            "name": "pair01-10-depth-wasm",
+            "sha256": "0a3cd5ae37c244c7f85504be7196788d788722a5072778a716a01c1f081d4d97"
+          },
+          {
+            "name": "pair01-10-depth-trunk",
+            "sha256": "59c71a469a7499851d7beaf2340f85e5329933984e53e0b01b8a458a8176e3c8"
+          },
+          {
+            "name": "pair01-10-depth-browser",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      "browser": {
+        "status": "passed",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 720,
+            "dpr": 1
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "dpr": 2
+          }
+        ],
+        "checkerSha256": "c321866b0a54d884fc0e4bdfafaf28d46c4d8a3ecf45cce9f1fa6a6c6784e548",
+        "cases": [
+          {
+            "name": "landscape",
+            "width": 1280,
+            "height": 720,
+            "dpr": 1,
+            "initial": {
+              "file": "landscape-white.png",
+              "sha256": "4218ccf273f3badb8c2f64914b6e819368a265faf41e9087aaac44e9281355b5",
+              "pixels": "c1cafeb796ccc6cf1aef20a92a111939e566236e2e24479a736206fb04eafae0",
+              "upper": "fb509ae36f7317d33543f64467365892caf821386a5b12ac409c094577b70240",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ],
+              "depthChecks": {
+                "coverage": [
+                  127,
+                  114,
+                  405
+                ],
+                "overlapChecks": 63,
+                "contract": "Near pink wins over later-drawn turquoise at overlap"
+              }
+            },
+            "typed": {
+              "file": "landscape-typed.png",
+              "sha256": "11c35af4e72b885ec69937edbb957e7499ec12e3343c251bd75a679a97d35168",
+              "pixels": "85a090da2d24ef92577dc59af2d5c79135613525d85cef62f9bb9c2802737075",
+              "upper": "fb509ae36f7317d33543f64467365892caf821386a5b12ac409c094577b70240",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "grey": {
+              "file": "landscape-grey.png",
+              "sha256": "fd36a776df72ef5769c9b4f28e7656a587d235a4d3c89ac0867586cf2112273d",
+              "pixels": "d4a43d0d873545c47a09dde7beabcf48d0a58822be5ea2c12c3916b6506da0bd",
+              "upper": "52f455c2008412fd09654a0385099c26c3078d551f3704fc5b8e96088aed5458",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                244,
+                244,
+                244
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "restored": {
+              "file": "landscape-restored.png",
+              "sha256": "e7db7b73263fd165e3f6c016f044b633c4bf588f2b76ed153f004a01112be1f9",
+              "pixels": "67affc6cffb31a72cd48346cb324508b0f9348aa38d371b7f60c332bd11c1160",
+              "upper": "fb509ae36f7317d33543f64467365892caf821386a5b12ac409c094577b70240",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "help": {
+              "file": "landscape-help.png",
+              "sha256": "2d003bc19401c74423f6e8c54853a2a6c440227c32657bb6e64cae4e4523ab47",
+              "pixels": "5edad7b8ccb1d7e1987773ba1d3a651dad050889a770f36b37af79daa95603dd",
+              "upper": "fb509ae36f7317d33543f64467365892caf821386a5b12ac409c094577b70240",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "extra": {
+              "file": "landscape-extra.png",
+              "sha256": "fb81c230b70c12f014222aac8801bfdb4ee89c1590668aca97b0fed16034962c",
+              "pixels": "2f67009ed9f4c1fbdc4214746b3e6191cb00fa84e6a8b3ac02cf5aaa041e3234",
+              "upper": "8002fa3698db885f51f416e26e7e961b8ad43a53a3a2248f6e1cea012dc38c5b",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "extraRemoved": {
+              "file": "landscape-extra-removed.png",
+              "sha256": "e7db7b73263fd165e3f6c016f044b633c4bf588f2b76ed153f004a01112be1f9",
+              "pixels": "67affc6cffb31a72cd48346cb324508b0f9348aa38d371b7f60c332bd11c1160",
+              "upper": "fb509ae36f7317d33543f64467365892caf821386a5b12ac409c094577b70240",
+              "diamondMask": "4ee0c8cbdc46b3974e7efec64efd22d6332bffbe94695b31939eeea62949c9cc",
+              "diamondPixels": 165888,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "math": {
+              "file": "landscape-math.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+              "upper": "2c2cb9585acf46d46f68e9c79ee5aa7c152c670adce99c1a032269f47c6c3a5d",
+              "diamondMask": "d8d630ede91cd1513b2c7e803c171f6da5c6c137785c4b36518f14c8c4bd4a08",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "next": {
+              "file": "landscape-math-next.png",
+              "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+              "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd",
+              "upper": "658832a9faa01593b6fa21cb03c4349e76baa590912bab434245aeb9bab74be4",
+              "diamondMask": "d8d630ede91cd1513b2c7e803c171f6da5c6c137785c4b36518f14c8c4bd4a08",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "errors": []
+          },
+          {
+            "name": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "initial": {
+              "file": "portrait-white.png",
+              "sha256": "c4b5bdb29b3b0758c33ebeb21ff336faffa089dd3b1ca2a8900ae98d64b23aaf",
+              "pixels": "086f602fe2e39b881301be74f89407d5116cf2915ea85efe52a2520421fc8ebc",
+              "upper": "4b236faedf1e3c6886161839556c800bc931d9ff0a40772a31768835602d6d26",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ],
+              "depthChecks": {
+                "coverage": [
+                  127,
+                  114,
+                  405
+                ],
+                "overlapChecks": 63,
+                "contract": "Near pink wins over later-drawn turquoise at overlap"
+              }
+            },
+            "typed": {
+              "file": "portrait-typed.png",
+              "sha256": "5bcb7a1fbf3cf7f9162985275bf0cf3520736f513d626733a6b1ec5d50d40f8d",
+              "pixels": "6892ff0837dd07ae06d689e9bda792d80d16252615e1ab737a5e0a1c1bfe07ea",
+              "upper": "4b236faedf1e3c6886161839556c800bc931d9ff0a40772a31768835602d6d26",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "grey": {
+              "file": "portrait-grey.png",
+              "sha256": "9a4876ea53a05e20eebf8d69c4e081830ebbc53eed4a576848267c8e6e8531ce",
+              "pixels": "289a020a650abe378f4c8b622ba04d1a23cd60cf74bacb28f44abe8e4671635e",
+              "upper": "21987da4871a49ab2c8273c107005c24cfddcbb511276815f2deb6741cd2dbd8",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                244,
+                244,
+                244
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "restored": {
+              "file": "portrait-restored.png",
+              "sha256": "9c542acd9c4b4ec4a58ae8b675427173b9acf7f6e9e2fea61369c11f318026ff",
+              "pixels": "bf3e6e70dbfffefb0ff5eaa4820a3d548d120fd7f519e47e68e06a7692ed6591",
+              "upper": "4b236faedf1e3c6886161839556c800bc931d9ff0a40772a31768835602d6d26",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "help": {
+              "file": "portrait-help.png",
+              "sha256": "ac5b0b9f28ad1ca513e3ea4f5c30347970744882e367956a5675ff2defc92337",
+              "pixels": "b58122c20d16315841166c65689658c208ab9f53f4d5025fca7c4661d2a05e68",
+              "upper": "4b236faedf1e3c6886161839556c800bc931d9ff0a40772a31768835602d6d26",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "extra": {
+              "file": "portrait-extra.png",
+              "sha256": "2e5d00e22a696ac2f373f5a3914896575f551ff1995e98f4954eba4848ce94fa",
+              "pixels": "a684cac5b6720b5279bf99dc1434665fe3a70b31b2ef92a4e99d82dcdc924886",
+              "upper": "9699ae6268bf44a192a457ee7e81dd2174d251680b656833de66989af70dc4d9",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "extraRemoved": {
+              "file": "portrait-extra-removed.png",
+              "sha256": "9c542acd9c4b4ec4a58ae8b675427173b9acf7f6e9e2fea61369c11f318026ff",
+              "pixels": "bf3e6e70dbfffefb0ff5eaa4820a3d548d120fd7f519e47e68e06a7692ed6591",
+              "upper": "4b236faedf1e3c6886161839556c800bc931d9ff0a40772a31768835602d6d26",
+              "diamondMask": "50d84f7f8b7cd85d5412efeb4f228fd9b206b48c3b9dbe147e0fcaeb0580a51a",
+              "diamondPixels": 236808,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                244,
+                137,
+                179
+              ]
+            },
+            "math": {
+              "file": "portrait-math.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+              "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+              "diamondMask": "22077cad6f74e20ccfd53a635b65a9ba85793988c3ae3005e7b02214dcde429d",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "next": {
+              "file": "portrait-math-next.png",
+              "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+              "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363",
+              "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+              "diamondMask": "22077cad6f74e20ccfd53a635b65a9ba85793988c3ae3005e7b02214dcde429d",
+              "diamondPixels": 0,
+              "corner": [
+                255,
+                255,
+                255
+              ],
+              "diamond": [
+                255,
+                255,
+                255
+              ]
+            },
+            "errors": []
+          }
+        ],
+        "captures": [
+          {
+            "file": "landscape-extra-removed.png",
+            "sha256": "e7db7b73263fd165e3f6c016f044b633c4bf588f2b76ed153f004a01112be1f9",
+            "bytes": 13213
+          },
+          {
+            "file": "landscape-extra.png",
+            "sha256": "fb81c230b70c12f014222aac8801bfdb4ee89c1590668aca97b0fed16034962c",
+            "bytes": 14139
+          },
+          {
+            "file": "landscape-grey.png",
+            "sha256": "fd36a776df72ef5769c9b4f28e7656a587d235a4d3c89ac0867586cf2112273d",
+            "bytes": 13205
+          },
+          {
+            "file": "landscape-help.png",
+            "sha256": "2d003bc19401c74423f6e8c54853a2a6c440227c32657bb6e64cae4e4523ab47",
+            "bytes": 18548
+          },
+          {
+            "file": "landscape-math-next.png",
+            "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+            "bytes": 28366
+          },
+          {
+            "file": "landscape-math.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-restored.png",
+            "sha256": "e7db7b73263fd165e3f6c016f044b633c4bf588f2b76ed153f004a01112be1f9",
+            "bytes": 13213
+          },
+          {
+            "file": "landscape-typed.png",
+            "sha256": "11c35af4e72b885ec69937edbb957e7499ec12e3343c251bd75a679a97d35168",
+            "bytes": 15287
+          },
+          {
+            "file": "landscape-white.png",
+            "sha256": "4218ccf273f3badb8c2f64914b6e819368a265faf41e9087aaac44e9281355b5",
+            "bytes": 13005
+          },
+          {
+            "file": "portrait-extra-removed.png",
+            "sha256": "9c542acd9c4b4ec4a58ae8b675427173b9acf7f6e9e2fea61369c11f318026ff",
+            "bytes": 19659
+          },
+          {
+            "file": "portrait-extra.png",
+            "sha256": "2e5d00e22a696ac2f373f5a3914896575f551ff1995e98f4954eba4848ce94fa",
+            "bytes": 20339
+          },
+          {
+            "file": "portrait-grey.png",
+            "sha256": "9a4876ea53a05e20eebf8d69c4e081830ebbc53eed4a576848267c8e6e8531ce",
+            "bytes": 19662
+          },
+          {
+            "file": "portrait-help.png",
+            "sha256": "ac5b0b9f28ad1ca513e3ea4f5c30347970744882e367956a5675ff2defc92337",
+            "bytes": 21500
+          },
+          {
+            "file": "portrait-math-next.png",
+            "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+            "bytes": 33579
+          },
+          {
+            "file": "portrait-math.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-restored.png",
+            "sha256": "9c542acd9c4b4ec4a58ae8b675427173b9acf7f6e9e2fea61369c11f318026ff",
+            "bytes": 19659
+          },
+          {
+            "file": "portrait-typed.png",
+            "sha256": "5bcb7a1fbf3cf7f9162985275bf0cf3520736f513d626733a6b1ec5d50d40f8d",
+            "bytes": 25194
+          },
+          {
+            "file": "portrait-white.png",
+            "sha256": "c4b5bdb29b3b0758c33ebeb21ff336faffa089dd3b1ca2a8900ae98d64b23aaf",
+            "bytes": 19041
+          }
+        ],
+        "publishedFigures": [
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/10-depth/landscape-extra.png",
+            "sha256": "fb81c230b70c12f014222aac8801bfdb4ee89c1590668aca97b0fed16034962c"
+          },
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/10-depth/portrait-extra.png",
+            "sha256": "2e5d00e22a696ac2f373f5a3914896575f551ff1995e98f4954eba4848ce94fa"
+          }
+        ],
+        "originalCapturesPersonallyReviewed": true
+      }
+    },
+    {
+      "id": "12-identity",
+      "fingerprint": "d18280368b2320d787bf9ca87408ac681538d6ed68b62c63a670da1a62cec45c",
+      "sourceSnapshotSha256": "947440b90225cdc9fa3c092a26d2dfa3fca3264c8254f93245a16b2c983ba42c",
+      "sourceFiles": {
+        "Cargo.toml": "2c4293bdb07665fe3c1dc6df4e365f444eb80afceba47b710d1d2d1bfa6d24da",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "875f9872f59e654f4eb6d7e385f276dcc9f7f8c0f7ed16c67367bfcd678c6096",
+        "src/renderer.rs": "7be9552e5d997633e50ba95a897a47eb48246c44706868e27e6d25143933b9a3",
+        "src/browser.rs": "b804439bdff011be6953dad4daefb2be16622c5969595c7689250acdfe28f07d",
+        "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+        "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+        "src/triangle.wgsl": "6b8d00fdd9f759936d0f74e750eabfec0a0a17ebf1a19a4ee9216722219ed21b",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+        "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+        "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+        "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+        "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+        "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+        "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+        "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+        "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+        "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+        "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+        "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+        "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+        "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+        "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+        "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+        "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+        "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+        "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+        "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+        "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+        "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+        "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+        "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+        "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+        "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+        "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+        "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+        "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+        "src/mesh.rs": "36da28cba687dfc2c1f7051a9c23d67232b5ab7197bd02232985e9c8e5fe3194",
+        "src/scene.rs": "8fb86841c45c75bdd28f7e5c531e1c8507fc24ea1fc7663d386265756533538d",
+        "src/gpu_mesh.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+        "src/picking.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+        "src/history.rs": "bd3e050fec6ae49b38edc83546e3666aaf37728d3960d22560cfd06834983dc6"
+      },
+      "native": {
+        "status": "passed",
+        "passed": 41,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "tests": [
+          "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+          "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+          "app::stage::motion_tests::explicit_parts_survive_reordering",
+          "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+          "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+          "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+          "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+          "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+          "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+          "app::stage::tests::a_chapter_block_fills_its_holes",
+          "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+          "app::stage::tests::both_grounds_name_the_same_colours",
+          "app::stage::tests::decks_play_through",
+          "app::stage::tests::decks_rest_cleanly_at_every_step",
+          "app::stage::tests::expressions_resolve_points",
+          "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+          "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+          "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+          "app::stage::tests::parts_keep_their_tex_as_key",
+          "app::stage::tests::text_keeps_its_spaces",
+          "app::stage::tests::the_ground_swaps_at_the_same_step",
+          "app::stage::tests::unknown_commands_are_reported",
+          "camera::tests::a_projected_point_lies_on_its_unprojected_ray",
+          "camera::tests::repeated_orbit_keeps_the_camera_axes_orthonormal",
+          "camera::tests::the_target_stays_centred_after_pan_zoom_and_turn",
+          "history::tests::a_failed_action_restores_the_scene_and_preserves_redo",
+          "history::tests::a_new_branch_discards_redo_without_reusing_an_old_id",
+          "history::tests::retained_history_has_a_fixed_count_limit",
+          "history::tests::undo_restores_identity_and_shares_the_original_mesh",
+          "math_tests::equals_alignment_survives_different_left_sides",
+          "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+          "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+          "math_tests::letterbox_round_trip_and_upright_column",
+          "math_tests::unknown_command_is_reported",
+          "mesh::tests::invalid_connections_and_nonfinite_vertices_are_rejected",
+          "picking::tests::perspective_picking_chooses_the_nearest_visible_surface",
+          "picking::tests::picking_follows_the_camera_and_ignores_triangles_behind_the_ray",
+          "scene::tests::removal_moves_a_row_without_changing_its_identity",
+          "scene::tests::toggling_the_extra_object_uses_its_id_after_other_removals",
+          "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+          "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus"
+        ],
+        "command": [
+          "cargo",
+          "test",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "--message-format=json"
+        ],
+        "logSha256": "20cbaeeabd08cb9ee2fe662568607456b7e342456c6615fe35de71fafbf0ccab"
+      },
+      "wasm": {
+        "status": "passed",
+        "evidence": [
+          {
+            "file": "wasm-browser-tail01/review.json",
+            "sha256": "bb9bbfeaceabf8a97ae806a1e03cdd46d791d14f5575bd1e022f1ae9b4e86484"
+          }
+        ],
+        "commands": [
+          {
+            "name": "tail01-12-identity-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--release",
+              "--offline",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1",
+              "--message-format=json"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "tail01-12-identity-trunk",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "tail01-12-identity-browser",
+            "args": [
+              "node",
+              "--require",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\math-browser-preload.cjs",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\cumulative-interaction-browser01.cjs",
+              "http://127.0.0.1:8807/",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\wasm-browser-tail01\\12-identity\\captures",
+              "12-identity"
+            ],
+            "returncode": 0
+          }
+        ],
+        "bundle": [
+          {
+            "path": "index.html",
+            "sha256": "64823f84095bc1dde79085dee26c0d5a04ff8b8bc0629c7caeb9e461d7e57797",
+            "bytes": 1593
+          },
+          {
+            "path": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "bytes": 849
+          },
+          {
+            "path": "viewer_journey-422686280c108300.js",
+            "sha256": "6ecbc908b09d3ab046f3dcaaa29eb50417934d5e3c677a3e9ae8fc1de38ebe45",
+            "bytes": 71442
+          },
+          {
+            "path": "viewer_journey-422686280c108300_bg.wasm",
+            "sha256": "c3ccbba89f8f735c52ecef61cf3308b14050a39961e56f16c0813c213945ba18",
+            "bytes": 4368209
+          }
+        ],
+        "commandLogs": [
+          {
+            "name": "tail01-12-identity-wasm",
+            "sha256": "20e4b7ee0e2fa5018ca15022787fe40605e0443113c2e1258f55f6117ed43016"
+          },
+          {
+            "name": "tail01-12-identity-trunk",
+            "sha256": "52bb509d9d162d97ae17a41ea9b0686f2c41fcd4d4039885480e2da6ccd4957e"
+          },
+          {
+            "name": "tail01-12-identity-browser",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      "browser": {
+        "status": "passed",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 720,
+            "dpr": 1
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "dpr": 2
+          }
+        ],
+        "checkerSha256": "c654941de8441585ad8bc7b3faffc6e55450e3ceb17148e4421ab655119f9a85",
+        "cases": [
+          {
+            "name": "landscape",
+            "width": 1280,
+            "height": 720,
+            "dpr": 1,
+            "startup": {
+              "file": "landscape-startup.png",
+              "sha256": "72cbdf396af8b35dde1d7efcf34928573d445106dd39b4afa405a9ee04ddde3e",
+              "pixels": "10ef7a564d8bab15c443b31c9c0ee172db110b6f14afddfa49a1b4ac02d7cb7e"
+            },
+            "prepared": {
+              "file": "landscape-prepared.png",
+              "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+              "pixels": "1531942e04f4285f91b282fc963535aacaf565effdca2caa1591afa81761b906"
+            },
+            "interacted": {
+              "file": "landscape-interacted.png",
+              "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+              "pixels": "1531942e04f4285f91b282fc963535aacaf565effdca2caa1591afa81761b906"
+            },
+            "math": {
+              "file": "landscape-math.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1"
+            },
+            "next": {
+              "file": "landscape-math-next.png",
+              "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+              "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd"
+            },
+            "previous": {
+              "file": "landscape-math-previous.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1"
+            },
+            "errors": []
+          },
+          {
+            "name": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "startup": {
+              "file": "portrait-startup.png",
+              "sha256": "df282c273b2e79bdcc96005a0f7bef6c815b64d6cc4093286d477a06919ba9e5",
+              "pixels": "530d04b8092ae4e2b2e8d797e9900ea8af2adcc195aac1747392421ef6361db0"
+            },
+            "prepared": {
+              "file": "portrait-prepared.png",
+              "sha256": "5791bd3a25cb231b809980896f2b4ccdc0d0cfc72b3d4d5a07cfd8dbdf352033",
+              "pixels": "a63a3ebcb6c1dd0ff381d1fe59cd18e586c27b986ee417db66236a8f238df10f"
+            },
+            "interacted": {
+              "file": "portrait-interacted.png",
+              "sha256": "5791bd3a25cb231b809980896f2b4ccdc0d0cfc72b3d4d5a07cfd8dbdf352033",
+              "pixels": "a63a3ebcb6c1dd0ff381d1fe59cd18e586c27b986ee417db66236a8f238df10f"
+            },
+            "math": {
+              "file": "portrait-math.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266"
+            },
+            "next": {
+              "file": "portrait-math-next.png",
+              "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+              "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363"
+            },
+            "previous": {
+              "file": "portrait-math-previous.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266"
+            },
+            "errors": []
+          }
+        ],
+        "captures": [
+          {
+            "file": "landscape-interacted.png",
+            "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+            "bytes": 10267
+          },
+          {
+            "file": "landscape-math-next.png",
+            "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+            "bytes": 28366
+          },
+          {
+            "file": "landscape-math-previous.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-math.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-prepared.png",
+            "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+            "bytes": 10267
+          },
+          {
+            "file": "landscape-startup.png",
+            "sha256": "72cbdf396af8b35dde1d7efcf34928573d445106dd39b4afa405a9ee04ddde3e",
+            "bytes": 10699
+          },
+          {
+            "file": "portrait-interacted.png",
+            "sha256": "5791bd3a25cb231b809980896f2b4ccdc0d0cfc72b3d4d5a07cfd8dbdf352033",
+            "bytes": 18979
+          },
+          {
+            "file": "portrait-math-next.png",
+            "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+            "bytes": 33579
+          },
+          {
+            "file": "portrait-math-previous.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-math.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-prepared.png",
+            "sha256": "5791bd3a25cb231b809980896f2b4ccdc0d0cfc72b3d4d5a07cfd8dbdf352033",
+            "bytes": 18979
+          },
+          {
+            "file": "portrait-startup.png",
+            "sha256": "df282c273b2e79bdcc96005a0f7bef6c815b64d6cc4093286d477a06919ba9e5",
+            "bytes": 19750
+          }
+        ],
+        "publishedFigures": [
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/12-identity/landscape-interacted.png",
+            "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7"
+          },
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/12-identity/portrait-interacted.png",
+            "sha256": "5791bd3a25cb231b809980896f2b4ccdc0d0cfc72b3d4d5a07cfd8dbdf352033"
+          }
+        ],
+        "originalCapturesPersonallyReviewed": true
+      }
+    },
+    {
+      "id": "17-solid",
+      "fingerprint": "b1f8de27deecfbbf3a991c636a955df2e06a3ddcded98e48dccdd888735d0b60",
+      "sourceSnapshotSha256": "1c6011d73a6d86d69477b84ad9e43e7cf79f0573d8609b21e1ae1d57ff40f684",
+      "sourceFiles": {
+        "Cargo.toml": "2c4293bdb07665fe3c1dc6df4e365f444eb80afceba47b710d1d2d1bfa6d24da",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "cba7cacac77e6c36df6c340ef2512f272137ef8a9b1f6b472031725edad4d9e4",
+        "src/renderer.rs": "7be9552e5d997633e50ba95a897a47eb48246c44706868e27e6d25143933b9a3",
+        "src/browser.rs": "e6657dbaa1989e1c10c3346b51597f27d9dad01f10e6f275e64bfeae4f54a756",
+        "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+        "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+        "src/triangle.wgsl": "cbb0e0018bb07fb903c1f7fe4575ca93d9e7fead387f59e2840e86d31db1078f",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+        "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+        "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+        "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+        "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+        "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+        "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+        "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+        "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+        "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+        "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+        "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+        "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+        "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+        "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+        "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+        "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+        "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+        "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+        "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+        "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+        "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+        "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+        "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+        "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+        "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+        "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+        "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+        "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+        "src/mesh.rs": "e412ae067aa893302260cd3450a3d530e2bd95fcf86a045754c7c6b4f7651ab7",
+        "src/scene.rs": "25965dea55fe59e13fae0afa42fefe77a0eb33fd1e074af58d98154d403a13ba",
+        "src/gpu_mesh.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+        "src/picking.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+        "src/history.rs": "bd3e050fec6ae49b38edc83546e3666aaf37728d3960d22560cfd06834983dc6",
+        "src/editor.rs": "6247ce86847f91bfc0c17b61f87bcb0739879039c7971e1519cc0eefe87106b9"
+      },
+      "native": {
+        "status": "passed",
+        "passed": 46,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "tests": [
+          "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+          "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+          "app::stage::motion_tests::explicit_parts_survive_reordering",
+          "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+          "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+          "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+          "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+          "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+          "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+          "app::stage::tests::a_chapter_block_fills_its_holes",
+          "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+          "app::stage::tests::both_grounds_name_the_same_colours",
+          "app::stage::tests::decks_play_through",
+          "app::stage::tests::decks_rest_cleanly_at_every_step",
+          "app::stage::tests::expressions_resolve_points",
+          "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+          "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+          "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+          "app::stage::tests::parts_keep_their_tex_as_key",
+          "app::stage::tests::text_keeps_its_spaces",
+          "app::stage::tests::the_ground_swaps_at_the_same_step",
+          "app::stage::tests::unknown_commands_are_reported",
+          "camera::tests::a_projected_point_lies_on_its_unprojected_ray",
+          "camera::tests::repeated_orbit_keeps_the_camera_axes_orthonormal",
+          "camera::tests::the_target_stays_centred_after_pan_zoom_and_turn",
+          "editor::tests::picking_a_moved_view_uses_the_editors_current_camera",
+          "editor::tests::resetting_the_view_preserves_its_current_aspect",
+          "editor::tests::undo_changes_the_document_without_rewinding_the_view",
+          "editor::tests::undo_repairs_selection_and_empty_delete_preserves_redo",
+          "history::tests::a_failed_action_restores_the_scene_and_preserves_redo",
+          "history::tests::a_new_branch_discards_redo_without_reusing_an_old_id",
+          "history::tests::retained_history_has_a_fixed_count_limit",
+          "history::tests::undo_restores_identity_and_shares_the_original_mesh",
+          "math_tests::equals_alignment_survives_different_left_sides",
+          "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+          "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+          "math_tests::letterbox_round_trip_and_upright_column",
+          "math_tests::unknown_command_is_reported",
+          "mesh::tests::a_kernel_box_becomes_eight_vertices_and_twelve_triangles",
+          "mesh::tests::invalid_connections_and_nonfinite_vertices_are_rejected",
+          "picking::tests::perspective_picking_chooses_the_nearest_visible_surface",
+          "picking::tests::picking_follows_the_camera_and_ignores_triangles_behind_the_ray",
+          "scene::tests::removal_moves_a_row_without_changing_its_identity",
+          "scene::tests::toggling_the_extra_object_uses_its_id_after_other_removals",
+          "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+          "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus"
+        ],
+        "command": [
+          "cargo",
+          "test",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "--message-format=json"
+        ],
+        "logSha256": "d1f17462c703f65b744de2af8fd1a0df30f5a471c1393b62a0f1c89041d3dfa5"
+      },
+      "wasm": {
+        "status": "passed",
+        "evidence": [
+          {
+            "file": "wasm-browser-tail01/review.json",
+            "sha256": "bb9bbfeaceabf8a97ae806a1e03cdd46d791d14f5575bd1e022f1ae9b4e86484"
+          }
+        ],
+        "commands": [
+          {
+            "name": "tail01-17-solid-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--release",
+              "--offline",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1",
+              "--message-format=json"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "tail01-17-solid-trunk",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "tail01-17-solid-browser",
+            "args": [
+              "node",
+              "--require",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\math-browser-preload.cjs",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\cumulative-interaction-browser01.cjs",
+              "http://127.0.0.1:8807/",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\wasm-browser-tail01\\17-solid\\captures",
+              "17-solid"
+            ],
+            "returncode": 0
+          }
+        ],
+        "bundle": [
+          {
+            "path": "index.html",
+            "sha256": "46546701b031db494f161e5d4fb113eeef35313d0fc839416d9b68559c3a1c3f",
+            "bytes": 1593
+          },
+          {
+            "path": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "bytes": 849
+          },
+          {
+            "path": "viewer_journey-691ab3ca06d04c03.js",
+            "sha256": "15f385bb1a7590594df7fe9e67bb86ad9d1294a2f121bbb3888990fe3ef99bb9",
+            "bytes": 71441
+          },
+          {
+            "path": "viewer_journey-691ab3ca06d04c03_bg.wasm",
+            "sha256": "bb1c4450907bd9b048d01b6bdbe591b7dbb7a8a29115fdd132609b39adfbb407",
+            "bytes": 4428784
+          }
+        ],
+        "commandLogs": [
+          {
+            "name": "tail01-17-solid-wasm",
+            "sha256": "0068a206920ad4d43d7267f45930f8a273f459eb4c0ad9d4122959c2b4472cd3"
+          },
+          {
+            "name": "tail01-17-solid-trunk",
+            "sha256": "17c3dc4d049f1783f0b0d56ab01d882dc125da14c0ebf9b4fc43313661415695"
+          },
+          {
+            "name": "tail01-17-solid-browser",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      "browser": {
+        "status": "passed",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 720,
+            "dpr": 1
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "dpr": 2
+          }
+        ],
+        "checkerSha256": "c654941de8441585ad8bc7b3faffc6e55450e3ceb17148e4421ab655119f9a85",
+        "cases": [
+          {
+            "name": "landscape",
+            "width": 1280,
+            "height": 720,
+            "dpr": 1,
+            "startup": {
+              "file": "landscape-startup.png",
+              "sha256": "96e667dc03079faff462c932ce9c75b71056cba354aa9bc512f32ebae4d75400",
+              "pixels": "de00c7b57fe62d74f28b09ab3939d072f878a6adf1859b67b7b80786b74adcb3"
+            },
+            "prepared": {
+              "file": "landscape-prepared.png",
+              "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413",
+              "pixels": "704f591222a8db5fb7d33f7590fe064e35d359465fcf95a5fc36578f1a1faf44"
+            },
+            "interacted": {
+              "file": "landscape-interacted.png",
+              "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413",
+              "pixels": "704f591222a8db5fb7d33f7590fe064e35d359465fcf95a5fc36578f1a1faf44"
+            },
+            "math": {
+              "file": "landscape-math.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1"
+            },
+            "next": {
+              "file": "landscape-math-next.png",
+              "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+              "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd"
+            },
+            "previous": {
+              "file": "landscape-math-previous.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1"
+            },
+            "errors": []
+          },
+          {
+            "name": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "startup": {
+              "file": "portrait-startup.png",
+              "sha256": "3c4efd5e2a9d55c04825dabe105ce5a764bfbe671f9e2ada58bc3e515b9be782",
+              "pixels": "5bf1e3f6c165f87384a290cf4aa566be43d1b0c2d6f1059cc3e0c833ba8f5f35"
+            },
+            "prepared": {
+              "file": "portrait-prepared.png",
+              "sha256": "0b3908a1320b5ed3bdd500c810101b27bac7e9d7a9fc5d7a7ba35787c16237ec",
+              "pixels": "e095103e4a43b154c9975397939c81e3eda97c8593b1e4bee331d8b19c596f9a"
+            },
+            "interacted": {
+              "file": "portrait-interacted.png",
+              "sha256": "0b3908a1320b5ed3bdd500c810101b27bac7e9d7a9fc5d7a7ba35787c16237ec",
+              "pixels": "e095103e4a43b154c9975397939c81e3eda97c8593b1e4bee331d8b19c596f9a"
+            },
+            "math": {
+              "file": "portrait-math.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266"
+            },
+            "next": {
+              "file": "portrait-math-next.png",
+              "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+              "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363"
+            },
+            "previous": {
+              "file": "portrait-math-previous.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266"
+            },
+            "errors": []
+          }
+        ],
+        "captures": [
+          {
+            "file": "landscape-interacted.png",
+            "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413",
+            "bytes": 11161
+          },
+          {
+            "file": "landscape-math-next.png",
+            "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+            "bytes": 28366
+          },
+          {
+            "file": "landscape-math-previous.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-math.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-prepared.png",
+            "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413",
+            "bytes": 11161
+          },
+          {
+            "file": "landscape-startup.png",
+            "sha256": "96e667dc03079faff462c932ce9c75b71056cba354aa9bc512f32ebae4d75400",
+            "bytes": 10702
+          },
+          {
+            "file": "portrait-interacted.png",
+            "sha256": "0b3908a1320b5ed3bdd500c810101b27bac7e9d7a9fc5d7a7ba35787c16237ec",
+            "bytes": 20024
+          },
+          {
+            "file": "portrait-math-next.png",
+            "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+            "bytes": 33579
+          },
+          {
+            "file": "portrait-math-previous.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-math.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-prepared.png",
+            "sha256": "0b3908a1320b5ed3bdd500c810101b27bac7e9d7a9fc5d7a7ba35787c16237ec",
+            "bytes": 20024
+          },
+          {
+            "file": "portrait-startup.png",
+            "sha256": "3c4efd5e2a9d55c04825dabe105ce5a764bfbe671f9e2ada58bc3e515b9be782",
+            "bytes": 19750
+          }
+        ],
+        "publishedFigures": [
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/17-solid/landscape-interacted.png",
+            "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413"
+          },
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/17-solid/portrait-interacted.png",
+            "sha256": "0b3908a1320b5ed3bdd500c810101b27bac7e9d7a9fc5d7a7ba35787c16237ec"
+          }
+        ],
+        "originalCapturesPersonallyReviewed": true
+      }
+    },
+    {
+      "id": "19a-viewport",
+      "fingerprint": "dadc15263c7b94d45af76a72bdd7cf090192d9cf043962b54daab2bc085053a1",
+      "sourceSnapshotSha256": "2b53ef40a87b975de4af795a14d4550cb82ac49d0fb1a5813d7e3f65b5102084",
+      "sourceFiles": {
+        "Cargo.toml": "440f848d27ef8739ba770e4bafbf7c9d8c89e79f63bd4986856bdabda29650d2",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "e273490bdc01d273be7c26442b90abcf4934a4a62cc00f89fa56dda7570701e6",
+        "src/renderer.rs": "b29026145bd2ff092e74a6aded98362157722e84d3b9bc04005b65d12b40db8b",
+        "src/browser.rs": "5ca40528c1df3665dfa8379f67a4176b67a5437f8dead2960f3cc8aca292bf3e",
+        "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+        "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+        "src/triangle.wgsl": "cbb0e0018bb07fb903c1f7fe4575ca93d9e7fead387f59e2840e86d31db1078f",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+        "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+        "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+        "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+        "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+        "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+        "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+        "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+        "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+        "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+        "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+        "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+        "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+        "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+        "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+        "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+        "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+        "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+        "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+        "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+        "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+        "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+        "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+        "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+        "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+        "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+        "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+        "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+        "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+        "src/mesh.rs": "e412ae067aa893302260cd3450a3d530e2bd95fcf86a045754c7c6b4f7651ab7",
+        "src/scene.rs": "25965dea55fe59e13fae0afa42fefe77a0eb33fd1e074af58d98154d403a13ba",
+        "src/gpu_mesh.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+        "src/picking.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+        "src/history.rs": "bd3e050fec6ae49b38edc83546e3666aaf37728d3960d22560cfd06834983dc6",
+        "src/editor.rs": "6247ce86847f91bfc0c17b61f87bcb0739879039c7971e1519cc0eefe87106b9",
+        "src/viewport.rs": "1174664e96e6392e0e7b47e054d321bbd45050601f7e954fedc696d3beccadd6",
+        "src/gesture.rs": "c3276cdb51ac089262748347b885364b7fad7d38df89e4689071e89b70494b17",
+        "src/gesture_tests.rs": "3a0efafe2bca7c3990d03f74e78250419cb942e134d45c881030e1edef692144",
+        "src/navigation.rs": "bee0166b1c550c20ba1e9fd804e2daa471aae60e71935fa5928f44a30fe3f129",
+        "src/navigation_tests.rs": "c4326c7ad772ea357911fbe14f6d0ea875257471ff2e59ca14a6d2a481f568bc"
+      },
+      "native": {
+        "status": "passed",
+        "passed": 56,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "tests": [
+          "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+          "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+          "app::stage::motion_tests::explicit_parts_survive_reordering",
+          "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+          "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+          "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+          "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+          "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+          "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+          "app::stage::tests::a_chapter_block_fills_its_holes",
+          "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+          "app::stage::tests::both_grounds_name_the_same_colours",
+          "app::stage::tests::decks_play_through",
+          "app::stage::tests::decks_rest_cleanly_at_every_step",
+          "app::stage::tests::expressions_resolve_points",
+          "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+          "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+          "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+          "app::stage::tests::parts_keep_their_tex_as_key",
+          "app::stage::tests::text_keeps_its_spaces",
+          "app::stage::tests::the_ground_swaps_at_the_same_step",
+          "app::stage::tests::unknown_commands_are_reported",
+          "camera::tests::a_projected_point_lies_on_its_unprojected_ray",
+          "camera::tests::repeated_orbit_keeps_the_camera_axes_orthonormal",
+          "camera::tests::the_target_stays_centred_after_pan_zoom_and_turn",
+          "editor::tests::picking_a_moved_view_uses_the_editors_current_camera",
+          "editor::tests::resetting_the_view_preserves_its_current_aspect",
+          "editor::tests::undo_changes_the_document_without_rewinding_the_view",
+          "editor::tests::undo_repairs_selection_and_empty_delete_preserves_redo",
+          "gesture_tests::a_click_selects_but_a_left_drag_does_not",
+          "gesture_tests::a_drag_changes_the_view_without_editing_the_document",
+          "gesture_tests::cancellation_never_selects_and_allows_a_fresh_press",
+          "gesture_tests::css_coordinates_reach_picking_without_a_device_pixel_ratio",
+          "gesture_tests::only_the_captured_pointer_can_move_or_finish_the_gesture",
+          "history::tests::a_failed_action_restores_the_scene_and_preserves_redo",
+          "history::tests::a_new_branch_discards_redo_without_reusing_an_old_id",
+          "history::tests::retained_history_has_a_fixed_count_limit",
+          "history::tests::undo_restores_identity_and_shares_the_original_mesh",
+          "math_tests::equals_alignment_survives_different_left_sides",
+          "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+          "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+          "math_tests::letterbox_round_trip_and_upright_column",
+          "math_tests::unknown_command_is_reported",
+          "mesh::tests::a_kernel_box_becomes_eight_vertices_and_twelve_triangles",
+          "mesh::tests::invalid_connections_and_nonfinite_vertices_are_rejected",
+          "navigation_tests::navigation_preserves_document_history",
+          "navigation_tests::wheel_rejects_invalid_input_and_bounds_large_jumps",
+          "navigation_tests::wheel_units_agree_and_small_movements_accumulate",
+          "picking::tests::perspective_picking_chooses_the_nearest_visible_surface",
+          "picking::tests::picking_follows_the_camera_and_ignores_triangles_behind_the_ray",
+          "scene::tests::removal_moves_a_row_without_changing_its_identity",
+          "scene::tests::toggling_the_extra_object_uses_its_id_after_other_removals",
+          "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+          "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus",
+          "viewport::tests::a_hidden_canvas_has_no_renderable_size",
+          "viewport::tests::display_density_changes_pixels_without_stretching_the_view"
+        ],
+        "command": [
+          "cargo",
+          "test",
+          "--lib",
+          "--offline",
+          "--locked",
+          "--target",
+          "x86_64-pc-windows-msvc",
+          "-j1",
+          "--message-format=json"
+        ],
+        "logSha256": "3d3bdcf03b34eff475b30c6591e02032a77123142606fde825be36564cec1844"
+      },
+      "wasm": {
+        "status": "passed",
+        "evidence": [
+          {
+            "file": "wasm-browser-tail01/review.json",
+            "sha256": "bb9bbfeaceabf8a97ae806a1e03cdd46d791d14f5575bd1e022f1ae9b4e86484"
+          }
+        ],
+        "commands": [
+          {
+            "name": "tail01-19a-viewport-wasm",
+            "args": [
+              "cargo",
+              "build",
+              "--lib",
+              "--release",
+              "--offline",
+              "--locked",
+              "--target",
+              "wasm32-unknown-unknown",
+              "-j1",
+              "--message-format=json"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "tail01-19a-viewport-trunk",
+            "args": [
+              "trunk",
+              "build",
+              "--release",
+              "--public-url",
+              "./"
+            ],
+            "returncode": 0
+          },
+          {
+            "name": "tail01-19a-viewport-browser",
+            "args": [
+              "node",
+              "--require",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\math-browser-preload.cjs",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\cumulative-interaction-browser01.cjs",
+              "http://127.0.0.1:8807/",
+              "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\wasm-browser-tail01\\19a-viewport\\captures",
+              "19a-viewport"
+            ],
+            "returncode": 0
+          }
+        ],
+        "bundle": [
+          {
+            "path": "index.html",
+            "sha256": "174b3876cd3ad485592036f27897455b3dc9dc69a39534935fefb0d67da69d09",
+            "bytes": 1593
+          },
+          {
+            "path": "snippets/session_viewer-568dd7ccbb8842dd/inline0.js",
+            "sha256": "bcd603923161001987d238655bc702c35aa98920d69d7c9793006792bd030104",
+            "bytes": 849
+          },
+          {
+            "path": "viewer_journey-3324ffd6740f8b47.js",
+            "sha256": "1876e9ca0cdf823c5ad5e220a5673676953e26c49034d35cf6736e5d0be14031",
+            "bytes": 70910
+          },
+          {
+            "path": "viewer_journey-3324ffd6740f8b47_bg.wasm",
+            "sha256": "ed0e62b7f8909b1cce1832ec25070aec95c00f01484a4e43e2aeef01ce1a722b",
+            "bytes": 4430103
+          }
+        ],
+        "commandLogs": [
+          {
+            "name": "tail01-19a-viewport-wasm",
+            "sha256": "16b80e3f374f49831fd261ac69e2046cb86beea7f06cc77fdf62d939a1c8da93"
+          },
+          {
+            "name": "tail01-19a-viewport-trunk",
+            "sha256": "e0741b29e679844fdec3e791f4807612cf986129664b49b0a6e069c63a83277e"
+          },
+          {
+            "name": "tail01-19a-viewport-browser",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      "browser": {
+        "status": "passed",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 720,
+            "dpr": 1
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "dpr": 2
+          }
+        ],
+        "checkerSha256": "c654941de8441585ad8bc7b3faffc6e55450e3ceb17148e4421ab655119f9a85",
+        "cases": [
+          {
+            "name": "landscape",
+            "width": 1280,
+            "height": 720,
+            "dpr": 1,
+            "startup": {
+              "file": "landscape-startup.png",
+              "sha256": "96e667dc03079faff462c932ce9c75b71056cba354aa9bc512f32ebae4d75400",
+              "pixels": "de00c7b57fe62d74f28b09ab3939d072f878a6adf1859b67b7b80786b74adcb3"
+            },
+            "prepared": {
+              "file": "landscape-prepared.png",
+              "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362",
+              "pixels": "821dd8cbe2036101e6a435a4c340650212ca0dad06fd59e8d0677cd32e7cf147"
+            },
+            "interacted": {
+              "file": "landscape-interacted.png",
+              "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362",
+              "pixels": "821dd8cbe2036101e6a435a4c340650212ca0dad06fd59e8d0677cd32e7cf147"
+            },
+            "math": {
+              "file": "landscape-math.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1"
+            },
+            "next": {
+              "file": "landscape-math-next.png",
+              "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+              "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd"
+            },
+            "previous": {
+              "file": "landscape-math-previous.png",
+              "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+              "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1"
+            },
+            "errors": []
+          },
+          {
+            "name": "portrait",
+            "width": 390,
+            "height": 844,
+            "dpr": 2,
+            "startup": {
+              "file": "portrait-startup.png",
+              "sha256": "3c4efd5e2a9d55c04825dabe105ce5a764bfbe671f9e2ada58bc3e515b9be782",
+              "pixels": "5bf1e3f6c165f87384a290cf4aa566be43d1b0c2d6f1059cc3e0c833ba8f5f35"
+            },
+            "prepared": {
+              "file": "portrait-prepared.png",
+              "sha256": "16d8b39e5668f61420a91bec56b24b94a5491ac4ce9fa29712e020d8854a3b32",
+              "pixels": "4ba9ff62ad5fbfa6133579248551b3d34c3147dbe0424766d4cd7ddecd76d1d3"
+            },
+            "interacted": {
+              "file": "portrait-interacted.png",
+              "sha256": "16d8b39e5668f61420a91bec56b24b94a5491ac4ce9fa29712e020d8854a3b32",
+              "pixels": "4ba9ff62ad5fbfa6133579248551b3d34c3147dbe0424766d4cd7ddecd76d1d3"
+            },
+            "math": {
+              "file": "portrait-math.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266"
+            },
+            "next": {
+              "file": "portrait-math-next.png",
+              "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+              "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363"
+            },
+            "previous": {
+              "file": "portrait-math-previous.png",
+              "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+              "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266"
+            },
+            "errors": []
+          }
+        ],
+        "captures": [
+          {
+            "file": "landscape-interacted.png",
+            "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362",
+            "bytes": 11650
+          },
+          {
+            "file": "landscape-math-next.png",
+            "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+            "bytes": 28366
+          },
+          {
+            "file": "landscape-math-previous.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-math.png",
+            "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+            "bytes": 25552
+          },
+          {
+            "file": "landscape-prepared.png",
+            "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362",
+            "bytes": 11650
+          },
+          {
+            "file": "landscape-startup.png",
+            "sha256": "96e667dc03079faff462c932ce9c75b71056cba354aa9bc512f32ebae4d75400",
+            "bytes": 10702
+          },
+          {
+            "file": "portrait-interacted.png",
+            "sha256": "16d8b39e5668f61420a91bec56b24b94a5491ac4ce9fa29712e020d8854a3b32",
+            "bytes": 20632
+          },
+          {
+            "file": "portrait-math-next.png",
+            "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+            "bytes": 33579
+          },
+          {
+            "file": "portrait-math-previous.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-math.png",
+            "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+            "bytes": 31032
+          },
+          {
+            "file": "portrait-prepared.png",
+            "sha256": "16d8b39e5668f61420a91bec56b24b94a5491ac4ce9fa29712e020d8854a3b32",
+            "bytes": 20632
+          },
+          {
+            "file": "portrait-startup.png",
+            "sha256": "3c4efd5e2a9d55c04825dabe105ce5a764bfbe671f9e2ada58bc3e515b9be782",
+            "bytes": 19750
+          }
+        ],
+        "publishedFigures": [
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/19a-viewport/landscape-interacted.png",
+            "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362"
+          },
+          {
+            "path": "screenshots/journey/cumulative-six-20261114/19a-viewport/portrait-interacted.png",
+            "sha256": "16d8b39e5668f61420a91bec56b24b94a5491ac4ce9fa29712e020d8854a3b32"
+          }
+        ],
+        "originalCapturesPersonallyReviewed": true
+      }
+    }
+  ],
+  "limitations": [
+    "Upright viewport is emulated; ANGLE D3D11 flags do not establish selected hardware adapter or physical-device acceptance.",
+    "Early clip-space geometry changes apparent aspect; later perspective scenes can clip at viewport edges before fitting. Upright Help placeholders ellipsize.",
+    "One shared WASM workbench and bundle was reused in order; earlier bundle hashes are historical. Original captures and compact source snapshots retained.",
+    "Full-course structural, ownership and production parity checks remain failed."
+  ],
+  "fullCourse": {
+    "structure": "failed",
+    "ownership": "failed",
+    "parity": "failed"
+  }
+}

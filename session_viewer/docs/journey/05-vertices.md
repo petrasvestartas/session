@@ -73,8 +73,10 @@ Both triangles reference the same vertex index. Updating that one position chang
 
 ## Validation
 
-The subject replays to the exact former indexed-mesh endpoint; its original two checkpoints and page text are retained in the archive. The native pixel check measures both triangles, their shared edge and the diamond's area. Fresh wasm and optimized web builds pass, and the WARP native pixel check passes. Chrome interaction checks pass at 1280-by-720 and 390-by-844; the browser reports an Intel default WebGPU adapter. The upright case is viewport emulation, not a physical phone.
+The cumulative checkpoint passes 29 native library tests and its optimized WASM build. Browser checks exercise the scene and retained mathematics at desktop and emulated upright dimensions. The indexed triangles share an unbroken edge; typing leaves the background unchanged until Enter submits the command. [Source-bound runtime receipt](release/cumulative-six-runtime-windows-20261114.json).
 
-[Source-bound validation receipt](release/consolidated-windows-20261113.json) ? [Upright browser frame](../screenshots/consolidated-windows/05-vertices-upright.png). Native evidence uses software rendering; viewport emulation does not establish real-device acceptance.
+![Current cumulative desktop browser result](../screenshots/journey/cumulative-six-20261114/05-vertices/landscape-white.png)
 
-![Reviewed desktop browser result](../screenshots/consolidated-windows/05-vertices-desktop.png)
+[Upright browser result](../screenshots/journey/cumulative-six-20261114/05-vertices/portrait-white.png). Clip-space coordinates stretch with the canvas aspect. These checks use viewport emulation and do not establish physical-device or selected hardware-adapter acceptance. Full-course structure, finished-subject ownership and production parity remain unresolved.
+
+The [native-only receipt](release/cumulative-native-six-windows-20261114.json) preserves the earlier test milestone. Historical references: [Historical GPU and browser receipt](release/consolidated-windows-20261113.json), [Upright browser frame](../screenshots/consolidated-windows/05-vertices-upright.png).

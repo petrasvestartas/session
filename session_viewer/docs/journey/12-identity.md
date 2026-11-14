@@ -117,12 +117,10 @@ Restored objects keep references meaningful. Preserving the highest issued ident
 
 ## Validation
 
-The checkpoint passes 14 native library tests and the unchanged 640-by-480 WARP pixel test, optimized WebAssembly/Trunk builds, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. The tests exercise rollback, selection, deletion, undo/redo, branching history and camera navigation. Native rendering uses Microsoft WARP software; Chrome reports an Intel gen-12lp adapter. [Source-bound commands, images and scope](release/history-editor-viewport-windows-20261114.json) retain the exact tested inputs.
+The cumulative checkpoint passes 41 native library tests and its optimized WASM build. Browser checks exercise the scene and retained mathematics at desktop and emulated upright dimensions. Picking, deletion, undo, redo and history branching preserve the intended document; camera actions do not enter document history. [Source-bound runtime receipt](release/cumulative-six-runtime-windows-20261114.json).
 
-The upright viewport is emulated. Its fixed camera crops geometry at the right edge; passing input checks does not establish full phone composition or physical-device acceptance. The ten original checkpoint sources and earlier [browser evidence](release/selection-navigation-windows-20261114.json) remain archived.
+![Current cumulative desktop browser result](../screenshots/journey/cumulative-six-20261114/12-identity/landscape-interacted.png)
 
-![Current selection checkpoint in desktop Chrome, with two perspective triangles and the command dock.](../screenshots/journey/runtime-20261114/12-identity-desktop.png)
+[Upright browser result](../screenshots/journey/cumulative-six-20261114/12-identity/portrait-interacted.png). The scene clips at the upright viewport edges with these camera settings; fitting is a later subject. These checks use viewport emulation and do not establish physical-device or selected hardware-adapter acceptance. Full-course structure, finished-subject ownership and production parity remain unresolved.
 
-[Upright input check and its cropped view](../screenshots/journey/runtime-20261114/12-identity-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/12-identity-native.png)
-
-Browser adapter fields come from a separate query and do not independently prove renderer adapter selection. Full-course ownership and parity still fail.
+The [native-only receipt](release/cumulative-native-six-windows-20261114.json) preserves the earlier test milestone. Historical references: [historical browser receipt](release/history-editor-viewport-windows-20261114.json), [browser evidence](release/selection-navigation-windows-20261114.json), [Upright input check and its cropped view](../screenshots/journey/runtime-20261114/12-identity-upright.png), [Native WARP frame](../screenshots/journey/runtime-20261114/12-identity-native.png).
