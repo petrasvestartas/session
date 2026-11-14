@@ -1514,6 +1514,8 @@ Replace it with:
 
 ## <a id="checkpoint-42f-mesh"></a>7. Draw depth-tested mesh owners into an integer attachment
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/42f-mesh-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. This stage creates the depth-tested mesh-owner integer pipeline; integer readback and actual canvas selection require separate checks.
+
 ### 1. `src/triangle_pick.wgsl`
 
 Create the file and type:
@@ -1595,6 +1597,8 @@ pub mod pick_pipeline;
 ```
 
 ## <a id="checkpoint-42g-image"></a>8. Own a small ID image, depth target and readback buffer
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/42g-image-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Bounded integer-image, depth-target and padded-readback allocation require separate resource and integer picking checks.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -1737,6 +1741,8 @@ mod pick_image;
 ```
 
 ## <a id="checkpoint-42h-owner"></a>9. Bound asynchronous picking ownership
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/42h-owner-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Active-request ownership, cursor coalescing, cancellation and asynchronous map callbacks require separate picking checks.
 
 ### 1. `src/pick_gpu.rs`
 
@@ -1884,6 +1890,8 @@ pub mod pick_gpu;
 
 ## <a id="checkpoint-42i-copy"></a>10. Record the ID draw and aligned image copy
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/42i-copy-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Integer surface/ink drawing and aligned cursor-image copying require separate ID-pass submission and readback checks.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -2030,6 +2038,8 @@ mod pick_encode;
 ```
 
 ## <a id="checkpoint-42j-read"></a>11. Map the integer hit without blocking browser input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/42j-read-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Asynchronous integer-map completion, hit decoding and bounded resource reuse require separate picking readback checks.
 
 ### 1. `src/pick_gpu.rs`
 
@@ -2199,6 +2209,8 @@ pub mod browser_pick;
 ```
 
 ## <a id="checkpoint-42k-input"></a>12. Select rows through actual GPU canvas clicks
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/42k-input-bd5d16840cff.png). The inherited RGB grid frame remains unchanged. Actual canvas-click selection and copied integer GPU readback tests require separate runtime and browser acceptance.
 
 ### 1. `src/renderer.rs`
 
