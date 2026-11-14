@@ -1,7 +1,7 @@
 # Course status
 
-- Local integration has **1,311 checkpoints across 110 reader subjects**. [Cumulative mathematics](03a-mathematics.md) passes 27 native tests; [commands that change the view](04-input.md) retains mathematics and passes 29. Both have wasm and desktop/upright browser evidence.
-- The last published mathematics revision passes 112 tooling tests, strict documentation, reader navigation and CI. Command-checkpoint evidence covers its own sources and interactions. Native reference compilation passes; final-reference wasm startup remains unverified. Upright viewport emulation does not establish physical-phone acceptance.
+- The course has **1,311 checkpoints across 110 reader subjects**. [Cumulative mathematics](03a-mathematics.md), [command handling](04-input.md), and [six mesh-to-viewport checkpoints](release/cumulative-six-runtime-windows-20261114.json) have native, WASM and desktop/upright browser evidence.
+- The six checkpoints retain mathematics, pass 29 to 56 native tests each, and have 92 reviewed browser captures. Upright viewport emulation does not establish physical-phone acceptance; final-reference WASM startup remains unverified.
 - Completion remains open: **97 unconsolidated subjects**, 25 inventory gaps, 4,842 later-subject rewrites across 306 files, and endpoint parity of 299 missing, 709 extra and five changed files. See the [completion contract](completion-contract.md).
 
 ## Reproduce
