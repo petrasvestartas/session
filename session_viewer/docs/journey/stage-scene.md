@@ -4,7 +4,7 @@ Animate kernel geometry beside a mathematical column, with labels and matrix ent
 
 ## Prerequisites and ownership
 
-Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene-facing parts of `geometry.rs`, `spatial.rs`, `view.rs`, `net.rs` `mode.rs`, and `StageApp` in `src/app/stage/mod.rs`. The 2D runtime and painter remain owned by the earlier mathematics subject.
+Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene-facing parts of `geometry.rs`, `spatial.rs`, `view.rs`, `net.rs`, `mode.rs`, and `StageApp` in `src/app/stage/mod.rs`. The 2D runtime and painter remain owned by the earlier mathematics subject.
 
 **Cumulative checkpoint pending.** The source explanations below follow the maintained viewer. The current learner program still has incompatible application wiring; [the registration boundary](stage-gap.md#application-registration-still-required) must be implemented before this subject becomes an active cumulative checkpoint. Running the maintained viewer is useful for studying the result, but does not prove that the learner's preceding program reaches it.
 
@@ -23,6 +23,18 @@ Study the named sections in the live modules; retain the completed stage core an
 `geometry` makes real kernel `Point`, `Line` and `Polyline` values. An arrow is a kernel line with an end arrowhead. The regular scene display code therefore supplies their GPU representation and depth testing. Alpha is composited over the stage background before conversion to the opaque kernel colour.
 
 Units matter at this boundary. Point diameters use device pixels and include the device-pixel ratio. Line widths use the display contract's units. Dash lengths use the current world size of a screen pixel. Dots scale directly with the slide; lines use the shallower `scale.powf(0.3)` rule so they remain readable when the slide shrinks. Do not apply the device ratio to both the frame mapping and the same line width.
+
+### Order one scene frame
+
+```rust
+--8<-- "session_viewer/src/app/stage/mode.rs:stage-frame-order"
+```
+
+The scene mode implements the same `Mode<Host>` contract as the mathematics mode, with `State` as its host. Tick the stage clock before reading the animated camera. Apply that camera, then derive the label lens from the resulting real view. Painting can now place equations, projected labels and fly-outs in the same slide coordinates.
+
+Painting also produces this frame's spatial descriptions. Only afterwards can `Scene3::sync` update the retained rows. Synchronizing before painting would display the preceding frame's geometry. `std::mem::take` temporarily moves the description vector out of the stage, allowing the adapter to borrow the viewer state while synchronizing; putting it back retains its allocation for the next frame.
+
+The callback returns egui output and a repaint request. The application still owns texture uploads, GPU submission and presentation. The mode's background comes from the same presentation palette used for stage painting, keeping the scene clear colour and opaque geometry colour conversion consistent.
 
 ### Retain rows and update their properties
 
@@ -80,16 +92,6 @@ The small elimination routine has no pivoting or singular-system recovery. Teach
 
 `Net::matrix` derives the displayed connectivity, density, coordinate and force matrices from the same net used for solving. Row and column labels follow the chosen free/fixed ordering. A matrix on the slide is therefore a view of the calculation, rather than a separately transcribed table that can disagree with the scene.
 
-### Preserve the frame order
-
-```rust
---8<-- "session_viewer/src/app/stage/mode.rs:stage-frame-order"
-```
-
-The UI temporarily takes the stage out of `State` so it can borrow the remaining state for camera and scene updates. It restores the stage before submission. Time advances first. The camera is applied and its lens is installed before `StageApp::paint` collects the mathematical primitives and the frame's spatial descriptions. `Scene3::sync` then updates the real rows from that newly collected list.
-
-Only after those updates does the UI prepare its GPU resources and request the scene/UI draw. Painting the mathematical primitives here collects egui output; it is not yet a separate surface presentation. This distinction prevents a one-frame lag between labels and geometry. Repaint continues while animation, changed state or atlas overflow requires another frame.
-
 ### Input and portrait layout
 
 Keyboard stepping, chapter navigation, theme changes and camera reset are owned by `StageApp::key`. Pointer coordinates are converted from physical pixels to CSS points before the frame maps them into slide space. Dragging the scene side orbits; the wheel zooms that side. A double click on that side resets the authored camera. Clicking the mathematical column advances the step.
@@ -106,7 +108,7 @@ Touch handling tracks one finger by ID. A short tap is distinguished from motion
 
 [index.html](../../index.html) begins fetching the four stage fonts, index and discoverable chapter files while wasm loads. This early fetch is an optimization: the Rust loader remains responsible for validating route input, decoding UTF-8, parsing the index and chapters, decoding pictures and reporting contextual errors.
 
-`stage::open` builds one `Loaded` value containing fonts, parsed chapters and pictures. The loader posts it through `Msg::Stage`; application adoption creates `StageApp`. Font failures include the font name, chapter failures include the chapter filename, and picture failures include the picture path. Do not silently replace a failed deck with an empty scene.
+`stage::open` builds one `Loaded` value containing fonts, parsed chapters and pictures. The loader boxes that value behind `Loaded<State>` and posts it through `Msg::Mode`. Application adoption consumes the loaded value through its `open` method and installs the resulting boxed `StageApp` in the active mode slot. Font failures include the font name, chapter failures include the chapter filename, and picture failures include the picture path. Do not silently replace a failed deck with an empty scene.
 
 ## Run and observe
 
@@ -126,6 +128,6 @@ The user can orbit away from the authored pose. Projecting labels with that olde
 
 ## Validation
 
-The standalone mathematics checkpoint passes 24 native tests, including all five shipped decks at rest and through playback. Those tests validate parser, layout and action behavior; they do not exercise production row allocation, picking exclusion or touch handling. The scene-independent presentation probe separately passes 17 tests, including the production deck tests and two presentation ownership/painting checks. Full application native, native test-configuration, wasm and optimized Trunk compilation pass. Production-reference browser review and cumulative integration of this subject remain pending. The [integration status](stage-gap.md) records the unresolved baseline comparison; compilation does not establish browser parity.
+The standalone mathematics checkpoint passes 24 native tests, including all five shipped decks at rest and through playback. Those tests validate parser, layout and action behavior; they do not exercise production row allocation, picking exclusion or touch handling. The scene-independent presentation probe separately passes 18 tests, including the production deck tests, presentation ownership/painting checks and host-independent mode dispatch. Full application native, native test-configuration, wasm and optimized Trunk compilation pass. Eight of 46 production-reference browser comparisons match state and pixels, while all eight commands retain failed history assertions. Cumulative integration remains pending. The [integration status](stage-gap.md) records these separate results; compilation does not establish browser parity.
 
 Acceptance must cover every step of all five decks, contextual errors, settled overlap reports, row placement/reveal/colour/visibility, projected labels, camera reset, keyboard, mouse and touch input, both grounds and desktop/upright layouts. Record the actual adapter and distinguish viewport emulation from a real phone.

@@ -10,150 +10,99 @@ Existing intermediate checkpoints remain listed while their implementations are 
 
 | Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Study sessions |
 | --- | ---: | ---: | --- | --- | --- |
-| [1.1.1 · A page that Rust can reach](01-canvas.md) | 49 | 1585 | 16–32 min | 1–2 h | One sitting |
-| [1.1.2 · Paint the first GPU frame](01a-gpu.md) | 69 | 2944 | 30–59 min | 1–2 h | One sitting |
-| [1.2.1 · Give browser presentation its own function](02-clear.md) | 55 | 2774 | 28–56 min | 1–2 h | One sitting |
-| [1.3.1 · Give the GPU three corners](03-triangle.md) | 47 | 1866 | 19–38 min | 1–2 h | One sitting |
-| [1.3.2 · Prepare the command fonts and painter](03a-fonts.md) | 82 | 2963 | 30–60 min | 1–2 h | One sitting |
-| [1.3.3 · Paint command text over the scene](03a-paint.md) | 44 | 2428 | 25–49 min | 1–2 h | One sitting |
-| [1.3.4 · Lay out the command field](03a-panel.md) | 76 | 2963 | 30–60 min | 1–2 h | One sitting |
-| [1.3.5 · Give the command field its memory](03b-memory.md) | 42 | 2084 | 21–42 min | 1–2 h | One sitting |
-| [1.3.6 · Prepare the dock completion helpers](03b-state.md) | 84 | 2845 | 29–57 min | 1–2 h | One sitting |
-| [1.3.7 · Draw retained command history](03c-history.md) | 44 | 2146 | 22–43 min | 0.5–1 h | One sitting |
-| [1.3.8 · Type directly into the command field](03ca-typing.md) | 42 | 1950 | 20–39 min | 0.5–1 h | One sitting |
-| [1.3.9 · Submit command text once](03cb-submit.md) | 30 | 1303 | 14–27 min | 0.5–0.75 h | One sitting |
-| [1.3.10 · Edit the command text](03cc-edit.md) | 26 | 1389 | 14–28 min | 0.5–0.75 h | One sitting |
-| [1.3.11 · Recognize Help](03cd-vocabulary.md) | 57 | 2216 | 23–45 min | 0.5–1 h | One sitting |
-| [1.3.12 · Complete a command name](03ce-complete.md) | 50 | 2173 | 22–44 min | 0.5–1 h | One sitting |
-| [1.3.13 · Accept or cancel a completion](03cf-accept.md) | 73 | 2991 | 30–60 min | 0.75–1.25 h | One sitting |
-| [1.3.14 · Read editing keys before the field](03cg-keys.md) | 71 | 2298 | 23–46 min | 0.5–1.25 h | One sitting |
-| [1.3.15 · Show matching commands](03ch-popup.md) | 54 | 2625 | 27–53 min | 0.75–1.25 h | One sitting |
-| [1.3.16 · Browse matching names](03ci-browse.md) | 62 | 2247 | 23–45 min | 0.5–1 h | One sitting |
-| [1.3.17 · Prepare the dock before painting](03cj-prepare.md) | 18 | 1087 | 11–22 min | 0.5–0.75 h | One sitting |
-| [1.3.18 · Remember where the dock is drawn](03ck-rects.md) | 41 | 1994 | 20–40 min | 0.5–1 h | One sitting |
-| [1.3.19 · Click the command dock](03ck-pointer.md) | 37 | 2528 | 26–51 min | 0.5–1.25 h | One sitting |
-| [1.3.20 · Scroll through command names](03cl-wheel.md) | 56 | 2455 | 25–50 min | 0.5–1.25 h | One sitting |
-| [1.3.21 · Share the production dock layout](03c-layout.md) | 88 | 2877 | 29–58 min | 0.75–1.25 h | One sitting |
-| [1.3.22 · Align and measure the command row](03co-align.md) | 6 | 416 | 5–9 min | 0.25–0.5 h | One sitting |
-| [1.3.23 · Reserve command-row space for active tool values](03cp-options.md) | 82 | 2974 | 30–60 min | 1–1.5 h | One sitting |
-| [1.3.24 · Return accepted application commands](03cn-handoff.md) | 60 | 2826 | 29–57 min | 0.75–1.25 h | One sitting |
-| [1.3.25 · Hand commands to the application](03d-input.md) | 60 | 2166 | 22–44 min | 0.5–1 h | One sitting |
+| [1.1.1 · Rust and the first GPU frame](01-canvas.md) | 151 | 5768 | 58–116 min | 2–4 h | Several sittings; one checkpoint |
+| [1.2.1 · Shaders and first egui painting](03-triangle.md) | 176 | 7443 | 75–149 min | 2–4 h | Several sittings; one checkpoint |
+| [1.3.1 · The command dock](03d-input.md) | 1062 | 42028 | 421–841 min | 3–6 h | Several sittings; one checkpoint |
 | [1.4.1 · Make a choice change the picture](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | One sitting |
-| [2.1.1 · Let Rust supply the corners](05-vertices.md) | 26 | 1115 | 12–23 min | 1–2 h | One sitting |
-| [2.2.1 · Share a corner between triangles](06-indices.md) | 14 | 737 | 8–15 min | 1–2 h | One sitting |
-| [2.3.1 · Send one view setting to every corner](07-uniforms.md) | 35 | 1583 | 16–32 min | 2–3 h | One sitting |
-| [2.4.1 · Move the view, keep the geometry](08-camera.md) | 93 | 2482 | 25–50 min | 2–3 h | One sitting |
-| [2.5.1 · Let one matrix describe the view](09-matrices.md) | 30 | 1130 | 12–23 min | 2–4 h | One sitting |
-| [2.6.1 · Keep the nearest surface](10-depth.md) | 63 | 2798 | 28–56 min | 2–4 h | One sitting |
-| [2.6.2 · Give geometry a validated CPU owner](10a-mesh.md) | 76 | 2331 | 24–47 min | 0.75–1.25 h | One sitting |
-| [2.7.1 · Draw the scene through GPU mesh owners](11-scene.md) | 60 | 2298 | 23–46 min | 0.75–1.25 h | One sitting |
-| [2.7.2 · Name objects independently of their rows](11a-identity.md) | 84 | 2814 | 29–57 min | 0.75–1.5 h | One sitting |
-| [2.8.1 · Display selection by object identity](12-identity.md) | 33 | 1551 | 16–32 min | 0.5–1 h | One sitting |
-| [2.8.2 · Convert screen positions back to the scene](12a-coordinates.md) | 27 | 948 | 10–19 min | 0.5–0.75 h | One sitting |
-| [2.8.3 · Find the nearest triangle at a scene point](12b-picking.md) | 81 | 2757 | 28–56 min | 0.75–1.5 h | One sitting |
-| [2.9.1 · Select the visible object with a mouse click](13-picking.md) | 27 | 1308 | 14–27 min | 0.5–1 h | One sitting |
-| [2.9.2 · Retain reversible scene snapshots](13a-history.md) | 94 | 2719 | 28–55 min | 0.75–1.5 h | One sitting |
-| [2.10.1 · Run Undo and Redo from the command line](14-history.md) | 18 | 757 | 8–16 min | 0.25–0.5 h | One sitting |
-| [2.10.2 · Draw through a perspective camera](14a-perspective.md) | 38 | 1984 | 20–40 min | 0.75–1.25 h | One sitting |
-| [2.10.3 · Turn a screen point into a bounded ray](14b-ray.md) | 32 | 1367 | 14–28 min | 0.5–0.75 h | One sitting |
-| [2.11.1 · Pick the nearest surface through the view](15-perspective.md) | 54 | 2918 | 30–59 min | 1–1.5 h | One sitting |
-| [2.12.1 · Walk around the model](16-orbit.md) | 61 | 2785 | 28–56 min | 2–4 h | One sitting |
-| [3.1.1 · Bring a solid into the scene](17-solid.md) | 67 | 2667 | 27–54 min | 3–5 h | One sitting |
-| [3.2.1 · Read the shape through light](18-light.md) | 9 | 529 | 6–11 min | 1–2 h | One sitting |
-| [3.2.2 · Give application state one owner](18a-editor.md) | 59 | 1328 | 14–27 min | 0.5–0.75 h | One sitting |
-| [3.2.3 · Apply document and view actions in Rust](18b-actions.md) | 58 | 2650 | 27–53 min | 1–1.5 h | One sitting |
-| [3.3.1 · Route browser input through the editor](19-actions.md) | 66 | 2826 | 29–57 min | 1–1.5 h | One sitting |
-| [3.3.2 · Measure a safe drawing size](19a-viewport.md) | 52 | 1838 | 19–37 min | 0.75–1.25 h | One sitting |
-| [3.4.1 · Resize canvas, depth and camera together](20-resize.md) | 83 | 2825 | 29–57 min | 1–1.5 h | One sitting |
-| [3.4.2 · Remember the pointer that starts a drag](20a-press.md) | 46 | 1336 | 14–27 min | 0.75–1.25 h | One sitting |
-| [3.4.3 · Finish or cancel a drag](20b-release.md) | 22 | 667 | 7–14 min | 0.75–1.25 h | One sitting |
-| [3.4.4 · Convert pointer motion to editor actions](20c-motion.md) | 21 | 663 | 7–14 min | 0.75–1.25 h | One sitting |
-| [3.5.1 · Connect captured pointers to the editor](21-gestures.md) | 60 | 2253 | 23–46 min | 1–1.5 h | One sitting |
-| [3.5.2 · Convert wheel units to camera zoom](21a-wheel.md) | 18 | 493 | 5–10 min | 0.75–1.5 h | One sitting |
-| [3.6.1 · Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md) | 41 | 1685 | 17–34 min | 0.5–1 h | One sitting |
-| [3.6.2 · Validate a raw mesh record](22a-records.md) | 61 | 2521 | 26–51 min | 0.75–1.25 h | One sitting |
-| [3.6.3 · Validate session identity and build a sample file](22b-session.md) | 61 | 2789 | 28–56 min | 0.75–1.25 h | One sitting |
-| [3.6.4 · Decode and prepare the whole import](22c-decode.md) | 17 | 655 | 7–14 min | 0.75–1.25 h | One sitting |
-| [3.6.5 · Commit an import as one undoable action](22d-import.md) | 17 | 701 | 8–15 min | 0.75–1.25 h | One sitting |
-| [3.6.6 · Prepare asynchronous file delivery](22e-file-reader.md) | 42 | 1770 | 18–36 min | 0.75–1.25 h | One sitting |
-| [3.7.1 · Open a file through the command line](23-import.md) | 44 | 2156 | 22–44 min | 0.75–1.25 h | One sitting |
-| [3.7.2 · Measure the displayed scene bounds](23a-bounds.md) | 43 | 1268 | 13–26 min | 0.75–1.25 h | One sitting |
-| [3.7.3 · Fit the camera around the bounds](23b-fit-camera.md) | 17 | 791 | 8–16 min | 0.75–1.25 h | One sitting |
-| [3.8.1 · Run Fit through the command line](24-fit.md) | 8 | 277 | 3–6 min | 0.75–1.25 h | One sitting |
-| [3.8.2 · Build perspective and orthographic camera matrices](24a-projection.md) | 22 | 776 | 8–16 min | 0.75–1.25 h | One sitting |
-| [3.8.3 · Fit and change projection through the editor](24b-projection-actions.md) | 7 | 374 | 4–8 min | 0.75–1.25 h | One sitting |
-| [3.9.1 · Run the named projection commands](25-projection.md) | 22 | 899 | 9–18 min | 0.25–0.5 h | One sitting |
-| [3.10.1 · Frame one object without changing its size](26-selected.md) | 25 | 988 | 10–20 min | 1–2 h | One sitting |
-| [3.10.2 · Fit and step history from the keyboard](26a-keys.md) | 44 | 1890 | 19–38 min | 0.5–1 h | One sitting |
-| [3.11.1 · Give each object a placement](27-placement.md) | 23 | 936 | 10–19 min | 1–2 h | One sitting |
-| [3.11.2 · Ask geometry questions in world coordinates](27a-world.md) | 10 | 699 | 7–14 min | 1–2 h | One sitting |
-| [3.11.3 · Apply object placement on the GPU](27b-model.md) | 30 | 1611 | 17–33 min | 1–2 h | One sitting |
-| [3.11.4 · Move a placed object with a typed offset](27c-move.md) | 44 | 2066 | 21–42 min | 1–2 h | One sitting |
-| [3.11.5 · Prove placement and history agree](27d-history.md) | 2 | 29 | 1–1 min | 1–2 h | One sitting |
-| [3.12.1 · Prepare a display from an owned source mesh](28-record.md) | 24 | 703 | 8–15 min | 1–2 h | One sitting |
-| [3.12.2 · Retain the imported mesh behind each row](28a-imported.md) | 16 | 765 | 8–16 min | 1–2 h | One sitting |
-| [3.12.3 · Give generated objects the same source owner](28b-generated.md) | 23 | 1432 | 15–29 min | 1–2 h | One sitting |
-| [3.12.4 · Prove source ownership survives editing](28c-ownership.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
-| [3.13.1 · Give each saved object a stable identity](29-identity.md) | 9 | 416 | 5–9 min | 1–2 h | One sitting |
-| [3.13.2 · Write a snapshot from the editable sources](29a-snapshot.md) | 31 | 1288 | 13–26 min | 1–2 h | One sitting |
-| [3.13.3 · Reopen source geometry with its placement](29b-placements.md) | 24 | 1153 | 12–24 min | 1–2 h | One sitting |
-| [3.13.4 · Prove the saved document reopens faithfully](29c-roundtrip.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
-| [3.13.5 · Download the editable document from the command line](29d-save.md) | 46 | 2339 | 24–47 min | 1–2 h | One sitting |
-| [3.14.1 · Report the result that actually committed](30-feedback.md) | 29 | 1498 | 15–30 min | 1–2 h | One sitting |
-| [3.14.2 · Give a pending read an explicit ticket](30a-tickets.md) | 64 | 1728 | 18–35 min | 1–2 h | One sitting |
-| [3.14.3 · Cancel reads without accepting their late result](30b-cancel.md) | 31 | 1546 | 16–31 min | 1–2 h | One sitting |
-| [3.14.4 · Replace a document as one reversible change](30c-replace.md) | 13 | 442 | 5–9 min | 1–2 h | One sitting |
-| [3.14.5 · Choose append or replace before opening the picker](30d-bridge.md) | 43 | 2645 | 27–53 min | 1–2 h | One sitting |
-| [3.14.6 · Prove recovery at the transaction and display boundaries](30e-recovery.md) | 20 | 978 | 10–20 min | 1–2 h | One sitting |
-| [3.15.1 · Keep selection out of the vertex data](31-settings.md) | 19 | 732 | 8–15 min | 1–2 h | One sitting |
-| [3.15.2 · Give immutable GPU geometry one owner](31a-geometry.md) | 48 | 1861 | 19–38 min | 1–2 h | One sitting |
-| [3.15.3 · Reuse uploads while their geometry is alive](31b-cache.md) | 51 | 1991 | 20–40 min | 1–2 h | One sitting |
-| [3.15.4 · Update only changed object settings](31c-incremental.md) | 41 | 1942 | 20–39 min | 1–2 h | One sitting |
-| [3.16.1 · Find the owners retained by history](32-history.md) | 38 | 1455 | 15–30 min | 1–2 h | One sitting |
-| [3.16.2 · Count shared CPU displays once](32a-cpu.md) | 72 | 2979 | 30–60 min | 1–2 h | One sitting |
-| [3.16.3 · Count each shared GPU buffer once](32b-gpu.md) | 19 | 700 | 7–14 min | 1–2 h | One sitting |
-| [3.16.4 · Close the document without resetting the view](32c-close.md) | 41 | 1996 | 20–40 min | 1–2 h | One sitting |
-| [3.16.5 · Close through the command line and revoke reads](32d-command.md) | 10 | 449 | 5–9 min | 1–2 h | One sitting |
-| [3.16.6 · Prove release does not retain the old document](32e-release.md) | 23 | 1390 | 14–28 min | 1–2 h | One sitting |
-| [3.16.7 · Keep row metadata separate from editable geometry](32f-metadata.md) | 62 | 2785 | 28–56 min | 1–2 h | One sitting |
-| [3.16.8 · Ask whether an editable source is available](32fa-access.md) | 8 | 457 | 5–10 min | 1–2 h | One sitting |
-| [3.16.9 · Make editable ownership a private row boundary](32fb-boundary.md) | 7 | 487 | 5–10 min | 1–2 h | One sitting |
-| [3.16.10 · Record a reload version without retaining geometry](32fc-version.md) | 52 | 2009 | 21–41 min | 1–2 h | One sitting |
-| [3.16.11 · Attach one origin to an imported document](32fd-origin.md) | 9 | 587 | 6–12 min | 1–2 h | One sitting |
-| [3.16.12 · Give a reload URL an explicit owner](32fe-location.md) | 37 | 1612 | 17–33 min | 1–2 h | One sitting |
-| [3.16.13 · Adopt the selected file as a reloadable source](32ff-bridge.md) | 31 | 2306 | 24–47 min | 1–2 h | One sitting |
-| [3.16.14 · Separate loaded and released editable ownership](32fg-state.md) | 32 | 1712 | 18–35 min | 1–2 h | One sitting |
-| [3.16.15 · Protect sources that cannot be unloaded faithfully](32fh-policy.md) | 35 | 2044 | 21–41 min | 1–2 h | One sitting |
-| [3.16.16 · Unload sources across active and history roots](32fi-history.md) | 32 | 1590 | 16–32 min | 1–2 h | One sitting |
-| [3.16.17 · Prove unloading preserves placed history](32fj-proof.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
-| [3.16.18 · Unload editable sources through the command line](32fk-command.md) | 13 | 767 | 8–16 min | 1–2 h | One sitting |
-| [3.16.19 · Protect history and future reload tickets](32fl-guards.md) | 42 | 2498 | 25–50 min | 1–2 h | One sitting |
-| [3.16.20 · Identify the source release a reload belongs to](32g-keys.md) | 47 | 1837 | 19–37 min | 1–2 h | One sitting |
-| [3.16.21 · Prepare original kernel data without rebuilding its display](32ga-prepare.md) | 36 | 1529 | 16–31 min | 1–2 h | One sitting |
-| [3.16.22 · Adopt restored source owners as one residency change](32gb-adopt.md) | 30 | 1568 | 16–32 min | 1–2 h | One sitting |
-| [3.16.23 · Prove source restoration preserves display and history](32gc-roundtrip.md) | 2 | 34 | 1–1 min | 1–2 h | One sitting |
-| [3.16.24 · Reject stale or inconsistent source batches atomically](32gd-rejections.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
-| [3.16.25 · Ignore old reload results before decoding them](32ge-stale.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
-| [3.16.26 · Give each source request its own owner](32gf-request.md) | 45 | 1447 | 15–29 min | 1–2 h | One sitting |
-| [3.16.27 · Prove cancelled work releases its source owners](32gfa-ownership.md) | 54 | 2544 | 26–51 min | 1–2 h | One sitting |
-| [3.16.28 · Read a source response within its byte limit](32gg-fetch.md) | 40 | 2331 | 24–47 min | 1–2 h | One sitting |
-| [3.16.29 · Pair reload ownership with a browser abort controller](32gga-flight.md) | 35 | 1164 | 12–24 min | 1–2 h | One sitting |
-| [3.16.30 · Deliver only the current completed reload batch](32ggb-delivery.md) | 30 | 1381 | 14–28 min | 1–2 h | One sitting |
-| [3.16.31 · Restore editable sources through the command line](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | One sitting |
-| [3.16.32 · Cancel reloads when their document context changes](32gha-cancel.md) | 3 | 275 | 3–6 min | 1–2 h | One sitting |
-| [3.16.33 · Capture the requested edit before waiting](32gi-capture.md) | 72 | 2957 | 30–60 min | 1–2 h | One sitting |
-| [3.16.34 · Load only the sources the requested edit needs](32gia-scope.md) | 13 | 531 | 6–11 min | 1–2 h | One sitting |
-| [3.16.35 · Move the original target from its current placement](32gib-move.md) | 13 | 721 | 8–15 min | 1–2 h | One sitting |
-| [3.16.36 · Delete the original target while keeping later selection](32giba-delete.md) | 14 | 649 | 7–13 min | 1–2 h | One sitting |
-| [3.16.37 · Route captured Move, Delete and Save results](32gibb-reply.md) | 51 | 2495 | 25–50 min | 1–2 h | One sitting |
-| [3.16.38 · Own the intent with its pending source ticket](32gic-owner.md) | 24 | 861 | 9–18 min | 1–2 h | One sitting |
-| [3.16.39 · Pair captured intent with complete source bodies](32gica-reply.md) | 19 | 616 | 7–13 min | 1–2 h | One sitting |
-| [3.16.40 · Carry captured intent through browser completion](32gicb-bridge.md) | 16 | 1120 | 12–23 min | 1–2 h | One sitting |
-| [3.16.41 · Validate restoration before replaying the command](32gid-complete.md) | 11 | 486 | 5–10 min | 1–2 h | One sitting |
-| [3.16.42 · Deliver restored edit and Save results to the dock](32gie-response.md) | 23 | 1316 | 14–27 min | 1–2 h | One sitting |
-| [3.16.43 · Automatically restore sources for Move, Delete and Save](32gif-auto.md) | 36 | 2412 | 25–49 min | 1–2 h | One sitting |
-| [3.16.44 · Prove restored Save keeps the source doubles](32gj-precision.md) | 10 | 349 | 4–7 min | 1–2 h | One sitting |
-| [3.16.45 · Prove failed restoration cannot partly commit](32gja-failures.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
+| [2.1.1 · Buffers that describe a shared mesh](05-vertices.md) | 34 | 1568 | 16–32 min | 2–4 h | One sitting |
+| [2.2.1 · Camera state and matrix uniforms](07-uniforms.md) | 141 | 4273 | 43–86 min | 3–5 h | Several sittings; one checkpoint |
+| [2.3.1 · A depth-tested scene with stable objects](10-depth.md) | 263 | 9206 | 93–185 min | 3–5 h | Several sittings; one checkpoint |
+| [2.4.1 · Select, navigate and undo](12-identity.md) | 392 | 15381 | 154–308 min | 4–7 h | Several sittings; one checkpoint |
+| [3.1.1 · Kernel geometry and one editor](17-solid.md) | 213 | 8152 | 82–164 min | 3–5 h | Several sittings; one checkpoint |
+| [3.2.1 · One drawing size and one captured gesture](19a-viewport.md) | 456 | 15861 | 159–318 min | 3–5 h | Several sittings; one checkpoint |
+| [3.3.1 · Validate a raw mesh record](22a-records.md) | 61 | 2521 | 26–51 min | 0.75–1.25 h | One sitting |
+| [3.3.2 · Validate session identity and build a sample file](22b-session.md) | 61 | 2789 | 28–56 min | 0.75–1.25 h | One sitting |
+| [3.3.3 · Decode and prepare the whole import](22c-decode.md) | 17 | 655 | 7–14 min | 0.75–1.25 h | One sitting |
+| [3.3.4 · Commit an import as one undoable action](22d-import.md) | 17 | 701 | 8–15 min | 0.75–1.25 h | One sitting |
+| [3.3.5 · Prepare asynchronous file delivery](22e-file-reader.md) | 42 | 1770 | 18–36 min | 0.75–1.25 h | One sitting |
+| [3.4.1 · Open a file through the command line](23-import.md) | 44 | 2156 | 22–44 min | 0.75–1.25 h | One sitting |
+| [3.4.2 · Measure the displayed scene bounds](23a-bounds.md) | 43 | 1268 | 13–26 min | 0.75–1.25 h | One sitting |
+| [3.4.3 · Fit the camera around the bounds](23b-fit-camera.md) | 17 | 791 | 8–16 min | 0.75–1.25 h | One sitting |
+| [3.5.1 · Run Fit through the command line](24-fit.md) | 8 | 277 | 3–6 min | 0.75–1.25 h | One sitting |
+| [3.5.2 · Build perspective and orthographic camera matrices](24a-projection.md) | 22 | 776 | 8–16 min | 0.75–1.25 h | One sitting |
+| [3.5.3 · Fit and change projection through the editor](24b-projection-actions.md) | 7 | 374 | 4–8 min | 0.75–1.25 h | One sitting |
+| [3.6.1 · Run the named projection commands](25-projection.md) | 22 | 899 | 9–18 min | 0.25–0.5 h | One sitting |
+| [3.7.1 · Frame one object without changing its size](26-selected.md) | 25 | 988 | 10–20 min | 1–2 h | One sitting |
+| [3.7.2 · Fit and step history from the keyboard](26a-keys.md) | 44 | 1890 | 19–38 min | 0.5–1 h | One sitting |
+| [3.8.1 · Give each object a placement](27-placement.md) | 23 | 936 | 10–19 min | 1–2 h | One sitting |
+| [3.8.2 · Ask geometry questions in world coordinates](27a-world.md) | 10 | 699 | 7–14 min | 1–2 h | One sitting |
+| [3.8.3 · Apply object placement on the GPU](27b-model.md) | 30 | 1611 | 17–33 min | 1–2 h | One sitting |
+| [3.8.4 · Move a placed object with a typed offset](27c-move.md) | 44 | 2066 | 21–42 min | 1–2 h | One sitting |
+| [3.8.5 · Prove placement and history agree](27d-history.md) | 2 | 29 | 1–1 min | 1–2 h | One sitting |
+| [3.9.1 · Prepare a display from an owned source mesh](28-record.md) | 24 | 703 | 8–15 min | 1–2 h | One sitting |
+| [3.9.2 · Retain the imported mesh behind each row](28a-imported.md) | 16 | 765 | 8–16 min | 1–2 h | One sitting |
+| [3.9.3 · Give generated objects the same source owner](28b-generated.md) | 23 | 1432 | 15–29 min | 1–2 h | One sitting |
+| [3.9.4 · Prove source ownership survives editing](28c-ownership.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
+| [3.10.1 · Give each saved object a stable identity](29-identity.md) | 9 | 416 | 5–9 min | 1–2 h | One sitting |
+| [3.10.2 · Write a snapshot from the editable sources](29a-snapshot.md) | 31 | 1288 | 13–26 min | 1–2 h | One sitting |
+| [3.10.3 · Reopen source geometry with its placement](29b-placements.md) | 24 | 1153 | 12–24 min | 1–2 h | One sitting |
+| [3.10.4 · Prove the saved document reopens faithfully](29c-roundtrip.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
+| [3.10.5 · Download the editable document from the command line](29d-save.md) | 46 | 2339 | 24–47 min | 1–2 h | One sitting |
+| [3.11.1 · Report the result that actually committed](30-feedback.md) | 29 | 1498 | 15–30 min | 1–2 h | One sitting |
+| [3.11.2 · Give a pending read an explicit ticket](30a-tickets.md) | 64 | 1728 | 18–35 min | 1–2 h | One sitting |
+| [3.11.3 · Cancel reads without accepting their late result](30b-cancel.md) | 31 | 1546 | 16–31 min | 1–2 h | One sitting |
+| [3.11.4 · Replace a document as one reversible change](30c-replace.md) | 13 | 442 | 5–9 min | 1–2 h | One sitting |
+| [3.11.5 · Choose append or replace before opening the picker](30d-bridge.md) | 43 | 2645 | 27–53 min | 1–2 h | One sitting |
+| [3.11.6 · Prove recovery at the transaction and display boundaries](30e-recovery.md) | 20 | 978 | 10–20 min | 1–2 h | One sitting |
+| [3.12.1 · Keep selection out of the vertex data](31-settings.md) | 19 | 732 | 8–15 min | 1–2 h | One sitting |
+| [3.12.2 · Give immutable GPU geometry one owner](31a-geometry.md) | 48 | 1861 | 19–38 min | 1–2 h | One sitting |
+| [3.12.3 · Reuse uploads while their geometry is alive](31b-cache.md) | 51 | 1991 | 20–40 min | 1–2 h | One sitting |
+| [3.12.4 · Update only changed object settings](31c-incremental.md) | 41 | 1942 | 20–39 min | 1–2 h | One sitting |
+| [3.13.1 · Find the owners retained by history](32-history.md) | 38 | 1455 | 15–30 min | 1–2 h | One sitting |
+| [3.13.2 · Count shared CPU displays once](32a-cpu.md) | 72 | 2979 | 30–60 min | 1–2 h | One sitting |
+| [3.13.3 · Count each shared GPU buffer once](32b-gpu.md) | 19 | 700 | 7–14 min | 1–2 h | One sitting |
+| [3.13.4 · Close the document without resetting the view](32c-close.md) | 41 | 1996 | 20–40 min | 1–2 h | One sitting |
+| [3.13.5 · Close through the command line and revoke reads](32d-command.md) | 10 | 449 | 5–9 min | 1–2 h | One sitting |
+| [3.13.6 · Prove release does not retain the old document](32e-release.md) | 23 | 1390 | 14–28 min | 1–2 h | One sitting |
+| [3.13.7 · Keep row metadata separate from editable geometry](32f-metadata.md) | 62 | 2785 | 28–56 min | 1–2 h | One sitting |
+| [3.13.8 · Ask whether an editable source is available](32fa-access.md) | 8 | 457 | 5–10 min | 1–2 h | One sitting |
+| [3.13.9 · Make editable ownership a private row boundary](32fb-boundary.md) | 7 | 487 | 5–10 min | 1–2 h | One sitting |
+| [3.13.10 · Record a reload version without retaining geometry](32fc-version.md) | 52 | 2009 | 21–41 min | 1–2 h | One sitting |
+| [3.13.11 · Attach one origin to an imported document](32fd-origin.md) | 9 | 587 | 6–12 min | 1–2 h | One sitting |
+| [3.13.12 · Give a reload URL an explicit owner](32fe-location.md) | 37 | 1612 | 17–33 min | 1–2 h | One sitting |
+| [3.13.13 · Adopt the selected file as a reloadable source](32ff-bridge.md) | 31 | 2306 | 24–47 min | 1–2 h | One sitting |
+| [3.13.14 · Separate loaded and released editable ownership](32fg-state.md) | 32 | 1712 | 18–35 min | 1–2 h | One sitting |
+| [3.13.15 · Protect sources that cannot be unloaded faithfully](32fh-policy.md) | 35 | 2044 | 21–41 min | 1–2 h | One sitting |
+| [3.13.16 · Unload sources across active and history roots](32fi-history.md) | 32 | 1590 | 16–32 min | 1–2 h | One sitting |
+| [3.13.17 · Prove unloading preserves placed history](32fj-proof.md) | 2 | 31 | 1–1 min | 1–2 h | One sitting |
+| [3.13.18 · Unload editable sources through the command line](32fk-command.md) | 13 | 767 | 8–16 min | 1–2 h | One sitting |
+| [3.13.19 · Protect history and future reload tickets](32fl-guards.md) | 42 | 2498 | 25–50 min | 1–2 h | One sitting |
+| [3.13.20 · Identify the source release a reload belongs to](32g-keys.md) | 47 | 1837 | 19–37 min | 1–2 h | One sitting |
+| [3.13.21 · Prepare original kernel data without rebuilding its display](32ga-prepare.md) | 36 | 1529 | 16–31 min | 1–2 h | One sitting |
+| [3.13.22 · Adopt restored source owners as one residency change](32gb-adopt.md) | 30 | 1568 | 16–32 min | 1–2 h | One sitting |
+| [3.13.23 · Prove source restoration preserves display and history](32gc-roundtrip.md) | 2 | 34 | 1–1 min | 1–2 h | One sitting |
+| [3.13.24 · Reject stale or inconsistent source batches atomically](32gd-rejections.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
+| [3.13.25 · Ignore old reload results before decoding them](32ge-stale.md) | 0 | 0 | 0–0 min | 1–2 h | One sitting |
+| [3.13.26 · Give each source request its own owner](32gf-request.md) | 45 | 1447 | 15–29 min | 1–2 h | One sitting |
+| [3.13.27 · Prove cancelled work releases its source owners](32gfa-ownership.md) | 54 | 2544 | 26–51 min | 1–2 h | One sitting |
+| [3.13.28 · Read a source response within its byte limit](32gg-fetch.md) | 40 | 2331 | 24–47 min | 1–2 h | One sitting |
+| [3.13.29 · Pair reload ownership with a browser abort controller](32gga-flight.md) | 35 | 1164 | 12–24 min | 1–2 h | One sitting |
+| [3.13.30 · Deliver only the current completed reload batch](32ggb-delivery.md) | 30 | 1381 | 14–28 min | 1–2 h | One sitting |
+| [3.13.31 · Restore editable sources through the command line](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | One sitting |
+| [3.13.32 · Cancel reloads when their document context changes](32gha-cancel.md) | 3 | 275 | 3–6 min | 1–2 h | One sitting |
+| [3.13.33 · Capture the requested edit before waiting](32gi-capture.md) | 72 | 2957 | 30–60 min | 1–2 h | One sitting |
+| [3.13.34 · Load only the sources the requested edit needs](32gia-scope.md) | 13 | 531 | 6–11 min | 1–2 h | One sitting |
+| [3.13.35 · Move the original target from its current placement](32gib-move.md) | 13 | 721 | 8–15 min | 1–2 h | One sitting |
+| [3.13.36 · Delete the original target while keeping later selection](32giba-delete.md) | 14 | 649 | 7–13 min | 1–2 h | One sitting |
+| [3.13.37 · Route captured Move, Delete and Save results](32gibb-reply.md) | 51 | 2495 | 25–50 min | 1–2 h | One sitting |
+| [3.13.38 · Own the intent with its pending source ticket](32gic-owner.md) | 24 | 861 | 9–18 min | 1–2 h | One sitting |
+| [3.13.39 · Pair captured intent with complete source bodies](32gica-reply.md) | 19 | 616 | 7–13 min | 1–2 h | One sitting |
+| [3.13.40 · Carry captured intent through browser completion](32gicb-bridge.md) | 16 | 1120 | 12–23 min | 1–2 h | One sitting |
+| [3.13.41 · Validate restoration before replaying the command](32gid-complete.md) | 11 | 486 | 5–10 min | 1–2 h | One sitting |
+| [3.13.42 · Deliver restored edit and Save results to the dock](32gie-response.md) | 23 | 1316 | 14–27 min | 1–2 h | One sitting |
+| [3.13.43 · Automatically restore sources for Move, Delete and Save](32gif-auto.md) | 36 | 2412 | 25–49 min | 1–2 h | One sitting |
+| [3.13.44 · Prove restored Save keeps the source doubles](32gj-precision.md) | 10 | 349 | 4–7 min | 1–2 h | One sitting |
+| [3.13.45 · Prove failed restoration cannot partly commit](32gja-failures.md) | 2 | 39 | 1–1 min | 1–2 h | One sitting |
 | [4.1.1 · Own browser listeners instead of forgetting callbacks](33-owner.md) | 50 | 1978 | 20–40 min | 1–2 h | One sitting |
 | [4.1.2 · Dispose the viewer without leaving pending work alive](33a-runtime.md) | 49 | 1847 | 19–37 min | 1–2 h | One sitting |
 | [4.1.3 · Keep a cached viewer ready for Back navigation](33b-cache.md) | 3 | 202 | 3–5 min | 1–2 h | One sitting |
@@ -219,12 +168,12 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [5.3.6 · Insert original points through the real dock](37da-input.md) | 15 | 665 | 7–14 min | 0.75–1.25 h | One sitting |
 | [5.3.7 · Identify controls on the original curve owner](37e-controls.md) | 40 | 1821 | 19–37 min | 0.75–1.25 h | One sitting |
 | [5.4.1 · Validate an original NURBS curve before sampling](38-layout.md) | 31 | 1662 | 17–34 min | 0.75–1.25 h | One sitting |
-| [5.4.2 · Sample a validated curve without replacing its source](38a-samples.md) | 37 | 1927 | 20–39 min | 0.75–1.25 h | One sitting |
-| [5.4.3 · Retain original curves beside their display samples](38b-source.md) | 51 | 2663 | 27–54 min | 0.75–1.25 h | One sitting |
+| [5.4.2 · Sample a validated curve without replacing its source](38a-samples.md) | 238 | 12990 | 130–260 min | 0.75–1.25 h | Several sittings; one checkpoint |
+| [5.4.3 · Retain original curves beside their display samples](38b-source.md) | 297 | 16760 | 168–336 min | 0.75–1.25 h | Several sittings; one checkpoint |
 | [5.4.4 · Draw controls with their original curve parent and index](38c-controls.md) | 28 | 1632 | 17–33 min | 0.75–1.25 h | One sitting |
 | [5.4.5 · Insert an original curve and inspect its controls](38d-input.md) | 22 | 1100 | 11–22 min | 0.75–1.25 h | One sitting |
 | [5.5.1 · Resolve original visibility for every drawing kind](39-visible.md) | 37 | 2222 | 23–45 min | 0.75–1.25 h | One sitting |
-| [5.5.2 · Share surface depth across all ink lanes](39a-depth.md) | 14 | 699 | 7–14 min | 0.75–1.25 h | One sitting |
+| [5.5.2 · Share surface depth across all ink lanes](39a-depth.md) | 18 | 804 | 9–17 min | 0.75–1.25 h | One sitting |
 | [5.6.1 · Carry the original mesh colour mode into display data](40-colour.md) | 22 | 898 | 9–18 min | 0.75–1.25 h | One sitting |
 | [5.6.2 · Compare original colour modes through actual input](40a-input.md) | 26 | 1380 | 14–28 min | 0.75–1.25 h | One sitting |
 | [5.6.3 · Draw meshes beyond the sixteen-bit index limit](40b-indices.md) | 10 | 240 | 3–5 min | 0.75–1.25 h | One sitting |
@@ -234,7 +183,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [5.7.4 · Reveal oriented world normals in the renderer](41c-view.md) | 39 | 2124 | 22–43 min | 0.75–1.25 h | One sitting |
 | [5.7.5 · Inspect smooth normals and face winding through commands](41ca-input.md) | 40 | 1980 | 20–40 min | 0.75–1.25 h | One sitting |
 | [5.7.6 · Bound the ground grid and its camera depth range](41d-grid.md) | 58 | 2604 | 27–53 min | 0.75–1.25 h | One sitting |
-| [5.7.7 · Draw a depth-correct grid with shared stroke buffers](41e-drawing.md) | 34 | 1997 | 20–40 min | 0.75–1.25 h | One sitting |
+| [5.7.7 · Draw a depth-correct grid with shared stroke buffers](41e-drawing.md) | 34 | 1908 | 20–39 min | 0.75–1.25 h | One sitting |
 | [5.7.8 · Inspect the ground grid through actual commands](41f-input.md) | 22 | 1122 | 12–23 min | 0.75–1.25 h | One sitting |
 | [6.1.1 · Bound the cursor image and decode a hit](42-window.md) | 61 | 2954 | 30–60 min | 0.5–1 h | One sitting |
 | [6.1.2 · Keep exact object IDs in shared GPU settings](42a-id.md) | 42 | 2555 | 26–52 min | 0.5–1 h | One sitting |
@@ -263,11 +212,11 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [6.3.10 · Highlight original edges and controls](44i-ink-highlight.md) | 21 | 1132 | 12–23 min | 0.5–1 h | One sitting |
 | [6.3.11 · Build highlights from original ink targets](44ia-original-ink.md) | 31 | 2357 | 24–48 min | 0.5–1 h | One sitting |
 | [6.3.12 · Highlight one original face without recolouring its parent](44j-face-highlight.md) | 31 | 2332 | 24–47 min | 0.5–1 h | One sitting |
-| [6.3.13 · Keep part selection outside document history](44k-selection.md) | 40 | 2573 | 26–52 min | 0.5–1 h | One sitting |
-| [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md) | 26 | 1944 | 20–39 min | 0.5–1 h | One sitting |
+| [6.3.13 · Keep part selection outside document history](44k-selection.md) | 44 | 3227 | 33–65 min | 0.5–1 h | Several sittings; one checkpoint |
+| [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md) | 26 | 1916 | 20–39 min | 0.5–1 h | One sitting |
 | [6.4.1 · Preserve unique selections in pick order](45-order.md) | 42 | 2202 | 23–45 min | 0.5–1 h | One sitting |
 | [6.4.2 · Commit mixed selection edits atomically](45a-batch.md) | 45 | 2743 | 28–55 min | 0.5–1 h | One sitting |
-| [6.4.3 · Connect multi-hit state and highlight every selected row](45b-membership.md) | 41 | 2933 | 30–59 min | 0.5–1 h | One sitting |
+| [6.4.3 · Connect multi-hit state and highlight every selected row](45b-membership.md) | 43 | 3317 | 34–67 min | 0.5–1 h | Several sittings; one checkpoint |
 | [6.4.4 · Cycle every eligible original geometry owner](45bb-cycle.md) | 11 | 707 | 8–15 min | 0.5–1 h | One sitting |
 | [6.4.5 · Collect multiple objects with Shift-click and commands](45c-input.md) | 16 | 1443 | 15–29 min | 0.5–1 h | One sitting |
 | [7.1.1 · Give active tools ownership of the command panel](46-tool-panel.md) | 10 | 920 | 10–19 min | 0.5–1 h | One sitting |
@@ -278,7 +227,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [7.3.1 · Resolve drawing points on the construction plane](48-coordinates.md) | 25 | 1157 | 12–24 min | 0.5–1 h | One sitting |
 | [7.3.2 · Keep unfinished point tools outside the document](48a-draft.md) | 49 | 2387 | 24–48 min | 0.5–1 h | One sitting |
 | [7.3.3 · Draw a temporary rubber band and cursor](48b-preview.md) | 35 | 2108 | 22–43 min | 0.5–1 h | One sitting |
-| [7.3.4 · Commit completed tools in one Undo transaction](48c-commit.md) | 32 | 1962 | 20–40 min | 0.5–1 h | One sitting |
+| [7.3.4 · Commit completed tools in one Undo transaction](48c-commit.md) | 34 | 2394 | 24–48 min | 0.5–1 h | One sitting |
 | [7.3.5 · Draw points and lines through the shared command dock](48d-input.md) | 37 | 2872 | 29–58 min | 0.5–1 h | One sitting |
 | [7.4.1 · Separate object and grid snapping](49-settings.md) | 46 | 2129 | 22–43 min | 0.5–1 h | One sitting |
 | [7.4.2 · Keep snap math in world and plane coordinates](49a-math.md) | 45 | 2644 | 27–53 min | 0.5–1 h | One sitting |
@@ -290,7 +239,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [7.4.8 · Snap actual drawing input through the command dock](49f-input.md) | 26 | 2338 | 24–47 min | 0.5–1 h | One sitting |
 | [7.5.1 · Address placements across original geometry lanes](50-placements.md) | 14 | 811 | 9–17 min | 0.5–1 h | One sitting |
 | [7.5.2 · Keep temporary placements outside the document](50a-preview.md) | 37 | 2076 | 21–42 min | 0.5–1 h | One sitting |
-| [7.5.3 · Present temporary edits through a separate scene view](50b-display.md) | 23 | 1905 | 20–39 min | 0.5–1 h | One sitting |
+| [7.5.3 · Present temporary edits through a separate scene view](50b-display.md) | 27 | 2761 | 28–56 min | 0.5–1 h | One sitting |
 | [7.5.4 · Preview Move from a base point to a target](50c-move.md) | 33 | 2714 | 28–55 min | 0.5–1 h | One sitting |
 | [7.5.5 · Cancel previews without consuming document history](50d-ownership.md) | 12 | 1167 | 12–24 min | 0.5–1 h | One sitting |
 | [7.6.1 · Name move, rotation and scale handles](51-handles.md) | 101 | 2470 | 25–50 min | 0.5–1 h | One sitting |
@@ -315,7 +264,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [7.6.20 · Keep part deformation outside saved geometry](51r-part-preview.md) | 32 | 2022 | 21–41 min | 0.5–1 h | One sitting |
 | [7.6.21 · Share one handle interface across whole and part edits](51s-edit-owner.md) | 17 | 1170 | 12–24 min | 0.5–1 h | One sitting |
 | [7.6.22 · Keep pointer ownership through click or drag](51t-capture.md) | 31 | 1893 | 19–38 min | 0.5–1 h | One sitting |
-| [7.6.23 · Place handles on the current editable selection](51u-selection.md) | 27 | 1614 | 17–33 min | 0.5–1 h | One sitting |
+| [7.6.23 · Place handles on the current editable selection](51u-selection.md) | 29 | 2144 | 22–43 min | 0.5–1 h | One sitting |
 | [7.6.24 · Capture a valid handle without editing the document](51v-press.md) | 15 | 1811 | 19–37 min | 0.5–1 h | One sitting |
 | [7.6.25 · Preview captured motion and commit one release](51w-release.md) | 24 | 2543 | 26–51 min | 0.5–1 h | One sitting |
 | [7.6.26 · Own one handle’s number-field state](51x-number-model.md) | 15 | 732 | 8–15 min | 0.5–1 h | One sitting |
@@ -324,7 +273,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [7.6.29 · Route field input through the shared canvas panel](51za-panel.md) | 21 | 2098 | 21–42 min | 0.5–1 h | One sitting |
 | [7.6.30 · Update selected handles with the actual camera](51zb-presentation.md) | 11 | 1061 | 11–22 min | 0.5–1 h | One sitting |
 | [7.6.31 · Capture actual browser handle drags](51zc-pointer.md) | 31 | 2075 | 21–42 min | 0.5–1 h | One sitting |
-| [7.6.32 · Restore previews when input ownership ends](51zd-interruption.md) | 20 | 2087 | 21–42 min | 0.5–1 h | One sitting |
+| [7.6.32 · Restore previews when input ownership ends](51zd-interruption.md) | 20 | 2045 | 21–41 min | 0.5–1 h | One sitting |
 | [7.6.33 · Count temporary source owners without saving them](51ze-ledger.md) | 4 | 297 | 3–6 min | 0.5–1 h | One sitting |
 | [7.6.34 · Verify complete handle editing and input](51zf-handles.md) | 5 | 71 | 1–2 min | 0.5–1 h | One sitting |
 | [8.1.1 · Validate and place a nested source tree](52-tree.md) | 29 | 1397 | 14–28 min | 0.5–1 h | One sitting |
@@ -361,10 +310,10 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [8.2.20 · Own rename text and populated deletion confirmation](53r-name.md) | 17 | 1572 | 16–32 min | 0.5–1 h | One sitting |
 | [8.2.21 · Connect group menus to the wider tree panel](53s-tree-controls.md) | 22 | 2732 | 28–55 min | 0.5–1 h | One sitting |
 | [8.2.22 · Route layer controls before handles and canvas input](53t-input.md) | 13 | 2002 | 21–41 min | 0.5–1 h | One sitting |
-| [8.2.23 · Exercise layers shortcuts colours and exact source ownership](53u-layers.md) | 12 | 265 | 3–6 min | 0.5–1 h | One sitting |
+| [8.2.23 · Exercise layers shortcuts colours and exact source ownership](53u-layers.md) | 15 | 523 | 6–11 min | 0.5–1 h | One sitting |
 | [8.3.1 · Navigate and fit inside the free canvas](54-camera.md) | 35 | 1954 | 20–40 min | 0.5–1 h | One sitting |
 | [8.3.2 · Route camera changes without consuming document history](54aa-view-actions.md) | 7 | 1473 | 15–30 min | 0.5–1 h | One sitting |
-| [8.3.3 · Apply visible selection and modifier precedence](54a-selection.md) | 21 | 1511 | 16–31 min | 0.5–1 h | One sitting |
+| [8.3.3 · Apply visible selection and modifier precedence](54a-selection.md) | 15 | 1094 | 11–22 min | 0.5–1 h | One sitting |
 | [8.3.4 · Keep touch handles reachable without enlarging them](54b-finger.md) | 13 | 1856 | 19–38 min | 0.5–1 h | One sitting |
 | [8.3.5 · Distinguish window and crossing rectangles](54c-rectangle.md) | 35 | 1679 | 17–34 min | 0.5–1 h | One sitting |
 | [8.3.6 · Select original projected geometry in one source pass](54d-samples.md) | 23 | 2104 | 22–43 min | 0.5–1 h | One sitting |
@@ -377,14 +326,14 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [8.3.13 · Draw a thin selection rectangle above the canvas](54k-overlay.md) | 26 | 2171 | 22–44 min | 0.5–1 h | One sitting |
 | [8.3.14 · Route mouse touch and wheel after panel input](54l-navigation.md) | 28 | 2599 | 26–52 min | 0.5–1 h | One sitting |
 | [8.3.15 · Retain the press pick through a quick release](54m-pick-release.md) | 24 | 2272 | 23–46 min | 0.5–1 h | One sitting |
-| [8.3.16 · Cancel owned gestures and preserve normal capture release](54n-cancellation.md) | 11 | 1492 | 15–30 min | 0.5–1 h | One sitting |
+| [8.3.16 · Cancel owned gestures and preserve normal capture release](54n-cancellation.md) | 11 | 1464 | 15–30 min | 0.5–1 h | One sitting |
 | [8.3.17 · Expose drag ownership and centre the available drawing](54o-frame.md) | 4 | 632 | 7–13 min | 0.5–1 h | One sitting |
 | [8.3.18 · Exercise current navigation selection and delayed answers](54p-navigation.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
 | [9.1.1 · Validate original surface control storage](55-validation.md) | 29 | 2241 | 23–45 min | 0.5–1 h | One sitting |
-| [9.1.2 · Keep UV coordinates beside original world samples](55a-grid.md) | 26 | 1786 | 18–36 min | 0.5–1 h | One sitting |
-| [9.1.3 · Use analytic normals and finite singular-point fallbacks](55b-normals.md) | 12 | 872 | 9–18 min | 0.5–1 h | One sitting |
+| [9.1.2 · Keep UV coordinates beside original world samples](55a-grid.md) | 106 | 7556 | 76–152 min | 0.5–1 h | Several sittings; one checkpoint |
+| [9.1.3 · Use analytic normals and finite singular-point fallbacks](55b-normals.md) | 14 | 1144 | 12–23 min | 0.5–1 h | One sitting |
 | [9.1.4 · Prepare derived surface display without losing its source](55c-display.md) | 22 | 2348 | 24–47 min | 0.5–1 h | One sitting |
-| [9.1.5 · Attach original surface ownership to existing scene rows](55d-source-row.md) | 10 | 886 | 9–18 min | 0.5–1 h | One sitting |
+| [9.1.5 · Attach original surface ownership to existing scene rows](55d-source-row.md) | 43 | 2737 | 28–55 min | 0.5–1 h | One sitting |
 | [9.1.6 · Resolve original surface face and domain edges](55e-identities.md) | 10 | 1257 | 13–26 min | 0.5–1 h | One sitting |
 | [9.1.7 · Account for shared source and UV cache owners](55f-ownership.md) | 13 | 1615 | 17–33 min | 0.5–1 h | One sitting |
 | [9.1.8 · Draw and pick the original parametric roof](55g-surface.md) | 3 | 240 | 3–5 min | 0.5–1 h | One sitting |
@@ -392,7 +341,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [9.1.10 · Follow original isoparametric boundaries](55zb-follow-original-isoparametric-boundaries.md) | 75 | 1827 | 19–37 min | 0.5–1 h | One sitting |
 | [9.1.11 · Follow original constrained trim labels](55zc-follow-original-constrained-trim-labels.md) | 74 | 2291 | 23–46 min | 0.5–1 h | One sitting |
 | [9.2.1 · Connect original CAD edge chains](56-chains.md) | 49 | 1347 | 14–27 min | 0.5–1 h | One sitting |
-| [9.2.2 · Mesh incident faces with shared boundary constraints](56a-shared.md) | 26 | 1525 | 16–31 min | 0.5–1 h | One sitting |
+| [9.2.2 · Mesh incident faces with shared boundary constraints](56a-shared.md) | 202 | 14272 | 143–286 min | 0.5–1 h | Several sittings; one checkpoint |
 | [9.2.3 · Prove straight and circular shared boundaries](56b-boundaries.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
 | [9.3.1 · Keep the trimmed face connected to its surface](57-parameters.md) | 17 | 1198 | 12–24 min | 0.5–1 h | One sitting |
 | [9.3.2 · Prove trimmed curved faces and open holes](57a-trims.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
@@ -401,8 +350,8 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [9.4.3 · Match original face edge directions](58za-match-original-face-edge-directions.md) | 84 | 2192 | 22–44 min | 0.5–1 h | One sitting |
 | [9.5.1 · Orient connected original face groups](59-orientation.md) | 75 | 1767 | 18–36 min | 0.5–1 h | One sitting |
 | [9.5.2 · Map each display triangle to its original CAD face](59a-face-data.md) | 23 | 2221 | 23–45 min | 0.5–1 h | One sitting |
-| [9.5.3 · Retain source UVs and draw only original CAD boundaries](59b-display.md) | 27 | 2072 | 21–42 min | 0.5–1 h | One sitting |
-| [9.5.4 · Attach original BRep ownership to existing rows](59c-source-row.md) | 9 | 928 | 10–19 min | 0.5–1 h | One sitting |
+| [9.5.3 · Retain source UVs and draw only original CAD boundaries](59b-display.md) | 27 | 2029 | 21–41 min | 0.5–1 h | One sitting |
+| [9.5.4 · Attach original BRep ownership to existing rows](59c-source-row.md) | 42 | 2933 | 30–59 min | 0.5–1 h | One sitting |
 | [9.5.5 · Pick and highlight an original CAD border](59d-identities.md) | 9 | 1193 | 12–24 min | 0.5–1 h | One sitting |
 | [9.5.6 · Inspect shared CAD owners and compact cache counts](59e-cache.md) | 12 | 1018 | 11–21 min | 0.5–1 h | One sitting |
 | [9.5.7 · Draw the original bore and prove its empty hole](59f-cad.md) | 3 | 224 | 3–5 min | 0.5–1 h | One sitting |
@@ -629,7 +578,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [13.2.2 · Keep original local parent and world matrices](70a-keep-original-local-parent-and-world-matrices.md) | 20 | 2235 | 23–45 min | 0.5–1 h | One sitting |
 | [13.2.3 · Connect canonical cached models to every source owner](70b-connect-canonical-cached-models-to-every-source-owner.md) | 8 | 1084 | 11–22 min | 0.5–1 h | One sitting |
 | [13.2.4 · Save nested local frames without flattening](70c-save-nested-local-frames-without-flattening.md) | 9 | 831 | 9–17 min | 0.5–1 h | One sitting |
-| [13.2.5 · Exercise rotated and mirrored original references](70d-exercise-rotated-and-mirrored-original-references.md) | 5 | 749 | 8–15 min | 0.5–1 h | One sitting |
+| [13.2.5 · Exercise rotated and mirrored original references](70d-exercise-rotated-and-mirrored-original-references.md) | 6 | 908 | 10–19 min | 0.5–1 h | One sitting |
 | [13.2.6 · Read original sheet metadata records](70za-read-original-sheet-metadata-records.md) | 70 | 2116 | 22–43 min | 0.5–1 h | One sitting |
 | [14.1.1 · Own cancellable sheet-entity lookups](71-read-original-sheet-entity-metadata.md) | 35 | 898 | 9–18 min | 0.5–1 h | One sitting |
 | [14.1.2 · Bound original entity records before reading](71a-bound-original-entity-records-before-reading.md) | 21 | 720 | 8–15 min | 0.5–1 h | One sitting |
@@ -955,7 +904,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [16.5.43 · Witness identities and placement during source loading](85ap-witness-identities-and-placement-during-source-loading.md) | 8 | 828 | 9–17 min | 0.5–1 h | One sitting |
 | [16.5.44 · Deduplicate original fetches and replay safely](85aq-deduplicate-original-fetches-and-replay-safely.md) | 7 | 958 | 10–20 min | 0.5–1 h | One sitting |
 | [16.5.45 · Route source-backed edits through guarded replay](85ar-route-source-backed-edits-through-guarded-replay.md) | 13 | 1124 | 12–23 min | 0.5–1 h | One sitting |
-| [16.5.46 · Register current names views and command aliases](85as-register-current-names-views-and-command-aliases.md) | 30 | 2103 | 22–43 min | 0.5–1 h | One sitting |
+| [16.5.46 · Register current names views and command aliases](85as-register-current-names-views-and-command-aliases.md) | 32 | 2203 | 23–45 min | 0.5–1 h | One sitting |
 | [16.5.47 · Validate current command words and options](85at-validate-current-command-words-and-options.md) | 9 | 2079 | 21–42 min | 0.5–1 h | One sitting |
 | [16.5.48 · Capture lasso pointer ownership in the browser](85au-capture-lasso-pointer-ownership-in-the-browser.md) | 7 | 1148 | 12–23 min | 0.5–1 h | One sitting |
 | [16.5.49 · Route trim and lasso pointer input](85av-route-trim-and-lasso-pointer-input.md) | 7 | 2371 | 24–48 min | 0.5–1 h | One sitting |
@@ -1004,7 +953,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [17.1.40 · Keep marker crop ownership aligned](86ae-keep-marker-crop-ownership-aligned.md) | 7 | 572 | 6–12 min | 0.5–1 h | One sitting |
 | [17.1.41 · Assemble one shared finite shader predicate](86af-assemble-one-shared-finite-shader-predicate.md) | 9 | 940 | 10–19 min | 0.5–1 h | One sitting |
 | [17.1.42 · Own finite color and integer pipelines](86ag-own-finite-color-and-integer-pipelines.md) | 14 | 335 | 4–7 min | 0.5–1 h | One sitting |
-| [17.1.43 · Build finite shader pipelines with original layouts](86ah-build-finite-shader-pipelines-with-original-layouts.md) | 7 | 1878 | 19–38 min | 0.5–1 h | One sitting |
+| [17.1.43 · Build finite shader pipelines with original layouts](86ah-build-finite-shader-pipelines-with-original-layouts.md) | 7 | 1908 | 20–39 min | 0.5–1 h | One sitting |
 | [17.1.44 · Bind finite coverage for original families](86ai-bind-finite-coverage-for-original-families.md) | 7 | 1805 | 19–37 min | 0.5–1 h | One sitting |
 | [17.1.45 · Reuse bindings and draw original owners](86aj-reuse-bindings-and-draw-original-owners.md) | 3 | 1250 | 13–25 min | 0.5–1 h | One sitting |
 | [17.1.46 · Expose original GPU models to projection](86ak-expose-original-gpu-models-to-projection.md) | 1 | 101 | 2–3 min | 0.5–1 h | One sitting |
@@ -1136,7 +1085,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [18.3.8 · Draw all-solid and selected coverage consistently](91g-draw-all-solid-and-selected-coverage-consistently.md) | 11 | 1666 | 17–34 min | 0.5–1 h | One sitting |
 | [18.3.9 · Connect Outline and Arctic presentation commands](91h-connect-outline-and-arctic-presentation-commands.md) | 10 | 2009 | 21–41 min | 0.5–1 h | One sitting |
 | [18.3.10 · Prove actual outlines and original ownership](91i-prove-actual-outlines-and-original-ownership.md) | 0 | 0 | 0–0 min | 0.5–1 h | One sitting |
-| [18.4.1 · Link current Wood element builders](92-link-current-wood-element-builders.md) | 1 | 42 | 1–1 min | 0.5–1 h | One sitting |
+| [18.4.1 · Link current Wood element builders](92-link-current-wood-element-builders.md) | 1 | 64 | 1–2 min | 0.5–1 h | One sitting |
 | [18.4.2 · Write original beam column and plate builders](91zza-write-original-beam-column-and-plate-builders.md) | 88 | 2658 | 27–54 min | 0.5–1 h | One sitting |
 | [18.4.3 · Write original support variable beam and block builders](92a-retain-current-positive-lengths-and-six-builders.md) | 59 | 1850 | 19–37 min | 0.5–1 h | One sitting |
 | [18.4.4 · Own original Element geometry](92b-own-original-element-geometry.md) | 12 | 920 | 10–19 min | 0.5–1 h | One sitting |
@@ -1193,12 +1142,12 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [19.2.9 · Prove imported feature ownership and round trips](96q-prove-imported-feature-ownership-and-roundtrips.md) | 3 | 44 | 1–1 min | 0.5–1 h | One sitting |
 | [19.2.10 · Prove exact commands across the expanded vocabulary](96r-preserve-exact-command-completions.md) | 4 | 124 | 2–3 min | 0.5–1 h | One sitting |
 | [19.3.1 · Resolve feature rows to original Element owners](96s-resolve-feature-rows-to-original-element-owners.md) | 42 | 1582 | 16–32 min | 0.5–1 h | One sitting |
-| [19.3.2 · Select and highlight original feature owners](96t-select-and-highlight-original-feature-owners.md) | 9 | 798 | 8–16 min | 0.5–1 h | One sitting |
+| [19.3.2 · Select and highlight original feature owners](96t-select-and-highlight-original-feature-owners.md) | 11 | 1206 | 13–25 min | 0.5–1 h | One sitting |
 | [19.3.3 · Fit original box corners to the free canvas](96u-fit-original-box-corners-to-the-free-canvas.md) | 37 | 1553 | 16–32 min | 0.5–1 h | One sitting |
 | [19.3.4 · Project definition and per-instance features](96v-project-definition-and-per-instance-features.md) | 25 | 1155 | 12–24 min | 0.5–1 h | One sitting |
 | [19.3.5 · Detach copied original source identity](96w-detach-copied-original-source-identity.md) | 19 | 975 | 10–20 min | 0.5–1 h | One sitting |
 | [19.3.6 · Regenerate display for copied feature owners](96x-regenerate-display-for-copied-feature-owners.md) | 33 | 1469 | 15–30 min | 0.5–1 h | One sitting |
-| [19.3.7 · Address feature pixels to original CAD owners](96y-address-feature-pixels-to-original-cad-owners.md) | 15 | 583 | 6–12 min | 0.5–1 h | One sitting |
+| [19.3.7 · Address feature pixels to original CAD owners](96y-address-feature-pixels-to-original-cad-owners.md) | 26 | 2329 | 24–47 min | 0.5–1 h | One sitting |
 | [19.3.8 · Preserve source feature visibility and pixel styles](96z-preserve-source-feature-visibility-and-pixel-styles.md) | 29 | 1659 | 17–34 min | 0.5–1 h | One sitting |
 | [19.4.1 · Address original controls with family keys](96za-address-original-controls-with-family-keys.md) | 8 | 799 | 8–16 min | 0.5–1 h | One sitting |
 | [19.4.2 · Draw and pick original CAD control points](96zb-draw-and-pick-original-cad-control-points.md) | 17 | 1261 | 13–26 min | 0.5–1 h | One sitting |
@@ -1213,95 +1162,95 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [20.1.4 · Assign frame triangle ranges](96zk-assign-frame-triangle-ranges.md) | 30 | 1495 | 15–30 min | 0.5–1 h | One sitting |
 | [20.1.5 · Own the integer primitive image](96zl-own-the-integer-primitive-image.md) | 26 | 1429 | 15–29 min | 0.5–1 h | One sitting |
 | [20.1.6 · Write triangle addresses beside color](96zm-write-triangle-addresses-beside-color.md) | 18 | 905 | 10–19 min | 0.5–1 h | One sitting |
-| [20.2.1 · Bind visible triangle addresses for ink](96zn-bind-visible-triangle-addresses-for-ink.md) | 13 | 1629 | 17–33 min | 0.5–1 h | One sitting |
-| [20.2.2 · Describe ink depth and surface slack](96zo-describe-ink-depth-and-surface-slack.md) | 24 | 1096 | 11–22 min | 0.5–1 h | One sitting |
-| [20.2.3 · Fit a neighboring surface along the stroke](96zp-fit-a-neighboring-surface-along-the-stroke.md) | 44 | 1709 | 18–35 min | 0.5–1 h | One sitting |
-| [20.2.4 · Own a cropped primitive image for picks](96zq-own-a-cropped-primitive-image-for-picks.md) | 5 | 285 | 3–6 min | 0.5–1 h | One sitting |
-| [20.2.5 · Share crop and clipping bindings for pulled picks](96zr-share-crop-and-clipping-bindings-for-pulled-picks.md) | 15 | 1008 | 11–21 min | 0.5–1 h | One sitting |
-| [20.2.6 · Write first-pick primitives from shared geometry](96zs-write-first-pick-primitives-from-shared-geometry.md) | 29 | 2736 | 28–55 min | 0.5–1 h | One sitting |
-| [20.2.7 · Fit surface depth beneath a point disc](96zt-fit-surface-depth-beneath-a-point-disc.md) | 25 | 1072 | 11–22 min | 0.5–1 h | One sitting |
-| [20.2.8 · Test the disc center against a surface](96zu-test-the-disc-center-against-a-surface.md) | 38 | 1535 | 16–31 min | 0.5–1 h | One sitting |
-| [20.2.9 · Carry the rasterized triangle gradient to ink](96zv-carry-the-rasterized-triangle-gradient-to-ink.md) | 28 | 1242 | 13–25 min | 0.5–1 h | One sitting |
-| [20.2.10 · Connect surface-fitted point visibility](96zw-connect-surface-fitted-point-visibility.md) | 10 | 667 | 7–14 min | 0.5–1 h | One sitting |
-| [20.2.11 · Test rasterized neighbors at the stroke source](96zx-test-the-rasterized-neighbors-at-the-stroke-source.md) | 24 | 1343 | 14–27 min | 0.5–1 h | One sitting |
-| [20.2.12 · Connect fitted surfaces and exact stroke occlusion](96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.md) | 28 | 1913 | 20–39 min | 0.5–1 h | One sitting |
-| [20.2.13 · Separate hidden ink color from pick ownership](96zz-separate-hidden-ink-color-from-pick-ownership.md) | 16 | 1164 | 12–24 min | 0.5–1 h | One sitting |
-| [20.2.14 · Connect section primitives to color and first picking](96zza-connect-section-primitive-images.md) | 29 | 2083 | 21–42 min | 0.5–1 h | One sitting |
-| [20.2.15 · Read section visibility from one image](96zzb-read-section-visibility-from-one-image.md) | 14 | 673 | 7–14 min | 0.5–1 h | One sitting |
-| [20.3.1 · Share section addresses with outlines and ambient shading](96zzc-share-section-addresses-with-outlines-and-ambient.md) | 45 | 1860 | 19–38 min | 0.5–1 h | One sitting |
-| [20.3.2 · Use compact vertices in every surface pass](96zzd-pack-surface-position-normal-and-color.md) | 46 | 2580 | 26–52 min | 0.5–1 h | One sitting |
-| [20.3.3 · Retain RGBA in prepared displays](96zze-retain-rgba-in-prepared-displays.md) | 27 | 1363 | 14–28 min | 0.5–1 h | One sitting |
-| [20.4.1 · Start with current browser display defaults](96zzf-start-with-current-browser-display-defaults.md) | 58 | 2176 | 22–44 min | 0.5–1 h | One sitting |
-| [20.5.1 · Grow buffers without losing rows](96zzg-grow-buffers-without-losing-rows.md) | 52 | 2513 | 26–51 min | 0.5–1 h | One sitting |
-| [20.5.2 · Prepare shared compact mesh ranges](96zzh-prepare-shared-compact-mesh-ranges.md) | 36 | 1813 | 19–37 min | 0.5–1 h | One sitting |
-| [20.5.3 · Upload compact ranges to shared GPU storage](96zzi-upload-compact-ranges-to-shared-gpu-storage.md) | 43 | 2285 | 23–46 min | 0.5–1 h | One sitting |
-| [20.5.4 · Share the object record layout](96zzj-share-the-object-record-layout.md) | 26 | 848 | 9–17 min | 0.5–1 h | One sitting |
-| [20.5.5 · Borrow the current arena buffers](96zzk-borrow-the-current-arena-buffers.md) | 38 | 2325 | 24–47 min | 0.8–1 h | One sitting |
-| [20.5.6 · Read shared ranges through object records](96zzl-read-shared-ranges-through-object-records.md) | 22 | 888 | 9–18 min | 0.8–1 h | One sitting |
-| [20.5.7 · Connect the renderer to one mesh arena](96zzm-connect-the-renderer-to-one-mesh-arena.md) | 20 | 1740 | 18–35 min | 0.8–1 h | One sitting |
-| [20.5.8 · Describe eight-byte draw slots](96zzn-describe-eight-byte-draw-slots.md) | 27 | 1355 | 14–28 min | 0.8–1 h | One sitting |
-| [20.5.9 · Read instance properties through draw slots](96zzo-read-instance-properties-through-draw-slots.md) | 26 | 1874 | 19–38 min | 0.8–1 h | One sitting |
-| [20.6.1 · Classify contact fill shading](96zzp-classify-contact-fill-shading.md) | 11 | 598 | 6–12 min | 0.8–1 h | One sitting |
-| [20.6.2 · Open files through one measured Session reader](96zzq-open-files-through-one-measured-session-reader.md) | 33 | 2575 | 26–52 min | 0.8–1 h | One sitting |
-| [20.6.3 · Route current Close and Opacity commands](96zzr-route-current-close-and-opacity-commands.md) | 3 | 477 | 5–10 min | 0.8–1 h | One sitting |
-| [20.6.4 · Reuse full source preparation for editor and reload](96zzs-reuse-full-source-preparation-for-editor-and-reload.md) | 13 | 1161 | 12–24 min | 0.8–1 h | One sitting |
-| [20.6.5 · Share the current selection yellow](96zzt-share-the-current-selection-yellow.md) | 11 | 752 | 8–16 min | 0.8–1 h | One sitting |
-| [20.7.1 · Separate primitive addresses from selection](96zzu-separate-primitive-addresses-from-selection.md) | 12 | 810 | 9–17 min | 0.8–1 h | One sitting |
-| [20.7.2 · Bind the own-row slot for ordinary surfaces](96zzv-bind-the-own-row-slot-for-ordinary-surfaces.md) | 16 | 1143 | 12–23 min | 0.8–1 h | One sitting |
-| [20.7.3 · Reload scenes through the existing publication owner](96zzw-reload-scenes-through-the-existing-publication-owner.md) | 40 | 2823 | 29–57 min | 0.8–1 h | One sitting |
-| [20.7.4 · Update only changed slot runs](96zzx-update-only-changed-slot-runs.md) | 29 | 1452 | 15–30 min | 0.8–1 h | One sitting |
-| [20.7.5 · Share one slot buffer across surface draws](96zzy-share-one-slot-buffer-across-surface-draws.md) | 21 | 1773 | 18–36 min | 0.8–1 h | One sitting |
-| [20.7.6 · Prepare the integer primitive-slot texture](96zzz-prepare-the-integer-primitive-slot-texture.md) | 27 | 2200 | 22–44 min | 0.8–1 h | One sitting |
-| [20.7.7 · Describe slot and triangle runs](96zzza-describe-slot-and-triangle-runs.md) | 80 | 1605 | 17–33 min | 0.8–1 h | One sitting |
-| [20.7.8 · Read slot runs and lookup texels](96zzzb-read-slot-runs-and-lookup-texels.md) | 75 | 2279 | 23–46 min | 0.8–1 h | One sitting |
-| [20.7.9 · Reuse and merge free slot ranges](96zzzc-reuse-and-merge-free-slot-ranges.md) | 59 | 1911 | 20–39 min | 0.8–1 h | One sitting |
-| [20.7.10 · Follow arena growth with slot headroom](96zzzd-follow-arena-growth-with-slot-headroom.md) | 73 | 2102 | 22–43 min | 0.8–1 h | One sitting |
-| [20.7.11 · Report only changed instance slots](96zzze-report-only-changed-instance-slots.md) | 90 | 2717 | 28–55 min | 0.8–1 h | One sitting |
-| [20.7.12 · Project triangles at their physical addresses](96zzzf-project-triangles-at-their-physical-addresses.md) | 8 | 484 | 5–10 min | 0.8–1 h | One sitting |
-| [20.8.1 · Clear the current Arctic background](96zzzg-clear-the-current-arctic-background.md) | 1 | 94 | 1–2 min | 1–1 h | One sitting |
-| [20.8.2 · Share changed record runs](96zzzh-share-changed-record-runs.md) | 13 | 554 | 6–12 min | 0.8–1 h | One sitting |
-| [20.8.3 · Prepare one shared object record table](96zzzi-prepare-one-shared-object-record-table.md) | 41 | 2172 | 22–44 min | 0.8–1 h | One sitting |
-| [20.8.4 · Share instance object records across definitions](96zzzj-share-instance-object-records-across-definitions.md) | 22 | 1647 | 17–33 min | 0.8–1 h | One sitting |
-| [20.8.5 · Reuse checked curve control coordinates](96zzzk-reuse-checked-curve-control-coordinates.md) | 7 | 554 | 6–12 min | 0.8–1 h | One sitting |
-| [20.8.6 · Publish allocator texels through the integer table](96zzzl-publish-allocator-texels-through-the-integer-table.md) | 14 | 774 | 8–16 min | 0.8–1 h | One sitting |
-| [20.8.7 · Resolve physical triangles with integer slots](96zzzm-resolve-physical-triangles-with-integer-slots.md) | 23 | 788 | 8–16 min | 0.8–1 h | One sitting |
-| [20.8.8 · Batch shared geometry with original ownership](96zzzn-batch-shared-geometry-with-original-ownership.md) | 10 | 1097 | 11–22 min | 0.8–1 h | One sitting |
-| [20.8.9 · Shrink record ranges without rewriting live prefixes](96zzzo-shrink-record-ranges-without-rewriting-live-prefixes.md) | 9 | 605 | 7–13 min | 0.8–1 h | One sitting |
-| [20.8.10 · Share opaque ordinary surface records](96zzzp-share-opaque-ordinary-surface-records.md) | 23 | 2222 | 23–45 min | 0.8–1 h | One sitting |
-| [20.8.11 · Blend ordinary surface records](96zzzq-blend-ordinary-surface-records.md) | 7 | 629 | 7–13 min | 0.8–1 h | One sitting |
-| [20.8.12 · Share transparent instance records](96zzzr-share-transparent-instance-records.md) | 8 | 465 | 5–10 min | 0.8–1 h | One sitting |
-| [20.9.1 · Allocate stable object record rows](96zzzs-allocate-stable-object-record-rows.md) | 7 | 774 | 8–16 min | 0.8–1 h | One sitting |
-| [20.9.2 · Retain live surface record rows](96zzzt-retain-live-surface-record-rows.md) | 9 | 851 | 9–18 min | 0.8–1 h | One sitting |
-| [20.9.3 · Prepare shared record pick consumers](96zzzu-prepare-shared-record-pick-consumers.md) | 15 | 1596 | 16–32 min | 0.8–1 h | One sitting |
-| [20.9.4 · Pick originals through shared records](96zzzv-pick-originals-through-shared-records.md) | 23 | 1991 | 20–40 min | 0.8–1 h | One sitting |
-| [20.9.5 · Read source faces through shared records](96zzzw-read-source-faces-through-shared-records.md) | 23 | 2169 | 22–44 min | 0.8–1 h | One sitting |
-| [20.9.6 · Pack existing ambient radius in object records](96zzzx-pack-existing-ambient-radius-in-object-records.md) | 13 | 1494 | 15–30 min | 0.8–1 h | One sitting |
-| [20.9.7 · Read ambient properties through shared records](96zzzy-read-ambient-properties-through-shared-records.md) | 18 | 1629 | 17–33 min | 0.8–1 h | One sitting |
-| [20.10.1 · Share the object record shader schema](96zzzz-share-the-object-record-shader-schema.md) | 12 | 444 | 5–9 min | 0.8–1 h | One sitting |
-| [20.10.2 · Prepare shared record triangle projection](96zzzza-prepare-shared-record-triangle-projection.md) | 10 | 577 | 6–12 min | 0.8–1 h | One sitting |
-| [20.10.3 · Project triangles through shared records](96zzzzb-project-triangles-through-shared-records.md) | 19 | 2344 | 24–47 min | 0.8–1 h | One sitting |
-| [20.10.4 · Prepare shared record cap counting](96zzzzc-prepare-shared-record-cap-counting.md) | 12 | 1274 | 13–26 min | 0.8–1 h | One sitting |
-| [20.10.5 · Prepare cap plane and arena bindings](96zzzzd-prepare-cap-plane-and-arena-bindings.md) | 22 | 2044 | 21–41 min | 0.8–1 h | One sitting |
-| [20.10.6 · Count cap color through shared records](96zzzze-count-cap-color-through-shared-records.md) | 21 | 2873 | 29–58 min | 0.8–1 h | One sitting |
-| [20.10.7 · Prepare shared record cap picks](96zzzzf-prepare-shared-record-cap-picks.md) | 10 | 2230 | 23–45 min | 0.8–1 h | One sitting |
-| [20.10.8 · Own shared record cap pick resources](96zzzzg-own-shared-record-cap-pick-resources.md) | 7 | 1116 | 12–23 min | 0.8–1 h | One sitting |
-| [20.10.9 · Pick caps through shared records](96zzzzh-pick-caps-through-shared-records.md) | 8 | 1709 | 18–35 min | 0.8–1 h | One sitting |
-| [20.11.1 · Adapt incremental slots to pulled draws](96zzzzi-adapt-incremental-slots-to-pulled-draws.md) | 4 | 496 | 5–10 min | 0.8–1 h | One sitting |
-| [20.11.2 · Prepare exact arena slot definitions](96zzzzj-prepare-exact-arena-slot-definitions.md) | 22 | 1326 | 14–27 min | 0.8–1 h | One sitting |
-| [20.11.3 · Retain live allocator member runs](96zzzzk-retain-live-allocator-member-runs.md) | 10 | 1140 | 12–23 min | 0.8–1 h | One sitting |
-| [20.11.4 · Prepare one plan for draw slots and lookup](96zzzzl-prepare-one-plan-for-draw-slots-and-lookup.md) | 10 | 861 | 9–18 min | 0.8–1 h | One sitting |
-| [20.11.5 · Prepare one owner for live address updates](96zzzzm-prepare-one-owner-for-live-address-updates.md) | 11 | 1168 | 12–24 min | 0.8–1 h | One sitting |
-| [20.11.6 · Adopt retained GPU slots and physical bases](96zzzzn-adopt-retained-gpu-slots-and-physical-bases.md) | 21 | 2841 | 29–57 min | 0.8–1 h | One sitting |
-| [20.11.7 · Separate projection rows and arena offsets](96zzzzo-separate-projection-rows-and-arena-offsets.md) | 6 | 384 | 4–8 min | 0.8–1 h | One sitting |
-| [20.11.8 · Prepare lookup-selected triangle projection](96zzzzp-prepare-lookup-selected-triangle-projection.md) | 5 | 525 | 6–11 min | 0.8–1 h | One sitting |
-| [20.11.9 · Prepare the lookup projection pipeline](96zzzzq-prepare-the-lookup-projection-pipeline.md) | 7 | 1092 | 11–22 min | 0.8–1 h | One sitting |
-| [20.11.10 · Own current lookup projection bindings](96zzzzr-own-current-lookup-projection-bindings.md) | 20 | 2155 | 22–44 min | 0.8–1 h | One sitting |
-| [20.11.11 · Project live triangles through the lookup](96zzzzs-project-live-triangles-through-the-lookup.md) | 14 | 2173 | 22–44 min | 0.8–1 h | One sitting |
-| [20.12.1 · Plan reusable arena spans](96zzzzt-plan-reusable-arena-spans.md) | 18 | 871 | 9–18 min | 0.8–1 h | One sitting |
-| [20.12.2 · Reuse retired arena record ranges](96zzzzu-reuse-retired-arena-record-ranges.md) | 22 | 2083 | 21–42 min | 0.8–1 h | One sitting |
-| [20.12.3 · Upload reused arena spans in place](96zzzzv-upload-reused-arena-spans-in-place.md) | 21 | 1869 | 19–38 min | 0.8–1 h | One sitting |
-| [20.12.4 · Reclaim ranges after the last GPU lease](96zzzzw-reclaim-ranges-after-the-last-gpu-lease.md) | 25 | 1893 | 19–38 min | 0.8–1 h | One sitting |
-| [20.12.5 · Retire empty arena ranges after tail trimming](96zzzzx-retire-empty-arena-ranges-after-tail-trimming.md) | 1 | 40 | 1–1 min | 0.8–1 h | One sitting |
+| [20.1.7 · Bind visible triangle addresses for ink](96zn-bind-visible-triangle-addresses-for-ink.md) | 13 | 1629 | 17–33 min | 0.5–1 h | One sitting |
+| [20.1.8 · Describe ink depth and surface slack](96zo-describe-ink-depth-and-surface-slack.md) | 24 | 1096 | 11–22 min | 0.5–1 h | One sitting |
+| [20.1.9 · Fit a neighboring surface along the stroke](96zp-fit-a-neighboring-surface-along-the-stroke.md) | 44 | 1709 | 18–35 min | 0.5–1 h | One sitting |
+| [20.1.10 · Own a cropped primitive image for picks](96zq-own-a-cropped-primitive-image-for-picks.md) | 5 | 285 | 3–6 min | 0.5–1 h | One sitting |
+| [20.1.11 · Share crop and clipping bindings for pulled picks](96zr-share-crop-and-clipping-bindings-for-pulled-picks.md) | 15 | 1008 | 11–21 min | 0.5–1 h | One sitting |
+| [20.1.12 · Write first-pick primitives from shared geometry](96zs-write-first-pick-primitives-from-shared-geometry.md) | 29 | 2736 | 28–55 min | 0.5–1 h | One sitting |
+| [20.1.13 · Fit surface depth beneath a point disc](96zt-fit-surface-depth-beneath-a-point-disc.md) | 25 | 1072 | 11–22 min | 0.5–1 h | One sitting |
+| [20.1.14 · Test the disc center against a surface](96zu-test-the-disc-center-against-a-surface.md) | 38 | 1535 | 16–31 min | 0.5–1 h | One sitting |
+| [20.1.15 · Carry the rasterized triangle gradient to ink](96zv-carry-the-rasterized-triangle-gradient-to-ink.md) | 28 | 1242 | 13–25 min | 0.5–1 h | One sitting |
+| [20.1.16 · Connect surface-fitted point visibility](96zw-connect-surface-fitted-point-visibility.md) | 10 | 667 | 7–14 min | 0.5–1 h | One sitting |
+| [20.1.17 · Test rasterized neighbors at the stroke source](96zx-test-the-rasterized-neighbors-at-the-stroke-source.md) | 24 | 1343 | 14–27 min | 0.5–1 h | One sitting |
+| [20.1.18 · Connect fitted surfaces and exact stroke occlusion](96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.md) | 28 | 1913 | 20–39 min | 0.5–1 h | One sitting |
+| [20.1.19 · Separate hidden ink color from pick ownership](96zz-separate-hidden-ink-color-from-pick-ownership.md) | 16 | 1164 | 12–24 min | 0.5–1 h | One sitting |
+| [20.1.20 · Connect section primitives to color and first picking](96zza-connect-section-primitive-images.md) | 29 | 2083 | 21–42 min | 0.5–1 h | One sitting |
+| [20.1.21 · Read section visibility from one image](96zzb-read-section-visibility-from-one-image.md) | 14 | 673 | 7–14 min | 0.5–1 h | One sitting |
+| [20.2.1 · Share section addresses with outlines and ambient shading](96zzc-share-section-addresses-with-outlines-and-ambient.md) | 45 | 1860 | 19–38 min | 0.5–1 h | One sitting |
+| [20.2.2 · Use compact vertices in every surface pass](96zzd-pack-surface-position-normal-and-color.md) | 46 | 2580 | 26–52 min | 0.5–1 h | One sitting |
+| [20.2.3 · Retain RGBA in prepared displays](96zze-retain-rgba-in-prepared-displays.md) | 27 | 1363 | 14–28 min | 0.5–1 h | One sitting |
+| [20.2.4 · Start with current browser display defaults](96zzf-start-with-current-browser-display-defaults.md) | 58 | 2176 | 22–44 min | 0.5–1 h | One sitting |
+| [20.3.1 · Grow buffers without losing rows](96zzg-grow-buffers-without-losing-rows.md) | 52 | 2513 | 26–51 min | 0.5–1 h | One sitting |
+| [20.3.2 · Prepare shared compact mesh ranges](96zzh-prepare-shared-compact-mesh-ranges.md) | 36 | 1813 | 19–37 min | 0.5–1 h | One sitting |
+| [20.3.3 · Upload compact ranges to shared GPU storage](96zzi-upload-compact-ranges-to-shared-gpu-storage.md) | 43 | 2285 | 23–46 min | 0.5–1 h | One sitting |
+| [20.3.4 · Share the object record layout](96zzj-share-the-object-record-layout.md) | 26 | 848 | 9–17 min | 0.5–1 h | One sitting |
+| [20.3.5 · Borrow the current arena buffers](96zzk-borrow-the-current-arena-buffers.md) | 38 | 2325 | 24–47 min | 0.8–1 h | One sitting |
+| [20.3.6 · Read shared ranges through object records](96zzl-read-shared-ranges-through-object-records.md) | 22 | 888 | 9–18 min | 0.8–1 h | One sitting |
+| [20.3.7 · Connect the renderer to one mesh arena](96zzm-connect-the-renderer-to-one-mesh-arena.md) | 20 | 1740 | 18–35 min | 0.8–1 h | One sitting |
+| [20.3.8 · Describe eight-byte draw slots](96zzn-describe-eight-byte-draw-slots.md) | 27 | 1355 | 14–28 min | 0.8–1 h | One sitting |
+| [20.3.9 · Read instance properties through draw slots](96zzo-read-instance-properties-through-draw-slots.md) | 26 | 1874 | 19–38 min | 0.8–1 h | One sitting |
+| [20.3.10 · Classify contact fill shading](96zzp-classify-contact-fill-shading.md) | 11 | 598 | 6–12 min | 0.8–1 h | One sitting |
+| [20.3.11 · Open files through one measured Session reader](96zzq-open-files-through-one-measured-session-reader.md) | 33 | 2575 | 26–52 min | 0.8–1 h | One sitting |
+| [20.3.12 · Route current Close and Opacity commands](96zzr-route-current-close-and-opacity-commands.md) | 3 | 477 | 5–10 min | 0.8–1 h | One sitting |
+| [20.3.13 · Reuse full source preparation for editor and reload](96zzs-reuse-full-source-preparation-for-editor-and-reload.md) | 13 | 1161 | 12–24 min | 0.8–1 h | One sitting |
+| [20.3.14 · Share the current selection yellow](96zzt-share-the-current-selection-yellow.md) | 11 | 752 | 8–16 min | 0.8–1 h | One sitting |
+| [20.4.1 · Separate primitive addresses from selection](96zzu-separate-primitive-addresses-from-selection.md) | 12 | 810 | 9–17 min | 0.8–1 h | One sitting |
+| [20.4.2 · Bind the own-row slot for ordinary surfaces](96zzv-bind-the-own-row-slot-for-ordinary-surfaces.md) | 16 | 1143 | 12–23 min | 0.8–1 h | One sitting |
+| [20.4.3 · Reload scenes through the existing publication owner](96zzw-reload-scenes-through-the-existing-publication-owner.md) | 40 | 2823 | 29–57 min | 0.8–1 h | One sitting |
+| [20.4.4 · Update only changed slot runs](96zzx-update-only-changed-slot-runs.md) | 29 | 1452 | 15–30 min | 0.8–1 h | One sitting |
+| [20.4.5 · Share one slot buffer across surface draws](96zzy-share-one-slot-buffer-across-surface-draws.md) | 21 | 1773 | 18–36 min | 0.8–1 h | One sitting |
+| [20.4.6 · Prepare the integer primitive-slot texture](96zzz-prepare-the-integer-primitive-slot-texture.md) | 27 | 2200 | 22–44 min | 0.8–1 h | One sitting |
+| [20.4.7 · Describe slot and triangle runs](96zzza-describe-slot-and-triangle-runs.md) | 80 | 1605 | 17–33 min | 0.8–1 h | One sitting |
+| [20.4.8 · Read slot runs and lookup texels](96zzzb-read-slot-runs-and-lookup-texels.md) | 75 | 2279 | 23–46 min | 0.8–1 h | One sitting |
+| [20.4.9 · Reuse and merge free slot ranges](96zzzc-reuse-and-merge-free-slot-ranges.md) | 59 | 1911 | 20–39 min | 0.8–1 h | One sitting |
+| [20.4.10 · Follow arena growth with slot headroom](96zzzd-follow-arena-growth-with-slot-headroom.md) | 73 | 2102 | 22–43 min | 0.8–1 h | One sitting |
+| [20.4.11 · Report only changed instance slots](96zzze-report-only-changed-instance-slots.md) | 90 | 2717 | 28–55 min | 0.8–1 h | One sitting |
+| [20.4.12 · Project triangles at their physical addresses](96zzzf-project-triangles-at-their-physical-addresses.md) | 8 | 484 | 5–10 min | 0.8–1 h | One sitting |
+| [20.4.13 · Clear the current Arctic background](96zzzg-clear-the-current-arctic-background.md) | 1 | 94 | 1–2 min | 1–1 h | One sitting |
+| [20.4.14 · Share changed record runs](96zzzh-share-changed-record-runs.md) | 13 | 554 | 6–12 min | 0.8–1 h | One sitting |
+| [20.4.15 · Prepare one shared object record table](96zzzi-prepare-one-shared-object-record-table.md) | 41 | 2172 | 22–44 min | 0.8–1 h | One sitting |
+| [20.4.16 · Share instance object records across definitions](96zzzj-share-instance-object-records-across-definitions.md) | 22 | 1647 | 17–33 min | 0.8–1 h | One sitting |
+| [20.4.17 · Reuse checked curve control coordinates](96zzzk-reuse-checked-curve-control-coordinates.md) | 7 | 554 | 6–12 min | 0.8–1 h | One sitting |
+| [20.4.18 · Publish allocator texels through the integer table](96zzzl-publish-allocator-texels-through-the-integer-table.md) | 14 | 774 | 8–16 min | 0.8–1 h | One sitting |
+| [20.4.19 · Resolve physical triangles with integer slots](96zzzm-resolve-physical-triangles-with-integer-slots.md) | 23 | 788 | 8–16 min | 0.8–1 h | One sitting |
+| [20.4.20 · Batch shared geometry with original ownership](96zzzn-batch-shared-geometry-with-original-ownership.md) | 10 | 1097 | 11–22 min | 0.8–1 h | One sitting |
+| [20.4.21 · Shrink record ranges without rewriting live prefixes](96zzzo-shrink-record-ranges-without-rewriting-live-prefixes.md) | 9 | 605 | 7–13 min | 0.8–1 h | One sitting |
+| [20.4.22 · Share opaque ordinary surface records](96zzzp-share-opaque-ordinary-surface-records.md) | 23 | 2222 | 23–45 min | 0.8–1 h | One sitting |
+| [20.4.23 · Blend ordinary surface records](96zzzq-blend-ordinary-surface-records.md) | 7 | 629 | 7–13 min | 0.8–1 h | One sitting |
+| [20.4.24 · Share transparent instance records](96zzzr-share-transparent-instance-records.md) | 8 | 465 | 5–10 min | 0.8–1 h | One sitting |
+| [20.5.1 · Allocate stable object record rows](96zzzs-allocate-stable-object-record-rows.md) | 7 | 774 | 8–16 min | 0.8–1 h | One sitting |
+| [20.5.2 · Retain live surface record rows](96zzzt-retain-live-surface-record-rows.md) | 9 | 851 | 9–18 min | 0.8–1 h | One sitting |
+| [20.5.3 · Prepare shared record pick consumers](96zzzu-prepare-shared-record-pick-consumers.md) | 15 | 1596 | 16–32 min | 0.8–1 h | One sitting |
+| [20.5.4 · Pick originals through shared records](96zzzv-pick-originals-through-shared-records.md) | 23 | 1991 | 20–40 min | 0.8–1 h | One sitting |
+| [20.5.5 · Read source faces through shared records](96zzzw-read-source-faces-through-shared-records.md) | 23 | 2169 | 22–44 min | 0.8–1 h | One sitting |
+| [20.5.6 · Pack existing ambient radius in object records](96zzzx-pack-existing-ambient-radius-in-object-records.md) | 13 | 1494 | 15–30 min | 0.8–1 h | One sitting |
+| [20.5.7 · Read ambient properties through shared records](96zzzy-read-ambient-properties-through-shared-records.md) | 18 | 1629 | 17–33 min | 0.8–1 h | One sitting |
+| [20.5.8 · Share the object record shader schema](96zzzz-share-the-object-record-shader-schema.md) | 12 | 444 | 5–9 min | 0.8–1 h | One sitting |
+| [20.5.9 · Prepare shared record triangle projection](96zzzza-prepare-shared-record-triangle-projection.md) | 10 | 577 | 6–12 min | 0.8–1 h | One sitting |
+| [20.5.10 · Project triangles through shared records](96zzzzb-project-triangles-through-shared-records.md) | 19 | 2344 | 24–47 min | 0.8–1 h | One sitting |
+| [20.5.11 · Prepare shared record cap counting](96zzzzc-prepare-shared-record-cap-counting.md) | 12 | 1274 | 13–26 min | 0.8–1 h | One sitting |
+| [20.5.12 · Prepare cap plane and arena bindings](96zzzzd-prepare-cap-plane-and-arena-bindings.md) | 22 | 2044 | 21–41 min | 0.8–1 h | One sitting |
+| [20.5.13 · Count cap color through shared records](96zzzze-count-cap-color-through-shared-records.md) | 21 | 2873 | 29–58 min | 0.8–1 h | One sitting |
+| [20.5.14 · Prepare shared record cap picks](96zzzzf-prepare-shared-record-cap-picks.md) | 10 | 2230 | 23–45 min | 0.8–1 h | One sitting |
+| [20.5.15 · Own shared record cap pick resources](96zzzzg-own-shared-record-cap-pick-resources.md) | 7 | 1116 | 12–23 min | 0.8–1 h | One sitting |
+| [20.5.16 · Pick caps through shared records](96zzzzh-pick-caps-through-shared-records.md) | 8 | 1709 | 18–35 min | 0.8–1 h | One sitting |
+| [20.6.1 · Adapt incremental slots to pulled draws](96zzzzi-adapt-incremental-slots-to-pulled-draws.md) | 4 | 496 | 5–10 min | 0.8–1 h | One sitting |
+| [20.6.2 · Prepare exact arena slot definitions](96zzzzj-prepare-exact-arena-slot-definitions.md) | 22 | 1326 | 14–27 min | 0.8–1 h | One sitting |
+| [20.6.3 · Retain live allocator member runs](96zzzzk-retain-live-allocator-member-runs.md) | 10 | 1140 | 12–23 min | 0.8–1 h | One sitting |
+| [20.6.4 · Prepare one plan for draw slots and lookup](96zzzzl-prepare-one-plan-for-draw-slots-and-lookup.md) | 10 | 861 | 9–18 min | 0.8–1 h | One sitting |
+| [20.6.5 · Prepare one owner for live address updates](96zzzzm-prepare-one-owner-for-live-address-updates.md) | 11 | 1168 | 12–24 min | 0.8–1 h | One sitting |
+| [20.6.6 · Adopt retained GPU slots and physical bases](96zzzzn-adopt-retained-gpu-slots-and-physical-bases.md) | 21 | 2841 | 29–57 min | 0.8–1 h | One sitting |
+| [20.6.7 · Separate projection rows and arena offsets](96zzzzo-separate-projection-rows-and-arena-offsets.md) | 6 | 384 | 4–8 min | 0.8–1 h | One sitting |
+| [20.6.8 · Prepare lookup-selected triangle projection](96zzzzp-prepare-lookup-selected-triangle-projection.md) | 5 | 525 | 6–11 min | 0.8–1 h | One sitting |
+| [20.6.9 · Prepare the lookup projection pipeline](96zzzzq-prepare-the-lookup-projection-pipeline.md) | 7 | 1092 | 11–22 min | 0.8–1 h | One sitting |
+| [20.6.10 · Own current lookup projection bindings](96zzzzr-own-current-lookup-projection-bindings.md) | 20 | 2155 | 22–44 min | 0.8–1 h | One sitting |
+| [20.6.11 · Project live triangles through the lookup](96zzzzs-project-live-triangles-through-the-lookup.md) | 14 | 2173 | 22–44 min | 0.8–1 h | One sitting |
+| [20.6.12 · Plan reusable arena spans](96zzzzt-plan-reusable-arena-spans.md) | 18 | 871 | 9–18 min | 0.8–1 h | One sitting |
+| [20.6.13 · Reuse retired arena record ranges](96zzzzu-reuse-retired-arena-record-ranges.md) | 22 | 2083 | 21–42 min | 0.8–1 h | One sitting |
+| [20.6.14 · Upload reused arena spans in place](96zzzzv-upload-reused-arena-spans-in-place.md) | 21 | 1869 | 19–38 min | 0.8–1 h | One sitting |
+| [20.6.15 · Reclaim ranges after the last GPU lease](96zzzzw-reclaim-ranges-after-the-last-gpu-lease.md) | 25 | 1893 | 19–38 min | 0.8–1 h | One sitting |
+| [20.6.16 · Retire empty arena ranges after tail trimming](96zzzzx-retire-empty-arena-ranges-after-tail-trimming.md) | 1 | 40 | 1–1 min | 0.8–1 h | One sitting |
 | [21.1.1 · Prepare unit-aware anchored camera space](96zzzzy-prepare-unit-aware-anchored-camera-space.md) | 32 | 1568 | 16–32 min | 0.8–1 h | One sitting |
 | [21.1.2 · Prepare precise anchor-relative object records](96zzzzz-prepare-precise-anchor-relative-object-records.md) | 33 | 2044 | 21–41 min | 0.8–1 h | One sitting |
 | [21.1.3 · Prepare anchor-relative original ink](96zzzzza-prepare-anchor-relative-original-ink.md) | 24 | 2124 | 22–43 min | 0.8–1 h | One sitting |
@@ -1321,8 +1270,8 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [21.2.6 · Retry rebased picks with the latest cursor](96zzzzzo-retry-rebased-picks-with-the-latest-cursor.md) | 23 | 2103 | 22–43 min | 0.5–0.9 h | One sitting |
 | [21.2.7 · Share derived inputs for origin refresh](96zzzzzp-share-derived-inputs-for-origin-refresh.md) | 23 | 1181 | 12–24 min | 0.5–0.9 h | One sitting |
 | [21.3.1 · Prepare one shared render origin](96zzzzzq-prepare-one-shared-render-origin.md) | 20 | 1384 | 14–28 min | 0.5–0.9 h | One sitting |
-| [21.3.2 · Prepare browser frame matrices and owned wakes](96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes.md) | 20 | 2842 | 29–57 min | 0.6–1 h | One sitting |
-| [21.3.3 · Adopt the shared origin in the browser](96zzzzzs-adopt-the-shared-origin-in-the-browser.md) | 42 | 2680 | 27–54 min | 0.6–1 h | One sitting |
+| [21.3.2 · Prepare browser frame matrices and owned wakes](96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes.md) | 22 | 3043 | 31–61 min | 0.6–1 h | Several sittings; one checkpoint |
+| [21.3.3 · Adopt the shared origin in the browser](96zzzzzs-adopt-the-shared-origin-in-the-browser.md) | 42 | 2927 | 30–59 min | 0.6–1 h | One sitting |
 | [21.4.1 · Share depth endpoints and comparisons](96zzzzzt-share-depth-endpoints-and-comparisons.md) | 24 | 2629 | 27–53 min | 0.6–1 h | One sitting |
 | [21.4.2 · Share homogeneous near-plane ink clipping](96zzzzzu-share-homogeneous-near-plane-ink-clipping.md) | 37 | 1695 | 17–34 min | 0.5–1 h | One sitting |
 | [21.4.3 · Use reversed depth across the frame](96zzzzzz-use-reversed-depth-across-the-frame.md) | 31 | 2922 | 30–59 min | 0.8–1 h | One sitting |
@@ -1330,7 +1279,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [21.5.2 · Omit unused background pick pipelines](96zzzzzzb-omit-unused-background-pick-pipelines.md) | 12 | 1597 | 16–32 min | 0.6–1 h | One sitting |
 | [21.5.3 · Draw the construction grid as physical lines](96zzzzzzc-draw-the-construction-grid-as-physical-lines.md) | 33 | 2271 | 23–46 min | 0.8–1.5 h | One sitting |
 | [21.5.4 · Build viewing rays without matrix inversion](96zzzzzzd-build-viewing-rays-without-matrix-inversion.md) | 26 | 2044 | 21–41 min | 1–1.8 h | One sitting |
-| [21.5.5 · Grow camera depth from cached world bounds](96zzzzzze-grow-camera-depth-from-cached-world-bounds.md) | 44 | 2756 | 28–56 min | 1–1.8 h | One sitting |
+| [21.5.5 · Grow camera depth from cached world bounds](96zzzzzze-grow-camera-depth-from-cached-world-bounds.md) | 44 | 3155 | 32–64 min | 1–1.8 h | Several sittings; one checkpoint |
 | [21.5.6 · Match wheel input and framed projection](96zzzzzzf-match-wheel-input-and-framed-projection.md) | 40 | 2343 | 24–47 min | 1–2 h | One sitting |
 | [22.1.1 · Share flat and Arctic surface frames](96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md) | 32 | 2015 | 21–41 min | 1–2 h | One sitting |
 | [22.1.2 · Connect headlight and backface controls](96zzzzzzh-connect-headlight-and-backface-controls.md) | 30 | 2264 | 23–46 min | 1–2 h | One sitting |
@@ -1356,7 +1305,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [22.5.8 · Read section crossings at each sample](96zzzzzzzb-read-section-crossings-at-each-sample.md) | 68 | 2819 | 29–57 min | 1–2 h | One sitting |
 | [22.5.9 · Compose cloud colour, depth and queries](96zzzzzzzc-compose-cloud-depth-with-physical-addresses.md) | 62 | 2917 | 30–59 min | 1–2 h | One sitting |
 | [22.5.10 · Cache cloud and sheet sample recipes](96zzzzzzzca-cache-cloud-and-sheet-samples.md) | 61 | 2197 | 22–44 min | 1–2 h | One sitting |
-| [22.5.11 · Retarget cached text colour](96zzzzzzzd-retarget-cached-text.md) | 38 | 1798 | 18–36 min | 1–2 h | One sitting |
+| [22.5.11 · Retarget cached text colour](96zzzzzzzd-retarget-cached-text.md) | 36 | 1446 | 15–29 min | 1–2 h | One sitting |
 | [22.5.12 · Cache section masks and the final outline blend](96zzzzzzze-cache-outline-section-recipes.md) | 66 | 2990 | 30–60 min | 1–2 h | One sitting |
 | [22.5.13 · Resolve float outline coverage](96zzzzzzzf-resolve-float-outline-coverage.md) | 66 | 2977 | 30–60 min | 1–2 h | One sitting |
 | [22.5.14 · Retarget original ambient properties](96zzzzzzzg-retarget-original-ambient-properties.md) | 67 | 2817 | 29–57 min | 1–2 h | One sitting |
@@ -1369,12 +1318,12 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | [22.6.2 · Prepare original ink families](96zzzzzzzn-prepare-original-ink-families.md) | 23 | 1819 | 19–37 min | 1–2 h | One sitting |
 | [22.6.3 · Show original ink families](96zzzzzzzo-show-original-ink-families.md) | 46 | 2922 | 30–59 min | 1–2 h | One sitting |
 | [22.6.4 · Apply semantic view controls](96zzzzzzzp-apply-semantic-view-controls.md) | 39 | 2688 | 27–54 min | 1–2 h | One sitting |
-| [22.6.5 · Draw original CAD wire curves](96zzzzzzzq-draw-original-cad-wire-curves.md) | 32 | 2976 | 30–60 min | 1–2 h | One sitting |
+| [22.6.5 · Draw original CAD wire curves](96zzzzzzzq-draw-original-cad-wire-curves.md) | 3785 | 173898 | 1739–3478 min | 1–2 h | Several sittings; one checkpoint |
 | [Reference comparison · Compare with the maintained browser runtime](97-finish-with-the-maintained-browser-runtime.md) | 30 | 2272 | 23–46 min | 0.5–1 h | One sitting |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 1361 current checkpoints.
+- [x] Count the exact source edits for all 1310 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.

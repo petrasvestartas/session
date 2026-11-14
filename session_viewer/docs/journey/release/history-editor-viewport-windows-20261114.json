@@ -1,0 +1,951 @@
+{
+  "status": "Native tests, software native pixel checks, optimized wasm/Trunk and six browser interaction cases passed; desktop figures reviewed.",
+  "scope": "Three cumulative checkpoints only. Browser upright viewports are emulated and their fixed camera crops geometry; this is not complete phone composition or physical-device acceptance. Cumulative mathematics integration and global ownership/parity checks remain unfinished.",
+  "nativeHarness": "All library tests run with the unchanged canonical frame body and checkpoint fixture inside one cfg(test) module. A test-only self alias resolves viewer_journey; one test calls the canonical main. The implementation files are restored and compared afterwards. The ordinary cdylib/example is not built, preserving another agent’s shared outputs.",
+  "nativeAdapter": "The canonical frame requires a CPU adapter with the DX12 backend. History and viewport logs observe Microsoft Basic Render Driver vendor5140/device140 (WARP); the successful editor test captures its adapter output, so its evidence establishes the source-constrained CPU/DX12 requirement.",
+  "sourceNormalization": "Source hashes below normalize CRLF to LF. Runtime source signatures retain the actual Windows build identity. Image hashes cover unchanged PNG bytes.",
+  "browserChecker": {
+    "path": "capture_journey.cjs",
+    "sha256": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7"
+  },
+  "preservedImages": {
+    "inventorySha256": "9625bc0a53699b15fc420d45799da351f7d041a7f9cc386a7cc331c2d3227052",
+    "checked": 429,
+    "failures": []
+  },
+  "interruptedAttempts": [
+    {
+      "phase": "17-solid optimized wasm attempt02",
+      "status": "storage guard stopped the build; retained before approved recovery and passing attempt03"
+    },
+    {
+      "phase": "browser attempt01",
+      "status": "failed before Chrome startup: preload path resolved as a package; unchanged checks passed with an absolute preload path in attempt02"
+    }
+  ],
+  "resources": {
+    "browser": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-14T04:07:05.1466043Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-consolidated-browser02",
+        "timeout",
+        "590s",
+        "node",
+        "--import",
+        "./scripts/typescript.mjs",
+        "../session_viewer/target/consolidated-browser02.mjs"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+      "timeoutSeconds": 595,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 45.357,
+      "peakJobCommitBytes": 837857280,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 37140,
+      "descendantsAtCleanup": 1
+    }
+  },
+  "priorBrowserRecords": {
+    "12-identity": {
+      "source": "0b7ab9bb85070ea09cae54b0b2296fba0bdb9e99b891b54907397bb72b4204c2",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T09:35:38.854Z",
+      "status": "Selection follows object identity, even when rows move.",
+      "canvas": "964c3b79a80b5ebdfb77e29e6da1af4b471239a7d4bbaba8bb522560e3070439",
+      "file": "12-identity-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "9d8946e1ec3f5f9dc1b62a50bd125e6d8d20572d321290cc8d1cce8928cf3c4d",
+      "commands": [
+        "Select Next"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "17-solid": {
+      "source": "f4da87e42a8a19696fa8355ae0d05f336ba1ac9662b8d45a27da5279e4076bc2",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T09:36:13.651Z",
+      "status": "Kernel geometry becomes an undoable scene object.",
+      "canvas": "0ee2fc3604ff0a19c74d31d09735848b171a757541fd32a269d4dab08efba580",
+      "file": "17-solid-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1cb2ec7550f3614b0da5341cd688412b71d94d2a8126c9d00a6ae361460d0552",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "19a-viewport": {
+      "source": "4b2a5ba1af46128f29dc4e667760baa481fa7bca2107d9eb62816e1cf9bc6f3b",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "2e00311471039d4203826a4e61c0ca22a611e9c44b7fb299fae214b3b5ca78fc",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T09:36:37.625Z",
+      "status": "Every document action follows the same editor path.",
+      "canvas": "5abd3092f46f2189217e764c3a84eaf371f9a2841c9cc6f34a9e0259d40f2ae1",
+      "file": "19a-viewport-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "7905eb5126988438a6a1e31018170856fa9afbb71806d0cd180aed96944b158f",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Select Next",
+        "Select Next",
+        "Select Next"
+      ],
+      "keyboardRoundtrip": false
+    }
+  },
+  "priorVisualReviews": {
+    "12-identity": null,
+    "17-solid": null,
+    "19a-viewport": null
+  },
+  "cases": {
+    "12-identity": {
+      "source": "3a2e95ccccf262cd0ab247a92282de599988b0f4f04c0fdee1d5f907da1bc7bd",
+      "normalizedSources": {
+        "Cargo.toml": "77f33fae072f0866b7442c2502558feb714d1751cedbcbf33213422f515888e1",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "730964ca864fd60fd5ad527e4af8049c2419cb407b8cd9614da87cbd99f32291",
+        "src/renderer.rs": "7be9552e5d997633e50ba95a897a47eb48246c44706868e27e6d25143933b9a3",
+        "src/browser.rs": "b804439bdff011be6953dad4daefb2be16622c5969595c7689250acdfe28f07d",
+        "src/triangle.wgsl": "6b8d00fdd9f759936d0f74e750eabfec0a0a17ebf1a19a4ee9216722219ed21b",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+        "src/mesh.rs": "36da28cba687dfc2c1f7051a9c23d67232b5ab7197bd02232985e9c8e5fe3194",
+        "src/scene.rs": "8fb86841c45c75bdd28f7e5c531e1c8507fc24ea1fc7663d386265756533538d",
+        "src/gpu_mesh.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+        "src/picking.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+        "src/history.rs": "bd3e050fec6ae49b38edc83546e3666aaf37728d3960d22560cfd06834983dc6"
+      },
+      "frameFixture": {
+        "path": "journey/checks/16-orbit.rs",
+        "sha256": "39486578cd042fcef3dde4738482b31e6cb120313f085e74281d6ee35d026839"
+      },
+      "native": {
+        "id": "12-identity",
+        "source": "3a2e95ccccf262cd0ab247a92282de599988b0f4f04c0fdee1d5f907da1bc7bd",
+        "frameSha256": "eaa3da1b7d9d2d1760e83b2eacd92cacd765de34152f2693f0ba3c3be01a18be",
+        "harnessSha256": "ef1542abda62576099c18d987f2591bf2d37357f85501ff387784c541f900691",
+        "scope": "All checkpoint library tests plus the unchanged canonical frame and pixel assertions, run as an in-crate test. No ordinary library or example build; no accepted evidence is modified.",
+        "command": {
+          "name": "12-identity-in-crate-native01",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0
+        },
+        "pixels": {
+          "sha256": "3b7a2245ac0736f6bb5ac1d5e84497a4263afee8ca4ba2d9a688cb886d08f251"
+        },
+        "testCount": 15,
+        "image": "runtime-20261114/12-identity-native.png",
+        "imageSha256": "fdeecfe68c11349f6994654689e2bb1b99e8895a14efe17e74ca0cff6e0e4c41",
+        "protectionBefore": {
+          "manifest": "C:/pc/3_code/code_rust/wood_research/.codex/viewer-quality-20261028/current-viewer-protected-cache-20261114-08.json",
+          "sha256": "5c034a7cb697f7b6f28e67371fa9d5b088ff9809454e2a1733135de3bfc3244c",
+          "checked": 887,
+          "checkedAbsent": 11,
+          "failures": []
+        },
+        "protectionAfter": {
+          "manifest": "C:/pc/3_code/code_rust/wood_research/.codex/viewer-quality-20261028/current-viewer-protected-cache-20261114-08.json",
+          "sha256": "5c034a7cb697f7b6f28e67371fa9d5b088ff9809454e2a1733135de3bfc3244c",
+          "checked": 887,
+          "checkedAbsent": 11,
+          "failures": []
+        }
+      },
+      "commands": [
+        {
+          "name": "12-identity-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--release",
+            "--message-format=json",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0,
+          "recordedCommand": "12-identity-history-viewport01-wasm"
+        },
+        {
+          "name": "12-identity-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0,
+          "recordedCommand": "12-identity-history-viewport01-web"
+        },
+        {
+          "name": "12-identity-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0,
+          "recordedCommand": "12-identity-in-crate-native01"
+        }
+      ],
+      "captures": {
+        "desktop": {
+          "source": "3a2e95ccccf262cd0ab247a92282de599988b0f4f04c0fdee1d5f907da1bc7bd",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "5da78404dd3356e737eed3f263bb1d3fafa484a99d81223c2c140336b8e06776",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-14T04:07:11.040Z",
+          "status": "Orbit moves the eye around a fixed target.",
+          "canvas": "8f843bac18c9b4375fc7ac51ef2f7d2a658951dfb50c8f324e61cb8fd3a53dae",
+          "file": "runtime-20261114/12-identity-desktop.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "d298bc72d4d9f4adacf651a6cd917fbc6a935894f474812d30b7044c4b22f24a",
+          "commands": [
+            "View Isometric"
+          ],
+          "keyboardRoundtrip": false,
+          "capturedFile": "12-identity-browser.png",
+          "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+          "visualScope": "Personally reviewed: clear scene and readable dock."
+        },
+        "upright": {
+          "source": "3a2e95ccccf262cd0ab247a92282de599988b0f4f04c0fdee1d5f907da1bc7bd",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "5da78404dd3356e737eed3f263bb1d3fafa484a99d81223c2c140336b8e06776",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-14T04:07:33.315Z",
+          "status": "Orbit moves the eye around a fixed target.",
+          "canvas": "90fa9c5f0938a9a05a121000611a4195b153935772793914b6ab144c88089d91",
+          "file": "runtime-20261114/12-identity-upright.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "d298bc72d4d9f4adacf651a6cd917fbc6a935894f474812d30b7044c4b22f24a",
+          "commands": [
+            "View Isometric"
+          ],
+          "keyboardRoundtrip": false,
+          "capturedFile": "12-identity-browser.png",
+          "sha256": "993191b65342e5a39400a91c72528eb63e94ccae155de3eaa22fdd8cff172e86",
+          "visualScope": "Personally reviewed: fixed-camera geometry is cropped at the viewport edge; interaction checks pass."
+        }
+      },
+      "lock": {
+        "path": "journey/release/15-perspective.lock",
+        "sha256": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7"
+      },
+      "inputs": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      }
+    },
+    "17-solid": {
+      "source": "fe3ed6f49bbf55b04106eb9ad51149bb9bf29f66c98671a218a4a0ae4ecc70b5",
+      "normalizedSources": {
+        "Cargo.toml": "77f33fae072f0866b7442c2502558feb714d1751cedbcbf33213422f515888e1",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "c6fd6187bb74b2ec4b2c60077d8321ac2e198c4ad6559845bc691bfbc973070a",
+        "src/renderer.rs": "7be9552e5d997633e50ba95a897a47eb48246c44706868e27e6d25143933b9a3",
+        "src/browser.rs": "e6657dbaa1989e1c10c3346b51597f27d9dad01f10e6f275e64bfeae4f54a756",
+        "src/triangle.wgsl": "cbb0e0018bb07fb903c1f7fe4575ca93d9e7fead387f59e2840e86d31db1078f",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+        "src/mesh.rs": "e412ae067aa893302260cd3450a3d530e2bd95fcf86a045754c7c6b4f7651ab7",
+        "src/scene.rs": "25965dea55fe59e13fae0afa42fefe77a0eb33fd1e074af58d98154d403a13ba",
+        "src/gpu_mesh.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+        "src/picking.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+        "src/history.rs": "bd3e050fec6ae49b38edc83546e3666aaf37728d3960d22560cfd06834983dc6",
+        "src/editor.rs": "6247ce86847f91bfc0c17b61f87bcb0739879039c7971e1519cc0eefe87106b9"
+      },
+      "frameFixture": {
+        "path": "journey/checks/19-actions.rs",
+        "sha256": "cc7531bf9ec1e66d25f04ff45743590508cb9f987b89be436a7cb89ebffed3d2"
+      },
+      "native": {
+        "id": "17-solid",
+        "source": "fe3ed6f49bbf55b04106eb9ad51149bb9bf29f66c98671a218a4a0ae4ecc70b5",
+        "frameSha256": "6691c71e6fb47c6643e018c47a55fcde82a67ccfcc13609502023b241c7ee3da",
+        "harnessSha256": "64a2091a0f23304d9342a84b518a92df22b806bbfaf7ecbd1845c12a2ed21893",
+        "scope": "All checkpoint library tests plus the unchanged canonical frame and pixel assertions, run as an in-crate test. No ordinary library or example build; no accepted evidence is modified.",
+        "command": {
+          "name": "17-solid-in-crate-native01",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0
+        },
+        "pixels": {
+          "sha256": "41504e799aa5b298aa620127824b2e054513007b33e5fe4eff67a7448a08641e"
+        },
+        "testCount": 20,
+        "image": "runtime-20261114/17-solid-native.png",
+        "imageSha256": "e1594b8e21d9785f4913e3e107b3e866735012d5bea97943a853cd40b073d2c9",
+        "protectionBefore": {
+          "manifest": "C:/pc/3_code/code_rust/wood_research/.codex/viewer-quality-20261028/current-viewer-protected-cache-20261114-08.json",
+          "sha256": "5c034a7cb697f7b6f28e67371fa9d5b088ff9809454e2a1733135de3bfc3244c",
+          "checked": 887,
+          "checkedAbsent": 11,
+          "failures": []
+        },
+        "protectionAfter": {
+          "manifest": "C:/pc/3_code/code_rust/wood_research/.codex/viewer-quality-20261028/current-viewer-protected-cache-20261114-08.json",
+          "sha256": "5c034a7cb697f7b6f28e67371fa9d5b088ff9809454e2a1733135de3bfc3244c",
+          "checked": 887,
+          "checkedAbsent": 11,
+          "failures": []
+        }
+      },
+      "commands": [
+        {
+          "name": "17-solid-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--release",
+            "--message-format=json",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0,
+          "recordedCommand": "17-solid-attempt03-wasm"
+        },
+        {
+          "name": "17-solid-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0,
+          "recordedCommand": "17-solid-attempt03-web"
+        },
+        {
+          "name": "17-solid-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0,
+          "recordedCommand": "17-solid-in-crate-native01"
+        }
+      ],
+      "captures": {
+        "desktop": {
+          "source": "fe3ed6f49bbf55b04106eb9ad51149bb9bf29f66c98671a218a4a0ae4ecc70b5",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "08a1012e5f3fef5d524d714882df83cf36ab4146e4e615f3e16344be9de5ba89",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-14T04:07:16.502Z",
+          "status": "Every document action follows the same editor path.",
+          "canvas": "bb12e454781706f7c4e22ffc87cb295ac8898e215dc4202a0de5f890da39409a",
+          "file": "runtime-20261114/17-solid-desktop.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "833bb757d7c920f3f2d668628f5cb6f9cc6ac66d4640d47c4eea7226f46c0eb5",
+          "commands": [
+            "Example Box",
+            "View Isometric",
+            "Select Next",
+            "Select Next",
+            "Select Next"
+          ],
+          "keyboardRoundtrip": false,
+          "capturedFile": "17-solid-browser.png",
+          "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413",
+          "visualScope": "Personally reviewed: clear scene and readable dock."
+        },
+        "upright": {
+          "source": "fe3ed6f49bbf55b04106eb9ad51149bb9bf29f66c98671a218a4a0ae4ecc70b5",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "08a1012e5f3fef5d524d714882df83cf36ab4146e4e615f3e16344be9de5ba89",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-14T04:07:38.469Z",
+          "status": "Every document action follows the same editor path.",
+          "canvas": "50d605f747ddc317c8c53269e087bc7d9a8178d10b193d3a3ca912b3ecba6883",
+          "file": "runtime-20261114/17-solid-upright.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "833bb757d7c920f3f2d668628f5cb6f9cc6ac66d4640d47c4eea7226f46c0eb5",
+          "commands": [
+            "Example Box",
+            "View Isometric",
+            "Select Next",
+            "Select Next",
+            "Select Next"
+          ],
+          "keyboardRoundtrip": false,
+          "capturedFile": "17-solid-browser.png",
+          "sha256": "e6dc4482fc045f2a5151f7690c1fa1900898bf2c6effa299907549aad521db46",
+          "visualScope": "Personally reviewed: fixed-camera geometry is cropped at the viewport edge; interaction checks pass."
+        }
+      },
+      "lock": {
+        "path": "journey/release/15-perspective.lock",
+        "sha256": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7"
+      },
+      "inputs": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      }
+    },
+    "19a-viewport": {
+      "source": "b29dfeecba76636aebd96479a5618f71d0f6ec320adfd61057d93f474fe3fdee",
+      "normalizedSources": {
+        "Cargo.toml": "49a09d56d16be46975c5ab9898f9f152e753772bd3d29228aac9ec1bfa6c86d7",
+        "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+        "src/lib.rs": "658a7225bdfab5fc3f00803aa7da0e7cb1734d5ab6ac318ad3fd944a24030fad",
+        "src/renderer.rs": "b29026145bd2ff092e74a6aded98362157722e84d3b9bc04005b65d12b40db8b",
+        "src/browser.rs": "5ca40528c1df3665dfa8379f67a4176b67a5437f8dead2960f3cc8aca292bf3e",
+        "src/triangle.wgsl": "cbb0e0018bb07fb903c1f7fe4575ca93d9e7fead387f59e2840e86d31db1078f",
+        "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+        "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+        "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+        "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+        "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+        "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+        "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c",
+        "src/camera.rs": "89725e39fc8e5575fe1881436adbc5358d5bdefe4c3745d6ca4e0276491160c9",
+        "src/mesh.rs": "e412ae067aa893302260cd3450a3d530e2bd95fcf86a045754c7c6b4f7651ab7",
+        "src/scene.rs": "25965dea55fe59e13fae0afa42fefe77a0eb33fd1e074af58d98154d403a13ba",
+        "src/gpu_mesh.rs": "ab004a01b3cdf8677ef83319786745571e42414729c4af2dea8b4c375cdcd5d1",
+        "src/picking.rs": "fa9bbb58dc222762ef0fe646df3a6dd742ba863da3534ef75260bbd643cacec3",
+        "src/history.rs": "bd3e050fec6ae49b38edc83546e3666aaf37728d3960d22560cfd06834983dc6",
+        "src/editor.rs": "6247ce86847f91bfc0c17b61f87bcb0739879039c7971e1519cc0eefe87106b9",
+        "src/viewport.rs": "1174664e96e6392e0e7b47e054d321bbd45050601f7e954fedc696d3beccadd6",
+        "src/gesture.rs": "c3276cdb51ac089262748347b885364b7fad7d38df89e4689071e89b70494b17",
+        "src/gesture_tests.rs": "3a0efafe2bca7c3990d03f74e78250419cb942e134d45c881030e1edef692144",
+        "src/navigation.rs": "bee0166b1c550c20ba1e9fd804e2daa471aae60e71935fa5928f44a30fe3f129",
+        "src/navigation_tests.rs": "c4326c7ad772ea357911fbe14f6d0ea875257471ff2e59ca14a6d2a481f568bc"
+      },
+      "frameFixture": {
+        "path": "journey/checks/22-shortcuts.rs",
+        "sha256": "2e2618201548afee49b17b8904f93cb18bea41ae67ae687b1bb8ebb42565e3e3"
+      },
+      "native": {
+        "id": "19a-viewport",
+        "source": "b29dfeecba76636aebd96479a5618f71d0f6ec320adfd61057d93f474fe3fdee",
+        "frameSha256": "ca1c191b3ec89938e3fcff1bf1fa35c1e1b63f725d206e29e0f951366421bf8c",
+        "harnessSha256": "e9a7fef15d6337d44be0d995f840df145c3d55d6db2a5fb22e99b3dd053901ca",
+        "scope": "All checkpoint library tests plus the unchanged canonical frame and pixel assertions, run as an in-crate test. No ordinary library or example build; no accepted evidence is modified.",
+        "command": {
+          "name": "19a-viewport-in-crate-native01",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0
+        },
+        "pixels": {
+          "sha256": "eac5c7c6d99a747da639039a0cea9dba12bb4e4078eecc88dcbb9fae7df27b97"
+        },
+        "testCount": 30,
+        "image": "runtime-20261114/19a-viewport-native.png",
+        "imageSha256": "7b0d842a67f980706a579db799d12aaa274334c5d52c2be1085ad47069594fa5",
+        "protectionBefore": {
+          "manifest": "C:/pc/3_code/code_rust/wood_research/.codex/viewer-quality-20261028/current-viewer-protected-cache-20261114-08.json",
+          "sha256": "5c034a7cb697f7b6f28e67371fa9d5b088ff9809454e2a1733135de3bfc3244c",
+          "checked": 887,
+          "checkedAbsent": 11,
+          "failures": []
+        },
+        "protectionAfter": {
+          "manifest": "C:/pc/3_code/code_rust/wood_research/.codex/viewer-quality-20261028/current-viewer-protected-cache-20261114-08.json",
+          "sha256": "5c034a7cb697f7b6f28e67371fa9d5b088ff9809454e2a1733135de3bfc3244c",
+          "checked": 887,
+          "checkedAbsent": 11,
+          "failures": []
+        }
+      },
+      "commands": [
+        {
+          "name": "19a-viewport-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--release",
+            "--message-format=json",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j1"
+          ],
+          "returncode": 0,
+          "recordedCommand": "19a-viewport-history-viewport01-wasm"
+        },
+        {
+          "name": "19a-viewport-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0,
+          "recordedCommand": "19a-viewport-history-viewport01-web"
+        },
+        {
+          "name": "19a-viewport-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0,
+          "recordedCommand": "19a-viewport-in-crate-native01"
+        }
+      ],
+      "captures": {
+        "desktop": {
+          "source": "b29dfeecba76636aebd96479a5618f71d0f6ec320adfd61057d93f474fe3fdee",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "fa1bf4e2eb81da919200a784910026ae906c1833f303ad27734ac7850c7a0af2",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-14T04:07:28.557Z",
+          "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+          "canvas": "101d53bc11570130d3f42b6be9ed275591c6a88d50609738e03506ffd31683da",
+          "file": "runtime-20261114/19a-viewport-desktop.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 720
+          },
+          "screenshotViewport": {
+            "width": 1280,
+            "height": 720
+          },
+          "bundle": "ae1fe7393826f6af0006c3c2408207e78833d5ea80ef15981ea58baf3482c207",
+          "commands": [
+            "Example Box",
+            "View Isometric",
+            "Pan Right"
+          ],
+          "keyboardRoundtrip": false,
+          "capturedFile": "19a-viewport-browser.png",
+          "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362",
+          "visualScope": "Personally reviewed: clear scene and readable dock."
+        },
+        "upright": {
+          "source": "b29dfeecba76636aebd96479a5618f71d0f6ec320adfd61057d93f474fe3fdee",
+          "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+          "extraChecker": "fa1bf4e2eb81da919200a784910026ae906c1833f303ad27734ac7850c7a0af2",
+          "browser": "157.0.8103.51",
+          "headless": true,
+          "args": [
+            "--enable-unsafe-webgpu",
+            "--ignore-gpu-blocklist",
+            "--use-angle=d3d11"
+          ],
+          "captured": "2026-11-14T04:07:49.825Z",
+          "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+          "canvas": "940625155e59f7a2f930848981280fd11587bae4c10529b97ad95a2d05bca736",
+          "file": "runtime-20261114/19a-viewport-upright.png",
+          "queriedWebGPUAdapter": {
+            "vendor": "intel",
+            "architecture": "gen-12lp",
+            "device": "",
+            "description": ""
+          },
+          "initialViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "initialCanvas": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 844
+          },
+          "screenshotViewport": {
+            "width": 390,
+            "height": 844
+          },
+          "bundle": "ae1fe7393826f6af0006c3c2408207e78833d5ea80ef15981ea58baf3482c207",
+          "commands": [
+            "Example Box",
+            "View Isometric",
+            "Pan Right"
+          ],
+          "keyboardRoundtrip": false,
+          "capturedFile": "19a-viewport-browser.png",
+          "sha256": "2da0aae0307a524a053fccae4c4985bd8096fb451b26a4cf57d11b2ef56318f6",
+          "visualScope": "Personally reviewed: fixed-camera geometry is cropped at the viewport edge; interaction checks pass."
+        }
+      },
+      "lock": {
+        "path": "journey/release/15-perspective.lock",
+        "sha256": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7"
+      },
+      "inputs": {
+        "assets/text/NotoSans-Regular.subset.ttf": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09",
+        "assets/text/NotoSansSymbols2-Regular.subset.ttf": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed",
+        "assets/text/NotoSansSymbols-Regular.subset.ttf": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3",
+        "assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+      }
+    }
+  },
+  "frameHarness": {
+    "path": "journey/frame.rs",
+    "sha256": "cc7b0a195a93c6fde86a62e203c4ecabf74eb76ee256952dfd098796ca9c39a3"
+  },
+  "normalizedKernelSources": {
+    "src/aabb.rs": "b3666a2f152aaa247a8a14754c72192c08efb41c8522c42dfd0b250709432e15",
+    "src/aabb_test.rs": "fed236928d31ca899e676a5f385b47f62fb74bb7a0ea8b21a6c474e850d696c9",
+    "src/bin/minitest.rs": "c262cab354a0c2150ebd78880a48f0fbf854556a04ffa8143046835ea303be80",
+    "src/bin/pdf_import.rs": "834253bd8462d1fed0d9f16a2ce1391f9c8422d5a469ef0583f7107e9e85fb9f",
+    "src/boolean_polyline.rs": "ae017210d8a4edfdcc4223abeebbc9ed8b2f24d678ff19f733f7bd181c9a0904",
+    "src/boolean_polyline_test.rs": "1e73f242886bd86771a3909d2b98938180e3f9b24239b026e3512800a511882a",
+    "src/brep.rs": "accd30fbf61c2f00e57bcfc1268268d08ad17c21d3cd09de0a16431dfa2d9037",
+    "src/brep_test.rs": "0f3785852c759a392e57b32d7437f8e61f44fa7773fc3712e9255501ca92c445",
+    "src/closest.rs": "b4197ea700dd1891a34c6f6fa5fea8a3f362fcd8f7b68a29e2ccb977ec3147bd",
+    "src/closest_test.rs": "f5e61a9f4bd7162347d9d2a4c8ea165e5729bbab10e5dc3cbee1ca1b72cf2bf3",
+    "src/collection.rs": "e778d8feb872bc7dca94ff3a0e40c4c6880aed8353cfbb412e4d872818f6a181",
+    "src/collection_test.rs": "3d8ddddb02aed9dd6a7b27d0ff13c550e4a0638753188760a4112e5d3524cc77",
+    "src/color.rs": "8022caf3e245f42867e0e9b70e2f2ecab415e3e0e24640ad8627cb01058b3f61",
+    "src/color_test.rs": "e971dcafbe50e1aedcfef0b62cd26b4ea51974809427ba6118977e0d7b0d8fb7",
+    "src/convex_hull.rs": "489528349623b9d49242e632e537e6956341f91a065a6f7b3ccb66d9fa3de541",
+    "src/convex_hull_test.rs": "f5e7f2e3f9b94763e8f85811fca6c2d80f05abe2f66d3c6bc66db41750f101f4",
+    "src/display_budget.rs": "31b5ab6020aad3d5a4f1e18a11b14f87eb91f9c06726d59e1c85cd739b9aefa2",
+    "src/element.rs": "3a991c076f7467cf5d925fb0102fe51a5fa96923aa8e76de0f7f09e6012e194f",
+    "src/element_test.rs": "042bdf44e43ab7667d50cc0e65b4fb72a86e84c777311a33399abbeb134d3567",
+    "src/file_encoders.rs": "d1ca6e177ced274a6ed795e61f8fdcab52c78b5143d7a4b3e88daa096cedcb7c",
+    "src/file_encoders_test.rs": "e661b8c7da47559e961789cb3d9ebb67bc4cb3f9c974947557b0808dacefcf56",
+    "src/file_obj.rs": "ad31bfe1e318f33d1351a75862898b113f50609eac72801f5b8b6b2effe7f2b3",
+    "src/file_obj_test.rs": "2116b4ed882f793ac4db61fc1a962f57bdcb22c8fbe4367c73f2c2ff86d8d026",
+    "src/file_step.rs": "3dbbd4bea0ed04fd1bb47b5357f4c444a94ee016280e6d4463ec988921ec8bce",
+    "src/file_step_test.rs": "98026392a45a0c2b0995e6483ab2aeac9948fe5367c01340b42860b5a5e1835b",
+    "src/file_xyz.rs": "227068f507310e6ed8abe2c722073ce51155387f48c2c804c90f9bcacf65bcd4",
+    "src/file_xyz_test.rs": "166adf3e4dd7f9d6d20f58a8cab384a3947c29915c7848329aeab7897ee0244a",
+    "src/graph.rs": "d3be20d9978ccc02b7789f94d33cc73eaf612c5b7a2897eb1f22be1259e315e2",
+    "src/graph_test.rs": "5fade4ad932b6095b8ebc6a00c120493385c9f3b9524dd667c353fca217e7608",
+    "src/guid_serde.rs": "0dda61bc6a049dbbcd077e22e1b28ac0bea66ff9fa8f0f3359f64d055c071310",
+    "src/history.rs": "026d4bbe45837bdae64d6258b3697ac99eca80d148e6968de380788b3fc8c94c",
+    "src/history_test.rs": "0dc436ef12cacff4e0fc9c465831d995fce1bad04f1886af1189b24228120222",
+    "src/instance_ref.rs": "bbb26101815e7b0357c4191a20d7027579967f1eff01aa42c0008babb37ea824",
+    "src/instance_ref_test.rs": "85fd5b07b9f0d91de4f9445bc1d5efb6123732e3eb541b164a7a380d3247225d",
+    "src/interaction.rs": "e1747cd3b610bdeb8f3b4e258e31942b518ee1f78daa75d1c0c4b213b63fc048",
+    "src/interaction_test.rs": "20fda8df5e13efcea0310b0db356d7cd6124cb3f8a446d4e5470bd01d20d3c74",
+    "src/intersection.rs": "e74c497955b205a040d15aa0941f3aabb2a648c78846fdb8f49ab7e5c7466786",
+    "src/intersection_test.rs": "5b84082817d1c7731e0aa282374b210cbcb244accd3b6a4e28f8271e9a8d2ef9",
+    "src/lib.rs": "a3afaaf8ee59a64b028ec3f080e14a5c36a790502157cafdc1f809753e054510",
+    "src/line.rs": "b8288a351a80aac32a9a7cc75ee43bd64964ee2e37276025e613296eb4b000a3",
+    "src/line_test.rs": "7d54003b586d09f89a218c5f9282b833e6f89a8ae09b20081e1487204af09060",
+    "src/main.rs": "c97d546a386a35c2bc0858eb24661bf8897035894a1858fb187dc8fb71165e87",
+    "src/matrix.rs": "e4c06f833e043f30c5088c0e9e221b98d4544c7c5a6de5d8d84fa19e45b3be46",
+    "src/matrix_test.rs": "f1e1aa82029a3d8d3da0a0ed991095b8d89c352b4d1bfad253b339980bc3d5c3",
+    "src/mesh.rs": "ecca6e134e9537c9f0f4f4729b02fa8f53047ae761e1cc0b930af17046d3a230",
+    "src/mesh_test.rs": "fb43070d3ffddcb4afe60414fb5faea69d4c6d4037e107797382efff6f06e352",
+    "src/mini_test.rs": "7d6e0764878bf7ef88c9400fbf2d2741d3e3a485ef1a16387c4ed79f380f288a",
+    "src/nurbscurve.rs": "16820cb9abb34331b614d423a8a106ec7384e29653788bfaab05b53a2993cfbf",
+    "src/nurbscurve_test.rs": "ec19cc7c115db131efbc053cfc926b791947223ceab34e0bf0c3226062a43c8b",
+    "src/nurbsknot.rs": "66aa6a971b24e4b744a2d5c687305fbfc842c32f7e2a4c5d8b2f00ee9d48c746",
+    "src/nurbsknot_test.rs": "9c9a6eecaaf6a0a61c3d006ec5f5ad3744446e7c54ab8f1182467ccf6a974f92",
+    "src/nurbssurface.rs": "d029a0389680e6f2fdbfd30f290b94c7c71bc3bc98a2bd08d7df82b8a61b86ad",
+    "src/nurbssurface_test.rs": "ae5e7ea12fd3ec6cb7e26c04f6e771cb48fa9599d4223c9f8c804b019831cc68",
+    "src/nurbssurface_trimmed.rs": "68ffa23a8960f70f6a60d709d342922e074b9ef0cb75cb0a548d20963ff9996f",
+    "src/nurbssurface_trimmed_test.rs": "873bc638ccebdabd6fd7d30d86a519b80907d6f9709e969a552a876c0b72aaea",
+    "src/obb.rs": "6092a927ae01b8f38e381f2a13c624c983fb8af185f5f514c7e585b668b41257",
+    "src/obb_test.rs": "d4bc3c47489faf95ef730680f9eb7dc1fa98e03c0df4c7a988f66a83ad276d6a",
+    "src/objects.rs": "5d2bdaa6924e69c2723bfb811273e00002ae78c04fecd03d33abe1f66412918e",
+    "src/objects_test.rs": "c5bc70ee747aa9281d7fa9d835fe0e715e0907be90a34455bc5acc3f71cd5876",
+    "src/pdf.rs": "2ec329086a6f6d3a5e20ffb9b1171927c661b94603aa76450d42d36099858025",
+    "src/pdf_test.rs": "1c2d68dc58cc944810ed48f35b2ad7b33effa8dc7d1fc16086fd5dcf18b9b0f8",
+    "src/picking_test.rs": "48fb7198dd71bb2cfdea26aa873a15d0d070d7278a84d8e3cd249cd9a7a63bb4",
+    "src/plane.rs": "0995e9094ea0d9faee417ff5678230a6ac0241d050aac1018f9cc591fe24913b",
+    "src/plane_test.rs": "46fdce11b2ba0e4760bc8e80edd6206cf5854ae1115bc92f3866a9dbd2bfe20e",
+    "src/point.rs": "e1fe92b053d9f6434f83e250c37ee372de569611ea3a7e768b01debc08e76a1e",
+    "src/pointcloud.rs": "c5701cfdd0b64dd72ac2fd727c68074758b7c7afba51a749c43a0d29d720f6dd",
+    "src/pointcloud_test.rs": "288d98ffc93fa8e2ac242f21a9dc7a659257200bd463d11a859ff7e4b3b6b2d9",
+    "src/point_test.rs": "97718afb06ca05b4d847282547d8926a446cf0f937d46eb98393b19081a6218a",
+    "src/polyline.rs": "32e8cbf399fdf9d4d10eb39d8da918ddb1468d710e622297b2dae523677f582f",
+    "src/polyline_test.rs": "f6a5bc27ee18f550dd36f62e1d1e7e93b0ca37a432f6f0e208ba280b1fecdf3d",
+    "src/primitives.rs": "7ed6966059bb2573ae082a7a7d52bdfb59ed0e2487b4189ebc887a3de9d3b9fb",
+    "src/primitives_test.rs": "7e24740bc87c49d503b1259e7f8acafffbb3d313d2576a08a8a9abb6432f0da7",
+    "src/proto/.gitattributes": "a79691a93b46e49ce460c26ef22afcc03d6eca1e63bf2edbc20e96159510f6c9",
+    "src/proto/session_proto.rs": "7e54beecf7e3c5264f4165220cd05be8ef76c13627a4ddea6849124adf6fb4c2",
+    "src/quaternion.rs": "7f31326d16a7cea292aaff2b54d0d5f1c2b3f8d2317ec50e08e5e4577f3f2e52",
+    "src/quaternion_test.rs": "13b1020ba03efffab4158bb0b8843f1a8b0d8a4528ee286ba13a411425498624",
+    "src/remesh_cdt.rs": "e0aab2b7f4a30991963e3407e4ef8e5e7ff5252001ed4326a5d0a4c8a262cf4a",
+    "src/remesh_cdt_test.rs": "31fe208c0d5fa9efffca22513ff955900161f6d645e7a1955d05727464622e53",
+    "src/remesh_nurbssurface_adaptive.rs": "7bff923021c72c65d4baa153952683bf8dca5a5f3d783838d0576d9dc1fe1084",
+    "src/remesh_nurbssurface_adaptive_test.rs": "28233ce0cc9a921d58ce9789fe6940126d5e1749967b3e1997d1225ba0656ee4",
+    "src/remesh_nurbssurface_grid.rs": "0b946ef93921334332ba3c8014406eeaa10ec342420b536cf53cd9f5c6955bfd",
+    "src/remesh_nurbssurface_grid_test.rs": "8b17e520664d9d58307c1462a10c64fe2cc02096666e2931b167a3bdf78305f4",
+    "src/render_mesh.rs": "0ff23f70c2d793f13a33bad1e87a090269db57c88d5bd17be35380bc642c9dab",
+    "src/session.rs": "63c7f537e1f1bbd780181268a040cfcc3189eb7d6c1b32d494a159a177eeca3b",
+    "src/session_config.rs": "68f3f4d11d562a81a66a38ba27e7cf620d1ae8793e8cd5d1cb91e2478fe0fd5f",
+    "src/session_config_test.rs": "81f74a02ad2b511b9cebe1984e18516a516f6309f12cbd3ba07143850f462aee",
+    "src/session_test.rs": "bbb650f2f8b7fd83b5d3230ec9980e7dd82357cab4dbb0b8a506ce84c53ad389",
+    "src/spatial_aabbtree.rs": "1abe0e715da8389a3463a8335f3b5a29b62b1105b3e42c3fd03e6017d24a8872",
+    "src/spatial_aabbtree_test.rs": "2e64a2e07b8546904189e11b92362d0f59633a15e0b499d5dea8d855cbee3f35",
+    "src/spatial_bvh.rs": "d73869d86c4c339fdd36f58d4f92517609adfc0052102f53b09f49735d4d16d6",
+    "src/spatial_bvh_test.rs": "dbd674c06de0845e35961b196cc758653d2f83add040f85ea445f39a17871b6b",
+    "src/spatial_kdtree.rs": "20184b911763cf1c531e7f4240f5dcaedcf2dc1c75efc183316c8385149f3b59",
+    "src/spatial_kdtree_test.rs": "920c4de173cbeb5f0dba2335b19b72fc741d4a669327aa02ab8dffb047ffa64d",
+    "src/spatial_octree.rs": "99ad88d205dc2ba61d2e9ce71002d4ffc7ea4cff9d20b833137e94f35e678b00",
+    "src/spatial_octree_test.rs": "ec0d29e33bf1efb5c627f6f9978560a287ae0063e882790138a574679a5c5063",
+    "src/spatial_rtree.rs": "c5c3fff7576eb0df92d264f0f5258fe0781e031377649ed35f6f52fc5e852384",
+    "src/spatial_rtree_test.rs": "4f9495e54e005619e60c142ffe23d52b7b01590e09aa8370073c447dfa7df2ea",
+    "src/split.rs": "9ab9e25fce719171842595c16ec27e992acc082da5a07103f3bf660fec93b94a",
+    "src/split_test.rs": "aeb4cd4884ea6523be02f38aa407e01985481d4d4ea8db67cc77184f8368985b",
+    "src/text.rs": "e31ae38fcadedd57c9a6dfda66baf1895e09f9893944cacecdb2a1eb10ac0ba6",
+    "src/text_test.rs": "978e9c6038af3c02a11ef6eb96b45784790832015ab66db36c5a22a9d6469c52",
+    "src/tolerance.rs": "d5dab04656fbddb2a5dd47b670d172f53a316f9de3799cd214e7a2205bb407ab",
+    "src/tolerance_test.rs": "4551dffb9df5ae2c3c6bee81c6bf078ab6c0f531f730950802231efec53b2878",
+    "src/tree.rs": "f353b0f1ede8a33828dc36c57441f0dc4f49d105c85312f509026c5ab2b28756",
+    "src/tree_test.rs": "00d643b328724bcbe9597c7efdd42986e22b65e571005f4ad5c474a2ff9a967f",
+    "src/vector.rs": "23a244e6763750ff840cc415c8596ab578694ca4001106c3dc7282dd04317b8b",
+    "src/vector_test.rs": "79d1177b050ed120b5b0ccae86ec845d531f55f736160191a013c751e73fae80",
+    "src/xform.rs": "1aa6afa51789918673869cd6e572b983bf5e05beae4360086b510f3e6451cafb",
+    "src/xform_test.rs": "e51e17a3984a967f5603f35b4c181ce0aaafb9e8c9b739ddf48fffe97be49225",
+    "Cargo.toml": "9484ca17c13748ee5fa0d31e1c04f4ab5c42346cb1626fdc1439004f1b7c72e9",
+    "build.rs": "cd8d703eca80af4ef136c63956bd97202178a8a86910e5abdfbb0d5fe1f428ce"
+  },
+  "browserAdapterScope": "queriedWebGPUAdapter comes from a separate navigator.gpu.requestAdapter query; it does not independently instrument the renderer?s selected adapter."
+}

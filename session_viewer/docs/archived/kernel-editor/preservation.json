@@ -1,0 +1,45 @@
+{
+  "status": "source-only; runtime acceptance pending",
+  "originalCommit": "8f990e44c1c841656aa3820fb507a246d04cfb18",
+  "originalIds": [
+    "17-solid",
+    "18-light",
+    "18a-editor",
+    "18b-actions",
+    "19-actions"
+  ],
+  "pages": [
+    {
+      "page": "journey/17-solid.md",
+      "archive": "archived/journey-17-solid.md",
+      "sha256": "f68cc1fa130bba64b32f97cb8aca0a2265470f3a1ee529c12dd46ad2ec8b5e0a"
+    },
+    {
+      "page": "journey/18-light.md",
+      "archive": "archived/journey-18-light.md",
+      "sha256": "5c16c15431151f91055e7871cc8b4350c2e7e7f876ae9e62a1029e743f8b007b"
+    },
+    {
+      "page": "journey/18a-editor.md",
+      "archive": "archived/journey-18a-editor.md",
+      "sha256": "9612755eee396d87f6fac5595da35f8ddf4ecbcfd4ea8fae5a3461ebe5d84e1f"
+    },
+    {
+      "page": "journey/18b-actions.md",
+      "archive": "archived/journey-18b-actions.md",
+      "sha256": "0750b4508a8bf8bdb2ede427b979a0b08a847e446c5d174f1a1037e1fc656b3d"
+    },
+    {
+      "page": "journey/19-actions.md",
+      "archive": "archived/journey-19-actions.md",
+      "sha256": "36ad206fb4526c7c2286f6b8ec1edf15e352db688e065756d5ba57755ae37690"
+    },
+    {
+      "page": "journey/consolidation/17-solid.md",
+      "archive": "archived/journey-consolidation-17-solid.md",
+      "sha256": "ca1edfeee51f90f5bd14c759caa29f2f2c552add4742bfc17e31c2b91289121a"
+    }
+  ],
+  "endpoint": "dc3c23bf69c03bcb6f612403802b3358b73313f416eaa3991c1ef42f4e511f58",
+  "destination": "7973001e990fea905edfad976b5319b82cf129a77b812d36c94a264995ad21ca"
+}

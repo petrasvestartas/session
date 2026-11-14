@@ -1,0 +1,818 @@
+{
+  "scope": "Fixed83 image handoff and three consolidated checkpoint documents. This is documentation acceptance; cumulative mathematics and production endpoint acceptance remain unfinished.",
+  "commands": [
+    {
+      "name": "final83-tooling01",
+      "args": [
+        "node",
+        "--import",
+        "./scripts/typescript.mjs",
+        "--test",
+        "--test-concurrency=1",
+        "scripts/course/subjects.test.ts",
+        "scripts/course/stage-core.test.ts",
+        "scripts/course/ownership.test.ts",
+        "scripts/course/endpoint-parity.test.ts",
+        "scripts/course/consolidated-evidence.test.ts",
+        "scripts/course/checkpoints.test.ts",
+        "scripts/course/verify-phases.test.ts",
+        "scripts/course/authored-pages.test.ts",
+        "scripts/course/image-cap-native-lock.test.ts",
+        "scripts/course/image-low-disk.test.ts",
+        "scripts/course/native-density.test.ts",
+        "scripts/course/image-merge.test.ts",
+        "plugins/course-source-assets.test.ts",
+        "scripts/course/mode-evidence.test.ts",
+        "scripts/course/consolidated-runtime.test.ts"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "final83-stored01",
+      "args": [
+        "node",
+        "--import",
+        "./scripts/typescript.mjs",
+        "scripts/course.ts",
+        "verify",
+        "12-identity",
+        "17-solid",
+        "19a-viewport",
+        "--stored"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "final83-docs01",
+      "args": [
+        "node",
+        "node_modules/vite/bin/vite.js",
+        "build",
+        "--base",
+        "/docs/",
+        "--outDir",
+        "../session_viewer/target/docs/vue",
+        "--emptyOutDir"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "final83-browser-full01",
+      "args": [
+        "node",
+        "--require",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+        "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/final83-docs-browser-full01.cjs"
+      ],
+      "returncode": 0
+    }
+  ],
+  "requiredFailures": [
+    {
+      "name": "structure",
+      "error": "Error: final83-structure01 failed. Read C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-checks\\final83-structure01.log\nExpected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    'src/app/agent.rs',\n    'src/app/clipping.rs',\n    'src/app/cloud_query.rs',\n    'src/app/command/mod.rs',\n...\n    'src/app/mod.rs',\n+   'src/app/mode.rs',\n    'src/app/modeling.rs',\n    'src/app/range_gate.rs',\n    'src/app/route.rs',\n    'src/app/scene.rs',\n    'src/app/scene_display.rs',\n...\n    'src/app/splitting.rs',\n+   'src/app/stage/actions.rs',\n+   'src/app/stage/check.rs',\n+   'src/app/stage/deck.rs',\n+   'src/app/stage/draw.rs',\n+   'src/app/stage/eval.rs',\n+   'src/app/stage/font.rs',\n+   'src/app/stage/geometry.rs',\n+   'src/app/stage/layout.rs',\n+   'src/app/stage/math_mode.rs',\n+   'src/app/stage/matrix.rs',\n+   'src/app/stage/mod.rs',\n+   'src/app/stage/mode.rs',\n+   'src/app/stage/morph.rs',\n+   'src/app/stage/net.rs',\n+   'src/app/stage/object.rs',\n+   'src/app/stage/paint.rs',\n+   'src/app/stage/presentation.rs',\n+   'src/app/stage/presentation_tests.rs',\n+   'src/app/stage/run.rs',\n+   'src/app/stage/spatial.rs',\n+   'src/app/stage/tests.rs',\n+   'src/app/stage/tex.rs',\n+   'src/app/stage/tween.rs',\n+   'src/app/stage/view.rs',\n    'src/app/stream.rs',\n    'src/app/surface_preview.rs',\n    'src/app/touch.rs',\n    'src/app/ui/command_line.rs',\n    'src/app/ui/command_line/tests.rs',\n\n"
+    },
+    {
+      "name": "ownership",
+      "error": "Error: final83-ownership01 failed. Read C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-checks\\final83-ownership01.log\n{\n  \"checkpoints\": 1310,\n  \"subjects\": 109,\n  \"laterSubjectRewrites\": 4840,\n  \"affectedFiles\": 305,\n  \"moduleRegistrations\": 437\n}\n"
+    },
+    {
+      "name": "parity",
+      "error": "Error: final83-parity01 failed. Read C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\course-checks\\final83-parity01.log\n{\n  \"checkpoint\": \"97-finish-with-the-maintained-browser-runtime\",\n  \"scope\": \"Reconstructed cumulative source; no runtime acceptance\",\n  \"productionFiles\": 328,\n  \"checkpointFiles\": 712,\n  \"passed\": false,\n  \"missing\": 323,\n  \"extra\": 707,\n  \"changed\": 3\n}\nThe cumulative endpoint differs from production. No baseline was changed.\n"
+    }
+  ],
+  "resources": {
+    "platform": "windows-job-object",
+    "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+    "laneMutex": "Local\\SessionViewerCourseImageJob",
+    "affinityOffset": 8,
+    "requiredAffinityMask": "0x300",
+    "maximumOtherLaneProcessors": 8,
+    "maximumOtherLaneMemoryMiB": 8192,
+    "maximumAggregateOurProcessors": 10,
+    "maximumAggregateOurMemoryMiB": 14336,
+    "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+    "requestedProcessors": 2,
+    "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+    "startedUtc": "2026-11-14T04:34:47.8405819Z",
+    "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+    "arguments": [
+      "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+      "tutorial-final83-validation01",
+      "timeout",
+      "590s",
+      "node",
+      "--import",
+      "./scripts/typescript.mjs",
+      "../session_viewer/target/final83-validation01.mjs"
+    ],
+    "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+    "timeoutSeconds": 595,
+    "jobCommitLimitBytes": 6442450944,
+    "swapCapSupported": false,
+    "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+    "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+    "exitCode": 1,
+    "timedOut": false,
+    "elapsedSeconds": 219.401,
+    "peakJobCommitBytes": 1747791872,
+    "affinityMask": "0x300",
+    "processors": 2,
+    "processId": 8712,
+    "descendantsAtCleanup": 1
+  },
+  "tooling": {
+    "passed": 110,
+    "failed": 0
+  },
+  "site": {
+    "pages": 1706,
+    "assets": 839
+  },
+  "browser": {
+    "status": "passed",
+    "browser": "157.0.8103.51",
+    "records": [
+      {
+        "slug": "readme",
+        "heading": "Build and understand the Session Viewer",
+        "images": 0,
+        "sources": 1
+      },
+      {
+        "slug": "maintaining",
+        "heading": "Maintaining the viewer course",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "archived/image-baselines",
+        "heading": "Original tutorial images",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/contents",
+        "heading": "Course contents",
+        "images": 22,
+        "sources": 0
+      },
+      {
+        "slug": "journey/03a-mathematics",
+        "heading": "A slide of mathematics",
+        "images": 2,
+        "sources": 28
+      },
+      {
+        "slug": "journey/stage-gap",
+        "heading": "Stage tutorial ownership and integration",
+        "images": 0,
+        "sources": 2
+      },
+      {
+        "slug": "journey/consolidation/42-window",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42a-id",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/12-identity",
+        "heading": "2.4 · Select, navigate and undo",
+        "images": 1,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/34g-heartbeat",
+        "heading": "4.4 · Heartbeat suspension and revocable startup",
+        "images": 0,
+        "sources": 2
+      },
+      {
+        "slug": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin",
+        "heading": "21.3 · Browser ownership of frame matrices and wakeups",
+        "images": 0,
+        "sources": 6
+      },
+      {
+        "slug": "journey/13a-history",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/16-orbit",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/15-perspective",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "archived/journey-consolidation-13a-history",
+        "heading": "2.5 · Document history and perspective rays",
+        "images": 1,
+        "sources": 0
+      },
+      {
+        "slug": "journey/17-solid",
+        "heading": "3.1 · Kernel geometry and one editor",
+        "images": 1,
+        "sources": 0
+      },
+      {
+        "slug": "journey/18-light",
+        "heading": "Kernel geometry and one editor",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/19-actions",
+        "heading": "Kernel geometry and one editor",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/19a-viewport",
+        "heading": "3.2 · One drawing size and one captured gesture",
+        "images": 1,
+        "sources": 0
+      },
+      {
+        "slug": "journey/20-resize",
+        "heading": "One drawing size and one captured gesture",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/22-shortcuts",
+        "heading": "One drawing size and one captured gesture",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "archived/journey-19-actions",
+        "heading": "3.3.1 · Route browser input through the editor",
+        "images": 2,
+        "sources": 0
+      },
+      {
+        "slug": "archived/journey-22-shortcuts",
+        "heading": "3.6.1 · Deliver wheel input without keyboard feature shortcuts",
+        "images": 2,
+        "sources": 0
+      },
+      {
+        "slug": "journey/stage-scene",
+        "heading": "Mathematics in the real scene",
+        "images": 0,
+        "sources": 2
+      },
+      {
+        "slug": "journey/consolidation/52-tree",
+        "heading": "8.1 · Nested original sources and exact parent edits",
+        "images": 0,
+        "sources": 7
+      },
+      {
+        "slug": "journey/consolidation/35-stroke",
+        "heading": "5.1 · Original lines and a screen-space stroke lane",
+        "images": 1,
+        "sources": 7
+      },
+      {
+        "slug": "journey/consolidation/36-chain",
+        "heading": "5.2 · Joined paths and headed ends",
+        "images": 1,
+        "sources": 9
+      },
+      {
+        "slug": "journey/consolidation/38-layout",
+        "heading": "5.4 · NURBS source ownership and derived samples",
+        "images": 1,
+        "sources": 6
+      },
+      {
+        "slug": "journey/42f-mesh",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42g-image",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42h-owner",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42i-copy",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42j-read",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42k-input",
+        "heading": "6.1 · A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/43-ticket",
+        "heading": "6.2 · Accept a hit only for its current view",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/43a-flight",
+        "heading": "6.2 · Accept a hit only for its current view",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/43b-view",
+        "heading": "6.2 · Accept a hit only for its current view",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44-topology",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44a-tags",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44b-sources",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44c-resolve",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44d-pulling",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44e-pipeline",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44f-metadata",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44g-edge-ink",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44h-mode-gpu",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44i-ink-highlight",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44ia-original-ink",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44j-face-highlight",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44k-selection",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/44l-input",
+        "heading": "6.3 · Pick original faces, edges and controls",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/45-order",
+        "heading": "6.4 · Ordered multi-selection and atomic edits",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/45a-batch",
+        "heading": "6.4 · Ordered multi-selection and atomic edits",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/45b-membership",
+        "heading": "6.4 · Ordered multi-selection and atomic edits",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/45bb-cycle",
+        "heading": "6.4 · Ordered multi-selection and atomic edits",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/45c-input",
+        "heading": "6.4 · Ordered multi-selection and atomic edits",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/46-tool-panel",
+        "heading": "7.1 · Active tools own their command input",
+        "images": 0,
+        "sources": 4
+      },
+      {
+        "slug": "journey/47-registry",
+        "heading": "7.2 · Typed commands and host requests",
+        "images": 0,
+        "sources": 4
+      },
+      {
+        "slug": "journey/47a-actions",
+        "heading": "7.2 · Typed commands and host requests",
+        "images": 0,
+        "sources": 4
+      },
+      {
+        "slug": "journey/47b-parse",
+        "heading": "7.2 · Typed commands and host requests",
+        "images": 0,
+        "sources": 4
+      },
+      {
+        "slug": "journey/47c-route",
+        "heading": "7.2 · Typed commands and host requests",
+        "images": 0,
+        "sources": 4
+      },
+      {
+        "slug": "journey/48-coordinates",
+        "heading": "7.3 · Construction-plane drafts and one final commit",
+        "images": 3,
+        "sources": 4
+      },
+      {
+        "slug": "journey/48a-draft",
+        "heading": "7.3 · Construction-plane drafts and one final commit",
+        "images": 3,
+        "sources": 4
+      },
+      {
+        "slug": "journey/48b-preview",
+        "heading": "7.3 · Construction-plane drafts and one final commit",
+        "images": 3,
+        "sources": 4
+      },
+      {
+        "slug": "journey/48c-commit",
+        "heading": "7.3 · Construction-plane drafts and one final commit",
+        "images": 3,
+        "sources": 4
+      },
+      {
+        "slug": "journey/48d-input",
+        "heading": "7.3 · Construction-plane drafts and one final commit",
+        "images": 3,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49-settings",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49a-math",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49b-sources",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49c-bins",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49d-index",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49e-cache",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49ea-state",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/49f-input",
+        "heading": "7.4 · Precise snapping with derived search caches",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/50-placements",
+        "heading": "7.5 · Temporary transforms with a fixed baseline",
+        "images": 1,
+        "sources": 5
+      },
+      {
+        "slug": "journey/50a-preview",
+        "heading": "7.5 · Temporary transforms with a fixed baseline",
+        "images": 1,
+        "sources": 5
+      },
+      {
+        "slug": "journey/50b-display",
+        "heading": "7.5 · Temporary transforms with a fixed baseline",
+        "images": 1,
+        "sources": 5
+      },
+      {
+        "slug": "journey/50c-move",
+        "heading": "7.5 · Temporary transforms with a fixed baseline",
+        "images": 1,
+        "sources": 5
+      },
+      {
+        "slug": "journey/50d-ownership",
+        "heading": "7.5 · Temporary transforms with a fixed baseline",
+        "images": 1,
+        "sources": 5
+      },
+      {
+        "slug": "journey/51-handles",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51a-rays",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51b-pivot",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51c-hit",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51d-grab",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51e-transform",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51ez-pack-and-sample-local-handle-vertices",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51f-mesh",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/51g-layout",
+        "heading": "7.6 · Handles, numeric edits and source-part deformation",
+        "images": 1,
+        "sources": 4
+      }
+    ],
+    "errors": []
+  },
+  "visualReview": {
+    "desktop": "Reviewed all eight desktop captures: text, source inclusions, figures and navigation are readable.",
+    "upright": "Reviewed settled 390x844 editor and viewport pages plus pacing. All are readable with the sidebar closed; the original transient editor capture is preserved.",
+    "physicalDevices": "Not tested."
+  },
+  "inputPreservation": {
+    "checked": 26295,
+    "changed": [
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\contents.md",
+      "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\docs\\journey\\roadmap.md"
+    ]
+  },
+  "sourcePlanSha256": "7912661b2b18e02eba7857febc2bd27083ea92cb33109436bcc24ea77fa4903c",
+  "checkerSha256": "a4168ca8f53a10660776d01a4e468b5176a7bea46b375720f42b39dce38d2db1",
+  "captures": {
+    "17-solid-desktop.png": "139e14666dca0f3806a63334ed085a2248475aad5ea948f9feaddb2c4084ba11",
+    "17-solid-upright.png": "4c1ffa9ec46d0d1c94e3e7b0fecafa52e8993d0b86c6384fdf62f35e4727c7b8",
+    "19a-viewport-desktop.png": "26328aa8b81ec6a29e0e0ebf2c3fb3a341a943f1d753834de99ee76ebd30cedc",
+    "19a-viewport-upright.png": "1ddcca1d736514ff49ab53516ffa74570a0d97661b6c62dfb2acca3983e358cc",
+    "35-stroke-desktop.png": "b2f60ad81a4dfb6103e29131d8df28e7f9a0f75e8a3ebc72bdc7708dc1157c75",
+    "36-chain-desktop.png": "a1078e884b451c132ac7a8c9ef020cd28baf9ec39ff52781485bf043cfdf7b3b",
+    "38-layout-desktop.png": "669150834470ea3daf60e7f230da3fdb7143a0f1f9214918d93cfb40f05c111c",
+    "52-tree-desktop.png": "1e1389fe0624f2cd0c4eaf035063093005c85c02fc50965bea17ea12af00e31e",
+    "kernel-motion-desktop.png": "3a204cf8dd238e4e9dc030f570355b52229236b07bd8e6c83b049188e9e19c2d",
+    "pacing-upright.png": "a10e7009357f8f11efa345fdaedd7a2dcb297cb26f3e0483fbfe4e4c7a77c80e",
+    "selection-desktop.png": "7cde9c935dfbbba178d8cc3ec5624529782c03cf1975e7f328c192e662e6a88c"
+  },
+  "externalLinks": "All five live kernel source URLs succeeded under the original HTTP assertions after retained 429 retries. No local-only fallback was run.",
+  "settledLayoutFollowup": {
+    "browser": {
+      "status": "passed",
+      "browser": "157.0.8103.51",
+      "records": [
+        {
+          "slug": "journey/release",
+          "receipts": 0
+        },
+        {
+          "id": "17-solid",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "settledSidebar": true,
+          "menuEscape": true
+        },
+        {
+          "id": "19a-viewport",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "settledSidebar": true,
+          "menuEscape": true
+        }
+      ],
+      "errors": []
+    },
+    "resources": {
+      "platform": "windows-job-object",
+      "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+      "laneMutex": "Local\\SessionViewerCourseImageJob",
+      "affinityOffset": 8,
+      "requiredAffinityMask": "0x300",
+      "maximumOtherLaneProcessors": 8,
+      "maximumOtherLaneMemoryMiB": 8192,
+      "maximumAggregateOurProcessors": 10,
+      "maximumAggregateOurMemoryMiB": 14336,
+      "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+      "requestedProcessors": 2,
+      "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+      "startedUtc": "2026-11-14T04:46:45.8296498Z",
+      "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "arguments": [
+        "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+        "tutorial-final-publication-docs01",
+        "timeout",
+        "390s",
+        "node",
+        "--import",
+        "./scripts/typescript.mjs",
+        "../session_viewer/target/final-publication-docs01.mjs"
+      ],
+      "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+      "timeoutSeconds": 395,
+      "jobCommitLimitBytes": 6442450944,
+      "swapCapSupported": false,
+      "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+      "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+      "exitCode": 0,
+      "timedOut": false,
+      "elapsedSeconds": 45.796,
+      "peakJobCommitBytes": 1649086464,
+      "affinityMask": "0x300",
+      "processors": 2,
+      "processId": 39696,
+      "descendantsAtCleanup": 1
+    },
+    "commands": {
+      "results": [
+        {
+          "name": "final-publication-docs01",
+          "args": [
+            "node",
+            "node_modules/vite/bin/vite.js",
+            "build",
+            "--base",
+            "/docs/",
+            "--outDir",
+            "../session_viewer/target/docs/vue",
+            "--emptyOutDir"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "final-publication-browser01",
+          "args": [
+            "node",
+            "--require",
+            "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+            "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/final-publication-docs-browser01.cjs"
+          ],
+          "returncode": 0
+        }
+      ]
+    },
+    "receiptLinks": {
+      "scope": "HTTP fetches of the two exact built status-page JSON links, including their cache query strings; separate from the browser layout check",
+      "records": [
+        {
+          "url": "/docs/course/docs/journey/release/history-editor-viewport-windows-20261114.json?v=841a8f9d856b",
+          "status": 200,
+          "sha256": "841a8f9d856b2aae99668382de38ab30d1a8bf64b40852859c8ec0561848f8c7",
+          "matchesSource": true
+        },
+        {
+          "url": "/docs/course/docs/journey/release/consolidation-docs-windows-20261114.json?v=8ea73b47a1e9",
+          "status": 200,
+          "sha256": "8ea73b47a1e98d19c4518dd5a2195f707a1bfab67eb1afef9d114fe3feb97c69",
+          "matchesSource": true
+        }
+      ]
+    },
+    "scope": "Browser layout/menu checks passed; the spot browser JSON selector returned zero because it omitted URL query strings. Separate HTTP checks above verified both exact rendered-page links. Full88-route checker already accepts query strings.",
+    "captures": {
+      "17-solid-upright.png": "2539332a124ef1d5359919254c504c9abe42ed1e3f935c1c5cf5155ba0a00a45",
+      "19a-viewport-upright.png": "b6b0d5eba7f73d2c8c067eb0059aa53a97d977d057168a864dc98b933e7c4fd9",
+      "release-desktop.png": "8f85b0b3d1582a56d3c1ef8a4e47569d5043905ac425b40c542bd10c228f65ce"
+    },
+    "checkerSha256": "4bc8b2190a6e399702dc2a6e1829fef73cdcdbdbfe3fbb868f9908b2b73ae076"
+  }
+}

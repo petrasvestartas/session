@@ -38,3 +38,35 @@ test('mode evidence binds the tested source and retains failed history acceptanc
         }
     }
 });
+
+test('force-density comparison evidence preserves every failed history assertion', () => {
+    const receipt = JSON.parse(read(path.join(docs, 'journey/release/mode-force-density-windows-20261114.json')));
+    const original = JSON.parse(read(path.join(docs, 'journey/release/mode-browser-windows-20261114.json')));
+    assert.deepEqual(receipt.inputs, original.inputs);
+    assert.equal(receipt.normalizedChecker, original.normalizedChecker);
+    assert.equal(receipt.status, 'failed-history-assertions');
+    assert.equal(receipt.completedComparisons, 6);
+    assert.equal(Object.keys(receipt.cases).length, 6);
+    let pairs = 0;
+    for (const chapter of [1, 2, 3]) for (const viewport of ['desktop', 'upright']) {
+        const name = `mode-force-density-${chapter}-${viewport}`;
+        const record = receipt.cases[name];
+        assert.equal(record.status, 'failed');
+        assert.equal(record.comparisonComplete, true);
+        assert.equal(record.roundTripFailures.length, 2);
+        assert.equal(record.frames.length, [16, 15, 29][chapter - 1]);
+        assert.equal(receipt.commands[name].resources.exitCode, 1);
+        assert.equal(receipt.commands[name].resources.timedOut, false);
+        assert.deepEqual(record.errors, []);
+        for (const frame of record.frames) {
+            assert.equal(frame.pair.length, 2);
+            assert.deepEqual(frame.pair[0].state, frame.pair[1].state);
+            assert.equal(frame.pair[0].pixels, frame.pair[1].pixels);
+            assert.deepEqual(frame.pair[0].state.errors, []);
+            assert.deepEqual(frame.pair[0].state.overlaps, []);
+            pairs++;
+        }
+    }
+    assert.equal(pairs, 120);
+    assert.equal(receipt.comparedFramePairs, pairs);
+});

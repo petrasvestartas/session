@@ -436,34 +436,48 @@
       "keyboardRoundtrip": false
     },
     "12-identity": {
-      "source": "0b7ab9bb85070ea09cae54b0b2296fba0bdb9e99b891b54907397bb72b4204c2",
-      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
-      "extraChecker": null,
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-07T09:35:38.854Z",
-      "status": "Selection follows object identity, even when rows move.",
-      "canvas": "964c3b79a80b5ebdfb77e29e6da1af4b471239a7d4bbaba8bb522560e3070439",
-      "file": "12-identity-browser.png",
+      "source": "3a2e95ccccf262cd0ab247a92282de599988b0f4f04c0fdee1d5f907da1bc7bd",
+      "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+      "extraChecker": "5da78404dd3356e737eed3f263bb1d3fafa484a99d81223c2c140336b8e06776",
+      "browser": "157.0.8103.51",
+      "headless": true,
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-angle=d3d11"
+      ],
+      "captured": "2026-11-14T04:07:11.040Z",
+      "status": "Orbit moves the eye around a fixed target.",
+      "canvas": "8f843bac18c9b4375fc7ac51ef2f7d2a658951dfb50c8f324e61cb8fd3a53dae",
+      "file": "runtime-20261114/12-identity-desktop.png",
+      "queriedWebGPUAdapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
       "initialViewport": {
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
       "initialCanvas": {
         "x": 0,
         "y": 0,
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
       "screenshotViewport": {
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
-      "bundle": "9d8946e1ec3f5f9dc1b62a50bd125e6d8d20572d321290cc8d1cce8928cf3c4d",
+      "bundle": "d298bc72d4d9f4adacf651a6cd917fbc6a935894f474812d30b7044c4b22f24a",
       "commands": [
-        "Select Next"
+        "View Isometric"
       ],
-      "keyboardRoundtrip": false
+      "keyboardRoundtrip": false,
+      "capturedFile": "12-identity-browser.png",
+      "sha256": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7",
+      "visualScope": "Personally reviewed: clear scene and readable dock."
     },
     "13-picking": {
       "source": "bb7ebd4dcb3720c4c76e3e73441bd2b18ab1b63e986f6595a7a458b0c50aada3",
@@ -588,35 +602,52 @@
       "keyboardRoundtrip": false
     },
     "17-solid": {
-      "source": "f4da87e42a8a19696fa8355ae0d05f336ba1ac9662b8d45a27da5279e4076bc2",
-      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
-      "extraChecker": null,
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-07T09:36:13.651Z",
-      "status": "Kernel geometry becomes an undoable scene object.",
-      "canvas": "0ee2fc3604ff0a19c74d31d09735848b171a757541fd32a269d4dab08efba580",
-      "file": "17-solid-browser.png",
+      "source": "fe3ed6f49bbf55b04106eb9ad51149bb9bf29f66c98671a218a4a0ae4ecc70b5",
+      "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+      "extraChecker": "08a1012e5f3fef5d524d714882df83cf36ab4146e4e615f3e16344be9de5ba89",
+      "browser": "157.0.8103.51",
+      "headless": true,
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-angle=d3d11"
+      ],
+      "captured": "2026-11-14T04:07:16.502Z",
+      "status": "Every document action follows the same editor path.",
+      "canvas": "bb12e454781706f7c4e22ffc87cb295ac8898e215dc4202a0de5f890da39409a",
+      "file": "runtime-20261114/17-solid-desktop.png",
+      "queriedWebGPUAdapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
       "initialViewport": {
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
       "initialCanvas": {
         "x": 0,
         "y": 0,
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
       "screenshotViewport": {
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
-      "bundle": "1cb2ec7550f3614b0da5341cd688412b71d94d2a8126c9d00a6ae361460d0552",
+      "bundle": "833bb757d7c920f3f2d668628f5cb6f9cc6ac66d4640d47c4eea7226f46c0eb5",
       "commands": [
         "Example Box",
-        "View Isometric"
+        "View Isometric",
+        "Select Next",
+        "Select Next",
+        "Select Next"
       ],
-      "keyboardRoundtrip": false
+      "keyboardRoundtrip": false,
+      "capturedFile": "17-solid-browser.png",
+      "sha256": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413",
+      "visualScope": "Personally reviewed: clear scene and readable dock."
     },
     "18-light": {
       "source": "f7ed86af799abc7447f7e20b631e0b15f266672c2213092b1915a01d40eafdd3",
@@ -4388,38 +4419,50 @@
       "keyboardRoundtrip": false
     },
     "19a-viewport": {
-      "source": "4b2a5ba1af46128f29dc4e667760baa481fa7bca2107d9eb62816e1cf9bc6f3b",
-      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
-      "extraChecker": "2e00311471039d4203826a4e61c0ca22a611e9c44b7fb299fae214b3b5ca78fc",
-      "browser": "153.0.8010.36",
-      "headless": false,
-      "captured": "2026-10-07T09:36:37.625Z",
-      "status": "Every document action follows the same editor path.",
-      "canvas": "5abd3092f46f2189217e764c3a84eaf371f9a2841c9cc6f34a9e0259d40f2ae1",
-      "file": "19a-viewport-browser.png",
+      "source": "b29dfeecba76636aebd96479a5618f71d0f6ec320adfd61057d93f474fe3fdee",
+      "checker": "d7f4be8a157763c5bc7a103609550fbc6b1ec6ef6fad55c70e3ec39b5f3751a7",
+      "extraChecker": "fa1bf4e2eb81da919200a784910026ae906c1833f303ad27734ac7850c7a0af2",
+      "browser": "157.0.8103.51",
+      "headless": true,
+      "args": [
+        "--enable-unsafe-webgpu",
+        "--ignore-gpu-blocklist",
+        "--use-angle=d3d11"
+      ],
+      "captured": "2026-11-14T04:07:28.557Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "101d53bc11570130d3f42b6be9ed275591c6a88d50609738e03506ffd31683da",
+      "file": "runtime-20261114/19a-viewport-desktop.png",
+      "queriedWebGPUAdapter": {
+        "vendor": "intel",
+        "architecture": "gen-12lp",
+        "device": "",
+        "description": ""
+      },
       "initialViewport": {
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
       "initialCanvas": {
         "x": 0,
         "y": 0,
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
       "screenshotViewport": {
-        "width": 900,
-        "height": 760
+        "width": 1280,
+        "height": 720
       },
-      "bundle": "7905eb5126988438a6a1e31018170856fa9afbb71806d0cd180aed96944b158f",
+      "bundle": "ae1fe7393826f6af0006c3c2408207e78833d5ea80ef15981ea58baf3482c207",
       "commands": [
         "Example Box",
         "View Isometric",
-        "Select Next",
-        "Select Next",
-        "Select Next"
+        "Pan Right"
       ],
-      "keyboardRoundtrip": false
+      "keyboardRoundtrip": false,
+      "capturedFile": "19a-viewport-browser.png",
+      "sha256": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362",
+      "visualScope": "Personally reviewed: clear scene and readable dock."
     },
     "20a-press": {
       "source": "d2ac0d25283ade9b36b7b90d68863e04a78a7a23c809226daa9815aa45c61c42",

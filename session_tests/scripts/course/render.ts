@@ -112,11 +112,11 @@ export function resultImage(file: string, caption: string) {
     return `![${caption}](../screenshots/journey/${actual})`;
 }
 
-export function generate(ids?: string[]) {
-    return withExpectedSequence(() => generatePages(ids ? new Set(ids) : undefined));
+export function generate(ids?: string[], navigationOnly = false) {
+    return withExpectedSequence(() => generatePages(ids ? new Set(ids) : undefined, navigationOnly));
 }
 
-function generatePages(selected?: Set<string>) {
+function generatePages(selected?: Set<string>, navigationOnly = false) {
     const steps = course().steps;
     const stepsById = new Map(steps.map(step => [step.id, step]));
     if (selected) for (const id of selected) if (!stepsById.has(id)) throw Error(`Unknown checkpoint: ${id}`);
@@ -156,7 +156,7 @@ function generatePages(selected?: Set<string>) {
     };
 
     for (const [index, step] of steps.entries()) {
-        if (step.authored || selected && !selected.has(step.id)) {
+        if (navigationOnly || step.authored || selected && !selected.has(step.id)) {
             for (const edit of step.edits) files[edit.path] = edited(files[edit.path], edit, snippetSource(edit.snippet), step.id);
             continue;
         }
@@ -333,7 +333,7 @@ function generatePages(selected?: Set<string>) {
         : `${steps.length} current checkpoints; ${verified} have fresh build and Chrome evidence; ${steps.length - verified} await fresh Chrome acceptance.`;
     write(roadmap, read(roadmap)
         .replace(/^\*\*(?:Draft plan|Course status):[^\n]*?\*\*/m,
-            `**Course status: ${progress}${planned > steps.length ? ` ${planned - steps.length} planned lessons remain.` : ''}**`)
+            `**Course status: ${progress}**`)
         .replace(/all \d+ current checkpoints/g, `all ${steps.length} current checkpoints`)
         .split('\n').map(line => {
             if (!/^- \[[ x]\] (?:\d+[a-z]*|\d+(?:\.\d+)+|Reference comparison) · /.test(line)) return line;
@@ -348,15 +348,15 @@ function generatePages(selected?: Set<string>) {
     const table = ['| Lesson | Working result |', '| --- | --- |',
         ...steps.map(step => `| [${book.byId.get(step.id)?.number || 'Reference comparison'} · ${step.title}](${step.page}) | ${step.goal} |`)];
     write(overview, read(overview)
-        .replace(/^The \[complete (?:draft )?lesson checklist\].+$/m,
-            `The [complete lesson checklist](journey/roadmap.md) lists **${steps.length} authored checkpoints${planned > steps.length ? ` and ${planned - steps.length} planned lessons` : ''}**. Use the [daily coding route](journey/daily-plan.md) to group small checkpoints. Its lesson checkboxes track fresh build and browser acceptance.`)
+        .replace(/^(?:The \[complete (?:draft )?lesson checklist\]|The active course contains).+$/m,
+            `The active course contains **${steps.length.toLocaleString('en-US')} runnable checkpoints**. The [historical checklist](journey/roadmap.md) also retains superseded entries; those entries are not additional planned subjects. Use the [daily coding route](journey/daily-plan.md) for study sessions and the release evidence for acceptance.`)
         .replace(/Remaining chapters must meet the same limit as they are written\./, 'Reading and experiments are estimated separately.')
         .replace(/Show all \d+ cumulative checkpoints/, `Show all ${steps.length} cumulative checkpoints`)
-        .replace(/\*\*Current release:[^\n]+/, `**Current release: ${readerCount.toLocaleString('en-US')} reader-facing lessons and ${steps.length.toLocaleString('en-US')} preserved implementation checkpoints.** ${consolidatedCount} of ${book.chapters.length} chapters are consolidated, retaining ${reading.aliases.size} original checkpoint IDs. The [source and coverage map](journey/production-course-map.md) tracks the retained lessons and remaining implementation coverage. Check the [release evidence](journey/release.md) before starting; consolidation does not revalidate historical GPU evidence.`)
+        .replace(/\*\*Current (?:release|route):[^\n]+/, `**Current route: ${readerCount.toLocaleString('en-US')} reader-facing subjects and ${steps.length.toLocaleString('en-US')} active runnable checkpoints.** Navigation groups ${consolidatedCount} of ${book.chapters.length} chapters; executable consolidation and finished-subject ownership remain incomplete. The [source and coverage map](journey/production-course-map.md) tracks implementation coverage. Check the [release evidence](journey/release.md) before starting; navigation does not revalidate historical GPU evidence.`)
         .replace(/\| Lesson \|[\s\S]*?(?=\n\n)/, table.join('\n')));
     const contents = ['# Course contents',
         'Read in chapter order. Consolidated lessons use **chapter.lesson** numbering, such as **1.1**. Original chapter.section.checkpoint numbers and URLs remain available for recovery and source comparison. The [daily plan](daily-plan.md) keeps stopping points within each lesson.',
-        `[Production source and coverage map](production-course-map.md) · **${consolidatedCount} / ${book.chapters.length} chapters consolidated; ${readerCount.toLocaleString('en-US')} reader-facing lessons on the current route**. All ${steps.length.toLocaleString('en-US')} old checkpoint IDs remain available; the final maintained-runtime comparison is a reference appendix.`,
+        `[Production source and coverage map](production-course-map.md) · **${readerCount.toLocaleString('en-US')} reader-facing subjects; ${steps.length.toLocaleString('en-US')} active runnable checkpoints**. Navigation grouping is not executable consolidation. Historical routes and archived sources remain available; the final maintained-runtime comparison is a reference appendix.`,
         '[Progress and remaining work](roadmap.md) · [Visual review and known issues](visual-review.md). Existing lesson links and saved checkpoints remain valid.',
         'Each chapter shows a recorded result from one linked checkpoint. **Current Chrome check** means that checkpoint’s source and browser checks match the recorded proof. **Recorded Chrome screenshot** means fresh acceptance is pending. **Native render** shows GPU output without proving browser interaction. These pictures do not establish that every lesson in a chapter works. These record counts do not require a fresh browser run for every retained checkpoint.'];
     for (const chapter of book.chapters) {
@@ -411,5 +411,5 @@ function generatePages(selected?: Set<string>) {
         .replace(/\| Checkpoint \|[\s\S]*?(?=\n\n)/,
         ['| Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Study sessions |',
             '| --- | ---: | ---: | --- | --- | --- |', ...rows].join('\n')));
-    console.log(`Generated ${steps.length} lessons from their source edits.`);
+    console.log(navigationOnly ? `Updated navigation for ${steps.length} checkpoints; lesson bodies unchanged.` : `Generated ${steps.length} lessons from their source edits.`);
 }

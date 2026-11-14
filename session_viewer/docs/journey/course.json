@@ -510,8 +510,8 @@
         {
           "path": "src/history.rs",
           "before": null,
-          "snippet": "journey/code/12-selection-8.rs",
-          "why": "Retain shared-mesh snapshots and bounded undo/redo branches."
+          "snippet": "journey/code/12-history-final.rs",
+          "why": "Complete fallible and infallible snapshot transactions in the history owner."
         },
         {
           "path": "src/gpu_mesh.rs",
@@ -541,228 +541,19 @@
     },
     {
       "id": "17-solid",
-      "title": "Bring a solid into the scene",
+      "title": "Kernel geometry and one editor",
       "page": "journey/17-solid.md",
       "hours": [
         3,
         5
       ],
-      "goal": "Create a kernel box, convert it to display data, and add it as one undoable scene object.",
-      "trace": "Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid",
-      "question": "Why does a failed mesh conversion belong outside the GPU draw loop?",
-      "answer": "Conversion establishes the display data contract before an object enters the scene. A failure should leave the document and history unchanged. The draw loop should read already valid GPU resources; it cannot repair an invalid index or decide whether a failed document edit should be kept.",
-      "story": "Create a grey box with the geometry kernel and adapt it to our validated display mesh. `to_render` supplies float vertices and triangle indices; the adapter selects position and colour for our six-float vertex layout.\n\nThe box has eight geometric corners, six quad faces and twelve triangles. This example handles its convex faces; imported concave faces need later topology work.\n\nConvert kernel `u32` indices with `u16::try_from`. Return an error for an index that cannot fit rather than connecting the wrong corners.\n\nAdd `History::try_edit`: commit and clear redo only on success; restore the previous scene on error. A test deliberately mutates then fails. The box is unlit here; the next shader change reveals its face directions.\n\n![A kernel box becomes a validated display mesh; a successful document transaction inserts it before the renderer uploads its triangles.](../illustrations/journey-17.svg)",
-      "result": "Type `Example Box`, then `View Isometric`. A solid box appears. `Undo` removes that one object; `Redo` restores it.",
-      "experiment": "Add a box and undo. In the rollback test, predict whether a failed new edit should erase the available redo. Run the test: it should not. Then redo the successful box addition. Separate three questions in your notes: did creation succeed, did the document change, and was the change uploaded?",
-      "production": "The final viewer converts kernel geometry into renderable lanes while preserving document identity and transactional edits. This adapter is the first real kernel-to-display connection; later lessons retain face and edge provenance and share allocations across many objects.",
-      "browser_status": "Kernel geometry becomes an undoable scene object.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "image_result": "The new object is the pale grey box behind the triangles. Its faces have the same colour because lighting is not implemented yet. The helper adds a kernel box, uploads the scene, and checks its projected position and visible area.",
-      "frame": "journey/checks/17-solid.rs",
-      "tests": true,
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "edits": [
-        {
-          "path": "src/mesh.rs",
-          "before": "    pub fn vertices(&self) -> &[[f32; 6]] {\n",
-          "snippet": "journey/code/17-solid-01.rs",
-          "why": "Adapt kernel triangle data to the current vertex and index layout with a checked narrowing conversion."
-        },
-        {
-          "path": "src/mesh.rs",
-          "before": "    #[test]\n    fn invalid_connections_and_nonfinite_vertices_are_rejected() {\n",
-          "snippet": "journey/code/17-solid-02.rs",
-          "why": "Check the adapter using a solid with known topology."
-        },
-        {
-          "path": "src/scene.rs",
-          "before": "    pub fn toggle_extra(&mut self) {\n",
-          "snippet": "journey/code/17-solid-03.rs",
-          "why": "Construct and place a box, then insert it only after its display mesh is valid."
-        },
-        {
-          "path": "src/history.rs",
-          "before": "    pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {\n        let before = scene.clone();\n        action(scene);\n        if self.undo.len() == LIMIT {\n            self.undo.remove(0);\n        }\n        self.undo.push(before);\n        self.redo.clear();\n    }\n",
-          "snippet": "journey/code/17-solid-04.rs",
-          "why": "Make transaction recording depend on success. The existing edit wrapper remains convenient for actions that cannot return an error."
-        },
-        {
-          "path": "src/history.rs",
-          "before": "    #[test]\n    fn retained_history_has_a_fixed_count_limit() {\n",
-          "snippet": "journey/code/17-solid-05.rs",
-          "why": "Prove that a partial failed change cannot destroy either document contents or the redo branch."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/17-solid-window-1.rs",
-          "before": "        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n",
-          "why": "Add Example Box to the vocabulary."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/17-solid-window-2.rs",
-          "before": "                        .and_then(|ray| crate::picking::pick(&scene, &ray));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    history.edit(&mut scene, Scene::toggle_extra);\n                    selected = selected.filter(|id| scene.contains(*id));\n",
-          "why": "Insert the box as one fallible history edit and report construction errors."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/17-solid-window-3.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Orbit moves the eye around a fixed target.\");\n    Ok(())\n}\n\n",
-          "why": "Report the undoable kernel object."
-        }
-      ],
-      "browser_caption": "Example Box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint."
-    },
-    {
-      "id": "18-light",
-      "title": "Read the shape through light",
-      "page": "journey/18-light.md",
-      "hours": [
-        1,
-        2
-      ],
-      "goal": "Shade the box faces according to their direction, using the same mesh and renderer.",
-      "trace": "World position → neighbouring surface directions → normal → light alignment → fragment colour",
-      "question": "Why should orbiting the camera leave the brightness of a particular box face unchanged?",
-      "answer": "Both the normal and the light direction are expressed in world coordinates. Orbit changes where we look from, not the face direction or the light. A different face may become visible, but the same face keeps the same brightness. Mixing a camera-space normal with a world-space light would break that relationship.",
-      "story": "Shade the grey box according to surface direction. Pass world positions from the vertex shader to the fragment shader.\n\n`dpdx` and `dpdy` estimate horizontal and vertical position changes. Their cross product gives the triangle normal; normalisation makes it unit length. Dot it with the unit world-space light direction to measure alignment.\n\nUse `abs` for this display's two-sided lighting and retain a minimum brightness of 0.3. Multiply RGB before the existing sRGB output conversion.\n\nOnly shader logic changes. Mesh still supplies positions and colours, Camera positions the view, and Renderer submits the triangles. Adjoining box faces now have visibly different brightness.\n\n![Two directions along a face give its normal; comparing that normal with the light controls brightness.](../illustrations/journey-18.svg)",
-      "result": "Type `Example Box` and `View Isometric`. Faces pointing in different directions should have different brightness, making the box’s shape easier to read.",
-      "experiment": "Change the light to vec3<f32>(0.0, 0.0, 1.0). Predict the box first: the top should be bright and both vertical sides equally dark. Try it, then restore the original light. Explain why this changes colour without moving a single vertex.",
-      "production": "This is flat lighting: each triangle has one surface direction. The final viewer also needs smooth normals, materials, two-sided surface rules and contact shadows. Those features will extend the same distinction between geometry, view and shading.",
-      "browser_status": "Surface direction changes brightness, not geometry.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "image_result": "Compare the box with lesson 17: its left face is darker than its right face, and its top is brightest. Geometry and camera are unchanged; the shader now shades each face. Three projected face samples check those brightness levels.",
-      "frame": "journey/checks/18-light.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "tests": true,
-      "edits": [
-        {
-          "path": "src/triangle.wgsl",
-          "before": "@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;\n\nstruct VertexOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) colour: vec3<f32>,\n}\n\n@vertex\nfn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {\n    var output: VertexOutput;\n    output.position = transform * vec4<f32>(position, 1.0);\n    output.colour = colour;\n    return output;\n}\n\n@fragment\nfn fragment(input: VertexOutput) -> @location(0) vec4<f32> {\n    return vec4<f32>(input.colour, 1.0);\n}\n",
-          "snippet": "journey/code/18-light-01.wgsl",
-          "why": "Pass world positions through the pipeline and turn face direction into brightness."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/18-light-window-1.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Kernel geometry becomes an undoable scene object.\");\n    Ok(())\n}\n\n",
-          "why": "Report that lighting changes brightness without changing geometry."
-        }
-      ],
-      "browser_caption": "Compare the box with lesson 17: the same geometry now has three face brightnesses."
-    },
-    {
-      "id": "18a-editor",
-      "title": "Give application state one owner",
-      "page": "journey/18a-editor.md",
-      "hours": [
-        0.5,
-        0.75
-      ],
-      "goal": "Own scene, selection, camera, background and history in one browser-independent value.",
-      "trace": "Editor owns scene and history beside camera, background and selection",
-      "story": "Editor owns application state. Action names an input; Change tells drawing whether scene data or only the view changed.\n\nKeep History private so document edits follow one path. Default constructs an editor with the existing demonstration scene.\n\n![Editor owns document and view state.](../illustrations/journey-direct-18a-editor.svg)",
-      "result": "Inspect the supplied state fixtures. Zooming the owned camera preserves the document IDs and empty selection.",
-      "question": "Why put these values in one struct?",
-      "answer": "An input handler can borrow one editor rather than manage separate captured scene, camera, selection and history values.",
-      "experiment": "Change the ownership test to pan the camera. Its scene IDs should still match; restore the original zoom check.",
-      "production": "The application owner keeps document and view lifetimes together while history stores document changes only.",
-      "tests": true,
-      "frame": "journey/checks/18-light.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Surface direction changes brightness, not geometry.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "browser_caption": "Native checks establish the new state owner. Chrome independently retains the preceding lighting and typed-command path; browser routing moves into Editor in the final step.",
-      "edits": [
-        {
-          "path": "src/editor.rs",
-          "before": null,
-          "snippet": "journey/code/18a-editor-owner.rs",
-          "why": "Declare the action names, change kinds and application owner. Check a camera change keeps document identity."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/19-actions-fullscreen-1.rs",
-          "before": "pub mod scene;\npub mod picking;\npub mod history;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Make the editor available to both the browser and native checks."
-        }
-      ],
-      "image_same_as": "18-light"
-    },
-    {
-      "id": "18b-actions",
-      "title": "Apply document and view actions in Rust",
-      "page": "journey/18b-actions.md",
-      "hours": [
-        1,
-        1.5
-      ],
-      "goal": "Apply actions through one editor while preserving view settings during history and reset.",
-      "trace": "Action → Editor::apply → History for document edits → Change::Scene or Change::View",
-      "story": "Editor::apply handles an Action and returns the kind of drawing change. Document edits use History; camera and background changes stay outside it.\n\nResult propagates a failed add operation. After deletion or history travel, retain selection only if its ID still exists. View Reset keeps the current window aspect.\n\n![Actions update the editor and report the drawing change.](../illustrations/journey-direct-18b-actions.svg)",
-      "result": "Inspect the supplied state fixtures. Undo removes the added box while keeping zoom and background; View Reset preserves the current aspect.",
-      "question": "Why return Change rather than redraw here?",
-      "answer": "The editor owns application values, not GPU objects. Its caller decides when to upload scene data and draw.",
-      "experiment": "Set camera aspect to 2.0 in the reset test. Reset distance and orientation should change while that aspect stays 2.0.",
-      "production": "Actions preserve the document/view boundary and describe the synchronization required. This checkpoint also retains aspect during reset before browser routing is introduced.",
-      "tests": true,
-      "frame": "journey/checks/19-actions.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Surface direction changes brightness, not geometry.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        }
-      ],
-      "browser_caption": "Native checks exercise the new action route and render its selected box. Chrome retains the earlier event handler and lighting result; the following step connects browser input to Editor.",
-      "edits": [
-        {
-          "path": "src/editor.rs",
-          "before": "#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn changing_the_owned_camera_keeps_document_identity() {\n        let mut editor = Editor::default();\n        let ids: Vec<_> = editor.scene.objects().iter().map(|object| object.id).collect();\n        editor.camera.zoom(2.0);\n        assert_eq!(editor.camera.distance, 1.5);\n        assert_eq!(editor.scene.objects().iter().map(|object| object.id).collect::<Vec<_>>(), ids);\n        assert!(editor.selected.is_none());\n    }\n}\n",
-          "snippet": "journey/code/18b-actions-apply.rs",
-          "why": "Implement the action route and check history preserves the view. Keep the current aspect when resetting the camera."
-        }
-      ]
-    },
-    {
-      "id": "19-actions",
-      "title": "Route browser input through the editor",
-      "page": "journey/19-actions.md",
-      "hours": [
-        1,
-        1.5
-      ],
-      "goal": "Move document actions into a browser-independent editor while keeping picking, undo and drawing working.",
-      "trace": "Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw",
-      "question": "Why does Change::View skip set_scene?",
-      "answer": "The scene data did not change. Redrawing with the editor camera or background is sufficient.",
-      "story": "Convert submitted commands and canvas clicks to Action values. Apply them through Editor, upload only when Change is Scene, then redraw from the editor camera and background.\n\nThe closure captures one mutable editor. The GPU renderer keeps its derived representation separate from the document owner.\n\n![Browser input uses the same editor route and drawing-change result.](../illustrations/journey-direct-19-actions.svg)",
-      "result": "Type Example Box, then Undo and Redo. The box disappears and returns through the editor route.",
-      "experiment": "Pan Right, delete a selected object and Undo. The document returns while the camera stays where you put it.",
+      "goal": "Create a shaded kernel box and route selection, document edits and view changes through one editor.",
+      "trace": "kernel mesh -> validated display data -> reversible editor action -> conditional GPU upload -> shaded frame",
+      "question": "Why can picking return `Change::Scene` without creating an undo transaction?",
+      "answer": "Selection changes display colour, so it needs a GPU display update. It does not change the retained document geometry. The editor keeps those two decisions separate.",
+      "story": "The editor owns the scene, selection, camera, background and bounded history. Fallible document edits restore the previous scene on error. The browser maps input to actions, then decides whether to upload display data or only redraw.",
+      "result": "Example Box adds a shaded grey solid. Three Select Next commands select it yellow; Undo removes the box and Redo restores it without resetting the view.",
+      "experiment": "Add a box, pan the camera, undo and redo. Predict which document objects return and which camera values stay unchanged.",
       "production": "The full command system will build on this boundary. commands, keyboard input and tools request document operations through the same owner, while rendering consumes the result. More commands should add behavior here or in focused command modules, not duplicate transactions in UI handlers.",
       "browser_status": "Every document action follows the same editor path.",
       "browser_actions": [
@@ -788,564 +579,63 @@
       "tests": true,
       "edits": [
         {
+          "path": "src/mesh.rs",
+          "before": "pub struct Mesh {\n    vertices: Vec<[f32; 6]>,\n    indices: Vec<u16>,\n}\n\nimpl Mesh {\n    pub fn new(vertices: Vec<[f32; 6]>, indices: Vec<u16>) -> Result<Self, &'static str> {\n        if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {\n            return Err(\"Indices must describe complete triangles within the draw limit\");\n        }\n        if indices.iter().any(|&index| index as usize >= vertices.len()) {\n            return Err(\"A triangle refers to a missing vertex\");\n        }\n        if vertices.iter().flatten().any(|value| !value.is_finite()) {\n            return Err(\"Vertex values must be finite\");\n        }\n        Ok(Self { vertices, indices })\n    }\n\n    pub fn vertices(&self) -> &[[f32; 6]] {\n        &self.vertices\n    }\n\n    pub fn indices(&self) -> &[u16] {\n        &self.indices\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn invalid_connections_and_nonfinite_vertices_are_rejected() {\n        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 3]).is_err());\n        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1]).is_err());\n        assert!(Mesh::new(vec![[f32::NAN; 6]; 3], vec![0, 1, 2]).is_err());\n        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 2]).is_ok());\n    }\n}\n",
+          "snippet": "journey/code/17-editor-1.rs",
+          "why": "Validate kernel render data before allocating a scene object."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "use crate::mesh::Mesh;\nuse std::rc::Rc;\n\n#[derive(Clone, Copy, Debug, PartialEq, Eq)]\npub struct ObjectId(u32);\n\n#[derive(Clone)]\npub struct Object {\n    pub id: ObjectId,\n    pub mesh: Rc<Mesh>,\n}\n\n#[derive(Clone)]\npub struct Scene {\n    objects: Vec<Object>,\n    next_id: u32,\n    extra: Option<ObjectId>,\n}\n\nimpl Scene {\n    pub fn demo() -> Self {\n        let pink = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid pink triangle\");\n        let turquoise = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid turquoise triangle\");\n        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };\n        scene.insert(pink).expect(\"ID available\");\n        scene.insert(turquoise).expect(\"ID available\");\n        scene\n    }\n\n    pub fn restore(&mut self, mut saved: Self) {\n        saved.next_id = saved.next_id.max(self.next_id);\n        *self = saved;\n    }\n\n    pub fn objects(&self) -> &[Object] {\n        &self.objects\n    }\n\n    pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {\n        let next = self.next_id.checked_add(1).ok_or(\"Object IDs exhausted\")?;\n        let id = ObjectId(self.next_id);\n        self.next_id = next;\n        self.objects.push(Object { id, mesh: Rc::new(mesh) });\n        Ok(id)\n    }\n\n    pub fn remove(&mut self, id: ObjectId) -> bool {\n        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };\n        self.objects.remove(index);\n        if self.extra == Some(id) {\n            self.extra = None;\n        }\n        true\n    }\n\n    pub fn contains(&self, id: ObjectId) -> bool {\n        self.objects.iter().any(|object| object.id == id)\n    }\n\n    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {\n        if self.objects.is_empty() {\n            return None;\n        }\n        let index = self.objects.iter().position(|object| Some(object.id) == current)\n            .map_or(0, |index| index + 1);\n        Some(self.objects[index % self.objects.len()].id)\n    }\n\n    pub fn toggle_extra(&mut self) {\n        if let Some(id) = self.extra.take() {\n            self.remove(id);\n        } else {\n            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n            self.extra = Some(self.insert(extra).expect(\"ID available\"));\n        }\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn removal_moves_a_row_without_changing_its_identity() {\n        let mut scene = Scene::demo();\n        let first = scene.objects()[0].id;\n        let second = scene.objects()[1].id;\n        assert!(scene.remove(first));\n        assert_eq!(scene.objects()[0].id, second);\n        assert_eq!(scene.next(None), Some(second));\n        assert!(!scene.contains(first));\n        scene.toggle_extra();\n        assert_ne!(scene.objects()[1].id, first);\n        assert_ne!(scene.objects()[1].id, second);\n    }\n\n    #[test]\n    fn toggling_the_extra_object_uses_its_id_after_other_removals() {\n        let mut scene = Scene::demo();\n        scene.toggle_extra();\n        let extra = scene.objects()[2].id;\n        scene.remove(scene.objects()[0].id);\n        scene.toggle_extra();\n        assert!(!scene.contains(extra));\n        assert_eq!(scene.objects().len(), 1);\n    }\n}\n",
+          "snippet": "journey/code/17-editor-2.rs",
+          "why": "Create and place one kernel box with a stable identity."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;\n\nstruct VertexOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) colour: vec3<f32>,\n}\n\n@vertex\nfn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {\n    var output: VertexOutput;\n    output.position = transform * vec4<f32>(position, 1.0);\n    output.colour = colour;\n    return output;\n}\n\n@fragment\nfn fragment(input: VertexOutput) -> @location(0) vec4<f32> {\n    return vec4<f32>(input.colour, 1.0);\n}\n",
+          "snippet": "journey/code/17-editor-5.wgsl",
+          "why": "Derive flat normals from world-space fragment derivatives."
+        },
+        {
           "path": "src/editor.rs",
-          "before": "        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);\n    }\n}\n",
-          "snippet": "journey/code/19-actions-tests.rs",
-          "why": "Check selection repair, redo preservation and picking through the editor’s current camera."
+          "before": null,
+          "snippet": "journey/code/17-editor-6.rs",
+          "why": "Own document, selection and view state and apply typed actions."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-1.rs",
-          "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::history::History;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n",
-          "why": "Import the editor action types."
+          "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::history::History;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n        if let Some(status) = document.get_element_by_id(\"status\") {\n            status.set_text_content(Some(message));\n            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n        }\n    }\n}\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\")\n        .ok_or(\"Missing canvas\")?\n        .dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n        memory_budget_thresholds: Default::default(),\n        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance\n        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance\n        .request_adapter(&wgpu::RequestAdapterOptions {\n            compatible_surface: Some(&surface),\n            ..Default::default()\n        })\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter\n        .request_device(&wgpu::DeviceDescriptor::default())\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface\n        .get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut scene = Scene::demo();\n    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n            \"Undo\",\n            \"Redo\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"View Reset\",\n        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut history = History::default();\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };\n    present(\n        &surface,\n        &renderer,\n        &background,\n        &camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };\n\n        let line = line.or_else(|| {\n            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;\n            (event.type_() == \"click\"\n                && !panel.consumed\n                && mouse\n                    .target()\n                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())\n                    .is_some_and(|target| target.id() == \"canvas\"))\n            .then(|| \"canvas\".into())\n        });\n        if let Some(line) = line {\n            match line.as_str() {\n                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n                    };\n                    let rect = input_canvas.get_bounding_client_rect();\n                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    let screen = [\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = camera\n                        .ray(screen)\n                        .and_then(|ray| crate::picking::pick(&scene, &ray));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    history.edit(&mut scene, Scene::toggle_extra);\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"select next\" => {\n                    selected = scene.next(selected);\n                    renderer.set_scene(&scene, selected);\n                }\n                \"delete\" => {\n                    if let Some(id) = selected.take() {\n                        history.edit(&mut scene, |scene| {\n                            scene.remove(id);\n                        });\n                        renderer.set_scene(&scene, selected);\n                    }\n                }\n                \"undo\" | \"redo\" => {\n                    if line == \"undo\" {\n                        history.undo(&mut scene);\n                    } else {\n                        history.redo(&mut scene);\n                    }\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"orbit up\" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => camera.isometric(),\n                \"view reset\" => camera = Camera { aspect: camera.aspect, ..Camera::default() },\n                _ => return,\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &background,\n            &camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n    for name in [\n        \"pointerdown\",\n        \"pointermove\",\n        \"pointerup\",\n        \"pointercancel\",\n        \"lostpointercapture\",\n        \"contextmenu\",\n        \"keydown\",\n        \"keyup\",\n        \"blur\",\n        \"click\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        click.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Orbit moves the eye around a fixed target.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    transform: &[f32; 16],\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => {\n            return Err(JsValue::from_str(&format!(\n                \"Surface unavailable: {other:?}\"\n            )));\n        }\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view, background, transform);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n}\n",
+          "snippet": "journey/code/17-editor-4.rs",
+          "why": "Route commands and canvas input through the editor and upload only when required."
         },
         {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-2.rs",
-          "before": "        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut scene = Scene::demo();\n    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n",
-          "why": "Create one editor and initialize drawing from its scene."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-3.rs",
-          "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut history = History::default();\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };\n    present(\n        &surface,\n        &renderer,\n        &background,\n        &camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n",
-          "why": "Present the editor background and camera."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-4.rs",
-          "before": "            .then(|| \"canvas\".into())\n        });\n        if let Some(line) = line {\n            match line.as_str() {\n                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n",
-          "why": "Start converting submitted lines into actions."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-5.rs",
-          "before": "                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    let screen = [\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = camera\n                        .ray(screen)\n                        .and_then(|ray| crate::picking::pick(&scene, &ray));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example box\" => {\n                    if let Err(error) =\n                        history.try_edit(&mut scene, |scene| scene.add_box().map(|_| ()))\n                    {\n                        report(error);\n                        return;\n                    }\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    history.edit(&mut scene, Scene::toggle_extra);\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"select next\" => {\n                    selected = scene.next(selected);\n                    renderer.set_scene(&scene, selected);\n                }\n                \"delete\" => {\n                    if let Some(id) = selected.take() {\n                        history.edit(&mut scene, |scene| {\n                            scene.remove(id);\n                        });\n                        renderer.set_scene(&scene, selected);\n                    }\n                }\n                \"undo\" | \"redo\" => {\n                    if line == \"undo\" {\n                        history.undo(&mut scene);\n                    } else {\n                        history.redo(&mut scene);\n                    }\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"orbit up\" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => camera.isometric(),\n                \"view reset\" => camera = Camera { aspect: camera.aspect, ..Camera::default() },\n                _ => return,\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n",
-          "why": "Map commands to Action, apply through Editor, and synchronize according to Change."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-6.rs",
-          "before": "        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &background,\n            &camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n",
-          "why": "Redraw from the editor state."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/19-actions-window-7.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Surface direction changes brightness, not geometry.\");\n    Ok(())\n}\n\n",
-          "why": "Report the shared action route."
+          "path": "src/lib.rs",
+          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\npub mod history;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n#[cfg(test)]\n#[path = \"command_dock/tool_buttons_tests.rs\"]\nmod tool_buttons_tests;\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_vocabulary;\n\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n",
+          "snippet": "journey/code/17-editor-7.rs",
+          "why": "Register the editor module."
         }
       ],
-      "browser_caption": "The box is yellow after Select Next reaches it. commands feed the shared Editor action path.",
+      "browser_caption": "Historical endpoint image; new consolidated runtime acceptance remains pending.",
       "browser_check": "journey/checks/browser/editor-actions.cjs",
-      "image_same_as": "18b-actions"
+      "authored": true,
+      "lock": "journey/release/15-perspective.lock",
+      "assets": []
     },
     {
       "id": "19a-viewport",
-      "title": "Measure a safe drawing size",
+      "title": "One drawing size and one captured gesture",
       "page": "journey/19a-viewport.md",
       "hours": [
-        0.75,
-        1.25
+        3,
+        5
       ],
-      "goal": "Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.",
-      "trace": "CSS width and height × display density → proportional GPU-limit cap → Viewport",
-      "story": "Viewport converts CSS size and display density to GPU pixel dimensions. Reduce both dimensions together when they exceed the device limit. Reject hidden or invalid sizes.\n\nViewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.\n\n![CSS dimensions and density produce a bounded pixel viewport.](../illustrations/journey-direct-19a-viewport.svg)",
-      "result": "Inspect the supplied state fixtures. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.",
-      "question": "Why cap width and height by the same scale?",
-      "answer": "Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.",
-      "experiment": "Change the dense-display test ratio to 4.0 and lower the device limit to 1024. Predict the bounded dimensions before running the check.",
-      "production": "A camera aspect and its GPU attachments must use one bounded pixel size. This step establishes that size calculation; the next connects it to the browser and GPU.",
-      "tests": true,
-      "frame": "journey/checks/19-actions.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Every document action follows the same editor path.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Select Next"
-        }
-      ],
-      "browser_check": "journey/checks/browser/editor-actions.cjs",
-      "browser_caption": "Native tests establish bounded density-aware sizing. Chrome independently retains the editor input route and drawing; actual canvas and attachment resizing are connected next.",
-      "edits": [
-        {
-          "path": "src/viewport.rs",
-          "before": null,
-          "snippet": "journey/code/20-resize-01.rs",
-          "why": "Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/20-resize-fullscreen-1.rs",
-          "before": "pub mod picking;\npub mod history;\npub mod editor;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Make the size calculation usable by browser code and Rust tests."
-        }
-      ],
-      "image_same_as": "18b-actions"
-    },
-    {
-      "id": "20-resize",
-      "title": "Resize canvas, depth and camera together",
-      "page": "journey/20-resize.md",
-      "hours": [
-        1,
-        1.5
-      ],
-      "goal": "Resize the drawing buffer, depth attachment and camera together, including on dense displays.",
-      "trace": "Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw",
-      "question": "Why resize the depth attachment with the canvas?",
-      "answer": "The colour and depth attachments in one render pass must have matching dimensions.",
-      "story": "Use Viewport to resize canvas pixels, the surface, depth attachment and camera aspect together. Read the current CSS rectangle and display density before drawing.\n\nThe callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.\n\n![One viewport updates canvas, surface, depth and camera before drawing.](../illustrations/journey-direct-20-resize.svg)",
-      "result": "Resize the browser window. Geometry keeps its proportions and continues drawing across wide and tall sizes.",
-      "experiment": "Change the window from wide to tall, then type View Reset. The view should retain the current aspect.",
-      "production": "The final viewer uses the same size agreement for every attachment, including multisampling, picking and post-processing. Later panels need element resize observation as well as window events; this lesson handles window resizing and rechecks layout on each action.",
-      "browser_status": "Canvas pixels, depth and camera resize together.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "viewport": [
-            1000,
-            800
-          ]
-        }
-      ],
-      "image_result": "This frame is 770 × 385 pixels, a 2:1 viewport. Compare its wide shape with lesson 18’s 640 × 480 frame. The helper resizes the renderer through three sizes and checks the final face positions and shading. The final image alone cannot show the resize sequence; a browser resize recording is still needed.",
-      "frame": "journey/checks/20-resize.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "frame_size": [
-        770,
-        385
-      ],
-      "tests": true,
-      "edits": [
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/20-resize-fullscreen-8.rs",
-          "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {\n        self.meshes = scene.objects().iter().map(|object| {\n            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))\n        }).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {\n            label: Some(\"opaque depth\"),\n",
-          "why": "Keep depth texture allocation in the existing depth helper."
-        },
-        {
-          "path": "src/renderer.rs",
-          "snippet": "journey/code/20-resize-fullscreen-9.rs",
-          "before": "        depth_texture.create_view(&Default::default())\n    }\n\n    pub fn resize(&mut self, width: u32, height: u32) {\n        self.depth = Self::depth(&self.device, width, height);\n    }\n\n    pub fn draw(\n",
-          "why": "Recreate the depth view for the measured viewport dimensions."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/20-resize-window-1.rs",
-          "before": "use crate::background::Background;\nuse crate::editor::{Action, Change, Editor};\nuse crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n",
-          "why": "Import the viewport size type."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/20-resize-window-2.rs",
-          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut editor = Editor::default();\n    editor.camera.aspect = width as f64 / height as f64;\n    let mut renderer = Renderer::new(\n        device,\n        queue,\n        config.format.add_srgb_suffix(),\n        &editor.scene,\n    );\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n",
-          "why": "Size renderer attachments from the viewport."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/20-resize-window-3.rs",
-          "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    present(\n        &surface,\n        &renderer,\n        &editor.background,\n        &editor.camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n",
-          "why": "Handle initial resizing and retain the window for later resize events."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/20-resize-window-4.rs",
-          "before": "                return;\n            }\n        };\n\n        let line = line.or_else(|| {\n            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;\n            (event.type_() == \"click\"\n",
-          "why": "Keep the event callback open for the resize path."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/20-resize-window-5.rs",
-          "before": "                }\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &editor.background,\n            &editor.camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n    for name in [\n",
-          "why": "Resize before handling input; refresh dock layout and drawing when dimensions change."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/20-resize-window-6.rs",
-          "before": "        \"blur\",\n        \"click\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        click.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Every document action follows the same editor path.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n",
-          "why": "Register resize events and update canvas pixels, surface configuration, attachments and camera aspect together."
-        }
-      ],
-      "browser_caption": "Chrome verifies wide and tall resize events, then density two with stable CSS geometry bounds. The capture restores the default viewport and initial scene after those checks.",
-      "browser_check": "journey/checks/browser/viewport.cjs"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/20-resize.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Canvas pixels, depth and camera resize together.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "viewport": [
-            1000,
-            800
-          ]
-        }
-      ],
-      "browser_check": "journey/checks/browser/viewport.cjs",
-      "id": "20a-press",
-      "title": "Remember the pointer that starts a drag",
-      "page": "journey/20a-press.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Retain one pointer and produce movement relative to its previous position.",
-      "trace": "Press → Option<Drag> → matching move → Motion::Orbit",
-      "story": "Gesture remembers one pointer ID, its button and its positions. Reject a second press while that pointer is active. Each move reports the change from the previous position.\n\nOption holds one Drag or none. as_mut borrows the stored drag; filter accepts only its pointer ID. The click threshold remembers whether any movement exceeded four CSS pixels.\n\n![One press owns the drag; matching movement updates its remembered position.](../illustrations/journey-direct-20a-press.svg)",
-      "result": "Inspect the supplied state fixtures. Another pointer cannot replace the press or move it; matching moves report relative deltas.",
-      "question": "Why retain both the starting and previous positions?",
-      "answer": "The start distinguishes a click from a drag. The previous position gives the next orbit delta.",
-      "experiment": "Trace a matching pointer moving from [20.0, 25.0] to [30.0, 28.0] through the supplied press fixture. Predict the delta before reading its expected result.",
-      "production": "The browser will later deliver captured pointer events. This step establishes application ownership independently of DOM capture.",
-      "browser_caption": "Native checks establish one-pointer ownership and relative movement. Chrome retains the previous resize and command route; browser gestures are connected after release and action conversion.",
-      "edits": [
-        {
-          "path": "src/gesture.rs",
-          "before": null,
-          "snippet": "journey/code/20a-press-state.rs",
-          "why": "Retain one pointer, track its starting position and return relative right-drag movement."
-        },
-        {
-          "path": "src/gesture_tests.rs",
-          "before": null,
-          "snippet": "journey/code/20a-press-tests.rs",
-          "why": "Optional authoring fixture. Check rejected presses, pointer ownership and movement from the previous position.",
-          "copy": true
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/21-gestures-fullscreen-1.rs",
-          "before": "pub mod history;\npub mod editor;\npub mod viewport;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Expose the gesture module to the browser and compile its tests only in the test build."
-        }
-      ],
-      "frame_size": [
-        770,
-        385
-      ],
-      "image_same_as": "20-resize"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/20-resize.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Canvas pixels, depth and camera resize together.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "viewport": [
-            1000,
-            800
-          ]
-        }
-      ],
-      "browser_check": "journey/checks/browser/viewport.cjs",
-      "id": "20b-release",
-      "title": "Finish or cancel a drag",
-      "page": "journey/20b-release.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Release an owned pointer or cancel it without inventing a click.",
-      "trace": "Release → final move → take stored Drag → click or orbit; cancel → no active drag",
-      "story": "Release processes the final position, then takes the remembered drag out of Gesture. A left release picks only if the press never crossed the movement threshold. Right release may supply one final orbit delta.\n\nCancellation clears the state without selecting. cancel_pointer checks ownership first; another pointer cannot end the active drag.\n\n![Release finishes the remembered drag; cancellation clears it without a pick.](../illustrations/journey-direct-20b-release.svg)",
-      "result": "Inspect the supplied state fixtures. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.",
-      "question": "What does Option::take do on release?",
-      "answer": "It returns the stored Drag and leaves None, so later movement cannot continue the finished gesture.",
-      "experiment": "Read the return-to-start test. Predict the result if release checked only its final distance instead of the remembered moved flag.",
-      "production": "Lost capture, browser blur and interrupted tools must clear application gesture ownership. Their browser adapters follow after Motion reaches Editor.",
-      "browser_caption": "Native checks establish click classification, owned release and cancellation. Chrome still retains the earlier drawing and input route.",
-      "edits": [
-        {
-          "path": "src/gesture.rs",
-          "before": "        (drag.button == 2 && delta != [0.0, 0.0]).then_some(Motion::Orbit(delta))\n    }\n\n}\n",
-          "snippet": "journey/code/20b-release-methods.rs",
-          "why": "Finish the owned pointer, preserve drag classification and clear cancelled input."
-        },
-        {
-          "path": "src/gesture_tests.rs",
-          "before": "use crate::gesture::{Gesture, Motion};\n\n#[test]\nfn a_press_retains_one_pointer_and_reports_relative_motion() {\n    let mut gesture = Gesture::default();\n    assert!(!gesture.press(1, 1, [0.0, 0.0]));\n    assert!(!gesture.press(1, 0, [f64::NAN, 0.0]));\n    assert!(gesture.press(1, 2, [10.0, 20.0]));\n    assert!(!gesture.press(2, 0, [10.0, 20.0]));\n    assert_eq!(gesture.move_to(2, [30.0, 25.0]), None);\n    assert_eq!(gesture.move_to(1, [20.0, 25.0]), Some(Motion::Orbit([10.0, 5.0])));\n    assert_eq!(gesture.move_to(1, [24.0, 28.0]), Some(Motion::Orbit([4.0, 3.0])));\n}\n",
-          "snippet": "journey/code/20b-release-tests.rs",
-          "why": "Optional authoring fixture. Check left-click classification, final motion, pointer ownership and cancellation.",
-          "copy": true
-        }
-      ],
-      "frame_size": [
-        770,
-        385
-      ],
-      "image_same_as": "20-resize"
-    },
-    {
-      "tests": true,
-      "frame": "journey/checks/21-gestures.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Canvas pixels, depth and camera resize together.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "viewport": [
-            1000,
-            800
-          ]
-        }
-      ],
-      "browser_check": "journey/checks/browser/viewport.cjs",
-      "id": "20c-motion",
-      "title": "Convert pointer motion to editor actions",
-      "page": "journey/20c-motion.md",
-      "hours": [
-        0.75,
-        1.25
-      ],
-      "goal": "Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.",
-      "trace": "Motion + CSS rectangle → Action → Editor → selection or view change",
-      "story": "Motion::action uses the canvas CSS rectangle to convert a pick to normalized screen coordinates or a drag delta to orbit angles. Reject an invalid rectangle before dividing.\n\nThe method consumes Motion. Option<Action> permits invalid input to produce no editor request. Orbit changes the view while leaving document history unchanged.\n\n![CSS pointer motion becomes a Pick or Orbit action through the existing editor.](../illustrations/journey-direct-20c-motion.svg)",
-      "result": "Inspect the supplied state fixtures. A CSS centre maps to [0, 0]; orbit changes the camera, and Undo restores the document without rewinding it.",
-      "question": "Why use CSS dimensions instead of the GPU drawing size?",
-      "answer": "Pointer positions use CSS pixels. Mixing them with denser GPU pixels would change picking and sensitivity when display density changes.",
-      "experiment": "Double the rectangle dimensions and the pointer offsets in the centre test. Predict the same [0, 0] pick before running it.",
-      "production": "Pointer and command input share Editor actions. Camera navigation stays outside document history and browser callbacks do not edit geometry directly.",
-      "browser_caption": "Native checks route pointer motion through Editor and render its orbited view. Chrome independently retains the earlier input route until browser pointer delivery is connected next.",
-      "edits": [
-        {
-          "path": "src/gesture.rs",
-          "before": "#[derive(Debug, PartialEq)]\n",
-          "snippet": "journey/code/20c-motion-import.rs",
-          "why": "Import the editor action used by motion conversion."
-        },
-        {
-          "path": "src/gesture.rs",
-          "before": "struct Drag {\n",
-          "snippet": "journey/code/20c-motion-action.rs",
-          "why": "Convert CSS position or motion to an existing editor action after validating the canvas rectangle."
-        },
-        {
-          "path": "src/gesture_tests.rs",
-          "before": "use crate::gesture::{Gesture, Motion};\n\n",
-          "snippet": "journey/code/20c-motion-test-imports.rs",
-          "why": "Optional authoring fixture. Import editor actions for motion and history checks.",
-          "copy": true
-        },
-        {
-          "path": "src/gesture_tests.rs",
-          "before": "    assert!(!input.press(1, 0, [f64::NAN, 0.0]));\n}\n\n",
-          "snippet": "journey/code/20c-motion-tests.rs",
-          "why": "Optional authoring fixture. Check CSS coordinate conversion and camera movement outside document history.",
-          "copy": true
-        }
-      ]
-    },
-    {
-      "id": "21-gestures",
-      "title": "Connect captured pointers to the editor",
-      "page": "journey/21-gestures.md",
-      "hours": [
-        1,
-        1.5
-      ],
-      "goal": "Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.",
-      "trace": "DOM pointer → Gesture → Motion::action → Editor → redraw",
-      "question": "Why do we need both browser pointer capture and our own active pointer ID?",
-      "answer": "Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.",
-      "story": "Deliver canvas pointer events to Gesture when the command dock has not consumed them. Capture the accepted pointer so events keep arriving outside the canvas. Apply any returned action through Editor.\n\nRelease capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.\n\n![Browser pointer capture and application gesture ownership meet at Editor actions.](../illustrations/journey-direct-21-gestures.svg)",
-      "result": "Right-drag the scene, then release. Further movement must stop orbiting; a left click still selects a face.",
-      "experiment": "Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.",
-      "production": "The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.",
-      "browser_status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "drag": [
-            [
-              0.5,
-              0.5
-            ],
-            [
-              0.65,
-              0.6
-            ]
-          ]
-        }
-      ],
-      "frame": "journey/checks/21-gestures.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "tests": true,
-      "edits": [
-        {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/21-gestures-dock-01.toml",
-          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser event bindings used by the command dock."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-1.rs",
-          "before": "use crate::background::Background;\nuse crate::editor::{Action, Change, Editor};\nuse crate::renderer::Renderer;\nuse crate::viewport::Viewport;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n",
-          "why": "Import the gesture state."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-2.rs",
-          "before": "    }\n    let input_canvas = canvas.clone();\n    let browser_window = window.clone();\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n",
-          "why": "Retain the canvas and one gesture across pointer events."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-3.rs",
-          "before": "                return;\n            }\n        };\n        let line = line.or_else(|| {\n            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;\n            (event.type_() == \"click\"\n                && !panel.consumed\n                && mouse\n                    .target()\n                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())\n                    .is_some_and(|target| target.id() == \"canvas\"))\n            .then(|| \"canvas\".into())\n        });\n        if let Some(line) = line {\n            let action = match line.as_str() {\n                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n                    };\n                    let rect = input_canvas.get_bounding_client_rect();\n                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    Action::Pick([\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ])\n                }\n                \"example box\" => Action::AddBox,\n                \"example triangle\" => Action::ToggleExtra,\n                \"select next\" => Action::SelectNext,\n",
-          "why": "Begin choosing between submitted commands and pointer gestures."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-4.rs",
-          "before": "                \"view reset\" => Action::ResetView,\n                _ => return,\n            };\n            match editor.apply(action) {\n                Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),\n                Ok(Change::View) => {}\n",
-          "why": "Use pointer gestures only when the dock has not consumed input; apply any resulting action."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-5.rs",
-          "before": "        }\n        if resize(\n            &browser_window,\n            &input_canvas,\n            &surface,\n            &mut config,\n            &mut renderer,\n",
-          "why": "Use the retained pointer canvas for resizing."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-6.rs",
-          "before": "        \"keydown\",\n        \"keyup\",\n        \"blur\",\n        \"click\",\n    ] {\n        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;\n    }\n",
-          "why": "Keep the callback open for pointer event registration."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/21-gestures-window-7.rs",
-          "before": "        &options,\n    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Canvas pixels, depth and camera resize together.\");\n    Ok(())\n}\n\nfn resize(\n    window: &web_sys::Window,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Track pointer presses, capture and release; cancel on blur or resize and suppress the browser context menu."
-        }
-      ],
-      "image_result": "The native frame applies a right-drag Motion through Editor and verifies the turned box face. Chrome separately checks actual capture, release and cancellation.",
-      "browser_caption": "Chrome verifies actual right-drag orbit and release, movement outside the canvas, lost capture, pointer cancellation, blur, resize and left-click classification. The final view restores the initial accepted orbit.",
-      "browser_check": "journey/checks/browser/gestures.cjs",
-      "image_same_as": "20c-motion"
-    },
-    {
-      "id": "21a-wheel",
-      "title": "Convert wheel units to camera zoom",
-      "page": "journey/21a-wheel.md",
-      "hours": [
-        0.75,
-        1.5
-      ],
-      "goal": "Normalize pixels, lines and pages to bounded camera zoom without adding document history.",
-      "trace": "Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom",
-      "story": "navigation::wheel converts pixels, lines or pages to CSS pixels, caps one event at 600 pixels, then returns a positive exponential zoom factor. Invalid input returns None.\n\nThe stateless function borrows no editor. Its checks apply the returned Zoom through Editor and verify that camera movement stays outside document history.\n\n![Wheel units become bounded CSS movement and a camera zoom action.](../illustrations/journey-direct-21a-wheel.svg)",
-      "result": "Inspect the supplied state fixtures. Equivalent pixel, line and page deltas give the same zoom; Undo restores geometry while retaining the camera.",
-      "question": "Why use an exponential for the zoom factor?",
-      "answer": "It stays positive and lets equal opposite movements restore the earlier distance, subject to the camera limits.",
-      "experiment": "Compare 48 pixels, three lines and 0.1 pages at height 480. Predict the same result before running the unit check.",
-      "production": "Mouse and phone navigation produce view actions outside document history. This step establishes wheel normalization before browser delivery.",
-      "tests": true,
-      "frame": "journey/checks/22-shortcuts.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
-      "browser_actions": [
-        {
-          "command": "Example Box"
-        },
-        {
-          "command": "View Isometric"
-        },
-        {
-          "drag": [
-            [
-              0.5,
-              0.5
-            ],
-            [
-              0.65,
-              0.6
-            ]
-          ]
-        }
-      ],
-      "browser_check": "journey/checks/browser/gestures.cjs",
-      "browser_caption": "Native checks normalize wheel units and render the resulting view. Chrome retains the previous pointer route; actual wheel delivery is connected next.",
-      "edits": [
-        {
-          "path": "src/navigation.rs",
-          "before": null,
-          "snippet": "journey/code/22-shortcuts-01.rs",
-          "why": "Normalize wheel units into the existing Zoom action. Zero or invalid input returns None."
-        },
-        {
-          "path": "src/navigation_tests.rs",
-          "before": null,
-          "snippet": "journey/code/22-shortcuts-02.rs",
-          "why": "Optional authoring fixture. Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history.",
-          "copy": true
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/22-shortcuts-fullscreen-1.rs",
-          "before": "pub mod editor;\npub mod viewport;\npub mod gesture;\n#[cfg(test)]\nmod gesture_tests;\npub mod gpu_mesh;\n",
-          "why": "Register the small input translator and its tests."
-        }
-      ]
-    },
-    {
-      "id": "22-shortcuts",
-      "title": "Deliver wheel input without keyboard feature shortcuts",
-      "page": "journey/22-shortcuts.md",
-      "hours": [
-        0.5,
-        1
-      ],
-      "goal": "Normalize wheel input and keep every keyboard feature command in the command dock.",
-      "trace": "Wheel → navigation_action → Editor; printable key → command dock → typed Action",
-      "question": "Why request a non-passive wheel listener?",
-      "answer": "Handled wheel navigation must call prevent_default so the browser does not scroll the page.",
-      "story": "Route wheel events through navigation::wheel, prevent page scrolling when zoom is handled, and keep printable keyboard input in the command dock. Focus the canvas when a pointer press starts navigation.\n\nThere is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.\n\n![Mouse navigation and typed command input share editor actions with distinct input ownership.](../illustrations/journey-direct-22-shortcuts.svg)",
-      "result": "Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.",
-      "experiment": "Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.",
+      "goal": "Resize the scene proportionally, orbit with pointer capture and zoom with consistent wheel units.",
+      "trace": "CSS rectangle -> physical viewport -> surface and depth -> projection; event -> gesture -> editor action",
+      "question": "Why must camera aspect and the depth attachment use the same drawable dimensions as the surface?",
+      "answer": "The aspect determines the projection into the colour image, and the depth attachment participates in that image's render pass. A different aspect stretches geometry; a different attachment extent makes the pass invalid.",
+      "story": "One measured viewport governs the surface, depth texture and camera. A captured pointer owns its gesture until release or cancellation. Wheel units become bounded exponential zoom actions.",
+      "result": "The box retains its proportions after resize; right-drag orbits, wheel zooms, and cancellation prevents delayed picks.",
+      "experiment": "Drag beyond four pixels, return to the press point and release. Predict whether this selects an object.",
       "production": "The maintained viewer routes mouse and phone navigation through src/app/input.rs. Printable input activates the command dock immediately; named commands share the existing state and history. This checkpoint keeps wheel zoom centred on the camera target. Pointer-centred zoom and phone gestures will extend navigation without introducing keyboard feature shortcuts.",
       "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_actions": [
@@ -1367,34 +657,66 @@
       "tests": true,
       "edits": [
         {
+          "path": "src/viewport.rs",
+          "before": null,
+          "snippet": "journey/code/19a-final-1.rs",
+          "why": "Measure one finite, proportional physical drawing size."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};\n\npub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n    pipeline: wgpu::RenderPipeline,\n    meshes: Vec<GpuMesh>,\n    uniform: wgpu::Buffer,\n    view_group: wgpu::BindGroup,\n    depth: wgpu::TextureView,\n}\n\nimpl Renderer {\n    pub fn new(\n        device: wgpu::Device,\n        queue: wgpu::Queue,\n        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh, false)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n        });\n        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {\n            label: Some(\"triangle\"),\n            layout: None,\n            vertex: wgpu::VertexState {\n                module: &shader,\n                entry_point: Some(\"vertex\"),\n                compilation_options: Default::default(),\n                buffers: &[wgpu::VertexBufferLayout {\n                    array_stride: 24,\n                    step_mode: wgpu::VertexStepMode::Vertex,\n                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],\n                }],\n            },\n            fragment: Some(wgpu::FragmentState {\n                module: &shader,\n                entry_point: Some(\"fragment\"),\n                compilation_options: Default::default(),\n                targets: &[Some(format.into())],\n            }),\n            primitive: Default::default(),\n            depth_stencil: Some(wgpu::DepthStencilState {\n                format: wgpu::TextureFormat::Depth32Float,\n                depth_write_enabled: Some(true),\n                depth_compare: Some(wgpu::CompareFunction::Less),\n                stencil: Default::default(),\n                bias: Default::default(),\n            }),\n            multisample: Default::default(),\n            multiview_mask: None,\n            cache: None,\n        });\n        let uniform = device.create_buffer(&wgpu::BufferDescriptor {\n            label: Some(\"view transform\"),\n            size: 64,\n            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,\n            mapped_at_creation: false,\n        });\n        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {\n            label: Some(\"view settings\"),\n            layout: &pipeline.get_bind_group_layout(0),\n            entries: &[wgpu::BindGroupEntry {\n                binding: 0,\n                resource: uniform.as_entire_binding(),\n            }],\n        });\n        let depth = Self::depth(&device, 640, 480);\n        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {\n        self.meshes = scene.objects().iter().map(|object| {\n            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))\n        }).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {\n            label: Some(\"opaque depth\"),\n            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },\n            mip_level_count: 1,\n            sample_count: 1,\n            dimension: wgpu::TextureDimension::D2,\n            format: wgpu::TextureFormat::Depth32Float,\n            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,\n            view_formats: &[],\n        });\n        depth_texture.create_view(&Default::default())\n    }\n\n    pub fn resize(&mut self, width: u32, height: u32) {\n        self.depth = Self::depth(&self.device, width, height);\n    }\n\n    pub fn draw(\n        &self,\n        view: &wgpu::TextureView,\n        background: &crate::background::Background,\n        transform: &[f32; 16],\n    ) {\n        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();\n        self.queue.write_buffer(&self.uniform, 0, &bytes);\n        let [r, g, b] = background.rgb();\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {\n                    view: &self.depth,\n                    depth_ops: Some(wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(1.0),\n                        store: wgpu::StoreOp::Store,\n                    }),\n                    stencil_ops: None,\n                }),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n                    depth_slice: None,\n                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r, g, b, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n                })],\n                ..Default::default()\n            });\n            pass.set_pipeline(&self.pipeline);\n            pass.set_bind_group(0, &self.view_group, &[]);\n            for mesh in &self.meshes {\n                mesh.draw(&mut pass);\n            }\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n}\n",
+          "snippet": "journey/code/19a-final-3.rs",
+          "why": "Resize the retained depth attachment with the surface."
+        },
+        {
+          "path": "src/gesture.rs",
+          "before": null,
+          "snippet": "journey/code/19a-final-5.rs",
+          "why": "Keep one pointer responsible for click or drag classification."
+        },
+        {
+          "path": "src/gesture_tests.rs",
+          "before": null,
+          "snippet": "journey/code/19a-final-6.rs",
+          "why": "Test pointer identity, cancellation and coordinate conversion."
+        },
+        {
+          "path": "src/navigation.rs",
+          "before": null,
+          "snippet": "journey/code/19a-final-8.rs",
+          "why": "Normalize wheel units into bounded exponential zoom."
+        },
+        {
+          "path": "src/navigation_tests.rs",
+          "before": null,
+          "snippet": "journey/code/19a-final-9.rs",
+          "why": "Test wheel equivalence and independent document history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "use crate::background::Background;\nuse crate::editor::{Action, Change, Editor};\nuse crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n        if let Some(status) = document.get_element_by_id(\"status\") {\n            status.set_text_content(Some(message));\n            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n        }\n    }\n}\n\npub async fn run() -> Result<(), JsValue> {\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\")\n        .ok_or(\"Missing canvas\")?\n        .dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n        memory_budget_thresholds: Default::default(),\n        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance\n        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance\n        .request_adapter(&wgpu::RequestAdapterOptions {\n            compatible_surface: Some(&surface),\n            ..Default::default()\n        })\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter\n        .request_device(&wgpu::DeviceDescriptor::default())\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let density = window.device_pixel_ratio();\n    let density = if density.is_finite() && density > 0.0 { density } else { 1.0 };\n    let width = ((window.inner_width()?.as_f64().ok_or(\"No window width\")? * density).round() as u32).clamp(1, limit);\n    let height = ((window.inner_height()?.as_f64().ok_or(\"No window height\")? * density).round() as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface\n        .get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut editor = Editor::default();\n    editor.camera.aspect = width as f64 / height as f64;\n    let mut renderer = Renderer::new(\n        device,\n        queue,\n        config.format.add_srgb_suffix(),\n        &editor.scene,\n    );\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Box\",\n            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n            \"Undo\",\n            \"Redo\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"View Reset\",\n        ],\n    );\n    panel.update(None, &canvas)?;\n    present(\n        &surface,\n        &renderer,\n        &editor.background,\n        &editor.camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };\n\n        let line = line.or_else(|| {\n            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;\n            (event.type_() == \"click\"\n                && !panel.consumed\n                && mouse\n                    .target()\n                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())\n                    .is_some_and(|target| target.id() == \"canvas\"))\n            .then(|| \"canvas\".into())\n        });\n        if let Some(line) = line {\n            let action = match line.as_str() {\n                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n                    };\n                    let rect = input_canvas.get_bounding_client_rect();\n                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    Action::Pick([\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ])\n                }\n                \"example box\" => Action::AddBox,\n                \"example triangle\" => Action::ToggleExtra,\n                \"select next\" => Action::SelectNext,\n                \"delete\" => Action::Delete,\n                \"undo\" => Action::Undo,\n                \"redo\" => Action::Redo,\n                \"background\" => Action::Background,\n                \"zoom in\" => Action::Zoom(2.0),\n                \"zoom out\" => Action::Zoom(0.5),\n                \"pan left\" => Action::Pan(-0.25, 0.0),\n                \"pan right\" => Action::Pan(0.25, 0.0),\n                \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => Action::Isometric,\n                \"view reset\" => Action::ResetView,\n                _ => return,\n            };\n            match editor.apply(action) {\n                Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),\n                Ok(Change::View) => {}\n                Err(error) => {\n                    report(error);\n                    return;\n                }\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &editor.background,\n            &editor.camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n    for name in [\n        \"pointerdown\",\n        \"pointermove\",\n        \"pointerup\",\n        \"pointercancel\",\n        \"lostpointercapture\",\n        \"contextmenu\",\n        \"keydown\",\n        \"keyup\",\n        \"blur\",\n        \"click\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        click.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Every document action follows the same editor path.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    transform: &[f32; 16],\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => {\n            return Err(JsValue::from_str(&format!(\n                \"Surface unavailable: {other:?}\"\n            )));\n        }\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view, background, transform);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n}\n",
+          "snippet": "journey/code/19a-final-4.rs",
+          "why": "Route captured pointer and wheel events through editor actions."
+        },
+        {
           "path": "Cargo.toml",
-          "snippet": "journey/code/22-shortcuts-dock-01.toml",
-          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser event bindings used by the command dock."
+          "before": "[package]\nname = \"viewer_journey\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lib]\ncrate-type = [\"cdylib\", \"rlib\"]\n\n[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false }\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\nserde = { version = \"1.0\", features = [\"derive\"] }\nserde_json = \"1.0\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
+          "snippet": "journey/code/19a-final-7.toml",
+          "why": "Enable the browser event and pointer capture APIs."
         },
         {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/22-shortcuts-window-1.rs",
-          "before": "            };\n            Some(action)\n        } else if !panel.consumed {\n            pointer_action(&event, &pointer_canvas, &mut gesture)\n        } else {\n            None\n        };\n",
-          "why": "Route unconsumed canvas input through navigation_action."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/22-shortcuts-window-2.rs",
-          "before": "    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.\");\n    Ok(())\n}\n\nfn pointer_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Retain the shared callback and dispatch wheel or pointer navigation."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/22-shortcuts-window-3.rs",
-          "before": "        \"pointerdown\" => {\n            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {\n                event.prevent_default();\n                if canvas.set_pointer_capture(id).is_err() {\n                    gesture.cancel();\n                }\n            }\n",
-          "why": "Focus the canvas and capture accepted pointer presses; cancel if either operation fails."
+          "path": "src/lib.rs",
+          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\npub mod history;\npub mod editor;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n#[cfg(test)]\n#[path = \"command_dock/tool_buttons_tests.rs\"]\nmod tool_buttons_tests;\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_vocabulary;\n\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n",
+          "snippet": "journey/code/19a-final-2.rs",
+          "why": "Register input modules and their native tests."
         }
       ],
       "image_result": "The helper adds the box, chooses Isometric, applies a −120-pixel wheel input, then the same Pan Right action used by the command. Pixel checks verify the resulting face; browser checks verify wheel delivery and typing ownership.",
-      "browser_caption": "Chrome checks actual wheel zoom without page scrolling, equivalent line/page wheel events, and immediate typing after canvas focus without keyboard feature shortcuts.",
-      "browser_check": "journey/checks/browser/navigation.cjs",
-      "image_same_as": "21a-wheel"
+      "browser_caption": "Historical endpoint; consolidated runtime acceptance remains pending.",
+      "browser_check": "journey/checks/browser/viewport-input.cjs",
+      "authored": true,
+      "lock": "journey/release/15-perspective.lock",
+      "assets": []
     },
     {
       "tests": true,
@@ -1452,8 +774,7 @@
           "snippet": "journey/code/22a-records-register.rs",
           "why": "Register the raw-record validator."
         }
-      ],
-      "image_same_as": "21a-wheel"
+      ]
     },
     {
       "tests": true,
@@ -1530,7 +851,7 @@
           "why": "Check that the specimen passes validation and duplicate source GUIDs are rejected."
         }
       ],
-      "image_same_as": "21a-wheel"
+      "image_same_as": "22a-records"
     },
     {
       "tests": true,
@@ -1613,7 +934,7 @@
           "why": "Register the byte-level loader checks."
         }
       ],
-      "image_same_as": "21a-wheel"
+      "image_same_as": "22a-records"
     },
     {
       "tests": true,
@@ -15096,7 +14417,8 @@
           "why": "Register the component and copied checks."
         }
       ],
-      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata."
+      "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
+      "image_same_as": "44g-edge-ink"
     },
     {
       "id": "44ia-original-ink",
@@ -15139,7 +14461,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44i-ink-highlight"
+      "image_same_as": "44g-edge-ink"
     },
     {
       "id": "44j-face-highlight",
@@ -15243,7 +14565,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44i-ink-highlight"
+      "image_same_as": "44g-edge-ink"
     },
     {
       "id": "44k-selection",
@@ -15341,7 +14663,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "44i-ink-highlight"
+      "image_same_as": "44g-edge-ink"
     },
     {
       "id": "44l-input",
@@ -15770,7 +15092,7 @@
         }
       ],
       "image_result": "The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.",
-      "image_same_as": "45b-membership"
+      "image_same_as": "44l-input"
     },
     {
       "id": "45c-input",
@@ -17719,7 +17041,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "51ez-pack-and-sample-local-handle-vertices"
+      "image_same_as": "50d-ownership"
     },
     {
       "id": "51g-layout",
@@ -17760,7 +17082,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "51ez-pack-and-sample-local-handle-vertices"
+      "image_same_as": "50d-ownership"
     },
     {
       "id": "51h-shader",
@@ -17794,8 +17116,7 @@
           "why": "Draw packed handle colors, active orange and the resolved tile composite."
         }
       ],
-      "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_result": "The earlier two gold boxes and temporary Move band remain."
     },
     {
       "id": "51i-image",
@@ -17836,7 +17157,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51j-pipelines",
@@ -17871,7 +17192,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51k-tile",
@@ -17912,7 +17233,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51l-upload",
@@ -17947,7 +17268,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51m-prepare",
@@ -17982,7 +17303,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51n-draw",
@@ -18017,7 +17338,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51o-renderer",
@@ -18089,7 +17410,7 @@
         }
       ],
       "image_result": "The earlier two gold boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51p-part-points",
@@ -18130,7 +17451,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51q-deform",
@@ -18165,7 +17486,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51r-part-preview",
@@ -18206,7 +17527,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51s-edit-owner",
@@ -18247,7 +17568,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51t-capture",
@@ -18282,7 +17603,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51u-selection",
@@ -18335,7 +17656,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51v-press",
@@ -18388,7 +17709,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51w-release",
@@ -18441,7 +17762,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51x-number-model",
@@ -18482,7 +17803,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51y-number-field",
@@ -18517,7 +17838,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51z-number-submit",
@@ -18588,7 +17909,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51za-panel",
@@ -18671,7 +17992,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "51z-number-submit"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51zb-presentation",
@@ -18724,7 +18045,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51zc-pointer",
@@ -18765,7 +18086,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51zd-interruption",
@@ -18842,7 +18163,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51ze-ledger",
@@ -18895,7 +18216,7 @@
         }
       ],
       "image_result": "The earlier two selected boxes and temporary Move band remain.",
-      "image_same_as": "50d-ownership"
+      "image_same_as": "51h-shader"
     },
     {
       "id": "51zf-handles",
@@ -89663,6 +88984,17 @@
     "14a-perspective": "12-identity",
     "14b-ray": "12-identity",
     "15-perspective": "12-identity",
-    "16-orbit": "12-identity"
+    "16-orbit": "12-identity",
+    "18-light": "17-solid",
+    "18a-editor": "17-solid",
+    "18b-actions": "17-solid",
+    "19-actions": "17-solid",
+    "20-resize": "19a-viewport",
+    "20a-press": "19a-viewport",
+    "20b-release": "19a-viewport",
+    "20c-motion": "19a-viewport",
+    "21-gestures": "19a-viewport",
+    "21a-wheel": "19a-viewport",
+    "22-shortcuts": "19a-viewport"
   }
 }

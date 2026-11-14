@@ -76,7 +76,8 @@ function main() {
     } else if (action === 'dock-preview') {
         dockPreview();
     } else if (action === 'generate') {
-        generate();
+        if (selected && selected !== '--navigation-only') throw Error('Use generate or generate --navigation-only');
+        generate(undefined, selected === '--navigation-only');
     } else if (action === 'subject-audit') {
         const plan = JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8'));
         const groups: {id: string; steps: string[]; checkpoint: string}[] = plan.chapters.flatMap(

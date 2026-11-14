@@ -122,28 +122,16 @@
       "title": "Documents, editing and ownership",
       "sections": [
         {
-          "title": "Kernel solids",
+          "title": "Kernel geometry and one editor",
           "first": "17-solid"
         },
         {
-          "title": "Surface lighting and editor actions",
-          "first": "18-light"
+          "title": "One drawing size and one captured gesture",
+          "first": "19a-viewport"
         },
         {
-          "title": "Browser input and drawing size",
-          "first": "19-actions"
-        },
-        {
-          "title": "Resize and pointer motion",
-          "first": "20-resize"
-        },
-        {
-          "title": "Captured pointers and wheel units",
-          "first": "21-gestures"
-        },
-        {
-          "title": "Shortcuts and asynchronous files",
-          "first": "22-shortcuts"
+          "title": "Validated files and asynchronous loading",
+          "first": "22a-records"
         },
         {
           "title": "Opening files and scene bounds",
@@ -189,32 +177,21 @@
       "consolidated": [
         {
           "id": "17-solid",
-          "title": "Kernel geometry and a single editor owner",
-          "page": "journey/consolidation/17-solid.md",
+          "title": "Kernel geometry and one editor",
+          "page": "journey/17-solid.md",
           "steps": [
-            "17-solid",
-            "18-light",
-            "18a-editor",
-            "18b-actions",
-            "19-actions"
+            "17-solid"
           ],
-          "checkpoint": "19-actions"
+          "checkpoint": "17-solid"
         },
         {
           "id": "19a-viewport",
           "title": "One drawing size and one captured gesture",
-          "page": "journey/consolidation/19a-viewport.md",
+          "page": "journey/19a-viewport.md",
           "steps": [
-            "19a-viewport",
-            "20-resize",
-            "20a-press",
-            "20b-release",
-            "20c-motion",
-            "21-gestures",
-            "21a-wheel",
-            "22-shortcuts"
+            "19a-viewport"
           ],
-          "checkpoint": "22-shortcuts"
+          "checkpoint": "19a-viewport"
         },
         {
           "id": "22a-records",

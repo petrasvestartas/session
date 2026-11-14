@@ -64,10 +64,10 @@ Return the object's stable ID, not its current vector index. Removing a differen
 ```
 
 ```rust
---8<-- "journey/code/12-selection-8.rs"
+--8<-- "journey/code/12-history-final.rs"
 ```
 
-A scene clone copies object records and shares immutable meshes through `Rc`. History therefore retains document snapshots without copying vertex arrays or GPU buffers. `edit` saves the previous scene and clears the redo branch. Undo and redo move snapshots between stacks and restore the document. The undo stack retains at most 64 edits; this is a count limit, not a byte limit.
+A scene clone copies object records and shares immutable meshes through `Rc`. History therefore retains document snapshots without copying vertex arrays or GPU buffers. `try_edit` saves the previous scene before calling a fallible action. Success retains that snapshot and clears the redo branch. An error restores the scene and leaves undo and redo unchanged, even if the action modified the scene before failing. `edit` delegates infallible actions through this same transaction. Undo and redo move snapshots between stacks and restore the document. The undo stack retains at most 64 edits; this is a count limit, not a byte limit.
 
 `Scene::restore` keeps the greater of the saved and current `next_id` counters. Undo can bring back an existing ID, but a new edit after undo must not reuse an ID already issued on the discarded branch. History does not compare snapshots to reject no-op edits: callers must decide whether a command represents a document edit. Camera navigation is outside document history.
 
@@ -107,6 +107,8 @@ Delete the nearer triangle and undo. Predict what happens after `example triangl
 
 Predict the result of shortening a viewing ray below its first hit distance: no object is selected. Restore the original interval before continuing. This distinguishes clipping from choosing whichever triangle happens to be visited first.
 
+Create a redo branch, then try an action that removes an object and returns an error. Predict whether the object and redo branch survive. The rollback test checks both; a failure must not consume history.
+
 ## Question and answer
 
 Why must undo preserve both an object's ID and the highest identity already issued?
@@ -115,8 +117,12 @@ Restored objects keep references meaningful. Preserving the highest issued ident
 
 ## Validation
 
-The consolidated source exactly matches the former `16-orbit` endpoint, and the final cumulative endpoint remains unchanged. The ten original source checkpoints and all original page text, diagrams and images are retained. Fresh validation passes 13 native tests, optimized wasm and Trunk compilation, a native WARP pixel check, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. The browser checks exercise selection, deletion, undo/redo, branching history and orbit/reset. The upright viewport is emulated, not physical-phone acceptance. [Source-bound commands, hashes and scope](release/selection-navigation-windows-20261114.json) preserve the evidence.
+The checkpoint passes 14 native library tests and the unchanged 640-by-480 WARP pixel test, optimized WebAssembly/Trunk builds, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. The tests exercise rollback, selection, deletion, undo/redo, branching history and camera navigation. Native rendering uses Microsoft WARP software; Chrome reports an Intel gen-12lp adapter. [Source-bound commands, images and scope](release/history-editor-viewport-windows-20261114.json) retain the exact tested inputs.
 
-![Selection checkpoint in desktop Chrome, with two perspective triangles and the command dock.](../screenshots/selection-windows-20261114/desktop.png)
+The upright viewport is emulated. Its fixed camera crops geometry at the right edge; passing input checks does not establish full phone composition or physical-device acceptance. The ten original checkpoint sources and earlier [browser evidence](release/selection-navigation-windows-20261114.json) remain archived.
 
-The native render uses software DX12. Browser adapter queries report Intel gen-12lp; they do not independently prove adapter selection. Full-course ownership and parity still fail.
+![Current selection checkpoint in desktop Chrome, with two perspective triangles and the command dock.](../screenshots/journey/runtime-20261114/12-identity-desktop.png)
+
+[Upright input check and its cropped view](../screenshots/journey/runtime-20261114/12-identity-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/12-identity-native.png)
+
+Browser adapter fields come from a separate query and do not independently prove renderer adapter selection. Full-course ownership and parity still fail.

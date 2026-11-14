@@ -1,126 +1,130 @@
-# 3.3.2 · Measure a safe drawing size
+# One drawing size and one captured gesture
 
-**Chapter 3 · Documents, editing and ownership · Section 3.3 · Browser input and drawing size** · [Contents](contents.md)
+<a id="checkpoint-19a-viewport"></a>
+<a id="checkpoint-20-resize"></a>
+<a id="checkpoint-20a-press"></a>
+<a id="checkpoint-20b-release"></a>
+<a id="checkpoint-20c-motion"></a>
+<a id="checkpoint-21-gestures"></a>
+<a id="checkpoint-21a-wheel"></a>
+<a id="checkpoint-22-shortcuts"></a>
 
-**Typing: 19–37 minutes.** [Estimate](typing-load.md).
+Resize the shaded scene without stretching it, orbit with a captured pointer, and zoom with consistent wheel units.
 
-Viewport converts CSS size and display density to GPU pixel dimensions. Reduce both dimensions together when they exceed the device limit. Reject hidden or invalid sizes.
+## Prerequisites and ownership
 
-## Type
+Complete [Kernel geometry and one editor](17-solid.md). You need the editor's typed actions, camera projection, depth attachment and command dock.
 
-Continue from [Route browser input through the editor](19-actions.md). [Save or recover your work](recovery.md).
+This subject owns `src/viewport.rs`, `src/gesture.rs`, `src/navigation.rs` and their tests. It connects them in `src/browser.rs`, `src/renderer.rs`, `src/lib.rs` and `Cargo.toml`. Input produces editor actions; GPU resources remain with the renderer.
 
-### 1. `src/viewport.rs`
+## Build
 
-Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies.
+Type the complete files below in the existing project; retain its scene, editor, camera, shaders and command dock.
 
-Create the file and type:
-
-```rust
---8<-- "journey/code/20-resize-01.rs"
-```
-
-### 2. `src/lib.rs`
-
-Make the size calculation usable by browser code and Rust tests.
-
-<details>
-<summary>Locate the existing block</summary>
+### Measure one drawable size
 
 ```rust
-pub mod picking;
-pub mod history;
-pub mod editor;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
+--8<-- "journey/code/19a-final-1.rs"
 ```
 
-</details>
+CSS dimensions describe layout, while the surface needs physical pixels. Multiply both dimensions by display density, then reduce them by one common factor if either exceeds the device limit. Clamping each dimension separately would change the aspect ratio and stretch the scene. Round only after scaling, and keep each physical dimension at least one pixel.
 
-Edit the existing block to match this code; keep unchanged lines:
+A hidden canvas, a nonfinite measurement or a nonpositive density has no drawable size. Returning `None` lets the application postpone drawing instead of configuring an invalid surface. The tests distinguish a denser display from a larger field of view: doubling density doubles both dimensions without changing aspect.
+
+### Resize colour, depth and camera together
 
 ```rust
---8<-- "journey/code/20-resize-fullscreen-1.rs"
+--8<-- "journey/code/19a-final-3.rs"
 ```
 
-## Run and check
+The renderer retains the current depth texture and recreates it when the drawable dimensions change. Colour and depth attachments in one render pass must have the same extent. Resizing changes their storage, not the mesh or pipeline.
 
-In your project:
+The browser's resize function measures the canvas rectangle, updates its backing dimensions and surface configuration, and calls the renderer's resize method before drawing. The camera uses that same width-to-height ratio. An unchanged size still permits a redraw, but avoids reallocating the attachments.
 
-```sh
-cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
-REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+### Keep one pointer responsible for a gesture
+
+```rust
+--8<-- "journey/code/19a-final-5.rs"
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+`Gesture` stores the accepted pointer ID, button, starting position and last position. A second pointer cannot take over an active gesture. The browser captures the accepted pointer so releasing outside the canvas still ends the same operation.
 
-Inspect the supplied state fixtures. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.
+A left press becomes a pick only if it never moves more than four CSS pixels from its start. The moved flag stays set even if the pointer returns to its starting position. A right drag emits incremental orbit motion. Releasing processes the final pointer position before clearing the gesture, so the last movement is not lost.
 
-### Recorded visual result
+Pick coordinates use the canvas rectangle to map client pixels to normalized device coordinates; the vertical axis is reversed. Orbit deltas are divided by the same rectangle dimensions, so a drag across half the canvas has a consistent angular meaning at different display densities.
 
-**Previous native render — current verification pending.**
-
-![Native renderer output for measure a safe drawing size.](../screenshots/journey/18b-actions.png)
-
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
-
-This reference image is shared with [3.2.3 · Apply document and view actions in Rust](18b-actions.md). It does not demonstrate a new feature by itself.
-
-<details>
-<summary>Code explanation and diagram</summary>
-
-Viewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.
-
-CSS width and height × display density → proportional GPU-limit cap → Viewport.
-
-![CSS dimensions and density produce a bounded pixel viewport.](../illustrations/journey-direct-19a-viewport.svg)
-
-Why cap width and height by the same scale?
-
-Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.
-
-Study estimate, including typing and experiments: 0.75–1.25 hours.
-
-</details>
-
-<details>
-<summary>Optional experiment</summary>
-
-Change the dense-display test ratio to 4.0 and lower the device limit to 1024. Predict the bounded dimensions before running the check.
-
-</details>
-
-<details>
-<summary>Check and save your work</summary>
-
-Restore experimental edits, then run from `session_viewer`:
-
-```sh
-npm --prefix ../session_tests run course -- check 3.3.2
-npm --prefix ../session_tests run course -- save 3.3.2
+```rust
+--8<-- "journey/code/19a-final-6.rs"
 ```
 
-Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+These tests exercise pointer identity, click-versus-drag classification, cancellation and conversion into editor actions. They do not require a DOM or GPU.
 
-</details>
+### Normalize wheel movement
 
-<details>
-<summary>Viewer coverage and verification</summary>
-
-A camera aspect and its GPU attachments must use one bounded pixel size. This step establishes that size calculation; the next connects it to the browser and GPU.
-
-Native tests establish bounded density-aware sizing. Chrome independently retains the editor input route and drawing; actual canvas and attachment resizing are connected next.
-
-[Full validation scope](release.md).
-
-To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
-
-```sh
-npm --prefix ../session_tests run course -- capture 3.3.2
+```rust
+--8<-- "journey/code/19a-final-8.rs"
 ```
 
-This uses the verified reference bundle; it does not check or change your typed project.
+A wheel event reports pixels, lines or pages. The adapter converts these to pixels using sixteen pixels per line and the canvas height per page, then bounds one event to six hundred pixels in either direction. Invalid units, zero movement and invalid height produce no action.
 
-</details>
+Zoom uses an exponential factor. Successive wheel movements therefore multiply camera scale consistently: ten small movements have the same effect as their summed movement, within floating-point tolerance. The editor still owns the camera limits.
+
+```rust
+--8<-- "journey/code/19a-final-9.rs"
+```
+
+The navigation tests compare all three wheel units, small-event accumulation and large-event bounds. They also check that zoom does not become part of document undo history.
+
+### Route browser events once
+
+```rust
+--8<-- "journey/code/19a-final-4.rs"
+```
+
+The command dock receives each event first. Only an unconsumed event reaches scene navigation. Pointer capture and focus failures cancel the pending gesture. Pointer cancellation, lost capture, blur, resize and Escape also clear it, preventing a delayed release from selecting an object after navigation has ended.
+
+The wheel listener is explicitly nonpassive because accepted zoom events prevent browser scrolling. Both window and canvas listeners retain one callback for the page lifetime. The callback applies an editor action, updates scene display data only for `Change::Scene`, then resizes and presents through the existing renderer.
+
+```toml
+--8<-- "journey/code/19a-final-7.toml"
+```
+
+The manifest enables the browser event and pointer-capture APIs used by this adapter. Register the modules and their native tests:
+
+```rust
+--8<-- "journey/code/19a-final-2.rs"
+```
+
+## Run and observe
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- check 19a-viewport` against your handwritten project. Build and serve with the [repository's resource guards](../maintaining.md). Automated validation uses `npm --prefix ../session_tests run course -- verify 19a-viewport` under those same guards.
+
+Add a box and choose `View Isometric`. Resize the window: the box keeps its proportions and the depth test remains correct. Right-drag beyond the canvas edge and release; the next motion must not keep orbiting. Wheel toward the scene, then undo adding the box: the box disappears while the zoomed view remains.
+
+A small left click picks; a left drag beyond four pixels does not become a click even when it ends at its starting position. Type a command while the dock has focus: those keys must not navigate the scene.
+
+![Current viewport checkpoint after wheel zoom and Pan Right in desktop Chrome.](../screenshots/journey/runtime-20261114/19a-viewport-desktop.png)
+
+[Upright input check and its cropped view](../screenshots/journey/runtime-20261114/19a-viewport-upright.png) ? [Native WARP frame](../screenshots/journey/runtime-20261114/19a-viewport-native.png)
+
+This retained native frame shows the endpoint scene. It does not establish fresh browser interaction or consolidated-checkpoint acceptance.
+
+## Predict and try
+
+Predict the physical size for a 768-by-384 CSS canvas at density four with a 1024-pixel device limit. It becomes 1024 by 512, retaining aspect two. Compare that with independently clamping the dimensions.
+
+Press, drag beyond the threshold, return to the starting position and release. Predict whether the object is selected before trying it. The remembered drag classification prevents selection.
+
+## Question and answer
+
+Why must camera aspect and the depth attachment use the same drawable dimensions as the surface?
+
+The aspect determines the projection into the colour image, and the depth attachment participates in that image's render pass. A different aspect stretches geometry; a different attachment extent makes the pass invalid.
+
+## Validation
+
+The checkpoint passes 29 native library tests and the unchanged 640-by-480 WARP pixel test, optimized WebAssembly/Trunk builds, and actual Chrome interaction checks at 1280 by 720 and 390 by 844. Browser checks cover captured dragging outside the canvas, release and cancellation, resize, sticky drag classification, wheel-unit equivalence, undo/redo retaining zoom, and dock input ownership. [Source-bound commands, images and scope](release/history-editor-viewport-windows-20261114.json) distinguish native WARP software rendering from Chrome?s reported Intel gen-12lp adapter.
+
+At the emulated upright size, the fixed camera crops geometry at the viewport edges. Zoom Out can reveal more of the scene; automatic fitting is a later camera subject. This does not establish full phone composition or physical-device acceptance. The eight original checkpoints remain archived. Later subjects still revise browser and renderer implementations, so the finished-subject rule remains unmet.
+
+Continue with [Validated files, bounds and useful projections](consolidation/22a-records.md).

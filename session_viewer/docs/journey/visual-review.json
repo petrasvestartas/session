@@ -24967,6 +24967,42 @@
           }
         }
       }
+    },
+    "12-identity": {
+      "status": "accepted",
+      "source": "3a2e95ccccf262cd0ab247a92282de599988b0f4f04c0fdee1d5f907da1bc7bd",
+      "checker": "5da78404dd3356e737eed3f263bb1d3fafa484a99d81223c2c140336b8e06776",
+      "file": "runtime-20261114/12-identity-desktop.png",
+      "images": {
+        "runtime-20261114/12-identity-desktop.png": "107ded9347b1cb122b76c3d3d8575316c0a01270f5180da21090a9a1f8eeeec7"
+      },
+      "reviewed": "2026-11-14T04:15:44.090Z",
+      "caption": "Personally reviewed: clear scene and readable dock.",
+      "scope": "Desktop figure reviewed after current native and optimized web builds and original browser interaction checks. Upright interactions also pass, but fixed-camera cropping remains; no full phone composition or physical-phone acceptance. See history-editor-viewport-windows-20261114.json."
+    },
+    "17-solid": {
+      "status": "accepted",
+      "source": "fe3ed6f49bbf55b04106eb9ad51149bb9bf29f66c98671a218a4a0ae4ecc70b5",
+      "checker": "08a1012e5f3fef5d524d714882df83cf36ab4146e4e615f3e16344be9de5ba89",
+      "file": "runtime-20261114/17-solid-desktop.png",
+      "images": {
+        "runtime-20261114/17-solid-desktop.png": "0cf1df8b072164720abdb656c4b9a8639c2e662f630d979cec0850616273f413"
+      },
+      "reviewed": "2026-11-14T04:15:44.397Z",
+      "caption": "Personally reviewed: clear scene and readable dock.",
+      "scope": "Desktop figure reviewed after current native and optimized web builds and original browser interaction checks. Upright interactions also pass, but fixed-camera cropping remains; no full phone composition or physical-phone acceptance. See history-editor-viewport-windows-20261114.json."
+    },
+    "19a-viewport": {
+      "status": "accepted",
+      "source": "b29dfeecba76636aebd96479a5618f71d0f6ec320adfd61057d93f474fe3fdee",
+      "checker": "fa1bf4e2eb81da919200a784910026ae906c1833f303ad27734ac7850c7a0af2",
+      "file": "runtime-20261114/19a-viewport-desktop.png",
+      "images": {
+        "runtime-20261114/19a-viewport-desktop.png": "d2dd2ebb4428faee668caefa66380c7f1e2a8267379a360babc27aac16735362"
+      },
+      "reviewed": "2026-11-14T04:15:44.712Z",
+      "caption": "Personally reviewed: clear scene and readable dock.",
+      "scope": "Desktop figure reviewed after current native and optimized web builds and original browser interaction checks. Upright interactions also pass, but fixed-camera cropping remains; no full phone composition or physical-phone acceptance. See history-editor-viewport-windows-20261114.json."
     }
   },
   "frames": {

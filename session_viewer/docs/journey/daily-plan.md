@@ -6,8 +6,9 @@ Work through one coherent subject at a time and save partial work at file bounda
 
 - [1.1 · Rust and the first GPU frame](consolidation/01-canvas.md)
 
+- [1.2 · Shaders and first egui painting](03-triangle.md)
 
-- [1.3 · Shaders and the command dock](consolidation/03-triangle.md)
+- [1.3 · The command dock](03d-input.md)
 
 - [1.4 · Commands that change the view](consolidation/04-input.md)
 
@@ -15,25 +16,21 @@ Work through one coherent subject at a time and save partial work at file bounda
 
 Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
-- [2.1 · Buffers that describe a shared mesh](consolidation/05-vertices.md)
+- [2.1 · Buffers that describe a shared mesh](05-vertices.md)
 
-- [2.2 · Camera state and the world-to-clip transform](consolidation/07-uniforms.md)
+- [2.2 · Camera state and matrix uniforms](07-uniforms.md)
 
-- [2.3 · Depth, validated geometry and stable objects](consolidation/10-depth.md)
+- [2.3 · A depth-tested scene with stable objects](10-depth.md)
 
-- [2.4 · Selection that agrees with the displayed view](consolidation/12-identity.md)
-
-- [2.5 · Document history and perspective rays](consolidation/13a-history.md)
-
-- [2.6 · Perspective picking and orbit navigation](consolidation/15-perspective.md)
+- [2.4 · Select, navigate and undo](12-identity.md)
 
 ## Chapter 3: consolidated lessons
 
 Work through one coherent subject at a time and save partial work at file boundaries. The existing intermediate checkpoints still require consolidation; a sidebar heading alone is not one finished subject.
 
-- [3.1 · Kernel geometry and a single editor owner](consolidation/17-solid.md)
+- [3.1 · Kernel geometry and one editor](17-solid.md)
 
-- [3.2 · One drawing size and one captured gesture](consolidation/19a-viewport.md)
+- [3.2 · One drawing size and one captured gesture](19a-viewport.md)
 
 - [3.3 · Validated files, bounds and useful projections](consolidation/22a-records.md)
 
@@ -308,4 +305,23 @@ Work through one coherent subject at a time and save partial work at file bounda
 - [22.5 · Coherent multisampling and frame-resource ownership](consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md)
 
 - [22.6 · Original display controls and remaining integration boundaries](consolidation/96zzzzzzzm-retain-visible-instance-ranges.md)
+
+## Chapters awaiting consolidation
+
+Follow each row from left to right in the same browser project. Small consecutive checkpoints share a day; their code and explanations remain in their original lessons. Build and inspect the browser at each checkpoint before continuing.
+
+The estimates count typing at 50–100 characters per minute. Reading, reasoning, debugging and experiments take additional time. A long subject can span several sittings; resume from your saved project without creating another tutorial checkpoint.
+
+This route covers the authored learner implementation. [Current-viewer parity remains unfinished](completion-contract.md). The maintained-runtime reference comparison is excluded from the coding route.
+
+| Day | Checkpoints in order | Estimated coding |
+| ---: | --- | --- |
+| 1 | [1.2.1 · Shaders and first egui painting](03-triangle.md) | 75–149 min |
+| 2 | [1.3.1 · The command dock](03d-input.md) | 421–841 min |
+| 3 | [2.1.1 · Buffers that describe a shared mesh](05-vertices.md) | 16–32 min |
+| 4 | [2.2.1 · Camera state and matrix uniforms](07-uniforms.md) | 43–86 min |
+| 5 | [2.3.1 · A depth-tested scene with stable objects](10-depth.md) | 93–185 min |
+| 6 | [2.4.1 · Select, navigate and undo](12-identity.md) | 154–308 min |
+| 7 | [3.1.1 · Kernel geometry and one editor](17-solid.md) | 82–164 min |
+| 8 | [3.2.1 · One drawing size and one captured gesture](19a-viewport.md) | 159–318 min |
 

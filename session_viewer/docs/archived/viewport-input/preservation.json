@@ -1,0 +1,63 @@
+{
+  "status": "source-only; runtime acceptance pending",
+  "originalCommit": "8f990e44c1c841656aa3820fb507a246d04cfb18",
+  "originalIds": [
+    "19a-viewport",
+    "20-resize",
+    "20a-press",
+    "20b-release",
+    "20c-motion",
+    "21-gestures",
+    "21a-wheel",
+    "22-shortcuts"
+  ],
+  "pages": [
+    {
+      "page": "journey/19a-viewport.md",
+      "archive": "archived/journey-19a-viewport.md",
+      "sha256": "9bd215590f0b696425078e8e277cb78b0336325a1ae517bbdc5d0a65d4c1f0a6"
+    },
+    {
+      "page": "journey/20-resize.md",
+      "archive": "archived/journey-20-resize.md",
+      "sha256": "940f62194144323c74b437c6c1c5226135e50460f158e4d325250b8ecf0c1864"
+    },
+    {
+      "page": "journey/20a-press.md",
+      "archive": "archived/journey-20a-press.md",
+      "sha256": "8ef2a57fabdaaeb3d7204ed4629065e84f4c7f59efdf017014bea2812b1fc082"
+    },
+    {
+      "page": "journey/20b-release.md",
+      "archive": "archived/journey-20b-release.md",
+      "sha256": "731ce11024922a6f7487ca8f0a86de136ef4fcec10e43304d77f306a82c98d5c"
+    },
+    {
+      "page": "journey/20c-motion.md",
+      "archive": "archived/journey-20c-motion.md",
+      "sha256": "0cb65baf0d7afbc95370f6be4d11cccb8655712d0804e5dfa2d1fbcf1cb2eea3"
+    },
+    {
+      "page": "journey/21-gestures.md",
+      "archive": "archived/journey-21-gestures.md",
+      "sha256": "5feaeb512dab46e008b2c48edae7e98aef27c39bec88c17e74cff903ce673fa9"
+    },
+    {
+      "page": "journey/21a-wheel.md",
+      "archive": "archived/journey-21a-wheel.md",
+      "sha256": "e943a9aea859edeba7e4009c2ff88ae4829fc67aeb1fd17ecdd3275fa5560ba2"
+    },
+    {
+      "page": "journey/22-shortcuts.md",
+      "archive": "archived/journey-22-shortcuts.md",
+      "sha256": "519eecb1d2dc220f30de37559fea078b53b9a8652c710bd50e0ae4301867922e"
+    },
+    {
+      "page": "journey/consolidation/19a-viewport.md",
+      "archive": "archived/journey-consolidation-19a-viewport.md",
+      "sha256": "6b6e57461ef9b7b7af26d0866675789433b42bc5d9ed346956ed81618bd2980b"
+    }
+  ],
+  "endpoint": "6e7af855879c3862d142d494b23cd72dc5fffda6df29e459dbe71d3e58819f0a",
+  "destination": "7973001e990fea905edfad976b5319b82cf129a77b812d36c94a264995ad21ca"
+}

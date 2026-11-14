@@ -66,6 +66,8 @@ The viewer's scene text lane cannot draw these font glyph IDs. Mathematics there
 
 ### Keep the presentation together
 
+The production presentation owner is exercised by the separate mode probe. The standalone checkpoint still connects its stage and atlas directly in `browser.rs`; cumulative application wiring remains pending.
+
 The production [presentation owner](../../src/app/stage/presentation.rs) keeps the running deck, its glyph and picture atlas, and the last painted coordinate mapping together:
 
 ```rust

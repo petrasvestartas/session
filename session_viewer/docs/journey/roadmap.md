@@ -202,7 +202,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 1.2.1 · [Give browser presentation its own function](02-clear.md) — Separate browser presentation from setup and add bounded sizing and error feedback.
 
-- [ ] 1.3.1 · [Give the GPU three corners](03-triangle.md) — Draw a pink triangle on the white background.
+- [ ] 1.2.1 · [Give the GPU three corners](03-triangle.md) — Draw a pink triangle on the white background.
 
 - [ ] 1.3.2 · [Prepare the command fonts and painter](03a-fonts.md) — Create the font and GPU painter owner while keeping the triangle.
 
@@ -250,7 +250,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 1.3.24 · [Return accepted application commands](03cn-handoff.md) — Keep editing local and return accepted names to the caller.
 
-- [ ] 1.3.25 · [Hand commands to the application](03d-input.md) — Return accepted commands while keeping editing inside Panel.
+- [ ] 1.3.1 · [Hand commands to the application](03d-input.md) — Return accepted commands while keeping editing inside Panel.
 
 - [ ] 1.4.1 · [Make a choice change the picture](04-input.md) — Use a command to switch backgrounds without changing the triangle.
 
@@ -258,13 +258,13 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 2.2.1 · [Share a corner between triangles](06-indices.md) — Draw a diamond from four positions and six small index numbers.
 
-- [ ] 2.3.1 · [Send one view setting to every corner](07-uniforms.md) — Scale and shift the diamond without changing its stored positions.
+- [ ] 2.2.1 · [Send one view setting to every corner](07-uniforms.md) — Scale and shift the diamond without changing its stored positions.
 
 - [ ] 2.4.1 · [Move the view, keep the geometry](08-camera.md) — Pan, zoom and reset a flat view through camera state.
 
 - [ ] 2.5.1 · [Let one matrix describe the view](09-matrices.md) — Rotate the flat view using a matrix, ready for the third dimension.
 
-- [ ] 2.6.1 · [Keep the nearest surface](10-depth.md) — Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
+- [ ] 2.3.1 · [Keep the nearest surface](10-depth.md) — Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
 
 - [ ] 2.6.2 · [Give geometry a validated CPU owner](10a-mesh.md) — Own validated mesh values and a scene collection before uploading them.
 
@@ -272,7 +272,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 2.7.2 · [Name objects independently of their rows](11a-identity.md) — Keep object identity stable when removal changes vector order.
 
-- [ ] 2.8.1 · [Display selection by object identity](12-identity.md) — Select and delete objects using stable identities, then highlight the selected object.
+- [x] 2.4.1 · [Display selection by object identity](12-identity.md) — Select and delete objects using stable identities, then highlight the selected object.
 
 - [ ] 2.8.2 · [Convert screen positions back to the scene](12a-coordinates.md) — Undo the camera transform before querying CPU geometry.
 
@@ -292,7 +292,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 2.12.1 · [Walk around the model](16-orbit.md) — Orbit and tilt a perspective camera while keeping its target in place.
 
-- [ ] 3.1.1 · [Bring a solid into the scene](17-solid.md) — Create a kernel box, convert it to display data, and add it as one undoable scene object.
+- [x] 3.1.1 · [Bring a solid into the scene](17-solid.md) — Create a kernel box, convert it to display data, and add it as one undoable scene object.
 
 - [ ] 3.2.1 · [Read the shape through light](18-light.md) — Shade the box faces according to their direction, using the same mesh and renderer.
 
@@ -302,7 +302,7 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 3.3.1 · [Route browser input through the editor](19-actions.md) — Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
 
-- [ ] 3.3.2 · [Measure a safe drawing size](19a-viewport.md) — Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
+- [x] 3.2.1 · [Measure a safe drawing size](19a-viewport.md) — Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.
 
 - [ ] 3.4.1 · [Resize canvas, depth and camera together](20-resize.md) — Resize the drawing buffer, depth attachment and camera together, including on dense displays.
 - [ ] 3.4.2 · [Remember the pointer that starts a drag](20a-press.md) — Retain one pointer and produce movement relative to its previous position.
@@ -314,169 +314,169 @@ These entries record the earlier published checks. The current evidence summary 
 
 - [ ] 3.6.1 · [Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md) — Normalize wheel input and keep every keyboard feature command in the command dock.
 
-- [ ] 3.6.2 · [Validate a raw mesh record](22a-records.md) — Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
-- [ ] 3.6.3 · [Validate session identity and build a sample file](22b-session.md) — Run the state checks, then cargo run --example sample. The sample has three distinct source meshes; duplicate GUIDs are rejected.
-- [ ] 3.6.4 · [Decode and prepare the whole import](22c-decode.md) — Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
-- [ ] 3.6.5 · [Commit an import as one undoable action](22d-import.md) — Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
-- [ ] 3.6.6 · [Prepare asynchronous file delivery](22e-file-reader.md) — Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.
+- [ ] 3.3.1 · [Validate a raw mesh record](22a-records.md) — Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+- [ ] 3.3.2 · [Validate session identity and build a sample file](22b-session.md) — Run the state checks, then cargo run --example sample. The sample has three distinct source meshes; duplicate GUIDs are rejected.
+- [ ] 3.3.3 · [Decode and prepare the whole import](22c-decode.md) — Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.
+- [ ] 3.3.4 · [Commit an import as one undoable action](22d-import.md) — Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.
+- [ ] 3.3.5 · [Prepare asynchronous file delivery](22e-file-reader.md) — Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.
 
-- [ ] 3.7.1 · [Open a file through the command line](23-import.md) — Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
+- [ ] 3.4.1 · [Open a file through the command line](23-import.md) — Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
 
-- [ ] 3.7.2 · [Measure the displayed scene bounds](23a-bounds.md) — Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.
-- [ ] 3.7.3 · [Fit the camera around the bounds](23b-fit-camera.md) — Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
+- [ ] 3.4.2 · [Measure the displayed scene bounds](23a-bounds.md) — Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.
+- [ ] 3.4.3 · [Fit the camera around the bounds](23b-fit-camera.md) — Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.
 
-- [ ] 3.8.1 · [Run Fit through the command line](24-fit.md) — Frame all current objects without rotating them or changing the document.
+- [ ] 3.5.1 · [Run Fit through the command line](24-fit.md) — Frame all current objects without rotating them or changing the document.
 
-- [ ] 3.8.2 · [Build perspective and orthographic camera matrices](24a-projection.md) — Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
-- [ ] 3.8.3 · [Fit and change projection through the editor](24b-projection-actions.md) — Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
+- [ ] 3.5.2 · [Build perspective and orthographic camera matrices](24a-projection.md) — Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.
+- [ ] 3.5.3 · [Fit and change projection through the editor](24b-projection-actions.md) — Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.
 
-- [ ] 3.9.1 · [Run the named projection commands](25-projection.md) — Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
+- [ ] 3.6.1 · [Run the named projection commands](25-projection.md) — Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
 
 ## A camera and scene ready for real documents
 
 Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
-- [ ] 3.10.1 · [Frame one object without changing its size](26-selected.md) — Run Fit Selected while keeping geometry, selection and document history unchanged.
+- [ ] 3.7.1 · [Frame one object without changing its size](26-selected.md) — Run Fit Selected while keeping geometry, selection and document history unchanged.
 
-- [ ] 3.10.2 · [Fit and step history from the keyboard](26a-keys.md) — Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
+- [ ] 3.7.2 · [Fit and step history from the keyboard](26a-keys.md) — Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.
 
-- [ ] 3.11.1 · [Give each object a placement](27-placement.md) — Keep local mesh coordinates and an independent object placement.
+- [ ] 3.8.1 · [Give each object a placement](27-placement.md) — Keep local mesh coordinates and an independent object placement.
 
-- [ ] 3.11.2 · [Ask geometry questions in world coordinates](27a-world.md) — Use placement for scene bounds, selected bounds and ray picking.
+- [ ] 3.8.2 · [Ask geometry questions in world coordinates](27a-world.md) — Use placement for scene bounds, selected bounds and ray picking.
 
-- [ ] 3.11.3 · [Apply object placement on the GPU](27b-model.md) — Send a separate model matrix for each draw while retaining local vertex buffers.
+- [ ] 3.8.3 · [Apply object placement on the GPU](27b-model.md) — Send a separate model matrix for each draw while retaining local vertex buffers.
 
-- [ ] 3.11.4 · [Move a placed object with a typed offset](27c-move.md) — Translate selected geometry through the existing command and history route.
+- [ ] 3.8.4 · [Move a placed object with a typed offset](27c-move.md) — Translate selected geometry through the existing command and history route.
 
-- [ ] 3.11.5 · [Prove placement and history agree](27d-history.md) — Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
+- [ ] 3.8.5 · [Prove placement and history agree](27d-history.md) — Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
 
-- [ ] 3.12.1 · [Prepare a display from an owned source mesh](28-record.md) — Give source geometry a shared owner and prepare its display before committing an object.
+- [ ] 3.9.1 · [Prepare a display from an owned source mesh](28-record.md) — Give source geometry a shared owner and prepare its display before committing an object.
 
-- [ ] 3.12.2 · [Retain the imported mesh behind each row](28a-imported.md) — Insert imported source geometry and its prepared display together.
+- [ ] 3.9.2 · [Retain the imported mesh behind each row](28a-imported.md) — Insert imported source geometry and its prepared display together.
 
-- [ ] 3.12.3 · [Give generated objects the same source owner](28b-generated.md) — Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
+- [ ] 3.9.3 · [Give generated objects the same source owner](28b-generated.md) — Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
 
-- [ ] 3.12.4 · [Prove source ownership survives editing](28c-ownership.md) — Connect local source geometry, display caches, provenance and document history.
+- [ ] 3.9.4 · [Prove source ownership survives editing](28c-ownership.md) — Connect local source geometry, display caches, provenance and document history.
 
-- [ ] 3.13.1 · [Give each saved object a stable identity](29-identity.md) — Distinguish a scene object from the original geometry it shares.
+- [ ] 3.10.1 · [Give each saved object a stable identity](29-identity.md) — Distinguish a scene object from the original geometry it shares.
 
-- [ ] 3.13.2 · [Write a snapshot from the editable sources](29a-snapshot.md) — Serialize live source meshes and their placements without changing the editor.
+- [ ] 3.10.2 · [Write a snapshot from the editable sources](29a-snapshot.md) — Serialize live source meshes and their placements without changing the editor.
 
-- [ ] 3.13.3 · [Reopen source geometry with its placement](29b-placements.md) — Validate stored placements before reconstructing source-backed objects.
+- [ ] 3.10.3 · [Reopen source geometry with its placement](29b-placements.md) — Validate stored placements before reconstructing source-backed objects.
 
-- [ ] 3.13.4 · [Prove the saved document reopens faithfully](29c-roundtrip.md) — Check exact local source data, attributes, identities and placement through saving and loading.
+- [ ] 3.10.4 · [Prove the saved document reopens faithfully](29c-roundtrip.md) — Check exact local source data, attributes, identities and placement through saving and loading.
 
-- [ ] 3.13.5 · [Download the editable document from the command line](29d-save.md) — Connect Save to a browser download and reopen the actual downloaded document.
+- [ ] 3.10.5 · [Download the editable document from the command line](29d-save.md) — Connect Save to a browser download and reopen the actual downloaded document.
 
-- [ ] 3.14.1 · [Report the result that actually committed](30-feedback.md) — Keep failed reads and imports visible in command history without claiming success.
+- [ ] 3.11.1 · [Report the result that actually committed](30-feedback.md) — Keep failed reads and imports visible in command history without claiming success.
 
-- [ ] 3.14.2 · [Give a pending read an explicit ticket](30a-tickets.md) — Describe latest-read ownership, cancellation and one-shot completion in native Rust.
+- [ ] 3.11.2 · [Give a pending read an explicit ticket](30a-tickets.md) — Describe latest-read ownership, cancellation and one-shot completion in native Rust.
 
-- [ ] 3.14.3 · [Cancel reads without accepting their late result](30b-cancel.md) — Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
+- [ ] 3.11.3 · [Cancel reads without accepting their late result](30b-cancel.md) — Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
 
-- [ ] 3.14.4 · [Replace a document as one reversible change](30c-replace.md) — Prepare a whole replacement before changing live rows, then commit it through existing history.
+- [ ] 3.11.4 · [Replace a document as one reversible change](30c-replace.md) — Prepare a whole replacement before changing live rows, then commit it through existing history.
 
-- [ ] 3.14.5 · [Choose append or replace before opening the picker](30d-bridge.md) — Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
+- [ ] 3.11.5 · [Choose append or replace before opening the picker](30d-bridge.md) — Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
 
-- [ ] 3.14.6 · [Prove recovery at the transaction and display boundaries](30e-recovery.md) — Test partial replacement failure, preserved selection/Redo and placement upload limits.
+- [ ] 3.11.6 · [Prove recovery at the transaction and display boundaries](30e-recovery.md) — Test partial replacement failure, preserved selection/Redo and placement upload limits.
 
-- [ ] 3.15.1 · [Keep selection out of the vertex data](31-settings.md) — Put placement and selection in an explicitly packed object uniform.
+- [ ] 3.12.1 · [Keep selection out of the vertex data](31-settings.md) — Put placement and selection in an explicitly packed object uniform.
 
-- [ ] 3.15.2 · [Give immutable GPU geometry one owner](31a-geometry.md) — Separate vertex/index storage from each object’s uniform and retain its CPU source.
+- [ ] 3.12.2 · [Give immutable GPU geometry one owner](31a-geometry.md) — Separate vertex/index storage from each object’s uniform and retain its CPU source.
 
-- [ ] 3.15.3 · [Reuse uploads while their geometry is alive](31b-cache.md) — Cache GPU geometry by its retained CPU allocation and release dead cache entries.
+- [ ] 3.12.3 · [Reuse uploads while their geometry is alive](31b-cache.md) — Cache GPU geometry by its retained CPU allocation and release dead cache entries.
 
-- [ ] 3.15.4 · [Update only changed object settings](31c-incremental.md) — Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
+- [ ] 3.12.4 · [Update only changed object settings](31c-incremental.md) — Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
 
-- [ ] 3.16.1 · [Find the owners retained by history](32-history.md) — Inspect undo/redo roots and release both branches explicitly.
+- [ ] 3.13.1 · [Find the owners retained by history](32-history.md) — Inspect undo/redo roots and release both branches explicitly.
 
-- [ ] 3.16.2 · [Count shared CPU displays once](32a-cpu.md) — Account for active/history rows, retained sources/documents and unique display payloads.
+- [ ] 3.13.2 · [Count shared CPU displays once](32a-cpu.md) — Account for active/history rows, retained sources/documents and unique display payloads.
 
-- [ ] 3.16.3 · [Count each shared GPU buffer once](32b-gpu.md) — Measure live document buffer sizes separately from cumulative allocation counters.
+- [ ] 3.13.3 · [Count each shared GPU buffer once](32b-gpu.md) — Measure live document buffer sizes separately from cumulative allocation counters.
 
-- [ ] 3.16.4 · [Close the document without resetting the view](32c-close.md) — Drop active rows and both history branches while preserving the local ID counter and camera.
+- [ ] 3.13.4 · [Close the document without resetting the view](32c-close.md) — Drop active rows and both history branches while preserving the local ID counter and camera.
 
-- [ ] 3.16.5 · [Close through the command line and revoke reads](32d-command.md) — Wire Close into the dock and cancel pending delivery before closing the editor.
+- [ ] 3.13.5 · [Close through the command line and revoke reads](32d-command.md) — Wire Close into the dock and cancel pending delivery before closing the editor.
 
-- [ ] 3.16.6 · [Prove release does not retain the old document](32e-release.md) — Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.
+- [ ] 3.13.6 · [Prove release does not retain the old document](32e-release.md) — Check imported history owners, the CPU/GPU release boundary, late read failures and reopening.
 
-- [ ] 3.16.7 · [Keep row metadata separate from editable geometry](32f-metadata.md) — Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
+- [ ] 3.13.7 · [Keep row metadata separate from editable geometry](32f-metadata.md) — Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
 
-- [ ] 3.16.8 · [Ask whether an editable source is available](32fa-access.md) — Route saving, source accounting and owner checks through borrowed source accessors.
+- [ ] 3.13.8 · [Ask whether an editable source is available](32fa-access.md) — Route saving, source accounting and owner checks through borrowed source accessors.
 
-- [ ] 3.16.9 · [Make editable ownership a private row boundary](32fb-boundary.md) — Finish migrating owner checks and prevent other modules from bypassing source availability.
+- [ ] 3.13.9 · [Make editable ownership a private row boundary](32fb-boundary.md) — Finish migrating owner checks and prevent other modules from bypassing source availability.
 
-- [ ] 3.16.10 · [Record a reload version without retaining geometry](32fc-version.md) — Own a small document header, a distinct import ID and an exact file fingerprint.
+- [ ] 3.13.10 · [Record a reload version without retaining geometry](32fc-version.md) — Own a small document header, a distinct import ID and an exact file fingerprint.
 
-- [ ] 3.16.11 · [Attach one origin to an imported document](32fd-origin.md) — Share one geometry-free origin across imported rows and history.
+- [ ] 3.13.11 · [Attach one origin to an imported document](32fd-origin.md) — Share one geometry-free origin across imported rows and history.
 
-- [ ] 3.16.12 · [Give a reload URL an explicit owner](32fe-location.md) — Retain an owned Blob URL through imports and history, then release it with its last owner.
+- [ ] 3.13.12 · [Give a reload URL an explicit owner](32fe-location.md) — Retain an owned Blob URL through imports and history, then release it with its last owner.
 
-- [ ] 3.16.13 · [Adopt the selected file as a reloadable source](32ff-bridge.md) — Transfer the accepted File through synchronous delivery and create its URL at adoption.
+- [ ] 3.13.13 · [Adopt the selected file as a reloadable source](32ff-bridge.md) — Transfer the accepted File through synchronous delivery and create its URL at adoption.
 
-- [ ] 3.16.14 · [Separate loaded and released editable ownership](32fg-state.md) — Represent source residency without changing retained display, identity or placement.
+- [ ] 3.13.14 · [Separate loaded and released editable ownership](32fg-state.md) — Represent source residency without changing retained display, identity or placement.
 
-- [ ] 3.16.15 · [Protect sources that cannot be unloaded faithfully](32fh-policy.md) — Require a reload location, original kernel allocation and unchanged row metadata.
+- [ ] 3.13.15 · [Protect sources that cannot be unloaded faithfully](32fh-policy.md) — Require a reload location, original kernel allocation and unchanged row metadata.
 
-- [ ] 3.16.16 · [Unload sources across active and history roots](32fi-history.md) — Release a validated whole-origin set without clearing Undo/Redo or changing placements.
+- [ ] 3.13.16 · [Unload sources across active and history roots](32fi-history.md) — Release a validated whole-origin set without clearing Undo/Redo or changing placements.
 
-- [ ] 3.16.17 · [Prove unloading preserves placed history](32fj-proof.md) — Observe imported kernel expiration while retained displays and placements survive Undo/Redo.
+- [ ] 3.13.17 · [Prove unloading preserves placed history](32fj-proof.md) — Observe imported kernel expiration while retained displays and placements survive Undo/Redo.
 
-- [ ] 3.16.18 · [Unload editable sources through the command line](32fk-command.md) — Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
+- [ ] 3.13.18 · [Unload editable sources through the command line](32fk-command.md) — Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
 
-- [ ] 3.16.19 · [Protect history and future reload tickets](32fl-guards.md) — Verify whole-origin protection, independent duplicate imports and checked release epochs.
+- [ ] 3.13.19 · [Protect history and future reload tickets](32fl-guards.md) — Verify whole-origin protection, independent duplicate imports and checked release epochs.
 
-- [ ] 3.16.20 · [Identify the source release a reload belongs to](32g-keys.md) — Borrow the current imported release identity and epoch before asking for source data.
+- [ ] 3.13.20 · [Identify the source release a reload belongs to](32g-keys.md) — Borrow the current imported release identity and epoch before asking for source data.
 
-- [ ] 3.16.21 · [Prepare original kernel data without rebuilding its display](32ga-prepare.md) — Validate an immutable source version and restore its Session into a private reload candidate.
+- [ ] 3.13.21 · [Prepare original kernel data without rebuilding its display](32ga-prepare.md) — Validate an immutable source version and restore its Session into a private reload candidate.
 
-- [ ] 3.16.22 · [Adopt restored source owners as one residency change](32gb-adopt.md) — Validate current releases and all matching history rows before adopting any kernel candidate.
+- [ ] 3.13.22 · [Adopt restored source owners as one residency change](32gb-adopt.md) — Validate current releases and all matching history rows before adopting any kernel candidate.
 
-- [ ] 3.16.23 · [Prove source restoration preserves display and history](32gc-roundtrip.md) — Restore exact source coordinates and editing without reallocating retained display owners.
+- [ ] 3.13.23 · [Prove source restoration preserves display and history](32gc-roundtrip.md) — Restore exact source coordinates and editing without reallocating retained display owners.
 
-- [ ] 3.16.24 · [Reject stale or inconsistent source batches atomically](32gd-rejections.md) — Keep rows cold on changed versions, missing source identity and obsolete release keys.
+- [ ] 3.13.24 · [Reject stale or inconsistent source batches atomically](32gd-rejections.md) — Keep rows cold on changed versions, missing source identity and obsolete release keys.
 
-- [ ] 3.16.25 · [Ignore old reload results before decoding them](32ge-stale.md) — Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
+- [ ] 3.13.25 · [Ignore old reload results before decoding them](32ge-stale.md) — Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
 
-- [ ] 3.16.26 · [Give each source request its own owner](32gf-request.md) — Give each source request its own owner.
+- [ ] 3.13.26 · [Give each source request its own owner](32gf-request.md) — Give each source request its own owner.
 
-- [ ] 3.16.27 · [Prove cancelled work releases its source owners](32gfa-ownership.md) — Prove cancelled work releases its source owners.
+- [ ] 3.13.27 · [Prove cancelled work releases its source owners](32gfa-ownership.md) — Prove cancelled work releases its source owners.
 
-- [ ] 3.16.28 · [Read a source response within its byte limit](32gg-fetch.md) — Read a source response within its byte limit.
+- [ ] 3.13.28 · [Read a source response within its byte limit](32gg-fetch.md) — Read a source response within its byte limit.
 
-- [ ] 3.16.29 · [Pair reload ownership with a browser abort controller](32gga-flight.md) — Pair reload ownership with a browser abort controller.
+- [ ] 3.13.29 · [Pair reload ownership with a browser abort controller](32gga-flight.md) — Pair reload ownership with a browser abort controller.
 
-- [ ] 3.16.30 · [Deliver only the current completed reload batch](32ggb-delivery.md) — Deliver only the current completed reload batch.
+- [ ] 3.13.30 · [Deliver only the current completed reload batch](32ggb-delivery.md) — Deliver only the current completed reload batch.
 
-- [ ] 3.16.31 · [Restore editable sources through the command line](32gh-command.md) — Restore editable sources through the command line.
+- [ ] 3.13.31 · [Restore editable sources through the command line](32gh-command.md) — Restore editable sources through the command line.
 
-- [ ] 3.16.32 · [Cancel reloads when their document context changes](32gha-cancel.md) — Cancel reloads when their document context changes.
+- [ ] 3.13.32 · [Cancel reloads when their document context changes](32gha-cancel.md) — Cancel reloads when their document context changes.
 
-- [ ] 3.16.33 · [Capture the requested edit before waiting](32gi-capture.md) — Retain the original object and arguments before any source request starts.
+- [ ] 3.13.33 · [Capture the requested edit before waiting](32gi-capture.md) — Retain the original object and arguments before any source request starts.
 
-- [ ] 3.16.34 · [Load only the sources the requested edit needs](32gia-scope.md) — Select source requests from the original edit target, with Save covering the active document.
+- [ ] 3.13.34 · [Load only the sources the requested edit needs](32gia-scope.md) — Select source requests from the original edit target, with Save covering the active document.
 
-- [ ] 3.16.35 · [Move the original target from its current placement](32gib-move.md) — Apply a captured Move to its original target, composing with the placement that exists at replay time.
+- [ ] 3.13.35 · [Move the original target from its current placement](32gib-move.md) — Apply a captured Move to its original target, composing with the placement that exists at replay time.
 
-- [ ] 3.16.36 · [Delete the original target while keeping later selection](32giba-delete.md) — Delete a captured target by identity without redirecting the command to a later selection.
+- [ ] 3.13.36 · [Delete the original target while keeping later selection](32giba-delete.md) — Delete a captured target by identity without redirecting the command to a later selection.
 
-- [ ] 3.16.37 · [Route captured Move, Delete and Save results](32gibb-reply.md) — Return a scene change or original-precision save bytes from a captured intent.
+- [ ] 3.13.37 · [Route captured Move, Delete and Save results](32gibb-reply.md) — Return a scene change or original-precision save bytes from a captured intent.
 
-- [ ] 3.16.38 · [Own the intent with its pending source ticket](32gic-owner.md) — Store source keys and captured intent in one pending owner that current completion can consume once.
+- [ ] 3.13.38 · [Own the intent with its pending source ticket](32gic-owner.md) — Store source keys and captured intent in one pending owner that current completion can consume once.
 
-- [ ] 3.16.39 · [Pair captured intent with complete source bodies](32gica-reply.md) — Build a completion value that retains captured intent and rejects incomplete source-body pairings.
+- [ ] 3.13.39 · [Pair captured intent with complete source bodies](32gica-reply.md) — Build a completion value that retains captured intent and rejects incomplete source-body pairings.
 
-- [ ] 3.16.40 · [Carry captured intent through browser completion](32gicb-bridge.md) — Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
+- [ ] 3.13.40 · [Carry captured intent through browser completion](32gicb-bridge.md) — Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
 
-- [ ] 3.16.41 · [Validate restoration before replaying the command](32gid-complete.md) — Complete source restoration and replay the captured operation only after current document validation.
+- [ ] 3.13.41 · [Validate restoration before replaying the command](32gid-complete.md) — Complete source restoration and replay the captured operation only after current document validation.
 
-- [ ] 3.16.42 · [Deliver restored edit and Save results to the dock](32gie-response.md) — Route validated scene edits and original-precision downloads back to the captured command history.
+- [ ] 3.13.42 · [Deliver restored edit and Save results to the dock](32gie-response.md) — Route validated scene edits and original-precision downloads back to the captured command history.
 
-- [ ] 3.16.43 · [Automatically restore sources for Move, Delete and Save](32gif-auto.md) — Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
+- [ ] 3.13.43 · [Automatically restore sources for Move, Delete and Save](32gif-auto.md) — Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.
 
-- [ ] 3.16.44 · [Prove restored Save keeps the source doubles](32gj-precision.md) — Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
+- [ ] 3.13.44 · [Prove restored Save keeps the source doubles](32gj-precision.md) — Verify the automatic browser Save download retains exact source coordinates after display-only unloading.
 
-- [ ] 3.16.45 · [Prove failed restoration cannot partly commit](32gja-failures.md) — Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.
+- [ ] 3.13.45 · [Prove failed restoration cannot partly commit](32gja-failures.md) — Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.
 
 - [ ] 4.1.1 · [Own browser listeners instead of forgetting callbacks](33-owner.md) — Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
 
@@ -1117,7 +1117,7 @@ Picking, source controls, history, editing, egui, snapping and panels: reference
 - [ ] 12.3.28 · [Continue pages only for current source owners](68z-continue-pages-only-for-current-source-owners.md) — Continue pages only for current source owners.
 - [ ] 12.3.29 · [Own cancellation for each published source](68aa-own-cancellation-for-each-published-source.md) — Own cancellation for each published source.
 - [ ] 12.3.30 · [Choose bounded range loading for large originals](68ab-choose-bounded-range-loading-for-large-originals.md) — Choose bounded range loading for large originals.
-- [x] 12.3.31 · [Connect current pages to the browser renderer](68ac-connect-current-pages-to-the-browser-renderer.md) — Connect current pages to the browser renderer.
+- [ ] 12.3.31 · [Connect current pages to the browser renderer](68ac-connect-current-pages-to-the-browser-renderer.md) — Connect current pages to the browser renderer.
 
 - [ ] 13.1.1 · [Validate original definition references](69-validate-original-definition-references.md) — Validate original definition references.
 - [ ] 13.1.2 · [Prepare each used definition once](69b-prepare-each-used-definition-once.md) — Prepare each used definition once.
@@ -1767,162 +1767,162 @@ Every command implementation is covered, including command errors, previews and 
 - [ ] 20.1.4 · [Assign frame triangle ranges](96zk-assign-frame-triangle-ranges.md) — Give every placed color triangle the address of its projected record.
 - [ ] 20.1.5 · [Own the integer primitive image](96zl-own-the-integer-primitive-image.md) — Allocate the frame image that will name rasterized triangles.
 - [ ] 20.1.6 · [Write triangle addresses beside color](96zm-write-triangle-addresses-beside-color.md) — Write color and a lossless triangle address in the same depth-tested pass.
-- [ ] 20.2.1 · [Bind visible triangle addresses for ink](96zn-bind-visible-triangle-addresses-for-ink.md) — Make the exact triangle image available to the existing shared ink shader.
-- [ ] 20.2.2 · [Describe ink depth and surface slack](96zo-describe-ink-depth-and-surface-slack.md) — Type the current axis record and depth-carrying error budget.
-- [ ] 20.2.3 · [Fit a neighboring surface along the stroke](96zp-fit-a-neighboring-surface-along-the-stroke.md) — Type the current fallback that carries a neighboring plane to the stroke axis.
-- [ ] 20.2.4 · [Own a cropped primitive image for picks](96zq-own-a-cropped-primitive-image-for-picks.md) — Retain a bounded triangle image beside integer owners and depth.
-- [ ] 20.2.5 · [Share crop and clipping bindings for pulled picks](96zr-share-crop-and-clipping-bindings-for-pulled-picks.md) — Prepare a combined uniform group without copying either uniform.
-- [ ] 20.2.6 · [Write first-pick primitives from shared geometry](96zs-write-first-pick-primitives-from-shared-geometry.md) — Rasterize bounded integer owners and primitive addresses together.
-- [ ] 20.2.7 · [Fit surface depth beneath a point disc](96zt-fit-surface-depth-beneath-a-point-disc.md) — Type the current two-axis surface carry for a disc fragment.
-- [ ] 20.2.8 · [Test the disc center against a surface](96zu-test-the-disc-center-against-a-surface.md) — Type the current center check that prevents a hidden point leaking at a fringe.
-- [ ] 20.2.9 · [Carry the rasterized triangle gradient to ink](96zv-carry-the-rasterized-triangle-gradient-to-ink.md) — Read the lossless primitive address and use its projected surface gradient.
-- [ ] 20.2.10 · [Connect surface-fitted point visibility](96zw-connect-surface-fitted-point-visibility.md) — Use the disc fragment and center tests for original point color and integer picks.
-- [ ] 20.2.11 · [Test rasterized neighbors at the stroke source](96zx-test-the-rasterized-neighbors-at-the-stroke-source.md) — Prepare exact source tests using the matching primitive image.
-- [ ] 20.2.12 · [Connect fitted surfaces and exact stroke occlusion](96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.md) — Activate surface fitting, source-neighbor tests and bounded tile fallback for original strokes.
-- [ ] 20.2.13 · [Separate hidden ink color from pick ownership](96zz-separate-hidden-ink-color-from-pick-ownership.md) — Reveal hidden ink through glass without selecting an occluded original.
-- [ ] 20.2.14 · [Connect section primitives to color and first picking](96zza-connect-section-primitive-images.md) — Share lossless cap addresses with mesh surfaces in color and first-pick images.
-- [ ] 20.2.15 · [Read section visibility from one image](96zzb-read-section-visibility-from-one-image.md) — Use one physical primitive address for mesh and section ink visibility.
-- [ ] 20.3.1 · [Share section addresses with outlines and ambient shading](96zzc-share-section-addresses-with-outlines-and-ambient.md) — Read section identity once across ink, outline and ambient passes.
-- [ ] 20.3.2 · [Use compact vertices in every surface pass](96zzd-pack-surface-position-normal-and-color.md) — Use one compact surface vertex buffer throughout rendering and picking.
-- [ ] 20.3.3 · [Retain RGBA in prepared displays](96zze-retain-rgba-in-prepared-displays.md) — Preserve display RGBA through preparation and the compact upload.
-- [ ] 20.4.1 · [Start with current browser display defaults](96zzf-start-with-current-browser-display-defaults.md) — Apply device and URL display defaults once at browser startup.
-- [ ] 20.5.1 · [Grow buffers without losing rows](96zzg-grow-buffers-without-losing-rows.md) — Preserve uploaded GPU records when a shared buffer grows.
-- [ ] 20.5.2 · [Prepare shared compact mesh ranges](96zzh-prepare-shared-compact-mesh-ranges.md) — Prepare shared packed records and stable ranges without pinning display sources.
-- [ ] 20.5.3 · [Upload compact ranges to shared GPU storage](96zzi-upload-compact-ranges-to-shared-gpu-storage.md) — Upload shared compact ranges and refresh immutable bindings after buffer growth.
-- [ ] 20.5.4 · [Share the object record layout](96zzj-share-the-object-record-layout.md) — Share the host object-record size across uniform and instance consumers.
-- [ ] 20.5.5 · [Borrow the current arena buffers](96zzk-borrow-the-current-arena-buffers.md) — Use one geometry interface for standalone and current shared storage.
-- [ ] 20.5.6 · [Read shared ranges through object records](96zzl-read-shared-ranges-through-object-records.md) — Read an arena range without changing original owners or local triangle identity.
-- [ ] 20.5.7 · [Connect the renderer to one mesh arena](96zzm-connect-the-renderer-to-one-mesh-arena.md) — Render prepared source meshes through one shared arena and release its owner when unused.
-- [ ] 20.5.8 · [Describe eight-byte draw slots](96zzn-describe-eight-byte-draw-slots.md) — Store an object row and primitive ID base in one instance-step vertex record.
-- [ ] 20.5.9 · [Read instance properties through draw slots](96zzo-read-instance-properties-through-draw-slots.md) — Connect compact draw slots to the existing instance color pipeline.
-- [ ] 20.6.1 · [Classify contact fill shading](96zzp-classify-contact-fill-shading.md) — Read the contact marker from packed RGBA and keep that display fill opaque and unlit.
-- [ ] 20.6.2 · [Open files through one measured Session reader](96zzq-open-files-through-one-measured-session-reader.md) — Prepare browser file imports once through the measured full original-document reader.
-- [ ] 20.6.3 · [Route current Close and Opacity commands](96zzr-route-current-close-and-opacity-commands.md) — Finish an active curve with Close and read the current Opacity argument convention.
-- [ ] 20.6.4 · [Reuse full source preparation for editor and reload](96zzs-reuse-full-source-preparation-for-editor-and-reload.md) — Reuse the full Session reader for byte actions and released mesh sources.
-- [ ] 20.6.5 · [Share the current selection yellow](96zzt-share-the-current-selection-yellow.md) — Use the current selection yellow for surfaces and temporary highlights without changing original colors.
-- [ ] 20.7.1 · [Separate primitive addresses from selection](96zzu-separate-primitive-addresses-from-selection.md) — Keep full primitive addresses in the range record while selection remains an independent flag.
-- [ ] 20.7.2 · [Bind the own-row slot for ordinary surfaces](96zzv-bind-the-own-row-slot-for-ordinary-surfaces.md) — Use one integer vertex input for ordinary surfaces and placed-instance surfaces.
-- [ ] 20.7.3 · [Reload scenes through the existing publication owner](96zzw-reload-scenes-through-the-existing-publication-owner.md) — Expose scene replacement through the existing reader, including empty-manifest document release.
-- [ ] 20.7.4 · [Update only changed slot runs](96zzx-update-only-changed-slot-runs.md) — Patch changed instance slots without rewriting their unchanged neighbours.
-- [ ] 20.7.5 · [Share one slot buffer across surface draws](96zzy-share-one-slot-buffer-across-surface-draws.md) — Bind ordinary surfaces and every instance batch from one slot buffer.
-- [ ] 20.7.6 · [Prepare the integer primitive-slot texture](96zzz-prepare-the-integer-primitive-slot-texture.md) — Store slot lookup records in an integer texture with bounded partial uploads.
-- [ ] 20.7.7 · [Describe slot and triangle runs](96zzza-describe-slot-and-triangle-runs.md) — Represent reserved slot capacity separately from occupied members and triangle IDs.
-- [ ] 20.7.8 · [Read slot runs and lookup texels](96zzzb-read-slot-runs-and-lookup-texels.md) — Derive GPU slot values and lookup texels from the same CPU run.
-- [ ] 20.7.9 · [Reuse and merge free slot ranges](96zzzc-reuse-and-merge-free-slot-ranges.md) — Allocate fitting holes, retain unused room and merge released neighbours.
-- [ ] 20.7.10 · [Follow arena growth with slot headroom](96zzzd-follow-arena-growth-with-slot-headroom.md) — Preserve instance IDs while arena growth remains inside reserved headroom.
-- [ ] 20.7.11 · [Report only changed instance slots](96zzze-report-only-changed-instance-slots.md) — Update touched members and growing definitions while reporting bounded dirty ranges.
-- [ ] 20.7.12 · [Project triangles at their physical addresses](96zzzf-project-triangles-at-their-physical-addresses.md) — Keep finite triangle records at the same addresses written into the primitive image.
-- [ ] 20.8.1 · [Clear the current Arctic background](96zzzg-clear-the-current-arctic-background.md) — Use the current Arctic background without another draw or geometry upload.
-- [ ] 20.8.2 · [Share changed record runs](96zzzh-share-changed-record-runs.md) — Reuse the existing contiguous-change scan for slot and object records.
-- [ ] 20.8.3 · [Prepare one shared object record table](96zzzi-prepare-one-shared-object-record-table.md) — Prepare one growable storage table without duplicating slot upload logic.
-- [ ] 20.8.4 · [Share instance object records across definitions](96zzzj-share-instance-object-records-across-definitions.md) — Draw distinct definitions from one shared placement-record buffer.
-- [ ] 20.8.5 · [Reuse checked curve control coordinates](96zzzk-reuse-checked-curve-control-coordinates.md) — Use one checked rational-control decoder for sampling and control markers.
-- [ ] 20.8.6 · [Publish allocator texels through the integer table](96zzzl-publish-allocator-texels-through-the-integer-table.md) — Connect allocator changes to the existing exact integer texture writer.
-- [ ] 20.8.7 · [Resolve physical triangles with integer slots](96zzzm-resolve-physical-triangles-with-integer-slots.md) — Resolve a physical triangle ID back to its definition triangle and object row.
-- [ ] 20.8.8 · [Batch shared geometry with original ownership](96zzzn-batch-shared-geometry-with-original-ownership.md) — Reuse instance drawing for copied originals sharing GPU geometry.
-- [ ] 20.8.9 · [Shrink record ranges without rewriting live prefixes](96zzzo-shrink-record-ranges-without-rewriting-live-prefixes.md) — Reuse one logical buffer truncate operation for object records and draw slots.
-- [ ] 20.8.10 · [Share opaque ordinary surface records](96zzzp-share-opaque-ordinary-surface-records.md) — Draw ordinary opaque surfaces from the same object-record table as instances.
-- [ ] 20.8.11 · [Blend ordinary surface records](96zzzq-blend-ordinary-surface-records.md) — Use the shared ordinary record table at the current translucent default.
-- [ ] 20.8.12 · [Share transparent instance records](96zzzr-share-transparent-instance-records.md) — Draw transparent placements from the same shared records in scene order.
-- [ ] 20.9.1 · [Allocate stable object record rows](96zzzs-allocate-stable-object-record-rows.md) — Prepare bounded row reuse without moving surviving originals.
-- [ ] 20.9.2 · [Retain live surface record rows](96zzzt-retain-live-surface-record-rows.md) — Connect stable row reuse to the existing surface record table.
-- [ ] 20.9.3 · [Prepare shared record pick consumers](96zzzu-prepare-shared-record-pick-consumers.md) — Share the storage layout and shader adaptation before connecting first picks.
-- [ ] 20.9.4 · [Pick originals through shared records](96zzzv-pick-originals-through-shared-records.md) — Connect first surface picks to current shared object records.
-- [ ] 20.9.5 · [Read source faces through shared records](96zzzw-read-source-faces-through-shared-records.md) — Connect original source-face picking to the same current object records.
-- [ ] 20.9.6 · [Pack existing ambient radius in object records](96zzzx-pack-existing-ambient-radius-in-object-records.md) — Carry the existing source radius in a spare aligned record word.
-- [ ] 20.9.7 · [Read ambient properties through shared records](96zzzy-read-ambient-properties-through-shared-records.md) — Connect source normal and radius drawing to the existing object table.
-- [ ] 20.10.1 · [Share the object record shader schema](96zzzz-share-the-object-record-shader-schema.md) — Keep one aligned object record declaration across drawing, caps and projection.
-- [ ] 20.10.2 · [Prepare shared record triangle projection](96zzzza-prepare-shared-record-triangle-projection.md) — Prepare the compute shader to select the same current object row.
-- [ ] 20.10.3 · [Project triangles through shared records](96zzzzb-project-triangles-through-shared-records.md) — Connect finite triangle projection to the current shared object table.
-- [ ] 20.10.4 · [Prepare shared record cap counting](96zzzzc-prepare-shared-record-cap-counting.md) — Separate cap crossing geometry from the object resource and vertex format.
-- [ ] 20.10.5 · [Prepare cap plane and arena bindings](96zzzzd-prepare-cap-plane-and-arena-bindings.md) — Prepare explicit plane parameters with current immutable arena bindings.
-- [ ] 20.10.6 · [Count cap color through shared records](96zzzze-count-cap-color-through-shared-records.md) — Connect cap crossing color to current object records and explicit planes.
-- [ ] 20.10.7 · [Prepare shared record cap picks](96zzzzf-prepare-shared-record-cap-picks.md) — Prepare both cap pick crossing states without changing original ownership.
-- [ ] 20.10.8 · [Own shared record cap pick resources](96zzzzg-own-shared-record-cap-pick-resources.md) — Reuse explicit plane and arena bindings under the existing pick lifetime.
-- [ ] 20.10.9 · [Pick caps through shared records](96zzzzh-pick-caps-through-shared-records.md) — Connect both cap crossing passes to current records and retain original owners.
-- [ ] 20.11.1 · [Adapt incremental slots to pulled draws](96zzzzi-adapt-incremental-slots-to-pulled-draws.md) — Keep physical triangle bases correct when pulled draws begin at local occurrence zero.
-- [ ] 20.11.2 · [Prepare exact arena slot definitions](96zzzzj-prepare-exact-arena-slot-definitions.md) — Describe allocator members using exact arena ranges and stable object rows.
-- [ ] 20.11.3 · [Retain live allocator member runs](96zzzzk-retain-live-allocator-member-runs.md) — Update retained source runs from the live stable object rows.
-- [ ] 20.11.4 · [Prepare one plan for draw slots and lookup](96zzzzl-prepare-one-plan-for-draw-slots-and-lookup.md) — Publish one retained plan through the existing draw-slot and integer-texture owners.
-- [ ] 20.11.5 · [Prepare one owner for live address updates](96zzzzm-prepare-one-owner-for-live-address-updates.md) — Prepare synchronized mesh and record updates without changing primitive addresses.
-- [x] 20.11.6 · [Adopt retained GPU slots and physical bases](96zzzzn-adopt-retained-gpu-slots-and-physical-bases.md) — Draw retained sparse slots with synchronized original uniforms and shared records.
-- [x] 20.11.7 · [Separate projection rows and arena offsets](96zzzzo-separate-projection-rows-and-arena-offsets.md) — Make source addressing explicit before projection consumes the inverse lookup.
-- [x] 20.11.8 · [Prepare lookup-selected triangle projection](96zzzzp-prepare-lookup-selected-triangle-projection.md) — Resolve physical primitive IDs to their shared source triangle and object row.
-- [x] 20.11.9 · [Prepare the lookup projection pipeline](96zzzzq-prepare-the-lookup-projection-pipeline.md) — Add the inverse lookup texture to the existing compute binding recipe.
-- [x] 20.11.10 · [Own current lookup projection bindings](96zzzzr-own-current-lookup-projection-bindings.md) — Keep current shared inputs and replace immutable projection bindings when needed.
-- [x] 20.11.11 · [Project live triangles through the lookup](96zzzzs-project-live-triangles-through-the-lookup.md) — Resolve shared source triangles and object rows on the GPU for live projection.
-- [x] 20.12.1 · [Plan reusable arena spans](96zzzzt-plan-reusable-arena-spans.md) — Prepare bounded hole reuse without moving any surviving geometry.
-- [x] 20.12.2 · [Reuse retired arena record ranges](96zzzzu-reuse-retired-arena-record-ranges.md) — Connect bounded span plans to CPU arena records while preserving live offsets.
-- [x] 20.12.3 · [Upload reused arena spans in place](96zzzzv-upload-reused-arena-spans-in-place.md) — Write reused geometry ranges without replacing unchanged GPU buffers.
-- [x] 20.12.4 · [Reclaim ranges after the last GPU lease](96zzzzw-reclaim-ranges-after-the-last-gpu-lease.md) — Retire GPU ranges independently of precise CPU history ownership.
-- [x] 20.12.5 · [Retire empty arena ranges after tail trimming](96zzzzx-retire-empty-arena-ranges-after-tail-trimming.md) — Release empty source records independently of the current arena extent.
-- [x] 21.1.1 · [Prepare unit-aware anchored camera space](96zzzzy-prepare-unit-aware-anchored-camera-space.md) — Keep scene coordinates precise while expressing the camera projection in physical metres.
-- [x] 21.1.2 · [Prepare precise anchor-relative object records](96zzzzz-prepare-precise-anchor-relative-object-records.md) — Retain precise placements while updating only their GPU translation.
-- [x] 21.1.3 · [Prepare anchor-relative original ink](96zzzzza-prepare-anchor-relative-original-ink.md) — Pack original ink positions only after subtracting the shared scene origin.
-- [x] 21.1.4 · [Prepare shared-origin frame inputs](96zzzzzb-prepare-shared-origin-frame-inputs.md) — Keep derived rendering inputs consistent with one precise scene origin.
-- [x] 21.1.5 · [Prepare cloud and sheet frame placements](96zzzzzc-prepare-cloud-and-sheet-frame-placements.md) — Preserve cached cloud and sheet sources while their frame origin changes.
-- [x] 21.1.6 · [Prepare local temporary overlays](96zzzzzd-prepare-local-temporary-overlays.md) — Keep temporary ink and cached measurement positions precise across origin changes.
-- [x] 21.1.7 · [Preserve local precision before source placement](96zzzzze-preserve-local-precision-before-source-placement.md) — Avoid a large world-coordinate intermediate when packing placed source data.
-- [x] 21.1.8 · [Prepare precise construction-grid origins](96zzzzzf-prepare-precise-construction-grid-origins.md) — Pack a construction grid in the same precise local frame as original geometry.
-- [x] 21.1.9 · [Initialize object records in the local frame](96zzzzzg-initialize-object-records-in-the-local-frame.md) — Create precise records before their first GPU draw.
-- [x] 21.1.10 · [Prepare original highlights in the shared local frame](96zzzzzh-prepare-anchor-relative-original-highlights.md) — Keep original face, edge, curve and control highlights aligned after rebasing.
-- [x] 21.1.11 · [Share one camera and measurement unit](96zzzzzi-share-one-camera-and-measurement-unit.md) — Use one scene unit for projection and measurement labels.
-- [x] 21.2.1 · [Project CPU queries around the precise target](96zzzzzj-project-cpu-queries-around-the-precise-target.md) — Keep CPU screen queries precise before converting world points to pixels.
-- [x] 21.2.2 · [Prepare precise text selection polygons](96zzzzzk-prepare-precise-text-selection-polygons.md) — Project original text bounds in a precise local query frame.
-- [x] 21.2.3 · [Connect precise rectangle selection queries](96zzzzzl-connect-precise-rectangle-selection-queries.md) — Select original geometry and text through one precise CPU frame.
-- [x] 21.2.4 · [Finish precise lasso and handle queries](96zzzzzm-finish-precise-lasso-and-handle-queries.md) — Keep lasso selection and handle sizing in precise local frames.
-- [x] 21.2.5 · [Stamp asynchronous picks with the scene origin](96zzzzzn-stamp-asynchronous-picks-with-the-origin.md) — Reject pick readbacks from a different local coordinate frame.
-- [x] 21.2.6 · [Retry rebased picks with the latest cursor](96zzzzzo-retry-rebased-picks-with-the-latest-cursor.md) — Finish a released gesture when its asynchronous pick frame is rebased.
-- [x] 21.2.7 · [Share derived inputs for origin refresh](96zzzzzp-share-derived-inputs-for-origin-refresh.md) — Refresh local draw inputs without replacing the document or cancelling its gesture.
-- [x] 21.3.1 · [Prepare one shared render origin](96zzzzzq-prepare-one-shared-render-origin.md) — Adopt one origin and synchronize original draw inputs before rendering or picking.
-- [x] 21.3.2 · [Prepare browser frame matrices and owned wakes](96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes.md) — Use one browser render matrix and prepare a wake owned by the runtime.
-- [x] 21.3.3 · [Adopt the shared origin in the browser](96zzzzzs-adopt-the-shared-origin-in-the-browser.md) — Keep browser drawing and asynchronous interaction in one precise local frame.
-- [x] 21.4.1 · [Share depth endpoints and comparisons](96zzzzzt-share-depth-endpoints-and-comparisons.md) — Give frame depth state one explicit owner before changing its convention.
-- [x] 21.4.2 · [Share homogeneous near-plane ink clipping](96zzzzzu-share-homogeneous-near-plane-ink-clipping.md) — Clip expanded original ink through one homogeneous recipe.
-- [x] 21.4.3 · [Use reversed depth across the frame](96zzzzzz-use-reversed-depth-across-the-frame.md) — Give every depth reader and writer the same near-one convention.
-- [x] 21.5.1 · [Match physical camera defaults and limits](96zzzzzza-match-physical-camera-defaults-and-limits.md) — Keep camera defaults and numeric limits in physical units.
-- [x] 21.5.2 · [Omit unused background pick pipelines](96zzzzzzb-omit-unused-background-pick-pipelines.md) — Create an integer pipeline only for lanes that can own a pick.
-- [x] 21.5.3 · [Draw the construction grid as physical lines](96zzzzzzc-draw-the-construction-grid-as-physical-lines.md) — Reuse the grid owner with a physical background pipeline.
-- [x] 21.5.4 · [Build viewing rays without matrix inversion](96zzzzzzd-build-viewing-rays-without-matrix-inversion.md) — Keep drawing rays and rendered depth consistent in both projections, including when the construction grid is hidden.
-- [x] 21.5.5 · [Grow camera depth from cached world bounds](96zzzzzze-grow-camera-depth-from-cached-world-bounds.md) — Keep later or moved originals inside the depth range without refitting the view or walking their vertices on every camera frame.
-- [x] 21.5.6 · [Match wheel input and framed projection](96zzzzzzf-match-wheel-input-and-framed-projection.md) — Use current wheel units and preserve the visible region when changing from orthographic to perspective.
-- [x] 22.1.1 · [Share flat and Arctic surface frames](96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md) — Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
-- [x] 22.1.2 · [Connect headlight and backface controls](96zzzzzzh-connect-headlight-and-backface-controls.md) — Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
-- [x] 22.2.1 · [Share one frame across color and ink](96zzzzzzi-share-one-frame-across-color-and-ink.md) — Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
-- [x] 22.2.2 · [Fill original contact polygons](96zzzzzzj-fill-original-contact-polygons.md) — Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth.
-- [x] 22.2.3 · [Broadcast ordinary ink metadata](96zzzzzzk-broadcast-ordinary-ink-metadata.md) — Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches.
-- [x] 22.2.4 · [Layer original contact boundaries](96zzzzzzl-layer-original-contact-boundaries.md) — Keep original contact borders complete at steep angles when the projection budget falls back to physical depth.
-- [x] 22.2.5 · [Query original faces under contact overlays](96zzzzzzm-query-original-faces-under-contact-overlays.md) — Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
-- [x] 22.3.1 · [Respect original boundary pens](96zzzzzzn-respect-original-boundary-pens.md) — Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
-- [x] 22.3.2 · [Close original boundary joins](96zzzzzzo-close-original-boundary-joins.md) — Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
-- [x] 22.3.3 · [Draw default mesh vertex dots](96zzzzzzp-draw-default-mesh-vertex-dots.md) — Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
-- [x] 22.3.4 · [Taper crowded original mesh vertices](96zzzzzzq-taper-crowded-original-mesh-vertices.md) — Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
-- [x] 22.4.1 · [Share geometric ambient inputs](96zzzzzzr-share-geometric-ambient-inputs.md) — Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
-- [x] 22.4.2 · [Shade surfaces before drawing ink](96zzzzzzs-shade-surfaces-before-drawing-ink.md) — Preserve authored drawing colours and independent widget pixels by ordering existing passes.
-- [x] 22.4.3 · [Keep contact ambient inputs on originals](96zzzzzzt-keep-contact-ambient-inputs-on-originals.md) — Match the displayed contact depth and original visual radius without adding GPU resources.
-- [x] 22.5.1 · [Keep depth and address samples separate](96zzzzzzu-keep-depth-and-address-samples-separate.md) — Define matching frame attachments without averaging depth or physical primitive addresses.
-- [x] 22.5.2 · [Reuse coherent frame targets](96zzzzzzv-reuse-coherent-frame-targets.md) — Retain frame attachments at equal extent and replace them coherently during real resizing.
-- [x] 22.5.3 · [Keep resolved colours in the canvas format](96zzzzzzw-match-resolve-base-and-view-formats.md) — Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
-- [x] 22.5.4 · [Reuse surface pipelines for each sample count](96zzzzzzx-reuse-count-specific-surface-pipelines.md) — Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
-- [x] 22.5.5 · [Generate ink shaders for physical samples](96zzzzzzy-generate-ink-for-physical-samples.md) — Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
-- [x] 22.5.6 · [Cache matching ink pipelines and bindings](96zzzzzzz-cache-ink-pipelines-with-independent-queries.md) — Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
-- [x] 22.5.7 · [Retarget existing overlay lanes](96zzzzzzza-retarget-existing-overlay-lanes.md) — Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
-- [x] 22.5.8 · [Read section crossings at each sample](96zzzzzzzb-read-section-crossings-at-each-sample.md) — Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
-- [x] 22.5.9 · [Compose cloud colour, depth and queries](96zzzzzzzc-compose-cloud-depth-with-physical-addresses.md) — Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
-- [x] 22.5.10 · [Cache cloud and sheet sample recipes](96zzzzzzzca-cache-cloud-and-sheet-samples.md) — Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
-- [x] 22.5.11 · [Retarget cached text colour](96zzzzzzzd-retarget-cached-text.md) — Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
-- [x] 22.5.12 · [Cache section masks and the final outline blend](96zzzzzzze-cache-outline-section-recipes.md) — Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
-- [x] 22.5.13 · [Resolve float outline coverage](96zzzzzzzf-resolve-float-outline-coverage.md) — Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
-- [x] 22.5.14 · [Retarget original ambient properties](96zzzzzzzg-retarget-original-ambient-properties.md) — Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
-- [x] 22.5.15 · [Share ambient shader recipes](96zzzzzzzh-share-ambient-shader-recipes.md) — Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
-- [x] 22.5.16 · [Correct ambient at physical samples](96zzzzzzzi-correct-ambient-at-physical-samples.md) — Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
-- [x] 22.5.17 · [Cache physical depth-pyramid inputs](96zzzzzzzj-cache-physical-depth-pyramid-inputs.md) — Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
-- [x] 22.5.18 · [Retarget the complete colour frame](96zzzzzzzk-retarget-the-complete-colour-frame.md) — Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
-- [x] 22.5.19 · [Choose bounded frame quality](96zzzzzzzl-choose-bounded-frame-quality.md) — Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
-- [x] 22.6.1 · [Retain visible instance ranges](96zzzzzzzm-retain-visible-instance-ranges.md) — Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges.
-- [x] 22.6.2 · [Prepare original ink families](96zzzzzzzn-prepare-original-ink-families.md) — Classify retained original borders, points and controls once while preserving source query keys and complete buffer bindings.
-- [x] 22.6.3 · [Show original ink families](96zzzzzzzo-show-original-ink-families.md) — Apply one retained visibility owner to actual colour, original queries and selected highlights while preserving active controls and shared sources.
-- [x] 22.6.4 · [Apply semantic view controls](96zzzzzzzp-apply-semantic-view-controls.md) — Apply one retained editor presentation state before the first frame and after view commands while preserving original edits and history.
+- [ ] 20.1.7 · [Bind visible triangle addresses for ink](96zn-bind-visible-triangle-addresses-for-ink.md) — Make the exact triangle image available to the existing shared ink shader.
+- [ ] 20.1.8 · [Describe ink depth and surface slack](96zo-describe-ink-depth-and-surface-slack.md) — Type the current axis record and depth-carrying error budget.
+- [ ] 20.1.9 · [Fit a neighboring surface along the stroke](96zp-fit-a-neighboring-surface-along-the-stroke.md) — Type the current fallback that carries a neighboring plane to the stroke axis.
+- [ ] 20.1.10 · [Own a cropped primitive image for picks](96zq-own-a-cropped-primitive-image-for-picks.md) — Retain a bounded triangle image beside integer owners and depth.
+- [ ] 20.1.11 · [Share crop and clipping bindings for pulled picks](96zr-share-crop-and-clipping-bindings-for-pulled-picks.md) — Prepare a combined uniform group without copying either uniform.
+- [ ] 20.1.12 · [Write first-pick primitives from shared geometry](96zs-write-first-pick-primitives-from-shared-geometry.md) — Rasterize bounded integer owners and primitive addresses together.
+- [ ] 20.1.13 · [Fit surface depth beneath a point disc](96zt-fit-surface-depth-beneath-a-point-disc.md) — Type the current two-axis surface carry for a disc fragment.
+- [ ] 20.1.14 · [Test the disc center against a surface](96zu-test-the-disc-center-against-a-surface.md) — Type the current center check that prevents a hidden point leaking at a fringe.
+- [ ] 20.1.15 · [Carry the rasterized triangle gradient to ink](96zv-carry-the-rasterized-triangle-gradient-to-ink.md) — Read the lossless primitive address and use its projected surface gradient.
+- [ ] 20.1.16 · [Connect surface-fitted point visibility](96zw-connect-surface-fitted-point-visibility.md) — Use the disc fragment and center tests for original point color and integer picks.
+- [ ] 20.1.17 · [Test rasterized neighbors at the stroke source](96zx-test-the-rasterized-neighbors-at-the-stroke-source.md) — Prepare exact source tests using the matching primitive image.
+- [ ] 20.1.18 · [Connect fitted surfaces and exact stroke occlusion](96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.md) — Activate surface fitting, source-neighbor tests and bounded tile fallback for original strokes.
+- [ ] 20.1.19 · [Separate hidden ink color from pick ownership](96zz-separate-hidden-ink-color-from-pick-ownership.md) — Reveal hidden ink through glass without selecting an occluded original.
+- [ ] 20.1.20 · [Connect section primitives to color and first picking](96zza-connect-section-primitive-images.md) — Share lossless cap addresses with mesh surfaces in color and first-pick images.
+- [ ] 20.1.21 · [Read section visibility from one image](96zzb-read-section-visibility-from-one-image.md) — Use one physical primitive address for mesh and section ink visibility.
+- [ ] 20.2.1 · [Share section addresses with outlines and ambient shading](96zzc-share-section-addresses-with-outlines-and-ambient.md) — Read section identity once across ink, outline and ambient passes.
+- [ ] 20.2.2 · [Use compact vertices in every surface pass](96zzd-pack-surface-position-normal-and-color.md) — Use one compact surface vertex buffer throughout rendering and picking.
+- [ ] 20.2.3 · [Retain RGBA in prepared displays](96zze-retain-rgba-in-prepared-displays.md) — Preserve display RGBA through preparation and the compact upload.
+- [ ] 20.2.4 · [Start with current browser display defaults](96zzf-start-with-current-browser-display-defaults.md) — Apply device and URL display defaults once at browser startup.
+- [ ] 20.3.1 · [Grow buffers without losing rows](96zzg-grow-buffers-without-losing-rows.md) — Preserve uploaded GPU records when a shared buffer grows.
+- [ ] 20.3.2 · [Prepare shared compact mesh ranges](96zzh-prepare-shared-compact-mesh-ranges.md) — Prepare shared packed records and stable ranges without pinning display sources.
+- [ ] 20.3.3 · [Upload compact ranges to shared GPU storage](96zzi-upload-compact-ranges-to-shared-gpu-storage.md) — Upload shared compact ranges and refresh immutable bindings after buffer growth.
+- [ ] 20.3.4 · [Share the object record layout](96zzj-share-the-object-record-layout.md) — Share the host object-record size across uniform and instance consumers.
+- [ ] 20.3.5 · [Borrow the current arena buffers](96zzk-borrow-the-current-arena-buffers.md) — Use one geometry interface for standalone and current shared storage.
+- [ ] 20.3.6 · [Read shared ranges through object records](96zzl-read-shared-ranges-through-object-records.md) — Read an arena range without changing original owners or local triangle identity.
+- [ ] 20.3.7 · [Connect the renderer to one mesh arena](96zzm-connect-the-renderer-to-one-mesh-arena.md) — Render prepared source meshes through one shared arena and release its owner when unused.
+- [ ] 20.3.8 · [Describe eight-byte draw slots](96zzn-describe-eight-byte-draw-slots.md) — Store an object row and primitive ID base in one instance-step vertex record.
+- [ ] 20.3.9 · [Read instance properties through draw slots](96zzo-read-instance-properties-through-draw-slots.md) — Connect compact draw slots to the existing instance color pipeline.
+- [ ] 20.3.10 · [Classify contact fill shading](96zzp-classify-contact-fill-shading.md) — Read the contact marker from packed RGBA and keep that display fill opaque and unlit.
+- [ ] 20.3.11 · [Open files through one measured Session reader](96zzq-open-files-through-one-measured-session-reader.md) — Prepare browser file imports once through the measured full original-document reader.
+- [ ] 20.3.12 · [Route current Close and Opacity commands](96zzr-route-current-close-and-opacity-commands.md) — Finish an active curve with Close and read the current Opacity argument convention.
+- [ ] 20.3.13 · [Reuse full source preparation for editor and reload](96zzs-reuse-full-source-preparation-for-editor-and-reload.md) — Reuse the full Session reader for byte actions and released mesh sources.
+- [ ] 20.3.14 · [Share the current selection yellow](96zzt-share-the-current-selection-yellow.md) — Use the current selection yellow for surfaces and temporary highlights without changing original colors.
+- [ ] 20.4.1 · [Separate primitive addresses from selection](96zzu-separate-primitive-addresses-from-selection.md) — Keep full primitive addresses in the range record while selection remains an independent flag.
+- [ ] 20.4.2 · [Bind the own-row slot for ordinary surfaces](96zzv-bind-the-own-row-slot-for-ordinary-surfaces.md) — Use one integer vertex input for ordinary surfaces and placed-instance surfaces.
+- [ ] 20.4.3 · [Reload scenes through the existing publication owner](96zzw-reload-scenes-through-the-existing-publication-owner.md) — Expose scene replacement through the existing reader, including empty-manifest document release.
+- [ ] 20.4.4 · [Update only changed slot runs](96zzx-update-only-changed-slot-runs.md) — Patch changed instance slots without rewriting their unchanged neighbours.
+- [ ] 20.4.5 · [Share one slot buffer across surface draws](96zzy-share-one-slot-buffer-across-surface-draws.md) — Bind ordinary surfaces and every instance batch from one slot buffer.
+- [ ] 20.4.6 · [Prepare the integer primitive-slot texture](96zzz-prepare-the-integer-primitive-slot-texture.md) — Store slot lookup records in an integer texture with bounded partial uploads.
+- [ ] 20.4.7 · [Describe slot and triangle runs](96zzza-describe-slot-and-triangle-runs.md) — Represent reserved slot capacity separately from occupied members and triangle IDs.
+- [ ] 20.4.8 · [Read slot runs and lookup texels](96zzzb-read-slot-runs-and-lookup-texels.md) — Derive GPU slot values and lookup texels from the same CPU run.
+- [ ] 20.4.9 · [Reuse and merge free slot ranges](96zzzc-reuse-and-merge-free-slot-ranges.md) — Allocate fitting holes, retain unused room and merge released neighbours.
+- [ ] 20.4.10 · [Follow arena growth with slot headroom](96zzzd-follow-arena-growth-with-slot-headroom.md) — Preserve instance IDs while arena growth remains inside reserved headroom.
+- [ ] 20.4.11 · [Report only changed instance slots](96zzze-report-only-changed-instance-slots.md) — Update touched members and growing definitions while reporting bounded dirty ranges.
+- [ ] 20.4.12 · [Project triangles at their physical addresses](96zzzf-project-triangles-at-their-physical-addresses.md) — Keep finite triangle records at the same addresses written into the primitive image.
+- [ ] 20.4.13 · [Clear the current Arctic background](96zzzg-clear-the-current-arctic-background.md) — Use the current Arctic background without another draw or geometry upload.
+- [ ] 20.4.14 · [Share changed record runs](96zzzh-share-changed-record-runs.md) — Reuse the existing contiguous-change scan for slot and object records.
+- [ ] 20.4.15 · [Prepare one shared object record table](96zzzi-prepare-one-shared-object-record-table.md) — Prepare one growable storage table without duplicating slot upload logic.
+- [ ] 20.4.16 · [Share instance object records across definitions](96zzzj-share-instance-object-records-across-definitions.md) — Draw distinct definitions from one shared placement-record buffer.
+- [ ] 20.4.17 · [Reuse checked curve control coordinates](96zzzk-reuse-checked-curve-control-coordinates.md) — Use one checked rational-control decoder for sampling and control markers.
+- [ ] 20.4.18 · [Publish allocator texels through the integer table](96zzzl-publish-allocator-texels-through-the-integer-table.md) — Connect allocator changes to the existing exact integer texture writer.
+- [ ] 20.4.19 · [Resolve physical triangles with integer slots](96zzzm-resolve-physical-triangles-with-integer-slots.md) — Resolve a physical triangle ID back to its definition triangle and object row.
+- [ ] 20.4.20 · [Batch shared geometry with original ownership](96zzzn-batch-shared-geometry-with-original-ownership.md) — Reuse instance drawing for copied originals sharing GPU geometry.
+- [ ] 20.4.21 · [Shrink record ranges without rewriting live prefixes](96zzzo-shrink-record-ranges-without-rewriting-live-prefixes.md) — Reuse one logical buffer truncate operation for object records and draw slots.
+- [ ] 20.4.22 · [Share opaque ordinary surface records](96zzzp-share-opaque-ordinary-surface-records.md) — Draw ordinary opaque surfaces from the same object-record table as instances.
+- [ ] 20.4.23 · [Blend ordinary surface records](96zzzq-blend-ordinary-surface-records.md) — Use the shared ordinary record table at the current translucent default.
+- [ ] 20.4.24 · [Share transparent instance records](96zzzr-share-transparent-instance-records.md) — Draw transparent placements from the same shared records in scene order.
+- [ ] 20.5.1 · [Allocate stable object record rows](96zzzs-allocate-stable-object-record-rows.md) — Prepare bounded row reuse without moving surviving originals.
+- [ ] 20.5.2 · [Retain live surface record rows](96zzzt-retain-live-surface-record-rows.md) — Connect stable row reuse to the existing surface record table.
+- [ ] 20.5.3 · [Prepare shared record pick consumers](96zzzu-prepare-shared-record-pick-consumers.md) — Share the storage layout and shader adaptation before connecting first picks.
+- [ ] 20.5.4 · [Pick originals through shared records](96zzzv-pick-originals-through-shared-records.md) — Connect first surface picks to current shared object records.
+- [ ] 20.5.5 · [Read source faces through shared records](96zzzw-read-source-faces-through-shared-records.md) — Connect original source-face picking to the same current object records.
+- [ ] 20.5.6 · [Pack existing ambient radius in object records](96zzzx-pack-existing-ambient-radius-in-object-records.md) — Carry the existing source radius in a spare aligned record word.
+- [ ] 20.5.7 · [Read ambient properties through shared records](96zzzy-read-ambient-properties-through-shared-records.md) — Connect source normal and radius drawing to the existing object table.
+- [ ] 20.5.8 · [Share the object record shader schema](96zzzz-share-the-object-record-shader-schema.md) — Keep one aligned object record declaration across drawing, caps and projection.
+- [ ] 20.5.9 · [Prepare shared record triangle projection](96zzzza-prepare-shared-record-triangle-projection.md) — Prepare the compute shader to select the same current object row.
+- [ ] 20.5.10 · [Project triangles through shared records](96zzzzb-project-triangles-through-shared-records.md) — Connect finite triangle projection to the current shared object table.
+- [ ] 20.5.11 · [Prepare shared record cap counting](96zzzzc-prepare-shared-record-cap-counting.md) — Separate cap crossing geometry from the object resource and vertex format.
+- [ ] 20.5.12 · [Prepare cap plane and arena bindings](96zzzzd-prepare-cap-plane-and-arena-bindings.md) — Prepare explicit plane parameters with current immutable arena bindings.
+- [ ] 20.5.13 · [Count cap color through shared records](96zzzze-count-cap-color-through-shared-records.md) — Connect cap crossing color to current object records and explicit planes.
+- [ ] 20.5.14 · [Prepare shared record cap picks](96zzzzf-prepare-shared-record-cap-picks.md) — Prepare both cap pick crossing states without changing original ownership.
+- [ ] 20.5.15 · [Own shared record cap pick resources](96zzzzg-own-shared-record-cap-pick-resources.md) — Reuse explicit plane and arena bindings under the existing pick lifetime.
+- [ ] 20.5.16 · [Pick caps through shared records](96zzzzh-pick-caps-through-shared-records.md) — Connect both cap crossing passes to current records and retain original owners.
+- [ ] 20.6.1 · [Adapt incremental slots to pulled draws](96zzzzi-adapt-incremental-slots-to-pulled-draws.md) — Keep physical triangle bases correct when pulled draws begin at local occurrence zero.
+- [ ] 20.6.2 · [Prepare exact arena slot definitions](96zzzzj-prepare-exact-arena-slot-definitions.md) — Describe allocator members using exact arena ranges and stable object rows.
+- [ ] 20.6.3 · [Retain live allocator member runs](96zzzzk-retain-live-allocator-member-runs.md) — Update retained source runs from the live stable object rows.
+- [ ] 20.6.4 · [Prepare one plan for draw slots and lookup](96zzzzl-prepare-one-plan-for-draw-slots-and-lookup.md) — Publish one retained plan through the existing draw-slot and integer-texture owners.
+- [ ] 20.6.5 · [Prepare one owner for live address updates](96zzzzm-prepare-one-owner-for-live-address-updates.md) — Prepare synchronized mesh and record updates without changing primitive addresses.
+- [ ] 20.6.6 · [Adopt retained GPU slots and physical bases](96zzzzn-adopt-retained-gpu-slots-and-physical-bases.md) — Draw retained sparse slots with synchronized original uniforms and shared records.
+- [ ] 20.6.7 · [Separate projection rows and arena offsets](96zzzzo-separate-projection-rows-and-arena-offsets.md) — Make source addressing explicit before projection consumes the inverse lookup.
+- [ ] 20.6.8 · [Prepare lookup-selected triangle projection](96zzzzp-prepare-lookup-selected-triangle-projection.md) — Resolve physical primitive IDs to their shared source triangle and object row.
+- [ ] 20.6.9 · [Prepare the lookup projection pipeline](96zzzzq-prepare-the-lookup-projection-pipeline.md) — Add the inverse lookup texture to the existing compute binding recipe.
+- [ ] 20.6.10 · [Own current lookup projection bindings](96zzzzr-own-current-lookup-projection-bindings.md) — Keep current shared inputs and replace immutable projection bindings when needed.
+- [ ] 20.6.11 · [Project live triangles through the lookup](96zzzzs-project-live-triangles-through-the-lookup.md) — Resolve shared source triangles and object rows on the GPU for live projection.
+- [ ] 20.6.12 · [Plan reusable arena spans](96zzzzt-plan-reusable-arena-spans.md) — Prepare bounded hole reuse without moving any surviving geometry.
+- [ ] 20.6.13 · [Reuse retired arena record ranges](96zzzzu-reuse-retired-arena-record-ranges.md) — Connect bounded span plans to CPU arena records while preserving live offsets.
+- [ ] 20.6.14 · [Upload reused arena spans in place](96zzzzv-upload-reused-arena-spans-in-place.md) — Write reused geometry ranges without replacing unchanged GPU buffers.
+- [ ] 20.6.15 · [Reclaim ranges after the last GPU lease](96zzzzw-reclaim-ranges-after-the-last-gpu-lease.md) — Retire GPU ranges independently of precise CPU history ownership.
+- [ ] 20.6.16 · [Retire empty arena ranges after tail trimming](96zzzzx-retire-empty-arena-ranges-after-tail-trimming.md) — Release empty source records independently of the current arena extent.
+- [ ] 21.1.1 · [Prepare unit-aware anchored camera space](96zzzzy-prepare-unit-aware-anchored-camera-space.md) — Keep scene coordinates precise while expressing the camera projection in physical metres.
+- [ ] 21.1.2 · [Prepare precise anchor-relative object records](96zzzzz-prepare-precise-anchor-relative-object-records.md) — Retain precise placements while updating only their GPU translation.
+- [ ] 21.1.3 · [Prepare anchor-relative original ink](96zzzzza-prepare-anchor-relative-original-ink.md) — Pack original ink positions only after subtracting the shared scene origin.
+- [ ] 21.1.4 · [Prepare shared-origin frame inputs](96zzzzzb-prepare-shared-origin-frame-inputs.md) — Keep derived rendering inputs consistent with one precise scene origin.
+- [ ] 21.1.5 · [Prepare cloud and sheet frame placements](96zzzzzc-prepare-cloud-and-sheet-frame-placements.md) — Preserve cached cloud and sheet sources while their frame origin changes.
+- [ ] 21.1.6 · [Prepare local temporary overlays](96zzzzzd-prepare-local-temporary-overlays.md) — Keep temporary ink and cached measurement positions precise across origin changes.
+- [ ] 21.1.7 · [Preserve local precision before source placement](96zzzzze-preserve-local-precision-before-source-placement.md) — Avoid a large world-coordinate intermediate when packing placed source data.
+- [ ] 21.1.8 · [Prepare precise construction-grid origins](96zzzzzf-prepare-precise-construction-grid-origins.md) — Pack a construction grid in the same precise local frame as original geometry.
+- [ ] 21.1.9 · [Initialize object records in the local frame](96zzzzzg-initialize-object-records-in-the-local-frame.md) — Create precise records before their first GPU draw.
+- [ ] 21.1.10 · [Prepare original highlights in the shared local frame](96zzzzzh-prepare-anchor-relative-original-highlights.md) — Keep original face, edge, curve and control highlights aligned after rebasing.
+- [ ] 21.1.11 · [Share one camera and measurement unit](96zzzzzi-share-one-camera-and-measurement-unit.md) — Use one scene unit for projection and measurement labels.
+- [ ] 21.2.1 · [Project CPU queries around the precise target](96zzzzzj-project-cpu-queries-around-the-precise-target.md) — Keep CPU screen queries precise before converting world points to pixels.
+- [ ] 21.2.2 · [Prepare precise text selection polygons](96zzzzzk-prepare-precise-text-selection-polygons.md) — Project original text bounds in a precise local query frame.
+- [ ] 21.2.3 · [Connect precise rectangle selection queries](96zzzzzl-connect-precise-rectangle-selection-queries.md) — Select original geometry and text through one precise CPU frame.
+- [ ] 21.2.4 · [Finish precise lasso and handle queries](96zzzzzm-finish-precise-lasso-and-handle-queries.md) — Keep lasso selection and handle sizing in precise local frames.
+- [ ] 21.2.5 · [Stamp asynchronous picks with the scene origin](96zzzzzn-stamp-asynchronous-picks-with-the-origin.md) — Reject pick readbacks from a different local coordinate frame.
+- [ ] 21.2.6 · [Retry rebased picks with the latest cursor](96zzzzzo-retry-rebased-picks-with-the-latest-cursor.md) — Finish a released gesture when its asynchronous pick frame is rebased.
+- [ ] 21.2.7 · [Share derived inputs for origin refresh](96zzzzzp-share-derived-inputs-for-origin-refresh.md) — Refresh local draw inputs without replacing the document or cancelling its gesture.
+- [ ] 21.3.1 · [Prepare one shared render origin](96zzzzzq-prepare-one-shared-render-origin.md) — Adopt one origin and synchronize original draw inputs before rendering or picking.
+- [ ] 21.3.2 · [Prepare browser frame matrices and owned wakes](96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes.md) — Use one browser render matrix and prepare a wake owned by the runtime.
+- [ ] 21.3.3 · [Adopt the shared origin in the browser](96zzzzzs-adopt-the-shared-origin-in-the-browser.md) — Keep browser drawing and asynchronous interaction in one precise local frame.
+- [ ] 21.4.1 · [Share depth endpoints and comparisons](96zzzzzt-share-depth-endpoints-and-comparisons.md) — Give frame depth state one explicit owner before changing its convention.
+- [ ] 21.4.2 · [Share homogeneous near-plane ink clipping](96zzzzzu-share-homogeneous-near-plane-ink-clipping.md) — Clip expanded original ink through one homogeneous recipe.
+- [ ] 21.4.3 · [Use reversed depth across the frame](96zzzzzz-use-reversed-depth-across-the-frame.md) — Give every depth reader and writer the same near-one convention.
+- [ ] 21.5.1 · [Match physical camera defaults and limits](96zzzzzza-match-physical-camera-defaults-and-limits.md) — Keep camera defaults and numeric limits in physical units.
+- [ ] 21.5.2 · [Omit unused background pick pipelines](96zzzzzzb-omit-unused-background-pick-pipelines.md) — Create an integer pipeline only for lanes that can own a pick.
+- [ ] 21.5.3 · [Draw the construction grid as physical lines](96zzzzzzc-draw-the-construction-grid-as-physical-lines.md) — Reuse the grid owner with a physical background pipeline.
+- [ ] 21.5.4 · [Build viewing rays without matrix inversion](96zzzzzzd-build-viewing-rays-without-matrix-inversion.md) — Keep drawing rays and rendered depth consistent in both projections, including when the construction grid is hidden.
+- [ ] 21.5.5 · [Grow camera depth from cached world bounds](96zzzzzze-grow-camera-depth-from-cached-world-bounds.md) — Keep later or moved originals inside the depth range without refitting the view or walking their vertices on every camera frame.
+- [ ] 21.5.6 · [Match wheel input and framed projection](96zzzzzzf-match-wheel-input-and-framed-projection.md) — Use current wheel units and preserve the visible region when changing from orthographic to perspective.
+- [ ] 22.1.1 · [Share flat and Arctic surface frames](96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md) — Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.
+- [ ] 22.1.2 · [Connect headlight and backface controls](96zzzzzzh-connect-headlight-and-backface-controls.md) — Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings.
+- [ ] 22.2.1 · [Share one frame across color and ink](96zzzzzzi-share-one-frame-across-color-and-ink.md) — Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.
+- [ ] 22.2.2 · [Fill original contact polygons](96zzzzzzj-fill-original-contact-polygons.md) — Connect original contact polygons, their existing perimeter and original object owner through one derived mesh with bounded shared surface depth.
+- [ ] 22.2.3 · [Broadcast ordinary ink metadata](96zzzzzzk-broadcast-ordinary-ink-metadata.md) — Replace repeated zero clipping flags with one broadcast record in ordinary line, path and point batches.
+- [ ] 22.2.4 · [Layer original contact boundaries](96zzzzzzl-layer-original-contact-boundaries.md) — Keep original contact borders complete at steep angles when the projection budget falls back to physical depth.
+- [ ] 22.2.5 · [Query original faces under contact overlays](96zzzzzzm-query-original-faces-under-contact-overlays.md) — Select the actual original face beneath a readonly contact, without inventing an editable face for its display polygon.
+- [ ] 22.3.1 · [Respect original boundary pens](96zzzzzzn-respect-original-boundary-pens.md) — Render original edge widths and colors, hide authored zero-width mesh edges, and omit coplanar seams without changing source face keys.
+- [ ] 22.3.2 · [Close original boundary joins](96zzzzzzo-close-original-boundary-joins.md) — Close wide original boundary corners and preserve actual source queries at round ends and flat near-plane cuts.
+- [ ] 22.3.3 · [Draw default mesh vertex dots](96zzzzzzp-draw-default-mesh-vertex-dots.md) — Render the maintained default and authored mesh vertex dots without duplicating source meshes or endpoint positions.
+- [ ] 22.3.4 · [Taper crowded original mesh vertices](96zzzzzzq-taper-crowded-original-mesh-vertices.md) — Keep dense source vertices distinguishable while retaining explicit point sizes, editing controls and original ownership.
+- [ ] 22.4.1 · [Share geometric ambient inputs](96zzzzzzr-share-geometric-ambient-inputs.md) — Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.
+- [ ] 22.4.2 · [Shade surfaces before drawing ink](96zzzzzzs-shade-surfaces-before-drawing-ink.md) — Preserve authored drawing colours and independent widget pixels by ordering existing passes.
+- [ ] 22.4.3 · [Keep contact ambient inputs on originals](96zzzzzzt-keep-contact-ambient-inputs-on-originals.md) — Match the displayed contact depth and original visual radius without adding GPU resources.
+- [ ] 22.5.1 · [Keep depth and address samples separate](96zzzzzzu-keep-depth-and-address-samples-separate.md) — Define matching frame attachments without averaging depth or physical primitive addresses.
+- [ ] 22.5.2 · [Reuse coherent frame targets](96zzzzzzv-reuse-coherent-frame-targets.md) — Retain frame attachments at equal extent and replace them coherently during real resizing.
+- [ ] 22.5.3 · [Keep resolved colours in the canvas format](96zzzzzzw-match-resolve-base-and-view-formats.md) — Preserve flat colours by matching the base texture formats and rendering view formats at both ends of a resolve.
+- [ ] 22.5.4 · [Reuse surface pipelines for each sample count](96zzzzzzx-reuse-count-specific-surface-pipelines.md) — Match ordinary and shared surface shaders and pipeline descriptors to the requested sample count while retaining original geometry and previously compiled variants.
+- [ ] 22.5.5 · [Generate ink shaders for physical samples](96zzzzzzy-generate-ink-for-physical-samples.md) — Carry an explicit physical sample through finite-ink visibility and generate colour shaders whose coordinates, depth, primitive addresses and pipeline descriptor use the same sample count.
+- [ ] 22.5.6 · [Cache matching ink pipelines and bindings](96zzzzzzz-cache-ink-pipelines-with-independent-queries.md) — Retain matching finite-ink colour pipelines and binding layouts for both sample counts while keeping integer queries independent and sharing the original vertex-layout constants.
+- [ ] 22.5.7 · [Retarget existing overlay lanes](96zzzzzzza-retarget-existing-overlay-lanes.md) — Apply one requested sample count through existing overlay lanes while retaining their original vertices, IDs, query pipelines and previously compiled colour recipes.
+- [ ] 22.5.8 · [Read section crossings at each sample](96zzzzzzzb-read-section-crossings-at-each-sample.md) — Match section crossing images and cap colour/depth to each physical sample while retaining original solid geometry, cached recipes and independent single-sample original-owner queries.
+- [ ] 22.5.9 · [Compose cloud colour, depth and queries](96zzzzzzzc-compose-cloud-depth-with-physical-addresses.md) — Make nearer original clouds agree across visible colour, physical depth/addresses and independent original-owner queries, including ink in front and behind.
+- [ ] 22.5.10 · [Cache cloud and sheet sample recipes](96zzzzzzzca-cache-cloud-and-sheet-samples.md) — Cache count-specific original cloud and sheet colour recipes while retaining original source geometry, point images/raster, drawing placements/IDs and independent one-sample owner queries.
+- [ ] 22.5.11 · [Retarget cached text colour](96zzzzzzzd-retarget-cached-text.md) — Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
+- [ ] 22.5.12 · [Cache section masks and the final outline blend](96zzzzzzze-cache-outline-section-recipes.md) — Prepare count-specific section coverage and outline colour recipes while retaining original addresses, one-sample search images and one final black blend.
+- [ ] 22.5.13 · [Resolve float outline coverage](96zzzzzzzf-resolve-float-outline-coverage.md) — Feed physical face and section coverage into the retained one-sample outline search and blend the selected/global result once, without resolving integer addresses or depth.
+- [ ] 22.5.14 · [Retarget original ambient properties](96zzzzzzzg-retarget-original-ambient-properties.md) — Prepare cached physical-sample original radius and normal sources while retaining original geometry and the one-sample ambient hierarchy, filters and history images.
+- [ ] 22.5.15 · [Share ambient shader recipes](96zzzzzzzh-share-ambient-shader-recipes.md) — Reuse ambient shader modules and one pipeline factory, prepare matching physical input layouts and connect retained composition bindings before activating sparse sample corrections.
+- [ ] 22.5.16 · [Correct ambient at physical samples](96zzzzzzzi-correct-ambient-at-physical-samples.md) — Connect matching original depth/address/radius/normal samples to bounded sparse ambient correction while retaining coarse images, source geometry and cached recipes.
+- [ ] 22.5.17 · [Cache physical depth-pyramid inputs](96zzzzzzzj-cache-physical-depth-pyramid-inputs.md) — Cache physical depth inputs while retaining the six one-sample coarse images and their encoded radius/pixel addresses.
+- [ ] 22.5.18 · [Retarget the complete colour frame](96zzzzzzzk-retarget-the-complete-colour-frame.md) — Retarget every active colour consumer and frame attachment through one production API while preserving independent original-owner queries.
+- [ ] 22.5.19 · [Choose bounded frame quality](96zzzzzzzl-choose-bounded-frame-quality.md) — Choose coherent colour samples from actual geometry, physical viewport, device budget and recovery without changing original sources or owner queries.
+- [ ] 22.6.1 · [Retain visible instance ranges](96zzzzzzzm-retain-visible-instance-ranges.md) — Keep absolute original query addresses while filtering existing instance buffers with merged CPU ranges.
+- [ ] 22.6.2 · [Prepare original ink families](96zzzzzzzn-prepare-original-ink-families.md) — Classify retained original borders, points and controls once while preserving source query keys and complete buffer bindings.
+- [ ] 22.6.3 · [Show original ink families](96zzzzzzzo-show-original-ink-families.md) — Apply one retained visibility owner to actual colour, original queries and selected highlights while preserving active controls and shared sources.
+- [ ] 22.6.4 · [Apply semantic view controls](96zzzzzzzp-apply-semantic-view-controls.md) — Apply one retained editor presentation state before the first frame and after view commands while preserving original edits and history.
 - [ ] 22.6.5 · [Draw original CAD wire curves](96zzzzzzzq-draw-original-cad-wire-curves.md) — Display original CAD fallback curves through the existing joined path lane while retaining coherent source borders and independent family controls.
 - [ ] Reference comparison · [Compare with the maintained browser runtime](97-finish-with-the-maintained-browser-runtime.md) — Run the latest maintained viewer and distinguish its behavior from the remaining handwritten implementation gaps.
 

@@ -2,9 +2,9 @@
 
 Learn the existing `session_viewer` implementation using the Session geometry kernel. Introduce production Rust and WGSL in dependency order, retaining its developed rendering algorithms. Early checkpoints establish the owners needed by later production paths. Work through coherent lessons and save at the retained intermediate checkpoints when you need a stopping point.
 
-**Current route: 109 reader subjects and 1,321 active runnable checkpoints in 22 chapter groups.** Executable consolidation remains unfinished; original coding URLs and recovery aliases are preserved. The maintained-runtime comparison remains a separate reference. The [source and coverage map](journey/production-course-map.md) tracks remaining implementation coverage. Check the [release evidence](journey/release.md) before starting; consolidation does not revalidate historical GPU evidence.
+**Current route: 109 reader-facing subjects and 1,310 active runnable checkpoints.** Navigation groups 22 of 22 chapters; executable consolidation and finished-subject ownership remain incomplete. The [source and coverage map](journey/production-course-map.md) tracks implementation coverage. Check the [release evidence](journey/release.md) before starting; navigation does not revalidate historical GPU evidence.
 
-The [complete lesson checklist](journey/roadmap.md) lists **1361 authored checkpoints**. Use the [daily coding route](journey/daily-plan.md) to group small checkpoints. Its lesson checkboxes track fresh build and browser acceptance.
+The active course contains **1,310 runnable checkpoints**. The [historical checklist](journey/roadmap.md) also retains superseded entries; those entries are not additional planned subjects. Use the [daily coding route](journey/daily-plan.md) for study sessions and the release evidence for acceptance.
 
 [Use the command dock](journey/command-line.md) from the early lessons to exercise features. Later lessons add canvas picking and gestures.
 
@@ -35,7 +35,7 @@ For a maintenance review, use [current viewer behavior](journey/current-viewer.m
 ## Cumulative checkpoints
 
 <details>
-<summary>Show all 1361 cumulative checkpoints</summary>
+<summary>Show all 1310 cumulative checkpoints</summary>
 
 | Lesson | Working result |
 | --- | --- |
