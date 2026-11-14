@@ -51,6 +51,8 @@
 
 ## <a id="checkpoint-52-tree"></a>1. Validate and place a nested source tree
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52-tree-205a3b9411c0.png). Inherited 51zf handles fixture at raw DPR4: selected boxes with black mathematical boundaries and RGB handle arrows, grips and smooth rotation arcs. Tree UI and interaction require separate acceptance.
+
 ### 1. `src/hierarchy.rs`
 
 Create the file and type:

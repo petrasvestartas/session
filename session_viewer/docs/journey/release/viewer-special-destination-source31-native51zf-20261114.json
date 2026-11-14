@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "status": "EXPLICIT_SPECIAL_DESTINATION_RECONCILED_WITH_FRESH_SOURCE31_NATIVE_CAPTURE",
+  "recordedUtc": "2026-11-14T05:29:16.338115+00:00",
+  "inventory": {
+    "path": "docs/journey/release/viewer-image-goal-inventory-1763-20261113.json",
+    "sha256": "9625bc0a53699b15fc420d45799da351f7d041a7f9cc386a7cc331c2d3227052"
+  },
+  "baselineIndex": 1326,
+  "originalLogicalDestination": "docs/screenshots/journey/51zf-handles.png",
+  "checkpoint": "51zf-handles",
+  "lane": "native",
+  "recipe": {
+    "route": "generic",
+    "rawDpr": 4,
+    "output": [
+      2560,
+      1920
+    ],
+    "fixture": "docs/journey/checks/51zf-handles.rs",
+    "fixtureSha256": "53320fee397060ff229e37dc175579d7f2a759d4024f8fbdeab26535c0b06845"
+  },
+  "qualification": {
+    "path": "docs/journey/release/math-boundary-quality-source31-native51zf-dpr4-205a3b9411c0.json",
+    "sha256": "a623d8c31b4644c7b4f79b83f7b234a97377240fe44e0bd16c9416bd1eb8b402"
+  },
+  "replacementImage": {
+    "path": "docs/screenshots/journey/51zf-handles-205a3b9411c0.png",
+    "sha256": "205a3b9411c0d07ad9f1c81ff15d08a10e1b943dae05890e8e36a747e601de44"
+  },
+  "originalPhysicalImage": {
+    "path": "docs/screenshots/journey/51zf-handles.png",
+    "sha256": "6b7cb7dba7db3700a7b72c7b11ce41db4629f9b7d51b72b9f1346fd0437ff7ee"
+  },
+  "primaryReaderPlacement": {
+    "path": "docs/journey/consolidation/51-handles.md",
+    "anchor": "checkpoint-51zf-handles",
+    "sourceOnly": true,
+    "servedBrowserVerified": false,
+    "beforeSha256": "3386aad0f80b424ce27806ab37d05622a60823d8f242e7929a4ec8ef0c04cffd",
+    "afterSha256": "b5cac041543692ec2b3a9b6c181518bd8b4bbd2d5994714997daf375723ed906",
+    "exactInsertionReversalRestoresOriginalBytes": true,
+    "line": "Recorded native frame: [open the reviewed 2560 \u00d7 1920 image](../../screenshots/journey/51zf-handles-205a3b9411c0.png). Actual 51zf fixture: selected isometric boxes with black mathematical boundaries and red, green and blue handle arrows, grips and smooth rotation arcs. GUI gestures require separate acceptance."
+  },
+  "basis": "Original special row1326 is exactly the Native51zf handles main image; its Source13 exclusion is historical. The fresh Source31 actual51zf constructor/physical-DPR4 capture, personal Root original-pixel review, existing checked publication and normal retirement qualify this versioned replacement. All three handle colours render with selected boxes and mathematical boundaries. Historical evidence is not transferred. This is not a new or substituted inventory destination.",
+  "oldAliasesAndStillUsedPixelsPreserved": true,
+  "inventoryOrDenominatorChanged": false,
+  "canonicalFinalPixelOrBrowserAcceptanceCreated": false
+}

@@ -5295,6 +5295,8 @@ impl Panel {
 
 ## <a id="checkpoint-51zb-presentation"></a>30. Update selected handles with the actual camera
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zb-presentation-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; rendered handles enter with the later 51zf fixture.
+
 ### 1. `src/browser.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -5381,6 +5383,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51zc-pointer"></a>31. Capture actual browser handle drags
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zc-pointer-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; handle pointer routing remains separately unverified.
 
 ### 1. `src/browser.rs`
 
@@ -5521,6 +5525,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51zd-interruption"></a>32. Restore previews when input ownership ends
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zd-interruption-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; handle interruption and cancellation behavior remain separately unverified.
 
 ### 1. `src/browser.rs`
 
@@ -5745,6 +5751,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-51ze-ledger"></a>33. Count temporary source owners without saving them
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51ze-ledger-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; gesture history and ledger behavior remain separately unverified.
+
 ### 1. `src/editor.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -5834,6 +5842,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-51zf-handles"></a>34. Verify complete handle editing and input
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51zf-handles-205a3b9411c0.png). Actual 51zf fixture: selected isometric boxes with black mathematical boundaries and red, green and blue handle arrows, grips and smooth rotation arcs. GUI gestures require separate acceptance.
 
 ### 1. `src/gizmo_edit_tests.rs`
 
