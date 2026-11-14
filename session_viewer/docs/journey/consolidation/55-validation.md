@@ -1655,6 +1655,8 @@ fn actual_surface_pick_keeps_one_cad_face_and_four_domain_edge_ids() {
 
 ## <a id="checkpoint-55za-read-original-edge-use-samples"></a>9. Read edge-use samples
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/55za-read-original-edge-use-samples-2336125cd76e.png). Native presentation of the inherited parametric roof: original visible boundaries, smooth surface and correctly occluded far boundary. Constructor and image presentation only; source-sampling algorithms, canonical pixel validation and browser interaction remain separate.
+
 ### 1. `src/cad_edges.rs`
 
 Create the file and type:
