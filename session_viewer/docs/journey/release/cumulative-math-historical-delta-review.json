@@ -1,0 +1,45 @@
+{
+  "scope": "Reviewed exact inverse source delta for historical assertions; no current runtime or production parity acceptance.",
+  "fixture": "session_tests/scripts/course/fixtures/cumulative-math-historical-delta.json",
+  "fixtureSha256": "06125eaa86ecf17e115e7b3296835fbcbc28e6c8cba5c144c06f61a40754b26e",
+  "originalCourseSha256": "150e5dcc0823ebad14d39ae05e6ca36f2210e1a32086f88e65b8af7bf616caea",
+  "originalFingerprintsPreserved": {
+    "01-canvas": "f97cf59ccd2065b9e9f21ef25d1a55c10e4bc7086a3403cdcbe2211521a943c0",
+    "03-triangle": "5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61",
+    "03d-input": "c6aaa5ef4939eebbc79bab4de1626431086990a44fd75df8f039eed2ee91f150",
+    "04-input": "3ccfd4519caafcc2e37622753e7901793bf08eced6a8bd3a52b6779e1ec2a221",
+    "05-vertices": "b9893bde536c27a6cad51c3b824f95ee779bbd593223eae238ebc02863ddbc12",
+    "07-uniforms": "667522d160c3d6f8b019045444dab4cd86c6ce949b0ddf5bdc91b5e4b9bdbba9",
+    "10-depth": "99c8b8fc860db2a066cb983a30e9f350365d93b0a4ae2a396ce496a16c6126a8",
+    "12-identity": "38a401d22f747b140a6e624b4f1be19622d783eb0f9f5323dec99287d0ec5d22",
+    "17-solid": "dc3c23bf69c03bcb6f612403802b3358b73313f416eaa3991c1ef42f4e511f58",
+    "19a-viewport": "6e7af855879c3862d142d494b23cd72dc5fffda6df29e459dbe71d3e58819f0a",
+    "96zzzzzzv-reuse-coherent-frame-targets": "9cd61732a3d4df211dfa005101e3899c13c190e797419dc458b41384dadba22f",
+    "96zzzzzzzq-draw-original-cad-wire-curves": "70bc4c1be05f6a7a2b5f8442122e5f90006abe60d900ba1072176176220e0697",
+    "97-finish-with-the-maintained-browser-runtime": "7973001e990fea905edfad976b5319b82cf129a77b812d36c94a264995ad21ca"
+  },
+  "reviewedExistingPaths": [
+    "Cargo.toml",
+    "src/lib.rs"
+  ],
+  "reviewedExistingChanges": "Mathematics dependencies, browser Location feature, one fixed startup dispatcher and its registrations; maintained-runtime appendix retains its existing production startup owner. Rendering and geometry implementation bodies are unchanged.",
+  "addedVariants": {
+    "total": 33,
+    "matchingCurrentMathematicsReceipt": 30,
+    "separatelyReviewedRegistrations": 3,
+    "registrationDetails": [
+      "First frame selects only the existing viewer constructor.",
+      "Later subjects select viewer by default while retaining the mathematics constructor.",
+      "Later error reporting invokes both fatal publication and the existing browser status sink."
+    ]
+  },
+  "normalization": "Only newly introduced files normalize CRLF to LF; historical source bytes and all original fingerprints stay unchanged.",
+  "validation": "All 112 installed course tooling tests pass, including exact reconstruction of all 13 historical fingerprints and rejection of unreviewed renderer, painter and shader edits. Strict documentation build and desktop/upright documentation browser checks pass. Structural, ownership and production-parity checks remain separately failing.",
+  "currentRuntimeEvidence": "cumulative-mathematics-registration-windows-20261114.json",
+  "toolingEvidence": {
+    "planSha256": "65f487875729904520cd1e6a4116abdde00ec1d094497f78dd9448bdf0693c97",
+    "resourcesSha256": "ef4c0ae848b01bcc9c1aae2c40ce7c42d64ae02e2bc2d48483d7a84bdc19c740",
+    "testsLogSha256": "f4eecd12d687be3be9fb7532c59550195db1e0e0873cca9f8313822af5f1909a",
+    "reviewSha256": "442ff812827d39247c6823c1960f4f606ca688588159b69fd12a51ee860bda26"
+  }
+}

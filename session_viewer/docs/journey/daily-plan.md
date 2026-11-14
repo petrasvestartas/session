@@ -12,7 +12,7 @@ Work through one coherent subject at a time and save partial work at file bounda
 
 - [1.4 · The command dock](03d-input.md)
 
-- [1.5 · Commands that change the view](consolidation/04-input.md)
+- [1.5 · Commands that change the view](04-input.md)
 
 ## Chapter 2: consolidated lessons
 
@@ -320,7 +320,7 @@ This route covers the authored learner implementation. [Current-viewer parity re
 | ---: | --- | --- |
 | 1 | [1.2.1 · Shaders and first egui painting](03-triangle.md) | 75–149 min |
 | 2 | [1.4.1 · The command dock](03d-input.md) | 421–842 min |
-| 3 | [2.1.1 · Buffers that describe a shared mesh](05-vertices.md) | 16–32 min |
+| 3 | [1.5.1 · Make a choice change the picture](04-input.md) → [2.1.1 · Buffers that describe a shared mesh](05-vertices.md) | 28–56 min |
 | 4 | [2.2.1 · Camera state and matrix uniforms](07-uniforms.md) | 43–86 min |
 | 5 | [2.3.1 · A depth-tested scene with stable objects](10-depth.md) | 93–185 min |
 | 6 | [2.4.1 · Select, navigate and undo](12-identity.md) | 155–309 min |

@@ -12,7 +12,7 @@ Existing intermediate checkpoints remain listed while their implementations are 
 | --- | ---: | ---: | --- | --- | --- |
 | [1.1.1 · Rust and the first GPU frame](01-canvas.md) | 182 | 6792 | 68–136 min | 2–4 h | Several sittings; one checkpoint |
 | [1.2.1 · Shaders and first egui painting](03-triangle.md) | 176 | 7443 | 75–149 min | 2–4 h | Several sittings; one checkpoint |
-| [1.3.1 · A slide of mathematics](03a-mathematics.md) | 9598 | 331212 | 3313–6625 min | 8–12 h | Several sittings; one checkpoint |
+| [1.3.1 · A slide of mathematics](03a-mathematics.md) | 9598 | 331182 | 3312–6624 min | 8–12 h | Several sittings; one checkpoint |
 | [1.4.1 · The command dock](03d-input.md) | 1063 | 42075 | 421–842 min | 3–6 h | Several sittings; one checkpoint |
 | [1.5.1 · Make a choice change the picture](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | One sitting |
 | [2.1.1 · Buffers that describe a shared mesh](05-vertices.md) | 34 | 1568 | 16–32 min | 2–4 h | One sitting |

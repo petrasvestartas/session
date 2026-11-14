@@ -1,0 +1,952 @@
+{
+  "scope": "Exact inverse registration/dependency delta for historical-source assertions only. Current runtime acceptance is separate; original accepted fingerprints remain unchanged.",
+  "previousCourseSha256": "150e5dcc0823ebad14d39ae05e6ca36f2210e1a32086f88e65b8af7bf616caea",
+  "normalizationScope": "Only newly introduced files normalize CRLF to LF; historical source bytes and all original fingerprints stay unchanged.",
+  "records": [
+    {
+      "id": "01-canvas",
+      "before": "f97cf59ccd2065b9e9f21ef25d1a55c10e4bc7086a3403cdcbe2211521a943c0",
+      "after": "2c32a4340f53bbf951d4694e85bf658a659477a18c1e034f750ba324c1543bf2",
+      "changes": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "lock": "journey/release/Cargo.lock",
+      "lockSha256": "16a4f3d16ccad1cffbcf78d74e15e90faa3f6cd514338dfe4913b1991d87f05e",
+      "oldFiles": 5,
+      "currentFiles": 7
+    },
+    {
+      "id": "03-triangle",
+      "before": "5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61",
+      "after": "564b5f8318b811f25f02efa8eb7795ef38522961a89b0476874eff7a5f8167b4",
+      "changes": [
+        4,
+        5,
+        2,
+        3
+      ],
+      "lock": "journey/release/03a-panel.lock",
+      "lockSha256": "d96f782e05dab6ab43171bd5ec85141f6e06bf80a774fc18d16e58454ad5dbed",
+      "oldFiles": 9,
+      "currentFiles": 11
+    },
+    {
+      "id": "03d-input",
+      "before": "c6aaa5ef4939eebbc79bab4de1626431086990a44fd75df8f039eed2ee91f150",
+      "after": "f7ca419b32427f4417ae4a931e313b1e125168b211adbd56d209a4f5e8189b92",
+      "changes": [
+        6,
+        7,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/03b-state.lock",
+      "lockSha256": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "oldFiles": 12,
+      "currentFiles": 43
+    },
+    {
+      "id": "04-input",
+      "before": "3ccfd4519caafcc2e37622753e7901793bf08eced6a8bd3a52b6779e1ec2a221",
+      "after": "b7c189b8eb88709594f84014b65e828d074e6794fde03d5fc956e2424cede468",
+      "changes": [
+        6,
+        38,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/03b-state.lock",
+      "lockSha256": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "oldFiles": 13,
+      "currentFiles": 44
+    },
+    {
+      "id": "05-vertices",
+      "before": "b9893bde536c27a6cad51c3b824f95ee779bbd593223eae238ebc02863ddbc12",
+      "after": "cbb1396652caf6ab0deeeeaabef5ebb408410822a739cdebcf374ed3e1d095dc",
+      "changes": [
+        6,
+        38,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/03b-state.lock",
+      "lockSha256": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "oldFiles": 13,
+      "currentFiles": 44
+    },
+    {
+      "id": "07-uniforms",
+      "before": "667522d160c3d6f8b019045444dab4cd86c6ce949b0ddf5bdc91b5e4b9bdbba9",
+      "after": "4f88c3ddd56523867e6cb92107d63a2ac909f4c9ba41abb9b467c435e2161bc9",
+      "changes": [
+        6,
+        39,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/03b-state.lock",
+      "lockSha256": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "oldFiles": 14,
+      "currentFiles": 45
+    },
+    {
+      "id": "10-depth",
+      "before": "99c8b8fc860db2a066cb983a30e9f350365d93b0a4ae2a396ce496a16c6126a8",
+      "after": "6c5c99da0943cf415f6a0fa3a7bdf371bea067f283fab230e168958213633631",
+      "changes": [
+        6,
+        40,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/03b-state.lock",
+      "lockSha256": "d94afdf257d0c345e4e3a7ae1596e2cccf5c3e5aa48734a3dbe7468c9c989df8",
+      "oldFiles": 17,
+      "currentFiles": 48
+    },
+    {
+      "id": "12-identity",
+      "before": "38a401d22f747b140a6e624b4f1be19622d783eb0f9f5323dec99287d0ec5d22",
+      "after": "37a124b399c3591493d562274dd56d273fa79fdc9b6e5463139d2436f3617c50",
+      "changes": [
+        41,
+        42,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/15-perspective.lock",
+      "lockSha256": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+      "oldFiles": 19,
+      "currentFiles": 50
+    },
+    {
+      "id": "17-solid",
+      "before": "dc3c23bf69c03bcb6f612403802b3358b73313f416eaa3991c1ef42f4e511f58",
+      "after": "98c8cbe90bfdfa9bc47bb9b4034caf28713385fa4b3e950ae1ebe50c91ca4f31",
+      "changes": [
+        41,
+        43,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/15-perspective.lock",
+      "lockSha256": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+      "oldFiles": 20,
+      "currentFiles": 51
+    },
+    {
+      "id": "19a-viewport",
+      "before": "6e7af855879c3862d142d494b23cd72dc5fffda6df29e459dbe71d3e58819f0a",
+      "after": "baad75bf875b8813d3e1a7f5f29bb6919466d10f07b6f977ce063ec7a6525e05",
+      "changes": [
+        44,
+        45,
+        8,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/15-perspective.lock",
+      "lockSha256": "0c171f05e4dcdd7906983643f0789bdbb727073b86b40247d15beaa8792051c7",
+      "oldFiles": 25,
+      "currentFiles": 56
+    },
+    {
+      "id": "96zzzzzzv-reuse-coherent-frame-targets",
+      "before": "9cd61732a3d4df211dfa005101e3899c13c190e797419dc458b41384dadba22f",
+      "after": "30989ae3e02fc545081a0fcd0fd296fa3a8fe73d5255d8de974c479ebbabbae7",
+      "changes": [
+        46,
+        47,
+        48,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/94-Cargo.lock",
+      "lockSha256": "dcfd1a4a6e027146b584489409cab43d310856fc3eae4bf826d2c03adbc28149",
+      "oldFiles": 645,
+      "currentFiles": 676
+    },
+    {
+      "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "before": "70bc4c1be05f6a7a2b5f8442122e5f90006abe60d900ba1072176176220e0697",
+      "after": "1c02f11e0484f19a0884c25ae719adbe48bde888ca4bd934abf5bf4438b0dc91",
+      "changes": [
+        49,
+        50,
+        48,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/94-Cargo.lock",
+      "lockSha256": "dcfd1a4a6e027146b584489409cab43d310856fc3eae4bf826d2c03adbc28149",
+      "oldFiles": 716,
+      "currentFiles": 747
+    },
+    {
+      "id": "97-finish-with-the-maintained-browser-runtime",
+      "before": "7973001e990fea905edfad976b5319b82cf129a77b812d36c94a264995ad21ca",
+      "after": "02fb740e8cc65f64e82a3a92cef03b5e34a6d82c9f3dc5b07253f0dda314ea9a",
+      "changes": [
+        51,
+        52,
+        48,
+        3,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37
+      ],
+      "lock": "journey/release/94-Cargo.lock",
+      "lockSha256": "dcfd1a4a6e027146b584489409cab43d310856fc3eae4bf826d2c03adbc28149",
+      "oldFiles": 717,
+      "currentFiles": 748
+    }
+  ],
+  "changes": [
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "a492ff3ab59f11d26f9f2130c9c1eb0bce4d8c9c614e175e9a4dbdc19ebd7d8d",
+      "previousSha256": "0b61a378d0084008e7d8a5e91515a004e9301cae6ca470d8437af29906f6ffad",
+      "edits": [
+        {
+          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
+          "after": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "7bf159e026d60608ea541c309862474838ee938663a6b964a688de0efde3b681",
+      "previousSha256": "c0d6173a1942520f7eb0dfd2df3501c7d4608fe1eee11d6035ff8e5fc91c2d25",
+      "edits": [
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n"
+        }
+      ]
+    },
+    {
+      "path": "examples/course/registration.rs",
+      "currentSha256": "4043857e4da915ca5f3e8bdb163c03a8b2923ead926958567c0b3a397a654857",
+      "remove": true
+    },
+    {
+      "path": "examples/course/entry.rs",
+      "currentSha256": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+      "remove": true
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "5c2be9689edf3fb35ca09adea1a44f3983e81febdf4c50606cd4e45b6f1ac4de",
+      "previousSha256": "68a871b62e768ea5c8ece9fc9d69dc4ab120bd22a86908dd486154e85a6893fc",
+      "edits": [
+        {
+          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
+          "after": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "5f83d0a847126ec30e62a836929b963bc625f3cec82779d9a75ceecc72b5d3ba",
+      "previousSha256": "e250e64c1f2dab6aa413cdc22d527d912c1eb83362c77b5e1a3ee83f2c872bc7",
+      "edits": [
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(target_arch = \"wasm32\")]\nmod command_dock;\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(target_arch = \"wasm32\")]\nmod command_dock;\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        }
+      ]
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "72c32e4763c699db006be9d9d428e52210f9e06a2713e4565ca7f7889436fd81",
+      "previousSha256": "838acdab79152eacd5ddad915bb464827a3cf03a694d45d926205cb91bfc5e1d",
+      "edits": [
+        {
+          "before": "[workspace]\n\n[dependencies]\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\nwinit = \"0.30\"\nswash = \"=0.2.10\"\nttf-parser = { version = \"0.25\", default-features = false, features = [\"opentype-layout\", \"std\"] }\nserde_yaml_ng = \"0.10\"\npng = \"0.17\"\nsession_rust = { path = \"../../../session_rust\", default-features = false, features = [\"viewer-display\"] }\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
+          "after": "[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "1ec8ab02748e1995b7a803ce93676949b5b0e812930b7ee15ca4462c5805af53",
+      "previousSha256": "590f02320a133d4a78317cd3ba571208f7f0d9fbdbee8de08849612322f480b7",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "examples/course/registration.rs",
+      "currentSha256": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+      "remove": true
+    },
+    {
+      "path": "src/app/mod.rs",
+      "currentSha256": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+      "remove": true
+    },
+    {
+      "path": "src/app/mode.rs",
+      "currentSha256": "9ae2e46a90c239e3f38f8db6d0bc6a138a0871b7d59eda4308bc2b9edaafeee2",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/actions.rs",
+      "currentSha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/check.rs",
+      "currentSha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/deck.rs",
+      "currentSha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/draw.rs",
+      "currentSha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/eval.rs",
+      "currentSha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/font.rs",
+      "currentSha256": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/geometry.rs",
+      "currentSha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/layout.rs",
+      "currentSha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/math_mode.rs",
+      "currentSha256": "5ad8f7df94ddb77ce992e9b7901c21884ee67be9a98967fce0d04fb4c724804f",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/matrix.rs",
+      "currentSha256": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/mod.rs",
+      "currentSha256": "b5ef3ff56b364b0dcf4dbc9f0f37baf79841e42f5d00cc15e8ea6e4a024ca862",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/morph.rs",
+      "currentSha256": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/motion_tests.rs",
+      "currentSha256": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/net.rs",
+      "currentSha256": "ba47d1f7d5ea4f8e24ae1574ace7cf39958f078b6c38224932b702ed255df18b",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/object.rs",
+      "currentSha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/paint.rs",
+      "currentSha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/presentation.rs",
+      "currentSha256": "1a696da9bb55513880b6c3f6e1bb10984e007c7530008d08de909d1f4c8925fc",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/presentation_tests.rs",
+      "currentSha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/tests.rs",
+      "currentSha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/run.rs",
+      "currentSha256": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/tex.rs",
+      "currentSha256": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/tween.rs",
+      "currentSha256": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+      "remove": true
+    },
+    {
+      "path": "src/app/stage/view.rs",
+      "currentSha256": "ee27198479020cc7701720ff250851b2062d86ed98571afaa529bdf3966a0a81",
+      "remove": true
+    },
+    {
+      "path": "src/math_tests.rs",
+      "currentSha256": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+      "remove": true
+    },
+    {
+      "path": "example.yaml",
+      "currentSha256": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+      "remove": true
+    },
+    {
+      "path": "examples/course/fonts.rs",
+      "currentSha256": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+      "remove": true
+    },
+    {
+      "path": "examples/course/mathematics.rs",
+      "currentSha256": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+      "remove": true
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "d7e47fb700aa35c912134bf1fa956c36efa546381452042b339296d2b98ecc88",
+      "previousSha256": "002485f1ee47b89ec34255b27e81615b5c15321a0d2dd3e8081afa979406e781",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "b7b9d4bb492e0ed0c1b2edf08d27eb89237824ee0438c6a561ea985843fd7903",
+      "previousSha256": "b94c16930db19e2c9ec9a58607498620bf65eb1c70e67661335f0903efa71db0",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "b175c3442a56286ece1ae40d3380397ede8ba9bf6d5210ee6815a75cf36407b8",
+      "previousSha256": "f83f453b59a7d4d6bb195ac24239d5a1188023454d6e235e9b5aaffd47306ba5",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "2c4293bdb07665fe3c1dc6df4e365f444eb80afceba47b710d1d2d1bfa6d24da",
+      "previousSha256": "77f33fae072f0866b7442c2502558feb714d1751cedbcbf33213422f515888e1",
+      "edits": [
+        {
+          "before": "[workspace]\n\n[dependencies]\nwinit = \"0.30\"\nswash = \"=0.2.10\"\nttf-parser = { version = \"0.25\", default-features = false, features = [\"opentype-layout\", \"std\"] }\nserde_yaml_ng = \"0.10\"\npng = \"0.17\"\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false, features = [\"viewer-display\"] }\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\n\negui = { version = \"=0.34.3\", default-features = false }\n",
+          "after": "[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false }\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\n\negui = { version = \"=0.34.3\", default-features = false }\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "875f9872f59e654f4eb6d7e385f276dcc9f7f8c0f7ed16c67367bfcd678c6096",
+      "previousSha256": "730964ca864fd60fd5ad527e4af8049c2419cb407b8cd9614da87cbd99f32291",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "cba7cacac77e6c36df6c340ef2512f272137ef8a9b1f6b472031725edad4d9e4",
+      "previousSha256": "c6fd6187bb74b2ec4b2c60077d8321ac2e198c4ad6559845bc691bfbc973070a",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "440f848d27ef8739ba770e4bafbf7c9d8c89e79f63bd4986856bdabda29650d2",
+      "previousSha256": "49a09d56d16be46975c5ab9898f9f152e753772bd3d29228aac9ec1bfa6c86d7",
+      "edits": [
+        {
+          "before": "[workspace]\n\n[dependencies]\nwinit = \"0.30\"\nswash = \"=0.2.10\"\nttf-parser = { version = \"0.25\", default-features = false, features = [\"opentype-layout\", \"std\"] }\nserde_yaml_ng = \"0.10\"\npng = \"0.17\"\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\", \"Location\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false, features = [\"viewer-display\"] }\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\n\negui = { version = \"=0.34.3\", default-features = false }\n",
+          "after": "[workspace]\n\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false }\ngetrandom = { version = \"=0.2.17\", features = [\"js\"] }\n\negui = { version = \"=0.34.3\", default-features = false }\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "e273490bdc01d273be7c26442b90abcf4934a4a62cc00f89fa56dda7570701e6",
+      "previousSha256": "658a7225bdfab5fc3f00803aa7da0e7cb1734d5ab6ac318ad3fd944a24030fad",
+      "edits": [
+        {
+          "before": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "\n#[cfg(target_arch = \"wasm32\")]\nmod panel;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "6439e06abfa3667e50f9d0c5f70f2e2f556855e1d1cdb61331510b7b7f19b167",
+      "previousSha256": "11268d33d0cb72c9e19b953feff0c9ef8bde8191dbd61d4f2dea3cf91055b179",
+      "edits": [
+        {
+          "before": "[workspace]\n\n[dependencies]\nwinit = \"0.30\"\nswash = \"=0.2.10\"\npng = \"0.17\"\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"console\", \"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"PageTransitionEvent\", \"ErrorEvent\", \"PromiseRejectionEvent\", \"Location\", \"History\", \"UrlSearchParams\", \"Navigator\", \"MediaQueryList\", \"Storage\", \"Performance\", \"PerformanceResourceTiming\", \"PerformanceEntry\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"HtmlInputElement\", \"File\", \"FileList\", \"Blob\", \"ReadableWritablePair\", \"CustomEvent\", \"CustomEventInit\", \"FocusOptions\", \"Url\", \"HtmlAnchorElement\", \"AbortController\", \"AbortSignal\", \"RequestInit\", \"RequestMode\", \"RequestCache\", \"EventSource\", \"MessageEvent\", \"Response\", \"Headers\", \"ReadableStream\", \"ReadableStreamDefaultReader\"] }\n",
+          "after": "[workspace]\n\n[dependencies]\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"console\", \"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"PageTransitionEvent\", \"ErrorEvent\", \"PromiseRejectionEvent\", \"Location\", \"History\", \"UrlSearchParams\", \"Navigator\", \"MediaQueryList\", \"Storage\", \"Performance\", \"PerformanceResourceTiming\", \"PerformanceEntry\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"HtmlInputElement\", \"File\", \"FileList\", \"Blob\", \"ReadableWritablePair\", \"CustomEvent\", \"CustomEventInit\", \"FocusOptions\", \"Url\", \"HtmlAnchorElement\", \"AbortController\", \"AbortSignal\", \"RequestInit\", \"RequestMode\", \"RequestCache\", \"EventSource\", \"MessageEvent\", \"Response\", \"Headers\", \"ReadableStream\", \"ReadableStreamDefaultReader\"] }\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "fd3caa5a81640e3851c570f6135fe7c5b7e3021b1bc4616e0685dce0228972c1",
+      "previousSha256": "8234203d37622570add4e8476ccc501c81cefa901befc19e42f71265893dcafa",
+      "edits": [
+        {
+          "before": "pub mod math_quality;\npub mod math_view;\npub mod math_cad;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "pub mod math_quality;\npub mod math_view;\npub mod math_cad;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod file_output;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod file_output;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser_report::fatal(&format!(\"Cannot draw: {error:?}\"));\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "examples/course/registration.rs",
+      "currentSha256": "76ffabe2eb33910680ad22fdef4eebc96a8f3614fe70a192757067c013618db8",
+      "remove": true
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "ecc967b75d11a77bdc430994c365eca19be403acc803678e185561add10fa321",
+      "previousSha256": "0bf48ee4464fadafe56a85ab508a330d5e4644e0cfbee131580f83a196a0d2de",
+      "edits": [
+        {
+          "before": "[workspace]\n\n[dependencies]\nwinit = \"0.30\"\nswash = \"=0.2.10\"\npng = \"0.17\"\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"console\", \"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"PageTransitionEvent\", \"ErrorEvent\", \"PromiseRejectionEvent\", \"Location\", \"History\", \"UrlSearchParams\", \"Navigator\", \"MediaQueryList\", \"Storage\", \"Performance\", \"PerformanceResourceTiming\", \"PerformanceEntry\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"HtmlInputElement\", \"File\", \"FileList\", \"Blob\", \"ReadableWritablePair\", \"CustomEvent\", \"CustomEventInit\", \"FocusOptions\", \"Url\", \"HtmlAnchorElement\", \"AbortController\", \"AbortSignal\", \"RequestInit\", \"RequestMode\", \"RequestCache\", \"EventSource\", \"MessageEvent\", \"Response\", \"Headers\", \"ReadableStream\", \"ReadableStreamDefaultReader\"] }\n",
+          "after": "[workspace]\n\n[dependencies]\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"console\", \"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"PageTransitionEvent\", \"ErrorEvent\", \"PromiseRejectionEvent\", \"Location\", \"History\", \"UrlSearchParams\", \"Navigator\", \"MediaQueryList\", \"Storage\", \"Performance\", \"PerformanceResourceTiming\", \"PerformanceEntry\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"HtmlInputElement\", \"File\", \"FileList\", \"Blob\", \"ReadableWritablePair\", \"CustomEvent\", \"CustomEventInit\", \"FocusOptions\", \"Url\", \"HtmlAnchorElement\", \"AbortController\", \"AbortSignal\", \"RequestInit\", \"RequestMode\", \"RequestCache\", \"EventSource\", \"MessageEvent\", \"Response\", \"Headers\", \"ReadableStream\", \"ReadableStreamDefaultReader\"] }\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "028d4dcb1857dd53549db5bec38fb7b7bd6f7145e684cf9df9750a17471acf02",
+      "previousSha256": "16c86f812489c82965f952aee78b4617a654fae857aa560bbe9a6df31e17c7b8",
+      "edits": [
+        {
+          "before": "pub mod math_quality;\npub mod math_view;\npub mod math_cad;\n\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/entry.rs\"]\nmod entry;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/registration.rs\"]\nmod registration;\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "pub mod math_quality;\npub mod math_view;\npub mod math_cad;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod file_output;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod file_output;\n\nuse wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser_report::fatal(&format!(\"Cannot draw: {error:?}\"));\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    },
+    {
+      "path": "Cargo.toml",
+      "currentSha256": "23121ff72d1daa4e715e6182fb931352babdd4de676dcaa6cb14309250d7e448",
+      "previousSha256": "b801cec2d7f72e4465f88e4b5f32daf4139d6ec58a85d19f70927dabb9797e52",
+      "edits": [
+        {
+          "before": "[workspace]\n\n[dependencies]\nwinit = \"0.30\"\nswash = \"=0.2.10\"\npng = \"0.17\"\ncurrent_viewer = { package = \"session_viewer\", path = \"../..\" }\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\n",
+          "after": "[workspace]\n\n[dependencies]\ncurrent_viewer = { package = \"session_viewer\", path = \"../..\" }\nwood = { path = \"../../docs/journey/supplied/wood-2026-10-29\" }\nwasm-bindgen = \"=0.2.128\"\n"
+        }
+      ]
+    },
+    {
+      "path": "src/lib.rs",
+      "currentSha256": "b6fc4a497728164f5c22cc903c981adcf06c0a9c5b5967b284904779accd0f57",
+      "previousSha256": "2b4e685bec1f58200677c001d9d03bdec40d38707f261edd13d1f6f867afdc32",
+      "edits": [
+        {
+          "before": "pub mod math_quality;\npub mod math_view;\npub mod math_cad;\n\n#[cfg(target_arch = \"wasm32\")]\n#[wasm_bindgen::prelude::wasm_bindgen]\npub fn start() -> Result<(), wasm_bindgen::JsValue> { current_viewer::run_web() }\n\npub mod app;\n#[path = \"../examples/course/fonts.rs\"] mod lesson_fonts;\npub use lesson_fonts::fonts;\n#[cfg(target_arch = \"wasm32\")]\n#[path = \"../examples/course/mathematics.rs\"] mod mathematics;\n#[cfg(test)] mod math_tests;\n",
+          "after": "pub mod math_quality;\npub mod math_view;\npub mod math_cad;\n"
+        },
+        {
+          "before": "\n#[cfg(test)]\nmod inventory_tests;\n#[cfg(test)]\nmod ambient_shader_contract;\npub mod projection_lookup;\n",
+          "after": "\n#[cfg(test)]\nmod inventory_tests;\n\n#[cfg(target_arch=\"wasm32\")]\n#[wasm_bindgen]\npub fn start()->Result<(),wasm_bindgen::JsValue>{current_viewer::run_web()}\n#[cfg(test)]\nmod ambient_shader_contract;\npub mod projection_lookup;\n"
+        },
+        {
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod file_output;\n\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n",
+          "after": "#[cfg(target_arch = \"wasm32\")]\nmod file_output;\n\nuse wasm_bindgen::prelude::*;\n\n#[cfg(not(target_arch=\"wasm32\"))]\n#[wasm_bindgen(start)]\npub fn start() {\n    console_error_panic_hook::set_once();\n    #[cfg(target_arch = \"wasm32\")]\n    wasm_bindgen_futures::spawn_local(async {\n        if let Err(error) = browser::run().await {\n            browser_report::fatal(&format!(\"Cannot draw: {error:?}\"));\n            browser::report(&format!(\"Cannot draw: {error:?}\"));\n        }\n    });\n}\n\n#[cfg(any(test, target_arch = \"wasm32\"))]\nmod command_dock;\n\n"
+        }
+      ]
+    }
+  ]
+}

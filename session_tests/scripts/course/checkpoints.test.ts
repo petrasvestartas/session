@@ -1,4 +1,5 @@
 import './cumulative-math.test.ts';
+import {historicalExpected} from './historical-math.ts';
 import {changedBlocks, lineContext} from './line-diff.ts';
 import {instructions, replaceImplementation} from './render.ts';
 import {courseBook, readingBook} from '../../src/courseBook.ts';
@@ -355,7 +356,7 @@ test('consolidation retains source order, endpoints, aliases and legacy numberin
     assert.deepEqual(expected('02-clear'), expected('01-canvas'));
     assert.deepEqual(expected('03a-fonts'), expected('03-triangle'));
     assert.deepEqual(expected('03a-paint'), expected('03-triangle'));
-    assert.equal(fingerprint(expected('03-triangle')), '5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61');
+    assert.equal(fingerprint(historicalExpected('03-triangle')), '5b665983d42625e428902a800a8e92c32192a4e903a97b541fbd11bdcfcd8e61');
     for (const lesson of consolidated) {
         const page = read(path.join(viewer, 'docs', lesson.page));
         for (const id of lesson.steps) assert(page.includes(`id="checkpoint-${id}"`));
@@ -411,14 +412,14 @@ function beforeQualityAndDock(files: Record<string, string>, changes = qualityDe
     return files;
 }
 
-test('the compact target-owner preserves its accepted source through exact quality, dock, Escape, inventory and hierarchy deltas', () => {
+test('the compact target-owner preserves its accepted source through exact mathematics, quality, dock, Escape, inventory and hierarchy deltas', () => {
     const id = '96zzzzzzv-reuse-coherent-frame-targets';
     const record = JSON.parse(read(path.join(viewer, 'docs/journey/visual-review.json'))).steps[id];
     const step = course().steps.find(step => step.id === id)!;
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
     assert.equal(hash(qualityDeltaText), '1f1d988f61fce3ce25deb794c028e6eda82fbc023e3710931abc22430f0c202c');
-    const current = expected(id);
+    const current = historicalExpected(id);
     assert.equal(fingerprint(current), qualityDelta.after);
     const files = beforeQualityAndDock(current);
     assert.equal(fingerprint(files), qualityDelta.before);
@@ -480,7 +481,7 @@ test('the compact target-owner preserves its accepted source through exact quali
     const assertion = (value: number) => `assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),${value});`;
     files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
-    const later = expected(qualityDelta.later.checkpoint);
+    const later = historicalExpected(qualityDelta.later.checkpoint);
     assert.equal(fingerprint(later), qualityDelta.later.after);
     assert.equal(fingerprint(beforeQualityAndDock(later, qualityDelta.later.changes)),
         '3efbb602833786d48a46add280c7769351a11850b15914748bfc69889f0f3a32');

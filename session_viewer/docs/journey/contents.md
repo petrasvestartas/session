@@ -38,7 +38,7 @@ Each chapter shows a recorded result from one linked checkpoint. **Current Chrom
 
 ### 1.5 · Commands that change the view
 
-- [1.5 · Commands that change the view](consolidation/04-input.md)
+- [1.5 · Commands that change the view](04-input.md)
 
 ## 2 · Geometry, camera and selection
 

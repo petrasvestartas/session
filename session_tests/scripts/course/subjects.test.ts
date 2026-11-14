@@ -3,7 +3,8 @@ import test from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
 import {collapseSubject} from './subjects.ts';
-import {course, docs, expected, fingerprint, hash, snippetSource} from './model.ts';
+import {course, docs, expected as currentExpected, fingerprint, hash, snippetSource} from './model.ts';
+import {historicalExpected as expected} from './historical-math.ts';
 
 const edit = (path: string, before: string | null, snippet: string) => ({path, before, snippet, why: ''});
 const load = (source: string) => source;
@@ -11,7 +12,7 @@ const load = (source: string) => source;
 test('consolidated browser checks wait for the runtime startup message', () => {
     for (const id of ['12-identity', '17-solid', '19a-viewport']) {
         const step = course().steps.find(step => step.id === id)!;
-        assert(expected(id)['src/browser.rs'].includes(`report(${JSON.stringify(step.browser_status)});`),
+        assert(currentExpected(id)['src/browser.rs'].includes(`report(${JSON.stringify(step.browser_status)});`),
             `${id}: acceptance status belongs in the validation prose, not the expected runtime message`);
     }
 });
@@ -62,7 +63,7 @@ test('field-renaming edits collapse to their complete result', () => {
     assert.deepEqual(result.edits, [{path: 'a.rs', before: 'self.old + self.old\n', code: 'self.current + self.current\n'}]);
 });
 
-test('the first GPU subject replaces three checkpoints with five final files', () => {
+test('the first GPU subject retains its five-file historical endpoint beside the startup registry', () => {
     const archived = JSON.parse(fs.readFileSync(path.join(docs, 'archived/first-frame/checkpoints.json'), 'utf8'));
     const steps = archived.steps;
     assert.deepEqual(steps.map(step => step.id), ['01-canvas', '01a-gpu', '02-clear']);
@@ -70,13 +71,13 @@ test('the first GPU subject replaces three checkpoints with five final files', (
     assert.deepEqual(result.files, archived.endpoint);
     assert.deepEqual(result.files, expected('01-canvas'));
     assert(!course().steps.some(step => ['01a-gpu', '02-clear'].includes(step.id)));
-    assert.equal(course().steps.length, 1310);
+    assert.equal(course().steps.length, 1311);
     assert.equal(result.edits.length, 5);
     assert(result.edits.every(edit => edit.before === null));
     assert.deepEqual(new Set(result.edits.map(edit => edit.path)), new Set(Object.keys(result.files)));
 });
 
-test('named first-frame listings reconstruct the same canonical source', () => {
+test('named historical first-frame listings retain their original source', () => {
     const plan = JSON.parse(fs.readFileSync(path.join(docs, 'journey/first-frame-subject.json'), 'utf8'));
     const files = Object.fromEntries(plan.edits.map((edit: {path: string; snippet: string}) =>
         [edit.path, snippetSource(edit.snippet)]));
@@ -194,4 +195,14 @@ test('depth, mesh validation and stable scene identity share one exact executabl
     const subject = course().steps.find(step => step.id === '10-depth')!;
     assert.equal(new Set(subject.edits.map(edit => edit.path)).size, subject.edits.length);
     assert(!course().steps.some(step => ['10a-mesh', '11-scene', '11a-identity'].includes(step.id)));
+});
+
+
+test('historical mathematics deltas reject changes to both retained and newly added code', () => {
+    for (const name of ['src/renderer.rs', 'src/app/stage/paint.rs', 'src/triangle.wgsl']) {
+        const files = currentExpected('03d-input');
+        assert(name in files);
+        files[name] += '\n// Unreviewed change\n';
+        assert.throws(() => expected('03d-input', files), /unreviewed cumulative source change/);
+    }
 });

@@ -47,6 +47,8 @@ npm --prefix ../session_tests run course -- parity
 
 For prose-only changes, `verify --stored` checks the recorded source fingerprints without repeating Rust builds. `verify-reference --stored` validates all 43 existing reference checkpoints against their earlier build and render evidence. A source comparison is not a runtime result.
 
+Historical consolidation tests apply the pinned `cumulative-math-historical-delta.json` fixture to reconstruct their original source and dependency lock. Every current file and inverse edit is checked, all original fingerprints stay enforced, and unreviewed renderer, painter or shader changes are rejected. The separate cumulative mathematics receipt supplies current native/wasm/browser evidence; historical runtime acceptance does not transfer to changed checkpoints.
+
 `ownership` checks existing checkpoints against their subject owners and fails when a later subject changes an earlier subject's implementation. Use `ownership --details` to locate each rewrite. Additive module declarations are reported separately. Passing this textual check still requires review of subject boundaries and executable checkpoints; it does not establish production parity.
 
 `subject-audit ID` collapses a book subject's intermediate edits into one final edit per changed file and verifies its exact cumulative endpoint. It writes no course files. `subject-audit --all` checks every book subject; use the resource guards for that full audit. These candidates still require authored explanations, ownership review, builds and browser acceptance before replacing active checkpoints. Preserving an endpoint does not prove that later subjects leave its files finished.
