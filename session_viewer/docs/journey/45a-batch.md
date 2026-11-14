@@ -818,15 +818,15 @@ Run the batch and original-source checks. The previous part modes remain availab
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The earlier box has one original face highlighted. This preparation adds selection or batch-edit infrastructure without changing that exercise.
 
-![Native renderer output for commit mixed selection edits atomically.](../screenshots/journey/44l-input.png)
+![Native presentation at this checkpoint.](../screenshots/journey/45a-batch-7dada61886fe.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. Inherited single box shows gold original Face(1), gray neighbors and dark boundaries without triangulation diagonals. Stable multi-object batching and draw order require separate state checks; diagonal boundary raster stepping retained. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
-This reference image is shared with [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md). It does not demonstrate a new feature by itself.
+This scene continues [6.3.14 · Select and inspect original faces, edges and controls](44l-input.md). This checkpoint was captured independently; its new source behavior requires separate state checks.
 
 <details>
 <summary>Code explanation and diagram</summary>

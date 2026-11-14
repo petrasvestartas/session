@@ -4,6 +4,8 @@
 
 ## <a id="checkpoint-45-order"></a>1. Preserve unique selections in pick order
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/45-order-7dada61886fe.png). Original selected Face(1) remains gold while neighboring box faces stay gray, with dark boundaries and no triangulation diagonals. The inherited single-box image does not demonstrate multi-object draw ordering or pointer/browser interaction. Boundary raster stepping retained.
+
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="214" viewBox="0 0 1120 214" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
   <defs>
@@ -240,6 +242,8 @@ mod object_selection_tests;
 ```
 
 ## <a id="checkpoint-45a-batch"></a>2. Commit mixed selection edits atomically
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/45a-batch-7dada61886fe.png). Inherited single box shows gold original Face(1), gray neighbors and dark boundaries without triangulation diagonals. Stable multi-object batching and draw order require separate state checks; diagonal boundary raster stepping retained.
 
 ### 1. `src/editor.rs`
 
@@ -565,6 +569,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-45b-membership"></a>3. Connect multi-hit state and highlight every selected row
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/45b-membership-7dada61886fe.png). Inherited gold Face(1), gray neighboring faces and original boundaries remain free of triangulation diagonals. Batch membership updates and multiple-owner selection require separate state checks; diagonal raster stepping retained.
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="188" viewBox="0 0 1120 188" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -2624,6 +2630,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-45bb-cycle"></a>4. Cycle every eligible geometry owner
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/45bb-cycle-7dada61886fe.png). Inherited gold Face(1), gray neighbors and original boundaries remain free of triangulation diagonals. Cycling selected owners or their order requires separate state/interaction checks; diagonal boundary raster stepping retained.
+
 ### 1. `src/scene.rs`
 
 **Locate this existing block:**
@@ -2761,6 +2769,8 @@ mod selection_cycle_tests;
 ```
 
 ## <a id="checkpoint-45c-input"></a>5. Collect multiple objects with Shift-click and commands
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/45c-input-77791d4fa1df.png). Two programmatically selected original box owners render gold with dark original boundaries and no triangulation diagonals. Both fit the viewport; perspective and boundary raster stepping remain. This does not establish actual keyboard/pointer SelectAll or GUI behavior; exact historical PNG bytes are preserved.
 
 ### 1. `src/browser.rs`
 

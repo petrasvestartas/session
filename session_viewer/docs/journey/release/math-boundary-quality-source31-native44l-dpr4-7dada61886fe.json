@@ -1,0 +1,76 @@
+{
+  "publisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44l-01\\publish-existing-exact-image.mjs",
+    "sha256": "8171c956ce21b450c003d9bb073e105d5cd9420f7740d29c5429b1a186b2f497"
+  },
+  "originalPublisher": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44l-01\\publish.mjs",
+    "sha256": "c6e907dd3a7c955c0f7e99289c34b3fd1e3b4cc0532a067cbdd98df9ecb67aba"
+  },
+  "preexistingImageReused": true,
+  "batchCaptureReady": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44l-01\\capture-ready.json",
+    "sha256": "5e7aae5c4e40473fda7ec889a22faaff2c3f63f72f5892ef6d8783935b184adc"
+  },
+  "status": "PUBLISHED_ROOT_VISUALLY_REVIEWED",
+  "recordedUtc": "2026-11-14T01:18:13.139Z",
+  "id": "44l-input",
+  "lane": "native",
+  "capture": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44l-input-28dbb43976b9d45198d5\\capture.json.gz",
+    "sha256": "88f095e9256727b56ba22cbb98c22d82b6489d3f663e77fc9fa6e9de1e98368e",
+    "bytes": 94055
+  },
+  "qualification": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44l-01\\capture-result.json",
+    "sha256": "1b584f9adfa7fed3f7972ac428440d68e406046b72af55dbcb168e0a487185cc"
+  },
+  "execution": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-44l-01-execution.json",
+    "sha256": "35e85fb29ef149a4bc9d99cdb2f09c7f2e11b8f3ac2fc62d7c294798123b9eaa"
+  },
+  "boundedTerminal": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44l-01\\bounded-terminal.json",
+    "sha256": "420a7b972450c883a6d5e14024e0d9e151ccb61aace1185de6aed2d2a53b4f5c"
+  },
+  "sourceFreeze": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source-freeze-31-stage-aware-native-density.json",
+    "sha256": "7e9980c097467f8f4a60519e63aef9bfdd87122e72179d1f35f1849391ade57a"
+  },
+  "sourceFreezeCoverage": {
+    "matchedFiles": 555,
+    "basis": "Pinned Native wrapper preflight and postflight; live hashes rechecked"
+  },
+  "image": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44l-input-7dada61886fe.png",
+    "sha256": "7dada61886feb18500495705f1923658ca2fccf29fc7ee0df7aaac4174bb15a2"
+  },
+  "previousImage": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\44l-input.png",
+    "sha256": "3dfc36dc279ecd22138273a0b457bce62bf18fd1da5c178c5858c4c48f3913ec"
+  },
+  "aliasManifest": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\docs\\screenshots\\journey\\image-aliases.json",
+    "sha256": "59a41176fb5daa71125bf02fc487c3fb2edbef2e4a35f20487a21999268affae"
+  },
+  "rootPersonallyViewedOriginalResolution": true,
+  "rootReviewAttestation": "Root personally viewed original2560x1920 PNG. The dedicated44l fixture closes the previous scene, adds a box and programmatically selects original Part::Face(1): its top face is gold, neighbouring faces stay gray and original boundaries are black. No triangulation diagonals cross filled faces. The whole box fits the white viewport; diagonal boundary raster stepping remains. Grid/axes/stroke/point from the earlier fixture are absent as expected. This supports the rendered selected-face presentation, not real pointer/keyboard selection or browser interaction. Earlier44g constructor probes are not transferred to this different fixture; canonical640/full-unit and apparent-contour scopes remain separate.",
+  "canonicalBehaviorExecuted": false,
+  "scope": "Source31 44l-input rawDPR4 image presentation. Actual fixture scope is stated in Rootreview; canonical640pixel/full-unit/browser acceptance remains separate. Original fixedpixel function bodies and oldaliases/pixels retained.",
+  "publication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\.codex\\viewer-quality-20261028\\source31-highlight-six-case-44l-01\\publication.json",
+    "sha256": "cb2a4c3658d7b06ba97218facab7176ee2665b6cdec70528415ed99146c4343a"
+  },
+  "ledgerPublication": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44l-input-28dbb43976b9d45198d5\\publication.json",
+    "sha256": "a7068723ab26eb80b6b55ce495e1dff2c8731e461b6dddc402a4b6cb5c5c4285"
+  },
+  "retirement": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44l-input-28dbb43976b9d45198d5\\retirement.json.gz",
+    "sha256": "50c5aced071157a326d97c2969eb9c1fd9c22ff5af30f0fc94cd14a469a5f846"
+  },
+  "retired": {
+    "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-compact\\native-44l-input-28dbb43976b9d45198d5\\retired.json",
+    "sha256": "826cfbe9e4b802a3f17f411041ee07de8f37421d76ce085496b009758aa8e31e"
+  }
+}

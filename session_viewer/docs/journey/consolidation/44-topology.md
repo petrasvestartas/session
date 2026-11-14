@@ -3320,6 +3320,8 @@ Replace it with:
 
 ## <a id="checkpoint-44i-ink-highlight"></a>10. Highlight edges and controls
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44i-ink-highlight-5c3b10f59b3a.png). Inherited original-boundary ink remains visible without triangulation diagonals. A newly selected local edge and interactive ink highlighting require separate state checks; raster/close-edge/grid-axis limitations retained.
+
 ### 1. `src/highlight.rs`
 
 Create the file and type:
@@ -3403,6 +3405,8 @@ pub mod highlight;
 ```
 
 ## <a id="checkpoint-44ia-original-ink"></a>11. Build highlights from ink targets
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44ia-original-ink-5c3b10f59b3a.png). Inherited original-boundary scene has no triangulation diagonals across filled faces. New original-ink source-key behavior and interactive highlights need separate state checks; raster/close-edge/grid-axis limitations retained.
 
 ### 1. `src/highlight.rs`
 
@@ -3529,6 +3533,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44j-face-highlight"></a>12. Highlight one face without recolouring its parent
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44j-face-highlight-5c3b10f59b3a.png). Inherited original-boundary scene remains free of face triangulation diagonals. A newly selected local face is not shown here; the highlighted-face fixture begins44l. Raster/close-edge/grid-axis limitations retained.
 
 ### 1. `src/highlight.rs`
 
@@ -4077,6 +4083,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44k-selection"></a>13. Keep part selection outside document history
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44k-selection-5c3b10f59b3a.png). Inherited selected-object and original-boundary scene has no triangulation diagonals. Local face/control selection and selection-table persistence require separate state checks; dedicated face-highlight fixture begins44l. Raster/close-edge/grid-axis limitations retained.
 
 ### 1. `src/selection.rs`
 
@@ -5062,6 +5070,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-44l-input"></a>14. Select and inspect faces, edges and controls
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/44l-input-7dada61886fe.png). Dedicated original Face(1) selection is rendered gold on the box, with gray neighboring faces and dark original boundaries; no triangulation diagonals. Boundary raster stepping remains. Programmatic fixture selection does not establish actual pointer or browser interaction; earlier-fixture GPU probes are not transferred.
 
 ### 1. `src/browser.rs`
 
