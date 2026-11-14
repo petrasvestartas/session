@@ -1,7 +1,7 @@
 # Course status
 
-- Local integration has **1,311 checkpoints across 110 reader subjects**. [Cumulative mathematics](03a-mathematics.md) follows first painting; it passes 27 native tests, wasm and desktop/upright browser checks.
-- Strict documentation and reader navigation pass. Six focused tests pass; full tooling remains unaccepted. Native reference compilation passes; wasm startup remains unverified. Emulated upright checks do not establish physical-phone acceptance.
+- Local integration has **1,311 checkpoints across 110 reader subjects**. [Cumulative mathematics](03a-mathematics.md) passes 27 native tests; [commands that change the view](04-input.md) retains mathematics and passes 29. Both have wasm and desktop/upright browser evidence.
+- The last published mathematics revision passes 112 tooling tests, strict documentation, reader navigation and CI. Command-checkpoint evidence covers its own sources and interactions. Native reference compilation passes; final-reference wasm startup remains unverified. Upright viewport emulation does not establish physical-phone acceptance.
 - Completion remains open: **97 unconsolidated subjects**, 25 inventory gaps, 4,842 later-subject rewrites across 306 files, and endpoint parity of 299 missing, 709 extra and five changed files. See the [completion contract](completion-contract.md).
 
 ## Reproduce

@@ -8,6 +8,8 @@ Use `Background` to change the canvas clear colour while the triangle keeps its 
 
 Complete [the command dock](03d-input.md). Keep mathematics available through the existing mode registry. This subject introduces `src/background.rs` and connects the practice command to the browser event handler and renderer. Those browser and renderer edits remain an outstanding course-wide ownership conflict; this lesson does not claim their implementations are finished.
 
+The proposed registration boundary follows production's [command interface](../../src/app/command/mod.rs) and [verb registry](../../src/app/command/verbs/mod.rs): a command supplies its completion metadata and parser, and the shared dispatcher runs the resulting action. Later subjects should add a verb module and registry entry while retaining the input callback. Production actions borrow `State`, so this boundary requires the state-owning subject; adding a registry to this practice callback alone would not complete production integration. Rendering also needs its finished state-to-frame boundary before these files can be marked complete.
+
 ## Build
 
 Type the state and apply the included browser and renderer blocks in your existing cumulative project.
@@ -94,4 +96,12 @@ Predict the final picture after two submissions, then run them. Trace `toggle` a
 
 ## Validation
 
-The included snippets are the runnable checkpoint's sources. Current native and browser acceptance remains pending after cumulative mathematics integration. The [expanded historical page](../archived/journey-04-input-expanded.md) retains earlier figures and explanations; its images are not current acceptance. See [validation scope](release.md).
+The current 44-file cumulative checkpoint passes 29 native tests with none failed or ignored, plus optimized wasm and Trunk builds. Browser checks at 1280-by-720 and 390-by-844 verify that typing does not submit, two Background submissions restore the picture, Help leaves the background alone, and mathematics remains selectable and navigable. The triangle's colour, shape and position survive the background change. All 14 captured frames were reviewed.
+
+[Source-bound validation receipt](release/cumulative-command04-windows-20261114.json). Upright viewport emulation does not establish physical-phone acceptance. Course-wide ownership, structural and production-parity checks remain unfinished.
+
+![Background submitted in the current desktop checkpoint](../screenshots/cumulative-command04-windows/landscape-grey.png)
+
+[Upright result](../screenshots/cumulative-command04-windows/portrait-grey.png). The practice triangle uses clip coordinates, so its proportions follow the viewport. Camera aspect handling belongs to the later camera subject.
+
+The [expanded historical page](../archived/journey-04-input-expanded.md) preserves earlier figures and explanations. See [validation scope](release.md).

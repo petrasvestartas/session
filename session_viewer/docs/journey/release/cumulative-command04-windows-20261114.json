@@ -1,0 +1,864 @@
+{
+  "schema": 1,
+  "checkpoint": "04-input",
+  "recordedUtc": "2026-11-14T14:04:22.193364+00:00",
+  "fingerprint": "dd9c64c99cfd3cbaa00b60816d0c9b6007de677084d7928d5bdccbe04ef6a908",
+  "sourceFiles": 44,
+  "sourceSha256": {
+    "Cargo.toml": "72c32e4763c699db006be9d9d428e52210f9e06a2713e4565ca7f7889436fd81",
+    "index.html": "daa142b38bf182cc444b91d8cdb3d661a62093d0d189ad583620bc3f26493245",
+    "src/lib.rs": "d7e47fb700aa35c912134bf1fa956c36efa546381452042b339296d2b98ecc88",
+    "src/renderer.rs": "9ec45ef41a0ff57472dcca2a6117370f154a9d860c232b9797fdc10f2178b7ff",
+    "src/browser.rs": "ecefd92fc29b159ffa74820e91c5acaac2adcaee31e0ecd8281ae42b2d014b21",
+    "examples/course/registration.rs": "f49722dcf7eb6bee18dec5e9edbbd8d5086369ba15dd651085aaac84490e7aa3",
+    "examples/course/entry.rs": "f3a4466382aa44a32f7508365f45d8db9f7fe295cba0dc6104d142886a03a745",
+    "src/triangle.wgsl": "48a49853c6696bb7c1ff4742a2d78055da511a2422f8feb93b280b923b349980",
+    "src/command_dock/theme.rs": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+    "src/command_dock/mod.rs": "f2adf2b3827a7dbdddd574a8098499264c7b33e81969ff257cef80de3cdf8c26",
+    "src/panel.rs": "af5b722c06c45cc58ddafb47bae32da3c8694312a9bee53521f351f7a19b04c5",
+    "src/app/mod.rs": "10a5394675b35036a6e8eaf9df53b99f0d9cb5a04af3bb58747dc2403a9c11e6",
+    "src/app/mode.rs": "d2d8564c9386b53c4cfa2d9d5df7a4cdb981e89e8dbc028ece9188b31f4850ea",
+    "src/app/stage/actions.rs": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b",
+    "src/app/stage/check.rs": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d",
+    "src/app/stage/deck.rs": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+    "src/app/stage/draw.rs": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b",
+    "src/app/stage/eval.rs": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21",
+    "src/app/stage/font.rs": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+    "src/app/stage/geometry.rs": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f",
+    "src/app/stage/layout.rs": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+    "src/app/stage/math_mode.rs": "c16f2dee4a1d1f8d4df3f264de89725091be3ac2bce23d6ec541bb4a4301dc68",
+    "src/app/stage/matrix.rs": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+    "src/app/stage/mod.rs": "61ae581bdabb7518f5ae0008a8671f5bd708b147330f54e476bdb4de7e863749",
+    "src/app/stage/morph.rs": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+    "src/app/stage/motion_tests.rs": "241d5baa4511b04d62d2988f76e1a43e887a6c50d9e1180c4e511bb60572ccbe",
+    "src/app/stage/net.rs": "2a707ca2414957a8990bae6c24bd97aeceae23c097e7b19d08b762ad17218afd",
+    "src/app/stage/object.rs": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6",
+    "src/app/stage/paint.rs": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+    "src/app/stage/presentation.rs": "e16051c1dff7b789da24cbbb2b2da30c1fc4abbd76546611439047e22b4f8f0e",
+    "src/app/stage/presentation_tests.rs": "16449bda13f8f7c294eb0640613e45604a7e487fda2ad54cbd8eeb0270b5d78c",
+    "src/app/stage/tests.rs": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000",
+    "src/app/stage/run.rs": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+    "src/app/stage/tex.rs": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+    "src/app/stage/tween.rs": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+    "src/app/stage/view.rs": "b39730fb1e665ca3913cd2ee349f290e258e567750dace9483bcd7e541727ac5",
+    "src/math_tests.rs": "99736e74f149ed92a5d8071bf114abff656a5c8058d106e9e4c8ecfd9b75aeba",
+    "example.yaml": "d5f8f45ff2273ca9b37ce649871a6fc23b289369df9ffe899217a616264659cd",
+    "examples/course/fonts.rs": "2ebbbdd4f0ba9a3bb43e2fcac6b5d5bb9de67c87fb3cf92a57a90f11e273d1ef",
+    "examples/course/mathematics.rs": "faddb1e09a8a5af3e5e4ec2d9de2e723b498ae863836993cbd330d4caadbcc13",
+    "src/command_vocabulary.rs": "f2b4da3dbcd6c3390b5729c6ee775bb4fa132bf0e866f4a99dc913569abce486",
+    "src/command_dock/view.rs": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+    "src/command_dock/tool_buttons_tests.rs": "1c5b4b55c80e3d8a630d415fa33af9b5d81bbd05ac69b47199c0c9caab27e53b",
+    "src/background.rs": "623554228529e4aa4733c0560c01dce13b3962227618eaa31bb64ee2cdb8ac6c"
+  },
+  "lockSha256": "b245e7e47eb3ff828f663c8e97946ddbb947a0518347a80f3b4c571387eabca1",
+  "assets": [
+    {
+      "path": "assets/text/NotoSans-Regular.subset.ttf",
+      "sha256": "5e44ec34605781866e7b1125712bc8e0be1636b980e69601bad5ff5469182d09"
+    },
+    {
+      "path": "assets/text/NotoSansSymbols2-Regular.subset.ttf",
+      "sha256": "5576431c383d6749e8e8fb7470679943b862a273bb134dd2cf16d8581a897bed"
+    },
+    {
+      "path": "assets/text/NotoSansSymbols-Regular.subset.ttf",
+      "sha256": "8239291e78b5800a83862af06491b9cc34be635bce6bcee14cb5a0cd167a54b3"
+    },
+    {
+      "path": "assets/text/OFL.txt",
+      "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "path": "assets/stage/FONTS.md",
+      "sha256": "eb35112a662d3598eda458c23e8b268d0af1c79852f183b18a152d575e656e32"
+    },
+    {
+      "path": "assets/stage/logo-brg.png",
+      "sha256": "58eb99570cbb0102ec68d1a78e318510276e3bf7ee7c4605f562e7423c9ca499"
+    },
+    {
+      "path": "assets/stage/logo-eth.png",
+      "sha256": "bad3cab4da798a796db2fba804f5400829adecd401baed0c48412aa8de09cfe3"
+    },
+    {
+      "path": "assets/stage/NewCM10-Bold.otf",
+      "sha256": "c49c61d51757edffeafc43b4d58925cedf9180f7942fb85a3f21a5319bbed07e"
+    },
+    {
+      "path": "assets/stage/NewCM10-Book.otf",
+      "sha256": "005abadbdf039dfabab28d5836ec5ec5d94b61410003ca043e7afcd10115af55"
+    },
+    {
+      "path": "assets/stage/NewCMMath-Book.otf",
+      "sha256": "c74561f7468db46411725981ba30ad6f1e14094fa11e843ff8e8369508cf506e"
+    },
+    {
+      "path": "assets/stage/NewCMMono10-Book.otf",
+      "sha256": "cd3bdeb3eb3a2e3d1b33a4bfc639c32080a39b78c02da0cca060208202aa046c"
+    },
+    {
+      "path": "examples/stage/equilibrium/01-equilibrium.yaml",
+      "sha256": "7dd54b06b4b33c7c14f14bebf06630341146523d766df01422d0e492946b0041"
+    },
+    {
+      "path": "examples/stage/equilibrium/index.yaml",
+      "sha256": "b0703fff26b469b7dc813c2d45a39f92e3ef609229dc8b0a6b8805f078de1e64"
+    },
+    {
+      "path": "examples/stage/equilibrium/README.md",
+      "sha256": "8c3af1a5e98190d5a7d019e72f3757bc9ea7c929d6b98f45ecca729cc1c886d8"
+    },
+    {
+      "path": "examples/stage/force-density/01-method.yaml",
+      "sha256": "4beb6c398572fe9747d88a824e4cdea020f734338e1e24d565b0006151bf42e3"
+    },
+    {
+      "path": "examples/stage/force-density/02-question.yaml",
+      "sha256": "a3e58eda216b684821c66f0315b7896936a2f2318f9c619b92fb79166bc96d57"
+    },
+    {
+      "path": "examples/stage/force-density/03-projections.yaml",
+      "sha256": "a0188c34e8c6fbce85811eccb39f6e36d45a8eb87c047352ed8e8536890b4836"
+    },
+    {
+      "path": "examples/stage/force-density/04-one-dimension.yaml",
+      "sha256": "dece34db86f5a11d7e878ab03e5a847530f7848f320973d8ef34d1b0d43e9fcd"
+    },
+    {
+      "path": "examples/stage/force-density/05-force-densities.yaml",
+      "sha256": "ea6bf4c3bfb06d8faaab87c9711ae3de77209e67690292029afccf1ffd4dfd93"
+    },
+    {
+      "path": "examples/stage/force-density/img/linkwitz.png",
+      "sha256": "880693d6fac4d91b67a37caeef3a65a5ef830b80462706fe17d7846bb0cecd43"
+    },
+    {
+      "path": "examples/stage/force-density/img/multihalle.png",
+      "sha256": "537466c8b658edbf88b6a0f55a163633acfd32b057245719dce83f269bb9a404"
+    },
+    {
+      "path": "examples/stage/force-density/img/schek.png",
+      "sha256": "5739ffbce6563f075f5243edf06b2bb992c23b607a90ee8a34f582d44bfc50eb"
+    },
+    {
+      "path": "examples/stage/force-density/index.yaml",
+      "sha256": "21bcc718a50b4b22975966ca9c31c36574536012f83b77d9fecc97e173def473"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/01-why.yaml",
+      "sha256": "fe2b57ab5a42686f30e3119449576648dc20d4e5d8de6b3982724bfa6ce489a4"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/02-one-cable.yaml",
+      "sha256": "ed450df2225f219552e49958c6028a7f02ccb07c21719d21edacd1daa11966fb"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/03-tiny-nudge.yaml",
+      "sha256": "64ae3d5dcaad425c48cfe4197f5e55155445cf6153aa27e44453accd7643b233"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/04-chain-rule.yaml",
+      "sha256": "69afdaa1a9eb829d24e6b8c5c1240bb16df94662414b8248d9178b3d1c625dcc"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/05-jacobian.yaml",
+      "sha256": "ec58a804be48b4bd3638b3afcf3dcd8bcfe436b1ab87541e3613772147285e33"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/06-matrix-form.yaml",
+      "sha256": "30083c1301de41b6bfce119a67dda0fd5384a934f422f5ff475353a5458e0f71"
+    },
+    {
+      "path": "examples/stage/force-density-derivation/index.yaml",
+      "sha256": "baacc48a4c222fff01730a0f43e9a9f0393aaf0cbd9ac9668f9408699ff59e62"
+    },
+    {
+      "path": "examples/stage/force-density-materialization/01-materialization.yaml",
+      "sha256": "ce7f761827452c0a6cdab49cf48dc6cc72cb480094674c5351f7650089835b05"
+    },
+    {
+      "path": "examples/stage/force-density-materialization/02-resume.yaml",
+      "sha256": "e7944485dfa9699bb3742fd93700f4bb3a52ee845f99e1ccade0e11b76a44fc1"
+    },
+    {
+      "path": "examples/stage/force-density-materialization/03-net.yaml",
+      "sha256": "da4ff6aa76e1b729062e616e795240bf85b3b269876578a116ff5dea701d8cee"
+    },
+    {
+      "path": "examples/stage/force-density-materialization/index.yaml",
+      "sha256": "959dc94e53f1a8ff45707cd58bb3a1be00156f3fea18fcf44357c17e9b5841b7"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/01-givens.yaml",
+      "sha256": "0c52ec5f4b593d4ca99027cb55dd8c4c55af7e722bbd22da190b2d705db57fc9"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/02-matrices.yaml",
+      "sha256": "f6a15e31531531f5345e847a80e55a00aadf74a4757bc1390a0ae97fa731c07b"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/03-script.yaml",
+      "sha256": "447f76be9ff3e111616ba276b690df5bf09757d6adb50cbdfff65416d25e59cf"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/04-several-nodes.yaml",
+      "sha256": "d6342cba327a936b156015a43dccc92231311e8eb3d5043a840cb6b144bf5d24"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/05-solver.yaml",
+      "sha256": "8529eefc2c972090e94953c01c10566ae9f6896c387cf94179c8046dc6ec0960"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/06-net.yaml",
+      "sha256": "2cad32667669568c72a47fae89758c62b9883a847aa23c0907cc00811f3aef65"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/07-pillow.yaml",
+      "sha256": "304ab7486c85edbb6a2b203d841f348c0b1187da4dc89215e9cb6fb885bdefc0"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/08-forces.yaml",
+      "sha256": "3f3a6f157cf8b80229975d09b572a22c3d6c9148ea8bedc383ad50ec9af4cf65"
+    },
+    {
+      "path": "examples/stage/force-density-matrices/index.yaml",
+      "sha256": "6efd0d49256e83eaa987cc36d487a33a3281a0475efddd1a9b46cbb565eda5a7"
+    },
+    {
+      "path": "examples/stage/README.md",
+      "sha256": "c7ef234a0130103a111fdccbb8f7f65ba6c77b8cc0dd082a6ca9b26f901be96f"
+    }
+  ],
+  "wasm": {
+    "commands": [
+      {
+        "name": "command04-wasm02",
+        "args": [
+          "cargo",
+          "build",
+          "--lib",
+          "--release",
+          "--message-format=json",
+          "--locked",
+          "--target",
+          "wasm32-unknown-unknown",
+          "-j1"
+        ],
+        "returncode": 0
+      },
+      {
+        "name": "command04-trunk01",
+        "args": [
+          "trunk",
+          "build",
+          "--release",
+          "--public-url",
+          "./"
+        ],
+        "returncode": 0
+      }
+    ],
+    "failure": null,
+    "elapsedSeconds": 182.228,
+    "scope": "Current command04 optimized wasm and Trunk build; browser acceptance pending"
+  },
+  "browser": {
+    "checkerSha256": "36645e1dfa222afdecfda4441439776730925fc23823787dcecc6ec351b2245f",
+    "args": [
+      "--enable-unsafe-webgpu",
+      "--ignore-gpu-blocklist",
+      "--use-angle=d3d11"
+    ],
+    "cases": [
+      {
+        "name": "landscape",
+        "width": 1280,
+        "height": 720,
+        "dpr": 1,
+        "initial": {
+          "file": "landscape-white.png",
+          "sha256": "633507edd612ccd48f9b528f77138fc7727dbcd1bf5ed9365ff711ef86797997",
+          "pixels": "968e3dc735504a3ab2cc4c84bec68dd6d103ff452ada806d3df224b78366b892",
+          "upper": "0873f957e4093e0892d2c7dd61a88185b6518e55709e753fe8427baa888a1019",
+          "triangleMask": "e8f961f5cc3766730dc9060c7382250c380808960b4319b9dfdb5b563e2a33bc",
+          "trianglePixels": 45234,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "typed": {
+          "file": "landscape-typed.png",
+          "sha256": "5e143a492c13f1c2e18b5b502fd03600e8c637b0aec14a50d0516dc34636a5c5",
+          "pixels": "73febd5d2bddd6541b45c82fd040878c8047ff31e885cb34530e7fac4278d92d",
+          "upper": "0873f957e4093e0892d2c7dd61a88185b6518e55709e753fe8427baa888a1019",
+          "triangleMask": "e8f961f5cc3766730dc9060c7382250c380808960b4319b9dfdb5b563e2a33bc",
+          "trianglePixels": 45234,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "grey": {
+          "file": "landscape-grey.png",
+          "sha256": "0faf5ac94b76c58fc8f6eb672a7b9fc84791b23020f6ed95561710d7dbfc42d0",
+          "pixels": "c4e016283fb5d6645b77192103369a35795a9ae19447551cf38ad09bc182069a",
+          "upper": "e5a0be63ef3869e5cb5c6ae9d1623500144e8e8234573ec747b146c2825bc841",
+          "triangleMask": "e8f961f5cc3766730dc9060c7382250c380808960b4319b9dfdb5b563e2a33bc",
+          "trianglePixels": 45234,
+          "corner": [
+            244,
+            244,
+            244
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "restored": {
+          "file": "landscape-restored.png",
+          "sha256": "fb83f27bbfed5b630dc1e0e51e3bfa6b7675425bdf7ee20978fc5fbe5ad6164e",
+          "pixels": "bf5c356dbbd60006caccbeedbf4cd51bd0cf890810853e386fd94bbe30fcc8b0",
+          "upper": "0873f957e4093e0892d2c7dd61a88185b6518e55709e753fe8427baa888a1019",
+          "triangleMask": "e8f961f5cc3766730dc9060c7382250c380808960b4319b9dfdb5b563e2a33bc",
+          "trianglePixels": 45234,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "help": {
+          "file": "landscape-help.png",
+          "sha256": "a48817650440df0784a215fda8c8063a59d376b26dcdd98264b2c9ac2de81cb1",
+          "pixels": "b77434d95df8a611ffd3c94a36bcfe93c23da6de8225a874175ff1ca63cbdc74",
+          "upper": "0873f957e4093e0892d2c7dd61a88185b6518e55709e753fe8427baa888a1019",
+          "triangleMask": "e8f961f5cc3766730dc9060c7382250c380808960b4319b9dfdb5b563e2a33bc",
+          "trianglePixels": 45234,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "math": {
+          "file": "landscape-math.png",
+          "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0",
+          "pixels": "b91f193c40c6d501db660220f4a0c9ca33bf9e314b102b285b2a1936b7875bb1",
+          "upper": "2c2cb9585acf46d46f68e9c79ee5aa7c152c670adce99c1a032269f47c6c3a5d",
+          "triangleMask": "91d2d62a5700cbf9404e3c575c3b6fc19e1e31c24c6fcfc0a2cf70d41314b447",
+          "trianglePixels": 0,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            255,
+            255,
+            255
+          ]
+        },
+        "next": {
+          "file": "landscape-math-next.png",
+          "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8",
+          "pixels": "74de1621d7006e97f271e7b6dffa265cca9fd3a587b855d3c35d9ef2174259fd",
+          "upper": "658832a9faa01593b6fa21cb03c4349e76baa590912bab434245aeb9bab74be4",
+          "triangleMask": "91d2d62a5700cbf9404e3c575c3b6fc19e1e31c24c6fcfc0a2cf70d41314b447",
+          "trianglePixels": 0,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            255,
+            255,
+            255
+          ]
+        },
+        "errors": []
+      },
+      {
+        "name": "portrait",
+        "width": 390,
+        "height": 844,
+        "dpr": 2,
+        "initial": {
+          "file": "portrait-white.png",
+          "sha256": "e9dc79ed637ee19e484950e776cb91413032816c10dd848293cfc593b57cde89",
+          "pixels": "00e946b95cebda3fad604db2b9dace18b426d904e504f8cb79fbbc2cc09d2a63",
+          "upper": "c2de136d7710ed3776cadf8d94e7df68a9b709ef90763c590e801b181bd7e095",
+          "triangleMask": "0c116ed41621bef9443f59e3424788db6dbb6e561d422aa50245f090f6aedd09",
+          "trianglePixels": 64634,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "typed": {
+          "file": "portrait-typed.png",
+          "sha256": "b4701dca438e426fee6840e6cfc894d2b3fef9639c7ed8b48859f8704753c867",
+          "pixels": "915cf81dde130cf786b4825dc82ffb4ac6e21c0fce9d97b307e7cb9f2aa27440",
+          "upper": "c2de136d7710ed3776cadf8d94e7df68a9b709ef90763c590e801b181bd7e095",
+          "triangleMask": "0c116ed41621bef9443f59e3424788db6dbb6e561d422aa50245f090f6aedd09",
+          "trianglePixels": 64634,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "grey": {
+          "file": "portrait-grey.png",
+          "sha256": "3086d52e67f1bebc4b772884ac05eee330f0be3722885886ebc691c58593813f",
+          "pixels": "254f4462ac5bd677db7ed0de683cd9a2e05278275f4a8052320c388b21100f1b",
+          "upper": "94464a70b6fb9a4e9be1c1f7757a75bffa9e771be1420f2047d36a5a1db4039a",
+          "triangleMask": "0c116ed41621bef9443f59e3424788db6dbb6e561d422aa50245f090f6aedd09",
+          "trianglePixels": 64634,
+          "corner": [
+            244,
+            244,
+            244
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "restored": {
+          "file": "portrait-restored.png",
+          "sha256": "0e2de44f7e1923690f3d0933dfe777036e6296d10fa21b2dfa3af5f0ab16b40d",
+          "pixels": "9319ba7b43c243c5592d317e3a760611ca555067bdb487d77cf8ab2c4ebec5db",
+          "upper": "c2de136d7710ed3776cadf8d94e7df68a9b709ef90763c590e801b181bd7e095",
+          "triangleMask": "0c116ed41621bef9443f59e3424788db6dbb6e561d422aa50245f090f6aedd09",
+          "trianglePixels": 64634,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "help": {
+          "file": "portrait-help.png",
+          "sha256": "cb537d0a3e0a3c9e8b3b36a3b1cc97c3194fadfd920cdd1ea01d8004a905cdfa",
+          "pixels": "54fadd925e7de2982ef88adaefb4e33c2fe7ad16ddf27ba8740842a1a054cbc3",
+          "upper": "c2de136d7710ed3776cadf8d94e7df68a9b709ef90763c590e801b181bd7e095",
+          "triangleMask": "0c116ed41621bef9443f59e3424788db6dbb6e561d422aa50245f090f6aedd09",
+          "trianglePixels": 64634,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            244,
+            137,
+            179
+          ]
+        },
+        "math": {
+          "file": "portrait-math.png",
+          "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242",
+          "pixels": "1d57baada3d595b1f9e953f082a1c710e7963d7e24b6db9d3a03c77785f3a266",
+          "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+          "triangleMask": "eb1c940dcd0fb29b7d188d40563b24c4b2b161638001adb1a1986e328910f2f2",
+          "trianglePixels": 0,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            255,
+            255,
+            255
+          ]
+        },
+        "next": {
+          "file": "portrait-math-next.png",
+          "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018",
+          "pixels": "f4764905206db1e73ec23450d64f148333f2d34a6d4d30d7f12ee19654fa2363",
+          "upper": "a61333495c85312fd9e1f43ec3b3fe70a0cd7c016548444a5eae5441e336aa5c",
+          "triangleMask": "eb1c940dcd0fb29b7d188d40563b24c4b2b161638001adb1a1986e328910f2f2",
+          "trianglePixels": 0,
+          "corner": [
+            255,
+            255,
+            255
+          ],
+          "triangle": [
+            255,
+            255,
+            255
+          ]
+        },
+        "errors": []
+      }
+    ],
+    "scope": "Desktop and upright viewport emulation; not physical-phone acceptance"
+  },
+  "review": {
+    "status": "passed",
+    "scope": "Current cumulative44-file04 browser keyboard/background roundtrip, Help, retainedmath step1-to2, desktop1280x720DPR1 and upright390x844DPR2.",
+    "originalImagesPersonallyViewed": [
+      {
+        "file": "landscape-grey.png",
+        "sha256": "0faf5ac94b76c58fc8f6eb672a7b9fc84791b23020f6ed95561710d7dbfc42d0"
+      },
+      {
+        "file": "landscape-help.png",
+        "sha256": "a48817650440df0784a215fda8c8063a59d376b26dcdd98264b2c9ac2de81cb1"
+      },
+      {
+        "file": "landscape-math-next.png",
+        "sha256": "446ff60117de9744186f98b88f566474d413df9e61714b46002e513e8cfad2c8"
+      },
+      {
+        "file": "landscape-math.png",
+        "sha256": "92e1b08f6d94d81d08030dd13efa9b586abbb27433a71ff720cc585b0dd809a0"
+      },
+      {
+        "file": "landscape-restored.png",
+        "sha256": "fb83f27bbfed5b630dc1e0e51e3bfa6b7675425bdf7ee20978fc5fbe5ad6164e"
+      },
+      {
+        "file": "landscape-typed.png",
+        "sha256": "5e143a492c13f1c2e18b5b502fd03600e8c637b0aec14a50d0516dc34636a5c5"
+      },
+      {
+        "file": "landscape-white.png",
+        "sha256": "633507edd612ccd48f9b528f77138fc7727dbcd1bf5ed9365ff711ef86797997"
+      },
+      {
+        "file": "portrait-grey.png",
+        "sha256": "3086d52e67f1bebc4b772884ac05eee330f0be3722885886ebc691c58593813f"
+      },
+      {
+        "file": "portrait-help.png",
+        "sha256": "cb537d0a3e0a3c9e8b3b36a3b1cc97c3194fadfd920cdd1ea01d8004a905cdfa"
+      },
+      {
+        "file": "portrait-math-next.png",
+        "sha256": "a6699858f31c5c1812918b4b89cd8dadd7d5fe634b129723fd288126c94dd018"
+      },
+      {
+        "file": "portrait-math.png",
+        "sha256": "22e0c271726bddf2f83497466c466cf1bf923feb13ef02227794b6fa94810242"
+      },
+      {
+        "file": "portrait-restored.png",
+        "sha256": "0e2de44f7e1923690f3d0933dfe777036e6296d10fa21b2dfa3af5f0ab16b40d"
+      },
+      {
+        "file": "portrait-typed.png",
+        "sha256": "b4701dca438e426fee6840e6cfc894d2b3fef9639c7ed8b48859f8704753c867"
+      },
+      {
+        "file": "portrait-white.png",
+        "sha256": "e9dc79ed637ee19e484950e776cb91413032816c10dd848293cfc593b57cde89"
+      }
+    ],
+    "observations": [
+      "Typing opens a readable Background completion without changing the white frame. Enter changes the clear colour to light grey; the second submission restores white, with triangle shape/position/colour preserved.",
+      "Help leaves the picture unchanged and displays the command choices. The dock stays within both viewport widths.",
+      "Retained mathematics renders fractions and radicals, aligns equals signs, advances to the next equation, and stacks content in the upright viewport."
+    ],
+    "limitations": [
+      "No physical-phone or independent hardware-device acceptance.",
+      "Global ownership, structure and production parity remain unresolved.",
+      "The practice triangle uses clip coordinates and therefore changes aspect with the viewport; this check does not claim authored camera or resize acceptance."
+    ],
+    "planSha256": "f9df5f12ca449c626cc5bd54b235962a8447aa6e08ef2c884892f8bb167e5f43",
+    "resultSha256": "02736628a7f4c3bc958b1287f6c7feb055d946eaa021fa3b2c507f544515c105",
+    "resourcesSha256": "f734cc73d57ef6df86824d06372949939832046797b6e868dedf1b7685e24f4a",
+    "postcheckSha256": "bbe3e71c10d19537bb66e3dd294b8cd87ce09733f9115d99b9917e2219113405",
+    "browserResultSha256": "dc3b035c7218af451735144617528e613b3268c5bf2b5f0e5fd3010257cbc183"
+  },
+  "checker": {
+    "path": "session_tests/scripts/course/command-browser.cjs",
+    "sha256": "36645e1dfa222afdecfda4441439776730925fc23823787dcecc6ec351b2245f"
+  },
+  "imagesDirectory": "session_viewer/docs/screenshots/cumulative-command04-windows",
+  "validation": {
+    "wasm": "passed",
+    "browser": "passed",
+    "native": "passed",
+    "structure": "failed",
+    "ownership": "failed",
+    "productionParity": "failed"
+  },
+  "scope": "Current cumulative command subject only. Desktop and upright viewport emulation; physical phone and hardware acceptance not established. Historical acceptance is unchanged.",
+  "proofs": {
+    "wasmPlan": {
+      "sha256": "178d40dbfbfc076ba0ce8ad4b6729687f2d7f56bd91f944c028d2843861ea4de",
+      "record": null
+    },
+    "wasmResources": {
+      "sha256": "7fc55141e80c71e883cb7c8caa6f23c01516034918d6cf2350579843ba8a862a",
+      "record": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-14T13:21:05.0562433Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-command04-wasm02",
+          "timeout",
+          "590s",
+          "node",
+          "--import",
+          "./scripts/typescript.mjs",
+          "../session_viewer/target/cumulative-command04-wasm02.mjs"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 595,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 183.716,
+        "peakJobCommitBytes": 1827901440,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 41528,
+        "descendantsAtCleanup": 1
+      }
+    },
+    "wasmPostcheck": {
+      "sha256": "7dbafe6b3fbeabedb7019cd2fb793465be69ecd47142ee2940c6a2e796e16f82",
+      "record": null
+    },
+    "browserPlan": {
+      "sha256": "f9df5f12ca449c626cc5bd54b235962a8447aa6e08ef2c884892f8bb167e5f43",
+      "record": null
+    },
+    "browserResources": {
+      "sha256": "f734cc73d57ef6df86824d06372949939832046797b6e868dedf1b7685e24f4a",
+      "record": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-14T13:27:04.4792900Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-command04-browser01",
+          "timeout",
+          "390s",
+          "node",
+          "--import",
+          "./scripts/typescript.mjs",
+          "../session_viewer/target/cumulative-command04-browser-run01.mjs"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 395,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 13.22,
+        "peakJobCommitBytes": 842608640,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 31656,
+        "descendantsAtCleanup": 1
+      }
+    },
+    "browserPostcheck": {
+      "sha256": "bbe3e71c10d19537bb66e3dd294b8cd87ce09733f9115d99b9917e2219113405",
+      "record": null
+    },
+    "browserOriginalReview": {
+      "sha256": "db75c829d25d5ae3c4f4a905dbc763f78e56b149dd97d02b0ab2af14b500d76e",
+      "scope": "Original browser-only review predates native validation; private original is preserved."
+    },
+    "nativePlan": {
+      "sha256": "772e8f634b8cfa93c883cdca521d933325efba25e9dde51879260afa8cf75ef4",
+      "record": null
+    },
+    "nativeResources": {
+      "sha256": "c4d156835f039d58a3b6003932268fda51e34c24030bc059fc22783cd92dc98b",
+      "record": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-14T14:01:24.6230945Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "/c/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-command04-native02",
+          "timeout",
+          "590s",
+          "node",
+          "--import",
+          "./scripts/typescript.mjs",
+          "../session_viewer/target/cumulative-command04-native02.mjs"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 595,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 61.986,
+        "peakJobCommitBytes": 1771851776,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 24384,
+        "descendantsAtCleanup": 1
+      }
+    },
+    "nativePostcheck": {
+      "sha256": "83e36f82bd4ab3dbba120d267bd5684501ec33527e971e75bbd9d4689ee195da",
+      "record": null
+    }
+  },
+  "native": {
+    "result": {
+      "commands": [
+        {
+          "name": "command04-native02",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--offline",
+            "--locked",
+            "--target",
+            "x86_64-pc-windows-msvc",
+            "-j1",
+            "--message-format=json"
+          ],
+          "returncode": 0
+        }
+      ],
+      "failure": null,
+      "elapsedSeconds": 60.606,
+      "scope": "Current44-file04 full native29 tests; rebuild20 retired native dependency artifacts plus new web-sys/test crate. Requires completed exact76 retirement and fresh320MiB headroom, no cleanup inside build."
+    },
+    "passed": 29,
+    "failed": 0,
+    "ignored": 0,
+    "filtered": 0,
+    "tests": [
+      "app::stage::motion_tests::a_clock_starts_and_finishes_at_exact_values",
+      "app::stage::motion_tests::equal_glyphs_pair_once_and_new_symbols_are_unpaired",
+      "app::stage::motion_tests::explicit_parts_survive_reordering",
+      "app::stage::motion_tests::retargeting_starts_at_the_current_value_without_jumping",
+      "app::stage::net::tests::a_grid_has_the_cables_of_its_rows_and_columns",
+      "app::stage::net::tests::five_nodes_rest_at_the_weighted_average",
+      "app::stage::presentation_tests::mathematics_mode_navigates_and_paints_without_a_scene_host",
+      "app::stage::presentation_tests::painting_retains_coordinates_and_settles_without_losing_glyphs",
+      "app::stage::presentation_tests::pictures_keep_their_order_and_geometry_without_scene_rows",
+      "app::stage::tests::a_chapter_block_fills_its_holes",
+      "app::stage::tests::a_chapter_colour_can_differ_per_ground",
+      "app::stage::tests::both_grounds_name_the_same_colours",
+      "app::stage::tests::decks_play_through",
+      "app::stage::tests::decks_rest_cleanly_at_every_step",
+      "app::stage::tests::expressions_resolve_points",
+      "app::stage::tests::fill_and_reveal_build_the_given_matrices_from_the_net",
+      "app::stage::tests::fraction_rule_sits_on_the_math_axis",
+      "app::stage::tests::multiply_tints_a_row_and_a_column_and_fills_the_entry",
+      "app::stage::tests::parts_keep_their_tex_as_key",
+      "app::stage::tests::text_keeps_its_spaces",
+      "app::stage::tests::the_ground_swaps_at_the_same_step",
+      "app::stage::tests::unknown_commands_are_reported",
+      "math_tests::equals_alignment_survives_different_left_sides",
+      "math_tests::fraction_has_a_rule_and_ink_above_and_below_baseline",
+      "math_tests::lesson_deck_plays_and_previous_reconstructs_the_same_frame",
+      "math_tests::letterbox_round_trip_and_upright_column",
+      "math_tests::unknown_command_is_reported",
+      "tool_buttons_tests::a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner",
+      "tool_buttons_tests::real_value_buttons_return_their_option_and_keep_keyboard_focus"
+    ],
+    "artifacts": [
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-cargo\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey-41796391e339a0ea.exe",
+        "bytes": 24286208,
+        "sha256": "28c7d37d3b2d5a6ff2b6c9eb3e86f69e85500757e95a52633bba0bc4665c5944"
+      },
+      {
+        "path": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-cargo\\x86_64-pc-windows-msvc\\debug\\deps\\viewer_journey-41796391e339a0ea.pdb",
+        "bytes": 11071488,
+        "sha256": "ecbfcd734c24e5b53f38849cdaa6095d6fa87e7cf51191972ac1ad21031335e1"
+      }
+    ],
+    "logSha256": "22646199c352426e932d97eeb530e4e48544587869f64627b51fde32e7cb78b1"
+  }
+}
