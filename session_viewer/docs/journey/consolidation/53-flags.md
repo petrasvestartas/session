@@ -51,6 +51,8 @@
 
 ## <a id="checkpoint-53-flags"></a>1. Separate layer presentation from sources
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53-flags-363e6b24f861.png). The actual52k fixture shows an editable selected parent and visible readonly source attributes; attribute pick exclusion is a constructor assertion. Tree GUI and full interaction behavior require separate acceptance.
+
 The `Layers On`, `Layers Off` and `Layers All` commands control the panel and its expanded rows. Use the row visibility controls, `Hide` or `Show` to change object visibility. Closing the panel preserves the scene's visibility state.
 
 ### 1. `src/view_flags.rs`
@@ -148,6 +150,8 @@ pub mod view_flags;
 ```
 
 ## <a id="checkpoint-53a-ids"></a>2. Index live identities and initialise view flags
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53a-ids-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 ### 1. `src/scene.rs`
 
@@ -482,6 +486,8 @@ impl Forest {
 ```
 
 ## <a id="checkpoint-53b-uniform"></a>3. Update surface colour and pickability in small GPU records
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53b-uniform-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 
 
@@ -2111,6 +2117,8 @@ fn rgba(rgb: [u8; 3]) -> [f32; 4] {
 
 ## <a id="checkpoint-53bb-eligibility"></a>4. Resolve live visibility and selection eligibility
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53bb-eligibility-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
+
 ### 1. `src/scene.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -2398,6 +2406,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53c-presentation"></a>5. Use current visibility and colours in every derived pass
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53c-presentation-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 ### 1. `src/renderer.rs`
 
@@ -2908,6 +2918,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53d-hide-show"></a>6. Connect Hide Show and canvas Delete shortcuts
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53d-hide-show-363e6b24f861.png). The inherited52k fixture shows a selected editable gold parent and visible brown readonly sources. Attribute pick exclusion is a constructor assertion; IDs, visibility, properties and GUI interaction require separate acceptance.
 
 ### 1. `src/editor.rs`
 

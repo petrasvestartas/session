@@ -71,6 +71,8 @@ The runnable checkpoint below covers its existing tree and input model. Cumulati
 
 ## <a id="checkpoint-52g-rows"></a>1. Expose stable tree rows across geometry lanes
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52g-rows-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree rows, expansion, panel and input behavior require separate state checks.
+
 ### 1. `src/hierarchy.rs`
 
 **Locate this existing block:**
@@ -208,6 +210,8 @@ impl Source {
 
 ## <a id="checkpoint-52h-expansion"></a>2. Keep expansion and paging as presentation state
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52h-expansion-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree rows, expansion, panel and input behavior require separate state checks.
+
 ### 1. `src/tree_panel.rs`
 
 Create the file and type:
@@ -283,6 +287,8 @@ pub mod tree_panel;
 
 ## <a id="checkpoint-52i-panel"></a>3. Draw indented original-source tree controls
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52i-panel-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree rows, expansion, panel and input behavior require separate state checks.
+
 ### 1. `src/tree_panel.rs`
 
 **Locate this existing block:**
@@ -336,6 +342,8 @@ pub fn draw(
 ```
 
 ## <a id="checkpoint-52j-input"></a>4. Connect tree controls before canvas picking
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52j-input-205a3b9411c0.png). The inherited51zf fixture shows selected gold boxes and RGB transform handles; tree rows, expansion, panel and input behavior require separate state checks.
 
 `Layers On` opens the panel, `Layers Off` closes it, and `Layers All` opens it with every branch expanded. The maintained viewer also accepts `Layers` alone to toggle the panel. This course implementation registers the three explicit forms, so use those while following its code.
 
@@ -668,6 +676,8 @@ Replace it with:
 ```
 
 ## <a id="checkpoint-52k-tree"></a>5. Exercise nested source ownership and exact undo
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/52k-tree-363e6b24f861.png). The actual52k fixture shows an editable selected parent and visible readonly source attributes; attribute pick exclusion is a constructor assertion. Tree GUI and full interaction behavior require separate acceptance.
 
 ### 1. `src/tree_specimen.rs`
 
