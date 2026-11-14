@@ -518,13 +518,13 @@ Continue the blue Posts layer exercise. This preparation connects one navigation
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 Blue Posts retain original black boundaries and the independent brown source beam.
 
-![Native renderer output for navigate and fit inside the free canvas.](../screenshots/journey/53u-layers.png)
+![Native presentation at this checkpoint.](../screenshots/journey/54-camera-aeab6de33013.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The inherited53u scene retains blue Posts faces, original black boundaries and the unrelated brown source beam. Camera interactions require separate checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>

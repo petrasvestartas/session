@@ -43,6 +43,8 @@
 
 ## <a id="checkpoint-54-camera"></a>1. Navigate and fit inside the free canvas
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54-camera-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the unrelated brown source beam. Camera interactions require separate checks.
+
 ### 1. `src/camera.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -290,6 +292,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-54aa-view-actions"></a>2. Route camera changes without consuming document history
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/54aa-view-actions-aeab6de33013.png). The inherited53u scene retains blue Posts faces, original black boundaries and the unrelated brown source beam. View-action and camera GUI behavior require separate checks.
 
 ### 1. `src/editor.rs`
 

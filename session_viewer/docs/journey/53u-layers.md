@@ -962,13 +962,13 @@ Type Close, Example Nested, Fit, View Isometric, then Layers All. Right-click Fr
 
 ### Recorded visual result
 
-**Previous native render — current verification pending.**
+**Source31 native image reviewed.**
 
 The Posts group draws with a blue face override and original black boundaries; the unrelated top beam retains its original brown source colour.
 
-![Native renderer output for exercise layers shortcuts colours and exact source ownership.](../screenshots/journey/53u-layers.png)
+![Native presentation at this checkpoint.](../screenshots/journey/53u-layers-aeab6de33013.png)
 
-*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+*Fresh Rust/NVIDIA raw-DPR4 presentation, personally reviewed at 2560 × 1920. The actual53u constructor presents blue Posts faces with original black boundaries while the unrelated top beam retains its original brown source colour. Layer control GUI interactions require separate checks. Fixed-resolution pixel checks and browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
