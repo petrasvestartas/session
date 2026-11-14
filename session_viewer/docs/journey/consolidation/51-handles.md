@@ -1836,6 +1836,8 @@ impl Drop for Widget {
 
 ## <a id="checkpoint-51n-draw"></a>16. Composite handles after source geometry
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51n-draw-deb4457c6d33.png). The inherited two-box Move preview remains visible; this recorded fixture does not establish handle drawing.
+
 See the [command encoding and render passes diagram in Lesson 1.2](02-clear.md).
 
 ### 1. `src/widget.rs`
@@ -1918,6 +1920,8 @@ impl Drop for Widget {
 ```
 
 ## <a id="checkpoint-51o-renderer"></a>17. Register the widget outside source picking
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51o-renderer-deb4457c6d33.png). The inherited two-box Move preview remains unchanged; visible handle renderer behavior requires separate validation.
 
 
 
@@ -2336,6 +2340,8 @@ mod widget_tests;
 
 ## <a id="checkpoint-51p-part-points"></a>18. Locate mesh parts and curve controls
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51p-part-points-deb4457c6d33.png). The inherited two-box Move preview remains the recorded scene; part-point geometry requires separate checks.
+
 ### 1. `src/part_preview.rs`
 
 Create the file and type:
@@ -2453,6 +2459,8 @@ pub mod part_preview;
 ```
 
 ## <a id="checkpoint-51q-deform"></a>19. Deform selected points through their placement
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51q-deform-deb4457c6d33.png). The inherited two-box Move preview remains visible; part deformation requires separate runtime checks.
 
 ### 1. `src/scene.rs`
 
@@ -2581,6 +2589,8 @@ impl Scene {
 
 ## <a id="checkpoint-51r-part-preview"></a>20. Keep part deformation outside saved geometry
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51r-part-preview-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; part-preview behavior remains separately unverified.
+
 ### 1. `src/part_preview.rs`
 
 **Locate this existing block:**
@@ -2702,6 +2712,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-51s-edit-owner"></a>21. Share one handle interface across whole and part edits
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51s-edit-owner-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; edit-ownership behavior remains separately unverified.
+
 ### 1. `src/gizmo_edit.rs`
 
 Create the file and type:
@@ -2789,6 +2801,8 @@ pub mod gizmo_edit;
 ```
 
 ## <a id="checkpoint-51t-capture"></a>22. Keep pointer ownership through click or drag
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51t-capture-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; interactive capture workflow remains separately unverified.
 
 ### 1. `src/gizmo_edit.rs`
 
@@ -2907,6 +2921,8 @@ pub fn code(handle: Option<Handle>) -> f32 {
 ```
 
 ## <a id="checkpoint-51u-selection"></a>23. Place handles on the current editable selection
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/51u-selection-deb4457c6d33.png). Inherited 50d two-box Move display at raw DPR4; handle selection and pivot behavior remain separately unverified.
 
 ### 1. `src/editor.rs`
 
