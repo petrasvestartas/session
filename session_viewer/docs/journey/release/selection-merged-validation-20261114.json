@@ -1,0 +1,657 @@
+{
+  "date": "2026-11-14",
+  "scope": "Selection consolidation and image-branch integration validation; full tutorial objective remains incomplete",
+  "selectionSourceReceipt": "selection-navigation-windows-20261114.json",
+  "mergedImageCommit": "56b1040b557e9e58680f3e78e2f71aacdca725ca",
+  "localMergeCommit": "55dcb00ab0133e06aba168523addddd03859d7ce",
+  "productionSourceUnchangedSince": "08898f491232fe9157242f92a325d39c638da23f",
+  "phases": {
+    "selection-merged-tooling": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/subjects.test.ts",
+          "scripts/course/stage-core.test.ts",
+          "scripts/course/ownership.test.ts",
+          "scripts/course/endpoint-parity.test.ts",
+          "scripts/course/consolidated-evidence.test.ts",
+          "scripts/course/checkpoints.test.ts",
+          "scripts/course/verify-phases.test.ts",
+          "scripts/course/authored-pages.test.ts",
+          "scripts/course/image-cap-native-lock.test.ts",
+          "scripts/course/image-low-disk.test.ts",
+          "scripts/course/native-density.test.ts",
+          "scripts/course/image-merge.test.ts",
+          "plugins/course-source-assets.test.ts"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:46:12.3294106Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/subjects.test.ts",
+          "scripts/course/stage-core.test.ts",
+          "scripts/course/ownership.test.ts",
+          "scripts/course/endpoint-parity.test.ts",
+          "scripts/course/consolidated-evidence.test.ts",
+          "scripts/course/checkpoints.test.ts",
+          "scripts/course/verify-phases.test.ts",
+          "scripts/course/authored-pages.test.ts",
+          "scripts/course/image-cap-native-lock.test.ts",
+          "scripts/course/image-low-disk.test.ts",
+          "scripts/course/native-density.test.ts",
+          "scripts/course/image-merge.test.ts",
+          "plugins/course-source-assets.test.ts"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 19.616,
+        "peakJobCommitBytes": 493211648,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 17412,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "f443ee2a19b4c13513d86681cbbda01380683bad0d12c419d96f478b6530aab0"
+    },
+    "selection-image-resolver": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/image-merge.test.ts"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:53:20.7580362Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/image-merge.test.ts"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 0.591,
+        "peakJobCommitBytes": 183091200,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 29872,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "7f6131abbcfecd27d3f7a52bc7d299deb0808cc83e8e063a760dd55f9f2eea50"
+    },
+    "selection-image-declarations": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/image-merge.test.ts",
+          "scripts/course/verify-image-aliases.test.ts",
+          "scripts/course/subjects.test.ts"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:56:07.6203217Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "--test",
+          "--test-concurrency=1",
+          "scripts/course/image-merge.test.ts",
+          "scripts/course/verify-image-aliases.test.ts",
+          "scripts/course/subjects.test.ts"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 3.326,
+        "peakJobCommitBytes": 265428992,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 7000,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "c5f55945967372a4011a1564dc66bc6d68608a47d1ee8a0e2dce12b92221bdd8"
+    },
+    "selection-final-structure": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "scripts/course.ts",
+          "structure"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:59:32.9235849Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "scripts/course.ts",
+          "structure"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 3.717,
+        "peakJobCommitBytes": 251559936,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 40560,
+        "descendantsAtCleanup": 0
+      },
+      "logSha256": "ea4c6c2c2f1eb6b04b20e4e292a6838e56dd6421334a9bababc1ee9aea61e2b5"
+    },
+    "selection-merged-ownership": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "scripts/course.ts",
+          "ownership"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:53:23.0044501Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "scripts/course.ts",
+          "ownership"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 1.543,
+        "peakJobCommitBytes": 244314112,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 26808,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "11bfde35a30c7b1e5777385897547b1fbbcffd2b196495700b98431aa318cbfa"
+    },
+    "selection-merged-parity": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "scripts/course.ts",
+          "parity"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:53:24.9815523Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--import",
+          "./scripts/typescript.mjs",
+          "scripts/course.ts",
+          "parity"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 2.034,
+        "peakJobCommitBytes": 333500416,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 18600,
+        "descendantsAtCleanup": 0
+      },
+      "logSha256": "b4d1928ff32b2e1641446c502cd6184bf061bc45c85d3e988daf4269037c1eb3"
+    },
+    "selection-final-docs": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs/vue",
+          "--emptyOutDir"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:59:37.0725141Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs/vue",
+          "--emptyOutDir"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 4294967296,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 42.286,
+        "peakJobCommitBytes": 1392451584,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 23540,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "9d94949e86275b815e1983c921e5b9fa6016930ceb1c76d5f4122c66bb260487"
+    },
+    "selection-final-browser": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs-selection-review.cjs"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-14T00:01:00.6296576Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/docs-selection-review.cjs"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 51.895,
+        "peakJobCommitBytes": 878366720,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 28056,
+        "descendantsAtCleanup": 0
+      },
+      "logSha256": "daa37dd278c513fa6d7c3defb391302dcb6e64c9ae2cf9dc4b465af2fb8b6481"
+    },
+    "stage-force-density-2-desktop": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "2",
+          "desktop",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-2-desktop"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:50:08.7036560Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "2",
+          "desktop",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-2-desktop"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 25.188,
+        "peakJobCommitBytes": 966995968,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 2556,
+        "descendantsAtCleanup": 4
+      },
+      "logSha256": "f53b3236947b34c2a7d7288e7d592a6190499f87b358af6e062b2154b0a735e2"
+    },
+    "stage-force-density-2-upright": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "2",
+          "upright",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-2-upright"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:50:34.3418354Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "2",
+          "upright",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-2-upright"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 22.84,
+        "peakJobCommitBytes": 989990912,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 34304,
+        "descendantsAtCleanup": 5
+      },
+      "logSha256": "071e24d8b199e966bae8494f9a37a6ae371188dbfdc3c33fb609e2a445ecfeef"
+    },
+    "stage-force-density-3-desktop": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "3",
+          "desktop",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-3-desktop"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:50:57.6123873Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "3",
+          "desktop",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-3-desktop"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 51.929,
+        "peakJobCommitBytes": 952594432,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 34400,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "6fa5d22a54e75be0233305b6b86a79238735396c106d4a2e616b7badf091425d"
+    },
+    "stage-force-density-3-upright": {
+      "command": {
+        "executable": "node",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "3",
+          "upright",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-3-upright"
+        ]
+      },
+      "resources": {
+        "platform": "windows-job-object",
+        "startedUtc": "2026-11-13T23:51:50.0146521Z",
+        "executable": "C:\\Program Files\\nodejs\\node.exe",
+        "arguments": [
+          "--require",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/math-browser-preload.cjs",
+          "scripts/course/stage-browser.cjs",
+          "http://127.0.0.1:8797/production/dist/",
+          "http://127.0.0.1:8797/production-baseline-56dd39e/dist/",
+          "force-density",
+          "3",
+          "upright",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\/target/stage-browser/force-density-3-upright"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests\\",
+        "timeoutSeconds": 600,
+        "jobCommitLimitBytes": 2147483648,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 1,
+        "timedOut": false,
+        "elapsedSeconds": 49.852,
+        "peakJobCommitBytes": 951463936,
+        "affinityMask": "0x3",
+        "processors": 2,
+        "processId": 6548,
+        "descendantsAtCleanup": 1
+      },
+      "logSha256": "7aeda2d1e0b04071a7887f04c24bc416880114ac06eb3aa2860286cdebaba749"
+    }
+  },
+  "browser": {
+    "status": "passed",
+    "browser": "157.0.8103.51",
+    "records": [
+      {
+        "slug": "readme",
+        "heading": "Build and understand the Session Viewer",
+        "images": 0,
+        "sources": 1
+      },
+      {
+        "slug": "maintaining",
+        "heading": "Maintaining the viewer course",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "archived/image-baselines",
+        "heading": "Original tutorial images",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/contents",
+        "heading": "Course contents",
+        "images": 22,
+        "sources": 0
+      },
+      {
+        "slug": "journey/03a-mathematics",
+        "heading": "A slide of mathematics",
+        "images": 2,
+        "sources": 27
+      },
+      {
+        "slug": "journey/stage-gap",
+        "heading": "Stage tutorial ownership and integration",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/42-window",
+        "heading": "6.1 \u00b7 A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/42a-id",
+        "heading": "6.1 \u00b7 A bounded integer picking pass",
+        "images": 1,
+        "sources": 4
+      },
+      {
+        "slug": "journey/12-identity",
+        "heading": "2.4 \u00b7 Select, navigate and undo",
+        "images": 1,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/34g-heartbeat",
+        "heading": "4.4 \u00b7 Heartbeat suspension and revocable startup",
+        "images": 0,
+        "sources": 2
+      },
+      {
+        "slug": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin",
+        "heading": "21.3 \u00b7 Browser ownership of frame matrices and wakeups",
+        "images": 0,
+        "sources": 6
+      },
+      {
+        "slug": "journey/13a-history",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/16-orbit",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "journey/consolidation/15-perspective",
+        "heading": "Select, navigate and undo",
+        "images": 0,
+        "sources": 0
+      },
+      {
+        "slug": "archived/journey-consolidation-13a-history",
+        "heading": "2.5 \u00b7 Document history and perspective rays",
+        "images": 1,
+        "sources": 0
+      }
+    ],
+    "errors": []
+  },
+  "browserCheckerSha256": "eb176c539c10b03e2c02a544bfea7402d085bfe26ce0e3ec7c2144c23a1fdb79",
+  "browserChecker": "const assert = require('node:assert/strict');\nconst fs = require('node:fs');\nconst {chromium} = require('playwright');\nconst {createHash} = require('node:crypto');\n\n(async () => {\n    const output = __dirname + '/docs-selection-merged-review';\n    fs.mkdirSync(output,{recursive:true});\n    const browser = await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});\n    const pages = [\n        ['readme','Understand the production build'],\n        ['maintaining','reference-parity'],\n        ['archived/image-baselines','Original tutorial images'],\n        ['journey/contents','1,321 active runnable checkpoints'],\n        ['journey/03a-mathematics','Kernel motion values'],\n        ['journey/stage-gap','Eight of 46'],\n        ['journey/consolidation/42-window','A bounded integer picking pass'],\n        ['journey/42a-id','Keep exact object IDs'],\n        ['journey/12-identity','One camera for drawing and picking'],\n        ['journey/consolidation/34g-heartbeat','Current startup and early fetching'],\n        ['journey/consolidation/96zzzzzq-prepare-one-shared-render-origin','Current GPU completion pacing'],\n        ['journey/13a-history','single runnable subject'],\n        ['journey/16-orbit','single runnable subject'],\n        ['journey/consolidation/15-perspective','single runnable subject'],\n        ['archived/journey-consolidation-13a-history','Retain reversible scene snapshots'],\n    ];\n    const errors = [], records = [], checkedSources = new Set();\n    try {\n        const page = await browser.newPage({viewport:{width:1280,height:800}});\n        page.on('pageerror',error => errors.push(error.message));\n        for (const [slug,wanted] of pages) {\n            await page.goto('http://127.0.0.1:8798/docs/#/course/'+slug);\n            await page.waitForFunction(text => document.querySelector('article.doc')?.textContent.includes(text),wanted);\n            const article = page.locator('article.doc');\n            assert(!(await article.innerText()).includes('--8<--'));\n            if (slug === 'journey/03a-mathematics') {\n                const text = await article.innerText();\n                for (const operation of ['Vector::lerp','Color::lerp','Line::lerp','Polyline::resampled','Polyline::morph','Xform::interpolate']) assert(text.includes(operation),operation);\n                assert(text.includes('Both inputs are resampled'));\n                assert(text.includes('does not preserve vector length'));\n                assert(text.includes('with reversed endpoints'));\n                await article.getByRole('heading',{name:'Kernel motion values',exact:true}).scrollIntoViewIfNeeded();\n                await page.screenshot({path:output+'/kernel-motion-desktop.png'});\n            }\n            const receipts = await article.locator('a').evaluateAll(links => links.filter(a => /\\.json(?:[?#]|$)/.test(a.href)).map(a => a.href));\n            for (const receipt of new Set(receipts)) { const response=await page.request.get(receipt); assert(response.ok(),receipt); JSON.parse(await response.text()); }\n            if (slug === 'archived/image-baselines') {\n                for (const [label,hash] of [['The historical triangle image','4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc'],['direct dock image','4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc'],['archive copy','4c76ae64c7cc26384b9e951569e7b551ecd6d49843b3b5f6dd7e1d5d8400cfcc'],['versioned handoff native image','748521c6fd282f48b091b404e6c27562a92e4df33253b5c6327161ec1a4bcfb1']]) {\n                    const address = await article.getByRole('link',{name:label,exact:true}).getAttribute('href');\n                    const response = await page.request.get(new URL(address,page.url()).href); assert(response.ok());\n                    assert.equal(createHash('sha256').update(await response.body()).digest('hex'),hash,label);\n                }\n            }\n            const images = article.locator('img');\n            for (let i=0;i<await images.count();i++) {\n                await images.nth(i).scrollIntoViewIfNeeded();\n                await images.nth(i).evaluate(image => image.decode());\n                assert(await images.nth(i).evaluate(image => image.naturalWidth > 0));\n            }\n            const sources = await article.locator('a').evaluateAll(links => links.filter(a => /\\.(rs|wgsl)(?:\\.txt)?(?:[?#]|$)/.test(a.href)).map(a => a.href));\n            for (const source of new Set(sources)) {\n                if (checkedSources.has(source)) continue;\n                if (source.startsWith('https://github.com/')) await new Promise(resolve=>setTimeout(resolve,5000));\n                let response;\n                for (let attempt=0;attempt<3;attempt++) {\n                    response=await page.request.get(source);\n                    if (response.ok()) break;\n                    console.log('Source HTTP '+response.status()+' '+source+' attempt '+(attempt+1));\n                    if (![403,429,500,502,503,504].includes(response.status())) break;\n                    await new Promise(resolve=>setTimeout(resolve,20000*(attempt+1)));\n                }\n                assert(response.ok(),source+' HTTP '+response.status());\n                checkedSources.add(source);\n            }\n            records.push({slug,heading:await article.locator('h1').innerText(),images:await images.count(),sources:sources.length});\n            console.log('Reviewed '+slug);\n        }\n        await page.goto('http://127.0.0.1:8798/docs/#/course/journey/12-identity');\n        await page.waitForFunction(() => document.querySelector('article.doc')?.textContent.includes('One camera for drawing and picking'));\n        await page.screenshot({path:output+'/selection-desktop.png'});\n        await page.setViewportSize({width:390,height:844});\n        await page.goto('http://127.0.0.1:8798/docs/#/course/journey/consolidation/96zzzzzq-prepare-one-shared-render-origin');\n        await page.waitForFunction(() => document.querySelector('article.doc')?.textContent.includes('Current GPU completion pacing'));\n        await page.getByRole('button',{name:'Menu',exact:true}).click();\n        await page.waitForFunction(() => document.querySelector('#site-nav')?.classList.contains('open'));\n        await page.keyboard.press('Escape');\n        await page.waitForFunction(() => document.querySelector('#site-nav')?.getBoundingClientRect().right <= 1);\n        await page.screenshot({path:output+'/pacing-upright.png'});\n        assert.deepEqual(errors,[]);\n        fs.writeFileSync(output+'/result.json',JSON.stringify({status:'passed',browser:browser.version(),records,errors},null,2)+'\\n');\n    } finally { await browser.close(); }\n})().catch(error => {console.error(error);process.exitCode=1;});\n",
+  "strictSite": {
+    "pages": 1691,
+    "assets": 744,
+    "scope": "Final authored pages, image restorations and parent declarations; this summary receipt was added after the local build."
+  },
+  "nativeAndWasmScope": "Selection native13tests/WARP, optimized wasm/Trunk and desktop/upright input checks are in the unchanged selection source receipt. No production Rust change in this merge.",
+  "failedAttemptsRetained": [
+    "archive README page-depth link failure, fixed by discoverable archived/image-baselines.md",
+    "GitHub HTTP429 interruptions, resolved by paced successful requests",
+    "rendered-payload equivalence assertion failed; a fresh full15-page browser check was run instead",
+    "all8 complete stage case commands retain2 history assertions each"
+  ],
+  "remaining": {
+    "activeCheckpoints": 1321,
+    "subjects": 109,
+    "laterRewrites": 4870,
+    "affectedFiles": 305,
+    "stageInventoryMissing": 22,
+    "productionSourceFiles": 325,
+    "endpointFiles": 712,
+    "endpointMissing": 320,
+    "endpointExtra": 707,
+    "endpointChanged": 3,
+    "stageComparisonsComplete": 8,
+    "stageComparisonsRemaining": 38,
+    "exactStageFramePairs": 166,
+    "fullStageCasesAccepted": 0,
+    "cumulativeMathematics": "unfinished",
+    "approvedSourceExclusions": []
+  }
+}

@@ -1,0 +1,3 @@
+# Original tutorial images
+
+[The historical triangle image](../screenshots/journey/03-triangle.png) retains the original 1280 by 960 pixels at the address used by 25 aliases. The [direct dock image](../screenshots/journey/03d-input.png) also retains those original bytes. Its [archive copy](image-baselines/03-triangle.png) is byte-identical. The [versioned handoff native image](../screenshots/first-painting/triangle-native-748521c6.png) preserves the 640 by 480 output separately. The consolidated lesson retains its own tested browser captures. [Recovery addresses and byte hashes](../journey/release/image-merge-reconciliation-20261114.json) explain these source scopes; this preservation adds no rendering acceptance.

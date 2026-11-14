@@ -11523,8 +11523,7 @@
           "why": "Bound mathematical display refinement while retaining original source identity."
         }
       ],
-      "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Validate an original NURBS curve before sampling](38-layout.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Validate an original NURBS curve before sampling](38-layout.md). Use its state checks and browser exercise to assess the changed behavior."
     },
     {
       "id": "38b-source",
@@ -11664,7 +11663,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Sample a validated curve without replacing its source](38a-samples.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "38c-controls",
@@ -11762,7 +11761,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Retain original curves beside their display samples](38b-source.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "38d-input",
@@ -11845,7 +11844,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Draw controls with their original curve parent and index](38c-controls.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "39-visible",
@@ -12011,7 +12010,7 @@
           "why": "Cycle only visible mesh rows without allocating a second object list."
         }
       ],
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "39a-depth",
@@ -12087,7 +12086,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Resolve original visibility for every drawing kind](39-visible.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "40-colour",
@@ -12152,7 +12151,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Share surface depth across all ink lanes](39a-depth.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "40a-input",
@@ -12252,7 +12251,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Carry the original mesh colour mode into display data](40-colour.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "40b-indices",
@@ -12357,7 +12356,7 @@
           "copy": true
         }
       ],
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41-normals",
@@ -12457,7 +12456,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Draw meshes beyond the sixteen-bit index limit](40b-indices.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41a-placement",
@@ -12519,7 +12518,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Retain checked source normals beside display positions](41-normals.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41b-drawing",
@@ -12683,7 +12682,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Transform normals with nonuniform surface placement](41a-placement.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41c-view",
@@ -12850,7 +12849,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Draw smooth normals and sharp surface faces](41b-drawing.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41ca-input",
@@ -12939,7 +12938,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Reveal oriented world normals in the renderer](41c-view.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41d-grid",
@@ -13028,7 +13027,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Inspect smooth normals and face winding through commands](41ca-input.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "37d-render"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41e-drawing",
@@ -13134,7 +13133,7 @@
         }
       ],
       "image_result": "This checkpoint was rendered independently and has the same native comparison frame as [Bound the ground grid and its camera depth range](41d-grid.md). Use its state checks and browser exercise to assess the changed behavior.",
-      "image_same_as": "41d-grid"
+      "image_same_as": "38a-samples"
     },
     {
       "id": "41f-input",
@@ -13797,7 +13796,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "42h-owner",
@@ -13849,7 +13848,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "42i-copy",
@@ -13901,7 +13900,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "42j-read",
@@ -13965,7 +13964,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "42k-input",
@@ -14097,7 +14096,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "43-ticket",
@@ -14166,7 +14165,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "43a-flight",
@@ -14239,7 +14238,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "43b-view",
@@ -14345,7 +14344,7 @@
         }
       ],
       "image_result": "The inherited grid and geometry remain visible; copied integer readback checks verify the new picking behavior.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44-topology",
@@ -14431,7 +14430,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44a-tags",
@@ -14493,7 +14492,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44b-sources",
@@ -14536,7 +14535,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44c-resolve",
@@ -14604,7 +14603,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44d-pulling",
@@ -14689,7 +14688,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44e-pipeline",
@@ -14738,7 +14737,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44f-metadata",
@@ -14781,7 +14780,7 @@
         }
       ],
       "image_result": "The inherited placed boxes, source ink and ground grid remain visible. The image proves drawing; copied tests prove the new metadata.",
-      "image_same_as": "41f-input"
+      "image_same_as": "42f-mesh"
     },
     {
       "id": "44g-edge-ink",

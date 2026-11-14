@@ -2,7 +2,7 @@
 
 - Selection, perspective picking, history and orbit now form one runnable subject, preserving the former endpoint and all ten original checkpoints in the archive; 13 native tests and both browser viewports pass. [Evidence](release/selection-navigation-windows-20261114.json).
 - The course has 109 reader subjects and 1,321 active checkpoints. Ownership still reports 4,870 later rewrites across 305 files; endpoint parity reports 320 missing, 707 extra and three changed files.
-- Standalone mathematics is verified; cumulative registration, remaining production-stage cases and complete source teaching remain unfinished. Dated records below retain their original scope.
+- Standalone mathematics is verified; cumulative registration, remaining production-stage cases and complete source teaching remain unfinished. Dated records below retain their original scope. [Original image recovery](../archived/image-baselines.md) preserves the historical triangle pixels separately from the consolidated checkpoint.
 
 **Current image-quality follow-up (6 November): in progress.** The dated completion records below describe earlier source versions. The current correction pass has **6 of 42 visible image updates complete; 36 remain**.
 
