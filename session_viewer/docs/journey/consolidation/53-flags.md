@@ -3401,6 +3401,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53f-portable"></a>8. Keep tree identities stable across edits and saves
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53f-portable-363e6b24f861.png). The staged52k scene retains the selected editable parent and visible readonly attributes. Portable UUID persistence requires separate state checks.
+
 ### 1. `src/hierarchy.rs`
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
@@ -3531,6 +3533,8 @@ pub struct Node {
 
 ## <a id="checkpoint-53g-branches"></a>9. Represent group edits with temporary branches
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53g-branches-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Branch editing and flattening require separate state checks.
+
 ### 1. `src/layer_edit.rs`
 
 Create the file and type:
@@ -3615,6 +3619,8 @@ pub mod layer_edit;
 ```
 
 ## <a id="checkpoint-53h-layer-targets"></a>10. Validate current layers and protected ancestors
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53h-layer-targets-363e6b24f861.png). The staged52k scene retains editable-parent selection and visible readonly attributes. Current-layer targeting and protected ancestors require separate state checks.
 
 ### 1. `src/scene.rs`
 
@@ -3809,6 +3815,8 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ## <a id="checkpoint-53i-copy-records"></a>11. Copy row identities while sharing source allocations
 
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53i-copy-records-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Immutable record copying requires separate state checks.
+
 ### 1. `src/scene.rs`
 
 **Locate this existing block:**
@@ -3909,6 +3917,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```
 
 ## <a id="checkpoint-53j-transfers"></a>12. Move and copy objects between layer trees
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53j-transfers-363e6b24f861.png). The inherited52k scene retains editable-parent selection and visible readonly attributes. Tree transfer and move semantics require separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
@@ -4072,6 +4082,8 @@ fn transfer(
 ```
 
 ## <a id="checkpoint-53k-new-rename"></a>13. Create and rename uniquely named layers
+
+Recorded native frame: [open the reviewed 2560 × 1920 image](../../screenshots/journey/53k-new-rename-363e6b24f861.png). The staged52k scene retains editable-parent selection and visible readonly attributes. Creating and renaming tree entries require separate state checks.
 
 ### 1. `src/layer_edit.rs`
 
