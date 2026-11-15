@@ -1,0 +1,410 @@
+{
+  "status": "Source explanation bindings and scoped documentation checks passed; course incomplete",
+  "parentCommit": "6b641b9d59f7cc8f28dc09fb43ce1071c011e31f",
+  "changes": [
+    "Complete source-bound explanations for all351 production files without changing viewer behavior.",
+    "Explain geometry edits, stream boundaries, panel bindings and rendering-test limitations in their owning application chapters."
+  ],
+  "inputs": [
+    {
+      "path": "session_viewer/docs/journey/active.md",
+      "sha256": "53e621d6c00bd7de41c5f5f4b3f2df3c1d6a7179047469c1b5416ad3863571cd",
+      "bytes": 3721
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-debugging.md",
+      "sha256": "3ad8073dc41691ea57ec0ffc9b605e7b5538f8a2572b9bc7613cb454d33eba7f",
+      "bytes": 18032
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-documents.md",
+      "sha256": "ea14a70286b84105442b604e330c484e9b2155d3b6eaccfaa8bb373536312753",
+      "bytes": 22793
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-input.md",
+      "sha256": "94467991af040f75300ececbf7d9bbdc2c86c64d123b97939f6047294231c486",
+      "bytes": 15158
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-modeling.md",
+      "sha256": "13a06e17ab99009e785b4cf34d45b72b4e7b05617a1a143b6bac3af1518025cb",
+      "bytes": 33047
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-streaming.md",
+      "sha256": "ae61990ab0b0324dc72dde08214af15d58a463c0910cfbf6ff5dc05c39d72cde",
+      "bytes": 11461
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-teaching.json",
+      "sha256": "8600a41f0ad0a1b94320f563135c8078aa744d31476e327f0a96dd209e95c841",
+      "bytes": 284184
+    }
+  ],
+  "teaching": {
+    "sources": 351,
+    "explained": 351,
+    "missing": [],
+    "errors": [],
+    "scope": "Prose witnesses and introduction ownership only; human teaching review and executable acceptance remain separate.",
+    "exitCode": 0,
+    "acceptedSubjects": 0,
+    "deliberateExclusions": []
+  },
+  "runs": [
+    {
+      "name": "docs28",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:19:38.9230974Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-completion-docs28",
+          "timeout",
+          "230s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs28.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 240,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 51.115,
+        "peakJobCommitBytes": 1427189760,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 45580,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/completion-docs28/result.json",
+          "sha256": "183dad55014e0709f6443fcc9d324383184f069a8982a5065da4f32dc123f1f6",
+          "bytes": 404
+        },
+        {
+          "path": "session_viewer/target/completion-docs28/resources.json",
+          "sha256": "2b7b9c01ceef4d71e3675bd8ed7179296595f7dd011bf5e397bdcd335ac2a976",
+          "bytes": 1881
+        },
+        {
+          "path": "session_viewer/target/completion-docs28/teaching-tests.log",
+          "sha256": "d42e77ed4d8de502e8300f9b7ea52bc98bf0d5fef96d77dd6f883457cec5ebea",
+          "bytes": 1937
+        },
+        {
+          "path": "session_viewer/target/completion-docs28/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+          "bytes": 788
+        },
+        {
+          "path": "session_viewer/target/completion-docs28/strict-site.log",
+          "sha256": "d567c1c0aa9af696f23b4ea6b6c129cf1e909470ce11f5b01ea08a1fd8adf02d",
+          "bytes": 485801
+        },
+        {
+          "path": "session_viewer/target/completion-docs28/teaching.json",
+          "sha256": "16a3f80d0bee53b24318947a595117d2e9faab02f18a599866fa12d3d13a18aa",
+          "bytes": 209
+        },
+        {
+          "path": "session_viewer/target/completion-docs28/delivery.json",
+          "sha256": "90d6459f7067f1527636712b5b2c3fed49c330c929dfd031467989ba90ede8be",
+          "bytes": 210
+        }
+      ]
+    },
+    {
+      "name": "browser01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:20:55.5867447Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-final-teaching-browser01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\final-teaching-browser01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 7.525,
+        "peakJobCommitBytes": 520536064,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 45920,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/final-teaching-browser01-job/resources.json",
+          "sha256": "bbc027dfb76bdfa0ae0d45bd7bfc6b655896284f3c9f6fe02352589169c1ef62",
+          "bytes": 1926
+        }
+      ]
+    },
+    {
+      "name": "browser02",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T20:22:06.7267309Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-final-teaching-browser02",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\final-teaching-browser02.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.16,
+        "peakJobCommitBytes": 506982400,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 41456,
+        "descendantsAtCleanup": 1
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/final-teaching-browser02-job/resources.json",
+          "sha256": "cf1091822ffb22e5566d680fa083dd8932a4d9a76c96d181cc6eec2968ec67a6",
+          "bytes": 1925
+        }
+      ]
+    }
+  ],
+  "visualReview": [
+    {
+      "run": "final-teaching-browser01",
+      "result": {
+        "path": "session_viewer/target/final-teaching-browser01/result.json",
+        "sha256": "4a9af8bd8fb9e1a0aa36d78f71b102ab9913d8d58f75c093622592dfd4bdafc4",
+        "bytes": 6429
+      },
+      "captures": [
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-debugging-choose-an-assertion-that-detects-the-rendering-defect-1280.png",
+          "sha256": "1191de578dd057e7d29e7430db4b052c56234afabbcc972c450970f0d3f95d9b",
+          "bytes": 152139
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-debugging-identify-the-adapter-behind-a-cloud-image-1280.png",
+          "sha256": "5e85e8f88519c9501f73b7a1102b7aa6300200ad9e98bace80c7101c76fd0adf",
+          "bytes": 150678
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-debugging-inspect-lod-selection-separately-from-rendering-1280.png",
+          "sha256": "5e85e8f88519c9501f73b7a1102b7aa6300200ad9e98bace80c7101c76fd0adf",
+          "bytes": 150678
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-commit-a-world-move-in-its-document-frame-1280.png",
+          "sha256": "3c197a772c3747fbbbc8a99ee8fb2d989a79af97615ac499204d661aa786cc9e",
+          "bytes": 158291
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-move-identities-between-layers-1280.png",
+          "sha256": "3c197a772c3747fbbbc8a99ee8fb2d989a79af97615ac499204d661aa786cc9e",
+          "bytes": 158291
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-resolve-panel-colour-actions-by-identity-1280.png",
+          "sha256": "9da7fac0161cb148e6a9156a5d0c4f3306c17009861d35c7d6ee4177fb39f52d",
+          "bytes": 156285
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-refine-only-a-valid-idle-revision-1280.png",
+          "sha256": "9da7fac0161cb148e6a9156a5d0c4f3306c17009861d35c7d6ee4177fb39f52d",
+          "bytes": 156285
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-input-adapt-application-state-to-the-finished-dock-1280.png",
+          "sha256": "8076e80eab2f0ac0b5d4c79fb8332d5284f3d7845b9d4e4c0f3cd33e3b005d39",
+          "bytes": 141193
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-modeling-bring-cutters-into-the-target-frame-1280.png",
+          "sha256": "f9a1c999b488cba8696fe351e8e63fd3880bb1a7af1a7293be023e219668df47",
+          "bytes": 159062
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-modeling-keep-a-pending-split-until-it-can-run-1280.png",
+          "sha256": "f9a1c999b488cba8696fe351e8e63fd3880bb1a7af1a7293be023e219668df47",
+          "bytes": 159062
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-streaming-validate-streamed-field-boundaries-1280.png",
+          "sha256": "866f0842e03716d6315e7a022a4f1719dc4f1dd36d909d0d8e8ee0785f9ee96c",
+          "bytes": 146098
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-debugging-choose-an-assertion-that-detects-the-rendering-defect-390.png",
+          "sha256": "2beab9c8d1efc26178c2256195bffbe6bf3a1fcef1971908009a26337764997c",
+          "bytes": 45506
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-debugging-identify-the-adapter-behind-a-cloud-image-390.png",
+          "sha256": "e974a1fae12ceaeccaf4f4f42c0f8db0c15809ea4de5c5703e3dbab719a491fb",
+          "bytes": 45838
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-debugging-inspect-lod-selection-separately-from-rendering-390.png",
+          "sha256": "14d4a0ee8caeb19847f8636e7fb3da31e22cb53145d64bd06b26ed906b5fe5df",
+          "bytes": 45383
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-commit-a-world-move-in-its-document-frame-390.png",
+          "sha256": "984c193ba468c87383f6e9af9bf23c2eed22575a6dfc7910d3211deb5ab8496b",
+          "bytes": 46514
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-move-identities-between-layers-390.png",
+          "sha256": "984c193ba468c87383f6e9af9bf23c2eed22575a6dfc7910d3211deb5ab8496b",
+          "bytes": 46514
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-resolve-panel-colour-actions-by-identity-390.png",
+          "sha256": "48fc15cd5367e3de6215c43b78a14524cc9d2cd2da88e69061853d5aa20fec1c",
+          "bytes": 43377
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-documents-refine-only-a-valid-idle-revision-390.png",
+          "sha256": "48fc15cd5367e3de6215c43b78a14524cc9d2cd2da88e69061853d5aa20fec1c",
+          "bytes": 43377
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-input-adapt-application-state-to-the-finished-dock-390.png",
+          "sha256": "9148b8a6bb75fdb91324be12b8d74bd9d881ff2bbfbe54f9c17fe9a925f3e143",
+          "bytes": 42734
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-modeling-bring-cutters-into-the-target-frame-390.png",
+          "sha256": "aa38f5a7bbaf6682af84f3b800ea3f1f9986824efff41e303e3188b00c15f48b",
+          "bytes": 44723
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-modeling-keep-a-pending-split-until-it-can-run-390.png",
+          "sha256": "aa38f5a7bbaf6682af84f3b800ea3f1f9986824efff41e303e3188b00c15f48b",
+          "bytes": 44723
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser01/completion-streaming-validate-streamed-field-boundaries-390.png",
+          "sha256": "e0114ee4e016a21882b4091b8b56a848d75c62d5609df8153bfe1aef48220484",
+          "bytes": 45226
+        }
+      ],
+      "personallyViewed": true,
+      "navigationClicks": 4,
+      "footer": "Docs built 2026-11-15 20:19:43 UTC"
+    },
+    {
+      "run": "final-teaching-browser02",
+      "result": {
+        "path": "session_viewer/target/final-teaching-browser02/result.json",
+        "sha256": "6236d6cb91a3a992dd487e520916483c49224800cf0cf16ff8af06df3d471973",
+        "bytes": 2089
+      },
+      "captures": [
+        {
+          "path": "session_viewer/target/final-teaching-browser02/completion-debugging-inspect-lod-selection-separately-from-rendering-1280.png",
+          "sha256": "7e7eb6a3f6d33c55e8a134f3b3d1c1f83578419c05d09c466aa909ca570fb2a3",
+          "bytes": 134978
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser02/completion-documents-refine-only-a-valid-idle-revision-1280.png",
+          "sha256": "eb8947bef1297cbfd38aaccad381ff4689fa053851da0f8e1ce950c66b572d54",
+          "bytes": 167397
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser02/completion-modeling-keep-a-pending-split-until-it-can-run-1280.png",
+          "sha256": "021eab9b05414bbb3b0455ba19b5eb6702e6fbad0302c2b3228945db9cb4879a",
+          "bytes": 143499
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser02/completion-debugging-inspect-lod-selection-separately-from-rendering-390.png",
+          "sha256": "b83979d9e1431e4c90e2f92f193ea68bf0ce8545f5ef79d5bd83ff766d413d02",
+          "bytes": 43994
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser02/completion-documents-refine-only-a-valid-idle-revision-390.png",
+          "sha256": "d29255a3688960bc917509c103d699972a01de3ebe087a26136416f661dc2484",
+          "bytes": 45733
+        },
+        {
+          "path": "session_viewer/target/final-teaching-browser02/completion-modeling-keep-a-pending-split-until-it-can-run-390.png",
+          "sha256": "00dd4e736782ca740c93347f76092c5068501ac1f846d36dceca62b76b9fca82",
+          "bytes": 45220
+        }
+      ],
+      "personallyViewed": true,
+      "navigationClicks": 4,
+      "footer": "Docs built 2026-11-15 20:19:43 UTC"
+    }
+  ],
+  "limitations": [
+    "Paragraph bindings are not complete human teaching or executable acceptance.",
+    "Browser01 passed automation; three sections were near the viewport bottom. Browser02 preserves that run and supplies six top-aligned captures of those sections.",
+    "No new viewer runtime or physical-device acceptance; prior native/wasm/browser source scopes remain unchanged.",
+    "Historical structural,ownership and parity failures and archive component JSON byte mismatch remain recorded."
+  ]
+}

@@ -131,6 +131,11 @@
       "subject": "scene synchronization, diagnostics and editing teaching",
       "scope": "315 witnesses36 missing;19 tooling tests,active-audit,strictsite and16 reviewed documentation captures,4Next clicks. No new runtime acceptance.",
       "path": "session_viewer/docs/journey/release/completion-sync-teaching-windows-20261115.json"
+    },
+    {
+      "subject": "Final production source explanation coverage",
+      "scope": "351 source-bound paragraphs,0missing,0bindingerrors;19tooling+active-audit+strictsite;28 reviewed captures across22initial/6topaligned supplements;0acceptedsubjects.",
+      "path": "session_viewer/docs/journey/release/completion-final-teaching-windows-20261115.json"
     }
   ],
   "open": [

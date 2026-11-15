@@ -160,6 +160,14 @@ The mesh-preview cache maps uploaded vertices, pipes and markers back to source 
 
 A surface preview retains every uploaded vertex's surface index and UV, original controls and explicit pipe-end vertex indices. It reevaluates only surfaces whose controls changed, retaining unchanged vertices and rejecting nonfinite positions. Updated normals include face orientation, and pipe-facing data is rebuilt from the adjacent surface normals. Coincident positions can represent different UV samples, so position alone cannot identify a boundary endpoint after deformation. The result returns vertices, pipes and bounds for the scene adapter to patch.
 
+### Bring cutters into the target frame
+
+`Scene::split_rows` accepts one through 64 cutters and validates the target as selectable and editable. A BRep needs a selected face unless it has only one; an element resolves its underlying BRep. Cutter rows must be distinct from the target and unlocked. Each cutter's placement is composed with the inverse target placement, so the kernel receives both geometries in one coordinate frame. A singular placement is refused instead of producing an arbitrary cut. This geometry adapter owns validation independently of how the panel or pointer collected the cutters.
+
+### Keep a pending split until it can run
+
+The split state retains the target, optional face and chosen cutters. Confirming without a cutter restores the pending state and asks for one instead of losing the selection. Before running the scene operation it removes temporary cutter highlighting. A successful division refreshes history and finds the target again by document/GUID after synchronization; the BRep remains joined and cutters remain present. A no-division result or error restores the gizmo. These transitions make Enter, panel clicks and pointer selection share one pending operation.
+
 ## Run and observe
 
 Run the `application` checkpoint and load the comparison fixture. Enter `Line 0,0,0 3000,0,0`, then `Fit`. Expand the Created layer and select `my_line`. Enter `Move 0 1000 0`, then Undo and Redo. The line changes position while the comparison objects stay fixed.

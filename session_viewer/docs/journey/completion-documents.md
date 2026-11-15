@@ -128,6 +128,22 @@ The graph adapter draws a foldable edge count and two endpoint columns, virtuali
 
 The session archive begins with a versioned magic header, followed by protobuf document byte arrays and JSON scene metadata. Saving refuses streamed or unretained documents and enforces a 512 MiB limit. It stamps visibility and locking into the document protobufs and stores placements, colors, text and grouping separately. Opening validates the header, inventory, indices, finite placement and decoded kernel data before rebuilding rows; identity overrides are installed first so the initial rows inherit them. Old archives without separate edge colors reuse face colors. Serialization preserves the represented scene, but this design does not promise byte-identical nested JSON or retain GPU allocation addresses.
 
+### Commit a world move in its document frame
+
+`Scene::transform_rows` resolves a world-space delta into each object's local placement before recording an edit. It excludes a selected descendant when its ancestor is already selected, preventing the same move from applying twice. Display-only documents refuse mutation. Writable documents use private ownership when necessary, and each affected document begins a history transaction; synchronization notes then rebuild placements and scene bookkeeping. This separates immediate display feedback from the authoritative placement that Undo must restore.
+
+### Move identities between layers
+
+The layer adapter first validates editable rows and resolves the destination layer. It sorts and deduplicates document/GUID identities, then omits children already carried by a selected ancestor. Local moves and moves from other documents are collected separately; display-only sources are rejected. An object already under the requested layer requires no local move, and an entirely unchanged request reports that fact. The operation therefore follows the document tree, rather than treating every visible row as an independent item to reparent.
+
+### Resolve panel colour actions by identity
+
+Panel colour actions decode the node key and distinguish face from edge channels. They resolve the document and GUID before changing the corresponding override map; choosing the original colour removes an override. Edge colour is only applicable to a row with faces. The adapter updates GPU presentation and refreshes application state after the scene change. A panel row number alone is insufficient: the stored override must remain attached to the same document object across hierarchy rebuilding.
+
+### Refine only a valid idle revision
+
+Idle display refinement pauses during preview, pending scene work and initial loading. A signature of camera, GPU and row revision restarts the bounded scan when its inputs change. Each pass examines at most 128 rows and skips hidden or unsupported geometry. Source lookup prefers live kernel geometry; a retained source is eligible only while the exact document revision remains released. An edit or Undo must never refine from an obsolete released copy. The source, refinement and transient budgets bound distinct allocations; declining a row leaves its existing display intact.
+
 ## Run and observe
 
 Run the cumulative `application` checkpoint with the recorded comparison fixture. Enter `Layers All`. The panel should list the loaded document and its four objects. Toggle the document's visibility: its geometry disappears while the document remains listed. Toggle it back: the same geometry returns. Enter `Select All`: five rows are selected, including the title. Enter `Delete`, then `Undo`; the four objects and their title return with their identity and placement preserved.

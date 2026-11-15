@@ -1022,7 +1022,12 @@
   {
     "path": "src/app/edit.rs",
     "owner": "application",
-    "sourceSha256": "5fc69027ff1534a13a784eac4643f5150a06f92ac9bafa4f6005eb50cc5fe81c"
+    "sourceSha256": "5fc69027ff1534a13a784eac4643f5150a06f92ac9bafa4f6005eb50cc5fe81c",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Commit a world move in its document frame",
+      "paragraph": "`Scene::transform_rows` resolves a world-space delta into each object's local placement before recording an edit. It excludes a selected descendant when its ancestor is already selected, preventing the same move from applying twice. Display-only documents refuse mutation. Writable documents use private ownership when necessary, and each affected document begins a history transaction; synchronization notes then rebuild placements and scene bookkeeping. This separates immediate display feedback from the authoritative placement that Undo must restore."
+    }
   },
   {
     "path": "src/app/feedback.rs",
@@ -1117,7 +1122,12 @@
   {
     "path": "src/app/hierarchy.rs",
     "owner": "application",
-    "sourceSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c"
+    "sourceSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Flatten a hierarchy for a panel",
+      "paragraph": "`Hierarchy` converts the document tree into a flat list with parents before children. Each node stores depth, the index after its last descendant, a range into the hierarchy's row list, and document/path identity. That representation supports indentation, collapsed subtrees and group actions without recursively rebuilding widgets for every frame."
+    }
   },
   {
     "path": "src/app/input.rs",
@@ -1192,7 +1202,12 @@
   {
     "path": "src/app/layers.rs",
     "owner": "application",
-    "sourceSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d"
+    "sourceSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Move identities between layers",
+      "paragraph": "The layer adapter first validates editable rows and resolves the destination layer. It sorts and deduplicates document/GUID identities, then omits children already carried by a selected ancestor. Local moves and moves from other documents are collected separately; display-only sources are rejected. An object already under the requested layer requires no local move, and an entirely unchanged request reports that fact. The operation therefore follows the document tree, rather than treating every visible row as an independent item to reparent."
+    }
   },
   {
     "path": "src/app/live.rs",
@@ -1307,17 +1322,32 @@
   {
     "path": "src/app/scene.rs",
     "owner": "application",
-    "sourceSha256": "3f93b8250b971488665b86443fd834d8440f8667fb7657d13e51978963d8b0ce"
+    "sourceSha256": "3f93b8250b971488665b86443fd834d8440f8667fb7657d13e51978963d8b0ce",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### A file, a document and a row",
+      "paragraph": "`Rc<Session>` allows two file placements to refer to the same loaded kernel document. Each placement still has its own document index in `Scene::docs`. Consequently the application identity of an object is `(document index, GUID)`, not its GUID alone. Hiding one placement must not accidentally hide another file containing the same identifier."
+    }
   },
   {
     "path": "src/app/scene_display.rs",
     "owner": "application",
-    "sourceSha256": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5"
+    "sourceSha256": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Refine only a valid idle revision",
+      "paragraph": "Idle display refinement pauses during preview, pending scene work and initial loading. A signature of camera, GPU and row revision restarts the bounded scan when its inputs change. Each pass examines at most 128 rows and skips hidden or unsupported geometry. Source lookup prefers live kernel geometry; a retained source is eligible only while the exact document revision remains released. An edit or Undo must never refine from an obsolete released copy. The source, refinement and transient budgets bound distinct allocations; declining a row leaves its existing display intact."
+    }
   },
   {
     "path": "src/app/scene_instances.rs",
     "owner": "application",
-    "sourceSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9"
+    "sourceSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Large documents retain different things",
+      "paragraph": "`scene_instances.rs` walks a definition once under a hidden row and gives its instances independent placements. Batch keys remain unique across clearing so a newly created definition cannot be confused with an old GPU batch."
+    }
   },
   {
     "path": "src/app/scene_release.rs",
@@ -1512,12 +1542,22 @@
   {
     "path": "src/app/snap.rs",
     "owner": "application",
-    "sourceSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd"
+    "sourceSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Snap in the coordinate system the user sees",
+      "paragraph": "`snap.rs` derives endpoints, vertices, midpoints, centers, perpendicular feet and nearby curve points. Its ordered `SnapKind` makes preference explicit. Modes are independent bits: enabling Near need not enable Perpendicular. Grid snapping rounds the two local plane coordinates and preserves height, then maps back to world space; rounding world x and y would be wrong on a tilted plane."
+    }
   },
   {
     "path": "src/app/splitting.rs",
     "owner": "application",
-    "sourceSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976"
+    "sourceSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Bring cutters into the target frame",
+      "paragraph": "`Scene::split_rows` accepts one through 64 cutters and validates the target as selectable and editable. A BRep needs a selected face unless it has only one; an element resolves its underlying BRep. Cutter rows must be distinct from the target and unlocked. Each cutter's placement is composed with the inverse target placement, so the kernel receives both geometries in one coordinate frame. A singular placement is refused instead of producing an arbitrary cut. This geometry adapter owns validation independently of how the panel or pointer collected the cutters."
+    }
   },
   {
     "path": "src/app/stage/actions.rs",
@@ -1532,7 +1572,12 @@
   {
     "path": "src/app/stage/application.rs",
     "owner": "application",
-    "sourceSha256": "52b8b21b64ca83ead25f0e33555fd47d59a238e8384e01a39fc275518ee6776b"
+    "sourceSha256": "52b8b21b64ca83ead25f0e33555fd47d59a238e8384e01a39fc275518ee6776b",
+    "explanation": {
+      "page": "journey/stage-scene.md",
+      "heading": "### Input and portrait layout",
+      "paragraph": "Keyboard stepping, chapter navigation, theme changes and camera reset are owned by `StageApp::key`. Pointer coordinates are converted from physical pixels to CSS points before the frame maps them into slide space. Dragging the scene side orbits; the wheel zooms that side. A double click on that side resets the authored camera. Clicking the mathematical column advances the step."
+    }
   },
   {
     "path": "src/app/stage/check.rs",
@@ -1637,7 +1682,12 @@
   {
     "path": "src/app/stage/mode.rs",
     "owner": "application",
-    "sourceSha256": "88e02c592060d51c1fb03a704348839f3421ccb0dd82b927c7210e806a29be4b"
+    "sourceSha256": "88e02c592060d51c1fb03a704348839f3421ccb0dd82b927c7210e806a29be4b",
+    "explanation": {
+      "page": "journey/stage-scene.md",
+      "heading": "### Order one scene frame",
+      "paragraph": "The scene mode implements the same `Mode<Host>` contract as the mathematics mode, with `State` as its host. Tick the stage clock before reading the animated camera. Apply that camera, then derive the label lens from the resulting real view. Painting can now place equations, projected labels and fly-outs in the same slide coordinates."
+    }
   },
   {
     "path": "src/app/stage/morph.rs",
@@ -1712,7 +1762,12 @@
   {
     "path": "src/app/stage/spatial.rs",
     "owner": "application",
-    "sourceSha256": "95f4bbaf98e9a39d1548a72b06f1fa21aaeacdb8393508bc3d27dea5cc796252"
+    "sourceSha256": "95f4bbaf98e9a39d1548a72b06f1fa21aaeacdb8393508bc3d27dea5cc796252",
+    "explanation": {
+      "page": "journey/stage-scene.md",
+      "heading": "### Retain rows and update their properties",
+      "paragraph": "These rows are non-pickable decoration. Their visibility, colour, placement and reveal are GPU row properties, not document selection operations. A point moving from its baked position receives a translation. A segment receives the transform between its baked frame and current frame, so moving or stretching it does not require walking the kernel geometry again. A segment born at zero length is baked as a unit segment and placed with a tiny nonzero axis to preserve the downstream inverse."
+    }
   },
   {
     "path": "src/app/stage/tests.rs",
@@ -1757,7 +1812,12 @@
   {
     "path": "src/app/stream.rs",
     "owner": "application",
-    "sourceSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299"
+    "sourceSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+    "explanation": {
+      "page": "journey/completion-streaming.md",
+      "heading": "### Validate streamed field boundaries",
+      "paragraph": "The stream parser separates a protobuf field's header, body and next offset using checked bounds. Length-delimited fields cannot advance past their containing message. Sheet coordinates use six doubles per segment; optional colours, widths and IDs must each contain four bytes per segment. The advertised segment count must agree, metadata must be bounded UTF-8, and known fields with the wrong wire type are rejected. Cloud LOD arrays validate packed-double alignment and complete varints before decoding. This metadata validation protects later range reads; a successfully parsed header does not prove that the remaining payload has arrived."
+    }
   },
   {
     "path": "src/app/surface_preview.rs",
@@ -1782,7 +1842,12 @@
   {
     "path": "src/app/ui/command_line.rs",
     "owner": "application",
-    "sourceSha256": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0"
+    "sourceSha256": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Adapt application state to the finished dock",
+      "paragraph": "The command-line panel fills the finished dock's draft, prompt and tool options, then delegates command choice, acceptance and completion to the application registry. It retains its UI state between frames. A press can request text focus before key processing; an outside click closes a popup. History opens only when there are entries. Escape handling respects other active panels and menus, and the adapter can return focus to the canvas after a command. These are application bindings around the dock contract, so integrating another tool does not require rewriting the dock's editor."
+    }
   },
   {
     "path": "src/app/ui/command_line/tests.rs",
@@ -1807,7 +1872,12 @@
   {
     "path": "src/app/ui/layers.rs",
     "owner": "application",
-    "sourceSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba"
+    "sourceSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep panel drawing separate from actions",
+      "paragraph": "Each panel fills its model from application state, draws widgets and then applies completed actions. `ui/layers.rs` retains expansion, graph-table and rename state. A completed rename is applied before the click that ended it. Deferring the mutation until egui finishes avoids rebuilding the hierarchy halfway through drawing its rows."
+    }
   },
   {
     "path": "src/app/ui/mod.rs",
@@ -1882,7 +1952,12 @@
   {
     "path": "src/app/walk/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "ebc773030fe2290de9c7773461c646669632c0966213e3be433a3a692c1df123"
+    "sourceSha256": "ebc773030fe2290de9c7773461c646669632c0966213e3be433a3a692c1df123",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The element-walk tests compare the same source with features disabled and enabled. Visible features must add ribbons and dots to the element's own row, extend its bounds, and exclude hidden features. A contact polygon must add its filled triangles and black boundary using that same identity. These are CPU upload assertions: they establish which primitives and IDs reach rendering, not their final pixel visibility."
+    }
   },
   {
     "path": "src/app/walk/bounds.rs",
@@ -1907,7 +1982,12 @@
   {
     "path": "src/app/walk/brep/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "d759194a7b1300dd6fe4bc4438778f84f08fe787a75f1edc06e1eb7425d617a8"
+    "sourceSha256": "d759194a7b1300dd6fe4bc4438778f84f08fe787a75f1edc06e1eb7425d617a8",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The rational-border regression walks a cylindrical NURBS surface and checks that every border sample belongs to its shaded face vertices, every pipe endpoint names the corresponding vertex, and source edge IDs remain intact. It also compares the source protobuf before and after walking. Moving all controls by half a unit must move preview pipe endpoints by exactly that z offset while preserving x and y. This connects tessellation, picking identity and editable UV samples without accepting a merely similar outline."
+    }
   },
   {
     "path": "src/app/walk/brep_edges.rs",
@@ -1962,7 +2042,12 @@
   {
     "path": "src/app/walk/cloud/stream.rs",
     "owner": "application",
-    "sourceSha256": "9eba837026da0f2b4f0981c77e635587f4d7e9fb31ffe11df89ac1e8da6b7af3"
+    "sourceSha256": "9eba837026da0f2b4f0981c77e635587f4d7e9fb31ffe11df89ac1e8da6b7af3",
+    "explanation": {
+      "page": "journey/completion-streaming.md",
+      "heading": "### Convert a resident source slice into GPU rows",
+      "paragraph": "A streamed cloud slice appends positions and a bounded matching color column, padding missing colors with black. Normals are accepted only when the slice has one per point; otherwise the draw carries the no-normals sentinel. Only the first slice installs the full LOD node table. Each draw retains both its original source offset and its GPU offset, while spacing comes from the finest fully resident node or a fallback. This preserves the distinction between source IDs and compact resident storage."
+    }
   },
   {
     "path": "src/app/walk/curves.rs",
@@ -2017,7 +2102,12 @@
   {
     "path": "src/app/walk/frames/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "d0ed65130ed5185f3de8ecc8657656bfc54a3053f9c1ec711a3ad3804587a064"
+    "sourceSha256": "d0ed65130ed5185f3de8ecc8657656bfc54a3053f9c1ec711a3ad3804587a064",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The plane-frame image test adds an opaque lid: gray grid pixels must largely disappear while colored axis-arrow pixels remain. Halving plane size must approximately halve its visible column span. A separate authored-width test measures the center-column ink for widths 1, 3 and 15 with a two-pixel tolerance. The plane test is explicitly ignored by default; the width test returns early if no adapter exists, so a successful test process alone cannot prove those pixels were checked."
+    }
   },
   {
     "path": "src/app/walk/matrix.rs",
@@ -2192,7 +2282,12 @@
   {
     "path": "src/engine/gpu/backdrop/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "b7e7738b097340cde9a1ea7780a0f2672c9bb6f79aa27807e7484807d9247899"
+    "sourceSha256": "b7e7738b097340cde9a1ea7780a0f2672c9bb6f79aa27807e7484807d9247899",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The grid witness requires the Microsoft CPU DX12 adapter and compares actual images at the origin, a trillion-unit offset and the origin again. Anchored camera matrices must match, while fractional grid offsets remain represented. The near/far and return images must have zero changed pixels. This is a precise rebasing invariant under the recorded WARP configuration, not a claim about every hardware driver."
+    }
   },
   {
     "path": "src/engine/gpu/buffers.rs",
@@ -2217,7 +2312,12 @@
   {
     "path": "src/engine/gpu/clip/editing_tests.rs",
     "owner": "application",
-    "sourceSha256": "a2a33bd4ec7227c92019a4e9bb9f43e26e0e88839d470b45c9be81d842576e54"
+    "sourceSha256": "a2a33bd4ec7227c92019a4e9bb9f43e26e0e88839d470b45c9be81d842576e54",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The clipping image tests build controlled solids and inspect projected pixel neighborhoods. Cutting a closed cube must show hatch in the section, keep the retained top face plain, and restore the complete top when clipping is removed. Other fixtures distinguish open meshes, overlapping solids and hidden internal geometry. These tests are ignored by default and their helper can return without an adapter; acceptance requires evidence that the intended GPU cases actually executed, together with their selected fill and view settings."
+    }
   },
   {
     "path": "src/engine/gpu/clip/pipelines.rs",
@@ -2232,7 +2332,12 @@
   {
     "path": "src/engine/gpu/clip/tests.rs",
     "owner": "application",
-    "sourceSha256": "f7bae7652025a8f4b05537e3a92956922c64f7d655998fd37b2119ac30e9c3a9"
+    "sourceSha256": "f7bae7652025a8f4b05537e3a92956922c64f7d655998fd37b2119ac30e9c3a9",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The clipping uniform mirror test parses and validates WGSL with Naga, then compares the shader member offsets and total struct span with Rust `offset_of` and `size_of`. It checks shared clipping flag values too. A shader can parse successfully while reading the wrong bytes from a Rust buffer; this test makes the host/shader layout agreement explicit rather than inferring it from compilation."
+    }
   },
   {
     "path": "src/engine/gpu/cloud.rs",
@@ -2557,12 +2662,22 @@
   {
     "path": "src/engine/gpu/splat/cloud_witness.rs",
     "owner": "application",
-    "sourceSha256": "e21b20cf6f512eda92957d41f81aa8b7154fa164884772ede0aa499443f2822a"
+    "sourceSha256": "e21b20cf6f512eda92957d41f81aa8b7154fa164884772ede0aa499443f2822a",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Identify the adapter behind a cloud image",
+      "paragraph": "The cloud rendering witness requires positive viewport dimensions, density one or two, one or four samples and a finite nonnegative EDL setting. It verifies the CPU DX12 Microsoft Basic Render Driver before rendering an isolated cloud. The source is decoded and uploaded through the scene path; the fixture then checks its expected matrix, cloud and splat counts. Its result retains adapter identity, actual parameters, uploaded CPU bytes and shader source. Such a result is evidence for that software adapter and fixture, not physical GPU or phone acceptance."
+    }
   },
   {
     "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
     "owner": "application",
-    "sourceSha256": "982f3d3ef796d537386887d3a95610f9194580af04cabb1a7b54109121016175"
+    "sourceSha256": "982f3d3ef796d537386887d3a95610f9194580af04cabb1a7b54109121016175",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Inspect LOD selection separately from rendering",
+      "paragraph": "The cloud LOD witness prepares production cloud rows, cloud metadata and bounds on the CPU, then invokes the actual `LodWalk::select` with a fixed eye and viewport plus explicit projection, placement and pixel threshold. It rejects a resident prefix larger than the source and reports each selected range's first point, count, spacing and tile. These ranges explain which resident points the selector chose. Its metadata explicitly excludes GPU acceptance: correct ranges cannot establish shader output, depth, EDL or the appearance of the rendered points."
+    }
   },
   {
     "path": "src/engine/gpu/ssao.rs",
@@ -2587,7 +2702,12 @@
   {
     "path": "src/engine/gpu/ssao/tests.rs",
     "owner": "application",
-    "sourceSha256": "193e7577b6dabe892c02baee6fb25279fddb58640a8de66c73500b783234473f"
+    "sourceSha256": "193e7577b6dabe892c02baee6fb25279fddb58640a8de66c73500b783234473f",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The ambient-occlusion regression renders contact geometry with the effect off and on at one and four samples in perspective and orthographic views. It requires contact darkening, rejects a halo on distant exposed ground and compares the first shaded frame with the settled frame. Resource checks account for the effect's owned allocations. The test is ignored until a native adapter is explicitly supplied, so normal unit-test success does not establish its image result."
+    }
   },
   {
     "path": "src/engine/gpu/surface_outline.rs",
@@ -2602,7 +2722,12 @@
   {
     "path": "src/engine/gpu/surface_outline/tests.rs",
     "owner": "application",
-    "sourceSha256": "99b0843e70ab243ba97eb8983f7685b66cb62af9fd22d4af3e68981bacf06f5c"
+    "sourceSha256": "99b0843e70ab243ba97eb8983f7685b66cb62af9fd22d4af3e68981bacf06f5c",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "The outline regression compares selected and unselected CAD strokes over curved silhouettes at multiple views, sample counts and device ratios. Pixels that were nearly black must remain black when yellow selected edges are drawn, and total silhouette coverage must remain nontrivial. This catches edges painting over the border rather than only checking that both passes submitted. These native GPU tests require explicit execution beyond the default ignored set."
+    }
   },
   {
     "path": "src/engine/gpu/targets.rs",
@@ -2827,7 +2952,12 @@
   {
     "path": "src/engine/text/application_tests.rs",
     "owner": "application",
-    "sourceSha256": "1bedc6e27b3e8d90874603475d4040ff8c2ed9afb31785923da0faa9bc1e63ed"
+    "sourceSha256": "1bedc6e27b3e8d90874603475d4040ff8c2ed9afb31785923da0faa9bc1e63ed",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Choose an assertion that detects the rendering defect",
+      "paragraph": "Font coverage tests enumerate command names, aliases, options and hints against the bundled subsets, then check representative accented text and UI symbols. A specimen intentionally outside the subset is shaped after replacing the fonts with the complete font files, and every resulting glyph ID must be nonzero. This proves local character coverage and replacement behavior; it does not exercise asynchronous browser font delivery or compare glyph edge quality."
+    }
   },
   {
     "path": "src/lib.rs",
@@ -2842,27 +2972,52 @@
   {
     "path": "src/selftest.rs",
     "owner": "application",
-    "sourceSha256": "87131f0c1ddd8bdc620dcd205815f6dd86894aac0df780dce6c393d7fb8cb8fc"
+    "sourceSha256": "87131f0c1ddd8bdc620dcd205815f6dd86894aac0df780dce6c393d7fb8cb8fc",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Separate CPU construction from GPU rendering",
+      "paragraph": "`selftest::render_scene` loads actual documents, creates a headless `Gpu`, frames the scene, settles display refinement and renders offscreen. Its environment controls select a camera, viewport, clipping, labels or repeated orbit frames. Record those controls with the result. Refinement is bounded by row count and fails if it cannot settle; capturing an unfinished frame would conflate refinement with a rendering regression."
+    }
   },
   {
     "path": "src/selftest/lifecycle.rs",
     "owner": "application",
-    "sourceSha256": "21a28b047fb48eeea41512ddff63199dffeb4a73f3c13369aa910a91f1cf95ec"
+    "sourceSha256": "21a28b047fb48eeea41512ddff63199dffeb4a73f3c13369aa910a91f1cf95ec",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Use an independent question as an oracle",
+      "paragraph": "`selftest::lifecycle` compares color and object/subobject ID images through resize, rewalk, edits/undo and reload. Each nonzero ID must still resolve to scene identity. Matching color alone could hide a broken selection map; matching IDs alone could hide a rendering defect."
+    }
   },
   {
     "path": "src/selftest/oracle.rs",
     "owner": "application",
-    "sourceSha256": "30883e82ae484fdcf5b6abb70c02900bde7d721d097563659a711d738b201021"
+    "sourceSha256": "30883e82ae484fdcf5b6abb70c02900bde7d721d097563659a711d738b201021",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Use an independent question as an oracle",
+      "paragraph": "`selftest::oracle` asks a CPU ray-visibility question for samples along strokes against placed triangles. It compares clearly visible samples with nearby rendered ink. Its clearance avoids deciding ambiguous coplanar cases using the GPU's own tolerance. This checks hidden-line visibility without merely repeating the shader's output as the expected answer."
+    }
   },
   {
     "path": "src/selftest/profile.rs",
     "owner": "application",
-    "sourceSha256": "3f00d2715d9b5b3498e07af727b4b13dfde6fcfba83c7fd0a945999ea9bbeff1"
+    "sourceSha256": "3f00d2715d9b5b3498e07af727b4b13dfde6fcfba83c7fd0a945999ea9bbeff1",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Separate CPU construction from GPU rendering",
+      "paragraph": "`selftest::profile` times the geometry walk by object kind before GPU drawing. Its BRep measurements separate meshing, edge chains and orientation work. A slow walk suggests different work from a slow draw; reducing shader complexity cannot remove time spent constructing triangles on the CPU."
+    }
   },
   {
     "path": "src/selftest/stroke_witness.rs",
     "owner": "application",
-    "sourceSha256": "d7d2bd03edc3e7f384eff7034cad2018b94f10732bd996dec34aa910d96b50e4"
+    "sourceSha256": "d7d2bd03edc3e7f384eff7034cad2018b94f10732bd996dec34aa910d96b50e4",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Use an independent question as an oracle",
+      "paragraph": "`selftest::stroke_witness` exposes controlled rendering inputs and returns pixels, identity, shader sources and device/queue ownership. The sheet witness explicitly requires a verified software adapter. The renderer's cloud witness serves the corresponding cloud checks. A software witness is reproducible pipeline evidence; it does not demonstrate a hardware driver's behavior or a phone's speed."
+    }
   },
   {
     "path": "src/shaders/ambient_composite.wgsl",
@@ -3237,12 +3392,22 @@
   {
     "path": "src/state/drag.rs",
     "owner": "application",
-    "sourceSha256": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061"
+    "sourceSha256": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### A delayed pick still belongs to the original drag",
+      "paragraph": "`ObjectDrag` retains the press, latest cursor and whether release arrived before the GPU answer. A late hit after release applies the accumulated move; a miss becomes rectangle selection. While held, a hit starts following and a miss starts the selection rectangle. Retaining the release state prevents a quick flick from disappearing merely because readback took another frame."
+    }
   },
   {
     "path": "src/state/drawing.rs",
     "owner": "application",
-    "sourceSha256": "27029dc6c96a8679a8e2ebb4c612ab7db41b208bc77cf8376bbe513a9129f145"
+    "sourceSha256": "27029dc6c96a8679a8e2ebb4c612ab7db41b208bc77cf8376bbe513a9129f145",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### A draft owns incomplete input",
+      "paragraph": "`state/drawing.rs::Draft` holds accepted points, hover position, plane, construction kind and an optional tool. Fixed-point constructions finish when their required point count is reached; open constructions finish through their explicit completion action. Rectangle and polygon constructions derive geometry in the chosen plane, so their preview and final points share a frame."
+    }
   },
   {
     "path": "src/state/edit.rs",
@@ -3287,7 +3452,12 @@
   {
     "path": "src/state/panel.rs",
     "owner": "application",
-    "sourceSha256": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9"
+    "sourceSha256": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Resolve panel colour actions by identity",
+      "paragraph": "Panel colour actions decode the node key and distinguish face from edge channels. They resolve the document and GUID before changing the corresponding override map; choosing the original colour removes an override. Edge colour is only applicable to a row with faces. The adapter updates GPU presentation and refreshes application state after the scene change. A panel row number alone is insufficient: the stored override must remain attached to the same document object across hierarchy rebuilding."
+    }
   },
   {
     "path": "src/state/sheet_query.rs",
@@ -3302,7 +3472,12 @@
   {
     "path": "src/state/splitting.rs",
     "owner": "application",
-    "sourceSha256": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924"
+    "sourceSha256": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Keep a pending split until it can run",
+      "paragraph": "The split state retains the target, optional face and chosen cutters. Confirming without a cutter restores the pending state and asks for one instead of losing the selection. Before running the scene operation it removes temporary cutter highlighting. A successful division refreshes history and finds the target again by document/GUID after synchronization; the BRep remains joined and cutters remain present. A no-division result or error restores the gizmo. These transitions make Enter, panel clicks and pointer selection share one pending operation."
+    }
   },
   {
     "path": "src/state/text.rs",
@@ -3327,6 +3502,11 @@
   {
     "path": "src/text_quality.rs",
     "owner": "application",
-    "sourceSha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc"
+    "sourceSha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### A document title is an object",
+      "paragraph": "The `text_quality.rs` diagnostic page compares the actual text lane with browser text at several sizes, including accents, combining characters and fallback symbols. It owns its own test surface and calls the production lane. This is a diagnostic fixture, not a replacement production text implementation or proof that every device renders the same glyph edges."
+    }
   }
 ]

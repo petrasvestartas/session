@@ -90,6 +90,10 @@ The cloud-query state adapter starts only in streamed-cloud control mode and ass
 
 Picking a sheet entity highlights its edge within the parent row rather than selecting the whole sheet; picking the same entity again clears selection. A new generation identifies its optional metadata request. Matching responses cache the side table and expose the entity name and kind; stale or cancelled responses are ignored. A missing metadata URL still permits selection by entity ID, while a metadata error is reported without inventing a name.
 
+### Adapt application state to the finished dock
+
+The command-line panel fills the finished dock's draft, prompt and tool options, then delegates command choice, acceptance and completion to the application registry. It retains its UI state between frames. A press can request text focus before key processing; an outside click closes a popup. History opens only when there are entries. Escape handling respects other active panels and menus, and the adapter can return focus to the canvas after a command. These are application bindings around the dock contract, so integrating another tool does not require rewriting the dock's editor.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture. Drag with the right button to orbit, use the wheel to zoom, and enter `Fit` to restore the framing. Open `Layers All` and click an object's row: its selection highlight and gizmo should appear. Type a command in the dock and verify that its letters do not trigger scene shortcuts.

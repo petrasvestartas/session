@@ -74,6 +74,34 @@ With `inspect=1`, the inspection adapter publishes JSON on the canvas as `data-v
 
 The source-memory cache retains weak session references and recounts when document session pointers change. It counts each shared session and geometry value once, adding vector and string capacities, exposed slice lengths, occupied map entries and known value sizes. Dead collection slots remain counted; history bytes are reported separately. Allocator overhead, spare map capacity and private nested caches are not available to this walker, so `known_bytes` is a scoped payload estimate rather than process RSS or total heap use.
 
+### Choose an assertion that detects the rendering defect
+
+The element-walk tests compare the same source with features disabled and enabled. Visible features must add ribbons and dots to the element's own row, extend its bounds, and exclude hidden features. A contact polygon must add its filled triangles and black boundary using that same identity. These are CPU upload assertions: they establish which primitives and IDs reach rendering, not their final pixel visibility.
+
+The rational-border regression walks a cylindrical NURBS surface and checks that every border sample belongs to its shaded face vertices, every pipe endpoint names the corresponding vertex, and source edge IDs remain intact. It also compares the source protobuf before and after walking. Moving all controls by half a unit must move preview pipe endpoints by exactly that z offset while preserving x and y. This connects tessellation, picking identity and editable UV samples without accepting a merely similar outline.
+
+The plane-frame image test adds an opaque lid: gray grid pixels must largely disappear while colored axis-arrow pixels remain. Halving plane size must approximately halve its visible column span. A separate authored-width test measures the center-column ink for widths 1, 3 and 15 with a two-pixel tolerance. The plane test is explicitly ignored by default; the width test returns early if no adapter exists, so a successful test process alone cannot prove those pixels were checked.
+
+The clipping uniform mirror test parses and validates WGSL with Naga, then compares the shader member offsets and total struct span with Rust `offset_of` and `size_of`. It checks shared clipping flag values too. A shader can parse successfully while reading the wrong bytes from a Rust buffer; this test makes the host/shader layout agreement explicit rather than inferring it from compilation.
+
+The clipping image tests build controlled solids and inspect projected pixel neighborhoods. Cutting a closed cube must show hatch in the section, keep the retained top face plain, and restore the complete top when clipping is removed. Other fixtures distinguish open meshes, overlapping solids and hidden internal geometry. These tests are ignored by default and their helper can return without an adapter; acceptance requires evidence that the intended GPU cases actually executed, together with their selected fill and view settings.
+
+The ambient-occlusion regression renders contact geometry with the effect off and on at one and four samples in perspective and orthographic views. It requires contact darkening, rejects a halo on distant exposed ground and compares the first shaded frame with the settled frame. Resource checks account for the effect's owned allocations. The test is ignored until a native adapter is explicitly supplied, so normal unit-test success does not establish its image result.
+
+The outline regression compares selected and unselected CAD strokes over curved silhouettes at multiple views, sample counts and device ratios. Pixels that were nearly black must remain black when yellow selected edges are drawn, and total silhouette coverage must remain nontrivial. This catches edges painting over the border rather than only checking that both passes submitted. These native GPU tests require explicit execution beyond the default ignored set.
+
+The grid witness requires the Microsoft CPU DX12 adapter and compares actual images at the origin, a trillion-unit offset and the origin again. Anchored camera matrices must match, while fractional grid offsets remain represented. The near/far and return images must have zero changed pixels. This is a precise rebasing invariant under the recorded WARP configuration, not a claim about every hardware driver.
+
+Font coverage tests enumerate command names, aliases, options and hints against the bundled subsets, then check representative accented text and UI symbols. A specimen intentionally outside the subset is shaped after replacing the fonts with the complete font files, and every resulting glyph ID must be nonzero. This proves local character coverage and replacement behavior; it does not exercise asynchronous browser font delivery or compare glyph edge quality.
+
+### Identify the adapter behind a cloud image
+
+The cloud rendering witness requires positive viewport dimensions, density one or two, one or four samples and a finite nonnegative EDL setting. It verifies the CPU DX12 Microsoft Basic Render Driver before rendering an isolated cloud. The source is decoded and uploaded through the scene path; the fixture then checks its expected matrix, cloud and splat counts. Its result retains adapter identity, actual parameters, uploaded CPU bytes and shader source. Such a result is evidence for that software adapter and fixture, not physical GPU or phone acceptance.
+
+### Inspect LOD selection separately from rendering
+
+The cloud LOD witness prepares production cloud rows, cloud metadata and bounds on the CPU, then invokes the actual `LodWalk::select` with a fixed eye and viewport plus explicit projection, placement and pixel threshold. It rejects a resident prefix larger than the source and reports each selected range's first point, count, spacing and tile. These ranges explain which resident points the selector chose. Its metadata explicitly excludes GPU acceptance: correct ranges cannot establish shader output, depth, EDL or the appearance of the rendered points.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture and `inspect=1`. In browser developer tools, evaluate `window.viewerDiagnostics.read()` after readiness, then orbit and fit the scene. Save the report beside a screenshot and note the actual adapter. The visible geometry should respond while the report retains startup/load context without a failure.

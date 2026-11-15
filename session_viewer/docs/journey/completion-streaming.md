@@ -62,6 +62,14 @@ Replacement loading stages results and uses the load generation described in the
 
 A live-source tick runs after the polling interval or a change notification. It revalidates the manifest and mutable files, retaining decoded immutable revision URLs. A changed manifest or file marks a replacement pending; a failed read or an incomplete set of decoded documents keeps the last valid scene visible. A complete replacement reuses cached sessions where possible and drops files no longer listed. The notification relay connects after the first scene is ready. Notifications request an earlier check; they do not supply trusted geometry or bypass decoding.
 
+### Convert a resident source slice into GPU rows
+
+A streamed cloud slice appends positions and a bounded matching color column, padding missing colors with black. Normals are accepted only when the slice has one per point; otherwise the draw carries the no-normals sentinel. Only the first slice installs the full LOD node table. Each draw retains both its original source offset and its GPU offset, while spacing comes from the finest fully resident node or a fallback. This preserves the distinction between source IDs and compact resident storage.
+
+### Validate streamed field boundaries
+
+The stream parser separates a protobuf field's header, body and next offset using checked bounds. Length-delimited fields cannot advance past their containing message. Sheet coordinates use six doubles per segment; optional colours, widths and IDs must each contain four bytes per segment. The advertised segment count must agree, metadata must be bounded UTF-8, and known fields with the wrong wire type are rejected. Cloud LOD arrays validate packed-double alignment and complete varints before decoding. This metadata validation protects later range reads; a successfully parsed header does not prove that the remaining payload has arrived.
+
 ## Run and observe
 
 Serve the cumulative application's `production.html` build. From `session_viewer`, run `node tests/streamed-controls.cjs` through the resource guard, with `VIEWER_URL` pointing to that server and `VIEWER_TEST_OUTPUT` naming a new capture directory. Set `CHROME_BIN`, `VIEWER_HEADLESS` and `VIEWER_CHROME_ARGS` for the recorded local WebGPU configuration; `NODE_PATH` locates Playwright.
