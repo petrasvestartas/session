@@ -22,6 +22,7 @@ pub(crate) const PLACE: u8 = 2; // compute its placement again
 pub(crate) const PRESENCE: u8 = 4; // decide again whether it is drawn
 pub(crate) const SUBTREE: u8 = 8; // every object below its tree node too
 
+// --8<-- [start:document-footprint]
 /// Where one object's rows sit; most objects use one lane.
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 pub(crate) enum Footprint {
@@ -35,6 +36,7 @@ pub(crate) enum Footprint {
     }, // point, line, polyline, curve, plane, box
     Many(u32), // index into `Spans`: mesh, BRep, surface, element
 }
+// --8<-- [end:document-footprint]
 
 /// An allocation bigger than its content: after an in-place shrink, or with preview headroom.
 #[derive(Clone, Copy, Debug)]

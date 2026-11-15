@@ -4,9 +4,9 @@ Animate kernel geometry beside a mathematical column, with labels and matrix ent
 
 ## Prerequisites and ownership
 
-Complete [A slide of mathematics](03a-mathematics.md), object rows and placement, stroke reveal and arrows, the camera, document loading, and the application event loop. This subject owns the scene adapter in `spatial.rs`, the scene-host implementation in `mode.rs`, and `StageApp` in `src/app/stage/mod.rs`. It reuses the completed mathematics modules, including `geometry.rs`, `view.rs` and `net.rs`. The explanations below connect their existing outputs to scene rows, cameras and displayed matrices; scene integration must not rewrite those finished implementations.
+Complete [mathematics](completion-mathematics.md), [rows](completion-rows.md), [scene rendering](completion-geometry.md), [decoding](completion-decoding.md) and [the application lifecycle](completion-application.md). This chapter of the application subject teaches the scene adapter in `spatial.rs`, the scene-host implementation in `mode.rs`, and `StageApp` in `src/app/stage/application.rs`. It reuses the completed mathematics modules, including `geometry.rs`, `view.rs` and `net.rs`. The explanations below connect their existing outputs to scene rows, cameras and displayed matrices; scene integration must not rewrite those finished implementations.
 
-**Cumulative checkpoint pending.** The source explanations below follow the maintained viewer. The current learner program still has incompatible application wiring; [the registration boundary](stage-gap.md#application-registration-still-required) must be implemented before this subject becomes an active cumulative checkpoint. Running the maintained viewer is useful for studying the result, but does not prove that the learner's preceding program reaches it.
+The `application` checkpoint contains the production scene host and retains every earlier subject implementation. Its own source compiles for wasm and links native tests. This chapter uses that executable checkpoint. All five shipped decks have passed cumulative browser playback checks; the validation section distinguishes those checks from physical-device acceptance.
 
 ## Build
 
@@ -72,7 +72,7 @@ Fitting first chooses the requested view direction, projects the chosen points a
 
 ### Derive, move and fly retain their meanings
 
-The completed [action implementation](../lessons/03a-math/src/app/stage/actions.rs) already owns these operations. Scene integration supplies current geometry and projection; it does not replace the action interpreter.
+The completed [action implementation](../../src/app/stage/actions.rs) already owns these operations. Scene integration supplies current geometry and projection; it does not replace the action interpreter.
 
 `derive` constructs a new destination while retaining its source. For geometry it stores the source control points for interpolation; for mathematical content it pairs named or matching primitives and copies them toward the new expression. `move` changes a named point's value, so attached geometry and labels follow the same point. `fly` resolves source and destination subsets, reveals the destination subset and animates matched pieces between their current positions. Its `keep` option determines whether source pieces remain visible.
 
@@ -97,7 +97,7 @@ The small elimination routine has no pivoting or singular-system recovery. Teach
 Keyboard stepping, chapter navigation, theme changes and camera reset are owned by `StageApp::key`. Pointer coordinates are converted from physical pixels to CSS points before the frame maps them into slide space. Dragging the scene side orbits; the wheel zooms that side. A double click on that side resets the authored camera. Clicking the mathematical column advances the step.
 
 ```rust
---8<-- "session_viewer/src/app/stage/mod.rs:stage-touch"
+--8<-- "session_viewer/src/app/stage/application.rs:stage-touch"
 ```
 
 Touch handling tracks one finger by ID. A short tap is distinguished from motion; a predominantly horizontal swipe steps forward or backward. Scene orbit waits for a hold before applying drag deltas, so a quick swipe can navigate instead. Cancelled touches clear the retained finger. These choices require actual interaction tests, not only a portrait screenshot.
@@ -112,9 +112,9 @@ Touch handling tracks one finger by ID. A short tap is distinguished from motion
 
 ## Run and observe
 
-For production-reference review, run `trunk serve --port 8780` from `session_viewer` through the shared build cache, storage guard and build slot. Open `http://127.0.0.1:8780/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=7&step=1`.
+Materialize `application` as described in [Maintaining](../maintaining.md). Build its `production.html` with Trunk through the shared cache and resource guards. Trunk emits `dist/index.html`; serve that directory and open `/?stage=decks/force-density-matrices/index.yaml&data=off&chapter=7&step=1`.
 
-The pillow chapter begins with a flat 10-by-10 grid: 36 boundary nodes are fixed and 64 interior nodes are free. Advance to the load, matrix and solve steps. The interior rises into a pillow while the boundary stays fixed. Orbit the scene and check that labels remain attached. At upright dimensions, the scene is above the column. This review uses the maintained application; a cumulative course checkpoint command is still pending.
+The pillow chapter begins with a flat 10-by-10 grid: 36 boundary nodes are fixed and 64 interior nodes are free. Advance to the load, matrix and solve steps. The interior rises into a pillow while the boundary stays fixed. Orbit the scene and check that labels remain attached. At upright dimensions, the scene is above the column.
 
 ## Predict and try
 
@@ -128,6 +128,10 @@ The user can orbit away from the authored pose. Projecting labels with that olde
 
 ## Validation
 
-The standalone mathematics checkpoint passes 24 native tests, including all five shipped decks at rest and through playback. Those tests validate parser, layout and action behavior; they do not exercise production row allocation, picking exclusion or touch handling. The scene-independent presentation probe separately passes 18 tests, including the production deck tests, presentation ownership/painting checks and host-independent mode dispatch. Full application native, native test-configuration, wasm and optimized Trunk compilation pass. Eight of 46 production-reference browser comparisons match state and pixels, while all eight commands retain failed history assertions. Cumulative integration remains pending. The [integration status](stage-gap.md) records these separate results; compilation does not establish browser parity.
+The standalone mathematics checkpoint passes 24 native tests. The cumulative application's stage suite separately passes 18 tests, including complete decks at rest, matrix construction and action behavior. Default and tutorial wasm checks, native linking and optimized Trunk compilation pass for the cumulative source tree.
 
-Acceptance must cover every step of all five decks, contextual errors, settled overlap reports, row placement/reveal/colour/visibility, projected labels, camera reset, keyboard, mouse and touch input, both grounds and desktop/upright layouts. Record the actual adapter and distinguish viewport emulation from a real phone.
+Browser playback covers 554 forward step checks across all 23 chapters of the five shipped decks at 1280 by 800 and 390 by 844. Each chapter also checks backward navigation and the other ground, giving 46 chapter/viewport cases and 184 first/last/back/ground screenshots. Settled overlap reports and uncaptured GPU errors are empty. These are controlled-clock checks of the cumulative executable, not 554 separately reviewed screenshots or a forward-versus-replay pixel-equivalence claim.
+
+Separate interaction checks exercise mouse orbit, wheel zoom, camera reset, column clicks, keyboard backward navigation, and emulated upright touch swipe/tap navigation. Six deliberate font, chapter and picture loading failures show contextual filenames at both sizes. The actual adapter is Intel Gen-12LP in desktop Chrome; viewport and touch emulation do not establish physical-phone acceptance. Earlier failed local-server runs and the historical replay comparison remain preserved in the evidence record.
+
+Complete-course acceptance still requires the remaining application teaching, per-file ownership review and final integration checks. Source copies and successful compilation alone do not meet those requirements.

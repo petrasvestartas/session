@@ -3,6 +3,7 @@ use crate::app::command::tool::{Next, Tool, translation};
 use crate::app::command::{Action, Spec, offset};
 use session_rust::{Plane, Point, Xform};
 
+// --8<-- [start:command-move]
 pub const SPEC: Spec = Spec {
     aliases: &["m"],
     ..Spec::new(
@@ -87,6 +88,7 @@ impl Tool for Moving {
     }
 }
 
+// --8<-- [end:command-move]
 #[cfg(test)]
 mod tests {
     use super::*;

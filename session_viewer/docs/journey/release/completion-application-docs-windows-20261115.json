@@ -1,0 +1,182 @@
+{
+  "scope": "Course home plus nine candidate subjects and ten application/rendering chapters, six kernel motion API explanations and delivered sources and fixed build timestamp only; no viewer, hardware or subject acceptance",
+  "stamp": "2026-11-15T17:20:09.766Z",
+  "pageViewportChecks": 40,
+  "toolingExecutions": 68,
+  "toolingNote": "Registration rejection test is executed twice by the selected test import graph;68 is not a count of distinct test definitions.",
+  "artifacts": {
+    "completion-docs13\\resources.json": "e4627600cf4059a1a0994fab02e883a9015f10b084e8ea26036af1fddff65fb3",
+    "completion-docs13\\result.json": "cc430f6b2c61fefbeafa67d9c603d37b74ffe34c4d1adbbaf9e01ecb9f5ebc73",
+    "completion-docs13\\tooling.log": "997fae1516913eccfa3db17ed5858914e0c069ffb9a3780570acef2ae58ef12c",
+    "completion-docs13\\source-review.json": "d98472b339b85efb085fea8e47e927637abd2b4e247e476c997a03ce0e3767e4",
+    "completion-docs-browser15-job\\resources.json": "f06d89c1352c081249fe39cf319fe57fb923b7f372f973bd4c47dcf6997d7a05",
+    "completion-docs-browser15\\result.json": "58e0c0595769a887a419e545d4d26b2771ab6142ce9fec912581e584ae96d694"
+  },
+  "screenshots": [
+    {
+      "file": "readme-1280.png",
+      "sha256": "a45902f3f68394ce71c8ad3d6727270fc7f8495ccdc2b11e4b742d3868cd035d"
+    },
+    {
+      "file": "frame-1280.png",
+      "sha256": "b6daa12b1a97e2688568c6b9fe6640b51d22fe8544a75a4773a89cd080a7095b"
+    },
+    {
+      "file": "painting-1280.png",
+      "sha256": "24134b79563ceb110ce8c2ab191639406025ce6cf5ca8f0a87039ca4d6c36fa7"
+    },
+    {
+      "file": "mathematics-1280.png",
+      "sha256": "ef4c6f244c3bd9ad3a2cdda32710944b86c257da3655d84ac61067b8f1111977"
+    },
+    {
+      "file": "dock-1280.png",
+      "sha256": "3811523d8ce41b463591af568e53788659660b2e5eeb09591618414d32bf165d"
+    },
+    {
+      "file": "camera-1280.png",
+      "sha256": "3e3d43180cf62939efc150210892613b622ed01c76987910941991e6a273a8a5"
+    },
+    {
+      "file": "rows-1280.png",
+      "sha256": "6dcb232ddcbd31bd7c68c12c4c7cd8991c55025f9d0bc3f78299ad187fb44f44"
+    },
+    {
+      "file": "geometry-1280.png",
+      "sha256": "cd575d0dcf4659d31e41d201c50f14ad3054bb2d7ce45a809262cef5474736c5"
+    },
+    {
+      "file": "decoding-1280.png",
+      "sha256": "a2ec53b4f1947719025ba44891a95cd54ab711e7ee96bec5270506cff6afa347"
+    },
+    {
+      "file": "application-1280.png",
+      "sha256": "9a71b793c6a1a02067082896e72d4d05c427a56cf9a81e90022c809d55c4ddea"
+    },
+    {
+      "file": "documents-1280.png",
+      "sha256": "5a8bca7d2abea7e15470e8afa52c657538bba7f3acfdcfec64fbf8f867d02de5"
+    },
+    {
+      "file": "commands-1280.png",
+      "sha256": "0becbb0b83bc54bd80e75c959549dca47652f1bf4142006a7946ff0971e06ea5"
+    },
+    {
+      "file": "loading-1280.png",
+      "sha256": "3d3f3fd53011940e9ac1aba0ae69e00c550d12591ed8dcaeaf3b36da857c7b31"
+    },
+    {
+      "file": "input-1280.png",
+      "sha256": "a7d6795715d3bd4c76c65f035ae61d170479c1813e9642a10d662caa87097e93"
+    },
+    {
+      "file": "debugging-1280.png",
+      "sha256": "deb164bc289eda5ed06e61c7455a7b17a2bcb988532e1ed7337d69edbfcdae9e"
+    },
+    {
+      "file": "stage-scene-1280.png",
+      "sha256": "02db98ac3c34f04daca1c48d2810c5ff441c27823570c752b7004a7699990cba"
+    },
+    {
+      "file": "visibility-1280.png",
+      "sha256": "8b350fff5a865a95cd62d35ded53d6f3eb164b309334c2711530a42bfe1c7668"
+    },
+    {
+      "file": "text-1280.png",
+      "sha256": "09f9a9a32337174c4f550c59fed934b54db98035b76a533067efdd6d6f7c0547"
+    },
+    {
+      "file": "streaming-1280.png",
+      "sha256": "f9ae99050a665cccb0dc7f4e35ccc3bf9e40300bd0f769f6cb08350212c2b658"
+    },
+    {
+      "file": "modeling-1280.png",
+      "sha256": "2eee93755f08eb1eb023748e407d9ae137127476e9bbb27526ec1174e4b516a0"
+    },
+    {
+      "file": "readme-390.png",
+      "sha256": "cad3d0d726a115a24954290cf511aab1ea9e71c8734dedc435fa76343c8939cd"
+    },
+    {
+      "file": "frame-390.png",
+      "sha256": "daa765a6edb086ee6219f6369e16365aa3819dcfdecc570102e826c81d6eb567"
+    },
+    {
+      "file": "painting-390.png",
+      "sha256": "abf5befaef83e23c5cf224724f68e5c790b9e512aaa1c3f018292f0ddb3f7284"
+    },
+    {
+      "file": "mathematics-390.png",
+      "sha256": "9a5f7aca0671014c776ec0ce9ea02f2b6a160008c88ea80abba35c8b02c9ef1d"
+    },
+    {
+      "file": "dock-390.png",
+      "sha256": "19cb72959cef4e793e35a7bd3134ab40bc02ba0d7ca97d4e017b12e51373488f"
+    },
+    {
+      "file": "camera-390.png",
+      "sha256": "6deaed91c1dc33addf0ca0b73afdc0df068d945555abf5260e6d70a7951ab26e"
+    },
+    {
+      "file": "rows-390.png",
+      "sha256": "7ce03a0178c89caee24d7a06453318c62b73cfe61091cd59edf974319e3fed90"
+    },
+    {
+      "file": "geometry-390.png",
+      "sha256": "004ede04aa54779efe72f151bdef65f02b4f98657fc94958bc9afc8ac937272b"
+    },
+    {
+      "file": "decoding-390.png",
+      "sha256": "fac5ca2e1f2c3decae8221071a071b540f4ed45d614e00729e3b4a669f1e8ac2"
+    },
+    {
+      "file": "application-390.png",
+      "sha256": "13f411bd6301ab8489e5f8670ef76ce66ed95c6e7782f9b1ae789da4e64a8305"
+    },
+    {
+      "file": "documents-390.png",
+      "sha256": "039be613b9a4e3a99d22850c4c9d44cdd82b6e5d2d2936dab907ea22fdd9beef"
+    },
+    {
+      "file": "commands-390.png",
+      "sha256": "eba5a5194064435da9e2338fee18b368012544391525d1dec04d7d38a06465ec"
+    },
+    {
+      "file": "loading-390.png",
+      "sha256": "1974350892c9d082b594cb2b6a1c0018607f5278ffd05da183f5d12042b65879"
+    },
+    {
+      "file": "input-390.png",
+      "sha256": "0101dc4b943305f387d8fc524c44ed2a432560eaf0c8bbed0191247c3b4f6f04"
+    },
+    {
+      "file": "debugging-390.png",
+      "sha256": "ff7b7dba7d65ac77807ad3d1fb776939fccfbdbe6f4810a850b42e064d863606"
+    },
+    {
+      "file": "stage-scene-390.png",
+      "sha256": "b30ed8c26f15683e45354092c9bf8461b698c2ea308baf55c249a9ed7f7ed9d1"
+    },
+    {
+      "file": "visibility-390.png",
+      "sha256": "c5aa85c1159fa4b996c75cc95cc37c1790aa7fe75d63e33dbdfea02a7fc5466c"
+    },
+    {
+      "file": "text-390.png",
+      "sha256": "3c3d2148c2b170b21946b698b9b4d3742af00768106a1a4aeae99431d57dbd8d"
+    },
+    {
+      "file": "streaming-390.png",
+      "sha256": "3ccb2b41367c995c275437919aabcf4ef158d841286b806cf1f0d18a002d2a69"
+    },
+    {
+      "file": "modeling-390.png",
+      "sha256": "eb7eeeb44c02a4338be32602c641f47d4e38e30ce2ddbaa515d7ac2e132d2b36"
+    }
+  ],
+  "visualReview": "Owner reviewed4new originals; independent review covered all8 new chapter originals. Earlier32 route images have older-epoch review and are not silently recertified.",
+  "limitations": [
+    "No subject acceptance inferred from a documentation build.",
+    "Source-delivery checks cover six motion API links; not a full website link audit."
+  ]
+}

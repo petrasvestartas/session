@@ -46,6 +46,41 @@
       "subject": "scene rendering",
       "scope": "Seven cumulative modes;185 native pass/13ignored,92 browser captures,4retention tests; candidate teaching incomplete",
       "path": "session_viewer/docs/journey/release/completion-geometry-windows-20261115.json"
+    },
+    {
+      "subject": "decoding",
+      "scope": "Eight cumulative subjects,195 native/14ignored,98 browsercaptures; real parser error and recovery.",
+      "path": "session_viewer/docs/journey/release/completion-decoding-windows-20261115.json"
+    },
+    {
+      "subject": "application",
+      "scope": "Nine-subject exactsource endpoint,82 targetednative/12ignored,default/tutorialwasm,own-source optimized build,8productionmatching frames;equilibrium38 settled steps. Teaching incomplete.",
+      "path": "session_viewer/docs/journey/release/completion-application-windows-20261115.json"
+    },
+    {
+      "subject": "application interactions",
+      "scope": "All five cumulative decks554forwardsteps/184captures,14input,6contextualerrors,12document,14commandcaptures;189stage/command native and6input native. Scoped, course incomplete.",
+      "path": "session_viewer/docs/journey/release/completion-application-interactions-windows-20261115.json"
+    },
+    {
+      "subject": "application full native",
+      "scope": "609 default native PASS,60ignored; no device/GPU acceptance inferred.",
+      "path": "session_viewer/docs/journey/release/completion-application-full-native-windows-20261115.json"
+    },
+    {
+      "subject": "reconstructed fixture browser smoke",
+      "scope": "8cases/40captures; Save/Open still-loaded scene. Exact component JSON byte check FAIL; no Close-document claim.",
+      "path": "session_viewer/docs/journey/release/completion-application-fixtures-windows-20261115.json"
+    },
+    {
+      "subject": "feature pixels",
+      "scope": "Two viewport runs verify locked originals, exact Element identity, deleted unpickability, Undo and changed-scene archive replacement.",
+      "path": "session_viewer/docs/journey/release/completion-feature-picking-windows-20261115.json"
+    },
+    {
+      "subject": "application chapters",
+      "scope": "Strictdocs/68tooling executions and40page-viewport checks with build UTC stamp; actual newchapter visual review scoped.",
+      "path": "session_viewer/docs/journey/release/completion-application-docs-windows-20261115.json"
     }
   ],
   "open": [
@@ -54,6 +89,7 @@
     "Finished ownership and actual per-file teaching",
     "Structural and production endpoint parity",
     "Full cumulative browser and device acceptance",
-    "Production changes since the pinned destination"
+    "Production changes since the pinned destination",
+    "Fresh browser archive exact component JSON byte mismatch; production normalizes spacing/key order. Behavior-change clarification pending."
   ]
 }

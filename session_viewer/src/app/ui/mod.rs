@@ -11,6 +11,7 @@ mod phone; // register:phone
 mod pointer; // register:pointer
 mod theme; // register:theme
 
+// --8<-- [start:application-panels]
 /// Declare each panel's module and list it in PANELS, so a panel is one file plus one line.
 macro_rules! panels {
     ($($name:ident),* $(,)?) => {
@@ -27,6 +28,7 @@ panels! {
     layers,       // register:layers
 }
 
+// --8<-- [end:application-panels]
 /// One panel. Its state lives in its own file; these hooks are all the frame needs from it.
 trait Panel {
     /// Copy what it shows from the viewer, before the frame.

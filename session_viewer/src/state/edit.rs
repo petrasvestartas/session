@@ -866,6 +866,7 @@ impl State {
 #[cfg(test)]
 mod egui_tests {}
 
+// --8<-- [start:command-dispatch]
 impl State {
     /// Run one command line; the answer is what to show the person.
     pub fn run_command(&mut self, line: &str) -> Result<String, String> {
@@ -935,6 +936,7 @@ impl State {
     }
 }
 
+// --8<-- [end:command-dispatch]
 impl State {
     /// Tell the GPU where the gizmo is and which handle lights up.
     pub fn upload_gizmo(&mut self) {

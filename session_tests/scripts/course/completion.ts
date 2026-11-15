@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {viewer, type Files, materializedContent} from './model.ts';
 
-export const completionSubjects = ['frame', 'painting', 'mathematics', 'dock', 'camera', 'rows', 'geometry'] as const;
+export const completionSubjects = ['frame', 'painting', 'mathematics', 'dock', 'camera', 'rows', 'geometry', 'decoding', 'application'] as const;
 const mathematics = ['actions', 'check', 'deck', 'draw', 'eval', 'font', 'geometry', 'layout',
     'matrix', 'math_mode', 'morph', 'net', 'object', 'paint', 'presentation',
     'presentation_tests', 'run', 'tests', 'tex', 'tween', 'view'];
@@ -32,7 +32,7 @@ export function completionFiles(subject: string, read = (name: string) =>
         + declarations(root, ['engine', 'app', 'course',
             ...(stage >= 3 ? ['command_dock'] : []), ...(stage >= 4 ? ['camera'] : [])]);
     files['src/engine/mod.rs'] = declarations(read('src/engine/mod.rs'), ['gpu', ...(stage >= 5 ? ['pipelines', 'performance', 'diagnostics'] : [])]);
-    files['src/app/mod.rs'] = declarations(read('src/app/mod.rs'), ['launch', ...(stage >= 2 ? ['mode', 'stage'] : []), ...(stage >= 6 ? ['walk', 'gizmo', 'knobs', 'interactions'] : [])]);
+    files['src/app/mod.rs'] = declarations(read('src/app/mod.rs'), ['launch', ...(stage >= 2 ? ['mode', 'stage'] : []), ...(stage >= 6 ? ['walk', 'gizmo', 'knobs', 'interactions'] : []), ...(stage >= 7 ? ['decode', 'validate', 'yielding'] : [])]);
     files['src/engine/gpu/mod.rs'] = declarations(read('src/engine/gpu/mod.rs'), ['device', ...(stage >= 1 ? ['ui'] : []), ...(stage >= 5 ? ['buffers', 'hull', 'instance', 'objects'] : [])]);
     const registrations = read('examples/course/registration.rs');
     const names = ['canvas', ...completionSubjects.slice(0, stage + 1)];
@@ -40,7 +40,7 @@ export function completionFiles(subject: string, read = (name: string) =>
         + declarations(registrations, names)
         + '\ntype Start = fn() -> Result<(), wasm_bindgen::JsValue>;\n'
         + 'pub(super) const STARTS: &[(&str, Start)] = &[\n'
-        + completionSubjects.slice(0, stage + 1).map(name => `    ("${name}", ${name}::start),\n`).join('')
+        + completionSubjects.slice(0, stage + 1).map(name => `    ("${name}", ${name === 'application' ? 'crate::run_web' : `${name}::start`}),\n`).join('')
         + '];\n// --8<-- [end:course-registration]\n';
     if (stage >= 1) {
         retain('src/engine/gpu/ui.rs');
@@ -86,6 +86,19 @@ export function completionFiles(subject: string, read = (name: string) =>
         for (const name of ['gizmo', 'knobs', 'interactions']) retain(`src/app/${name}.rs`);
         retain('examples/course/geometry.rs');
     }
+    if (stage >= 7) {
+        for (const name of ['decode', 'validate', 'yielding']) retain(`src/app/${name}.rs`);
+        retain('examples/course/decoding.rs');
+    }
+    if (stage >= 8) {
+        // The complete source lives in this checkpoint; no dependency on a viewer binary or crate.
+        for (const relative of fs.readdirSync(path.join(viewer, 'src'), {recursive: true})) {
+            const name = `src/${String(relative).replaceAll('\\', '/')}`;
+            if (fs.statSync(path.join(viewer, name)).isFile()) retain(name);
+        }
+        // Keep the teaching entry page; production startup is a new, independently built entry.
+        files['production.html'] = read('index.html');
+    }
     files['Cargo.toml'] = read('Cargo.toml').replace('path = "../session_rust"', 'path = "../../../session_rust"');
     files['Cargo.lock'] = read('Cargo.lock');
     files['index.html'] = read('examples/course/index.html');
@@ -94,6 +107,10 @@ export function completionFiles(subject: string, read = (name: string) =>
 
 export function materializeCompletion(subject: string, output: string) {
     const files = completionFiles(subject);
+    const application = completionSubjects.indexOf(subject as typeof completionSubjects[number]) >= 8;
+    const builtDocs = path.join(viewer, 'target/docs/vue');
+    if (application && !fs.existsSync(builtDocs))
+        throw Error('Build the documentation site before materializing the production startup page');
     // mkdir without recursive refuses existing work, including an existing symlink.
     fs.mkdirSync(path.dirname(output), {recursive: true});
     fs.mkdirSync(output);
@@ -106,6 +123,12 @@ export function materializeCompletion(subject: string, output: string) {
     fs.symlinkSync(path.join(viewer, 'assets'), path.join(output, 'assets'), 'junction');
     if (completionSubjects.indexOf(subject as typeof completionSubjects[number]) >= 2)
         fs.symlinkSync(path.join(viewer, 'examples/stage'), path.join(output, 'examples/stage'), 'junction');
+    if (application) {
+        fs.mkdirSync(path.join(output, 'target/docs'), {recursive: true});
+        fs.symlinkSync(builtDocs, path.join(output, 'target/docs/vue'), 'junction');
+        fs.mkdirSync(path.join(output, 'tests'));
+        fs.symlinkSync(path.join(viewer, 'tests/fixtures'), path.join(output, 'tests/fixtures'), 'junction');
+    }
     return {subject, output, sourceFiles: Object.keys(files).length,
         status: 'candidate; compilation and browser acceptance required'};
 }

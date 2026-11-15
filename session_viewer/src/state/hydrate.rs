@@ -44,6 +44,7 @@ impl State {
         reason
     }
 
+// --8<-- [start:loading-hydration]
     /// A released document's objects came back, or could not.
     pub fn hydrated(&mut self, back: Hydrated) {
         // a fetch for a replaced scene or an older release is dropped quietly
@@ -76,6 +77,7 @@ impl State {
         self.touch();
     }
 
+// --8<-- [end:loading-hydration]
     /// Idle work between edits: one kernel purge step, frames kept coming until the cycle ends.
     pub(crate) fn purge_idle(&mut self) {
         let gesture = self.features.dragging.is_some() || self.features.control_drag.is_some();

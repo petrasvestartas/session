@@ -12,7 +12,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[cfg(target_arch = "wasm32")]
-use super::fetch::next_tick;
+use super::yielding::next_tick;
 
 /// Nothing to wait for outside the browser.
 #[cfg(not(target_arch = "wasm32"))]

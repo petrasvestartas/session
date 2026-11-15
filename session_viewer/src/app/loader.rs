@@ -84,6 +84,7 @@ async fn after_loads() {
     }
 }
 
+// --8<-- [start:loading-generations]
 /// Clear the scene and stop every stream.
 fn clear_scene() {
     GENERATION.set(GENERATION.get().wrapping_add(1));
@@ -107,6 +108,7 @@ pub(super) fn post(msg: Msg) -> bool {
     })
 }
 
+// --8<-- [end:loading-generations]
 /// The point ceiling, from `?points=` or the default.
 fn max_points() -> u32 {
     knob_u32("points").unwrap_or(STREAM_MAX_POINTS)

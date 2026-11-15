@@ -345,6 +345,7 @@ fn middle_planes(
     planes
 }
 
+// --8<-- [start:selftest-pixels]
 /// Write RGBA pixels as a PPM image.
 pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
     use std::io::Write;
@@ -356,6 +357,7 @@ pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Res
     f.flush()
 }
 
+// --8<-- [end:selftest-pixels]
 fn drain_refinement(
     rows: usize,
     mut step: impl FnMut() -> (bool, bool),

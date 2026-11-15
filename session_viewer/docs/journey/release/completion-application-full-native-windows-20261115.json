@@ -1,0 +1,267 @@
+{
+  "scope": "All default native library tests on the cumulative application-check02 own-source snapshot. Source epoch17 marker-only files; later marker epochs require separate review.",
+  "passed": 609,
+  "failed": 0,
+  "ignored": [
+    {
+      "test": "app::decode::tests::local_files_match_the_kernel_reader",
+      "reason": "reads the local scene files"
+    },
+    {
+      "test": "app::scene::instances::tests::gpu::ambient_occlusion_of_turned_instances",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::instances::tests::gpu::bench_frames",
+      "reason": "benchmark: INSTANCING_BENCH=<scene.pb>, run with buildslot --exclusive"
+    },
+    {
+      "test": "app::scene::instances::tests::gpu::instance_edits_write_their_own_slots",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::instances::tests::gpu::instanced_file_against_its_baked_twin",
+      "reason": "measurement: INSTANCING_PAIR=<instanced.pb>,<baked.pb>"
+    },
+    {
+      "test": "app::scene::instances::tests::gpu::instanced_frames_match_the_baked_scene",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::sync::split_tests::gpu::arrowheads_follow_edits",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::sync::split_tests::gpu::bench_edit_phases",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::sync::split_tests::gpu::compaction_is_exact_and_shrinks",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::sync::split_tests::gpu::edit_then_undo_is_pixel_and_id_identical",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::sync::split_tests::gpu::kill_leaves_no_pixels_and_no_ids",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::scene::sync::split_tests::gpu::streamed_rows_survive_edits_and_compaction",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::walk::frames::gpu_tests::a_solid_hides_the_grid_not_the_arrows",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "app::walk::frames::gpu_tests::plane_stress",
+      "reason": ""
+    },
+    {
+      "test": "app::walk::tests::contacts_on_their_face_draw_in_front_of_it",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::backdrop::gpu_tests::actual_grid_pixels_keep_far_fractions_and_return_to_the_same_near_frame",
+      "reason": "requires Windows WARP and the adjacent DXC libraries"
+    },
+    {
+      "test": "engine::gpu::backdrop::gpu_tests::the_grid_lies_on_the_construction_plane",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::a_cut_cube_caps_its_section_and_nothing_else",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::a_dowel_inside_a_beam_never_shows_through",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::a_nested_section_picks_the_innermost_solid",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::a_plane_on_a_face_shows_one_thing",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::an_open_mesh_gets_no_cap",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::brep_sections_are_watertight",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::cut_away_geometry_cannot_be_picked",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::far_from_the_origin_the_section_holds",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::from_the_kept_side_the_cap_hides_behind_kept_faces",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::ink_lanes_lose_the_cut_part",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::instanced_solids_cap_like_baked_ones",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::mirrored_and_inward_solids_cap_like_any_other",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::overlapping_boxes_are_capped_as_their_union",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::sections_default_to_light_grey_with_black_boundaries",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::stacked_boxes_cut_where_they_meet",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::clip::editing_tests::gpu::two_planes_cap_the_corner",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::context::initial_prewarm_reuses_pipelines_and_leaves_other_modes_lazy",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::device::invalid_gpu_shader_is_fatal",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::objects::gpu_tests::one_row_moves_and_its_neighbour_does_not",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::ssao::tests::bench_ambient",
+      "reason": "benchmark, requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::ssao::tests::benchmark_arctic",
+      "reason": "native GPU benchmark; run with buildslot --exclusive"
+    },
+    {
+      "test": "engine::gpu::ssao::tests::navigation_preserves_the_same_image_and_needs_no_settling",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::ssao::tests::occlusion_darkens_contact_and_releases_its_small_uniform",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::ssao::tests::rotation_reprojects_ground_shadows_without_erasing_them",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::ssao::tests::toggles_and_resizes_compile_nothing_after_the_first_frame",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::bench_outline",
+      "reason": "benchmark, requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::curved_and_flat_outlines_keep_the_same_width_when_edges_are_shown",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::outline_captures",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::selected_cad_edges_do_not_paint_over_the_black_silhouette",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::selected_silhouette_is_black_visible_only_and_releases_coverage",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::toggles_flips_and_resizes_compile_nothing_twice",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::surface_outline::tests::touching_and_overlapping_solids_have_one_continuous_outline",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::text::plane::tests::fixed_plane_obeys_solid_depth_orientation_cache_and_release",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::text::tests::actual_glyph_coverage_obeys_depth_clip_motion_and_release",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::text::tests::continuous_world_scale_evicts_without_reshaping_or_stale_instances",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::text::tests::nameplate_has_black_background_white_ink_centering_and_clean_release",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::text_outline::tests::canceled_completion_is_discarded_and_next_pick_still_completes",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::text_outline::tests::isolated_outline_keeps_coverage_selection_and_identity",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::triangle_tiles::tests::a_resting_view_consumes_overflow_and_stops_redrawing_after_growth",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::triangle_tiles::tests::a_slow_drag_drops_lists_a_scene_change_left_behind",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::gpu::triangle_tiles::tests::projection_cache_tracks_camera_hidden_state_replacement_and_release",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "engine::pipelines::geometry::meshes_tests::pipelines_compile_on_first_use_and_once_per_target",
+      "reason": "requires a native GPU adapter"
+    },
+    {
+      "test": "state::edit::egui_tests_25::the_widget_reaches_the_pixels",
+      "reason": "requires a native GPU adapter"
+    }
+  ],
+  "filtered": 0,
+  "testSeconds": 342.75,
+  "resource": {
+    "platform": "windows-job-object",
+    "exitCode": 0,
+    "elapsedSeconds": 353.006,
+    "peakJobCommitBytes": 1167511552,
+    "processors": 2,
+    "memoryLimitBytes": 6442450944
+  },
+  "artifacts": {
+    "result.json": "4f64a4307253e896521c6b97eaddedfa491c6c833b32ace9eb0869150799bed4",
+    "resources.json": "27de173266c75139723a128b9773ecea790bd6a7cb16bdd4e7f7e5954d2a3b9d",
+    "native-all.log": "ba04ef7a2e35739720638198a5db4252e488ff10e5a0e95cc7f22fcec71171c2",
+    "plan.json": "f7b345d22a290d801472634057d9d8170d9fec7c2334d450181d4ce84ffe2cc8"
+  },
+  "limitations": [
+    "Ignored tests remain unaccepted; this is not physical-device, MSAA4 or GPU-picking acceptance.",
+    "Native success does not establish lesson teaching completeness or cumulative browser acceptance."
+  ]
+}

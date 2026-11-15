@@ -15,6 +15,8 @@ mod camera;
 mod rows;
 #[path = "geometry.rs"]
 mod geometry;
+#[path = "decoding.rs"]
+mod decoding;
 
 type Start = fn() -> Result<(), wasm_bindgen::JsValue>;
 pub(super) const STARTS: &[(&str, Start)] = &[
@@ -25,6 +27,8 @@ pub(super) const STARTS: &[(&str, Start)] = &[
     ("camera", camera::start),
     ("rows", rows::start),
     ("geometry", geometry::start),
+    ("decoding", decoding::start),
+    ("application", crate::run_web),
     ("viewer", crate::run_web),
 ];
 // --8<-- [end:course-registration]

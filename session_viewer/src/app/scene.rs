@@ -32,6 +32,7 @@ use std::rc::{Rc, Weak};
 pub const READ_ONLY: &str =
     "Streamed objects are display only: select, hide and query them, but they cannot be edited";
 
+// --8<-- [start:document-placement]
 /// One loaded file and its placement.
 pub struct FileDoc {
     pub name: String,         // display name
@@ -40,6 +41,7 @@ pub struct FileDoc {
     pub point_px: f32,        // point size override, 0 = the file's own
     pub display_only: bool,   // a streamed shell with no kernel objects
 }
+// --8<-- [end:document-placement]
 
 /// What a pick landed on.
 #[derive(Clone, Debug)]

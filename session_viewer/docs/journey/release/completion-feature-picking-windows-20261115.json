@@ -1,0 +1,148 @@
+{
+  "scope": "Actual original feature pixels at two sizes: locked-owner rejection, original Element identity, Delete/Undo derived ribbon counts, and replacement of a changed scene from saved archive; no metadata-byte or physical-phone acceptance",
+  "cases": [
+    {
+      "fixture": "course-feature-pick",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-feature-pick-1280-initial.png",
+          "sha256": "ed1d73e8a7ff9607d38948741916cd32aee5bcad252e41050ae9cf8339988bac",
+          "pixels": "0f5e635ee7bcb927827bce6845a127f4c4ee75c5e49b180b24c0ffef5ce35716",
+          "ink": 8300
+        },
+        {
+          "name": "locked-rejected",
+          "file": "course-feature-pick-1280-locked-rejected.png",
+          "sha256": "36c8fca05251443d2ac97d65281f2f70b77e9459691e93868c03c194c5da0861",
+          "pixels": "514cc7f3a92a585380c80d5bc43452ddfe9dc4244a35a3e7c6db95e0a34e6296",
+          "ink": 8272
+        },
+        {
+          "name": "original-selected",
+          "file": "course-feature-pick-1280-original-selected.png",
+          "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606",
+          "pixels": "b4cb0f773f100d24d7c4f353396e34432944544074456003c9434b46125073fb",
+          "ink": 16991
+        },
+        {
+          "name": "deleted",
+          "file": "course-feature-pick-1280-deleted.png",
+          "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c",
+          "pixels": "3966103cc1f7f3e25597979837807de5acd4c80919ab15e3350053038bdf1525",
+          "ink": 6776
+        },
+        {
+          "name": "undone",
+          "file": "course-feature-pick-1280-undone.png",
+          "sha256": "61ad146135ebb7ce248e2d78e128dcd635df236b4b67d55f8e3f1feea21137f5",
+          "pixels": "d4a00ba3056e077a671fb0405cbc48c15ec9316d863e73f865b3d32b29f8f4bc",
+          "ink": 8041
+        },
+        {
+          "name": "replaced-from-archive",
+          "file": "course-feature-pick-1280-replaced-from-archive.png",
+          "sha256": "8f8ccdc3602fb099e4ae9586e01c6187a21fdd8273103e90edacc6f31e970a31",
+          "pixels": "a96b154f1d53c635542e29a3b5909d73925a3e6898da1d04f2ce9666250cf59a",
+          "ink": 8275
+        }
+      ],
+      "saved": {
+        "file": "course-feature-pick-1280-saved.session",
+        "sha256": "4c7aad0fffe205eafefc29ed6bc40d1615b6440dba53b0da6c481791a079ecbc"
+      },
+      "selectedIdentity": [
+        0,
+        "pick-first"
+      ],
+      "deletedObjects": 1,
+      "retainedRibbons": 2,
+      "restoredObjects": 2,
+      "restoredRibbons": 2
+    },
+    {
+      "fixture": "course-feature-pick",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-feature-pick-390-initial.png",
+          "sha256": "a9fe5e3a475f776b9e5c0053b462efcc50a0e4763ebe556dd13daabcf7a6d651",
+          "pixels": "8623bf78081eb6adfa3ccd1502a0d68718af087bd479e679fd4ccdedf23be565",
+          "ink": 4300
+        },
+        {
+          "name": "locked-rejected",
+          "file": "course-feature-pick-390-locked-rejected.png",
+          "sha256": "d7dca1c27a852aade436625999831d49efd9704b78f64d61b14b858a230f717d",
+          "pixels": "e5f6db36b94abfce1936e9cb3e7778db32dd38b45949936a5d98ff967fc74380",
+          "ink": 4272
+        },
+        {
+          "name": "original-selected",
+          "file": "course-feature-pick-390-original-selected.png",
+          "sha256": "791f8c91e74616b0cf3259fa0ddea821b10fea96aab9013a118ddd07be407ff1",
+          "pixels": "6bebf7d8dc8a3c8f6021592e28c8f9e9bb8e00d2f5e5b714357b0fd4c84c55da",
+          "ink": 8605
+        },
+        {
+          "name": "deleted",
+          "file": "course-feature-pick-390-deleted.png",
+          "sha256": "08c6266f324ad8fea53aa32d3721c9e52dbca9fd3fc5fae0ab0b5870cf9a1b19",
+          "pixels": "f51505fac2e1849a8ac67886fc911ec71c2660dc5c46e95dfb4d47a82e320271",
+          "ink": 3641
+        },
+        {
+          "name": "undone",
+          "file": "course-feature-pick-390-undone.png",
+          "sha256": "562cee3282f53017a5e356d981d764ac1ebc64526fbd9ec645f6a01b766a7940",
+          "pixels": "99a285466c51c201915fd9952c8bf4e37abc63016113b7af921b540801b48e8b",
+          "ink": 4041
+        },
+        {
+          "name": "replaced-from-archive",
+          "file": "course-feature-pick-390-replaced-from-archive.png",
+          "sha256": "a9dcb16e94991fdc2b5b4b0df21780304e97edafe86b2754d62ef87f54810d03",
+          "pixels": "933f735db398e2be2534b3bc00a6444d5589c7f955db599cbd300ba3d14e0918",
+          "ink": 4275
+        }
+      ],
+      "saved": {
+        "file": "course-feature-pick-390-saved.session",
+        "sha256": "27f2de93cd28b7a75abaa41de99407417d8961c7b17c8fc44371e9a5550fa71d"
+      },
+      "selectedIdentity": [
+        0,
+        "pick-first"
+      ],
+      "deletedObjects": 1,
+      "retainedRibbons": 2,
+      "restoredObjects": 2,
+      "restoredRibbons": 2
+    }
+  ],
+  "resource": {
+    "exitCode": 0,
+    "elapsedSeconds": 142.739,
+    "peakJobCommitBytes": 698146816,
+    "processors": 2,
+    "jobCommitLimitBytes": 6442450944
+  },
+  "artifacts": {
+    "resources.json": "e5427024bcb72e82a2f57f493988ba458f6563a61a86d6d6e6f9ce61270dc732",
+    "started.json": "2b4dad18a13b4b7e6d40b3390ddd9b24e5765350a0cc2a7c2d203eccd55abef4",
+    "captures/result.json": "57fa2cb1aeae17016d2b22a20f801eeb848e6882bd26c9e33b08bde6610b6049"
+  },
+  "preservedFailure": "feature-pick01 expected immediate ribbon allocation removal; production tombs.rs retains hidden lane rows for Undo. feature-pick02 asserts retained allocation AND actual unpickability, then restoration. No production change.",
+  "limitations": [
+    "No physical-device or broad MSAA4 rendering acceptance.",
+    "Exact component JSON byte preservation remains failed in archive01."
+  ]
+}

@@ -3,6 +3,7 @@ use session_rust::history::{Op, Transaction};
 use session_rust::{History, Session};
 use std::rc::Rc;
 
+// --8<-- [start:document-history-notes]
 /// Commit the open transaction and report the source objects it touched.
 pub(crate) fn commit(session: &mut Session) -> Vec<Note> {
     let notes = session
@@ -27,6 +28,7 @@ pub(crate) fn stepped(history: &History, back: bool) -> Vec<Note> {
         .unwrap_or_default()
 }
 
+// --8<-- [end:document-history-notes]
 /// Convert history operations to invalidations; undo visits them in reverse order.
 fn notes(transaction: &Transaction, back: bool) -> Vec<Note> {
     let mut notes = Vec::with_capacity(transaction.ops.len());

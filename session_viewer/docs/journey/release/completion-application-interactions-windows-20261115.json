@@ -1,0 +1,1450 @@
+{
+  "status": "scoped cumulative application evidence; whole course incomplete",
+  "runtimeSource": "application-check02 own-source snapshot and application-browser-build01 optimized bundle; not current unbuilt marker additions",
+  "sourceReview": "completion-docs12/source-review.json verifies all 351 current source files equal snapshot after removing 14 reviewed inclusion-marker additions",
+  "runs": [
+    {
+      "run": "application-stage01",
+      "scope": "Cumulative application equilibrium deck: every settled step, overlaps, backward navigation and theme; no historical pixel replay assertion or physical device claim",
+      "browser": "157.0.8103.51",
+      "cases": 2,
+      "screenshots": 8,
+      "resultSha256": "b273111114a155dbec1e38b8991eba7affbff803566bcf796b6c1a329aedae6e",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:14:59.6251336Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 13.436,
+        "peakJobCommitBytes": 691810304,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 39260,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1280-back.png",
+          "sha256": "dbd36a92697e51f997095b0f352b578f00c451cdf9461241ac49c89a7f20955b"
+        },
+        {
+          "file": "1280-dark.png",
+          "sha256": "2d151bc30c388a48a7fae8e510a3039028c8c20f56db252ddf6c1bd20ab27446"
+        },
+        {
+          "file": "1280-first.png",
+          "sha256": "a85c68b89fe1b5e738f622581bdb197a99af55d4de39062aa7c28232ef8434c6"
+        },
+        {
+          "file": "1280-last.png",
+          "sha256": "d5e1e694f2807a32f948f87cf0a2ea35ee730acf2ee95c7b024df5163502b52a"
+        },
+        {
+          "file": "390-back.png",
+          "sha256": "c8d48efb28e29bc83c8ebaf04c12b7a21aae3ce54e79226d7f1f3c4d0287763b"
+        },
+        {
+          "file": "390-dark.png",
+          "sha256": "c24cd679b290fe1c46213d7090324b3165c6a015241721fa24945ce4ecf3b788"
+        },
+        {
+          "file": "390-first.png",
+          "sha256": "f6d25b88018bac32c99421b1b8297a669ba53a699c1b8bee8e7152543612d6ab"
+        },
+        {
+          "file": "390-last.png",
+          "sha256": "1a9d0695791bdd612ff12126bc7a8e405fa03f6af0e16ad1dd14acbbc4881373"
+        }
+      ],
+      "forwardSteps": 38,
+      "adapters": [
+        {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "run": "application-stage02",
+      "scope": "Cumulative application force-density deck, five chapters: every settled step, overlaps, backward navigation and theme; no historical pixel replay assertion or physical device claim",
+      "browser": "157.0.8103.51",
+      "cases": 10,
+      "screenshots": 40,
+      "resultSha256": "36043669b2751d1d4548a8b0fd334a272b11b46d60c0cbf6dad9b4bc32d4e8f2",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:19:08.1220793Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage02",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage02.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 44.511,
+        "peakJobCommitBytes": 908865536,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 24980,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1-1280-back.png",
+          "sha256": "3646e64130f3a22509913e79850b33bb3d619de9ed9ee9518b2caa8197616b41"
+        },
+        {
+          "file": "1-1280-dark.png",
+          "sha256": "9925fb3c208d268f8eca6198b8b0ee528a778e44bca7f31f5ad6ea8fa91e8ba9"
+        },
+        {
+          "file": "1-1280-first.png",
+          "sha256": "0fc0117d305d9d9001681bb52f41899869ed0fecc94431b400027b5cad6c3ca2"
+        },
+        {
+          "file": "1-1280-last.png",
+          "sha256": "4525ba1cbffbcdfc6da421c020ae8355bd84a921e47237d7a666b62944fe3700"
+        },
+        {
+          "file": "1-390-back.png",
+          "sha256": "93977bed55ac55c4bf017fb25b13e9f9c65bf4ccce9a64f983132d056083d10c"
+        },
+        {
+          "file": "1-390-dark.png",
+          "sha256": "f1fe06f38638975ee82e272df8349eb128dca4971a3e2c78b3367f7926cefc71"
+        },
+        {
+          "file": "1-390-first.png",
+          "sha256": "1128c053675b477337b1e1bd5bff807c3da0683f31c74b18d23512f09229229c"
+        },
+        {
+          "file": "1-390-last.png",
+          "sha256": "3e3afa4194aaa1039982379c8a8b92ff65204115947677bf59bc674798f7793f"
+        },
+        {
+          "file": "2-1280-back.png",
+          "sha256": "87ddc7a3e389dd42f5b9f02e58f281dd8f349beffd57bc67be56b7563e42352d"
+        },
+        {
+          "file": "2-1280-dark.png",
+          "sha256": "b72ec9055a72fb0091742c7c9ef77e821742744375c2dfff56ff2d596ff7c115"
+        },
+        {
+          "file": "2-1280-first.png",
+          "sha256": "54e1216909bcb51d46353413acacd820e1f893154fe065a6341e86453fad6dc7"
+        },
+        {
+          "file": "2-1280-last.png",
+          "sha256": "6e81675a921b3b3a02cc58422071b943a0ce5ff1e1dbb748ac2dad8f01eea95c"
+        },
+        {
+          "file": "2-390-back.png",
+          "sha256": "fcb50ac0c4b3c97b361ee2f0ba729f892f82fb8dba9fc44b9b2edadd5f33ca2b"
+        },
+        {
+          "file": "2-390-dark.png",
+          "sha256": "7ef9adb30386ed0efc807129b1c340b6a6455ec5c00ff928c6c83e61605e79bb"
+        },
+        {
+          "file": "2-390-first.png",
+          "sha256": "f02d2a2930c1acf0f0d9e05402721d63891d1be19661bbf96e7e1621ee395eca"
+        },
+        {
+          "file": "2-390-last.png",
+          "sha256": "f5b46bfef739c0f92d228d668b066a1692e0f79db6d540e2a64ce5820a754529"
+        },
+        {
+          "file": "3-1280-back.png",
+          "sha256": "bed3205bdeb10b1fb284ce95a16bf4bfc96e7c2b92df797c9dc7c2d3dd18873e"
+        },
+        {
+          "file": "3-1280-dark.png",
+          "sha256": "08683f5227df5d8f54912ee0244c0bd609d38187cda8b0cfd65e8fc55f8ad65e"
+        },
+        {
+          "file": "3-1280-first.png",
+          "sha256": "bf9a8f1421089e5681d4047118a388191ccdb53b17a04a8088c51665b0beced1"
+        },
+        {
+          "file": "3-1280-last.png",
+          "sha256": "71597e7a81be0cfb066d01980876b0d125e09ac3d33eb5013445ed19079fc7ea"
+        },
+        {
+          "file": "3-390-back.png",
+          "sha256": "7ec93bab79088cc6e16112e3669f6aa60763a196422dbae26262dbe41da3be7e"
+        },
+        {
+          "file": "3-390-dark.png",
+          "sha256": "088bff5f650529ae3badb6b3f5a75da364a2f468982571e08c43fa12657d0e9c"
+        },
+        {
+          "file": "3-390-first.png",
+          "sha256": "049467161042f4e419779bf830c34677bb8def11a9202cb2fb4e976356e15459"
+        },
+        {
+          "file": "3-390-last.png",
+          "sha256": "6a14d40d071c80c5f9936a2e3201725bda71e5b193b4de01bde1317783aa7fe6"
+        },
+        {
+          "file": "4-1280-back.png",
+          "sha256": "a349b7c5521d108cc380f6879f4e787c963b9e3c8c9a735dfed55229fdd05010"
+        },
+        {
+          "file": "4-1280-dark.png",
+          "sha256": "33054ff70da77e6168c75d3509a1b8e45c6940553fefd1c7ff1d7ac56032b212"
+        },
+        {
+          "file": "4-1280-first.png",
+          "sha256": "fa8700738342ac63fbfcbbf8101b18cd7f212009b7afc53f9d050807830bdd5e"
+        },
+        {
+          "file": "4-1280-last.png",
+          "sha256": "dff5a16ed50d8768b97a8652f404ab346b75fddd1484af59f16838d043c8f1f1"
+        },
+        {
+          "file": "4-390-back.png",
+          "sha256": "797e027de99cd0f2be2916a991d8311882b6224615c23de137a757ab0d90ce3f"
+        },
+        {
+          "file": "4-390-dark.png",
+          "sha256": "b3ec53dfb3d5097d9c1f5928f2d1a069a38c042e14b781b470bcb2006240bc32"
+        },
+        {
+          "file": "4-390-first.png",
+          "sha256": "d5dcff0b3e0913112ea0a8d40a0da5127a6c9ac637b91e73260a8ef42864b6e4"
+        },
+        {
+          "file": "4-390-last.png",
+          "sha256": "db67e2ab15ad2829dd1d5f1a93d43a48b52079f65725ede79201ca1b3c2cede5"
+        },
+        {
+          "file": "5-1280-back.png",
+          "sha256": "c4352d5e8f38a208c3cac7fddb2b291564f98f8f6b54cf2c55e4de81508e9793"
+        },
+        {
+          "file": "5-1280-dark.png",
+          "sha256": "ec00d4a486c50f2bd94ca29b90a74c89a159dcf7b7cd69917370fcaf1b4fd61e"
+        },
+        {
+          "file": "5-1280-first.png",
+          "sha256": "a277d85890fb9d87a46ad1a88d479ef2d3aa7d998b7fa352da0a1977b727107a"
+        },
+        {
+          "file": "5-1280-last.png",
+          "sha256": "1fb31e66c5f094c98891e41caf55378e55f21fab976844d1d05f490f1d79c945"
+        },
+        {
+          "file": "5-390-back.png",
+          "sha256": "f067137c3444f53c4adb0678d9649f67bdcf19fe987df8925d49ae2e6b3877aa"
+        },
+        {
+          "file": "5-390-dark.png",
+          "sha256": "18175570c9523bb5de66724660a3f109ea06452a30657e6dcfd339e1a9a88aff"
+        },
+        {
+          "file": "5-390-first.png",
+          "sha256": "cc0c9804463aba932668caee9154db9bf9785aac94c05f55a6cea053df31709b"
+        },
+        {
+          "file": "5-390-last.png",
+          "sha256": "8b5731b1ee3182d57a29bda5b06a464023fb96e0e82c7c839ebd9f7ce0a1ecf2"
+        }
+      ],
+      "forwardSteps": 128,
+      "adapters": [
+        {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "run": "application-stage03",
+      "scope": "Cumulative application force-density-matrices deck, eight chapters: every settled step, overlaps, backward navigation and theme; no historical pixel replay assertion or physical device claim",
+      "browser": "157.0.8103.51",
+      "cases": 16,
+      "screenshots": 64,
+      "resultSha256": "b287ed22a919cdaab2335e8479be35e2ea84dc8fcdbbc002c9360c775b926b1f",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:20:36.2971847Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage03",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage03.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 64.974,
+        "peakJobCommitBytes": 824176640,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 42928,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1-1280-back.png",
+          "sha256": "45c6861af63810082eeddb39668a2171afcb8208ee04612da3e9ef1c69ad9aa3"
+        },
+        {
+          "file": "1-1280-dark.png",
+          "sha256": "f0ed7355b20b3e600bf431a73d7d0cb6ce5f6d56f4171ce1cbbbbb3e839d45c7"
+        },
+        {
+          "file": "1-1280-first.png",
+          "sha256": "7833825427be64a5e4907612924b05cc0c4be8b6074a4841e82b7046cdad7bac"
+        },
+        {
+          "file": "1-1280-last.png",
+          "sha256": "18ac5d0bfca635a56571312df43fa9dda55f48fcb14292dfe4b031af3a65748f"
+        },
+        {
+          "file": "1-390-back.png",
+          "sha256": "8e620c9e0f5acce1521c1d1f97ec464702a3893afcd91f7e3ef653c9a1506759"
+        },
+        {
+          "file": "1-390-dark.png",
+          "sha256": "3870849f2f99a9e9dfb94b5b155d9d6a20690acc4f2f3f7b5728fe0bd2319d26"
+        },
+        {
+          "file": "1-390-first.png",
+          "sha256": "d00f26e178ebdfa6346b6021fae3a54fb44feee612d286448c7be8baf7073ffc"
+        },
+        {
+          "file": "1-390-last.png",
+          "sha256": "d6cd481363e43eb62993380fe57e5a13bc7c0c8306aafe84fa3dc09e1ce71727"
+        },
+        {
+          "file": "2-1280-back.png",
+          "sha256": "e8b7c913a796b0f83e58c87cbae247b797fd7573f9666866a1edf8fab1e534f8"
+        },
+        {
+          "file": "2-1280-dark.png",
+          "sha256": "ce2c93386e61ce21f50003776daf61151bd2a4b48f64e6a221d1c9555f0a1978"
+        },
+        {
+          "file": "2-1280-first.png",
+          "sha256": "dd9b118ab460b6bddbe19880ca291df8863edd6709674d52bc4dec1370f06208"
+        },
+        {
+          "file": "2-1280-last.png",
+          "sha256": "3f5c9438f34821e577b141729b77a44a1dacee38d854bd3c368820ec56492af7"
+        },
+        {
+          "file": "2-390-back.png",
+          "sha256": "c77292c1281eab0b8cd7160424a2fe7691b37fe73cd5c3b7f513998ddf91fdef"
+        },
+        {
+          "file": "2-390-dark.png",
+          "sha256": "b050857b4c653c7153193fb1926c1f75bb152cddd8cf4c2f24841c04fa9d6f99"
+        },
+        {
+          "file": "2-390-first.png",
+          "sha256": "43a069c6496c669912a57a985ab639eff8e8158873ad0076b67bcd9c462a27aa"
+        },
+        {
+          "file": "2-390-last.png",
+          "sha256": "868f3bc9aeaed2dc020842d1d68e67995091b8d04a6b8397ad7b352de50cc7c1"
+        },
+        {
+          "file": "3-1280-back.png",
+          "sha256": "5454b6a54ed5be1951d0d5640565f1b0d7c6da7d24145ed2a63ddea1aaed594f"
+        },
+        {
+          "file": "3-1280-dark.png",
+          "sha256": "55abd4f94bfb001c6a3e24b6fe101bd45e31a34e350874e8c989e577474cf4d1"
+        },
+        {
+          "file": "3-1280-first.png",
+          "sha256": "115907f0f1f9c840ecf5a814a13582b01fcc964ad97f418dd1f1f4e5ce935294"
+        },
+        {
+          "file": "3-1280-last.png",
+          "sha256": "ca83789c14a1333deee6c99b5472002d4e2330c02d57460764a8bac9ed1b1f52"
+        },
+        {
+          "file": "3-390-back.png",
+          "sha256": "1df933ba3e12d04728e1b1284a82808d724101f60fedd8efa77870a168e4b6c3"
+        },
+        {
+          "file": "3-390-dark.png",
+          "sha256": "68b2c90c7d5ac9b9695c6bfbb75fa1818ed8062f5f028fea458bba2b94debe3a"
+        },
+        {
+          "file": "3-390-first.png",
+          "sha256": "f699a74018449bb4e0a937497b3b350b5d1345a78899898189736331384956f9"
+        },
+        {
+          "file": "3-390-last.png",
+          "sha256": "f817bbdfe564fcbd7190a0f746134adfa6e777012cd4c7549b4b78564dee7399"
+        },
+        {
+          "file": "4-1280-back.png",
+          "sha256": "83b9ac53be14eedc2c4a3b50e61d7d910d5a7fc983028d23a01f513eaca4fdf6"
+        },
+        {
+          "file": "4-1280-dark.png",
+          "sha256": "37634eb2431e67a0add1329cf8061a68fe952584e50c86dbfc69f2b7f76032be"
+        },
+        {
+          "file": "4-1280-first.png",
+          "sha256": "29d630e4a39f6a88473886385dc711cbe08a6ac3adf1b02f91bcd517b5369b07"
+        },
+        {
+          "file": "4-1280-last.png",
+          "sha256": "79cd628da5765cd965bfda4189be40d0256b572a0ac73e695469d56612c7dc7a"
+        },
+        {
+          "file": "4-390-back.png",
+          "sha256": "3f46515c1e375551258ef75725968da9cef2bf31d1c99f36b7576d38b200d92f"
+        },
+        {
+          "file": "4-390-dark.png",
+          "sha256": "4a69f6bf2b0a6887ca16b524b7ecd676a1e9b1261886a7c6c28b7b716f9f541c"
+        },
+        {
+          "file": "4-390-first.png",
+          "sha256": "526118cc1dc51906f070f8df37febde0c9b4468d20cbe992bc97825610abf686"
+        },
+        {
+          "file": "4-390-last.png",
+          "sha256": "b45eabc3be59129a7d3da5707a6e80e0ec73a842a42da98ff897f279b39630b2"
+        },
+        {
+          "file": "5-1280-back.png",
+          "sha256": "6c1a8a9df7c1933f5a315bb72b17429d7ccb1deabb470da8a9a2b8d02f2e7aad"
+        },
+        {
+          "file": "5-1280-dark.png",
+          "sha256": "eea97bb2a7ab6c972cd7436ac671d65400deb9e0984927027871f4a83d7eb446"
+        },
+        {
+          "file": "5-1280-first.png",
+          "sha256": "d387b9ebb118b10d76d313a626f47ecf5649413ab4220732b0fdf37df6b5d498"
+        },
+        {
+          "file": "5-1280-last.png",
+          "sha256": "fe25fdab5fcc12ec8fecbe3af63db38fd4f622606fbb63daaa96bbdfea775681"
+        },
+        {
+          "file": "5-390-back.png",
+          "sha256": "c524cc529ad4d58e805a9c52238e196277a66430f5025c8d62d61e7a3a2651fa"
+        },
+        {
+          "file": "5-390-dark.png",
+          "sha256": "e3dff67a6dad537d4f6524db9542bd20c103e983b94f7e92eb9fa9e8337a9bd9"
+        },
+        {
+          "file": "5-390-first.png",
+          "sha256": "63399038a2ab5553bf5495c22286edb58bddfd27b73459068e5cfa4db58429f3"
+        },
+        {
+          "file": "5-390-last.png",
+          "sha256": "a890f1a4a6ce6e3735d17c022f1c5fa389205a49e766e1046d4cc9d46fc439a9"
+        },
+        {
+          "file": "6-1280-back.png",
+          "sha256": "77795a65a82bb3aa90eaa4dc3829aefd6700719e79ed23ba116bd2cb17482a88"
+        },
+        {
+          "file": "6-1280-dark.png",
+          "sha256": "4e3896110691aa1d1fcc67c7ed8dff7ff78d8ddf3cabea331258aeacc53b7e4a"
+        },
+        {
+          "file": "6-1280-first.png",
+          "sha256": "1265b24473e41a0c56e249740da828f93d358c82fe31edff8cc0b4e365fb6085"
+        },
+        {
+          "file": "6-1280-last.png",
+          "sha256": "4e84b3881651005e57daa6d012564b1e8b39c5f0450d45988fdcc0cb5efdb8f7"
+        },
+        {
+          "file": "6-390-back.png",
+          "sha256": "f7c70e382fa797f800ca799d291c2edfe74bfc3ae30da87b443702951854f1d0"
+        },
+        {
+          "file": "6-390-dark.png",
+          "sha256": "9a5071fd35eb56289e4c0d098885339076002454d6b8e1409788c6317a641160"
+        },
+        {
+          "file": "6-390-first.png",
+          "sha256": "c192e502856106b56e3ce5a495ef57e78b8770e277445b1cc4e7f7beef02da8e"
+        },
+        {
+          "file": "6-390-last.png",
+          "sha256": "0b11c279256d72f386af0da5f8c92689123cfe0e7762be5c057d52d0001c323b"
+        },
+        {
+          "file": "7-1280-back.png",
+          "sha256": "22d9b11a6cb8b315bd8bb1650f1c7e97f7d57fff2812e8a7164ef9b73035559b"
+        },
+        {
+          "file": "7-1280-dark.png",
+          "sha256": "dd0d60012d20a386092cd0fbdadaeb694598fb0136b173ded43d7f5656997252"
+        },
+        {
+          "file": "7-1280-first.png",
+          "sha256": "46bb78aa879bda9485634104016c9570d86e6017a78a0c6fce82ebc01402b8ae"
+        },
+        {
+          "file": "7-1280-last.png",
+          "sha256": "72193e246d666213c1df56a725292b203e9393b9b95df0de03d7ebb87a7c9062"
+        },
+        {
+          "file": "7-390-back.png",
+          "sha256": "2d9c84feeee923eac460877743b74f19c71b18b01a61f451e7d941484cfdaba8"
+        },
+        {
+          "file": "7-390-dark.png",
+          "sha256": "e4e37ff039495a3a00c9518de059fb4cd18f138ef55dca29d4afa569d2068ffc"
+        },
+        {
+          "file": "7-390-first.png",
+          "sha256": "3284195a2179c442091a5bb915ce409d5e4e1d3d01144d33c3e59d2d5e90209e"
+        },
+        {
+          "file": "7-390-last.png",
+          "sha256": "00504385901fc8ba98678642def1c7b6dc02d3dc3da48ca9c43e177ca9331a59"
+        },
+        {
+          "file": "8-1280-back.png",
+          "sha256": "be40ba365b3049703aef739a6e933b34b56582439b38501b297fbf4a329ff231"
+        },
+        {
+          "file": "8-1280-dark.png",
+          "sha256": "7f2b586a39df3b5f3b2e48e630b778ccf7adb1487cc24ea071a440c03b70e237"
+        },
+        {
+          "file": "8-1280-first.png",
+          "sha256": "33c44fd4181b6406f755877fce32411e2e751d37bf3a8a9e13a9818762ec2baf"
+        },
+        {
+          "file": "8-1280-last.png",
+          "sha256": "261c4b7c87a192cdb36077c768e8a483f7c7d99de3f96f6c89385ffa94eb7e18"
+        },
+        {
+          "file": "8-390-back.png",
+          "sha256": "46b4fa4ffdb1acd0959f9f98d0a355b36b84532e0718e3cc821c1cf6a1365a83"
+        },
+        {
+          "file": "8-390-dark.png",
+          "sha256": "c1901e93a0ad552c3c0741877b05dfeefcf65befca787cac33de32ce9de1dc5c"
+        },
+        {
+          "file": "8-390-first.png",
+          "sha256": "d4a9a6c24a3742a939e831f9bd203069742944df946b1cd761abe58b7e26aef2"
+        },
+        {
+          "file": "8-390-last.png",
+          "sha256": "301decc5d8a608fcdcc229238024503ce3a817cc91076661df36a4e14017d3d0"
+        }
+      ],
+      "forwardSteps": 202,
+      "adapters": [
+        {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "run": "application-stage07",
+      "scope": "Cumulative application force-density-derivation deck: every settled step, overlaps, backward navigation and theme; no historical pixel replay assertion or physical device claim",
+      "browser": "157.0.8103.51",
+      "cases": 12,
+      "screenshots": 48,
+      "resultSha256": "171db2983e0cf9fb490e538388271892ca6c6f8415867697598cebdbe7880f95",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:26:51.8047394Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage07",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage07.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 42.55,
+        "peakJobCommitBytes": 738848768,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 41580,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1-1280-back.png",
+          "sha256": "7738f441321270c6fbb2ef53e2fbe2e7a690be0743df4b06ac792b92ff651d0b"
+        },
+        {
+          "file": "1-1280-dark.png",
+          "sha256": "1d30bff73f000aeed72490a0428f93e027c32251cfa53aaa7b5fa7ab24e50502"
+        },
+        {
+          "file": "1-1280-first.png",
+          "sha256": "e10cf805037cf55321fc72b53a590390dfa1ae0514607e157340830a40bd3050"
+        },
+        {
+          "file": "1-1280-last.png",
+          "sha256": "72b4071533bdf8002269649ff5b419574208ef1c0951f405a74a727622b7627b"
+        },
+        {
+          "file": "1-390-back.png",
+          "sha256": "418fdc25e3aa0c8723eeb7de07759dbd572ee95913c5415d5f5911e6546858c2"
+        },
+        {
+          "file": "1-390-dark.png",
+          "sha256": "2b1a34620eed0885ed7e73065dfbca3ea4387bd016582278404c28f07ee24385"
+        },
+        {
+          "file": "1-390-first.png",
+          "sha256": "caae11b20f1ef2a711a3de52efb4410e62a21dd04674860d7ab3f4c490d3cb4a"
+        },
+        {
+          "file": "1-390-last.png",
+          "sha256": "1d27907ca7fe50c8ae15e35992724e151e3f5f747a1d21ca0a1ff34c6e14279b"
+        },
+        {
+          "file": "2-1280-back.png",
+          "sha256": "a029d54b24aa08c2ae05338f63ac2ceaf9def3babd16e2723117c8008fdd84ca"
+        },
+        {
+          "file": "2-1280-dark.png",
+          "sha256": "3dfbb3e7ee13afb4e3c1dff614074954d31536490822b597dfff090dc1faee36"
+        },
+        {
+          "file": "2-1280-first.png",
+          "sha256": "b9185d6d2783c687bceb64eb2d3f68cb3be2b5c9fea0de07cd5892f82aafa605"
+        },
+        {
+          "file": "2-1280-last.png",
+          "sha256": "f82c8b282bb2bdc1d81bdb75eb7dedcc700facde4abe05e1808137ca27425ea5"
+        },
+        {
+          "file": "2-390-back.png",
+          "sha256": "fe53ff1212a162196df0e45bce0e51a97ca047df8f7025870732785fa1bedeb4"
+        },
+        {
+          "file": "2-390-dark.png",
+          "sha256": "9524277927f9dfec7a8247e300dc9462e921bcebd7322e8433af1ebcecd61655"
+        },
+        {
+          "file": "2-390-first.png",
+          "sha256": "bf2a1dcf2e08f18381fb41938658a87b51acad9b4df353934292883cef0561e0"
+        },
+        {
+          "file": "2-390-last.png",
+          "sha256": "d9ccdfc81363bf9954af02ceeb88c2a79cb013f061fd4d3f1ad4329e4789c51f"
+        },
+        {
+          "file": "3-1280-back.png",
+          "sha256": "9c4efadc8193bc6daa6dcea28fc57077bbab277241cbcf6aec3702a303848fd3"
+        },
+        {
+          "file": "3-1280-dark.png",
+          "sha256": "d14a429bc163551399ec96496eaf43ff2fa443233fb355a98334d6690c999923"
+        },
+        {
+          "file": "3-1280-first.png",
+          "sha256": "0e8b288852ce99bf6ec9b56a7af816788ed1603c0460f7fa35b85a820211b6cb"
+        },
+        {
+          "file": "3-1280-last.png",
+          "sha256": "1e45009841e58fe5639c709c03b951fcd2b44db5cb7c1e7da89a193f2fad46aa"
+        },
+        {
+          "file": "3-390-back.png",
+          "sha256": "84a54df4e50b3ac7e8ae81f2a6437b6169688c8dda688b8dcf2ef9d885a9a8e3"
+        },
+        {
+          "file": "3-390-dark.png",
+          "sha256": "f42c332c3973a343fc05210fb6fc4650bb4ec260fd9ec67dcbb4290188f9f94f"
+        },
+        {
+          "file": "3-390-first.png",
+          "sha256": "2023f271e81d890099811d7d97498936788b756b6240b0d9f047b6de1673ee6e"
+        },
+        {
+          "file": "3-390-last.png",
+          "sha256": "4e342bf7998934a7bd0efb5fa8887adbc3e448b887c881d3604cd7a481ba1a4d"
+        },
+        {
+          "file": "4-1280-back.png",
+          "sha256": "ddb20608d1aa05c2fc64ee7cf6ab1780868a1bc85beaf35267a06343bc11812f"
+        },
+        {
+          "file": "4-1280-dark.png",
+          "sha256": "9c8904b6e31c31cb2b1c8c1d29f5ac0ff970bcbc780545932e4c3b24ce8df633"
+        },
+        {
+          "file": "4-1280-first.png",
+          "sha256": "ba125c69ebff04a028812a3ae7bcf1ab8fac0ffc6b3cc15d6d547a1ec8a1efb4"
+        },
+        {
+          "file": "4-1280-last.png",
+          "sha256": "abebbc1b7a1202a44d8831c792c4fd7c62c037962195e7dbddd125fad9d60f34"
+        },
+        {
+          "file": "4-390-back.png",
+          "sha256": "339a9ca6b9c227e9299c912cfc0a664bc4f639c34158e7f6c4131a0c84f5be82"
+        },
+        {
+          "file": "4-390-dark.png",
+          "sha256": "4bf4394862e58157139955793f2bc32806e3930ea95b18f840a0217c0d705b98"
+        },
+        {
+          "file": "4-390-first.png",
+          "sha256": "18897701fbf270626fa326d99e3552e4e934df916bfeb9fce55c2f8241bca795"
+        },
+        {
+          "file": "4-390-last.png",
+          "sha256": "5c83d8be33ad517fff60da1378a54efbe5a4759796ddf7094276cfcd4338d1ef"
+        },
+        {
+          "file": "5-1280-back.png",
+          "sha256": "14f77d7d1adda557991d2ba88863e6fa9f8d8761aa51ac8473b0ab3bf6c57961"
+        },
+        {
+          "file": "5-1280-dark.png",
+          "sha256": "50d12373f58f9ed94a672b581162575d7a4a9dce5c860d4e7dd5dd4772de9155"
+        },
+        {
+          "file": "5-1280-first.png",
+          "sha256": "e45f946f131529a247e4bc1f435aae6ea5051b449cb2cc49c2dd0b0b63300d79"
+        },
+        {
+          "file": "5-1280-last.png",
+          "sha256": "f997021d2f9caed4c045d0b1700bdef8a01039110c891370ce957aa8f30977f3"
+        },
+        {
+          "file": "5-390-back.png",
+          "sha256": "6c52afbc07c2da3ea8a5c7c5a2b503f56d76ef76c1bba98c6806e585e3c72537"
+        },
+        {
+          "file": "5-390-dark.png",
+          "sha256": "bca0993a10c2622963703d44f166061747db491d2d7fb20690c04484d3b53479"
+        },
+        {
+          "file": "5-390-first.png",
+          "sha256": "8e42a873b541adfa59ee7f9bcbc2519736c158e3d6cc95e26cf67c313e6c485b"
+        },
+        {
+          "file": "5-390-last.png",
+          "sha256": "bb268583be1a4a9dde6bffc9a657996ab68172b049db5315910d2822db145930"
+        },
+        {
+          "file": "6-1280-back.png",
+          "sha256": "b293baf36493bc8e9c76970a99f4594570159b348c8867f189091f19a08d720c"
+        },
+        {
+          "file": "6-1280-dark.png",
+          "sha256": "882932fbcd0f69bf78135e3946704586ad719d4704201022f9c502160587cd28"
+        },
+        {
+          "file": "6-1280-first.png",
+          "sha256": "1a85420838e1af591b2cd2585be9c331c8221d148f531fd6a94e88c8f4f2222a"
+        },
+        {
+          "file": "6-1280-last.png",
+          "sha256": "bb19e7b7f6f12ccaaffc5a0f741ecbfd81e04b411efb5dc1864ead3d33c0e638"
+        },
+        {
+          "file": "6-390-back.png",
+          "sha256": "4db84abe6aa28074defee004b41e8f1eba6d08875eb03d7edacc6075536d204e"
+        },
+        {
+          "file": "6-390-dark.png",
+          "sha256": "a7d0390a63deb9cca5d1558d9fe6fa97149e1c2017f758896110ff8bc4e463b1"
+        },
+        {
+          "file": "6-390-first.png",
+          "sha256": "4e6c573b67b0d9fcbcf96b975ba01d8405b341493d60fbf72bdf9ee9661c0546"
+        },
+        {
+          "file": "6-390-last.png",
+          "sha256": "9e3ec1ac001af2cca896309370f4ee37fadc19dd0ecb1ff9f99a3033af4e78df"
+        }
+      ],
+      "forwardSteps": 120,
+      "adapters": [
+        {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "run": "application-stage05",
+      "scope": "Cumulative application force-density-materialization deck: every settled step, overlaps, backward navigation and theme; no historical pixel replay assertion or physical device claim",
+      "browser": "157.0.8103.51",
+      "cases": 6,
+      "screenshots": 24,
+      "resultSha256": "dd1f87c8e589f7fdee1d6fe39ba4ca261e627b95b88171636a79842d7d203ea7",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:28:05.4386425Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage05",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage05.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 23.295,
+        "peakJobCommitBytes": 773144576,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 20144,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1-1280-back.png",
+          "sha256": "14bd13832f85327467cf285e7b9b3abca83646c15eb39c5b88a82cca3aef174f"
+        },
+        {
+          "file": "1-1280-dark.png",
+          "sha256": "7bcb9a5662d3f4f063b6dd2012adb988b8e630763823b67911f1cecc58cf9609"
+        },
+        {
+          "file": "1-1280-first.png",
+          "sha256": "3fcd10b6adf97a025244a51c1005cd4e0f18dca61ba9ca9453b56a45444ae5c0"
+        },
+        {
+          "file": "1-1280-last.png",
+          "sha256": "3f96b40100bb0c731cf7a45401ff94aba281dd997c412e0145809a0e469527a7"
+        },
+        {
+          "file": "1-390-back.png",
+          "sha256": "619eb26b5de5847185711ffc06c45f55a4feb9642c7dbbe5b748e101b94e419d"
+        },
+        {
+          "file": "1-390-dark.png",
+          "sha256": "f9eabb1f3dac3dbf16a8ff9e12eb30626f9a9702fc8d016b4f728156859a1522"
+        },
+        {
+          "file": "1-390-first.png",
+          "sha256": "dcfe3bae9c0f3a67e71e8823a077fad2a40eb19b86eaa401cd86b1884ee7ad32"
+        },
+        {
+          "file": "1-390-last.png",
+          "sha256": "1451bdfa0979d4bdaadba8b10b5716205bf27aaa5fc0db466b725541870a8a9d"
+        },
+        {
+          "file": "2-1280-back.png",
+          "sha256": "268046ae17b9ec3baf821c10ae8b26f36dcc7f4e732d45cec7d2031e9f5dbf2a"
+        },
+        {
+          "file": "2-1280-dark.png",
+          "sha256": "15d022f114c462c58ee9eb4fe4a12d0456701cacf4940e6093effdbbd12f1c6c"
+        },
+        {
+          "file": "2-1280-first.png",
+          "sha256": "5ced22b0391a86628ac4afd5080efbb3ed21665e82045304e87ee63952e65b2c"
+        },
+        {
+          "file": "2-1280-last.png",
+          "sha256": "e88c3b954a22c1cd5b820b42d15a5f2e3f490277230de76d2de6ea851a775ac7"
+        },
+        {
+          "file": "2-390-back.png",
+          "sha256": "85fedffbabcbb102b6dfe146557d6f6b6e7ec1ce23d6ed77aa8b754191101735"
+        },
+        {
+          "file": "2-390-dark.png",
+          "sha256": "e7f0151b47e456c181fd3441e23b2ff1da16913f2c4f04910f365b4a03a8ad70"
+        },
+        {
+          "file": "2-390-first.png",
+          "sha256": "ee40f7af9b55b78b256befb15b3e1cc016abb747b07d59fe12bf3ba0aa8df9c3"
+        },
+        {
+          "file": "2-390-last.png",
+          "sha256": "283555a2cc8070ba9febb344c90d2e99c13f1fea70b6f0f11c55add59bb912ea"
+        },
+        {
+          "file": "3-1280-back.png",
+          "sha256": "b65c0d7a66d18f4a10b1d07e7accc219e960f2a61f9779d1f2526824076f1103"
+        },
+        {
+          "file": "3-1280-dark.png",
+          "sha256": "346f8b35a5ce3ba59ba4ec7f02468d4f4d2d7f91d16451b89f2d479578bbd9a9"
+        },
+        {
+          "file": "3-1280-first.png",
+          "sha256": "8e782780cb37127244e11cd05be360d1e21cd186ca7f0fd0431c22110cc39c58"
+        },
+        {
+          "file": "3-1280-last.png",
+          "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+        },
+        {
+          "file": "3-390-back.png",
+          "sha256": "935fda8fd8809d868cc4b43c148e22b3b1ee40975c959a9d6033937fb3775b35"
+        },
+        {
+          "file": "3-390-dark.png",
+          "sha256": "a643e1cfe7f54723ab985a11cccb8b3a21a991d68f645bb27a5e68b2fbcdaf64"
+        },
+        {
+          "file": "3-390-first.png",
+          "sha256": "28d3eb71c08d33468c095367916a82cc9ab30e478f0b962af7cc4d81ee40933e"
+        },
+        {
+          "file": "3-390-last.png",
+          "sha256": "1082c52b5563236a800ce874c077b536b8e476d8a7b0856eea1cff0d24d9884a"
+        }
+      ],
+      "forwardSteps": 66,
+      "adapters": [
+        {
+          "vendor": "intel",
+          "architecture": "gen-12lp",
+          "device": "",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "run": "application-stage-input01",
+      "scope": "Cumulative application equilibrium step17 mouse orbit/reset/wheel, mathematical-column click and emulated upright touch swipe/tap; settled overlaps and backward key; not physical-device acceptance",
+      "browser": "157.0.8103.51",
+      "cases": 2,
+      "screenshots": 14,
+      "resultSha256": "ea75c41d1c516d5c69479c4cb0bc37b0a9ddb82b6446e03308ef3e935208b7a5",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:32:03.5938218Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage-input01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage-input01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 8.563,
+        "peakJobCommitBytes": 691310592,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 30432,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1280-click-next.png",
+          "sha256": "549494b60ee04128b3be2243632ad7c17f279f361bf983b9d680a34deb6836b1"
+        },
+        {
+          "file": "1280-initial.png",
+          "sha256": "b68a6e6c01f051bf6b8a8e20ff7bd61697e0dba8eaa576d8334e1f46fd0825f6"
+        },
+        {
+          "file": "1280-key-back.png",
+          "sha256": "b68a6e6c01f051bf6b8a8e20ff7bd61697e0dba8eaa576d8334e1f46fd0825f6"
+        },
+        {
+          "file": "1280-orbit.png",
+          "sha256": "d43b73763937a79170f0998b91ef0b1981104b55261eee0ca67793a5334f0ec1"
+        },
+        {
+          "file": "1280-reset.png",
+          "sha256": "f2b07ab0c5b93af7d13fa3b6b0ebbcb91eef35cee8948c8ee19fc649598f9c26"
+        },
+        {
+          "file": "1280-zoom.png",
+          "sha256": "1118e160dda00f199f24124b8f99ea9778bb5c67016568883d32efb2845069fc"
+        },
+        {
+          "file": "390-initial.png",
+          "sha256": "67fa427e33b8d5ca6031da9167a6176ec7bf22accae2fa03ccdf2aaf838b8045"
+        },
+        {
+          "file": "390-key-back.png",
+          "sha256": "67fa427e33b8d5ca6031da9167a6176ec7bf22accae2fa03ccdf2aaf838b8045"
+        },
+        {
+          "file": "390-orbit.png",
+          "sha256": "53615f6a27204658fcc8dd63edb72107e946fde377ccfd418f8357d62ab421d3"
+        },
+        {
+          "file": "390-reset.png",
+          "sha256": "2d236cea3b30da651ec7dfab01fbc51ae4c33568d85469e50ad2070fba8039cd"
+        },
+        {
+          "file": "390-swipe-back.png",
+          "sha256": "67fa427e33b8d5ca6031da9167a6176ec7bf22accae2fa03ccdf2aaf838b8045"
+        },
+        {
+          "file": "390-swipe-next.png",
+          "sha256": "67fa597c3d7e637c0bac632845353a7ea90142d602371c6a1da2b81734c01e53"
+        },
+        {
+          "file": "390-tap-next.png",
+          "sha256": "3e587d6f8c9f390d7773dc1388a6e9904c4d5490238a296bbbbef094a557f972"
+        },
+        {
+          "file": "390-zoom.png",
+          "sha256": "1b071e78f44cb68ab9093d9a12006a31a8aaea3a7be7487a8baa8b591f077921"
+        }
+      ]
+    },
+    {
+      "run": "application-stage-errors01",
+      "scope": "Cumulative application stage contextual font HTTP, chapter YAML and picture HTTP error panels; deliberate local network responses, not a production outage",
+      "browser": "157.0.8103.51",
+      "cases": 6,
+      "screenshots": 6,
+      "resultSha256": "019084388c676afbaca489fe7ef92752a9252f01101647536927b1bee4e977c1",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:33:45.3865219Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-stage-errors01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-stage-errors01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 11.064,
+        "peakJobCommitBytes": 611979264,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 44920,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1280-chapter.png",
+          "sha256": "e87103cbd4350bbbd8f3edb3bb95266c520002a75fe44f1b77b761cef582cd98"
+        },
+        {
+          "file": "1280-font.png",
+          "sha256": "37373c1dac5884e2b1597d99ea094453df67b7714719f4a555ece397394de51b"
+        },
+        {
+          "file": "1280-picture.png",
+          "sha256": "8f7806aecbfbbc58a1e2771fd87da49debf9ed654d9ea429e63ab140409cb659"
+        },
+        {
+          "file": "390-chapter.png",
+          "sha256": "d238ef6c0be22dae54512f11b0a407b3aa172275c27a416219d26c9fda462161"
+        },
+        {
+          "file": "390-font.png",
+          "sha256": "74baa0550e75debfea62c803d58269cf733bf857cbd2ea72b8b6610c430a906b"
+        },
+        {
+          "file": "390-picture.png",
+          "sha256": "50f041d5e8eeaf5bdf6f51c3f34140301dd4088daa69d62afe8d92c2da7efe98"
+        }
+      ]
+    },
+    {
+      "run": "application-documents02",
+      "scope": "Cumulative application checkpoint with the recorded comparison protobuf: Layers All, document hide/show, Select All, Delete and Undo with restored row keys; not whole course/device acceptance",
+      "browser": "157.0.8103.51",
+      "cases": 2,
+      "screenshots": 12,
+      "resultSha256": "d8da588ec6925312189b76bf2cf5681bb8469224afed333d35d5558824654d3c",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:30:44.5321512Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-documents02",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-documents02.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 60.791,
+        "peakJobCommitBytes": 702353408,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 10080,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1280-deleted.png",
+          "sha256": "91d550338ea0ab44e2afcda8e8cf4cb1e1b23e8714bd9eb1ca4b61e06362587c"
+        },
+        {
+          "file": "1280-hidden.png",
+          "sha256": "94f2cf2dfa7c4641537f2f5f5f586ce465b1b3b7e3288e07d471e16d2f4db673"
+        },
+        {
+          "file": "1280-layers.png",
+          "sha256": "44c4004fdcb811a9f51e515e19a83690b0240cad5739677b64031bf3974d4713"
+        },
+        {
+          "file": "1280-selected.png",
+          "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+        },
+        {
+          "file": "1280-shown.png",
+          "sha256": "9bf0ec84e09b8ae124e0f9b554e159493a75e17d2f31b9351e4107c1405a3dc0"
+        },
+        {
+          "file": "1280-undo.png",
+          "sha256": "16ae133344481995453e656bc9f6685b4f2e6004a41b7367e6064f099881f273"
+        },
+        {
+          "file": "390-deleted.png",
+          "sha256": "91cc71be15333a6f1ff244406e036f325b257530c658377d477a6f3742c9df79"
+        },
+        {
+          "file": "390-hidden.png",
+          "sha256": "be18540d64e0ebd346369d61e03a3bf8eb48f727dc770f5f9b0f07878a86744c"
+        },
+        {
+          "file": "390-layers.png",
+          "sha256": "671391fb01d595b3e83a1ce0c501233b25125293b74da993a4fb670f66f144f8"
+        },
+        {
+          "file": "390-selected.png",
+          "sha256": "94d61ba5e7826310a37ef81f6ef8e17223c249c74ff3088f7ad1ac9e5ee3c89d"
+        },
+        {
+          "file": "390-shown.png",
+          "sha256": "60ad80c3d7d9bd1fdd473d1c95e2ea4f51a280b5ac4be61300215830f7d01f7c"
+        },
+        {
+          "file": "390-undo.png",
+          "sha256": "d2f6339da431c80df5c13ed907f244b2a8fc22006d942e26db409739e411f089"
+        }
+      ]
+    },
+    {
+      "run": "application-commands03",
+      "scope": "Cumulative application command integration: typed line creation, move, undo/redo, invalid creation and interactive move cancellation; not full modeling or device acceptance",
+      "browser": "157.0.8103.51",
+      "cases": 2,
+      "screenshots": 14,
+      "resultSha256": "6c5a68675891a913a04b55648e80da183a486158491cc049ff87fcf4ab0e682e",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T16:45:44.3983839Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-commands03",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-commands03.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 80.87,
+        "peakJobCommitBytes": 691666944,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 30020,
+        "descendantsAtCleanup": 1
+      },
+      "images": [
+        {
+          "file": "1280-cancelled.png",
+          "sha256": "d73f1fefb10f28965b415a82cd0b230eac514165d93869eacf35067746d01531"
+        },
+        {
+          "file": "1280-created.png",
+          "sha256": "0ce26c36c09d4abadb74a12cb1ac90870a45583c160435d0ae87f04de93cf32f"
+        },
+        {
+          "file": "1280-invalid.png",
+          "sha256": "fde37d4fb9765f8946d515db4d52eb6e4d117e585b60ae1af24f41c34c380b8c"
+        },
+        {
+          "file": "1280-moved.png",
+          "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+        },
+        {
+          "file": "1280-redo.png",
+          "sha256": "5018f8113a358c843563627a67abdfd3c5516d19683f2d5626214374a93b8bd9"
+        },
+        {
+          "file": "1280-tool.png",
+          "sha256": "a68703c769b5636d545c5d59304dcf90b55490389d5e971a56651cd136b6c504"
+        },
+        {
+          "file": "1280-undo.png",
+          "sha256": "b421753fcf7d78acb66ec5caf90ddb97f79cb63ffdd944603807904dba9a8605"
+        },
+        {
+          "file": "390-cancelled.png",
+          "sha256": "7e687b0cca2d10e44bb856cbf2036ac7a5877c40586bcf9e156d2251e4d3280e"
+        },
+        {
+          "file": "390-created.png",
+          "sha256": "389827763589d47b68edae7de94e9c4e184e896a5ceabf2ba89cd548565973b1"
+        },
+        {
+          "file": "390-invalid.png",
+          "sha256": "90443085bff6ede9ed179b2c433f458c53ff204d5a9d424808e9953d71f94a0f"
+        },
+        {
+          "file": "390-moved.png",
+          "sha256": "cdc3f708ef2c357582b5aae32fe98c9269e4b86880921a358911678cb93391f7"
+        },
+        {
+          "file": "390-redo.png",
+          "sha256": "cdb87ef26855f72828671a26ff25917e0cfc7fe26e1e4b7ad8888eaa55f3ca47"
+        },
+        {
+          "file": "390-tool.png",
+          "sha256": "6cb239591d4e324d489b7ea9c7e3897389dd2ceaa07bf17bc4368ab7edb54b0d"
+        },
+        {
+          "file": "390-undo.png",
+          "sha256": "70db62079969ddf5ea030c3f62a0b5e5fecb6eb166bcf96a308e97b290debec3"
+        }
+      ]
+    }
+  ],
+  "native": {
+    "application-native03": {
+      "stage": 18,
+      "commands": 171
+    },
+    "application-native04": {
+      "input": 1,
+      "gesture": 1,
+      "selection": 2,
+      "keys": 2,
+      "touch": 0,
+      "touchMeaning": "filter contains no tests; not touch acceptance"
+    }
+  },
+  "limitations": [
+    "Controlled-clock stage checks are not historical forward/replay pixel equality or real-time animation proof.",
+    "Intel Gen-12LP desktop Chrome and emulated upright touch do not establish physical-phone or software-renderer acceptance.",
+    "The 240px open panel leaves a narrow 390px scene; labels and gizmos can be cropped. Production behavior is preserved.",
+    "Only selected screenshots personally reviewed by the owner; independent original reviews are separately bound in workspace coordination notes.",
+    "Whole-course teaching coverage, archive migration and final integration remain incomplete."
+  ],
+  "preservedFailures": [
+    "stage04 timeout",
+    "stage06 local HTTP connection refused; stage07 same bundle with server backlog128 passed",
+    "documents01 expected4selected; source-reviewed4geometry plus title gives5",
+    "commands01 created layer was collapsed; commands02 assumed selection survived undo/redo",
+    "docs-browser12 expected plaintext from GitHub blob HTML; corrected13 was rate-limited429"
+  ]
+}

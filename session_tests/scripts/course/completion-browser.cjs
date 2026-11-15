@@ -90,8 +90,21 @@ const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
    await page.keyboard.press('ArrowLeft');assert.equal((await capture('geometry-orbit-back')).pixels,initial.pixels);
    assert.deepEqual(errors,[]);
   }
+  if(process.argv.includes('--decoding')){
+   await mode('decoding');
+   const result=()=>page.locator('canvas').evaluate(e=>JSON.parse(e.dataset.courseDocument||'{}'));
+   await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas').dataset.courseDocument||'{}').state==='ready');
+   const ready=await result();assert.match(ready.message,/Document: .+\nMeshes: \d+/);assert(ready.bytes>0);
+   const initial=await capture('decoding');
+   await page.keyboard.press('e');await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas').dataset.courseDocument||'{}').state==='error');
+   const error=await result();assert.match(error.message,/course-comparison\.pb: invalid session protobuf/);
+   assert.notEqual((await capture('decoding-error')).pixels,initial.pixels);
+   const pixels=PNG.sync.read(await page.screenshot()).data;let red=0;for(let i=0;i<pixels.length;i+=4)if(pixels[i]>pixels[i+1]+70&&pixels[i]>pixels[i+2]+70)red++;assert(red>100,'Parser error must be visibly red');
+   await page.keyboard.press('r');await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas').dataset.courseDocument||'{}').state==='ready');
+   assert.deepEqual(await result(),ready);assert.equal((await capture('decoding-recovered')).pixels,initial.pixels);assert.deepEqual(errors,[]);
+  }
   record.adapter=await page.evaluate(async()=>{const a=await navigator.gpu.requestAdapter();return {...a.info,vendor:a.info.vendor,architecture:a.info.architecture,description:a.info.description};});await page.close();
  }
- fs.writeFileSync(path.join(out,'result.json'),JSON.stringify({scope:'Cumulative candidates (camera/rows/geometry only when explicitly requested); actual adapter recorded per viewport; upright emulation is not physical-phone acceptance',browser:browser.version(),args,checkerSha256:hash(fs.readFileSync(__filename)),cases},null,2));
+ fs.writeFileSync(path.join(out,'result.json'),JSON.stringify({scope:'Cumulative candidates (camera/rows/geometry/decoding only when explicitly requested); actual adapter recorded per viewport; upright emulation is not physical-phone acceptance',browser:browser.version(),args,checkerSha256:hash(fs.readFileSync(__filename)),cases},null,2));
  }catch(e){fs.writeFileSync(path.join(out,'failure.json'),JSON.stringify({error:String(e.stack),cases},null,2));throw e;}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

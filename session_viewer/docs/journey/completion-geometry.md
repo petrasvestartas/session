@@ -10,6 +10,8 @@ Keep the first frame, painting, mathematics, dock, camera and object-row impleme
 
 The renderer depends on several drawing passes at construction time. Introducing these as separate checkpoints would repeatedly change the same constructor and upload wiring. This checkpoint therefore contains the complete renderer; the sections below explain its parts within one executable subject. The existing `Lane` hooks and `REGISTRY` are the extension mechanism. Application-dependent tests are registered when their application prerequisites exist. Resident cloud conversion is separate from the later streaming adapter, so loading can add its registration without rewriting conversion.
 
+Continue with [visibility, clipping and resource ownership](completion-visibility.md), a chapter of this same runnable checkpoint.
+
 ## Build
 
 Add the geometry registration and renderer modules, retaining all earlier subject implementations.

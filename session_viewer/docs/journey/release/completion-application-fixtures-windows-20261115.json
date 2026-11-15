@@ -1,0 +1,422 @@
+{
+  "scope": "Four reconstructed inputs loaded into the cumulative application, hierarchy selection and applicable attribute/interaction toggles, Save and Open on the still-loaded scene. Close is a curve command and did not clear the scene.",
+  "cases": [
+    {
+      "fixture": "course-comparison",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "saved": {
+        "file": "course-comparison-1280-saved.session",
+        "sha256": "222b8d0c29f538851d7221cf67a30e0166b752567bdec60549558f217f766450"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-comparison-1280-initial.png",
+          "sha256": "44c4004fdcb811a9f51e515e19a83690b0240cad5739677b64031bf3974d4713",
+          "pixels": "7971e93a4cf0f398c84eb550e3b5a6dde0504bfba808c371935d045ef3b63237",
+          "ink": 169481
+        },
+        {
+          "name": "selected",
+          "file": "course-comparison-1280-selected.png",
+          "sha256": "cfd4195f04571ae7e4b4a19bf57732c748527530844c3db51b1726dae85ab2b4",
+          "pixels": "46b31190c7043e0811a16f312daa3ec1bb0b8ec9bfd3e278d4bbcc73184e0236",
+          "ink": 269317
+        },
+        {
+          "name": "closed",
+          "file": "course-comparison-1280-closed.png",
+          "sha256": "307bca6865ffe784266078e0ad7a5d742eaaffc7965acd83a3884e0d8d5ea052",
+          "pixels": "f2a999d021f3947c77c98511a8725f5c343ba4bdf2770f3ead0baf31d7f26afb",
+          "ink": 270450
+        },
+        {
+          "name": "reopened",
+          "file": "course-comparison-1280-reopened.png",
+          "sha256": "44c4004fdcb811a9f51e515e19a83690b0240cad5739677b64031bf3974d4713",
+          "pixels": "7971e93a4cf0f398c84eb550e3b5a6dde0504bfba808c371935d045ef3b63237",
+          "ink": 169481
+        }
+      ]
+    },
+    {
+      "fixture": "course-comparison",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "saved": {
+        "file": "course-comparison-390-saved.session",
+        "sha256": "5b203d0c0b13befd6fbfa2a3a15ec16c0470471bd0e7368a68e4981f71d43601"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-comparison-390-initial.png",
+          "sha256": "671391fb01d595b3e83a1ce0c501233b25125293b74da993a4fb670f66f144f8",
+          "pixels": "38fa04c943b103cb2d33e1242b07ab4bd25dc8848a0a228a327320b657443fa1",
+          "ink": 21896
+        },
+        {
+          "name": "selected",
+          "file": "course-comparison-390-selected.png",
+          "sha256": "4321903885c7f673e340dde7cb18a26b8c4513f1a1bbcf071e2cf8917f7929b4",
+          "pixels": "33c9efecc674e584c36bf9e6235374396414cac85a5effea5d270acb142e6ac8",
+          "ink": 28465
+        },
+        {
+          "name": "closed",
+          "file": "course-comparison-390-closed.png",
+          "sha256": "93c59665733a3efeb02ddc19c46cf58591419d9816b4465f35b202c6d9678501",
+          "pixels": "82d90288a4fd51b06ef6be4e566d22fccf2a42308c7c9d0136e7f189bde3633e",
+          "ink": 29340
+        },
+        {
+          "name": "reopened",
+          "file": "course-comparison-390-reopened.png",
+          "sha256": "1811afa2dfcd3a9a8ff9dfa0e0ba9052d6b3290f6ed103b153efebcab5ed23c7",
+          "pixels": "658b0a1d175c223d1ad4e5ff2c2ebc9c2ee0ff2457c09812bd0172ec91afc2a1",
+          "ink": 21885
+        }
+      ]
+    },
+    {
+      "fixture": "course-metadata",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "saved": {
+        "file": "course-metadata-1280-saved.session",
+        "sha256": "3401f07dec7d91e400c043ed33b2b9cd2a1e7ad79da82a3d9525cc6b1bb454b3"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-metadata-1280-initial.png",
+          "sha256": "fb0a8e99d9a441ec42a15bac6f599aa900864eef60e9dcb55feb0321389e43d3",
+          "pixels": "b6c68436956294391a94e4450bf9b1507abb6b742b52467848d0027a3810d09f",
+          "ink": 170284
+        },
+        {
+          "name": "selected",
+          "file": "course-metadata-1280-selected.png",
+          "sha256": "715377e32f6bf1f42683eea82c69319958a19a07bc2aefc69af91ba79e015cc5",
+          "pixels": "c7bcc9055b2562ceeabe69c9590c5c26900d56b73754a7206c60398062e436ee",
+          "ink": 270120
+        },
+        {
+          "name": "closed",
+          "file": "course-metadata-1280-closed.png",
+          "sha256": "82ecffd1b6c94dcdef5fa4cb7deefaadd1ff4df0f4c8c450926bd7ed8051722c",
+          "pixels": "9f36bf5b22b14af0b22306da7201b09c41d219a8c78fb4c4ef31612bcc52c1a8",
+          "ink": 271253
+        },
+        {
+          "name": "reopened",
+          "file": "course-metadata-1280-reopened.png",
+          "sha256": "fb0a8e99d9a441ec42a15bac6f599aa900864eef60e9dcb55feb0321389e43d3",
+          "pixels": "b6c68436956294391a94e4450bf9b1507abb6b742b52467848d0027a3810d09f",
+          "ink": 170284
+        }
+      ]
+    },
+    {
+      "fixture": "course-metadata",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "saved": {
+        "file": "course-metadata-390-saved.session",
+        "sha256": "584f499acc96fbbc33e1fecea1dfa4aeb83558f1c781591d6cd860e0333abab2"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-metadata-390-initial.png",
+          "sha256": "bfd2f6b9436b4ba6f880d71552becf9097b69581eefec8d5715d67e3880637bf",
+          "pixels": "56776ba790d5dbbdfb4bebad9c8b8247fc5c8403df9e6409140d1646f8c83b27",
+          "ink": 22699
+        },
+        {
+          "name": "selected",
+          "file": "course-metadata-390-selected.png",
+          "sha256": "b46e01cec63a806ab400fa6af7f1f43ac7218b31caefb186ac8f587f53144544",
+          "pixels": "151d3f6af2b9f38aeba09534d8a9acd38a70e1869031221f4bba21f34521bc45",
+          "ink": 29268
+        },
+        {
+          "name": "closed",
+          "file": "course-metadata-390-closed.png",
+          "sha256": "0134740645dab3f6ac8946f3ec4398e73891aad8ce6084d1baeab5019ca42dec",
+          "pixels": "f3acda670afd900a5eb7d739c2d71afb2fdf38b55cc12886cf1d2b75dc42fc0b",
+          "ink": 30143
+        },
+        {
+          "name": "reopened",
+          "file": "course-metadata-390-reopened.png",
+          "sha256": "9c58e7ef58f015bff1018ed53b43f43d467e61e03f93b986cdcfc7a2a40d9470",
+          "pixels": "77ebf6fc9884b423b58fe3df078bad2ed9f1ec095c4d7f8afe930c7305435689",
+          "ink": 22688
+        }
+      ]
+    },
+    {
+      "fixture": "course-instance-features",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "saved": {
+        "file": "course-instance-features-1280-saved.session",
+        "sha256": "4c459b043853ec025b4e9409227f5d79ee643e551eadf5ebfdd0245aa553d0c9"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-instance-features-1280-initial.png",
+          "sha256": "3f469536334ba980a8e006974f2989c7ce1f6047487b238802d9cbe18736e101",
+          "pixels": "7e463165a3cd36d2b18c792b2be70656225e5e29a994615c1cc80eb8b3872216",
+          "ink": 68521
+        },
+        {
+          "name": "interactions",
+          "file": "course-instance-features-1280-interactions.png",
+          "sha256": "9e16bb76853a9569cf8c5e4b6ecb06cc077b6e29a9abe8699857290f4688a3fc",
+          "pixels": "ab7337af2d31c81e48cad33b1852f9a11e7f67285492dced14f1f361407b644a",
+          "ink": 68989
+        },
+        {
+          "name": "attributes",
+          "file": "course-instance-features-1280-attributes.png",
+          "sha256": "e968be515d87b2df21d1ed84522b58bbbbed532ce243b7234f10dccad99dd883",
+          "pixels": "734f0f39c6b567563a2aac85579660d42b941f61ca7845160e9deef723524113",
+          "ink": 68973
+        },
+        {
+          "name": "selected",
+          "file": "course-instance-features-1280-selected.png",
+          "sha256": "9ceeca5bc9614c6db060b4870acc2f0c3b144ab7b8ce3d1bed1bd83fd4e7c909",
+          "pixels": "7f59fbfb936622e85d7c95ad042e01c9947a8c4cbc27bcf65fee1043f0ff1973",
+          "ink": 139075
+        },
+        {
+          "name": "closed",
+          "file": "course-instance-features-1280-closed.png",
+          "sha256": "83e126d4d7049f84bc47d341f7a3fa152f4c53801f0099e50958fd9ce0c0b3c1",
+          "pixels": "54702fcf7147c064882b481b769d3406779d91d4ce6e23f8f62acb102b34ea07",
+          "ink": 139757
+        },
+        {
+          "name": "reopened",
+          "file": "course-instance-features-1280-reopened.png",
+          "sha256": "3f469536334ba980a8e006974f2989c7ce1f6047487b238802d9cbe18736e101",
+          "pixels": "7e463165a3cd36d2b18c792b2be70656225e5e29a994615c1cc80eb8b3872216",
+          "ink": 68521
+        }
+      ]
+    },
+    {
+      "fixture": "course-instance-features",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "saved": {
+        "file": "course-instance-features-390-saved.session",
+        "sha256": "ec1fb9806a147d0a86c0831dc43ee30133b4509891e78a11944b9f8e21181fff"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-instance-features-390-initial.png",
+          "sha256": "e74bd21793243f904defd6ed837e99895a00f99db0fe0ee7ee1ef7940fabd734",
+          "pixels": "e27c0f122c7331b0ef43526e74b16aa916d21ee19f6d8b9f9ae4b366e3c863bb",
+          "ink": 6195
+        },
+        {
+          "name": "interactions",
+          "file": "course-instance-features-390-interactions.png",
+          "sha256": "34e3498fb567508c978e8f4435aad1f01bef6d1fe2491555defddfbaa29f0c78",
+          "pixels": "bd18de0d8e83829f85fd828dcd9b02f8360697a6b911f32693baa1971a37d573",
+          "ink": 6663
+        },
+        {
+          "name": "attributes",
+          "file": "course-instance-features-390-attributes.png",
+          "sha256": "443bc31621cf4dce630ae77a6bad8433007650545e4aec07212ddbe6e91dad57",
+          "pixels": "2227216d279d995d599c71df25d0b7622462ce7d470f97cb01aac72dcd897ce6",
+          "ink": 6648
+        },
+        {
+          "name": "selected",
+          "file": "course-instance-features-390-selected.png",
+          "sha256": "8f3756ba51bf56e499bbfa306e5447d7547d31e19e552ac0bfb017bee343b695",
+          "pixels": "5b3c8a256a925946f9960ad0281fecfc9d0f6bb109589d71dfb31a95955e0a47",
+          "ink": 13996
+        },
+        {
+          "name": "closed",
+          "file": "course-instance-features-390-closed.png",
+          "sha256": "40aab2ff49383173952a2f4a4caa30f6c96b21f11fb72f1c6f7feacb3ec42b74",
+          "pixels": "266df1e80492c4baf7cf9c87a1e59b80652f86d479c396508a319a7dabf8b070",
+          "ink": 14420
+        },
+        {
+          "name": "reopened",
+          "file": "course-instance-features-390-reopened.png",
+          "sha256": "e74bd21793243f904defd6ed837e99895a00f99db0fe0ee7ee1ef7940fabd734",
+          "pixels": "e27c0f122c7331b0ef43526e74b16aa916d21ee19f6d8b9f9ae4b366e3c863bb",
+          "ink": 6195
+        }
+      ]
+    },
+    {
+      "fixture": "course-feature-pick",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "saved": {
+        "file": "course-feature-pick-1280-saved.session",
+        "sha256": "402f5f2c162ee9a3bc53b68653fa399fa636b98fdca5614c7c04e601ccb65bba"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-feature-pick-1280-initial.png",
+          "sha256": "453d8551befe7ab879691541f9a79c2f219f66a55833585994a195f7f1ee1096",
+          "pixels": "49c1979008713a61ed6bda5dc99170a211ccb12942af38691d9e85f06a2b7be6",
+          "ink": 14858
+        },
+        {
+          "name": "interactions",
+          "file": "course-feature-pick-1280-interactions.png",
+          "sha256": "6af8d7ece7265e6eeb40c2dabe1d41f8df5ee6e77c4df35898ac86be19fbb86f",
+          "pixels": "07214596f520e6c48fb8a46328b854f14c869cd38819039a3b16b65641c4a277",
+          "ink": 15326
+        },
+        {
+          "name": "attributes",
+          "file": "course-feature-pick-1280-attributes.png",
+          "sha256": "e8cf030e1df9f68adf0c79de38ff2c21fa354e670d86013b4f0f6a6e1aab9bcf",
+          "pixels": "da435784ead2f3ec430372b48fc67d5f75a379a07865f46cf7efcf779f80668d",
+          "ink": 15310
+        },
+        {
+          "name": "selected",
+          "file": "course-feature-pick-1280-selected.png",
+          "sha256": "9746d3cdd63d37e31ff642f51cde26f448dc3a4fb1b385fc48c8df343e7de17f",
+          "pixels": "8c7c2b67cc3c36852d7f8058350eea50d8a26266c873d53ed136a0c8124359d0",
+          "ink": 41957
+        },
+        {
+          "name": "closed",
+          "file": "course-feature-pick-1280-closed.png",
+          "sha256": "b648056f097e108b1eb5a00469e4ee4a5ac2012e4e09eb9cfde0d4291aa853a7",
+          "pixels": "762f2ab346f856e3e5802b35c1cfccc92bc442c8ce1fb2424fff65c444da95b4",
+          "ink": 42639
+        },
+        {
+          "name": "reopened",
+          "file": "course-feature-pick-1280-reopened.png",
+          "sha256": "453d8551befe7ab879691541f9a79c2f219f66a55833585994a195f7f1ee1096",
+          "pixels": "49c1979008713a61ed6bda5dc99170a211ccb12942af38691d9e85f06a2b7be6",
+          "ink": 14858
+        }
+      ]
+    },
+    {
+      "fixture": "course-feature-pick",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "saved": {
+        "file": "course-feature-pick-390-saved.session",
+        "sha256": "82c60ea5535a8d2fc6c50266532caebeb42816f075ef32af4cf706ad1d5dceaa"
+      },
+      "frames": [
+        {
+          "name": "initial",
+          "file": "course-feature-pick-390-initial.png",
+          "sha256": "c141baa1808aa432ba29b0ea76265f745d1aa63b2393dd765c4c62c55584425b",
+          "pixels": "5268415d13ccc4bea9e9d090b4e077a4cddc9dd388d298111da714d78a63b4c2",
+          "ink": 8997
+        },
+        {
+          "name": "interactions",
+          "file": "course-feature-pick-390-interactions.png",
+          "sha256": "f65a29128af56a64f96973e20c051a40ba41f23cf8b5bd0b6099c731b772aa4f",
+          "pixels": "4c4c8d57a6fe2c386d4c16707809be891032c6ac94e19c60954317506dbd5d5e",
+          "ink": 9465
+        },
+        {
+          "name": "attributes",
+          "file": "course-feature-pick-390-attributes.png",
+          "sha256": "64ded7293c20737700edddb3c0496a196a51de60280d128e6936d5e9e2e068b6",
+          "pixels": "6dff93d4c18aba4f5f27f27dc9939a1cf0ddbb7234e9afd4f2e0a5ae98e36eb6",
+          "ink": 9449
+        },
+        {
+          "name": "selected",
+          "file": "course-feature-pick-390-selected.png",
+          "sha256": "13a719a9887584c4bffd646d40a7586b3dbe413c4a0c3f5e12d315f46fdbb15b",
+          "pixels": "5e1fafcbd01c0a642f12bd9af125fbc0e679fd65bb05aaed9246de3e8c7b5c79",
+          "ink": 17468
+        },
+        {
+          "name": "closed",
+          "file": "course-feature-pick-390-closed.png",
+          "sha256": "7d9ffc42aae9cdef2af9918f6cedfe4e52ff33aefe74d44a24c39dae3e239d7a",
+          "pixels": "5227066dab3ff4fcc3e59542ecea65115f069b1e7932e0899281127eb4beb11f",
+          "ink": 17892
+        },
+        {
+          "name": "reopened",
+          "file": "course-feature-pick-390-reopened.png",
+          "sha256": "c141baa1808aa432ba29b0ea76265f745d1aa63b2393dd765c4c62c55584425b",
+          "pixels": "5268415d13ccc4bea9e9d090b4e077a4cddc9dd388d298111da714d78a63b4c2",
+          "ink": 8997
+        }
+      ]
+    }
+  ],
+  "errors": 0,
+  "resource": {
+    "exitCode": 0,
+    "elapsedSeconds": 289.922,
+    "peakJobCommitBytes": 874962944,
+    "processors": 2,
+    "jobCommitLimitBytes": 6442450944
+  },
+  "artifactSha256": {
+    "resources.json": "1afcda2f80a54a1892296e5998d8274613f2933898963d97ce4a253c2b57c535",
+    "started.json": "db326a043536dab470cc297a32858a2bdfe3aa4c3b64dbe2b83c353d75f77ae6",
+    "captures/result.json": "45f6dfa50e5b5035fd53498294ec8ccab9daff065376c5ed666fd47854fc6b6f"
+  },
+  "review": "All40 original screenshots independently reviewed; narrow upright sidebar can crop labels and constrain the gizmo.",
+  "failures": [
+    {
+      "run": "application-archive01",
+      "exitCode": 1,
+      "scope": "Two parser/adversarial tests pass; actual saved metadata fixture fails exact component payload equality. Original component95bytes becomes88bytes because production normalizes JSON whitespace and key order. No semantic value loss is established. Later archive fields/cases were not reached.",
+      "artifacts": {
+        "tests.log": "b65ac5955ab1d444ec266339fc3748142ca35bd7171e24fd720c68b8380fdac5",
+        "archives.log": "31e703df030a27e24ffbd95bae5d722b10d228484ce2f2246329a0e20afa5cf2",
+        "resources.json": "777ab87909f0620ba6acaac0fb2dfd96f8bf9a4a652dd4885d1b18c4bde2e5fb",
+        "source-pins.json": "816ba041c4a77aff598a7af25c3386fe30c6297fc45109356b2cae272f2ad968"
+      }
+    }
+  ],
+  "limitations": [
+    "No empty-scene or close-document lifecycle acceptance.",
+    "No exact original-feature pixel picking acceptance from this run.",
+    "Exact metadata byte acceptance failed and remains open.",
+    "No physical-phone or general MSAA4 rendering acceptance."
+  ]
+}

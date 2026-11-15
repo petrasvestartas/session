@@ -27,6 +27,7 @@ pub const FULL_FONTS: [&str; 3] = [
 /// Most text bytes in one label set.
 const MAX_TEXT_BYTES: usize = 256 * 1024;
 
+// --8<-- [start:scene-text-placement]
 /// Where a label sits and how it is sized.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum TextPlacement {
@@ -65,6 +66,7 @@ pub enum TextPlacement {
     },
 }
 
+// --8<-- [end:scene-text-placement]
 /// World-plane texts have a plate unless they say otherwise.
 fn plated() -> bool {
     true
@@ -130,6 +132,7 @@ impl TextDocument {
         }
     }
 
+// --8<-- [start:scene-text-shaping]
     /// Replace every label; unchanged text keeps its shaping.
     pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
         let mut bytes = 0usize;
@@ -183,6 +186,7 @@ impl TextDocument {
         Ok(())
     }
 
+// --8<-- [end:scene-text-shaping]
     /// Replace the fonts and reshape everything; bad data changes nothing.
     pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
         let sources = sources

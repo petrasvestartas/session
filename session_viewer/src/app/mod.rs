@@ -54,3 +54,6 @@ pub mod touch; // register:touch
 pub mod ui; // register:ui
 pub mod validate; // register:validate
 pub mod walk; // register:walk
+
+#[cfg(target_arch = "wasm32")]
+pub mod yielding;
