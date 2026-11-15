@@ -92,6 +92,7 @@
         "journey/completion-documents.md",
         "journey/completion-commands.md",
         "journey/completion-input.md",
+        "journey/completion-modeling.md",
         "journey/completion-loading.md",
         "journey/completion-text.md",
         "journey/completion-streaming.md",

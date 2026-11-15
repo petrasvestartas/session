@@ -111,6 +111,11 @@
       "subject": "geometry teaching",
       "scope": "166-witness epoch; all geometry introduction files have draft explanations,185 application gaps remain. Strict site and8 geometry/visibility captures.",
       "path": "session_viewer/docs/journey/release/completion-geometry-coverage-windows-20261115.json"
+    },
+    {
+      "subject": "Application command and modeling teaching",
+      "scope": "218 witnesses/133 missing;19 tooling tests, active audit, strict site and8 reviewed browser originals; no runtime acceptance",
+      "path": "session_viewer/docs/journey/release/completion-application-teaching-windows-20261115.json"
     }
   ],
   "open": [

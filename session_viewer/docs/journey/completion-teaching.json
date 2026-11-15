@@ -22,47 +22,92 @@
   {
     "path": "src/app/command/mod.rs",
     "owner": "application",
-    "sourceSha256": "cb1827398f1b8fab957dd311c5517be3bf15735ed6bf8450bc6af1972fe24899"
+    "sourceSha256": "cb1827398f1b8fab957dd311c5517be3bf15735ed6bf8450bc6af1972fe24899",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Separate spelling from execution",
+      "paragraph": "`Spec` describes names, aliases, help, options and parsing. A parser returns `Result<Box<dyn Action>, String>`: either an owned executable action or a user-facing explanation. The `Action` trait specifies execution and whether a command requires selection or preserves an active draft/split. Parsing is independent of the mutable viewer state; execution receives it explicitly."
+    }
   },
   {
     "path": "src/app/command/tests.rs",
     "owner": "application",
-    "sourceSha256": "4d808bd37ad46452c22146eb03a0d037059d2811237a10badd9624a26c589c3b"
+    "sourceSha256": "4d808bd37ad46452c22146eb03a0d037059d2811237a10badd9624a26c589c3b",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "The command tests compare registry completions with sorted, unique canonical names and require readable names/options. They also compare parsed actions for aliases and canonical spelling. These checks protect the registry as the single source of discoverable commands: adding a verb should make it available to parsing and completion together. They complement execution tests; a successfully parsed action does not prove that its geometry edit or undo behavior works."
+    }
   },
   {
     "path": "src/app/command/tool.rs",
     "owner": "application",
-    "sourceSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c"
+    "sourceSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Continue a tool without borrowing its host twice",
+      "paragraph": "The `Tool` trait supplies prompts, options, point placement, preview, and optional direct pointer/pick handling. Its `Next` result distinguishes waiting for more input, repeating an operation and finishing. The host temporarily removes the draft/tool while invoking it with mutable `State`, then restores the continuing draft. This makes Rust's exclusive mutable borrow match the application's single owner of edits."
+    }
   },
   {
     "path": "src/app/command/tool/choices.rs",
     "owner": "application",
-    "sourceSha256": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f"
+    "sourceSha256": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "`Choices` presents a bare command's options as buttons, shortening the visible labels while retaining the complete command lines. It asks for no points and yields when the chosen command runs; Enter cancels. `tool/options.rs` handles multiword option matching by removing spaces and case, returning both the matched option index and consumed word count. Empty Enter actions and Escape are excluded from ordinary option matching, so continuation controls cannot be mistaken for geometric arguments."
+    }
   },
   {
     "path": "src/app/command/tool/cut.rs",
     "owner": "application",
-    "sourceSha256": "f235a9a255206f1ab3bcf1aaa704a619a95a944fff11d8f1307d691ea0d2c84d"
+    "sourceSha256": "f235a9a255206f1ab3bcf1aaa704a619a95a944fff11d8f1307d691ea0d2c84d",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Gather arguments before calling the kernel",
+      "paragraph": "`tool/cut.rs` normalizes cutting inputs in the frame of the object being edited. Lines and polylines become degree-one NURBS curves; planar surfaces and one-face planar BReps can supply a cutting plane. Moving a plane transforms three defining points and rebuilds the normal, which remains correct under nonuniform scale. Moving a picking ray transforms its origin and a second point, then normalizes the resulting direction. These conversions prevent a scaled object from changing the meaning of geometric intersection tolerances."
+    }
   },
   {
     "path": "src/app/command/tool/gather.rs",
     "owner": "application",
-    "sourceSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a"
+    "sourceSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Gather arguments before calling the kernel",
+      "paragraph": "`Recipe` stores ordered input steps, option buttons, an axis function and a builder. Answers distinguish points, numbers and distance vectors, while curve picks retain their selection order in separate groups. Typed options can appear among values; the last option wins. Remaining numeric defaults can fill a partially typed recipe only when all remaining steps are numeric. The builder returns several geometries as one `Made` result, so the host can add them as one undoable operation rather than exposing a partially completed surface."
+    }
   },
   {
     "path": "src/app/command/tool/options.rs",
     "owner": "application",
-    "sourceSha256": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938"
+    "sourceSha256": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "`Choices` presents a bare command's options as buttons, shortening the visible labels while retaining the complete command lines. It asks for no points and yields when the chosen command runs; Enter cancels. `tool/options.rs` handles multiword option matching by removing spaces and case, returning both the matched option index and consumed word count. Empty Enter actions and Escape are excluded from ordinary option matching, so continuation controls cannot be mistaken for geometric arguments."
+    }
   },
   {
     "path": "src/app/command/tool/shape.rs",
     "owner": "application",
-    "sourceSha256": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7"
+    "sourceSha256": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Gather arguments before calling the kernel",
+      "paragraph": "`shape.rs` supplies the shared primitive-shape tool. Its questions distinguish points, sizes and heights: a typed number can mean distance along a rubber band, a literal dimension or distance along the construction-plane normal. The frame stores a right-handed origin and axes, converts between local/world coordinates and can turn its in-plane x direction. Shared Brep/Mesh choices and tessellation settings let primitive verbs vary their recipe while preserving the same input, preview and placement rules."
+    }
   },
   {
     "path": "src/app/command/tool/surfacing.rs",
     "owner": "application",
-    "sourceSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce"
+    "sourceSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Gather arguments before calling the kernel",
+      "paragraph": "`surfacing.rs` prepares selected sections before invoking kernel surface constructors. Newell normals reject loops without area using a scale-relative threshold, and planar checks scale their tolerance with the points' bounds. Section alignment requires all curves to be open or all closed. Open sections reverse when their endpoint correspondence is shorter; closed sections align winding and move the seam near the preceding start point. A closed loft needs at least three sections and repeats the first at the end. Invalid kernel output becomes an error rather than entering the scene."
+    }
   },
   {
     "path": "src/app/command/verbs/add_edge.rs",
@@ -77,7 +122,12 @@
   {
     "path": "src/app/command/verbs/arctic.rs",
     "owner": "application",
-    "sourceSha256": "04637eef3834bfb9c9d76d415d30f7803d857a267ad4472c91117dabbb374f39"
+    "sourceSha256": "04637eef3834bfb9c9d76d415d30f7803d857a267ad4472c91117dabbb374f39",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Arctic and Outline parse the shared On/Off contract and delegate to rendering state. Arctic uses `set_arctic`, which enables outlines when shading turns on; Outline changes its own flag. Opacity parses a finite number, rejects values outside zero through one and calls the host setter. These are view controls, so changing them does not replace the selected geometry or create a modeling result."
+    }
   },
   {
     "path": "src/app/command/verbs/area.rs",
@@ -87,17 +137,32 @@
   {
     "path": "src/app/command/verbs/arrow.rs",
     "owner": "application",
-    "sourceSha256": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997"
+    "sourceSha256": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "The Point, Line and Arrow files each declare a `Draw` specification and delegate point parsing to it. Point needs one location and clones it into owned geometry. Line needs two distinct endpoints and rejects length at or below 1e-12. Arrow reuses that same line constructor, then sets the end-arrowhead flag. The final geometry is wrapped in `Rc` for the application model; each verb contributes its own construction rule without duplicating coordinate parsing or the input loop."
+    }
   },
   {
     "path": "src/app/command/verbs/arrowhead.rs",
     "owner": "application",
-    "sourceSha256": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87"
+    "sourceSha256": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Arrowhead parses None, Start, End or Both and requires selected curves. Execution checks locked rows, clones supported lines/polylines/NURBS curves with the requested flag and collects only changed geometries. One replacement transaction handles the edits, followed by row synchronization. A selection containing no supported curve produces an error; already matching heads produce zero changes. Head appearance is persistent curve state, distinct from the temporary reveal value stored in a GPU object row."
+    }
   },
   {
     "path": "src/app/command/verbs/attributes.rs",
     "owner": "application",
-    "sourceSha256": "fb0300c25c2c5decebac7bfea8d7740e031fe58c16444c2bb36074f353bb7e19"
+    "sourceSha256": "fb0300c25c2c5decebac7bfea8d7740e031fe58c16444c2bb36074f353bb7e19",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Element Attributes and Element Interactions share On/Off parsing but call different host paths. Attributes controls features owned by the element; Interactions controls contacts, joints and cuts contributed by other elements. The interaction path can require walking the element again to change the drawn feature geometry. The earlier walker classification supplies this distinction; the commands only expose it through the registry and return the resulting state to the dock."
+    }
   },
   {
     "path": "src/app/command/verbs/block_with_hole.rs",
@@ -112,7 +177,12 @@
   {
     "path": "src/app/command/verbs/box.rs",
     "owner": "application",
-    "sourceSha256": "0f6b98541d82ea317acd703a136d8a5962bee64fe5f07150db36945c4443e986"
+    "sourceSha256": "0f6b98541d82ea317acd703a136d8a5962bee64fe5f07150db36945c4443e986",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Box` interprets a picked corner as half-widths about the base center: its local coordinates produce twice their absolute x and y distances. Typed length and width must be positive, while height may be signed but nonzero. The kernel box uses the absolute height and is translated by half the signed height before the construction frame is applied. Thus a negative height places the whole box below its base without asking the kernel to construct an inverted solid. Its preview grows from a line to a rectangle to the complete box."
+    }
   },
   {
     "path": "src/app/command/verbs/capsule.rs",
@@ -127,12 +197,22 @@
   {
     "path": "src/app/command/verbs/close.rs",
     "owner": "application",
-    "sourceSha256": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5"
+    "sourceSha256": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "Close acts on the active drawing: it adds the first point again and finishes through `close_drawing`. Its action preserves the draft until execution so normal command cancellation cannot erase the points first. This is why Close is available beside Polyline and Curve. It does not close a loaded document; document replacement is exercised through Open."
+    }
   },
   {
     "path": "src/app/command/verbs/cone.rs",
     "owner": "application",
-    "sourceSha256": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992"
+    "sourceSha256": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Sphere` shares the center/radius questions and places its poles along the construction-plane normal. `Cylinder` asks for a base center, positive radius and signed nonzero height; `Cone` reuses those same questions and validation. For negative heights, the shared upright conversion reverses the frame and supplies a positive height to the kernel. Cylinder previews connect two rings, while cone previews connect the base ring to an apex. The Brep/Mesh choice changes the resulting representation through the shared solid builder, not the input frame."
+    }
   },
   {
     "path": "src/app/command/verbs/construction_plane.rs",
@@ -142,7 +222,12 @@
   {
     "path": "src/app/command/verbs/controls.rs",
     "owner": "application",
-    "sourceSha256": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909"
+    "sourceSha256": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Object, Edge and Face clear the current selection before changing `selection_tool`, so an old subobject selection cannot be reinterpreted as a different kind. Controls delegates to `enable_controls`, which supplies the control-point mode and its display setup. These zero-argument adapters choose what subsequent picks mean; they do not manufacture a hit or bypass the renderer's pick result."
+    }
   },
   {
     "path": "src/app/command/verbs/copy.rs",
@@ -152,17 +237,32 @@
   {
     "path": "src/app/command/verbs/curve.rs",
     "owner": "application",
-    "sourceSha256": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1"
+    "sourceSha256": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "Polyline and Curve accept a variable number of points up to the shared modeling limit. Polyline joins them in order and offers rectangle/polygon options through the tool path. Curve treats them as NURBS control points, with degree capped at three; it does not promise interpolation through every input point. A repeated first point with at least four entries selects closed construction and removes the duplicate before building. Closing therefore changes the construction rule instead of merely drawing a straight closing segment over an open spline."
+    }
   },
   {
     "path": "src/app/command/verbs/cylinder.rs",
     "owner": "application",
-    "sourceSha256": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f"
+    "sourceSha256": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Sphere` shares the center/radius questions and places its poles along the construction-plane normal. `Cylinder` asks for a base center, positive radius and signed nonzero height; `Cone` reuses those same questions and validation. For negative heights, the shared upright conversion reverses the frame and supplies a positive height to the kernel. Cylinder previews connect two rings, while cone previews connect the base ring to an apex. The Brep/Mesh choice changes the resulting representation through the shared solid builder, not the input frame."
+    }
   },
   {
     "path": "src/app/command/verbs/delete.rs",
     "owner": "application",
-    "sourceSha256": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19"
+    "sourceSha256": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Undo and Redo ask the scene history to move one step, report an error when no step exists, then call `after_history` to reconcile the application. Delete delegates selected-row removal to `delete_selection` and declares that it requires selection. The verbs do not manipulate GPU buffers directly; the document/history path determines which rows must change. A selection requirement is explicit in the action contract, not inferred from the command name."
+    }
   },
   {
     "path": "src/app/command/verbs/dodecahedron.rs",
@@ -172,12 +272,22 @@
   {
     "path": "src/app/command/verbs/edge.rs",
     "owner": "application",
-    "sourceSha256": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7"
+    "sourceSha256": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Object, Edge and Face clear the current selection before changing `selection_tool`, so an old subobject selection cannot be reinterpreted as a different kind. Controls delegates to `enable_controls`, which supplies the control-point mode and its display setup. These zero-argument adapters choose what subsequent picks mean; they do not manufacture a hit or bypass the renderer's pick result."
+    }
   },
   {
     "path": "src/app/command/verbs/escape.rs",
     "owner": "application",
-    "sourceSha256": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1"
+    "sourceSha256": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Escape declares that it preserves the active draft long enough to cancel it itself. If a draft exists, it calls `cancel_drawing` and keeps the selection; otherwise it clears selection through `escape_selection`. This order prevents the generic command-dispatch cancellation from making Escape incorrectly behave as though no tool were running. The same action also accepts the short alias Esc."
+    }
   },
   {
     "path": "src/app/command/verbs/explode.rs",
@@ -202,27 +312,52 @@
   {
     "path": "src/app/command/verbs/face.rs",
     "owner": "application",
-    "sourceSha256": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7"
+    "sourceSha256": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Object, Edge and Face clear the current selection before changing `selection_tool`, so an old subobject selection cannot be reinterpreted as a different kind. Controls delegates to `enable_controls`, which supplies the control-point mode and its display setup. These zero-argument adapters choose what subsequent picks mean; they do not manufacture a hit or bypass the renderer's pick result."
+    }
   },
   {
     "path": "src/app/command/verbs/fit.rs",
     "owner": "application",
-    "sourceSha256": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d"
+    "sourceSha256": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Hide marks selected rows hidden, Show restores hidden rows, and Fit asks the camera to frame the selection or the whole scene when nothing is selected. These adapters call `hide_selected`, `show_all` and `fit_selected_or_all` respectively. Their zero-argument specifications keep completion and parsing consistent. Hiding changes visibility rather than deleting source geometry, while fitting changes the camera rather than moving the objects."
+    }
   },
   {
     "path": "src/app/command/verbs/geometry.rs",
     "owner": "application",
-    "sourceSha256": "596ebbcbed757f38facf666c91904d0446f988c218ae5184d41bce0b276e88b8"
+    "sourceSha256": "596ebbcbed757f38facf666c91904d0446f988c218ae5184d41bce0b276e88b8",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Drawing is a checked construction",
+      "paragraph": "`Draw` supplies the permitted point count, a constructor, labels and buttons. A fixed count, such as a line's two endpoints, can finish automatically. A variable count, such as a polyline, uses Enter to finish. Typed and picked coordinates converge on the same constructor."
+    }
   },
   {
     "path": "src/app/command/verbs/grid_snap.rs",
     "owner": "application",
-    "sourceSha256": "ab63e5d6f45c37d9b8b15ea8535d8386da1cdcce725b2a3398ccdc41e01b06c7"
+    "sourceSha256": "ab63e5d6f45c37d9b8b15ea8535d8386da1cdcce725b2a3398ccdc41e01b06c7",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Snap can toggle the master object-snapping switch or one named mode bit; its toolbar follows the master enabled state. Grid Snap instead controls construction-plane grid fallback and accepts a positive spacing that also enables it. Grid Snap preserves an active draft so spacing can change during drawing. The two adapters update the shared snapping state; they do not calculate intersection candidates or move already committed points."
+    }
   },
   {
     "path": "src/app/command/verbs/hide.rs",
     "owner": "application",
-    "sourceSha256": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800"
+    "sourceSha256": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Hide marks selected rows hidden, Show restores hidden rows, and Fit asks the camera to frame the selection or the whole scene when nothing is selected. These adapters call `hide_selected`, `show_all` and `fit_selected_or_all` respectively. Their zero-argument specifications keep completion and parsing consistent. Hiding changes visibility rather than deleting source geometry, while fitting changes the camera rather than moving the objects."
+    }
   },
   {
     "path": "src/app/command/verbs/icosahedron.rs",
@@ -232,12 +367,22 @@
   {
     "path": "src/app/command/verbs/interactions.rs",
     "owner": "application",
-    "sourceSha256": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e"
+    "sourceSha256": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Element Attributes and Element Interactions share On/Off parsing but call different host paths. Attributes controls features owned by the element; Interactions controls contacts, joints and cuts contributed by other elements. The interaction path can require walking the element again to change the drawn feature geometry. The earlier walker classification supplies this distinction; the commands only expose it through the registry and return the resulting state to the dock."
+    }
   },
   {
     "path": "src/app/command/verbs/layers.rs",
     "owner": "application",
-    "sourceSha256": "a0168bfe8c941fee7fba32c9a259c9f847640f24baa958d38383948843f6db6f"
+    "sourceSha256": "a0168bfe8c941fee7fba32c9a259c9f847640f24baa958d38383948843f6db6f",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Layers controls panel visibility through feedback state, refreshes its rows, and expands the hierarchy when All is requested. Report requests a diagnostic report download through the same feedback boundary and returns a status message. These commands expose UI services without reaching into DOM elements from the parser; their action result alone does not prove that a browser download completed."
+    }
   },
   {
     "path": "src/app/command/verbs/length.rs",
@@ -252,7 +397,12 @@
   {
     "path": "src/app/command/verbs/line.rs",
     "owner": "application",
-    "sourceSha256": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e"
+    "sourceSha256": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "The Point, Line and Arrow files each declare a `Draw` specification and delegate point parsing to it. Point needs one location and clones it into owned geometry. Line needs two distinct endpoints and rejects length at or below 1e-12. Arrow reuses that same line constructor, then sets the end-arrowhead flag. The final geometry is wrapped in `Rc` for the application model; each verb contributes its own construction rule without duplicating coordinate parsing or the input loop."
+    }
   },
   {
     "path": "src/app/command/verbs/loft.rs",
@@ -272,7 +422,12 @@
   {
     "path": "src/app/command/verbs/mod.rs",
     "owner": "application",
-    "sourceSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f"
+    "sourceSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Separate spelling from execution",
+      "paragraph": "The `verbs!` macro declares modules and collects their `SPEC` values into `REGISTRY`. Each entry implements `Verb`; ordinary commands expose a `Spec`, while drawing commands additionally expose a `Draw`. A command therefore needs its implementation and a registry entry, with no new dispatch branch in the dock."
+    }
   },
   {
     "path": "src/app/command/verbs/move.rs",
@@ -282,22 +437,42 @@
   {
     "path": "src/app/command/verbs/nurbs_curve_arc.rs",
     "owner": "application",
-    "sourceSha256": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1"
+    "sourceSha256": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Nurbs Curve Arc` offers Center and 3 Points recipes. Center input uses a radius and an angle strictly between zero and 360 degrees in magnitude; a negative typed angle flips the frame for clockwise travel. Three-point input derives the circumcenter and rejects collinearity relative to the two chord lengths. The exact curve divides its sweep into rational quadratic spans of at most 90 degrees: each middle control has weight equal to the cosine of half the span angle. This is why increasing preview samples is unnecessary for geometric circle accuracy."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_curve_circle.rs",
     "owner": "application",
-    "sourceSha256": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1"
+    "sourceSha256": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Nurbs Curve Circle` builds an exact kernel circle and transforms it into the construction plane; the sampled preview ring is only a drawing aid. `Nurbs Curve Ellipse` lets a picked first-axis endpoint rotate the local frame, whereas a typed first radius keeps its direction. A picked second radius measures perpendicular distance from that first axis, not distance from the center. Both positive radii then parameterize the kernel ellipse in that rotated frame."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_curve_ellipse.rs",
     "owner": "application",
-    "sourceSha256": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0"
+    "sourceSha256": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Nurbs Curve Circle` builds an exact kernel circle and transforms it into the construction plane; the sampled preview ring is only a drawing aid. `Nurbs Curve Ellipse` lets a picked first-axis endpoint rotate the local frame, whereas a typed first radius keeps its direction. A picked second radius measures perpendicular distance from that first axis, not distance from the center. Both positive radii then parameterize the kernel ellipse in that rotated frame."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_curve_parabola.rs",
     "owner": "application",
-    "sourceSha256": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7"
+    "sourceSha256": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Nurbs Curve Parabola` distinguishes an apex on the curve from a control point. It turns the frame toward the end point, rejects an apex on the chord using a length-relative threshold, and obtains the quadratic control as twice the apex minus half the sum of the endpoints. Evaluating that quadratic at one half therefore returns the requested apex. The preview samples 32 segments; the committed kernel parabola retains the exact curve through start, apex and end."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_surface_4_points.rs",
@@ -332,7 +507,12 @@
   {
     "path": "src/app/command/verbs/object.rs",
     "owner": "application",
-    "sourceSha256": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8"
+    "sourceSha256": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Object, Edge and Face clear the current selection before changing `selection_tool`, so an old subobject selection cannot be reinterpreted as a different kind. Controls delegates to `enable_controls`, which supplies the control-point mode and its display setup. These zero-argument adapters choose what subsequent picks mean; they do not manufacture a hit or bypass the renderer's pick result."
+    }
   },
   {
     "path": "src/app/command/verbs/octahedron.rs",
@@ -342,7 +522,12 @@
   {
     "path": "src/app/command/verbs/opacity.rs",
     "owner": "application",
-    "sourceSha256": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8"
+    "sourceSha256": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Arctic and Outline parse the shared On/Off contract and delegate to rendering state. Arctic uses `set_arctic`, which enables outlines when shading turns on; Outline changes its own flag. Opacity parses a finite number, rejects values outside zero through one and calls the host setter. These are view controls, so changing them does not replace the selected geometry or create a modeling result."
+    }
   },
   {
     "path": "src/app/command/verbs/open.rs",
@@ -357,17 +542,32 @@
   {
     "path": "src/app/command/verbs/outline.rs",
     "owner": "application",
-    "sourceSha256": "537e232c2f91846dec99eb3e6e30e016f482577b1ef82a62c4f4f8a115566053"
+    "sourceSha256": "537e232c2f91846dec99eb3e6e30e016f482577b1ef82a62c4f4f8a115566053",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Arctic and Outline parse the shared On/Off contract and delegate to rendering state. Arctic uses `set_arctic`, which enables outlines when shading turns on; Outline changes its own flag. Opacity parses a finite number, rejects values outside zero through one and calls the host setter. These are view controls, so changing them does not replace the selected geometry or create a modeling result."
+    }
   },
   {
     "path": "src/app/command/verbs/point.rs",
     "owner": "application",
-    "sourceSha256": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a"
+    "sourceSha256": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "The Point, Line and Arrow files each declare a `Draw` specification and delegate point parsing to it. Point needs one location and clones it into owned geometry. Line needs two distinct endpoints and rejects length at or below 1e-12. Arrow reuses that same line constructor, then sets the end-arrowhead flag. The final geometry is wrapped in `Rc` for the application model; each verb contributes its own construction rule without duplicating coordinate parsing or the input loop."
+    }
   },
   {
     "path": "src/app/command/verbs/polyline.rs",
     "owner": "application",
-    "sourceSha256": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d"
+    "sourceSha256": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Reuse construction rules across verbs",
+      "paragraph": "Polyline and Curve accept a variable number of points up to the shared modeling limit. Polyline joins them in order and offers rectangle/polygon options through the tool path. Curve treats them as NURBS control points, with degree capped at three; it does not promise interpolation through every input point. A repeated first point with at least four entries selects closed construction and removes the duplicate before building. Closing therefore changes the construction rule instead of merely drawing a straight closing segment over an open spline."
+    }
   },
   {
     "path": "src/app/command/verbs/project_to_plane.rs",
@@ -387,12 +587,22 @@
   {
     "path": "src/app/command/verbs/redo.rs",
     "owner": "application",
-    "sourceSha256": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0"
+    "sourceSha256": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Undo and Redo ask the scene history to move one step, report an error when no step exists, then call `after_history` to reconcile the application. Delete delegates selected-row removal to `delete_selection` and declares that it requires selection. The verbs do not manipulate GPU buffers directly; the document/history path determines which rows must change. A selection requirement is explicit in the action contract, not inferred from the command name."
+    }
   },
   {
     "path": "src/app/command/verbs/report.rs",
     "owner": "application",
-    "sourceSha256": "8b8e73ef4da70c6221cbec41e75f54db70a5d39df05ee29c19b35efb8afe9a63"
+    "sourceSha256": "8b8e73ef4da70c6221cbec41e75f54db70a5d39df05ee29c19b35efb8afe9a63",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Layers controls panel visibility through feedback state, refreshes its rows, and expands the hierarchy when All is requested. Report requests a diagnostic report download through the same feedback boundary and returns a status message. These commands expose UI services without reaching into DOM elements from the parser; their action result alone does not prove that a browser download completed."
+    }
   },
   {
     "path": "src/app/command/verbs/rotate.rs",
@@ -412,42 +622,82 @@
   {
     "path": "src/app/command/verbs/select_all.rs",
     "owner": "application",
-    "sourceSha256": "e263949a3a7f78ae516f1e3e4e0f53815a96547f0ffc39c0248cc258fd72ab8a"
+    "sourceSha256": "e263949a3a7f78ae516f1e3e4e0f53815a96547f0ffc39c0248cc258fd72ab8a",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Select All uses every eligible row. Select By Name joins its remaining words, removes matching surrounding quotes and performs a case-insensitive substring match. Select Small requires a positive length and compares it strictly with valid world-bound diagonals. The name and size filters retain the existing selection when no match exists and report that fact. Shared eligibility keeps hidden or locked objects from reappearing merely because a selection was made by text instead of a click."
+    }
   },
   {
     "path": "src/app/command/verbs/select_by_name.rs",
     "owner": "application",
-    "sourceSha256": "90d070cb338b3a721a4501e777bf9ff048cfc368fe5d98fd1facbab18531001c"
+    "sourceSha256": "90d070cb338b3a721a4501e777bf9ff048cfc368fe5d98fd1facbab18531001c",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Select All uses every eligible row. Select By Name joins its remaining words, removes matching surrounding quotes and performs a case-insensitive substring match. Select Small requires a positive length and compares it strictly with valid world-bound diagonals. The name and size filters retain the existing selection when no match exists and report that fact. Shared eligibility keeps hidden or locked objects from reappearing merely because a selection was made by text instead of a click."
+    }
   },
   {
     "path": "src/app/command/verbs/select_lasso.rs",
     "owner": "application",
-    "sourceSha256": "dcef1e302ab9bea2353e2f85fa391b35117f6f7f97c153beb7901744a0571a7b"
+    "sourceSha256": "dcef1e302ab9bea2353e2f85fa391b35117f6f7f97c153beb7901744a0571a7b",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Select Lasso opens a pointer-driven tool that records a screen-space loop. Points must be at least two device pixels apart; reaching 4,096 points removes alternating samples and increases spacing instead of truncating the end of the gesture. On release the region query applies replacement, Shift-add or Ctrl-remove semantics. The overlay and selection share the collected loop, while cancelling leaves no partially committed geometry."
+    }
   },
   {
     "path": "src/app/command/verbs/select_small.rs",
     "owner": "application",
-    "sourceSha256": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e"
+    "sourceSha256": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "Select All uses every eligible row. Select By Name joins its remaining words, removes matching surrounding quotes and performs a case-insensitive substring match. Select Small requires a positive length and compares it strictly with valid world-bound diagonals. The name and size filters retain the existing selection when no match exists and report that fact. Shared eligibility keeps hidden or locked objects from reappearing merely because a selection was made by text instead of a click."
+    }
   },
   {
     "path": "src/app/command/verbs/selecting.rs",
     "owner": "application",
-    "sourceSha256": "49b3172f3487531566fae3e4c955d9a438a0e153cf37d7f29a622bc070a48d27"
+    "sourceSha256": "49b3172f3487531566fae3e4c955d9a438a0e153cf37d7f29a622bc070a48d27",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Select through a common eligibility rule",
+      "paragraph": "`selecting::candidates` returns ascending rows that are selectable, not explicitly hidden and not hidden by the GPU object state. `apply` centralizes replacement, addition and removal; removal can binary-search the sorted candidate list. Region selection indexes loop crossings by pixel-row centres for an even-odd interior test. Window and crossing modes distinguish complete sampled containment from contact with the region. Geometry sampling has explicit budgets, so region selection is not an unlimited exact intersection oracle."
+    }
   },
   {
     "path": "src/app/command/verbs/show.rs",
     "owner": "application",
-    "sourceSha256": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803"
+    "sourceSha256": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Hide marks selected rows hidden, Show restores hidden rows, and Fit asks the camera to frame the selection or the whole scene when nothing is selected. These adapters call `hide_selected`, `show_all` and `fit_selected_or_all` respectively. Their zero-argument specifications keep completion and parsing consistent. Hiding changes visibility rather than deleting source geometry, while fitting changes the camera rather than moving the objects."
+    }
   },
   {
     "path": "src/app/command/verbs/snap.rs",
     "owner": "application",
-    "sourceSha256": "e85c98cc314cab74c8b9bcb74cf1d32429e49b49c76cf2c83f8a2e929b35603d"
+    "sourceSha256": "e85c98cc314cab74c8b9bcb74cf1d32429e49b49c76cf2c83f8a2e929b35603d",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Snap can toggle the master object-snapping switch or one named mode bit; its toolbar follows the master enabled state. Grid Snap instead controls construction-plane grid fallback and accepts a positive spacing that also enables it. Grid Snap preserves an active draft so spacing can change during drawing. The two adapters update the shared snapping state; they do not calculate intersection candidates or move already committed points."
+    }
   },
   {
     "path": "src/app/command/verbs/sphere.rs",
     "owner": "application",
-    "sourceSha256": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91"
+    "sourceSha256": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Sphere` shares the center/radius questions and places its poles along the construction-plane normal. `Cylinder` asks for a base center, positive radius and signed nonzero height; `Cone` reuses those same questions and validation. For negative heights, the shared upright conversion reverses the frame and supplies a positive height to the kernel. Cylinder previews connect two rings, while cone previews connect the base ring to an apex. The Brep/Mesh choice changes the resulting representation through the shared solid builder, not the input frame."
+    }
   },
   {
     "path": "src/app/command/verbs/split.rs",
@@ -467,7 +717,12 @@
   {
     "path": "src/app/command/verbs/torus.rs",
     "owner": "application",
-    "sourceSha256": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08"
+    "sourceSha256": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Torus` separates the major radius from the tube radius. A picked tube-radius point measures its radial distance from the major circle; a typed value supplies the radius directly. Both radii must be positive and the minor radius must remain smaller than the major radius. Preview rings show the inner, outer, upper and lower extents. The kernel constructs the torus about local z, then the construction frame places that axis along the chosen plane normal."
+    }
   },
   {
     "path": "src/app/command/verbs/trim.rs",
@@ -482,7 +737,12 @@
   {
     "path": "src/app/command/verbs/undo.rs",
     "owner": "application",
-    "sourceSha256": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa"
+    "sourceSha256": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Delegate each command to the state it owns",
+      "paragraph": "Undo and Redo ask the scene history to move one step, report an error when no step exists, then call `after_history` to reconcile the application. Delete delegates selected-row removal to `delete_selection` and declares that it requires selection. The verbs do not manipulate GPU buffers directly; the document/history path determines which rows must change. A selection requirement is explicit in the action contract, not inferred from the command name."
+    }
   },
   {
     "path": "src/app/command/verbs/view.rs",

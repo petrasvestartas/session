@@ -40,6 +40,46 @@ The host first lets the active drawing operation consume coordinates, options or
 
 The line constructor rejects coincident endpoints. Shared drawing validation rejects non-finite coordinates and magnitudes beyond the supported bound. `Create::run` asks the scene to model the geometry, synchronizes history, then selects the created object. A rejected constructor must leave both the document and its row count unchanged.
 
+### Reuse construction rules across verbs
+
+The Point, Line and Arrow files each declare a `Draw` specification and delegate point parsing to it. Point needs one location and clones it into owned geometry. Line needs two distinct endpoints and rejects length at or below 1e-12. Arrow reuses that same line constructor, then sets the end-arrowhead flag. The final geometry is wrapped in `Rc` for the application model; each verb contributes its own construction rule without duplicating coordinate parsing or the input loop.
+
+Polyline and Curve accept a variable number of points up to the shared modeling limit. Polyline joins them in order and offers rectangle/polygon options through the tool path. Curve treats them as NURBS control points, with degree capped at three; it does not promise interpolation through every input point. A repeated first point with at least four entries selects closed construction and removes the duplicate before building. Closing therefore changes the construction rule instead of merely drawing a straight closing segment over an open spline.
+
+Close acts on the active drawing: it adds the first point again and finishes through `close_drawing`. Its action preserves the draft until execution so normal command cancellation cannot erase the points first. This is why Close is available beside Polyline and Curve. It does not close a loaded document; document replacement is exercised through Open.
+
+`Choices` presents a bare command's options as buttons, shortening the visible labels while retaining the complete command lines. It asks for no points and yields when the chosen command runs; Enter cancels. `tool/options.rs` handles multiword option matching by removing spaces and case, returning both the matched option index and consumed word count. Empty Enter actions and Escape are excluded from ordinary option matching, so continuation controls cannot be mistaken for geometric arguments.
+
+The command tests compare registry completions with sorted, unique canonical names and require readable names/options. They also compare parsed actions for aliases and canonical spelling. These checks protect the registry as the single source of discoverable commands: adding a verb should make it available to parsing and completion together. They complement execution tests; a successfully parsed action does not prove that its geometry edit or undo behavior works.
+
+### Delegate each command to the state it owns
+
+Snap can toggle the master object-snapping switch or one named mode bit; its toolbar follows the master enabled state. Grid Snap instead controls construction-plane grid fallback and accepts a positive spacing that also enables it. Grid Snap preserves an active draft so spacing can change during drawing. The two adapters update the shared snapping state; they do not calculate intersection candidates or move already committed points.
+
+Layers controls panel visibility through feedback state, refreshes its rows, and expands the hierarchy when All is requested. Report requests a diagnostic report download through the same feedback boundary and returns a status message. These commands expose UI services without reaching into DOM elements from the parser; their action result alone does not prove that a browser download completed.
+
+Undo and Redo ask the scene history to move one step, report an error when no step exists, then call `after_history` to reconcile the application. Delete delegates selected-row removal to `delete_selection` and declares that it requires selection. The verbs do not manipulate GPU buffers directly; the document/history path determines which rows must change. A selection requirement is explicit in the action contract, not inferred from the command name.
+
+Hide marks selected rows hidden, Show restores hidden rows, and Fit asks the camera to frame the selection or the whole scene when nothing is selected. These adapters call `hide_selected`, `show_all` and `fit_selected_or_all` respectively. Their zero-argument specifications keep completion and parsing consistent. Hiding changes visibility rather than deleting source geometry, while fitting changes the camera rather than moving the objects.
+
+Escape declares that it preserves the active draft long enough to cancel it itself. If a draft exists, it calls `cancel_drawing` and keeps the selection; otherwise it clears selection through `escape_selection`. This order prevents the generic command-dispatch cancellation from making Escape incorrectly behave as though no tool were running. The same action also accepts the short alias Esc.
+
+Arctic and Outline parse the shared On/Off contract and delegate to rendering state. Arctic uses `set_arctic`, which enables outlines when shading turns on; Outline changes its own flag. Opacity parses a finite number, rejects values outside zero through one and calls the host setter. These are view controls, so changing them does not replace the selected geometry or create a modeling result.
+
+Element Attributes and Element Interactions share On/Off parsing but call different host paths. Attributes controls features owned by the element; Interactions controls contacts, joints and cuts contributed by other elements. The interaction path can require walking the element again to change the drawn feature geometry. The earlier walker classification supplies this distinction; the commands only expose it through the registry and return the resulting state to the dock.
+
+Arrowhead parses None, Start, End or Both and requires selected curves. Execution checks locked rows, clones supported lines/polylines/NURBS curves with the requested flag and collects only changed geometries. One replacement transaction handles the edits, followed by row synchronization. A selection containing no supported curve produces an error; already matching heads produce zero changes. Head appearance is persistent curve state, distinct from the temporary reveal value stored in a GPU object row.
+
+### Select through a common eligibility rule
+
+Object, Edge and Face clear the current selection before changing `selection_tool`, so an old subobject selection cannot be reinterpreted as a different kind. Controls delegates to `enable_controls`, which supplies the control-point mode and its display setup. These zero-argument adapters choose what subsequent picks mean; they do not manufacture a hit or bypass the renderer's pick result.
+
+`selecting::candidates` returns ascending rows that are selectable, not explicitly hidden and not hidden by the GPU object state. `apply` centralizes replacement, addition and removal; removal can binary-search the sorted candidate list. Region selection indexes loop crossings by pixel-row centres for an even-odd interior test. Window and crossing modes distinguish complete sampled containment from contact with the region. Geometry sampling has explicit budgets, so region selection is not an unlimited exact intersection oracle.
+
+Select All uses every eligible row. Select By Name joins its remaining words, removes matching surrounding quotes and performs a case-insensitive substring match. Select Small requires a positive length and compares it strictly with valid world-bound diagonals. The name and size filters retain the existing selection when no match exists and report that fact. Shared eligibility keeps hidden or locked objects from reappearing merely because a selection was made by text instead of a click.
+
+Select Lasso opens a pointer-driven tool that records a screen-space loop. Points must be at least two device pixels apart; reaching 4,096 points removes alternating samples and increases spacing instead of truncating the end of the gesture. On release the region query applies replacement, Shift-add or Ctrl-remove semantics. The overlay and selection share the collected loop, while cancelling leaves no partially committed geometry.
+
 ### Preview without committing on every pointer event
 
 ```rust

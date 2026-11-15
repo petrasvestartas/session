@@ -1,0 +1,314 @@
+{
+  "status": "Scoped checks passed; course incomplete",
+  "parentCommit": "be8dc98bb38bf813a5d6dc3774e84961fa7a7816",
+  "changes": [
+    "Teach command dispatch, selection, shared tools and primitive construction; add modeling to the active application chapters.",
+    "Nine cumulative assemblies retained; no production implementation changes."
+  ],
+  "inputs": [
+    {
+      "path": "session_viewer/docs/journey/completion-commands.md",
+      "sha256": "bec6215d3003fe761f562c8a19295644bae952dc19f70d2223ec94392abfa024"
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-modeling.md",
+      "sha256": "3b4e3ab79b20b79a5584d08ad79217813207cbf20904451aa7576e22247110fc"
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-teaching.json",
+      "sha256": "f2df69759f7bffca55101a3401427e92bff4aba7f56a4f467f6e4b397aff0089"
+    },
+    {
+      "path": "session_viewer/docs/journey/active-course.json",
+      "sha256": "8d6304b9cd1cec5e40ef0e239657f43e6e2c770ab61587f9dc77af026f946fec"
+    },
+    {
+      "path": "session_viewer/docs/journey/active.md",
+      "sha256": "b4204bbcc22332e8a4391689d4bd70e872e59e0d76189ebf2a7b90f2acfd3811"
+    }
+  ],
+  "teaching": {
+    "sources": 351,
+    "explained": 218,
+    "missing": 133,
+    "errors": [],
+    "exitCode": 1,
+    "acceptedSubjects": 0
+  },
+  "runs": [
+    {
+      "name": "docs23",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:42:08.1091136Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-completion-docs23",
+          "timeout",
+          "230s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs23.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 240,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 50.35,
+        "peakJobCommitBytes": 1387352064,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 21436,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "scope": "Application command/modeling prose, 218 teaching witnesses and modeling chapter navigation; no runtime acceptance.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "active-audit",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/completion-docs23/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+          "bytes": 788
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/command.json",
+          "sha256": "25aa8802041a8ce676bd1b94a5e1ef383ce4813cdce666f52b3b7daedf3a3fba",
+          "bytes": 406
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/delivery.json",
+          "sha256": "cf670a2ede3bd1ef6778897832d147976302769f8db688abf5bdb9916f37eeda",
+          "bytes": 210
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/plan.json",
+          "sha256": "b152897861b1cdaebb5bde4f3c1bb445dba532af10785bcdb70f4dd2074971c8",
+          "bytes": 1419136
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/resources.json",
+          "sha256": "fb8a206e55d74cb548ea91c92767f87b4916c901659d507ccf692a74cbbed239",
+          "bytes": 1880
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/result.json",
+          "sha256": "2b13783a1fd5739a9850f0373593adda680032e14212bd4cfe45313897816b2d",
+          "bytes": 404
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/strict-site.log",
+          "sha256": "d07bf33ca4748667ceff83930e09f3c1d0b28b648caa975138ed48b8eed6e3f2",
+          "bytes": 485801
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/teaching-tests.log",
+          "sha256": "571333c5c2b716b5deb58059c55daceec0dd06c83de3bd2edba82ac5b02bc320",
+          "bytes": 1938
+        },
+        {
+          "path": "session_viewer/target/completion-docs23/teaching.json",
+          "sha256": "cfbf7b96f3c7e2efc4a1a37245dbe9117778e920150511bac63f0f285c64ad09",
+          "bytes": 5112
+        }
+      ]
+    },
+    {
+      "name": "application-docs-browser01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:43:23.5143566Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-application-docs-browser01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\application-docs-browser01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 5.742,
+        "peakJobCommitBytes": 481259520,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 32420,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "passed": true,
+        "scope": "Command and modeling documentation rendering and footer; no runtime or complete source-delivery acceptance",
+        "records": [
+          {
+            "slug": "completion-commands",
+            "heading": "Reuse construction rules across verbs",
+            "width": 1280,
+            "file": "completion-commands-reuse-1280.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-commands",
+            "heading": "Select through a common eligibility rule",
+            "width": 1280,
+            "file": "completion-commands-select-1280.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Gather arguments before calling the kernel",
+            "width": 1280,
+            "file": "completion-modeling-gather-1280.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Construct primitives in a local frame",
+            "width": 1280,
+            "file": "completion-modeling-construct-1280.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-commands",
+            "heading": "Reuse construction rules across verbs",
+            "width": 390,
+            "file": "completion-commands-reuse-390.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-commands",
+            "heading": "Select through a common eligibility rule",
+            "width": 390,
+            "file": "completion-commands-select-390.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Gather arguments before calling the kernel",
+            "width": 390,
+            "file": "completion-modeling-gather-390.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Construct primitives in a local frame",
+            "width": 390,
+            "file": "completion-modeling-construct-390.png",
+            "footer": "Docs built 2026-11-15 19:42:12 UTC"
+          }
+        ],
+        "errors": []
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-commands-reuse-1280.png",
+          "sha256": "39c88565f7e95a3a714be9c982a8ec331fdfaf8049f4c5505a2935b349cd8c71",
+          "bytes": 136404
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-commands-reuse-390.png",
+          "sha256": "75b47fc3aff09e4bd09432722f906b3d7b138d71b859089aa5733f97cdad2e48",
+          "bytes": 46313
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-commands-select-1280.png",
+          "sha256": "1d3f0d39f4250b37380193934f4c6329a2fbdb926772ea59954044e4b07f1620",
+          "bytes": 141332
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-commands-select-390.png",
+          "sha256": "23bf3fbb309526e395c4597d50478d413bb519264163dff0008d56b30cf20f52",
+          "bytes": 47386
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-modeling-construct-1280.png",
+          "sha256": "dd372128be34323e7b64407795f28940cef8d4ee8f8d03d6a0b219fa421d9aa4",
+          "bytes": 144209
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-modeling-construct-390.png",
+          "sha256": "d87a02912d70b72cc22374928ba008d797d0cd57f50c111f78d2ebb15dc8cc7b",
+          "bytes": 47285
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-modeling-gather-1280.png",
+          "sha256": "04812db9de5a63d5f0c93638006aa2c6625a17b11b4588e020bd90190294b262",
+          "bytes": 137073
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/completion-modeling-gather-390.png",
+          "sha256": "4d2347d26cf9bb613298c299a73f8ca657c4e7610cba3c037363d913c3d1a871",
+          "bytes": 47739
+        },
+        {
+          "path": "session_viewer/target/application-docs-browser01/result.json",
+          "sha256": "73a9c7353a95486d64e1ab1edc62d8a67fc421f221fa33c1c44f58c556b707cc",
+          "bytes": 2068
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "originalImagesViewed": 8,
+    "widths": [
+      1280,
+      390
+    ],
+    "findings": "Scoped prose wraps within the article; fixed UTC build stamp is visible at bottom right. Modeling appears in application navigation. Captures cover section starts, not every paragraph or runtime behavior."
+  },
+  "limitations": [
+    "Teaching witnesses require human review and do not establish complete instruction or executable acceptance.",
+    "No new native, wasm or application runtime acceptance in this prose/navigation batch.",
+    "Historical structure, ownership and parity failures remain preserved separately."
+  ]
+}
