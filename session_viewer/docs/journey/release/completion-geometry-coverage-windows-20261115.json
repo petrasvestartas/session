@@ -1,0 +1,280 @@
+{
+  "status": "scoped checks passed; course incomplete",
+  "parentCommit": "166a12369c9def8ebe2ee65cbbd7e6b801d7cdbd",
+  "changes": [
+    "All77 previously missing geometry introductions now have reviewed-source paragraph witnesses; no production changes.",
+    "Active route has nine executable candidate subjects; historical reconstruction remains preserved."
+  ],
+  "inputs": [
+    {
+      "path": "session_viewer/docs/journey/completion-geometry.md",
+      "sha256": "b975a2c073ec585887040f79645cfb0782481ec810f72a8b4c2e5e6babbcbed4"
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-visibility.md",
+      "sha256": "1afd61c8545f2b5c99093090a4c08f7f488227ac45e9741e3af5c42fcb703f8d"
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-teaching.json",
+      "sha256": "ca0047338e167f317e75c9aaf03c19ded4db01a5e2ed3be9818366b1d72792c8"
+    },
+    {
+      "path": "session_viewer/docs/journey/active.md",
+      "sha256": "48e5a11925fe96cead7936c7f651d7cbcbf1e33ad7d2a9e7a98cc26085625aa3"
+    }
+  ],
+  "teaching": {
+    "sources": 351,
+    "explained": 166,
+    "missing": 185,
+    "errors": [],
+    "exitCode": 1,
+    "acceptedSubjects": 0
+  },
+  "runs": [
+    {
+      "name": "docs22",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:30:46.0091059Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-completion-docs22",
+          "timeout",
+          "230s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs22.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 240,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 50.853,
+        "peakJobCommitBytes": 1387839488,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 47008,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "scope": "All geometry introduction witnesses drafted:166 explained/185missing. Tooling/active retention/parity/strictsite; teaching acceptance remains incomplete.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "active-audit",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "artifacts": [
+        {
+          "path": "completion-docs22/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43"
+        },
+        {
+          "path": "completion-docs22/command.json",
+          "sha256": "0602602ce35a75f2944d5b4677ddafdf930cbe1b740c1bb50fd51505129488d2"
+        },
+        {
+          "path": "completion-docs22/delivery.json",
+          "sha256": "786f0ed6183e79ddc4afeb01443086f83726a8d077af181d4894238d88c11575"
+        },
+        {
+          "path": "completion-docs22/plan.json",
+          "sha256": "e6d7eef12abf678a4391318302353f3a7d91484f64e7c0b60c8b9186d8f5943e"
+        },
+        {
+          "path": "completion-docs22/resources.json",
+          "sha256": "30cbca5d62273973e3aaacd30e0978717607752d8bc7768ee610c48db08685b5"
+        },
+        {
+          "path": "completion-docs22/result.json",
+          "sha256": "7d2a6d6c5de2c951596c92c897b89f7aa851fe25c95212f366f2f3da862ea95b"
+        },
+        {
+          "path": "completion-docs22/strict-site.log",
+          "sha256": "a13141788650310511142eacae95f8f854102a7e4d47a7cc0a3a8520951f3ce8"
+        },
+        {
+          "path": "completion-docs22/teaching-tests.log",
+          "sha256": "aa92208115e08c291ea9fc908eed0b055e8d3763d1b1c5fa7a17690bc3324639"
+        }
+      ]
+    },
+    {
+      "name": "geometry-browser01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:32:09.2344462Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-geometry-docs-browser01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\geometry-docs-browser01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 5.904,
+        "peakJobCommitBytes": 494051328,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 38060,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "passed": true,
+        "scope": "Geometry and visibility documentation rendering, source include delivery and footer; no runtime acceptance",
+        "records": [
+          {
+            "slug": "completion-geometry",
+            "heading": "Tessellate a BRep without replacing its model",
+            "width": 1280,
+            "file": "completion-geometry-tessellate-1280.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-geometry",
+            "heading": "Strokes, dashes and reveal",
+            "width": 1280,
+            "file": "completion-geometry-strokes,-1280.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-geometry",
+            "heading": "Keep allocation, identity and frame state separate",
+            "width": 1280,
+            "file": "completion-geometry-keep-1280.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-visibility",
+            "heading": "Reconstruct ambient shading from visible geometry",
+            "width": 1280,
+            "file": "completion-visibility-reconstruct-1280.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-geometry",
+            "heading": "Tessellate a BRep without replacing its model",
+            "width": 390,
+            "file": "completion-geometry-tessellate-390.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-geometry",
+            "heading": "Strokes, dashes and reveal",
+            "width": 390,
+            "file": "completion-geometry-strokes,-390.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-geometry",
+            "heading": "Keep allocation, identity and frame state separate",
+            "width": 390,
+            "file": "completion-geometry-keep-390.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          },
+          {
+            "slug": "completion-visibility",
+            "heading": "Reconstruct ambient shading from visible geometry",
+            "width": 390,
+            "file": "completion-visibility-reconstruct-390.png",
+            "footer": "Docs built 2026-11-15 19:30:50 UTC"
+          }
+        ],
+        "errors": []
+      },
+      "artifacts": [
+        {
+          "path": "geometry-docs-browser01/completion-geometry-keep-1280.png",
+          "sha256": "a6e622400b6fdda7f21237803f798a559599cb2bcfedbf52e2eefacbeca7910e"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-geometry-keep-390.png",
+          "sha256": "3c32f2eadf4c0813365e127afa8835ff6a5fa8710478085c8180bfaa728af674"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-geometry-strokes,-1280.png",
+          "sha256": "dd3b50d506ad7fa22799c6019520faf2ce410b2f9fd3eac3cc19a54ddb86c21f"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-geometry-strokes,-390.png",
+          "sha256": "495984bd0f124803d95003d52a694bc13eeea0556d2c75d1bd6288d0629afeeb"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-geometry-tessellate-1280.png",
+          "sha256": "977a9c6aa5cc7c24ac857a79e3685457a840663e4635c7c0f4654450c118a8fc"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-geometry-tessellate-390.png",
+          "sha256": "d77b2a53d5f3550fd92cd2957902487a3a604ea1dd815c08ce6ea9ff7132fa07"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-visibility-reconstruct-1280.png",
+          "sha256": "f856031565853d748a479bb0e5baf80fec6b309d15fa21e10358826d3ca8625d"
+        },
+        {
+          "path": "geometry-docs-browser01/completion-visibility-reconstruct-390.png",
+          "sha256": "9ced75945bd551479782deec857fdb68d5e96ba46a6bd0467b18b292a785d81d"
+        },
+        {
+          "path": "geometry-docs-browser01/result.json",
+          "sha256": "3f0e4f6a51db3d4647d7535a5a8893acfd81b76ff37b9c072e25a16e6ac661e7"
+        }
+      ]
+    }
+  ],
+  "review": {
+    "originalImagesViewed": 8,
+    "findings": "BRep, stroke include, resource ownership and ambient sections render at1280/390; prose contained, long source lines use code-block horizontal scrolling. UTC footer remains bottom-right.",
+    "scope": "Documentation only. Paragraph witnesses do not establish complete teaching or new runtime/device acceptance. Prior historical failures and metadata byte mismatch remain open."
+  }
+}

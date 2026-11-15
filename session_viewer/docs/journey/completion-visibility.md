@@ -50,11 +50,17 @@ Invalidation clears the leading record so shaders do not interpret old lists as 
 
 ### Compare ink with the right surface
 
+`triangle.wgsl` shares transformed vertices across face color, source-face picking, selection masks and clipping counts. Mirrored object transforms reverse the interpretation of raster front-facing state. A supplied normal is normalized; missing normals fall back to screen derivatives. Closed translucent solids drop back faces and use the global opacity, while open or printed surfaces follow their own rules. Color writes also carry primitive identity; clipped color uses a per-sample kept-side mask. Keeping these outputs together makes visible surfaces, selected faces and ink occlusion agree on the same placed geometry.
+
+`face_coverage.wgsl` derives surface coverage from nonzero primitive IDs at each sample. One entry returns the fraction of covered samples; another writes full coverage only to the corresponding sample mask. Empty pixels discard. These are different outputs for different downstream passes: an averaged coverage value cannot replace an exact per-sample mask at a multisampled edge.
+
 `triangle.wgsl` writes surface color, depth and primitive identity. `ink_visibility.wgsl` consumes the single-sample or multisampled versions of those attachments and the tile lists. It accounts for local depth slope and the geometric sag between a curved edge and its faceted surface; a fixed global depth offset would either hide legitimate edges or expose strokes through unrelated geometry.
 
 `physical.wgsl` converts physical sizes and screen-space widths, while `normals.wgsl` supplies shared normal calculations. Ribbon, vector, plane, glyph and sphere shaders can reuse the same visibility contract. Their object row still controls visibility, selection, placement and reveal. A drawable lane and a surface used for occlusion are related but not interchangeable.
 
 ### A section cap needs depth and identity too
+
+`clip/pipelines.rs` generates the cap shader prefix for the target sample count. Single-sample and multisample count/primitive textures require different WGSL declarations and load expressions; the same cap implementation follows that prefix. The primitive loader joins the two 16-bit ID halves. Cap picking uses a single-sample target with separate count and owner passes, then writes IDs for the section. Matching these declarations to the bindings is part of capping correctness, even when a one-sample screenshot happens to look right.
 
 `clip.rs` represents a kept half-space as a normal and offset. It tests whether object bounds cross a clipping plane, including slack for GPU precision, and builds per-plane resources. `clip.wgsl` supplies shared clipping calculations. Solid crossings behind a plane determine where a section exists; an open surface must not be treated as a closed solid merely because it intersects the plane.
 
@@ -65,6 +71,22 @@ Invalidation clears the leading record so shaders do not interpret old lists as 
 `ssao.rs` owns depth-dependent ambient resources and sample-count-specific pipelines. Browser pipeline warming is scheduled after geometry can be presented; `ambient_warm.rs` handles that deferred ownership. The ambient depth/geometry/composite shaders and `ssao.wgsl` separate preparation, occlusion and composition instead of embedding all work in every face shader.
 
 `surface_outline.rs` renders coverage masks, resolves multisampled coverage when needed, and builds coarse and dilated masks to skip empty regions. `face_coverage.wgsl` produces coverage; `surface_outline.wgsl` composites the border using a bounded offset table. Selection outlines and ordinary borders can then use the appropriate masks without confusing object IDs with coverage values.
+
+### Reconstruct ambient shading from visible geometry
+
+`Ssao` owns the reduced-resolution depth, radius, normal, filtered-occlusion and history images. Its cached key combines frame uniforms with geometry revision: an unchanged view and scene can reuse the result. Camera changes can reuse reprojected history only while the geometry revision agrees; changed geometry invalidates that assumption. Bindings are rebuilt when depth, primitive IDs, geometry buffers or the slot table change. Image dimensions and device scale also determine whether existing resources fit. The pass runs after faces, because it needs their actual depth and primitive identity.
+
+`ssao/pipelines.rs` constructs the pipeline family for preparing depth, reducing it, finding occupied regions, estimating occlusion, filtering, storing history, upsampling and compositing. Layouts distinguish depth, integer identity/radius, sampled floating-point images and storage buffers. The target sample count controls multisampled scene bindings, while reduced working images remain single-sampled. Treat this as one resource contract: selecting a shader entry point with the wrong texture sample type is a validation failure, not a visual-quality setting.
+
+`ambient_depth.wgsl` builds coarser depth levels by selecting the nearest positive linear depth from each two-by-two block and carrying that sample's radius with it. Empty blocks retain zero depth. Its occupancy pass searches a five-by-five neighbourhood for any geometry, expanding the active region enough for nearby sampling. Reducing depth and radius together prevents a coarse sample from combining one surface's location with another object's shading scale.
+
+`ambient_geometry.wgsl` resolves the physical primitive ID through the instance slot table before reading triangle vertices and their placed owner. It derives a normal from transformed triangle edges, avoiding dependence on a possibly smoothed vertex normal. Pixels without a triangle reconstruct a normal from depth neighbours, choosing nearby samples to avoid crossing a discontinuity. The normal is then oriented toward the camera. This geometry lookup lets identical definition triangles shade differently under distinct instance transforms.
+
+`ssao.wgsl` estimates screen-space occlusion by sampling horizons in several directions around the reconstructed surface point. Sample distance grows quadratically and selects coarser depth levels farther away. Object radius, bias and a finite screen radius bound the effect. Two directional filters use depth/normal agreement to avoid blurring across unrelated surfaces. Reprojected history is accepted only when its signed depth agrees, then clamped to the current neighbourhood before blending. This is an approximation using visible depth; it cannot infer arbitrary hidden geometry.
+
+`ambient_composite.wgsl` overlays black with the computed occlusion as alpha. Its multisample edge path draws only listed sixteen-pixel tiles and unpacks one correction byte per sample. The output sample mask selects the corrected sample instead of darkening every sample in a partly covered pixel. This separates smooth interior shading from edge coverage and preserves the attachment's multisample identity.
+
+`ambient_warm.rs` moves browser ambient-pipeline compilation outside the presented frame. A thread-local job is keyed by device and color format, with separate ready slots for one and four samples. It schedules work only while idle, avoids duplicate pending callbacks and compiles the remaining variant when the callback has time. `requestIdleCallback` falls back to a 50-millisecond timeout. Taking a ready pipeline checks the device/format again; an unavailable pipeline remains pending work rather than blocking scene startup.
 
 ## Run and observe
 

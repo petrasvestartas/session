@@ -1,0 +1,484 @@
+{
+  "status": "scoped checks passed; course incomplete",
+  "parentCommit": "166a12369c9def8ebe2ee65cbbd7e6b801d7cdbd",
+  "changes": [
+    "21 actual geometry source explanations without production changes or source-hash refresh.",
+    "Two-column active-subject table fits desktop and upright390px."
+  ],
+  "teaching": {
+    "sources": 351,
+    "explained": 110,
+    "missing": 241,
+    "errors": [],
+    "exitCode": 1
+  },
+  "runs": [
+    {
+      "name": "docs21",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:20:16.3039573Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-completion-docs21",
+          "timeout",
+          "230s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs21.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 240,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 51.949,
+        "peakJobCommitBytes": 1380454400,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 47164,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "scope": "Geometry source teaching expansion110 witnesses/241missing; tooling, active retention/parity and strict site only. Not complete teaching acceptance.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "active-audit",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "artifacts": [
+        {
+          "path": "completion-docs21/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43"
+        },
+        {
+          "path": "completion-docs21/command.json",
+          "sha256": "dfe2be9acc53d47625a460fe04640fca726bb9bde0abc4907dcd7b53c2c58f2a"
+        },
+        {
+          "path": "completion-docs21/delivery.json",
+          "sha256": "17d0c4ac58b7d278ee2e5df6ade1e3cadbfb1ac0797845a4765b86ff473e7600"
+        },
+        {
+          "path": "completion-docs21/plan.json",
+          "sha256": "7444e74d869a245e981dacecf2d29c0e32d143dd4526491af2bfbf0a69b42859"
+        },
+        {
+          "path": "completion-docs21/resources.json",
+          "sha256": "a0aaf5906eb717380eb29fcd756ecf9276cdaf9d5e79b6904124325a74537824"
+        },
+        {
+          "path": "completion-docs21/result.json",
+          "sha256": "f923fffb9cad23783a42b113397504b44ba167c9256cdf77a66640b25dd04fba"
+        },
+        {
+          "path": "completion-docs21/strict-site.log",
+          "sha256": "e6f1a2e9c5be38a30eb3a74b251d43fd962fb321dd84dd8327dc2f099eefde04"
+        },
+        {
+          "path": "completion-docs21/teaching-tests.log",
+          "sha256": "4dcc2a3436265ac2466e50e8ddaf3dc78e5925c2e7c264097c2a017807dec4cf"
+        },
+        {
+          "path": "completion-docs21/teaching.json",
+          "sha256": "72102878833996eabec3f8f71733878ca6e476c0e530571bd8786b0da53b2250"
+        }
+      ]
+    },
+    {
+      "name": "browser03",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:21:32.0089386Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-active-route-browser03",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\active-route-browser03.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 8.756,
+        "peakJobCommitBytes": 649531392,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 45084,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "passed": true,
+        "scope": "Active route navigation, historical links, original illustration delivery and fixed build timestamp; no viewer or complete-course acceptance",
+        "stamp": "2026-11-15T19:20:21.106Z",
+        "records": [
+          {
+            "subject": "frame",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "painting",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "mathematics",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "dock",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "camera",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "rows",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "geometry",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "decoding",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "application",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "frame",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "painting",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "mathematics",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "dock",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "camera",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "rows",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "geometry",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "decoding",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          },
+          {
+            "subject": "application",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "stamp": "2026-11-15T19:20:21.106Z"
+          }
+        ],
+        "images": [
+          {
+            "asset": "world-plane-iso.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469"
+          },
+          {
+            "asset": "world-plane-top.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c"
+          },
+          {
+            "asset": "matched-font-text.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+          },
+          {
+            "asset": "document-selection.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+          },
+          {
+            "asset": "typed-move.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+          },
+          {
+            "asset": "feature-pixel-selected.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606"
+          },
+          {
+            "asset": "feature-pixel-deleted.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c"
+          },
+          {
+            "asset": "materialized-net.png",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+          },
+          {
+            "asset": "world-plane-iso.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469"
+          },
+          {
+            "asset": "world-plane-top.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c"
+          },
+          {
+            "asset": "matched-font-text.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+          },
+          {
+            "asset": "document-selection.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "3f0cd3a8c94b4532bc40d6f24e49986a9d633af4ce18359091e4552672429e2a"
+          },
+          {
+            "asset": "typed-move.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "0f82e2ecddcadeb742b033bb8e551ea667e977a4f17df8212f3240a13a551a64"
+          },
+          {
+            "asset": "feature-pixel-selected.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "3f613359cb1c40070caa2ba1805322e4cf40271c14256faae326f6ad1910b606"
+          },
+          {
+            "asset": "feature-pixel-deleted.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "5d485cc3c777b45cba83504cf9206de65a6d8ef621889542a5ee27b5211bdc3c"
+          },
+          {
+            "asset": "materialized-net.png",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "sha256": "49f25738b966989737490c0ea754e04c5c840cdaf43c24ce779d76ed3551a611"
+          }
+        ],
+        "errors": []
+      },
+      "artifacts": [
+        {
+          "path": "active-route-browser03/active-1280.png",
+          "sha256": "bd7c082f61317c9667abe53d7861e8ce47cdb3c93b6ebe86158cd77ad9b5f5ab"
+        },
+        {
+          "path": "active-route-browser03/active-390.png",
+          "sha256": "9c0e21abc9a9836b477c941a64ecca2dc8055049366a3775f59f3a00e646942e"
+        },
+        {
+          "path": "active-route-browser03/historical-1280.png",
+          "sha256": "e83bf91d6dfaa37528577da478773aa9484196cea83e01155d841e7f8a930a5b"
+        },
+        {
+          "path": "active-route-browser03/historical-390.png",
+          "sha256": "7003df522a1d2acbf4f64deca6202806e0e092b5cc56db3cf0514d00665594ff"
+        },
+        {
+          "path": "active-route-browser03/mathematics-1280.png",
+          "sha256": "f00afa9e23314f17e0f4fd7e29d97ca27e1ea4ae8e16692237ca268a879efa46"
+        },
+        {
+          "path": "active-route-browser03/mathematics-390.png",
+          "sha256": "277389496ed56df2ccdef12f4782263c1e26686b3d82b3c4c8a5f056d670af72"
+        },
+        {
+          "path": "active-route-browser03/result.json",
+          "sha256": "c67a7a00959985cd249fd062af162ff3783a48f25b2ae8c39ecf279dd8fa2269"
+        },
+        {
+          "path": "active-route-browser03/text-1280.png",
+          "sha256": "47e93cd0c8e10f57900a63a151aae155403ceacefd13bedccb3d95af5448d151"
+        },
+        {
+          "path": "active-route-browser03/text-390.png",
+          "sha256": "9f1af701a850745aa1b5966d256d4adb6ce720ecce95306b7e8328031c34183c"
+        }
+      ]
+    }
+  ],
+  "review": {
+    "originalImagesViewed": 8,
+    "findings": "All nine subject rows fit upright without splitting checkpoint identifiers. Fixed UTC build footer remains bottom-right. Math prose, historical banner and text figure retained.",
+    "scope": "18 subject navigations,16 original image deliveries; source teaching is still incomplete. No new viewer runtime, physical-device or all-chapter legibility acceptance."
+  }
+}

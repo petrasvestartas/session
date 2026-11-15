@@ -101,6 +101,16 @@
       "subject": "nine active assemblies and preserved historical reconstruction",
       "scope": "Active nine-assembly course migration with historical source/URLs/checks retained; partial course, not final acceptance.",
       "path": "session_viewer/docs/journey/release/completion-active-route-windows-20261115.json"
+    },
+    {
+      "subject": "geometry teaching",
+      "scope": "110-witness epoch; strict site and active route/table browser review, not whole-course acceptance.",
+      "path": "session_viewer/docs/journey/release/completion-geometry-teaching-windows-20261115.json"
+    },
+    {
+      "subject": "geometry teaching",
+      "scope": "166-witness epoch; all geometry introduction files have draft explanations,185 application gaps remain. Strict site and8 geometry/visibility captures.",
+      "path": "session_viewer/docs/journey/release/completion-geometry-coverage-windows-20261115.json"
     }
   ],
   "open": [

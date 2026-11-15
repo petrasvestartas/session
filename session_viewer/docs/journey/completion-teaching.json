@@ -577,7 +577,12 @@
   {
     "path": "src/app/gizmo.rs",
     "owner": "geometry",
-    "sourceSha256": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340"
+    "sourceSha256": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep the manipulation widget independent of scene depth",
+      "paragraph": "`gizmo.rs` supplies the geometric manipulation model used by the later input adapter. A drag remembers its initial axis point, angle or reach. Translation compares closest points on an axis, rotation intersects its plane and optionally snaps to quarter turns, and scale compares reach around the pivot. Uniform scaling measures in a view-facing plane. Drag scaling is softened near the centre; a valid typed positive factor is used directly instead. The model returns an `Xform`, leaving command history and document mutation to the application."
+    }
   },
   {
     "path": "src/app/hierarchy.rs",
@@ -602,7 +607,12 @@
   {
     "path": "src/app/interactions.rs",
     "owner": "geometry",
-    "sourceSha256": "7fe230e0b3740ee6b8ad24e68880c004cc8e8e882d417ca1517694147c56973d"
+    "sourceSha256": "7fe230e0b3740ee6b8ad24e68880c004cc8e8e882d417ca1517694147c56973d",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Borrow tables without losing object identity",
+      "paragraph": "`interactions.rs` classifies contact, joint, cut and drill features as interactions; other features belong to the element itself. `hosted` traverses graph edges in creation order, associates their interactions with unclaimed feature indices, and falls back to individual entries for interaction features whose originating interaction is absent. This keeps the display grouping stable without duplicating one feature under several owners. The geometry walker uses the same classification for its two visibility switches; the later document UI consumes the returned labels and indices."
+    }
   },
   {
     "path": "src/app/keys.rs",
@@ -612,7 +622,12 @@
   {
     "path": "src/app/knobs.rs",
     "owner": "geometry",
-    "sourceSha256": "b9dba07b897e6498d0a4210dca1b909365a82f46df32eb1a2e8dfd712889d99a"
+    "sourceSha256": "b9dba07b897e6498d0a4210dca1b909365a82f46df32eb1a2e8dfd712889d99a",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Convert mesh topology into faces and ink",
+      "paragraph": "`knobs.rs` reads each diagnostic environment flag once through `OnceLock`. Presence enables the flag, even when its text is \"0\". Profiling, edge suppression, dot suppression, coplanar edges, smooth seams and coarse BRep edges are separate switches. Set them before starting a native process; changing the environment after first access cannot alter the cached value. `VIEWER_DROP_SESSIONS` remains a recognized flag but no longer changes behavior, so it is not a memory-release control."
+    }
   },
   {
     "path": "src/app/launch.rs",
@@ -1167,12 +1182,22 @@
   {
     "path": "src/app/walk/bounds.rs",
     "owner": "geometry",
-    "sourceSha256": "d096f1b8f4eb435d32fecc40ecd63ef3f966f364a2dc0ec2a4c44154e7f4529b"
+    "sourceSha256": "d096f1b8f4eb435d32fecc40ecd63ef3f966f364a2dc0ec2a4c44154e7f4529b",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Borrow tables without losing object identity",
+      "paragraph": "`Baselines` records the object, pipe, ribbon and vector table lengths before appending a file. `file_extent` unions only newly appended live rows after applying their placement; dead definition rows must not enlarge the fitted scene. Sheet detection requires a common placement and a local z band thinner than 0.001 scene units. `mark_sheet` flags those new rows and replaces only zero/default segment and arrow radii with a positive 0.5 scene-unit radius. Explicit negative pixel widths survive. Recording each table boundary prevents a sheet from changing pens belonging to an earlier file."
+    }
   },
   {
     "path": "src/app/walk/brep.rs",
     "owner": "geometry",
-    "sourceSha256": "3b2a570728e23c8c1e5a2edd86221708bdd18134d3a0f334e3b9827d661ca63a"
+    "sourceSha256": "3b2a570728e23c8c1e5a2edd86221708bdd18134d3a0f334e3b9827d661ca63a",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Tessellate a BRep without replacing its model",
+      "paragraph": "`walk_brep` first tries a recorded congruent shape; otherwise it asks the kernel for one display mesh per face. Finite-quality refinement uses bounded meshing. If that budget fails during a candidate walk, the candidate is rejected; an ordinary walk can fall back to the default display quality. Face signs correct both vertex normals and triangle winding before upload. The converter keeps UV samples for later edits, appends face-source identities and then draws boundary and silhouette ink. Smooth, open, closed and single-face row flags describe how later rendering and clipping should treat the result."
+    }
   },
   {
     "path": "src/app/walk/brep/application_tests.rs",
@@ -1182,22 +1207,42 @@
   {
     "path": "src/app/walk/brep_edges.rs",
     "owner": "geometry",
-    "sourceSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47"
+    "sourceSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Tessellate a BRep without replacing its model",
+      "paragraph": "`brep_edges.rs` first locates a face-mesh chain from constrained-edge labels or an isoparametric boundary. It checks that the chain reaches the actual edge endpoints before allowing that face to supply visibility information. Display chords are then evaluated on the exact 3D curve and mapped back to the corresponding coarse chain segment. Closed-curve parameters are unwrapped across the seam. Each chord carries its rise above the supporting facet, with a safety margin, so curved ink can remain visible on its own faceted surface without using an arbitrary global depth bias."
+    }
   },
   {
     "path": "src/app/walk/brep_orient.rs",
     "owner": "geometry",
-    "sourceSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315"
+    "sourceSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Tessellate a BRep without replacing its model",
+      "paragraph": "`face_signs` preserves authored normals for an open shell. For a solid, shared edge chains build a face-adjacency graph. A breadth-first traversal assigns signs so neighbouring faces walk their common boundary in opposite directions. The signed volume of each connected group then decides whether the entire group must flip outward. Sorted triangle accumulation and smaller-key tie breaking make this decision reproducible; this display correction does not rewrite the BRep topology."
+    }
   },
   {
     "path": "src/app/walk/brep_shapes.rs",
     "owner": "geometry",
-    "sourceSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a"
+    "sourceSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Tessellate a BRep without replacing its model",
+      "paragraph": "`SharedWalks` limits shape reuse to the lifetime of a document walk. A thread-local map holds recordings keyed by the congruent shape and quality tolerance; nested scopes join the same map, and the outermost guard frees it on drop. The first shape records the ranges it appended. A matching copy replays those ranges in its own frame and object row rather than tessellating again. An unsupported recording is remembered as unavailable. This bounds cache lifetime and avoids confusing shared display geometry with shared object identity."
+    }
   },
   {
     "path": "src/app/walk/cloud.rs",
     "owner": "geometry",
-    "sourceSha256": "84313f8cf50c315742e31ecab2080efe9c0487eb57e6a835241aaa5e3c846ed0"
+    "sourceSha256": "84313f8cf50c315742e31ecab2080efe9c0487eb57e6a835241aaa5e3c846ed0",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`walk/cloud.rs` is the module boundary between resident cloud conversion and the streaming adapter. It re-exports `walk_cloud` from the resident implementation. Loading later registers the stream module and its slice types at this boundary; it does not replace how resident geometry is converted. Keeping this file as declarations makes the finished-subject check able to distinguish an allowed registration from a hidden implementation rewrite."
+    }
   },
   {
     "path": "src/app/walk/cloud/resident.rs",
@@ -1217,27 +1262,52 @@
   {
     "path": "src/app/walk/curves.rs",
     "owner": "geometry",
-    "sourceSha256": "fc35bdd392da229cca1d5a0fdce0e39b0432ea2f13338adf0ac323cd878f743a"
+    "sourceSha256": "fc35bdd392da229cca1d5a0fdce0e39b0432ea2f13338adf0ac323cd878f743a",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Strokes, dashes and reveal",
+      "paragraph": "A polyline is a sequence of neighbouring point pairs. Repeated points produce no segment. Each surviving segment stores its endpoints, width, colour and object row. The accumulated length is carried to the next segment: restarting the dash offset at each vertex would visibly restart the pattern. A chain range preserves which segments belong to one joined stroke."
+    }
   },
   {
     "path": "src/app/walk/display.rs",
     "owner": "geometry",
-    "sourceSha256": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685"
+    "sourceSha256": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Tessellate a BRep without replacing its model",
+      "paragraph": "`display.rs` admits refinement before allocating its working set. Checked size estimates reject unsupported or excessive sources; `None` means retain the existing display, not delete the object. `Quality::for_error` quantizes local tolerance in half-octave steps and keeps a zoom-out dead band, reducing repeated rebuilds. Curve sampling splits at knot spans, then subdivides exact subcurves with a finite stack, a depth limit of 16 and a segment budget capped at 4,096. Reaching a limit marks the result limited rather than claiming the requested error was met. `candidate` uses a drop guard to restore thread-local active/failure state, so a failed nested conversion cannot silently become an accepted replacement."
+    }
   },
   {
     "path": "src/app/walk/display_features.rs",
     "owner": "geometry",
-    "sourceSha256": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829"
+    "sourceSha256": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Tessellate a BRep without replacing its model",
+      "paragraph": "`display_features.rs` budgets element annotations alongside refined geometry. It rejects more than 256 features or outlines, more than 4,096 total points, non-finite coordinates and excessive contact-triangulation work. Checked arithmetic counts source strings and coordinates as well as transient copies. `snapshot` creates fresh polylines containing the drawing and identity fields that this display path consumes; it does not retain cached planes, spare capacity or dash arrays. The original feature remains the editing source. This selective copy makes the reservation meaningful instead of cloning an unbounded hidden cache."
+    }
   },
   {
     "path": "src/app/walk/encode.rs",
     "owner": "geometry",
-    "sourceSha256": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83"
+    "sourceSha256": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Borrow tables without losing object identity",
+      "paragraph": "`encode.rs` defines the CPU side of the primitive packing contract. An explicit positive pen width becomes a negative half-width in pixels; the ordinary width of one and invalid widths become zero, meaning the default pen. RGBA channels are clamped, rounded to bytes and packed with red in the low byte. Face directions use octahedral projection: divide by the sum of absolute components, fold the lower hemisphere and quantize two signed coordinates. Two 16-bit normals share a word; a lone normal is repeated. The reserved all-ones word means unknown facing, so a real packed pair must avoid it."
+    }
   },
   {
     "path": "src/app/walk/frames.rs",
     "owner": "geometry",
-    "sourceSha256": "7b0b034a6a704085a86f6cc8bb54614ee519cfd4d5e0d794b86c68ad6c41edaf"
+    "sourceSha256": "7b0b034a6a704085a86f6cc8bb54614ee519cfd4d5e0d794b86c68ad6c41edaf",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Generate planes and arrows from compact rows",
+      "paragraph": "`walk_plane` stores a frame rather than building a separate mesh for every grid line. Its row contains the origin, x/y axes, pen radius and object identity; the current plane size determines initial bounds, including the z-arrow tip. `walk_obb` instead emits the twelve fixed corner pairs as ribbons and unions their corner positions. Both return thin rows: their outlines participate in fitting without pretending to enclose a shaded solid."
+    }
   },
   {
     "path": "src/app/walk/frames/application_tests.rs",
@@ -1247,42 +1317,82 @@
   {
     "path": "src/app/walk/matrix.rs",
     "owner": "geometry",
-    "sourceSha256": "b6735b4df9b65e9d377f15ae371a410994693aa5043e3ca46c02676c79a70aeb"
+    "sourceSha256": "b6735b4df9b65e9d377f15ae371a410994693aa5043e3ca46c02676c79a70aeb",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Kernel Matrix display",
+      "paragraph": "A kernel `Matrix` becomes a component carrying dimensions, values and display settings. The converter rejects empty dimensions or mismatched value counts. It computes the nonzero value range, packs a header and cells, and records a bound for camera fitting. The shader uses that packed data to draw cells, grid lines and numeric values; zero has its own colour rather than moving the nonzero range."
+    }
   },
   {
     "path": "src/app/walk/mesh.rs",
     "owner": "geometry",
-    "sourceSha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060"
+    "sourceSha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Convert mesh topology into faces and ink",
+      "paragraph": "`MeshOpts` separates three conversion policies: ordinary objects permit sheet fills and open surfaces, sampled surfaces use smooth-edge rules without sheet lanes, and element meshes are never flagged open. A single zero width identifies a printed fill. Vertex spacing is estimated from the bounds diagonal divided by the square root of the vertex count. At 200,000 triangles the raw-mesh path omits edges and dots to bound display cost; the resulting shaded surface does not promise a full wireframe. Native profiling uses `Lap`; its browser counterpart has no clock."
+    }
   },
   {
     "path": "src/app/walk/mesh_ink.rs",
     "owner": "geometry",
-    "sourceSha256": "8d9ac0dd2e5c4b4ac38ee3e1cb7fb39b99c10f399b4e45065f65d395265b9803"
+    "sourceSha256": "8d9ac0dd2e5c4b4ac38ee3e1cb7fb39b99c10f399b4e45065f65d395265b9803",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Convert mesh topology into faces and ink",
+      "paragraph": "`mesh_ink.rs` derives visible ink from the topology rather than drawing every triangle edge. Zero widths hide edges; nearly coplanar adjacent faces suppress their shared diagonal unless all-edges mode is enabled. For a smooth surface, borders and creases sharper than 25 degrees remain features, while other seams carry the silhouette marker for view-dependent drawing. The two face normals are corrected for inconsistent winding before packing. Smooth sampled edges receive no kernel edge-picking ID. At 10,000 edges the wireframe uses black to keep dense ink consistent; this changes display color, not kernel geometry."
+    }
   },
   {
     "path": "src/app/walk/mesh_topology.rs",
     "owner": "geometry",
-    "sourceSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc"
+    "sourceSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Convert mesh topology into faces and ink",
+      "paragraph": "`mesh_topology.rs` turns kernel vertex keys into compact GPU slots. A dense lookup is used when the largest key is less than four times the vertex count; sparse keys use a hash map instead of a huge mostly empty vector. Sorted face keys make traversal deterministic. Newell normals sum every polygon edge, with degenerate faces represented by no normal. The topology records unique edges, their adjacent faces and whether the faces walk the shared edge in opposite directions. Hole rings are oriented against the outer border for this comparison, preserving the outer-edge ordering used by colors, widths and picking IDs."
+    }
   },
   {
     "path": "src/app/walk/mod.rs",
     "owner": "geometry",
-    "sourceSha256": "4e55c5b51fc19ec17a560254d47aa453a9daf17f0129f1ee34629e1673aa40a2"
+    "sourceSha256": "4e55c5b51fc19ec17a560254d47aa453a9daf17f0129f1ee34629e1673aa40a2",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Borrow tables without losing object identity",
+      "paragraph": "`Walk` borrows the upload tables mutably for one conversion. Its `solid` method splits those borrows into triangle storage and edge/dot storage, so converters can append to both without cloning the scene. `WalkCx` carries the object row, existing vertex base, display quality and feature-visibility switches. The returned `Row` describes local bounds, spacing and flags; placement remains in the shared object table. Attribute and interaction geometry uses the parent row, so showing a feature does not create a separately pickable object."
+    }
   },
   {
     "path": "src/app/walk/plane.rs",
     "owner": "geometry",
-    "sourceSha256": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d"
+    "sourceSha256": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Generate planes and arrows from compact rows",
+      "paragraph": "A clipping plane uses `walk/plane.rs`, a separate producer from the ordinary orientation grid. It emits a rectangle and an arrow toward the cut side, sets the clipping-plane row flag and includes a mirrored point in its bounds to keep the manipulation centre at the plane origin. The first cut enables solid verification for subsequently walked meshes. Closedness checks balance directed edge uses; signed volume distinguishes inward winding. Hole rings and oversized vertex keys delegate closedness to the kernel. Only a verified solid receives the closed flag used by capping."
+    }
   },
   {
     "path": "src/app/walk/points.rs",
     "owner": "geometry",
-    "sourceSha256": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330"
+    "sourceSha256": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Borrow tables without losing object identity",
+      "paragraph": "`walk_point` appends one signed-distance-field dot with the parent row and unknown face orientation. A default pen becomes a three-pixel radius; an explicit width uses the same negative pixel-radius encoding as lines. Its bounding box contains the point centre, not a camera-dependent pixel halo. This keeps fitting in scene coordinates while the glyph shader supplies the visible screen-sized footprint."
+    }
   },
   {
     "path": "src/app/walk/sheet.rs",
     "owner": "geometry",
-    "sourceSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f"
+    "sourceSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Strokes, dashes and reveal",
+      "paragraph": "`walk_sheet_slice` converts streamed drawing segments into a dedicated sheet table, keeping them separate from editable ribbons. Six position floats make one segment. Missing color, width and entity-ID entries receive black, a hairline and the missing-ID sentinel respectively. Positive sheet widths become positive half-widths in scene units. The draw record preserves both the source slice offset and the first uploaded row, so source identity survives partial residency. Its bounds include both endpoints of every complete segment."
+    }
   },
   {
     "path": "src/app/yielding.rs",
@@ -1347,17 +1457,32 @@
   {
     "path": "src/engine/gpu/ambient_warm.rs",
     "owner": "geometry",
-    "sourceSha256": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585"
+    "sourceSha256": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`ambient_warm.rs` moves browser ambient-pipeline compilation outside the presented frame. A thread-local job is keyed by device and color format, with separate ready slots for one and four samples. It schedules work only while idle, avoids duplicate pending callbacks and compiles the remaining variant when the callback has time. `requestIdleCallback` falls back to a 50-millisecond timeout. Taking a ready pipeline checks the device/format again; an unavailable pipeline remains pending work rather than blocking scene startup."
+    }
   },
   {
     "path": "src/engine/gpu/arena.rs",
     "owner": "geometry",
-    "sourceSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441"
+    "sourceSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`arena.rs` packs the kernel render vertex into a 20-byte GPU vertex: three position floats, one octahedral normal word and one RGBA word. The kernel and GPU representations therefore have different strides. A reserved normal code represents absent normals, and quantization avoids that code. The arena keeps object-row IDs separately from vertices and maintains distinct index streams for ordinary faces, printed fills and text. Packing saves transfer and device memory while preserving the source representation used by editing."
+    }
   },
   {
     "path": "src/engine/gpu/backdrop.rs",
     "owner": "geometry",
-    "sourceSha256": "4b90b3cb92cdcc90c88c06791137f81684830c6d14d6864142863965292055ea"
+    "sourceSha256": "4b90b3cb92cdcc90c88c06791137f81684830c6d14d6864142863965292055ea",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`BackdropLane` owns the fullscreen background and construction-plane grid. It stores the authored grid frame in double precision and uploads a frame relative to the current scene anchor. Updating the frame or anchor updates that small uniform rather than rebuilding grid vertices. The background and grid use distinct pipelines and topologies: a fullscreen triangle and generated line endpoints. Their resources follow the same lane lifetime as scene geometry."
+    }
   },
   {
     "path": "src/engine/gpu/backdrop/application_tests.rs",
@@ -1392,7 +1517,12 @@
   {
     "path": "src/engine/gpu/clip/pipelines.rs",
     "owner": "geometry",
-    "sourceSha256": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73"
+    "sourceSha256": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### A section cap needs depth and identity too",
+      "paragraph": "`clip/pipelines.rs` generates the cap shader prefix for the target sample count. Single-sample and multisample count/primitive textures require different WGSL declarations and load expressions; the same cap implementation follows that prefix. The primitive loader joins the two 16-bit ID halves. Cap picking uses a single-sample target with separate count and owner passes, then writes IDs for the section. Matching these declarations to the bindings is part of capping correctness, even when a one-sample screenshot happens to look right."
+    }
   },
   {
     "path": "src/engine/gpu/clip/tests.rs",
@@ -1412,7 +1542,12 @@
   {
     "path": "src/engine/gpu/context.rs",
     "owner": "geometry",
-    "sourceSha256": "e90e75e6513d2571719624df9f7af7fc30500813470a0bd3d3c706ec5fcfebfe"
+    "sourceSha256": "e90e75e6513d2571719624df9f7af7fc30500813470a0bd3d3c706ec5fcfebfe",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`Gpu` is the resource owner: device/queue, frame uniforms, targets, object table, fixed lanes, registered lanes, passes, picker and performance state live together. `lane_list!` produces shared or mutable trait-object views over each fixed lane once; registered lanes and passes extend the same lifecycle separately. This central list keeps resource accounting and reset/release operations aligned. A headless renderer has no surface, while a browser renderer also carries pacing state. Application code receives this complete renderer rather than opening a second device for each feature."
+    }
   },
   {
     "path": "src/engine/gpu/device.rs",
@@ -1427,17 +1562,32 @@
   {
     "path": "src/engine/gpu/faces.rs",
     "owner": "geometry",
-    "sourceSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71"
+    "sourceSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`Faces` keeps the mapping from drawn triangles to source faces alongside the selected source-face uniform. Selecting a face changes that small uniform and its revision rather than recoloring every vertex. Physical, opaque, clipped, object-ID, face-pick, highlight and mask pipelines serve different passes over the same geometry. Their shared bind group includes geometry/source buffers and selection; its layout must agree with the pulled face shader, while instance slots supply the placed owner."
+    }
   },
   {
     "path": "src/engine/gpu/frame.rs",
     "owner": "geometry",
-    "sourceSha256": "9d6dddc0b3f1a4c17f4da8adef89114ef2950a00351947a457eacabfa4f19d97"
+    "sourceSha256": "9d6dddc0b3f1a4c17f4da8adef89114ef2950a00351947a457eacabfa4f19d97",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`FrameInput` contains the camera matrix, clear color and time supplied by the caller; `FrameCx` adds target size, CSS-to-framebuffer scale, anchor and view settings. `Binds::set` installs the common camera, pen and object groups at indices zero, one and two. `LineUniform` has an explicitly checked 80-byte layout because shaders read its fields at fixed offsets. Physical viewport dimensions and logical pixel scale must agree: otherwise a nominal screen-sized pen changes thickness with device scale or a subviewport uses the wrong origin."
+    }
   },
   {
     "path": "src/engine/gpu/glyphs.rs",
     "owner": "geometry",
-    "sourceSha256": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970"
+    "sourceSha256": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Draw dots and vertex markers",
+      "paragraph": "`GlyphLane` keeps flat dots and vertex markers in separate GPU tables using the same checked 48-byte `GlyphPoint` record. The record contains position, radius, color, object row and up to six packed neighbouring face normals. Dots use three generated vertices; markers use a reusable template. Separate color, object-ID and source-point-ID pipelines interpret those rows for their own output target. After a table grows, its bind group is rebuilt around the new buffer allocation."
+    }
   },
   {
     "path": "src/engine/gpu/hull.rs",
@@ -1462,7 +1612,12 @@
   {
     "path": "src/engine/gpu/hull/upload.rs",
     "owner": "geometry",
-    "sourceSha256": "70d7356c0fceed1027de05c258644aa84d57e8a431c722366daf460b19eea59d"
+    "sourceSha256": "70d7356c0fceed1027de05c258644aa84d57e8a431c722366daf460b19eea59d",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`hull_of` gathers extreme points from the positions written by a conversion: arena vertices, both endpoints of pipes/ribbons, and marker/dot centres, plus explicitly supplied points. It reduces each source before combining extremes. Registered lanes, resident cloud positions or sheet rows make this path return no hull because their points are not represented by those readers. A final span check requires the candidate to cover the declared bounds. Rejecting an incomplete hull preserves conservative fitting instead of silently underestimating an object."
+    }
   },
   {
     "path": "src/engine/gpu/instance.rs",
@@ -1487,12 +1642,22 @@
   {
     "path": "src/engine/gpu/instance/validation.rs",
     "owner": "geometry",
-    "sourceSha256": "64bca08af9086edbf4177c8f2582f0dac266c26805efbe4374743d50a1490a7e"
+    "sourceSha256": "64bca08af9086edbf4177c8f2582f0dac266c26805efbe4374743d50a1490a7e",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`instance/validation.rs` tests the CPU/shader boundary independently of a picture. It extracts WGSL field names in order and compares the shared instance and line-uniform declarations with the Rust-side contract, including the 80-byte uniform size. It also checks the shared translation binding and rejects lane shaders that redeclare common structures. These tests catch interface drift; they cannot establish visual driver correctness or replace the separate layout-offset assertions."
+    }
   },
   {
     "path": "src/engine/gpu/instanced.rs",
     "owner": "geometry",
-    "sourceSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db"
+    "sourceSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`instanced.rs` keeps instance triangle-ID ranges synchronized with the arena. A partial change writes the affected slot ranges to the slot texture and both face/stroke slot buffers; a texture-capacity change falls back to writing the full table. The same draw ranges are then installed in both lanes. Every update invalidates projected triangle lists and announces changed geometry to the object visibility cache. The registered `Instanced` pass follows arena growth before rendering, so new ordinary triangles cannot collide with old instance IDs."
+    }
   },
   {
     "path": "src/engine/gpu/lane.rs",
@@ -1517,7 +1682,12 @@
   {
     "path": "src/engine/gpu/matrices.rs",
     "owner": "geometry",
-    "sourceSha256": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de"
+    "sourceSha256": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Kernel Matrix display",
+      "paragraph": "`MatrixLane` stores variable-sized matrices in a word buffer: a sixteen-word header followed by three words per value. A separate list records block starts, which become the instance indices for six-vertex quad draws. The value stores an f32 for color plus an integer whole part and signed thousandths for its label. Keeping those representations separate prevents large values from losing their displayed decimals solely because f32 color storage has limited precision."
+    }
   },
   {
     "path": "src/engine/gpu/mod.rs",
@@ -1542,17 +1712,32 @@
   {
     "path": "src/engine/gpu/objects/gpu_tests.rs",
     "owner": "geometry",
-    "sourceSha256": "bb4c2ecf595208587734c525c95f02066d52cac0d2e4ba743ba1721b584ed924"
+    "sourceSha256": "bb4c2ecf595208587734c525c95f02066d52cac0d2e4ba743ba1721b584ed924",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "The ignored native test in `objects/gpu_tests.rs` opens a headless device, moves one object row and verifies that its neighbour remains unchanged. Scaling must update that row's ambient radius while translation preserves it. The widget row must remain after all object rows and be reminted when another upload arrives. The test is ignored by default because it requires a native adapter; compiling it or reporting an ignored count is not evidence that these GPU-backed operations ran."
+    }
   },
   {
     "path": "src/engine/gpu/objects/ink.rs",
     "owner": "geometry",
-    "sourceSha256": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5"
+    "sourceSha256": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`objects/ink.rs` builds the object binding used by ink shaders: object and translation buffers, both depth sample variants, both primitive-ID variants, projected triangles and tile lists. Rebinding must follow attachment or buffer replacement because the bind group holds resource handles. Picking builds the same contract over its own cropped depth/ID targets; borrowing the main image attachments would test visibility in the wrong pixel coordinates."
+    }
   },
   {
     "path": "src/engine/gpu/objects/lane.rs",
     "owner": "geometry",
-    "sourceSha256": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2"
+    "sourceSha256": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`objects/lane.rs` adapts the object table to the common `Lane` lifecycle. Reset delegates to logical row reset, release delegates to allocation release with device/layout access, and byte reporting includes its buffers with zero texture bytes. This small adapter is how the renderer can manage object rows alongside drawing lanes without duplicating their lifetime rules in the host."
+    }
   },
   {
     "path": "src/engine/gpu/objects/table.rs",
@@ -1587,17 +1772,32 @@
   {
     "path": "src/engine/gpu/patch.rs",
     "owner": "geometry",
-    "sourceSha256": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100"
+    "sourceSha256": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`patch.rs` describes editable allocation in units of each lane, not one interchangeable row count. `Counts` stores vertex, face-index, printed-index, text-index, source-face, stroke, marker and registered-lane counts; `Span` pairs start offsets with those counts. Capacity fitting compares every lane. Byte accounting includes the associated CPU mirrors and source-ID storage, so its per-lane stride is not necessarily the packed GPU vertex stride. These contracts let the application decide whether a replacement fits an existing allocation without teaching the renderer about editing commands."
+    }
   },
   {
     "path": "src/engine/gpu/pick.rs",
     "owner": "geometry",
-    "sourceSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0"
+    "sourceSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`Picker` owns request, draw, copy, map and poll state. It clamps a cursor window to the framebuffer, adds a three-pixel visibility halo and uses a 256-byte-aligned readback row stride. A generation counter invalidates answers from cancelled requests. Source-point queries clear IDs on their first page and preserve them on later pages while reusing depth. Asynchronous map completion is published through an atomic flag; polling distinguishes no completed answer from a completed miss. Application input can consume that result without blocking the render loop for every pointer event."
+    }
   },
   {
     "path": "src/engine/gpu/planes.rs",
     "owner": "geometry",
-    "sourceSha256": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61"
+    "sourceSha256": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Generate planes and arrows from compact rows",
+      "paragraph": "`PlaneLane` registers construction, row counting and merging in the same lane registry as other primitives. A plane occupies 48 bytes, checked on the Rust side, and one instanced draw generates 22 grid lines plus three arrows. The global plane size is stored as atomic f64 bits and copied to frame uniforms, so changing it changes the next drawing without rebuilding the frame rows. Buffer growth requires rebinding group three. Color and object-ID pipelines share the geometry, keeping a picked plane aligned with its visible drawing."
+    }
   },
   {
     "path": "src/engine/gpu/present.rs",
@@ -1622,17 +1822,32 @@
   {
     "path": "src/engine/gpu/segments.rs",
     "owner": "geometry",
-    "sourceSha256": "f44565ff517b0a9bbc7d0248b537a46edde66861d24509f76abf6ee3b346550c"
+    "sourceSha256": "f44565ff517b0a9bbc7d0248b537a46edde66861d24509f76abf6ee3b346550c",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Strokes, dashes and reveal",
+      "paragraph": "`SegRows` separates surface-edge pipes, editable ribbons and streamed sheet rows, with parallel tables for source IDs, chain ranges, dash lengths, cumulative offsets and trims. Upload expands a 40-byte segment into a 72-byte `StrokeSegment` carrying previous/next neighbours and visibility slack. A special neighbour code marks an end covered by an arrowhead; the sign bit of the sag field marks silhouette-only ink, including negative zero. Sheet chunks must continue the resident source interval in order. Keeping source intervals separate from GPU row offsets lets picking recover the original entity after chunked uploads."
+    }
   },
   {
     "path": "src/engine/gpu/slots.rs",
     "owner": "geometry",
-    "sourceSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd"
+    "sourceSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`Slots` lets many placed objects draw one definition without duplicating its geometry. Each eight-byte instance entry carries an object row and triangle-ID base. Slot zero contains `OWN_ROW`, meaning ordinary draws keep the row already stored on each primitive. Definition draws use ranges of later slots; their vertex-buffer layout advances once per instance. Updating slots changes placement identity without rewriting vertices. Clearing can either keep capacity or release it, while restoring the mandatory slot-zero entry."
+    }
   },
   {
     "path": "src/engine/gpu/splat.rs",
     "owner": "geometry",
-    "sourceSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f"
+    "sourceSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`gpu/splat.rs` turns selected ranges into bounded draw records. A record carries the combined camera/object matrix, point and normal offsets, radius information, tint, owner row and selected point. Its 160-byte Rust layout matches the shader's 40-word stride. Cumulative point counts let `splat.wgsl` locate a record by binary search when a single draw spans several runs. Six generated vertices form each point's quad; the shader computes its actual coverage and depth."
+    }
   },
   {
     "path": "src/engine/gpu/splat/cloud_witness.rs",
@@ -1647,12 +1862,22 @@
   {
     "path": "src/engine/gpu/ssao.rs",
     "owner": "geometry",
-    "sourceSha256": "d8204411fdc934639f91c676485aa915f3474ac266d847db9517285a62c1deb4"
+    "sourceSha256": "d8204411fdc934639f91c676485aa915f3474ac266d847db9517285a62c1deb4",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`Ssao` owns the reduced-resolution depth, radius, normal, filtered-occlusion and history images. Its cached key combines frame uniforms with geometry revision: an unchanged view and scene can reuse the result. Camera changes can reuse reprojected history only while the geometry revision agrees; changed geometry invalidates that assumption. Bindings are rebuilt when depth, primitive IDs, geometry buffers or the slot table change. Image dimensions and device scale also determine whether existing resources fit. The pass runs after faces, because it needs their actual depth and primitive identity."
+    }
   },
   {
     "path": "src/engine/gpu/ssao/pipelines.rs",
     "owner": "geometry",
-    "sourceSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569"
+    "sourceSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`ssao/pipelines.rs` constructs the pipeline family for preparing depth, reducing it, finding occupied regions, estimating occlusion, filtering, storing history, upsampling and compositing. Layouts distinguish depth, integer identity/radius, sampled floating-point images and storage buffers. The target sample count controls multisampled scene bindings, while reduced working images remain single-sampled. Treat this as one resource contract: selecting a shader entry point with the wrong texture sample type is a validation failure, not a visual-quality setting."
+    }
   },
   {
     "path": "src/engine/gpu/ssao/tests.rs",
@@ -1677,7 +1902,12 @@
   {
     "path": "src/engine/gpu/targets.rs",
     "owner": "geometry",
-    "sourceSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140"
+    "sourceSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`Targets` owns depth, optional multisampled color and per-sample triangle-ID attachments for one size and sample count. Triangle IDs occupy two integer 16-bit channels. Shaders bind both single-sample and multisample views, so the unused variant receives a one-by-one placeholder with the correct sample type. Keeping those placeholders owned with the targets prevents dangling resource assumptions. A size or sample-count change requires matching targets and pipelines; changing only a texture cannot change the pipeline attachment contract."
+    }
   },
   {
     "path": "src/engine/gpu/text.rs",
@@ -1712,12 +1942,22 @@
   {
     "path": "src/engine/gpu/text_plate.rs",
     "owner": "geometry",
-    "sourceSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1"
+    "sourceSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Text resources",
+      "paragraph": "`Plates::prepare` creates six vertices per label background, placing depth-tested rectangles before overlays. It preserves the original rectangle centre, half-size and corner radius before clipping the emitted quad to its screen box. That distinction prevents clipping from rounding a newly cut edge as though it were the original plate boundary. Each vertex carries optional object identity and selection; the physical vertex count separates the two depth policies within one buffer."
+    }
   },
   {
     "path": "src/engine/gpu/timing.rs",
     "owner": "geometry",
-    "sourceSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc"
+    "sourceSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`PassTimer` is optional instrumentation, available only when the device supports both timestamp queries and timestamps inside encoders. It writes at most 32 marks, resolves them to a GPU buffer, copies to a readable buffer and converts adjacent tick differences using the queue timestamp period. Collection waits for GPU completion and unmaps the readback before reuse. These measured GPU spans are different from CPU command-encoding time; the blocking collection belongs to an explicit measurement run, not an assumed free operation in ordinary animation."
+    }
   },
   {
     "path": "src/engine/gpu/triangle_tiles.rs",
@@ -1742,32 +1982,62 @@
   {
     "path": "src/engine/gpu/upload.rs",
     "owner": "geometry",
-    "sourceSha256": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f"
+    "sourceSha256": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`Upload` owns the CPU rows waiting for transfer. Merging an upload moves each typed table, shifts mesh vertex indices by the destination vertex base and rebases valid face-source IDs; the all-ones missing-ID sentinel stays unchanged. Registered lanes merge through `REGISTRY`, so a new primitive family does not require changes throughout the upload loop. `drop_uploaded` replaces vectors with empty vectors and clears lane rows after transfer, freeing their capacity instead of retaining a second full CPU copy."
+    }
   },
   {
     "path": "src/engine/gpu/upload_padding.rs",
     "owner": "geometry",
-    "sourceSha256": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0"
+    "sourceSha256": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`Upload::pad` reserves hidden spare rows for a growing editable preview. It adds roughly half the requested counts, rounds index allocations to whole triangles and directs spare primitives to a sink row. Missing face and edge IDs use their explicit sentinels. The returned count difference records the actual allocation, including rounding. Spare allocation is not visible geometry: later edits can fill it without moving every following object, while the sink keeps unused rows from drawing."
+    }
   },
   {
     "path": "src/engine/gpu/vectors.rs",
     "owner": "geometry",
-    "sourceSha256": "1d00e493774cb5b67c60555f484de5ba393a61cadf8349ca3aa82b085ecac04a"
+    "sourceSha256": "1d00e493774cb5b67c60555f484de5ba393a61cadf8349ca3aa82b085ecac04a",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Generate planes and arrows from compact rows",
+      "paragraph": "`VectorRow` is a checked 64-byte GPU record containing endpoints, pen, object identity, color, head settings and endpoint trims. The head bits independently select start, end and head-only drawing. `VectorLane` owns the row buffer and matching color/ID pipelines, while its registry entry provides creation, row counting, merge and stride. The draw generates eighteen vertices per row; it does not upload a separately tessellated arrowhead mesh."
+    }
   },
   {
     "path": "src/engine/gpu/view.rs",
     "owner": "geometry",
-    "sourceSha256": "eb0238ffaccef5a505b185d6233fe58233a395c0e24cb44788275a678148543c"
+    "sourceSha256": "eb0238ffaccef5a505b185d6233fe58233a395c0e24cb44788275a678148543c",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`View` stores rendering choices separately from GPU allocation. Startup reads native environment variables or browser query values, clamps pen softness and opacity, and distinguishes line, mesh-edge, point and outline controls. Enabling Arctic shading also enables outlines. A coarse primary pointer selects solid default faces; the desktop default is 0.95 opacity. Browser device scale is capped at two unless an explicit valid cap is supplied, with reduced mode capped at one. A narrow viewport alone does not prove that the browser reports a touch-first device."
+    }
   },
   {
     "path": "src/engine/gpu/widget.rs",
     "owner": "geometry",
-    "sourceSha256": "89e1986353d281db23313eb5f3d3c294fd4a7b5e42c6051d76e22ecdf3a44003"
+    "sourceSha256": "89e1986353d281db23313eb5f3d3c294fd4a7b5e42c6051d76e22ecdf3a44003",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep the manipulation widget independent of scene depth",
+      "paragraph": "`Widget` renders that mesh into a small tile with its own depth, then composites the tile over the scene. Placement and active-handle state feed a 96-byte uniform containing the matrix, screen rectangle and settings. Off-screen or absent placement disables drawing. Clearing drops tile textures and active state; a changed canvas format rebuilds the composite pipeline. Separate depth keeps scene surfaces from hiding a handle needed to manipulate the selected object."
+    }
   },
   {
     "path": "src/engine/gpu/widget_mesh.rs",
     "owner": "geometry",
-    "sourceSha256": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306"
+    "sourceSha256": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep the manipulation widget independent of scene depth",
+      "paragraph": "`widget_mesh.rs` constructs the reusable manipulation mesh from three lathed arrows, three quarter-ring tubes, three scale balls and a centre hub. Vertices carry position in CSS-sized widget coordinates, packed color and one of ten handle IDs. Shared arm, ball and hub constants come from the geometric model, keeping the displayed shape consistent with hit testing. This mesh is uploaded once; hovering a handle changes a uniform rather than regenerating vertices."
+    }
   },
   {
     "path": "src/engine/mod.rs",
@@ -1812,7 +2082,12 @@
   {
     "path": "src/engine/pipelines/geometry.rs",
     "owner": "geometry",
-    "sourceSha256": "7ad7d6f1d08e751f0a3d4707fc6726c4f14139d366a1fe86289997b033ccdb88"
+    "sourceSha256": "7ad7d6f1d08e751f0a3d4707fc6726c4f14139d366a1fe86289997b033ccdb88",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Device, uploads and frames",
+      "paragraph": "`pipelines/geometry.rs` delegates the arena vertex layout to `GpuVertex`, keeping pipeline inputs synchronized with the packed storage format. Its ignored native test renders an empty frame, uploads a solid and alternates four- and one-sample targets. Compilation counts must grow on first use but stay unchanged when returning to an already compiled target; it also asks the cache to compile unused variants. This is an explicit adapter-dependent test of lazy pipeline ownership, not a result supplied by a documentation build."
+    }
   },
   {
     "path": "src/engine/pipelines/layouts.rs",
@@ -1887,27 +2162,52 @@
   {
     "path": "src/shaders/ambient_composite.wgsl",
     "owner": "geometry",
-    "sourceSha256": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8"
+    "sourceSha256": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`ambient_composite.wgsl` overlays black with the computed occlusion as alpha. Its multisample edge path draws only listed sixteen-pixel tiles and unpacks one correction byte per sample. The output sample mask selects the corrected sample instead of darkening every sample in a partly covered pixel. This separates smooth interior shading from edge coverage and preserves the attachment's multisample identity."
+    }
   },
   {
     "path": "src/shaders/ambient_depth.wgsl",
     "owner": "geometry",
-    "sourceSha256": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac"
+    "sourceSha256": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`ambient_depth.wgsl` builds coarser depth levels by selecting the nearest positive linear depth from each two-by-two block and carrying that sample's radius with it. Empty blocks retain zero depth. Its occupancy pass searches a five-by-five neighbourhood for any geometry, expanding the active region enough for nearby sampling. Reducing depth and radius together prevents a coarse sample from combining one surface's location with another object's shading scale."
+    }
   },
   {
     "path": "src/shaders/ambient_geometry.wgsl",
     "owner": "geometry",
-    "sourceSha256": "1c5912fa54065258945357e5d555d6c36a98076a46bc10c6cba4f1c7997e8ce5"
+    "sourceSha256": "1c5912fa54065258945357e5d555d6c36a98076a46bc10c6cba4f1c7997e8ce5",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`ambient_geometry.wgsl` resolves the physical primitive ID through the instance slot table before reading triangle vertices and their placed owner. It derives a normal from transformed triangle edges, avoiding dependence on a possibly smoothed vertex normal. Pixels without a triangle reconstruct a normal from depth neighbours, choosing nearby samples to avoid crossing a discontinuity. The normal is then oriented toward the camera. This geometry lookup lets identical definition triangles shade differently under distinct instance transforms."
+    }
   },
   {
     "path": "src/shaders/arrow.wgsl",
     "owner": "geometry",
-    "sourceSha256": "cdfc4ae2bb668430f5742ba33213b96f584b2b9a5e6e317dafdf8beaf7c18662"
+    "sourceSha256": "cdfc4ae2bb668430f5742ba33213b96f584b2b9a5e6e317dafdf8beaf7c18662",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### The arrow function boundary",
+      "paragraph": "The shared `arrow_corner` shader receives individual fields. An observed Android driver failure changed `end` and `heads` when a packed row structure crossed that function boundary. Keeping the arguments separate is a compatibility requirement; passing a convenient `VectorRow` value would reintroduce the failing interface."
+    }
   },
   {
     "path": "src/shaders/background.wgsl",
     "owner": "geometry",
-    "sourceSha256": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6"
+    "sourceSha256": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`background.wgsl` generates one oversized triangle from three vertex indices, covering the viewport without a diagonal between two triangles. Its fragment output is white, or slightly grey when ambient shading is active, and writes zero primitive identity. The backdrop therefore contributes visible color but cannot masquerade as an object triangle in subsequent visibility queries."
+    }
   },
   {
     "path": "src/shaders/cap.wgsl",
@@ -1932,17 +2232,32 @@
   {
     "path": "src/shaders/face_coverage.wgsl",
     "owner": "geometry",
-    "sourceSha256": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16"
+    "sourceSha256": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Compare ink with the right surface",
+      "paragraph": "`face_coverage.wgsl` derives surface coverage from nonzero primitive IDs at each sample. One entry returns the fraction of covered samples; another writes full coverage only to the corresponding sample mask. Empty pixels discard. These are different outputs for different downstream passes: an averaged coverage value cannot replace an exact per-sample mask at a multisampled edge."
+    }
   },
   {
     "path": "src/shaders/glyph.wgsl",
     "owner": "geometry",
-    "sourceSha256": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4"
+    "sourceSha256": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Draw dots and vertex markers",
+      "paragraph": "`glyph.wgsl` projects each dot centre and expands a triangle around its disc in screen space. Negative radii stay in pixels; positive radii are projected from scene units. Very small discs retain a half-pixel footprint and fade instead of flickering away. The fragment stage computes circular coverage before expensive visibility reads. Picking requires sufficient coverage and rejects non-pickable object rows; ordinary dots encode a marker tag, while source-query dots use the supplied point row. A visible dot and its pick identity therefore share placement but need different output encodings."
+    }
   },
   {
     "path": "src/shaders/grid.wgsl",
     "owner": "geometry",
-    "sourceSha256": "094166f31a5f73bcf7a3957f077a2e299362b1e66520d3325b93a81e8bc922ea"
+    "sourceSha256": "094166f31a5f73bcf7a3957f077a2e299362b1e66520d3325b93a81e8bc922ea",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`grid.wgsl` generates eleven lines in each construction-plane direction at 1,000-unit spacing, extending 5,000 units either side of the origin, plus three colored axes. The vertex index determines the line and endpoint; no grid vertex buffer is needed. Each local point is expanded through the supplied frame axes and origin before camera projection. This construction grid is separate from a selectable plane object and writes no primitive identity."
+    }
   },
   {
     "path": "src/shaders/ink_visibility.wgsl",
@@ -1957,7 +2272,12 @@
   {
     "path": "src/shaders/matrix.wgsl",
     "owner": "geometry",
-    "sourceSha256": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620"
+    "sourceSha256": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Kernel Matrix display",
+      "paragraph": "`matrix.wgsl` expands the quad in cell coordinates, with cell zero centred on the object origin and later rows extending downward. The fragment stage finds the cell and reads its packed value. Numeric labels are generated from seven-segment digits, a minus sign and decimal point; trailing decimal zeros are dropped. They are not glyph-atlas text, so this small numeric display does not load a font. The header supplies zero/minimum/maximum colors and the nonzero range, allowing zero cells to remain visually distinct."
+    }
   },
   {
     "path": "src/shaders/normals.wgsl",
@@ -1982,7 +2302,12 @@
   {
     "path": "src/shaders/plane.wgsl",
     "owner": "geometry",
-    "sourceSha256": "868de66d5ecfe9c614cc1c030169f97f7e502820d3b72cf4eb9831cd50414478"
+    "sourceSha256": "868de66d5ecfe9c614cc1c030169f97f7e502820d3b72cf4eb9831cd50414478",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Generate planes and arrows from compact rows",
+      "paragraph": "`plane.wgsl` derives each grid endpoint from the vertex index and the stored frame. Eleven positions along each axis produce the ten-by-ten grid. The z direction is the cross product of x and y. Grid segments call the shared arrow function without heads and with ordinary depth behavior; the three colored axis arrows request end heads and the overlay variant. This explains why a solid can hide the grey grid while the orientation arrows remain readable."
+    }
   },
   {
     "path": "src/shaders/project_triangles.wgsl",
@@ -2007,7 +2332,12 @@
   {
     "path": "src/shaders/ribbon.wgsl",
     "owner": "geometry",
-    "sourceSha256": "daaa9f018f0b1e5391cc1d3edc21d65457138602fdfb32f11340d0eb287cc89d"
+    "sourceSha256": "daaa9f018f0b1e5391cc1d3edc21d65457138602fdfb32f11340d0eb287cc89d",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Strokes, dashes and reveal",
+      "paragraph": "`ribbon.wgsl` builds each six-vertex stroke quad in screen space, with widths projected independently at its endpoints. Neighbour cut planes join a chain without double coverage; marker trims and arrowhead cut planes remove covered shaft ends. Dash coverage includes the stored cumulative offset, while reveal moves each segment endpoint toward its own start. Silhouette-only segments inspect the sag sign bit and adjacent face orientation. Fragment coverage is evaluated before the shared visibility query; the color and mask passes use the same centre-line clipping and surface test."
+    }
   },
   {
     "path": "src/shaders/scan_triangle_tiles.wgsl",
@@ -2032,27 +2362,52 @@
   {
     "path": "src/shaders/slot_table.wgsl",
     "owner": "geometry",
-    "sourceSha256": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc"
+    "sourceSha256": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep allocation, identity and frame state separate",
+      "paragraph": "`placed_triangle` reverses a one-based visible triangle ID into an arena triangle and an optional instance-row override. The slot texture is 1,024 texels wide; its header gives the instance count and ordinary arena range. Ordinary IDs keep `SLOT_OWN_ROW`. For an instance ID, binary search finds the last slot whose ID range starts before it, then a range check rejects gaps. This makes a picked or shaded instance refer to its own placement while reusing the definition triangle. Zero and out-of-range IDs return `NO_TRIANGLE`."
+    }
   },
   {
     "path": "src/shaders/sphere.wgsl",
     "owner": "geometry",
-    "sourceSha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a"
+    "sourceSha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Draw dots and vertex markers",
+      "paragraph": "`sphere.wgsl` uses the marker template and neighbouring face normals to distinguish front-facing and back-facing vertex markers. Packed normals are transformed with the object before comparison to the eye direction. Markers shrink when projected vertex spacing is less than three diameters, with a minimum taper factor of 0.15, preventing a dense mesh from becoming a solid field of dots. Its color and ID entry points share coverage geometry; displaying a faint marker through translucent faces does not mean that an occluded marker is freely pickable."
+    }
   },
   {
     "path": "src/shaders/splat.wgsl",
     "owner": "geometry",
-    "sourceSha256": "375bed442852f6bd755df5f802bdfeed77fb8dd5a13ce87069d098aebba6d16f"
+    "sourceSha256": "375bed442852f6bd755df5f802bdfeed77fb8dd5a13ce87069d098aebba6d16f",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`gpu/splat.rs` turns selected ranges into bounded draw records. A record carries the combined camera/object matrix, point and normal offsets, radius information, tint, owner row and selected point. Its 160-byte Rust layout matches the shader's 40-word stride. Cumulative point counts let `splat.wgsl` locate a record by binary search when a single draw spans several runs. Six generated vertices form each point's quad; the shader computes its actual coverage and depth."
+    }
   },
   {
     "path": "src/shaders/splat_resolve.wgsl",
     "owner": "geometry",
-    "sourceSha256": "511ff9ed8a46fa07338d7335b8b8a54d4f808c06d8a823688d8d78e7360f417f"
+    "sourceSha256": "511ff9ed8a46fa07338d7335b8b8a54d4f808c06d8a823688d8d78e7360f417f",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`splat_resolve.wgsl` copies valid point color and reverse-Z depth into the scene. Empty point pixels have zero depth and are discarded. Optional eye-dome lighting compares neighboring logarithmic depths to darken depth boundaries. The ID pass instead writes the object row and point row, so picking and visible color have distinct outputs while using the same point coverage. Original source IDs are resolved by the later source-query adapter; a temporary GPU row is not that persistent identity."
+    }
   },
   {
     "path": "src/shaders/ssao.wgsl",
     "owner": "geometry",
-    "sourceSha256": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f"
+    "sourceSha256": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Reconstruct ambient shading from visible geometry",
+      "paragraph": "`ssao.wgsl` estimates screen-space occlusion by sampling horizons in several directions around the reconstructed surface point. Sample distance grows quadratically and selects coarser depth levels farther away. Object radius, bias and a finite screen radius bound the effect. Two directional filters use depth/normal agreement to avoid blurring across unrelated surfaces. Reprojected history is accepted only when its signed depth agrees, then clamped to the current neighbourhood before blending. This is an approximation using visible depth; it cannot infer arbitrary hidden geometry."
+    }
   },
   {
     "path": "src/shaders/surface_outline.wgsl",
@@ -2067,22 +2422,42 @@
   {
     "path": "src/shaders/text_outline.wgsl",
     "owner": "geometry",
-    "sourceSha256": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e"
+    "sourceSha256": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Text resources",
+      "paragraph": "`text_outline.wgsl` renders triangulated text through the arena instead of sampling a glyph texture. The vertex stage applies object placement, tint, selection and hidden state. The fragment stage clips in canvas coordinates and outputs flat color. Its physical-ID output carries the owning object but no surface-triangle identity; text therefore remains selectable without becoming a solid face for geometric visibility reconstruction."
+    }
   },
   {
     "path": "src/shaders/text_plane.wgsl",
     "owner": "geometry",
-    "sourceSha256": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3"
+    "sourceSha256": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Text resources",
+      "paragraph": "`text_plane.wgsl` samples rasterized glyph coverage on vertices already projected from an authored world plane. A screen clip box cuts the label; a rounded plate can supply black or selected-yellow background. The shader evaluates derivative-dependent coverage uniformly before choosing bare glyphs or a plate. Picking uses the same transformed label footprint and object identity. The pick shape is the rounded label area, not a per-glyph alpha test, so spaces within a label can still select it."
+    }
   },
   {
     "path": "src/shaders/text_plate.wgsl",
     "owner": "geometry",
-    "sourceSha256": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd"
+    "sourceSha256": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Text resources",
+      "paragraph": "`text_plate.wgsl` computes signed distance to the original rounded rectangle and uses screen derivatives to soften its edge. Selection changes the black plate to yellow. The ID entry applies the pick-window transform and rejects pixels outside the rounded boundary or without an object. It writes the already encoded object-row-plus-one value, keeping an empty pixel distinct from row zero."
+    }
   },
   {
     "path": "src/shaders/triangle.wgsl",
     "owner": "geometry",
-    "sourceSha256": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b"
+    "sourceSha256": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Compare ink with the right surface",
+      "paragraph": "`triangle.wgsl` shares transformed vertices across face color, source-face picking, selection masks and clipping counts. Mirrored object transforms reverse the interpretation of raster front-facing state. A supplied normal is normalized; missing normals fall back to screen derivatives. Closed translucent solids drop back faces and use the global opacity, while open or printed surfaces follow their own rules. Color writes also carry primitive identity; clipped color uses a per-sample kept-side mask. Keeping these outputs together makes visible surfaces, selected faces and ink occlusion agree on the same placed geometry."
+    }
   },
   {
     "path": "src/shaders/triangle_tiles.wgsl",
@@ -2097,12 +2472,22 @@
   {
     "path": "src/shaders/vector.wgsl",
     "owner": "geometry",
-    "sourceSha256": "687667c6a41be239a3ac75cbb2707ec567d156014c5564c8f7369b4cf62017bf"
+    "sourceSha256": "687667c6a41be239a3ac75cbb2707ec567d156014c5564c8f7369b4cf62017bf",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Generate planes and arrows from compact rows",
+      "paragraph": "`vector.wgsl` is the thin entry adapter for the shared arrow implementation. The instance index selects a stored vector row and the vertex index selects one of eighteen generated corners. It passes every endpoint, pen, head and trim field individually to `arrow_corner`, with the ordinary depth variant. Keep this field-by-field call when adding another arrow producer; the driver constraint described above applies at the shared function boundary, even when the caller already has a convenient packed row."
+    }
   },
   {
     "path": "src/shaders/widget.wgsl",
     "owner": "geometry",
-    "sourceSha256": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0"
+    "sourceSha256": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Keep the manipulation widget independent of scene depth",
+      "paragraph": "`widget.wgsl` transforms mesh vertices into the tile and changes the active handle to orange. A second vertex entry maps a six-vertex quad into the tile's canvas rectangle. The composite fragment divides sampled RGB by alpha, guarded against zero, before returning color and alpha for blending. The widget therefore has its own small rendering/compositing contract rather than borrowing the scene-object shader and its selection rules."
+    }
   },
   {
     "path": "src/state.rs",
