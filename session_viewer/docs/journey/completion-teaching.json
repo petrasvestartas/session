@@ -132,7 +132,12 @@
   {
     "path": "src/app/command/verbs/area.rs",
     "owner": "application",
-    "sourceSha256": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e"
+    "sourceSha256": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "`Area` measures meshes, BReps, NURBS surfaces and element geometry, narrowing to the chosen face where supported. Mesh areas use placed triangles; BRep faces use the viewer-quality tessellation, so curved-face results depend on that approximation. A NURBS surface is transformed first, then its tangent cross-product magnitude is integrated with eight-by-eight Gauss points in each knot-span pair. This is numerical integration, not a claim of exact area for every surface."
+    }
   },
   {
     "path": "src/app/command/verbs/arrow.rs",
@@ -167,12 +172,22 @@
   {
     "path": "src/app/command/verbs/block_with_hole.rs",
     "owner": "application",
-    "sourceSha256": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2"
+    "sourceSha256": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Block With Hole` reuses the box questions, including a corner that answers both base dimensions at once. It then asks for a positive hole radius smaller than half the shorter base side, preventing the hole from opening through an outer wall. The preview adds rings at both ends of the through-hole. As with Box, an absolute kernel height and a signed half-height placement keep the base fixed when height is negative."
+    }
   },
   {
     "path": "src/app/command/verbs/bounding_box.rs",
     "owner": "application",
-    "sourceSha256": "5baa3e329f91c9c6a2be572e4f8752e8f49effbbf564e3230bd00d8fbfb21479"
+    "sourceSha256": "5baa3e329f91c9c6a2be572e4f8752e8f49effbbf564e3230bd00d8fbfb21479",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "`BoundingBox` unions selected world bounds and creates an axis-aligned box through the normal geometry transaction. For an element it transforms the underlying element bounds, avoiding distant attribute features that can enlarge display bounds. Flat extents remain valid. `Length BoundingBox` uses those same bounds but only reports twice each half-extent as world X, Y and Z dimensions, with a temporary mark. Creating the box and measuring its extents therefore have different history effects even though they share the bounds calculation."
+    }
   },
   {
     "path": "src/app/command/verbs/box.rs",
@@ -187,7 +202,12 @@
   {
     "path": "src/app/command/verbs/capsule.rs",
     "owner": "application",
-    "sourceSha256": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5"
+    "sourceSha256": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Capsule` reuses the cylinder questions but interprets height as the total extent including both rounded caps. Its absolute height must exceed the diameter. The kernel capsule axis therefore starts one radius above the base and ends one radius below the top. Negative height reverses the construction frame through the shared upright conversion. This recipe offers Mesh only; its preview marks the cap junctions rather than pretending to be the complete curved surface."
+    }
   },
   {
     "path": "src/app/command/verbs/clipping_plane.rs",
@@ -232,7 +252,12 @@
   {
     "path": "src/app/command/verbs/copy.rs",
     "owner": "application",
-    "sourceSha256": "eecc6b3b7ab0b379e8bfaa61e9be5210a13ab6e76917909ed6a0de6c34bcd257"
+    "sourceSha256": "eecc6b3b7ab0b379e8bfaa61e9be5210a13ab6e76917909ed6a0de6c34bcd257",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Transform a selection without changing its identity",
+      "paragraph": "`Copy` uses a base point and repeated target points, returning `Next::Repeat` after each copy and keeping the originals selected. A typed offset copies once. Copying rejects locked, display-only and subobject selections, resolves each world delta into the source parent frame, and creates fresh identities under the same parents with names, colors and owned attributes. Changes are grouped into a history transaction per affected document before row synchronization. A copied object therefore has independent identity even when its geometry initially shares reference-counted storage."
+    }
   },
   {
     "path": "src/app/command/verbs/curve.rs",
@@ -267,7 +292,12 @@
   {
     "path": "src/app/command/verbs/dodecahedron.rs",
     "owner": "application",
-    "sourceSha256": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a"
+    "sourceSha256": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "Tetrahedron, Octahedron, Icosahedron and Dodecahedron share center/radius input while supplying their own kernel mesh constructor. Their input radius is the distance to corners, although the constructors take edge length. `polyhedron_of` measures a unit-edge mesh circumradius and scales the requested edge accordingly. Each adapter caches unit-radius face outlines in `OnceLock` for preview. Mesh keeps those faces; Brep converts their outlines into planar faces and rejects radii below 0.001 because face joining has an absolute tolerance."
+    }
   },
   {
     "path": "src/app/command/verbs/edge.rs",
@@ -362,7 +392,12 @@
   {
     "path": "src/app/command/verbs/icosahedron.rs",
     "owner": "application",
-    "sourceSha256": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765"
+    "sourceSha256": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "Tetrahedron, Octahedron, Icosahedron and Dodecahedron share center/radius input while supplying their own kernel mesh constructor. Their input radius is the distance to corners, although the constructors take edge length. `polyhedron_of` measures a unit-edge mesh circumradius and scales the requested edge accordingly. Each adapter caches unit-radius face outlines in `OnceLock` for preview. Mesh keeps those faces; Brep converts their outlines into planar faces and rejects radii below 0.001 because face joining has an absolute tolerance."
+    }
   },
   {
     "path": "src/app/command/verbs/interactions.rs",
@@ -387,12 +422,22 @@
   {
     "path": "src/app/command/verbs/length.rs",
     "owner": "application",
-    "sourceSha256": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204"
+    "sourceSha256": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "`Length` transforms each supported line, polyline or NURBS curve into world coordinates before asking its kernel length. This handles nonuniform placement correctly; multiplying an untransformed length by one guessed scale would not. Supported results are summed, unsupported rows are counted as skipped, and an entirely unsupported selection gives an error. The displayed mark is temporary, independent of document history."
+    }
   },
   {
     "path": "src/app/command/verbs/length_bounding_box.rs",
     "owner": "application",
-    "sourceSha256": "654498f77d15404be2ef63a4a6f96138186e2eb4d4799bae01310e8b89439fb3"
+    "sourceSha256": "654498f77d15404be2ef63a4a6f96138186e2eb4d4799bae01310e8b89439fb3",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "`BoundingBox` unions selected world bounds and creates an axis-aligned box through the normal geometry transaction. For an element it transforms the underlying element bounds, avoiding distant attribute features that can enlarge display bounds. Flat extents remain valid. `Length BoundingBox` uses those same bounds but only reports twice each half-extent as world X, Y and Z dimensions, with a temporary mark. Creating the box and measuring its extents therefore have different history effects even though they share the bounds calculation."
+    }
   },
   {
     "path": "src/app/command/verbs/line.rs",
@@ -407,17 +452,32 @@
   {
     "path": "src/app/command/verbs/loft.rs",
     "owner": "application",
-    "sourceSha256": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818"
+    "sourceSha256": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Loft` preserves section pick order and offers Open or Closed traversal across those sections. `Nurbs Surface Loft` instead offers Smooth or Straight, choosing degree three or one across an open sequence. Both use the shared section alignment and checked kernel result. Closed traversal repeats the first section and requires at least three sections; it is separate from whether each individual section curve is itself closed. The result enters the document through one `Made` transaction."
+    }
   },
   {
     "path": "src/app/command/verbs/measure.rs",
     "owner": "application",
-    "sourceSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d"
+    "sourceSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "The shared measurement adapter resolves selected rows to kernel geometry, world placement and an optional selected face. Released documents are requested again, with a message to retry after loading. Mesh measurements use cached triangles where available; the fallback fan sums oriented normals for a folded concave face instead of double-counting its area. Result marks store the scene row revision and disappear when that revision changes, preventing stale values from remaining attached to edited geometry. Formatting uses the scene unit with the appropriate power and scientific notation for small nonzero values."
+    }
   },
   {
     "path": "src/app/command/verbs/measure_distance.rs",
     "owner": "application",
-    "sourceSha256": "2b3813e899954595d609de0357984c5b5f01a8f7f031e6320ccffde088001421"
+    "sourceSha256": "2b3813e899954595d609de0357984c5b5f01a8f7f031e6320ccffde088001421",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "`Measure Distance` accepts two absolute world points directly or opens the common point tool for partial and relative input. The moving readout measures from the first point to the cursor. Accepting the second point reports Euclidean distance and signed world x/y/z differences, then places a temporary projected mark between the points. Enter before either point cancels; after one point it asks for the missing endpoint. Measuring creates no geometry and no document edit."
+    }
   },
   {
     "path": "src/app/command/verbs/mod.rs",
@@ -432,7 +492,12 @@
   {
     "path": "src/app/command/verbs/move.rs",
     "owner": "application",
-    "sourceSha256": "8ebb78b416f2ded1baa140e0a429f4ec92a5af6ad1a61cdde16c9dc3ae74776d"
+    "sourceSha256": "8ebb78b416f2ded1baa140e0a429f4ec92a5af6ad1a61cdde16c9dc3ae74776d",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Transform a selection without changing its identity",
+      "paragraph": "`Move` accepts a checked typed offset or starts a two-point tool. Its preview is the translation from the first point to the cursor; accepting the second point sends that same translation to `State::apply`. Both paths require selection and use the shared edit owner, so pointer sampling changes the preview frequency without creating a different transformation rule."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_curve_arc.rs",
@@ -477,32 +542,62 @@
   {
     "path": "src/app/command/verbs/nurbs_surface_4_points.rs",
     "owner": "application",
-    "sourceSha256": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981"
+    "sourceSha256": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Nurbs Surface 4 Points` makes a bilinear patch from four ordered corners. It checks the crossed diagonals against a squared size threshold, then stores controls in the kernel order a, d, b, c so u runs from a to b and v from a to d. Corners need not be coplanar. The center of this degree-one-by-degree-one patch is their mean; changing one corner therefore moves the middle by one quarter of that displacement."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_surface_loft.rs",
     "owner": "application",
-    "sourceSha256": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f"
+    "sourceSha256": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Loft` preserves section pick order and offers Open or Closed traversal across those sections. `Nurbs Surface Loft` instead offers Smooth or Straight, choosing degree three or one across an open sequence. Both use the shared section alignment and checked kernel result. Closed traversal repeats the first section and requires at least three sections; it is separate from whether each individual section curve is itself closed. The result enters the document through one `Made` transaction."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_surface_network.rs",
     "owner": "application",
-    "sourceSha256": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854"
+    "sourceSha256": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Nurbs Surface Network` builds a crossing graph for four through 32 curves using bounds rejection and nearest-curve parameters within a scale-relative tolerance. Two-coloring that graph identifies the two families; disconnected input, crossings within one family and missing cross-family pairs are rejected. Curves are ordered by crossings and reversed to make crossing parameters increase. Four boundaries first try a Coons patch. Larger grids form a sampled Gordon construction: add interpolated surfaces across both families and subtract the tensor surface through their averaged crossings, then fit the resulting grid. Samples include crossing stations and are capped per direction. This numerical construction does not establish an exact unrestricted intersection or interpolation oracle."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_surface_revolve.rs",
     "owner": "application",
-    "sourceSha256": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c"
+    "sourceSha256": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Nurbs Surface Revolve` gathers profile curves, two axis points and an angle, defaulting to a full 360-degree turn. It rejects coincident axis points and angles outside the positive range through 360, converts degrees to radians and uses right-handed rotation about the directed axis. Each profile produces one checked surface, but all profiles are collected before the shared transaction commits them. An invalid profile therefore prevents a partially created collection."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_surface_sweep1.rs",
     "owner": "application",
-    "sourceSha256": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84"
+    "sourceSha256": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Nurbs Surface Sweep1` locates each profile along a rail using its sampled center and the nearest rail parameter. Profiles are transformed into those local perpendicular frames and sorted by station. A straight auxiliary loft makes their knots compatible; between stations, homogeneous control coordinates and weights blend together. Sampling includes every profile station as well as bounded intermediate rail samples. Sections return to world frames and form a cubic loft, preserving the supplied profile locations instead of treating every profile as if it began at the rail start."
+    }
   },
   {
     "path": "src/app/command/verbs/nurbs_surface_sweep2.rs",
     "owner": "application",
-    "sourceSha256": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992"
+    "sourceSha256": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Build surfaces from ordered sections",
+      "paragraph": "`Nurbs Surface Sweep2` gathers two rails followed by shape curves. It reverses the second rail when its start lies nearer the first rail end, and reverses a shape when its start lies nearer the second rail. This establishes a consistent first-rail-to-second-rail direction before calling the kernel sweep. Invalid kernel output is rejected. These endpoint-distance choices are alignment heuristics, not a general solution for ambiguous or self-intersecting input."
+    }
   },
   {
     "path": "src/app/command/verbs/object.rs",
@@ -517,7 +612,12 @@
   {
     "path": "src/app/command/verbs/octahedron.rs",
     "owner": "application",
-    "sourceSha256": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86"
+    "sourceSha256": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "Tetrahedron, Octahedron, Icosahedron and Dodecahedron share center/radius input while supplying their own kernel mesh constructor. Their input radius is the distance to corners, although the constructors take edge length. `polyhedron_of` measures a unit-edge mesh circumradius and scales the requested edge accordingly. Each adapter caches unit-radius face outlines in `OnceLock` for preview. Mesh keeps those faces; Brep converts their outlines into planar faces and rejects radii below 0.001 because face joining has an absolute tolerance."
+    }
   },
   {
     "path": "src/app/command/verbs/opacity.rs",
@@ -537,7 +637,12 @@
   {
     "path": "src/app/command/verbs/orient_3_points.rs",
     "owner": "application",
-    "sourceSha256": "943bea38cb8607eef2153cbaa1e20260a2a09531bd5d469a2bc525ed35cc9f9d"
+    "sourceSha256": "943bea38cb8607eef2153cbaa1e20260a2a09531bd5d469a2bc525ed35cc9f9d",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Transform a selection without changing its identity",
+      "paragraph": "`Orient 3 Points` builds an orthonormal frame from each reference triple and target triple. The first edge supplies x; a cross product supplies the normal, then a second cross product supplies y. Coincident or nearly collinear input is rejected. World-to-reference followed by target-to-world produces a rigid transform, so unequal reference and target triangle sizes do not imply scaling. During picking, the preview first translates, then aligns one direction, and finally uses the complete frame. Six accepted points commit through the shared edit owner."
+    }
   },
   {
     "path": "src/app/command/verbs/outline.rs",
@@ -577,12 +682,22 @@
   {
     "path": "src/app/command/verbs/pyramid.rs",
     "owner": "application",
-    "sourceSha256": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd"
+    "sourceSha256": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Pyramid` accepts a base edge length or a picked corner. A corner sets the edge to its radial distance times the square root of two and rotates the frame by the corner direction minus 45 degrees, matching the kernel square orientation. Signed height uses the shared upright conversion. The preview connects each square corner to the apex, so the picked corner, base and final solid use one frame."
+    }
   },
   {
     "path": "src/app/command/verbs/quad_sphere.rs",
     "owner": "application",
-    "sourceSha256": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba"
+    "sourceSha256": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "`Quad Sphere` is a Mesh-only construction from six kernel surface patches, each sampled into eight by eight quads. Shared `to_mesh` removes repeated polygon endpoints and welds coincident patch boundaries using a scale-relative distance with a minimum threshold. Neighboring spatial cells are searched so rounding a point to a different cell does not split the seam. The resulting 384-face mesh is then placed in the construction frame; this patch approximation has its own accuracy and is distinct from an exact sphere BRep."
+    }
   },
   {
     "path": "src/app/command/verbs/redo.rs",
@@ -607,7 +722,12 @@
   {
     "path": "src/app/command/verbs/rotate.rs",
     "owner": "application",
-    "sourceSha256": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8"
+    "sourceSha256": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Transform a selection without changing its identity",
+      "paragraph": "`Rotate` with a typed world axis turns about the gizmo center, falling back to the world origin. Its interactive form instead picks a center and measures reference vectors in the construction plane. The signed angle uses atan2 of their two-dimensional cross and dot products, rejecting a reference at the center. Translation to the center, rotation about the plane normal, and translation back compose the final transform. A typed angle after the center uses that same plane and commit path."
+    }
   },
   {
     "path": "src/app/command/verbs/save.rs",
@@ -617,7 +737,12 @@
   {
     "path": "src/app/command/verbs/scale.rs",
     "owner": "application",
-    "sourceSha256": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2"
+    "sourceSha256": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Transform a selection without changing its identity",
+      "paragraph": "`Scale` with a typed positive factor scales uniformly about the gizmo center. The interactive tool chooses 1D, 2D or 3D around a picked origin: signed projection along a reference direction, radial reach in the construction plane, or spatial distance. After a reference point, a typed number means the new length, so the factor is that length divided by the old reach. Zero reference length and nonpositive factors are rejected. Scaling only selected orthonormal directions preserves the other directions, which is why 2D scaling leaves plane-normal height unchanged."
+    }
   },
   {
     "path": "src/app/command/verbs/select_all.rs",
@@ -707,7 +832,12 @@
   {
     "path": "src/app/command/verbs/tetrahedron.rs",
     "owner": "application",
-    "sourceSha256": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15"
+    "sourceSha256": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Construct primitives in a local frame",
+      "paragraph": "Tetrahedron, Octahedron, Icosahedron and Dodecahedron share center/radius input while supplying their own kernel mesh constructor. Their input radius is the distance to corners, although the constructors take edge length. `polyhedron_of` measures a unit-edge mesh circumradius and scales the requested edge accordingly. Each adapter caches unit-radius face outlines in `OnceLock` for preview. Mesh keeps those faces; Brep converts their outlines into planar faces and rejects radii below 0.001 because face joining has an absolute tolerance."
+    }
   },
   {
     "path": "src/app/command/verbs/text.rs",
@@ -752,7 +882,12 @@
   {
     "path": "src/app/command/verbs/volume.rs",
     "owner": "application",
-    "sourceSha256": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9"
+    "sourceSha256": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Measure placed geometry and state the approximation",
+      "paragraph": "`Volume` requires closed meshes or solid BReps and reports open objects separately from unsupported kinds. It sums signed tetrahedral volumes from the displayed triangles; BRep face orientation signs turn the face contributions consistently before taking the absolute total. The reference origin lies on the transformed mesh to reduce cancellation for models far from world zero. BRep volume inherits tessellation accuracy. Mixed selections may return the closed-object total while explicitly naming open objects that were not measured."
+    }
   },
   {
     "path": "src/app/coords.rs",

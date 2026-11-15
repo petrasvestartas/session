@@ -116,6 +116,11 @@
       "subject": "Application command and modeling teaching",
       "scope": "218 witnesses/133 missing;19 tooling tests, active audit, strict site and8 reviewed browser originals; no runtime acceptance",
       "path": "session_viewer/docs/journey/release/completion-application-teaching-windows-20261115.json"
+    },
+    {
+      "subject": "Modeling transforms, surfaces and measurements",
+      "scope": "245 witnesses/106missing;19tooling+active-audit+strictsite;8originals reviewed and4actual chapter Next clicks; no new runtime acceptance",
+      "path": "session_viewer/docs/journey/release/completion-modeling-teaching-windows-20261115.json"
     }
   ],
   "open": [

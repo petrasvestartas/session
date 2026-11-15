@@ -1,0 +1,324 @@
+{
+  "status": "Scoped checks passed; course incomplete",
+  "parentCommit": "8aa8d37b345f4f12efa5f15665442a01473c33c8",
+  "changes": [
+    "Teach primitive variants, world transforms, surface recipes and geometric measurement approximations.",
+    "Retain9 cumulative assemblies and production behavior."
+  ],
+  "inputs": [
+    {
+      "path": "session_viewer/docs/journey/completion-modeling.md",
+      "sha256": "767b390f4270bda33a8767a8db195ef3429fde574f96a14cf07416ed6afbf0cd"
+    },
+    {
+      "path": "session_viewer/docs/journey/completion-teaching.json",
+      "sha256": "296e567213a86023a5a0606a7ac32b20c0cdae0b9f4540e6e98f0f25f5938084"
+    },
+    {
+      "path": "session_viewer/docs/journey/active.md",
+      "sha256": "951e3d8fc0c88fbbb33ffb8d0dee008426649a5c00dd559e29a3b35e0fc41a02"
+    }
+  ],
+  "teaching": {
+    "sources": 351,
+    "explained": 245,
+    "missing": 106,
+    "errors": [],
+    "exitCode": 1,
+    "acceptedSubjects": 0
+  },
+  "runs": [
+    {
+      "name": "docs24",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:48:00.9669965Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "tutorial-completion-docs24",
+          "timeout",
+          "230s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\completion-docs24.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_tests",
+        "timeoutSeconds": 240,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 51.694,
+        "peakJobCommitBytes": 1428168704,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 3100,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "scope": "Modeling primitives, transforms, surfaces and measurement teaching;245 witnesses,106 missing; no runtime acceptance.",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "active-audit",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/completion-docs24/active-audit.log",
+          "sha256": "dc13e08fa0696c49d90e01721cfc979a1b33c67f1012831ee6c088e3acdf6d43",
+          "bytes": 788
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/command.json",
+          "sha256": "439d58b6122626f839d9a513204ff8b4aa9a44706e76ba23a72c78794b2370aa",
+          "bytes": 406
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/delivery.json",
+          "sha256": "48d40339635a7324ddd993a387f1274201b70dc60e6045b44b34cee669fc85d2",
+          "bytes": 210
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/plan.json",
+          "sha256": "ccb2e372fd4d15bef3a616de38993ea0adab3d1bd533ba19f7bd5f0a90e4284d",
+          "bytes": 1419138
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/resources.json",
+          "sha256": "e7692cc40c2dfb21490bc6268020ae61101afd7a9b87f16443d924b8adc49a57",
+          "bytes": 1880
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/result.json",
+          "sha256": "a560de539568221ac4c16dc56f9b14144222ae32506b0b6622628b8b9346f321",
+          "bytes": 406
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/strict-site.log",
+          "sha256": "a860d50364d991615a948f996c86dac73dc747c05478984de0ad9bbf2dd12631",
+          "bytes": 485801
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/teaching-tests.log",
+          "sha256": "4e971caade9d59ebd916f934d14274afa69a71941413c89cf0058679d090aee7",
+          "bytes": 1934
+        },
+        {
+          "path": "session_viewer/target/completion-docs24/teaching.json",
+          "sha256": "7d984e24e7d02b9bdae76b8a365611c0332d7bfa353be67233a93af06477d1ee",
+          "bytes": 3880
+        }
+      ]
+    },
+    {
+      "name": "modeling-docs-browser01",
+      "resources": {
+        "platform": "windows-job-object",
+        "scope": "Separate image lane; original guarded-job lane unchanged; OUR controlled jobs only",
+        "laneMutex": "Local\\SessionViewerCourseImageJob",
+        "affinityOffset": 8,
+        "requiredAffinityMask": "0x300",
+        "maximumOtherLaneProcessors": 8,
+        "maximumOtherLaneMemoryMiB": 8192,
+        "maximumAggregateOurProcessors": 10,
+        "maximumAggregateOurMemoryMiB": 14336,
+        "imageGuardBaseSha256": "9280ecebe1741f1944e832f3192fa4b7b30d59a3587f98336f9a8b2b55b24974",
+        "requestedProcessors": 2,
+        "baseGuardSha256": "967ab30a2a156689f86c47d21b49a0a3f072ef2417a67d076542402183ecebeb",
+        "startedUtc": "2026-11-15T19:49:25.1421802Z",
+        "executable": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "arguments": [
+          "C:/pc/3_code/code_rust/wood_research/wood/tools/buildslot.sh",
+          "--run",
+          "tutorial-modeling-docs-browser01",
+          "timeout",
+          "370s",
+          "C:\\Users\\Petras\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+          "-B",
+          "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer\\target\\modeling-docs-browser01.py"
+        ],
+        "workingDirectory": "C:\\pc\\tmp\\session-tutorial-main-20261113\\session_viewer",
+        "timeoutSeconds": 380,
+        "jobCommitLimitBytes": 6442450944,
+        "swapCapSupported": false,
+        "swapCapNote": "Windows Job Objects have no separate per-job swap quota; zero swap is not enforced.",
+        "output": "Inherited stdout and stderr; redirect the runner to capture a log.",
+        "exitCode": 0,
+        "timedOut": false,
+        "elapsedSeconds": 6.025,
+        "peakJobCommitBytes": 493383680,
+        "affinityMask": "0x300",
+        "processors": 2,
+        "processId": 16320,
+        "descendantsAtCleanup": 1
+      },
+      "result": {
+        "passed": true,
+        "scope": "Modeling construction, transform, surface and measurement documentation rendering and footer; no runtime or complete source-delivery acceptance",
+        "records": [
+          {
+            "slug": "completion-modeling",
+            "heading": "Construct primitives in a local frame",
+            "width": 1280,
+            "file": "completion-modeling-construct-1280.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Transform a selection without changing its identity",
+            "width": 1280,
+            "file": "completion-modeling-transform-1280.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Build surfaces from ordered sections",
+            "width": 1280,
+            "file": "completion-modeling-build-1280.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Measure placed geometry and state the approximation",
+            "width": 1280,
+            "file": "completion-modeling-measure-1280.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Construct primitives in a local frame",
+            "width": 390,
+            "file": "completion-modeling-construct-390.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Transform a selection without changing its identity",
+            "width": 390,
+            "file": "completion-modeling-transform-390.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Build surfaces from ordered sections",
+            "width": 390,
+            "file": "completion-modeling-build-390.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          },
+          {
+            "slug": "completion-modeling",
+            "heading": "Measure placed geometry and state the approximation",
+            "width": 390,
+            "file": "completion-modeling-measure-390.png",
+            "footer": "Docs built 2026-11-15 19:48:05 UTC"
+          }
+        ],
+        "navigation": [
+          {
+            "width": 1280,
+            "to": "completion-modeling"
+          },
+          {
+            "width": 1280,
+            "to": "completion-loading"
+          },
+          {
+            "width": 390,
+            "to": "completion-modeling"
+          },
+          {
+            "width": 390,
+            "to": "completion-loading"
+          }
+        ],
+        "errors": []
+      },
+      "artifacts": [
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-build-1280.png",
+          "sha256": "c8b586118ff43fc925bc41be2e742407341fd62c114cb5f2263bdd710bdfed21",
+          "bytes": 150706
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-build-390.png",
+          "sha256": "06aa0b44f4d512fe0c3f5b25c872cc5f7c1543f459cbb85c39b375bd00ead8b0",
+          "bytes": 47931
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-construct-1280.png",
+          "sha256": "9a6e1827d0000675ae44d7e016ed2b87ff1cee084e19c54650075728c87afc32",
+          "bytes": 151304
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-construct-390.png",
+          "sha256": "594a7b26a0194aa4f1cc223b2f095e1482c10542d965e6d1b282ad6cd135982f",
+          "bytes": 47362
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-measure-1280.png",
+          "sha256": "530f900fb0b18f774381c0f5ba41bf6469a4f011d9f1afbbab67b7da698dfd9a",
+          "bytes": 153466
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-measure-390.png",
+          "sha256": "a6fbffa71a0d462fd8ab8ce3e0d4982aa904d883d7e69871c9c4fb09351a2988",
+          "bytes": 43825
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-transform-1280.png",
+          "sha256": "89bc2345a917f37c9c121bbd05c60352d1ce3aa3c0c765b1f6a8c6b70284ae0a",
+          "bytes": 151183
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/completion-modeling-transform-390.png",
+          "sha256": "4b9e574852cb4acd957165ae73885df84e604ab54a492705a4d8a81ddb350143",
+          "bytes": 45143
+        },
+        {
+          "path": "session_viewer/target/modeling-docs-browser01/result.json",
+          "sha256": "6ad022e5be673821c11a0ebcba558c4690c48f660451ecc17e06ed84d9298ee0",
+          "bytes": 2441
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "originalImagesViewed": 8,
+    "widths": [
+      1280,
+      390
+    ],
+    "findings": "Selected primitive/transform/surface/measurement section starts wrap within both article widths; fixed bottom-right UTC stamp19:48:05. All8originals personally viewed. Four actual Next clicks verify input to modeling to loading at2widths. No claim that every paragraph is visible or every modeling verb has browser acceptance."
+  },
+  "limitations": [
+    "Teaching witnesses require human review and do not establish complete instruction or executable acceptance.",
+    "No new native, wasm or application runtime acceptance in this prose/navigation batch.",
+    "Historical structure, ownership and parity failures remain preserved separately."
+  ]
+}
