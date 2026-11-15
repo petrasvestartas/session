@@ -52,6 +52,10 @@ On success, `Msg::Fonts` transfers the full faces to the application and its tex
 
 The `text_quality.rs` diagnostic page compares the actual text lane with browser text at several sizes, including accents, combining characters and fallback symbols. It owns its own test surface and calls the production lane. This is a diagnostic fixture, not a replacement production text implementation or proof that every device renders the same glyph edges.
 
+### Share UI fonts with the finished dock
+
+The application theme reexports the completed command-dock fonts and visuals instead of maintaining another style implementation. Its bundled font list orders the main scene-label subset first, then fallback and symbol subsets. This lets the UI and label consumers start from the same owned static bytes while full-font loading remains an asynchronous responsibility of the font adapter.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture. Its black rounded title says `viewer comparison`. Zoom and orbit: the title follows its world anchor while keeping screen-sized text. Open Layers and hide the document geometry; the title remains. Restore visibility, then use Select All, Delete and Undo: the geometry and title return together.

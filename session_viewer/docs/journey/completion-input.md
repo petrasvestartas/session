@@ -30,6 +30,14 @@ Each gesture supplies press/start, drag and release callbacks. Once chosen, it r
 
 Input thresholds are in CSS pixels, while window events and GPU picking can use different pixel spaces. The adapter converts window coordinates to surface pixels and accounts for device scale when comparing movement or handle reach. A finger gets a wider handle reach than a mouse; multiplying an already converted position by the device ratio again would move the pick away from the visible pointer.
 
+### Give each adapter a precise release policy
+
+The control and gizmo adapters can claim the initial press, but a click has different meanings. Control release cancels the gesture when movement stayed a click, restoring the point. Gizmo release instead opens its numeric input on a click. A true drag commits through each corresponding state operation. Keeping these release callbacks in their adapters prevents a shared mouse handler from confusing click-to-edit with drag-to-transform.
+
+The object and box-selection adapters have no initial-press callback. They become eligible only after the host recognizes a plain mouse drag. Object dragging delegates its delayed pick and movement to state; a miss can leave the selection rectangle path responsible. Box selection delegates start, update and completion without implementing geometry edits. A finger touching an ordinary object therefore does not acquire this mouse-drag adapter merely because it lands on geometry.
+
+`keys.rs` routes Escape and Enter to the active state continuation and maps canvas Delete, F, H and S to commands. Ctrl or Cmd selects history shortcuts: Z undoes, Y or Shift-Z redoes, and A selects all. The host must first decide whether text owns the keys; the shortcut mapper itself does not know which field is focused. Reusing command dispatch gives keyboard and dock actions the same validation and history behavior.
+
 ### Touch has its own state
 
 ```rust
@@ -59,6 +67,20 @@ Each request or cancellation advances a generation. The submitted copy remembers
 `SelectionMode` distinguishes a whole object from an edge, face or control on a parent row. `ControlId` preserves the geometric address: a vertex, curve control, surface control pair or cloud point. These are not interchangeable with GPU buffer offsets.
 
 `Controls` derives finite control positions and connection lines from the kernel geometry. Cloud controls remain GPU-resident instead of expanding every point into a CPU vector. Escape can return from a sub-selection to its parent. Editing uses the mode to choose a whole-object transform or a deformation of geometry inside that object.
+
+### Bridge the phone keyboard without losing composition
+
+`CommandAgent` owns the hidden browser input and its event-listener closures. Input events send the complete text through the event-loop proxy; editing keys send explicit key messages. Composition start/end tracks whether an IME is building a word, so the host can avoid replacing that in-progress input. Touch or pen taps focus the hidden field within the browser gesture when a text target needs the keyboard, while taps outside fields and popups blur it. A raised-keyboard flag prevents the same tap from immediately undoing that focus. Drop removes all installed listeners; retaining the closures only for the agent lifetime prevents callbacks from outliving their Rust owner.
+
+### Retain input state until the interaction ends
+
+`Input` distinguishes a quick pointer wobble from deliberate dragging: a plain mouse press starts a drag after more than ten CSS pixels, or more than four pixels held for at least 200 milliseconds. A chosen gesture keeps ownership through release. Running pointer tools take priority over ordinary selection; right-button clicks can finish or repeat commands only when they did not become navigation drags. Touch editing tracks the owning finger ID. A second finger cancels that edit and suppresses further actions until every finger lifts, then resets camera-touch state. Lost focus and browser pointer cancellation clear the held state instead of committing an abandoned edit.
+
+Selection separates a parent object row from the stable address of its selected edge, face or control. `Controls` filters nonfinite positions and creates links only between available neighboring controls, so a missing control does not shift the original geometric indices. BRep controls include vertex, curve and surface addresses; surface links connect both grid directions. Cloud points stay on the GPU instead of expanding into CPU controls. Escape returns to object mode while retaining the parent identity for the caller.
+
+The phone adapter routes whole-text messages to the last registered open panel field before the command dock. Whole replacement avoids duplicating composed input; key messages become one press and release. When the dock is closed, newly typed characters return to viewport dispatch. Following a field synchronizes externally changed text, but skips inline completion suffixes and active IME composition. Closing the last field lowers the keyboard unless the command line owns it. This adapter decides text ownership without modifying geometry or the browser listener lifetime.
+
+`ui/overlay.rs` converts device-pixel preview coordinates to egui points before painting drawing lines, filled regions, dashed strokes and square point marks. The label chip measures its text galley, adds padding and draws centered white text on black. These temporary overlays visualize the active tool or measurement; they are not persistent document objects or GPU-pickable geometry. Keeping the conversion at this boundary avoids applying the display scale twice.
 
 ## Run and observe
 

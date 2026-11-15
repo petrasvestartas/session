@@ -2,12 +2,22 @@
   {
     "path": "src/app/agent.rs",
     "owner": "application",
-    "sourceSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b"
+    "sourceSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Bridge the phone keyboard without losing composition",
+      "paragraph": "`CommandAgent` owns the hidden browser input and its event-listener closures. Input events send the complete text through the event-loop proxy; editing keys send explicit key messages. Composition start/end tracks whether an IME is building a word, so the host can avoid replacing that in-progress input. Touch or pen taps focus the hidden field within the browser gesture when a text target needs the keyboard, while taps outside fields and popups blur it. A raised-keyboard flag prevents the same tap from immediately undoing that focus. Drop removes all installed listeners; retaining the closures only for the agent lifetime prevents callbacks from outliving their Rust owner."
+    }
   },
   {
     "path": "src/app/clipping.rs",
     "owner": "application",
-    "sourceSha256": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1"
+    "sourceSha256": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Change drawing and viewing context",
+      "paragraph": "`app/clipping.rs` constructs clipping planes from a normal direction, three points or a named world-plane orientation. The normal points toward the removed side. Converting a placed plane to the GPU half-space crosses its transformed in-plane axes, which handles nonuniform placement without incorrectly transforming a normal as an ordinary vector. The kept-side normal is negated and its offset comes from the placed origin. Degenerate rectangles are rejected; hatch direction derives from the in-plane axes, keeping the pattern attached to the plane."
+    }
   },
   {
     "path": "src/app/cloud_query.rs",
@@ -112,12 +122,22 @@
   {
     "path": "src/app/command/verbs/add_edge.rs",
     "owner": "application",
-    "sourceSha256": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed"
+    "sourceSha256": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep command adapters at the document boundary",
+      "paragraph": "`Add Edge` requires exactly two editable objects from one document and refuses an existing connection, preserving its attribute. The graph edit is tracked separately from tree parenting. Because the kernel does not record this graph mutation in its normal change notes, the adapter retains an `EdgeStep` with the edge and newly created vertices, and creates a paired placement change to keep the history step present. Undo can consequently remove vertices introduced solely for this edge. The graph table is opened after row and panel synchronization."
+    }
   },
   {
     "path": "src/app/command/verbs/add_group.rs",
     "owner": "application",
-    "sourceSha256": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d"
+    "sourceSha256": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep command adapters at the document boundary",
+      "paragraph": "`Add Group` requires objects from one document and chooses their deepest shared layer as the parent. It deduplicates identities and avoids moving a selected child twice when a selected ancestor already contains it. Before reparenting, it saves world placements and converts them into the chosen parent frame, so grouping does not move the visible geometry. Names must be unused and contain no slash; an omitted name selects the next free Group number. The history operation then reveals the new hierarchy branch."
+    }
   },
   {
     "path": "src/app/command/verbs/arctic.rs",
@@ -212,7 +232,12 @@
   {
     "path": "src/app/command/verbs/clipping_plane.rs",
     "owner": "application",
-    "sourceSha256": "400dc33be2b869ae93c0a981c17116fba56672dc6326ac50efb23ff71e7bc294"
+    "sourceSha256": "400dc33be2b869ae93c0a981c17116fba56672dc6326ac50efb23ff71e7bc294",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Change drawing and viewing context",
+      "paragraph": "`Clipping Plane` distinguishes creation modes from global On/Off, selected-plane Flip and Hatch/Solid fill. Typed coordinates must be finite and within the supported magnitude, with exactly the point count required by the selected mode. Creation sizes the visible plane rectangle to the scene and delegates its document insertion to state. On/Off and fill preserve an active draft; Flip requires selection. The command does not implement the cap renderer or silently turn a plane into a geometry cut."
+    }
   },
   {
     "path": "src/app/command/verbs/close.rs",
@@ -237,7 +262,12 @@
   {
     "path": "src/app/command/verbs/construction_plane.rs",
     "owner": "application",
-    "sourceSha256": "078a4a7462a809f4b71978ac5579ecb8b9844eb41ccc9ad121a7efeab67aaa23"
+    "sourceSha256": "078a4a7462a809f4b71978ac5579ecb8b9844eb41ccc9ad121a7efeab67aaa23",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Change drawing and viewing context",
+      "paragraph": "`Construction Plane` selects a fixed XY, XZ or YZ frame, accepts three noncollinear points, or returns to View mode. A bare command opens the choices, while a typed triple uses the same frame constructor as picked input. Setting a plane preserves the active drawing draft, allowing subsequent coordinates and snapping to use the new plane without discarding accepted points. This changes input context; it does not project existing geometry."
+    }
   },
   {
     "path": "src/app/command/verbs/controls.rs",
@@ -632,7 +662,12 @@
   {
     "path": "src/app/command/verbs/open.rs",
     "owner": "application",
-    "sourceSha256": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43"
+    "sourceSha256": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep command adapters at the document boundary",
+      "paragraph": "`Open` requests the browser file picker only in the wasm build; its returned message does not establish that a file was chosen or restored. `Save` first requests any released documents and defers downloading until they return. Otherwise it serializes the scene and asks the wasm download adapter to deliver the bytes, propagating download errors. Native execution can exercise serialization without proving a browser download. The archive owns format and restoration rules; these verbs only expose that lifecycle through the command registry."
+    }
   },
   {
     "path": "src/app/command/verbs/orient_3_points.rs",
@@ -677,7 +712,12 @@
   {
     "path": "src/app/command/verbs/project_to_plane.rs",
     "owner": "application",
-    "sourceSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb"
+    "sourceSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Flatten geometry in its own object frame",
+      "paragraph": "`Project To Plane` edits supported points, lines, polylines, NURBS curves and meshes while preserving their placements. It composes inverse object placement, world-plane projection and object placement to obtain the local geometry transform. Named planes pass through world zero; the CPlane option chooses the plane facing the camera, while 3Point supplies an explicit origin and orientation. Singular placements, unsupported kinds and non-point geometry that would collapse to a point are skipped with a reason. Mesh normal attributes are cleared because the old normals no longer describe the flattened faces. All successful replacements use one scene edit path with undo."
+    }
   },
   {
     "path": "src/app/command/verbs/pyramid.rs",
@@ -726,13 +766,18 @@
     "explanation": {
       "page": "journey/completion-modeling.md",
       "heading": "### Transform a selection without changing its identity",
-      "paragraph": "`Rotate` with a typed world axis turns about the gizmo center, falling back to the world origin. Its interactive form instead picks a center and measures reference vectors in the construction plane. The signed angle uses atan2 of their two-dimensional cross and dot products, rejecting a reference at the center. Translation to the center, rotation about the plane normal, and translation back compose the final transform. A typed angle after the center uses that same plane and commit path."
+      "paragraph": "`Rotate` with a typed world axis turns about the gizmo center, falling back to the world origin. Its interactive form instead picks a center and measures reference vectors in the construction plane. The signed angle uses atan2 of their two-dimensional cross and dot products, rejecting a reference at the center. Translate the picked center to the origin, rotate about the plane normal, then translate back to compose the final transform. A typed angle after the center uses that same plane and commit path."
     }
   },
   {
     "path": "src/app/command/verbs/save.rs",
     "owner": "application",
-    "sourceSha256": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5"
+    "sourceSha256": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep command adapters at the document boundary",
+      "paragraph": "`Open` requests the browser file picker only in the wasm build; its returned message does not establish that a file was chosen or restored. `Save` first requests any released documents and defers downloading until they return. Otherwise it serializes the scene and asks the wasm download adapter to deliver the bytes, propagating download errors. Native execution can exercise serialization without proving a browser download. The archive owns format and restoration rules; these verbs only expose that lifecycle through the command registry."
+    }
   },
   {
     "path": "src/app/command/verbs/scale.rs",
@@ -877,7 +922,12 @@
   {
     "path": "src/app/command/verbs/view.rs",
     "owner": "application",
-    "sourceSha256": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39"
+    "sourceSha256": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Change drawing and viewing context",
+      "paragraph": "`View` parses camera directions, projection and display choices into one `Change` enum. Projection changes refresh bounds and use framed camera conversion; point and plane sizes require positive finite values. Other cases delegate to the rendering flags or the host setters for Xray, labels and visibility. The action preserves both a drawing draft and pending split, so inspecting the model from another view does not cancel the operation being constructed."
+    }
   },
   {
     "path": "src/app/command/verbs/volume.rs",
@@ -947,27 +997,52 @@
   {
     "path": "src/app/gesture/box_select.rs",
     "owner": "application",
-    "sourceSha256": "f52620890c23afa10a99d046a9985fccaa8b15639c972a46a0fae94a2bf88044"
+    "sourceSha256": "f52620890c23afa10a99d046a9985fccaa8b15639c972a46a0fae94a2bf88044",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Give each adapter a precise release policy",
+      "paragraph": "The object and box-selection adapters have no initial-press callback. They become eligible only after the host recognizes a plain mouse drag. Object dragging delegates its delayed pick and movement to state; a miss can leave the selection rectangle path responsible. Box selection delegates start, update and completion without implementing geometry edits. A finger touching an ordinary object therefore does not acquire this mouse-drag adapter merely because it lands on geometry."
+    }
   },
   {
     "path": "src/app/gesture/control.rs",
     "owner": "application",
-    "sourceSha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22"
+    "sourceSha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Give each adapter a precise release policy",
+      "paragraph": "The control and gizmo adapters can claim the initial press, but a click has different meanings. Control release cancels the gesture when movement stayed a click, restoring the point. Gizmo release instead opens its numeric input on a click. A true drag commits through each corresponding state operation. Keeping these release callbacks in their adapters prevents a shared mouse handler from confusing click-to-edit with drag-to-transform."
+    }
   },
   {
     "path": "src/app/gesture/gizmo.rs",
     "owner": "application",
-    "sourceSha256": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c"
+    "sourceSha256": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Give each adapter a precise release policy",
+      "paragraph": "The control and gizmo adapters can claim the initial press, but a click has different meanings. Control release cancels the gesture when movement stayed a click, restoring the point. Gizmo release instead opens its numeric input on a click. A true drag commits through each corresponding state operation. Keeping these release callbacks in their adapters prevents a shared mouse handler from confusing click-to-edit with drag-to-transform."
+    }
   },
   {
     "path": "src/app/gesture/mod.rs",
     "owner": "application",
-    "sourceSha256": "f015688289192d7970e359169a4ddf33ec04ec42038bf5e9c3fafb129d412203"
+    "sourceSha256": "f015688289192d7970e359169a4ddf33ec04ec42038bf5e9c3fafb129d412203",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Choose a gesture before changing geometry",
+      "paragraph": "Each gesture supplies press/start, drag and release callbacks. Once chosen, it remains responsible for the interaction. Adding a gesture means adding its module and registry entry, not reopening every event branch. The `control`, `gizmo`, `object` and `box_select` adapters delegate to their corresponding state operations, which own saved placements, preview and commit/cancel behavior."
+    }
   },
   {
     "path": "src/app/gesture/object.rs",
     "owner": "application",
-    "sourceSha256": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5"
+    "sourceSha256": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Give each adapter a precise release policy",
+      "paragraph": "The object and box-selection adapters have no initial-press callback. They become eligible only after the host recognizes a plain mouse drag. Object dragging delegates its delayed pick and movement to state; a miss can leave the selection rectangle path responsible. Box selection delegates start, update and completion without implementing geometry edits. A finger touching an ordinary object therefore does not acquire this mouse-drag adapter merely because it lands on geometry."
+    }
   },
   {
     "path": "src/app/gizmo.rs",
@@ -987,7 +1062,12 @@
   {
     "path": "src/app/input.rs",
     "owner": "application",
-    "sourceSha256": "243af7f73eefdaf0f4ea25f2adf251f1a056ee52852a93a794336c1e595dec10"
+    "sourceSha256": "243af7f73eefdaf0f4ea25f2adf251f1a056ee52852a93a794336c1e595dec10",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Retain input state until the interaction ends",
+      "paragraph": "`Input` distinguishes a quick pointer wobble from deliberate dragging: a plain mouse press starts a drag after more than ten CSS pixels, or more than four pixels held for at least 200 milliseconds. A chosen gesture keeps ownership through release. Running pointer tools take priority over ordinary selection; right-button clicks can finish or repeat commands only when they did not become navigation drags. Touch editing tracks the owning finger ID. A second finger cancels that edit and suppresses further actions until every finger lifts, then resets camera-touch state. Lost focus and browser pointer cancellation clear the held state instead of committing an abandoned edit."
+    }
   },
   {
     "path": "src/app/inspection.rs",
@@ -1012,7 +1092,12 @@
   {
     "path": "src/app/keys.rs",
     "owner": "application",
-    "sourceSha256": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a"
+    "sourceSha256": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Give each adapter a precise release policy",
+      "paragraph": "`keys.rs` routes Escape and Enter to the active state continuation and maps canvas Delete, F, H and S to commands. Ctrl or Cmd selects history shortcuts: Z undoes, Y or Shift-Z redoes, and A selects all. The host must first decide whether text owns the keys; the shortcut mapper itself does not know which field is focused. Reusing command dispatch gives keyboard and dock actions the same validation and history behavior."
+    }
   },
   {
     "path": "src/app/knobs.rs",
@@ -1232,7 +1317,12 @@
   {
     "path": "src/app/selection.rs",
     "owner": "application",
-    "sourceSha256": "67f5e1a5bcf8006d07bc3f090b8fade23dfc163a2de8b41185b46fd969b4268b"
+    "sourceSha256": "67f5e1a5bcf8006d07bc3f090b8fade23dfc163a2de8b41185b46fd969b4268b",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Retain input state until the interaction ends",
+      "paragraph": "Selection separates a parent object row from the stable address of its selected edge, face or control. `Controls` filters nonfinite positions and creates links only between available neighboring controls, so a missing control does not shift the original geometric indices. BRep controls include vertex, curve and surface addresses; surface links connect both grid directions. Cloud points stay on the GPU instead of expanding into CPU controls. Escape returns to object mode while retaining the parent identity for the caller."
+    }
   },
   {
     "path": "src/app/session_io.rs",
@@ -1507,7 +1597,12 @@
   {
     "path": "src/app/touch.rs",
     "owner": "application",
-    "sourceSha256": "7c566eb2a676000ba25b90a82512ea976c8252079fa05c3c21db2481669f300f"
+    "sourceSha256": "7c566eb2a676000ba25b90a82512ea976c8252079fa05c3c21db2481669f300f",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Touch has its own state",
+      "paragraph": "The ordinary viewer tracks touches by browser ID. One finger orbits. Two fingers pan by their midpoint and zoom by the change in separation. When finger count changes, the next event records a fresh span instead of applying a jump from the previous gesture. Each pinch ratio is clamped to bound an unusually large event."
+    }
   },
   {
     "path": "src/app/ui/command_line.rs",
@@ -1537,27 +1632,52 @@
   {
     "path": "src/app/ui/number_box.rs",
     "owner": "application",
-    "sourceSha256": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7"
+    "sourceSha256": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep numeric input attached to its handle",
+      "paragraph": "The number-box panel copies the current handle prompt into a UI model, paints the field, and applies a submitted value only after drawing completes. A new handle clears stale text and errors and requests keyboard focus. Escape or another focused field closes the box; a lost focus with no replacement requests it again while the box remains open. Enter stores the text for the apply phase, where validation errors remain visible below the field. If the handle projects behind the eye, fill closes the prompt so an invisible field cannot retain the keys."
+    }
   },
   {
     "path": "src/app/ui/overlay.rs",
     "owner": "application",
-    "sourceSha256": "99e66230fe357a9922134146603afb7043628bff4a0a4e69b16fe52863812739"
+    "sourceSha256": "99e66230fe357a9922134146603afb7043628bff4a0a4e69b16fe52863812739",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Retain input state until the interaction ends",
+      "paragraph": "`ui/overlay.rs` converts device-pixel preview coordinates to egui points before painting drawing lines, filled regions, dashed strokes and square point marks. The label chip measures its text galley, adds padding and draws centered white text on black. These temporary overlays visualize the active tool or measurement; they are not persistent document objects or GPU-pickable geometry. Keeping the conversion at this boundary avoids applying the display scale twice."
+    }
   },
   {
     "path": "src/app/ui/phone.rs",
     "owner": "application",
-    "sourceSha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182"
+    "sourceSha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Retain input state until the interaction ends",
+      "paragraph": "The phone adapter routes whole-text messages to the last registered open panel field before the command dock. Whole replacement avoids duplicating composed input; key messages become one press and release. When the dock is closed, newly typed characters return to viewport dispatch. Following a field synchronizes externally changed text, but skips inline completion suffixes and active IME composition. Closing the last field lowers the keyboard unless the command line owns it. This adapter decides text ownership without modifying geometry or the browser listener lifetime."
+    }
   },
   {
     "path": "src/app/ui/pointer.rs",
     "owner": "application",
-    "sourceSha256": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e"
+    "sourceSha256": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### A pointer belongs to one interaction",
+      "paragraph": "The panel adapter receives an event before normal scene input. `ui/pointer.rs` uses the current pointer position and actual popup layers, not the previous frame's hover state. A press in a panel captures its drag. Releasing a scene drag over a panel drops that edit rather than applying it through the UI. Wheel and touch events also respect the scene rectangle."
+    }
   },
   {
     "path": "src/app/ui/theme.rs",
     "owner": "application",
-    "sourceSha256": "a45673d3ff48b2114846750a22e2ced36f22dbfd7b1e11752914ecbd54b71f3d"
+    "sourceSha256": "a45673d3ff48b2114846750a22e2ced36f22dbfd7b1e11752914ecbd54b71f3d",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Share UI fonts with the finished dock",
+      "paragraph": "The application theme reexports the completed command-dock fonts and visuals instead of maintaining another style implementation. Its bundled font list orders the main scene-label subset first, then fallback and symbol subsets. This lets the UI and label consumers start from the same owned static bytes while full-font loading remains an asynchronous responsibility of the font adapter."
+    }
   },
   {
     "path": "src/app/validate.rs",
@@ -2902,7 +3022,12 @@
   {
     "path": "src/state/clipping.rs",
     "owner": "application",
-    "sourceSha256": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148"
+    "sourceSha256": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Change drawing and viewing context",
+      "paragraph": "`state/clipping.rs` gathers each clipping plane from its current GPU row placement, so preview dragging moves the cut immediately. Hiding its rectangle does not disable its cut; the host reports that distinction when a plane becomes hidden. The first active cut verifies previously walked mesh solid orientation, sharing the result for instances of one geometry. Creation enforces the maximum plane count and uses document history, whereas On/Off and fill change rendering state. Flipping replaces the selected plane geometry and synchronizes its rows."
+    }
   },
   {
     "path": "src/state/cloud_query.rs",
@@ -2942,7 +3067,12 @@
   {
     "path": "src/state/number_box.rs",
     "owner": "application",
-    "sourceSha256": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1"
+    "sourceSha256": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep numeric input attached to its handle",
+      "paragraph": "The numeric-input state adapter projects the active gizmo handle to CSS coordinates and supplies its title, units and neutral-value hint. Parsing an empty or neutral value can close the box without changing geometry. A valid value becomes the handle transform and uses the common apply operation with a move, rotate or scale history label. Invalid parsing keeps the prompt available for correction; an apply failure reports status after closure. A tap that opens the box requests the phone keyboard through feedback."
+    }
   },
   {
     "path": "src/state/panel.rs",

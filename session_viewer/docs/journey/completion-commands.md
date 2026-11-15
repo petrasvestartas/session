@@ -94,6 +94,18 @@ Interactive Move first collects a base point, then previews the translation to t
 
 Typed `Move 0 1000 0` bypasses point collection and directly applies the checked offset. A whole-object transform updates the document and descendants, synchronizes rows, refreshes the gizmo and invalidates the image. A selected face, edge or control point instead follows the subobject deformation path. Locked objects are rejected before either operation.
 
+### Change drawing and viewing context
+
+`Construction Plane` selects a fixed XY, XZ or YZ frame, accepts three noncollinear points, or returns to View mode. A bare command opens the choices, while a typed triple uses the same frame constructor as picked input. Setting a plane preserves the active drawing draft, allowing subsequent coordinates and snapping to use the new plane without discarding accepted points. This changes input context; it does not project existing geometry.
+
+`View` parses camera directions, projection and display choices into one `Change` enum. Projection changes refresh bounds and use framed camera conversion; point and plane sizes require positive finite values. Other cases delegate to the rendering flags or the host setters for Xray, labels and visibility. The action preserves both a drawing draft and pending split, so inspecting the model from another view does not cancel the operation being constructed.
+
+`Clipping Plane` distinguishes creation modes from global On/Off, selected-plane Flip and Hatch/Solid fill. Typed coordinates must be finite and within the supported magnitude, with exactly the point count required by the selected mode. Creation sizes the visible plane rectangle to the scene and delegates its document insertion to state. On/Off and fill preserve an active draft; Flip requires selection. The command does not implement the cap renderer or silently turn a plane into a geometry cut.
+
+`app/clipping.rs` constructs clipping planes from a normal direction, three points or a named world-plane orientation. The normal points toward the removed side. Converting a placed plane to the GPU half-space crosses its transformed in-plane axes, which handles nonuniform placement without incorrectly transforming a normal as an ordinary vector. The kept-side normal is negated and its offset comes from the placed origin. Degenerate rectangles are rejected; hatch direction derives from the in-plane axes, keeping the pattern attached to the plane.
+
+`state/clipping.rs` gathers each clipping plane from its current GPU row placement, so preview dragging moves the cut immediately. Hiding its rectangle does not disable its cut; the host reports that distinction when a plane becomes hidden. The first active cut verifies previously walked mesh solid orientation, sharing the result for instances of one geometry. Creation enforces the maximum plane count and uses document history, whereas On/Off and fill change rendering state. Flipping replaces the selected plane geometry and synchronizes its rows.
+
 ## Run and observe
 
 Run the `application` checkpoint's `production.html` entry with the recorded comparison fixture. Enter `Line 0,0,0 3000,0,0`, then `Fit`. A new line appears and is selected. Expand the new Created layer to see its hierarchy row; new layers start collapsed. Enter `Move 0 1000 0`, `Undo`, then `Redo`; the line alternates between its original and translated position. Existing comparison geometry stays in place.

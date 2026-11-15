@@ -94,7 +94,7 @@ Tetrahedron, Octahedron, Icosahedron and Dodecahedron share center/radius input 
 
 `Move` accepts a checked typed offset or starts a two-point tool. Its preview is the translation from the first point to the cursor; accepting the second point sends that same translation to `State::apply`. Both paths require selection and use the shared edit owner, so pointer sampling changes the preview frequency without creating a different transformation rule.
 
-`Rotate` with a typed world axis turns about the gizmo center, falling back to the world origin. Its interactive form instead picks a center and measures reference vectors in the construction plane. The signed angle uses atan2 of their two-dimensional cross and dot products, rejecting a reference at the center. Translation to the center, rotation about the plane normal, and translation back compose the final transform. A typed angle after the center uses that same plane and commit path.
+`Rotate` with a typed world axis turns about the gizmo center, falling back to the world origin. Its interactive form instead picks a center and measures reference vectors in the construction plane. The signed angle uses atan2 of their two-dimensional cross and dot products, rejecting a reference at the center. Translate the picked center to the origin, rotate about the plane normal, then translate back to compose the final transform. A typed angle after the center uses that same plane and commit path.
 
 `Scale` with a typed positive factor scales uniformly about the gizmo center. The interactive tool chooses 1D, 2D or 3D around a picked origin: signed projection along a reference direction, radial reach in the construction plane, or spatial distance. After a reference point, a typed number means the new length, so the factor is that length divided by the old reach. Zero reference length and nonpositive factors are rejected. Scaling only selected orthonormal directions preserves the other directions, which is why 2D scaling leaves plane-normal height unchanged.
 
@@ -129,6 +129,10 @@ The shared measurement adapter resolves selected rows to kernel geometry, world 
 `Volume` requires closed meshes or solid BReps and reports open objects separately from unsupported kinds. It sums signed tetrahedral volumes from the displayed triangles; BRep face orientation signs turn the face contributions consistently before taking the absolute total. The reference origin lies on the transformed mesh to reduce cancellation for models far from world zero. BRep volume inherits tessellation accuracy. Mixed selections may return the closed-object total while explicitly naming open objects that were not measured.
 
 `BoundingBox` unions selected world bounds and creates an axis-aligned box through the normal geometry transaction. For an element it transforms the underlying element bounds, avoiding distant attribute features that can enlarge display bounds. Flat extents remain valid. `Length BoundingBox` uses those same bounds but only reports twice each half-extent as world X, Y and Z dimensions, with a temporary mark. Creating the box and measuring its extents therefore have different history effects even though they share the bounds calculation.
+
+### Flatten geometry in its own object frame
+
+`Project To Plane` edits supported points, lines, polylines, NURBS curves and meshes while preserving their placements. It composes inverse object placement, world-plane projection and object placement to obtain the local geometry transform. Named planes pass through world zero; the CPlane option chooses the plane facing the camera, while 3Point supplies an explicit origin and orientation. Singular placements, unsupported kinds and non-point geometry that would collapse to a point are skipped with a reason. Mesh normal attributes are cleared because the old normals no longer describe the flattened faces. All successful replacements use one scene edit path with undo.
 
 ## Run and observe
 

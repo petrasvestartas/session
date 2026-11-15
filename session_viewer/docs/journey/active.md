@@ -30,7 +30,7 @@ Build and serve that project using the shared cache and workspace guards describ
 
 The route is **incomplete**, with nine executable candidates and no blanket subject-acceptance claim. [Evidence](release.md) and each lesson distinguish native tests, wasm checks, browser behavior and physical-device acceptance. A successful source comparison or site build does not establish teaching or rendering quality.
 
-The source teaching ledger currently has 245 paragraph witnesses across 351 production files, with 106 missing. A witness binds an actual explanation to reviewed source; it is not automatic teaching acceptance. `course -- teaching` deliberately fails until missing explanations are resolved. No production source has been deliberately excluded.
+The source teaching ledger currently has 271 paragraph witnesses across 351 production files, with 80 missing. A witness binds an actual explanation to reviewed source; it is not automatic teaching acceptance. `course -- teaching` deliberately fails until missing explanations are resolved. No production source has been deliberately excluded.
 
 Remaining work includes complete source teaching, review of subject boundaries, final structural/ownership/parity reconciliation, specialized browser checks and device acceptance. Metadata round-trip byte preservation has a recorded failure: current Save normalizes component JSON spacing/key order. No production behavior change or passing byte-parity claim is implied.
 

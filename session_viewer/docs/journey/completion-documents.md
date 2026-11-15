@@ -86,6 +86,20 @@ The number box precedes the command line so Escape can belong to its active edit
 
 `scene_display.rs` retains bounded source and refinement caches and performs camera-dependent display refinement. It separates source bytes, refinement bytes and transient work. Rendering quality can improve during idle frames without changing the document's authoritative geometry or its history.
 
+### Keep command adapters at the document boundary
+
+`Open` requests the browser file picker only in the wasm build; its returned message does not establish that a file was chosen or restored. `Save` first requests any released documents and defers downloading until they return. Otherwise it serializes the scene and asks the wasm download adapter to deliver the bytes, propagating download errors. Native execution can exercise serialization without proving a browser download. The archive owns format and restoration rules; these verbs only expose that lifecycle through the command registry.
+
+`Add Group` requires objects from one document and chooses their deepest shared layer as the parent. It deduplicates identities and avoids moving a selected child twice when a selected ancestor already contains it. Before reparenting, it saves world placements and converts them into the chosen parent frame, so grouping does not move the visible geometry. Names must be unused and contain no slash; an omitted name selects the next free Group number. The history operation then reveals the new hierarchy branch.
+
+`Add Edge` requires exactly two editable objects from one document and refuses an existing connection, preserving its attribute. The graph edit is tracked separately from tree parenting. Because the kernel does not record this graph mutation in its normal change notes, the adapter retains an `EdgeStep` with the edge and newly created vertices, and creates a paired placement change to keep the history step present. Undo can consequently remove vertices introduced solely for this edge. The graph table is opened after row and panel synchronization.
+
+### Keep numeric input attached to its handle
+
+The number-box panel copies the current handle prompt into a UI model, paints the field, and applies a submitted value only after drawing completes. A new handle clears stale text and errors and requests keyboard focus. Escape or another focused field closes the box; a lost focus with no replacement requests it again while the box remains open. Enter stores the text for the apply phase, where validation errors remain visible below the field. If the handle projects behind the eye, fill closes the prompt so an invisible field cannot retain the keys.
+
+The numeric-input state adapter projects the active gizmo handle to CSS coordinates and supplies its title, units and neutral-value hint. Parsing an empty or neutral value can close the box without changing geometry. A valid value becomes the handle transform and uses the common apply operation with a move, rotate or scale history label. Invalid parsing keeps the prompt available for correction; an apply failure reports status after closure. A tap that opens the box requests the phone keyboard through feedback.
+
 ## Run and observe
 
 Run the cumulative `application` checkpoint with the recorded comparison fixture. Enter `Layers All`. The panel should list the loaded document and its four objects. Toggle the document's visibility: its geometry disappears while the document remains listed. Toggle it back: the same geometry returns. Enter `Select All`: five rows are selected, including the title. Enter `Delete`, then `Undo`; the four objects and their title return with their identity and placement preserved.
