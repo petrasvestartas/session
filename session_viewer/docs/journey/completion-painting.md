@@ -2,7 +2,7 @@
 
 Draw a pink triangle and a black `Command:` label with egui over the white GPU frame.
 
-This candidate follows [Open a GPU frame](completion-frame.md). Its partial project passes wasm typechecking; browser acceptance remains pending.
+This candidate follows [Open a GPU frame](completion-frame.md). Its partial project passes wasm typechecking and desktop/upright browser checks; complete subject acceptance remains pending.
 
 ## Prerequisites and ownership
 

@@ -58,6 +58,8 @@ Run the cumulative application with the comparison fixture. Its black rounded ti
 
 Use `Layers Off` at upright width to inspect the full scene. With the 240-pixel panel open at 390 pixels, clipping can cut the nameplate in the remaining scene region. That behavior is preserved and is distinct from a missing glyph or failed font request.
 
+For fixed-plane lettering, run `node tests/world-text.cjs` against the same cumulative server, using the browser environment variables described in [Maintaining](../maintaining.md). Its supplied manifest authors a label on world-X/world-Y axes. The initial isometric view tilts its baseline; `View Top` makes the world-X baseline horizontal without reshaping or changing those axes. `View Names` leaves the authored text intact. Clicking the label changes its selection ink; H hides it and prevents picking, while S restores it. This experiment distinguishes a world-plane label from a camera-facing nameplate.
+
 ## Predict and try
 
 Predict whether orbiting should increase the number of shaped labels or only their projection/preparation work. Observe the text diagnostics while orbiting a fixed title. The glyph sequence and metrics stay the same, so shaping can be reused even though the world anchor projects somewhere else. Changing the title's text or replacing its font has different cache consequences.
@@ -70,4 +72,4 @@ Changing label placement can reuse shaped glyphs, but replacing the font databas
 
 ## Validation
 
-The document browser sequence verifies the title's visibility, five-row selection count, deletion and restoration at both sizes. The full text source is compiled in the cumulative endpoint. Font fallback delivery, world-plane text and text-quality comparison need their own runtime evidence; the title sequence alone does not establish those paths or physical-phone typography.
+The document browser sequence verifies the title's visibility, five-row selection count, deletion and restoration at both sizes. The maintained text-quality check passes at DPR 1, 1.25 and 2: visible glyph pixels, same-font line metrics within 0.2 CSS pixels, scale changes without reshaping, selection color, resource release and resize. The world-text check separately passes at DPR 1 and 2, including authored axes, projected baseline, visible white glyphs on a black backing, unchanged shaping, selection and hide/show pickability. Both use the cumulative bundle. Full-font fallback delivery remains open; these desktop checks do not establish physical-phone typography.

@@ -1,0 +1,238 @@
+{
+  "scope": "Maintained text-quality and streamed-controls browser checks against the own-source cumulative application bundle; not full course acceptance.",
+  "buildReceipt": "completion-application-windows-20261115.json",
+  "browser": "Chrome headless; --enable-unsafe-webgpu --ignore-gpu-blocklist --use-angle=d3d11. No physical-device acceptance inferred.",
+  "runs": [
+    {
+      "run": "application-text02",
+      "resources": {
+        "processId": 34268,
+        "exitCode": 0,
+        "elapsedSeconds": 6.837,
+        "peakJobCommitBytes": 962277376,
+        "processors": 2,
+        "jobCommitLimitBytes": 6442450944
+      },
+      "result": {
+        "test": "text-quality.cjs",
+        "exitCode": 0,
+        "source": "04b729b8a6350e638abf2316693b2ee87ca95a8f16fcff4e5991e85013cb7bba",
+        "scope": "Unmodified maintained browser assertions against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "artifacts": [
+        {
+          "path": "target/application-text02/captures/metrics-dpr-1.25.json",
+          "bytes": 26367,
+          "sha256": "7f1dbafb5dc0eb2d095b3ce58ea9a2f8d02f21d64abe7183d6d50263c52310a5"
+        },
+        {
+          "path": "target/application-text02/captures/metrics-dpr-1.json",
+          "bytes": 26333,
+          "sha256": "6ecea522b2f97697a0f701b5c8f0b8a9029ef33617ef54b62ffcd7e158b6c416"
+        },
+        {
+          "path": "target/application-text02/captures/metrics-dpr-2.json",
+          "bytes": 26250,
+          "sha256": "2e7971449e3ba8f2b4a299637ab41ed3f814f37c340ac81cee1eda837064b7d9"
+        },
+        {
+          "path": "target/application-text02/captures/text-dpr-1.25.png",
+          "bytes": 460928,
+          "sha256": "273b98baaf30a91d00d1cf191f083cb67c545fe1bdf5ca08c8f9d4faf863f86f"
+        },
+        {
+          "path": "target/application-text02/captures/text-dpr-1.png",
+          "bytes": 317459,
+          "sha256": "a399fd8beb9637713ee0c57721309fbe8779f724e87f1d4b257dc6c8ebc98873"
+        },
+        {
+          "path": "target/application-text02/captures/text-dpr-2.png",
+          "bytes": 797168,
+          "sha256": "18f6edc1c00456e53a1f0e4e6804d32627910584835a3bb606b1bbacdd418848"
+        },
+        {
+          "path": "target/application-text02/captures/text-gray-selected-dpr-1.25.png",
+          "bytes": 480276,
+          "sha256": "e5637e2aaa2cc18a44e5e087dac7ad3c7838f4b07dfc96b6040093e43a494265"
+        },
+        {
+          "path": "target/application-text02/captures/text-gray-selected-dpr-1.png",
+          "bytes": 353437,
+          "sha256": "d3715b22fcc3d9989c7323a131c6516be1f29009c7de9e15fb7406b5049ab525"
+        },
+        {
+          "path": "target/application-text02/captures/text-gray-selected-dpr-2.png",
+          "bytes": 835521,
+          "sha256": "60e4ad63bf7b6b293a56194c2974fee6f4c077e677657c8a5b735df0cdc43f0b"
+        },
+        {
+          "path": "target/application-text02/check.log",
+          "bytes": 249,
+          "sha256": "b19c48086240bce777eaab86993c1ff81e18565bfc4c717418bb843afe991184"
+        },
+        {
+          "path": "target/application-text02/command.json",
+          "bytes": 420,
+          "sha256": "fc79d2ae7f0d920e454966cc41c0606a5d3344efd1095be6c286bad176567429"
+        },
+        {
+          "path": "target/application-text02/resources.json",
+          "bytes": 1914,
+          "sha256": "a5995545311a0d7cdef630dcb442d11c6df5f852b48ac136671a4ed583457fe3"
+        },
+        {
+          "path": "target/application-text02/result.json",
+          "bytes": 293,
+          "sha256": "c052a317e59eed5ecde37d258512b6cad1a40ba81ab6d7b649ae0603da07d5a7"
+        },
+        {
+          "path": "target/application-text02/started.json",
+          "bytes": 838873,
+          "sha256": "a405dacfae791386c85fad18ffb417cc1c3b5412403205dcd486316233783741"
+        }
+      ]
+    },
+    {
+      "run": "application-stream03",
+      "resources": {
+        "processId": 25168,
+        "exitCode": 0,
+        "elapsedSeconds": 7.101,
+        "peakJobCommitBytes": 694046720,
+        "processors": 2,
+        "jobCommitLimitBytes": 6442450944
+      },
+      "result": {
+        "test": "streamed-controls.cjs",
+        "exitCode": 0,
+        "source": "15746399e631192ce605d7f315dfc23ee1c5395b40a297018b842765a28d3598",
+        "scope": "Maintained browser assertions with current View Top and Controls dock input plus a fresh control-selection setup before cancellation; all range, ID, pixel and cancellation assertions retained against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "artifacts": [
+        {
+          "path": "target/application-stream03/captures/console.log",
+          "bytes": 2143,
+          "sha256": "c9aa31b4c09389ff5e770fb697f208e1d19fa9843bacfd5bd18f0ad484107b96"
+        },
+        {
+          "path": "target/application-stream03/captures/result.json",
+          "bytes": 6335,
+          "sha256": "65b7f0989522021224e7fedea3f8046ccf9bc3c07b83c7e06c99cf392b816add"
+        },
+        {
+          "path": "target/application-stream03/captures/selected-original.png",
+          "bytes": 12507,
+          "sha256": "7918a39c04357db1eebcc033f69a284fb2d1d267fdd6d480b07dd76651f051e6"
+        },
+        {
+          "path": "target/application-stream03/check.log",
+          "bytes": 116,
+          "sha256": "7ff4e11d375a5627be6bec42f5eaa5fe5b8d2514a97aa58162a50760d08a24a3"
+        },
+        {
+          "path": "target/application-stream03/command.json",
+          "bytes": 424,
+          "sha256": "e10a9b0a43073d22ce5bfbc9923902b11c4dec1cb4d3feaaef2397e3b54994a5"
+        },
+        {
+          "path": "target/application-stream03/resources.json",
+          "bytes": 1918,
+          "sha256": "7cbcb09f6c7bc6983869b71ecc092e05b51ca801045b237071ac2c71d562331a"
+        },
+        {
+          "path": "target/application-stream03/result.json",
+          "bytes": 449,
+          "sha256": "15c9116265a1afb87a087fdbfbde14e29ca8e1f466be1cab4f048188e2920ebb"
+        },
+        {
+          "path": "target/application-stream03/started.json",
+          "bytes": 838873,
+          "sha256": "4d6e1b7da723fb9f3a4657275f102be1f890b80284d70710f256ae20f4f18b60"
+        }
+      ]
+    },
+    {
+      "run": "application-stream04",
+      "resources": {
+        "processId": 35916,
+        "exitCode": 0,
+        "elapsedSeconds": 6.893,
+        "peakJobCommitBytes": 783695872,
+        "processors": 2,
+        "jobCommitLimitBytes": 6442450944
+      },
+      "result": {
+        "test": "streamed-controls.cjs",
+        "exitCode": 0,
+        "source": "15746399e631192ce605d7f315dfc23ee1c5395b40a297018b842765a28d3598",
+        "scope": "Maintained browser assertions with current View Top and Controls dock input plus a fresh control-selection setup before cancellation; all range, ID, pixel and cancellation assertions retained against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "artifacts": [
+        {
+          "path": "target/application-stream04/captures/console.log",
+          "bytes": 2143,
+          "sha256": "b762f65ad5fa0754449bef0240b42e76b2d5d6b1dab68eeaae88c4c12ea1710d"
+        },
+        {
+          "path": "target/application-stream04/captures/result.json",
+          "bytes": 6336,
+          "sha256": "054fa62c89a6acd33440ba6b401d1c9b99437a931c4864f773db57adaaef0aff"
+        },
+        {
+          "path": "target/application-stream04/captures/selected-original.png",
+          "bytes": 34193,
+          "sha256": "7d65c21373da6f6309408a222be21ef32cb0746243bf65cac0c7cc70abb83bba"
+        },
+        {
+          "path": "target/application-stream04/check.log",
+          "bytes": 116,
+          "sha256": "7ff4e11d375a5627be6bec42f5eaa5fe5b8d2514a97aa58162a50760d08a24a3"
+        },
+        {
+          "path": "target/application-stream04/command.json",
+          "bytes": 424,
+          "sha256": "c79d1f22b0184f0b5b1f86a71a972c6df1e8f8248ef62f2137e4ba4d21927553"
+        },
+        {
+          "path": "target/application-stream04/resources.json",
+          "bytes": 1918,
+          "sha256": "653c1085ad00593df99895a8c0f89ae86316544a8a40edb8a43e60033fa77f2a"
+        },
+        {
+          "path": "target/application-stream04/result.json",
+          "bytes": 449,
+          "sha256": "15c9116265a1afb87a087fdbfbde14e29ca8e1f466be1cab4f048188e2920ebb"
+        },
+        {
+          "path": "target/application-stream04/started.json",
+          "bytes": 838873,
+          "sha256": "4d6e1b7da723fb9f3a4657275f102be1f890b80284d70710f256ae20f4f18b60"
+        }
+      ]
+    }
+  ],
+  "review": {
+    "owner": "Viewed six text images and two streamed selection images; text remains readable and both selected source points are visible yellow.",
+    "independentProof": "c668fc80bc677839645ef9af346e62a44771eaaa42246e0ae34d05e4f0b67f60",
+    "limits": [
+      "Text recreate/reset assertions executed; their final reset report is not persisted among the five reports per DPR.",
+      "Stream persisted snapshot is after cancellation with selected=null; selection identity is proven by executed assertions and the captured command message.",
+      "Full-font fetching, world-plane text, live replacement, sheet metadata delivery, dense natural clouds, MSAA4 and device acceptance remain open."
+    ]
+  },
+  "preservedFailures": [
+    {
+      "run": "application-text01",
+      "reason": "Guard admission125 while prior job cleanup was active; no payload ran."
+    },
+    {
+      "run": "application-stream01",
+      "reason": "Stale numeric5/F10 shortcuts did not enter current Controls mode."
+    },
+    {
+      "run": "application-stream02",
+      "reason": "Clicking selected control began dragging instead of starting the cancellation query."
+    }
+  ],
+  "changes": "Only maintained test input/setup changed: actual View Top/Controls commands and fresh control selection before cancellation. Original range, identity, pixel and cancellation conditions retained; production unchanged."
+}

@@ -18,6 +18,7 @@ import {auditOwnership} from './course/ownership.ts';
 import {collapseSubject} from './course/subjects.ts';
 import {destination} from './course/destination.ts';
 import {materializeCompletion} from './course/completion.ts';
+import {teaching} from './course/teaching.ts';
 
 function book() {
     return courseBook(course().steps, JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8')));
@@ -45,6 +46,10 @@ function main() {
     if (action === 'completion-checkpoint') {
         if (!args[0]) throw Error('Choose a subject and a new output directory.');
         console.log(JSON.stringify(materializeCompletion(selected, path.resolve(args[0])), null, 2));
+    } else if (action === 'teaching') {
+        const result = teaching();
+        console.log(JSON.stringify(result, null, 2));
+        if (result.errors.length || result.missing.length) process.exitCode = 1;
     } else if (action === 'destination') {
         const result = destination();
         console.log(JSON.stringify(result, null, 2));

@@ -1,0 +1,2052 @@
+[
+  {
+    "path": "src/app/agent.rs",
+    "owner": "application",
+    "sourceSha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b"
+  },
+  {
+    "path": "src/app/clipping.rs",
+    "owner": "application",
+    "sourceSha256": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1"
+  },
+  {
+    "path": "src/app/cloud_query.rs",
+    "owner": "application",
+    "sourceSha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+    "explanation": {
+      "page": "journey/completion-streaming.md",
+      "heading": "### Query source points beyond the resident prefix",
+      "paragraph": "`Query::next_page` reads at most 65,536 points at a time. Candidate points near the click are sent for GPU ranking, with an `awaiting_gpu` state separating a posted batch from its answer. Original point IDs are read from their exact stored bytes rather than inferred from the current display-prefix index."
+    }
+  },
+  {
+    "path": "src/app/command/mod.rs",
+    "owner": "application",
+    "sourceSha256": "cb1827398f1b8fab957dd311c5517be3bf15735ed6bf8450bc6af1972fe24899"
+  },
+  {
+    "path": "src/app/command/tests.rs",
+    "owner": "application",
+    "sourceSha256": "4d808bd37ad46452c22146eb03a0d037059d2811237a10badd9624a26c589c3b"
+  },
+  {
+    "path": "src/app/command/tool.rs",
+    "owner": "application",
+    "sourceSha256": "0ffab8dd44bb77d4becb04a77f9c644fbd9bc750ccb9b6c983cd945dd068d19c"
+  },
+  {
+    "path": "src/app/command/tool/choices.rs",
+    "owner": "application",
+    "sourceSha256": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f"
+  },
+  {
+    "path": "src/app/command/tool/cut.rs",
+    "owner": "application",
+    "sourceSha256": "f235a9a255206f1ab3bcf1aaa704a619a95a944fff11d8f1307d691ea0d2c84d"
+  },
+  {
+    "path": "src/app/command/tool/gather.rs",
+    "owner": "application",
+    "sourceSha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a"
+  },
+  {
+    "path": "src/app/command/tool/options.rs",
+    "owner": "application",
+    "sourceSha256": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938"
+  },
+  {
+    "path": "src/app/command/tool/shape.rs",
+    "owner": "application",
+    "sourceSha256": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7"
+  },
+  {
+    "path": "src/app/command/tool/surfacing.rs",
+    "owner": "application",
+    "sourceSha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce"
+  },
+  {
+    "path": "src/app/command/verbs/add_edge.rs",
+    "owner": "application",
+    "sourceSha256": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed"
+  },
+  {
+    "path": "src/app/command/verbs/add_group.rs",
+    "owner": "application",
+    "sourceSha256": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d"
+  },
+  {
+    "path": "src/app/command/verbs/arctic.rs",
+    "owner": "application",
+    "sourceSha256": "04637eef3834bfb9c9d76d415d30f7803d857a267ad4472c91117dabbb374f39"
+  },
+  {
+    "path": "src/app/command/verbs/area.rs",
+    "owner": "application",
+    "sourceSha256": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e"
+  },
+  {
+    "path": "src/app/command/verbs/arrow.rs",
+    "owner": "application",
+    "sourceSha256": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997"
+  },
+  {
+    "path": "src/app/command/verbs/arrowhead.rs",
+    "owner": "application",
+    "sourceSha256": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87"
+  },
+  {
+    "path": "src/app/command/verbs/attributes.rs",
+    "owner": "application",
+    "sourceSha256": "fb0300c25c2c5decebac7bfea8d7740e031fe58c16444c2bb36074f353bb7e19"
+  },
+  {
+    "path": "src/app/command/verbs/block_with_hole.rs",
+    "owner": "application",
+    "sourceSha256": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2"
+  },
+  {
+    "path": "src/app/command/verbs/bounding_box.rs",
+    "owner": "application",
+    "sourceSha256": "5baa3e329f91c9c6a2be572e4f8752e8f49effbbf564e3230bd00d8fbfb21479"
+  },
+  {
+    "path": "src/app/command/verbs/box.rs",
+    "owner": "application",
+    "sourceSha256": "0f6b98541d82ea317acd703a136d8a5962bee64fe5f07150db36945c4443e986"
+  },
+  {
+    "path": "src/app/command/verbs/capsule.rs",
+    "owner": "application",
+    "sourceSha256": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5"
+  },
+  {
+    "path": "src/app/command/verbs/clipping_plane.rs",
+    "owner": "application",
+    "sourceSha256": "400dc33be2b869ae93c0a981c17116fba56672dc6326ac50efb23ff71e7bc294"
+  },
+  {
+    "path": "src/app/command/verbs/close.rs",
+    "owner": "application",
+    "sourceSha256": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5"
+  },
+  {
+    "path": "src/app/command/verbs/cone.rs",
+    "owner": "application",
+    "sourceSha256": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992"
+  },
+  {
+    "path": "src/app/command/verbs/construction_plane.rs",
+    "owner": "application",
+    "sourceSha256": "078a4a7462a809f4b71978ac5579ecb8b9844eb41ccc9ad121a7efeab67aaa23"
+  },
+  {
+    "path": "src/app/command/verbs/controls.rs",
+    "owner": "application",
+    "sourceSha256": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909"
+  },
+  {
+    "path": "src/app/command/verbs/copy.rs",
+    "owner": "application",
+    "sourceSha256": "eecc6b3b7ab0b379e8bfaa61e9be5210a13ab6e76917909ed6a0de6c34bcd257"
+  },
+  {
+    "path": "src/app/command/verbs/curve.rs",
+    "owner": "application",
+    "sourceSha256": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1"
+  },
+  {
+    "path": "src/app/command/verbs/cylinder.rs",
+    "owner": "application",
+    "sourceSha256": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f"
+  },
+  {
+    "path": "src/app/command/verbs/delete.rs",
+    "owner": "application",
+    "sourceSha256": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19"
+  },
+  {
+    "path": "src/app/command/verbs/dodecahedron.rs",
+    "owner": "application",
+    "sourceSha256": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a"
+  },
+  {
+    "path": "src/app/command/verbs/edge.rs",
+    "owner": "application",
+    "sourceSha256": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7"
+  },
+  {
+    "path": "src/app/command/verbs/escape.rs",
+    "owner": "application",
+    "sourceSha256": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1"
+  },
+  {
+    "path": "src/app/command/verbs/explode.rs",
+    "owner": "application",
+    "sourceSha256": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac"
+  },
+  {
+    "path": "src/app/command/verbs/extend.rs",
+    "owner": "application",
+    "sourceSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3"
+  },
+  {
+    "path": "src/app/command/verbs/extend/reach.rs",
+    "owner": "application",
+    "sourceSha256": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34"
+  },
+  {
+    "path": "src/app/command/verbs/extrude.rs",
+    "owner": "application",
+    "sourceSha256": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428"
+  },
+  {
+    "path": "src/app/command/verbs/face.rs",
+    "owner": "application",
+    "sourceSha256": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7"
+  },
+  {
+    "path": "src/app/command/verbs/fit.rs",
+    "owner": "application",
+    "sourceSha256": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d"
+  },
+  {
+    "path": "src/app/command/verbs/geometry.rs",
+    "owner": "application",
+    "sourceSha256": "596ebbcbed757f38facf666c91904d0446f988c218ae5184d41bce0b276e88b8"
+  },
+  {
+    "path": "src/app/command/verbs/grid_snap.rs",
+    "owner": "application",
+    "sourceSha256": "ab63e5d6f45c37d9b8b15ea8535d8386da1cdcce725b2a3398ccdc41e01b06c7"
+  },
+  {
+    "path": "src/app/command/verbs/hide.rs",
+    "owner": "application",
+    "sourceSha256": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800"
+  },
+  {
+    "path": "src/app/command/verbs/icosahedron.rs",
+    "owner": "application",
+    "sourceSha256": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765"
+  },
+  {
+    "path": "src/app/command/verbs/interactions.rs",
+    "owner": "application",
+    "sourceSha256": "1a4836207a54e368ad3d91d6e53df5c089e4584b8ce53dc5bd7b0bcfe3750d0e"
+  },
+  {
+    "path": "src/app/command/verbs/layers.rs",
+    "owner": "application",
+    "sourceSha256": "a0168bfe8c941fee7fba32c9a259c9f847640f24baa958d38383948843f6db6f"
+  },
+  {
+    "path": "src/app/command/verbs/length.rs",
+    "owner": "application",
+    "sourceSha256": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204"
+  },
+  {
+    "path": "src/app/command/verbs/length_bounding_box.rs",
+    "owner": "application",
+    "sourceSha256": "654498f77d15404be2ef63a4a6f96138186e2eb4d4799bae01310e8b89439fb3"
+  },
+  {
+    "path": "src/app/command/verbs/line.rs",
+    "owner": "application",
+    "sourceSha256": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e"
+  },
+  {
+    "path": "src/app/command/verbs/loft.rs",
+    "owner": "application",
+    "sourceSha256": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818"
+  },
+  {
+    "path": "src/app/command/verbs/measure.rs",
+    "owner": "application",
+    "sourceSha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d"
+  },
+  {
+    "path": "src/app/command/verbs/measure_distance.rs",
+    "owner": "application",
+    "sourceSha256": "2b3813e899954595d609de0357984c5b5f01a8f7f031e6320ccffde088001421"
+  },
+  {
+    "path": "src/app/command/verbs/mod.rs",
+    "owner": "application",
+    "sourceSha256": "9a9c55b6f4d0aa08a323a9dddb4d5a2a887114ca298c159f4e1e7815289b6e9f"
+  },
+  {
+    "path": "src/app/command/verbs/move.rs",
+    "owner": "application",
+    "sourceSha256": "8ebb78b416f2ded1baa140e0a429f4ec92a5af6ad1a61cdde16c9dc3ae74776d"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_curve_arc.rs",
+    "owner": "application",
+    "sourceSha256": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_curve_circle.rs",
+    "owner": "application",
+    "sourceSha256": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_curve_ellipse.rs",
+    "owner": "application",
+    "sourceSha256": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_curve_parabola.rs",
+    "owner": "application",
+    "sourceSha256": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_surface_4_points.rs",
+    "owner": "application",
+    "sourceSha256": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_surface_loft.rs",
+    "owner": "application",
+    "sourceSha256": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_surface_network.rs",
+    "owner": "application",
+    "sourceSha256": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_surface_revolve.rs",
+    "owner": "application",
+    "sourceSha256": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_surface_sweep1.rs",
+    "owner": "application",
+    "sourceSha256": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84"
+  },
+  {
+    "path": "src/app/command/verbs/nurbs_surface_sweep2.rs",
+    "owner": "application",
+    "sourceSha256": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992"
+  },
+  {
+    "path": "src/app/command/verbs/object.rs",
+    "owner": "application",
+    "sourceSha256": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8"
+  },
+  {
+    "path": "src/app/command/verbs/octahedron.rs",
+    "owner": "application",
+    "sourceSha256": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86"
+  },
+  {
+    "path": "src/app/command/verbs/opacity.rs",
+    "owner": "application",
+    "sourceSha256": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8"
+  },
+  {
+    "path": "src/app/command/verbs/open.rs",
+    "owner": "application",
+    "sourceSha256": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43"
+  },
+  {
+    "path": "src/app/command/verbs/orient_3_points.rs",
+    "owner": "application",
+    "sourceSha256": "943bea38cb8607eef2153cbaa1e20260a2a09531bd5d469a2bc525ed35cc9f9d"
+  },
+  {
+    "path": "src/app/command/verbs/outline.rs",
+    "owner": "application",
+    "sourceSha256": "537e232c2f91846dec99eb3e6e30e016f482577b1ef82a62c4f4f8a115566053"
+  },
+  {
+    "path": "src/app/command/verbs/point.rs",
+    "owner": "application",
+    "sourceSha256": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a"
+  },
+  {
+    "path": "src/app/command/verbs/polyline.rs",
+    "owner": "application",
+    "sourceSha256": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d"
+  },
+  {
+    "path": "src/app/command/verbs/project_to_plane.rs",
+    "owner": "application",
+    "sourceSha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb"
+  },
+  {
+    "path": "src/app/command/verbs/pyramid.rs",
+    "owner": "application",
+    "sourceSha256": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd"
+  },
+  {
+    "path": "src/app/command/verbs/quad_sphere.rs",
+    "owner": "application",
+    "sourceSha256": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba"
+  },
+  {
+    "path": "src/app/command/verbs/redo.rs",
+    "owner": "application",
+    "sourceSha256": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0"
+  },
+  {
+    "path": "src/app/command/verbs/report.rs",
+    "owner": "application",
+    "sourceSha256": "8b8e73ef4da70c6221cbec41e75f54db70a5d39df05ee29c19b35efb8afe9a63"
+  },
+  {
+    "path": "src/app/command/verbs/rotate.rs",
+    "owner": "application",
+    "sourceSha256": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8"
+  },
+  {
+    "path": "src/app/command/verbs/save.rs",
+    "owner": "application",
+    "sourceSha256": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5"
+  },
+  {
+    "path": "src/app/command/verbs/scale.rs",
+    "owner": "application",
+    "sourceSha256": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2"
+  },
+  {
+    "path": "src/app/command/verbs/select_all.rs",
+    "owner": "application",
+    "sourceSha256": "e263949a3a7f78ae516f1e3e4e0f53815a96547f0ffc39c0248cc258fd72ab8a"
+  },
+  {
+    "path": "src/app/command/verbs/select_by_name.rs",
+    "owner": "application",
+    "sourceSha256": "90d070cb338b3a721a4501e777bf9ff048cfc368fe5d98fd1facbab18531001c"
+  },
+  {
+    "path": "src/app/command/verbs/select_lasso.rs",
+    "owner": "application",
+    "sourceSha256": "dcef1e302ab9bea2353e2f85fa391b35117f6f7f97c153beb7901744a0571a7b"
+  },
+  {
+    "path": "src/app/command/verbs/select_small.rs",
+    "owner": "application",
+    "sourceSha256": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e"
+  },
+  {
+    "path": "src/app/command/verbs/selecting.rs",
+    "owner": "application",
+    "sourceSha256": "49b3172f3487531566fae3e4c955d9a438a0e153cf37d7f29a622bc070a48d27"
+  },
+  {
+    "path": "src/app/command/verbs/show.rs",
+    "owner": "application",
+    "sourceSha256": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803"
+  },
+  {
+    "path": "src/app/command/verbs/snap.rs",
+    "owner": "application",
+    "sourceSha256": "e85c98cc314cab74c8b9bcb74cf1d32429e49b49c76cf2c83f8a2e929b35603d"
+  },
+  {
+    "path": "src/app/command/verbs/sphere.rs",
+    "owner": "application",
+    "sourceSha256": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91"
+  },
+  {
+    "path": "src/app/command/verbs/split.rs",
+    "owner": "application",
+    "sourceSha256": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a"
+  },
+  {
+    "path": "src/app/command/verbs/tetrahedron.rs",
+    "owner": "application",
+    "sourceSha256": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15"
+  },
+  {
+    "path": "src/app/command/verbs/text.rs",
+    "owner": "application",
+    "sourceSha256": "e083f13a0cb4da2a4fd6c3bf13e733bf81fa6768a563c7c74959d65c8ea5797f"
+  },
+  {
+    "path": "src/app/command/verbs/torus.rs",
+    "owner": "application",
+    "sourceSha256": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08"
+  },
+  {
+    "path": "src/app/command/verbs/trim.rs",
+    "owner": "application",
+    "sourceSha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d"
+  },
+  {
+    "path": "src/app/command/verbs/trim/parts.rs",
+    "owner": "application",
+    "sourceSha256": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b"
+  },
+  {
+    "path": "src/app/command/verbs/undo.rs",
+    "owner": "application",
+    "sourceSha256": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa"
+  },
+  {
+    "path": "src/app/command/verbs/view.rs",
+    "owner": "application",
+    "sourceSha256": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39"
+  },
+  {
+    "path": "src/app/command/verbs/volume.rs",
+    "owner": "application",
+    "sourceSha256": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9"
+  },
+  {
+    "path": "src/app/coords.rs",
+    "owner": "application",
+    "sourceSha256": "cf9dfa81ccdd29980dc5f4bbec1fb03f87a932503154ebe23854ba190dea8a27"
+  },
+  {
+    "path": "src/app/cplane.rs",
+    "owner": "application",
+    "sourceSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff"
+  },
+  {
+    "path": "src/app/decode.rs",
+    "owner": "decoding",
+    "sourceSha256": "daba5c300d87168c17c86d4118ff1f2c0f92cec3e49a2adba95d617221956d17",
+    "explanation": {
+      "page": "journey/completion-decoding.md",
+      "heading": "### Bytes, ownership and limits",
+      "paragraph": "`Reader` borrows that body. Its byte-range operation uses checked addition before slicing: an overflowing length must become an error, not an out-of-bounds read. A JavaScript body normally uses a one-MiB window. One larger object can require a larger window; after decoding that object, the oversized allocation is released. This is a bounded normal working set, not a claim that every individual object fits one MiB."
+    }
+  },
+  {
+    "path": "src/app/deform.rs",
+    "owner": "application",
+    "sourceSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe"
+  },
+  {
+    "path": "src/app/edit.rs",
+    "owner": "application",
+    "sourceSha256": "5fc69027ff1534a13a784eac4643f5150a06f92ac9bafa4f6005eb50cc5fe81c"
+  },
+  {
+    "path": "src/app/feedback.rs",
+    "owner": "application",
+    "sourceSha256": "ef3c9a65cc9c6be9299f998ecd71f3b29782ea0dc8c82307741f8a21f7506e4e"
+  },
+  {
+    "path": "src/app/fetch.rs",
+    "owner": "application",
+    "sourceSha256": "45c1605db07b92f5e79b110f380a30c89549292111fd574269e3bab9c3b1e08b",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Start independent work together",
+      "paragraph": "`early` removes the matching entry when taking ownership. A whole-file request and the initial 8192-byte probe have different keys. A later range or conditional request cannot accidentally consume that probe. Reusing the promise avoids a second network request; reusing its controller and timestamp preserves cancellation and timing ownership."
+    }
+  },
+  {
+    "path": "src/app/fonts.rs",
+    "owner": "application",
+    "sourceSha256": "d51582cbb4566c5efb172401510ed2d33675a20a0b63f0a54d9218fa7ee14e6a",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Load full fonts when a subset is insufficient",
+      "paragraph": "The renderer bundles subset font bytes as static data so initial labels can draw without waiting for all full fonts. `fonts::need` checks coverage and starts one asynchronous request when a character is missing. `need_names` checks document, tree and object names. Failed fetching clears the request flag so a later need can try again."
+    }
+  },
+  {
+    "path": "src/app/gesture/box_select.rs",
+    "owner": "application",
+    "sourceSha256": "f52620890c23afa10a99d046a9985fccaa8b15639c972a46a0fae94a2bf88044"
+  },
+  {
+    "path": "src/app/gesture/control.rs",
+    "owner": "application",
+    "sourceSha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22"
+  },
+  {
+    "path": "src/app/gesture/gizmo.rs",
+    "owner": "application",
+    "sourceSha256": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c"
+  },
+  {
+    "path": "src/app/gesture/mod.rs",
+    "owner": "application",
+    "sourceSha256": "f015688289192d7970e359169a4ddf33ec04ec42038bf5e9c3fafb129d412203"
+  },
+  {
+    "path": "src/app/gesture/object.rs",
+    "owner": "application",
+    "sourceSha256": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5"
+  },
+  {
+    "path": "src/app/gizmo.rs",
+    "owner": "geometry",
+    "sourceSha256": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340"
+  },
+  {
+    "path": "src/app/hierarchy.rs",
+    "owner": "application",
+    "sourceSha256": "aa96dc988461e47c2ea0c2eb6dd9762033e1f6f2b7879fd021de74d5e190b26c"
+  },
+  {
+    "path": "src/app/input.rs",
+    "owner": "application",
+    "sourceSha256": "243af7f73eefdaf0f4ea25f2adf251f1a056ee52852a93a794336c1e595dec10"
+  },
+  {
+    "path": "src/app/inspection.rs",
+    "owner": "application",
+    "sourceSha256": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce"
+  },
+  {
+    "path": "src/app/inspection/source_memory.rs",
+    "owner": "application",
+    "sourceSha256": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d"
+  },
+  {
+    "path": "src/app/interactions.rs",
+    "owner": "geometry",
+    "sourceSha256": "7fe230e0b3740ee6b8ad24e68880c004cc8e8e882d417ca1517694147c56973d"
+  },
+  {
+    "path": "src/app/keys.rs",
+    "owner": "application",
+    "sourceSha256": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a"
+  },
+  {
+    "path": "src/app/knobs.rs",
+    "owner": "geometry",
+    "sourceSha256": "b9dba07b897e6498d0a4210dca1b909365a82f46df32eb1a2e8dfd712889d99a"
+  },
+  {
+    "path": "src/app/launch.rs",
+    "owner": "frame",
+    "sourceSha256": "f1bdd451838790b61b9a52ea2aaa3097bf7f68b5721fd7d7ca633ca3c915b5c9",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "### Browser and event ownership",
+      "paragraph": "Read [the launcher](../../src/app/launch.rs). Its type parameter `Message` names events sent back to the loop, and `App: ApplicationHandler<Message>` requires the application to implement winit's event callbacks. `FnOnce` allows the factory to consume captured initialization data. The event proxy is created before the application, so asynchronous device setup can deliver its result without borrowing the event loop across an `await`."
+    }
+  },
+  {
+    "path": "src/app/layers.rs",
+    "owner": "application",
+    "sourceSha256": "196e1a664f8d6db2611c1c0d581972741b864f8da80037b84a86c8f299cd4d3d"
+  },
+  {
+    "path": "src/app/live.rs",
+    "owner": "application",
+    "sourceSha256": "6d5a0f0ffc90647a8b4ccaec4a5b88818c6e36769b527f70f626337ab72b2c46"
+  },
+  {
+    "path": "src/app/live_revision.rs",
+    "owner": "application",
+    "sourceSha256": "91680efc998ea6d91d59bf46380fa938b3f1b9b8a3e9d4be7835096a6bb13c60",
+    "explanation": {
+      "page": "journey/completion-streaming.md",
+      "heading": "### Live notification is a reason to check, not replacement data",
+      "paragraph": "`live_revision.rs::Revisions` retains HTTP validators separately from hashes of received bytes. A changed or missing ETag does not by itself require replacing an identical scene. Conversely, changed bytes must be noticed even when a server reuses a validator. The hash is an in-process change detector, not a cryptographic proof attached to published assets."
+    }
+  },
+  {
+    "path": "src/app/loader.rs",
+    "owner": "application",
+    "sourceSha256": "3ab28bd0f96144d4fcfa5493769dec9d6ff19cc69f4ba990c11adcd47b9b43d3",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Discard work from an obsolete scene",
+      "paragraph": "The loader keeps separate generations for streams and replacement requests. Clearing the scene advances the stream generation and resets its budgets. Each reload advances the load generation; a delayed result checks whether its generation is still current before adoption. Asynchronous completion order must not decide which scene wins."
+    }
+  },
+  {
+    "path": "src/app/manifest.rs",
+    "owner": "application",
+    "sourceSha256": "c75d33f25078645cc91d71df05aa0c15e30c31f9bebc30522c67d875f5a91066",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Routes and manifests describe different things",
+      "paragraph": "`Manifest` describes the scene's files, placements, text, view and grid. A full `xform` takes precedence over the simpler `at` translation. This metadata is separate from each decoded kernel document: the same geometry bytes can be displayed under a different placement without rewriting them. The obsolete `display_only` manifest field no longer determines editability; streamed shells and released geometry have explicit runtime states."
+    }
+  },
+  {
+    "path": "src/app/mesh_preview.rs",
+    "owner": "application",
+    "sourceSha256": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f"
+  },
+  {
+    "path": "src/app/mod.rs",
+    "owner": "frame",
+    "sourceSha256": "8e30bcbc1a4e662b8a0f4e1264b3633ec9b68551ec373284e8db62ce7992a9d2"
+  },
+  {
+    "path": "src/app/mode.rs",
+    "owner": "mathematics",
+    "sourceSha256": "f17428ca405925e878ae6a19e6cd20955b51c46161a743abaa0ea4ccb20ad776"
+  },
+  {
+    "path": "src/app/modeling.rs",
+    "owner": "application",
+    "sourceSha256": "7aa4202bc1756cee495ce0f2daefe9c2c320e651294322898c03624b761f9e04"
+  },
+  {
+    "path": "src/app/range_gate.rs",
+    "owner": "application",
+    "sourceSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a"
+  },
+  {
+    "path": "src/app/route.rs",
+    "owner": "application",
+    "sourceSha256": "009e6ae7e824edebe981be1d31c30dabafb89ae227aec188113f680bfa6dc2b9",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Routes and manifests describe different things",
+      "paragraph": "`route.rs` interprets the page location and query. A scene name must remain inside the allowed path form: empty names, parent traversal, leading slashes and URL-like names are refused. `data=off` uses this origin; HTTPS and local development URLs can supply a different data base. `join` then resolves each file against that base."
+    }
+  },
+  {
+    "path": "src/app/runtime.rs",
+    "owner": "application",
+    "sourceSha256": "75ac88ef8360589b09238b005ce9e64b03460f258713b16c20c4520ce74e495c",
+    "explanation": {
+      "page": "journey/completion-application.md",
+      "heading": "### One owner for changing state",
+      "paragraph": "`App` implements winit's `ApplicationHandler<Msg>`. It owns an optional `State`, input tracking and the panels. Optional state represents a real startup phase: the window can exist before asynchronous device creation finishes. `Msg::Ready` transfers the completed state into the event loop. Other messages are handled only after that state exists."
+    }
+  },
+  {
+    "path": "src/app/scene.rs",
+    "owner": "application",
+    "sourceSha256": "3f93b8250b971488665b86443fd834d8440f8667fb7657d13e51978963d8b0ce"
+  },
+  {
+    "path": "src/app/scene_display.rs",
+    "owner": "application",
+    "sourceSha256": "d3de18bf2ec5b01cbcdeb7b80bab61ed85cebb937e4fc5d744de1f0c66f0e7c5"
+  },
+  {
+    "path": "src/app/scene_instances.rs",
+    "owner": "application",
+    "sourceSha256": "614aa01d7777e2715f35d53a009d28dcd5f1ba41e9ee59886a3c4474a41b37b9"
+  },
+  {
+    "path": "src/app/scene_release.rs",
+    "owner": "application",
+    "sourceSha256": "303762b672d80c9988dd590010870ae4aa06b52a6e41cdc23c9ebbfa23d35c41"
+  },
+  {
+    "path": "src/app/scene_rows.rs",
+    "owner": "application",
+    "sourceSha256": "ef35eb991a7c449f9cda4482e52f11a1ba21d5b9263ea35aff04f9e372f8daf4"
+  },
+  {
+    "path": "src/app/scene_sync.rs",
+    "owner": "application",
+    "sourceSha256": "b43a8e86a8bae9e996db38320f6ba9f51906b542d1c6bc83a43c4fe2060e777c"
+  },
+  {
+    "path": "src/app/scene_sync/allocation.rs",
+    "owner": "application",
+    "sourceSha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13"
+  },
+  {
+    "path": "src/app/scene_sync/commands_tests.rs",
+    "owner": "application",
+    "sourceSha256": "59345b4f6b949658bbad2e664428ceda88af722b9b146cced8e7784e088d81f9"
+  },
+  {
+    "path": "src/app/scene_sync/compaction.rs",
+    "owner": "application",
+    "sourceSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a"
+  },
+  {
+    "path": "src/app/scene_sync/editing_tests.rs",
+    "owner": "application",
+    "sourceSha256": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826"
+  },
+  {
+    "path": "src/app/scene_sync/nodes.rs",
+    "owner": "application",
+    "sourceSha256": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4"
+  },
+  {
+    "path": "src/app/scene_sync/notes.rs",
+    "owner": "application",
+    "sourceSha256": "adedbfe50553859f2c4987abc8fc2476e61a427781b8f830aa7d344028ddb1fc"
+  },
+  {
+    "path": "src/app/scene_sync/panel_tests.rs",
+    "owner": "application",
+    "sourceSha256": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4"
+  },
+  {
+    "path": "src/app/scene_sync/preview.rs",
+    "owner": "application",
+    "sourceSha256": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e"
+  },
+  {
+    "path": "src/app/scene_sync/split_tests.rs",
+    "owner": "application",
+    "sourceSha256": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70"
+  },
+  {
+    "path": "src/app/scene_sync/testing.rs",
+    "owner": "application",
+    "sourceSha256": "9716dce2aeebcced6e6aa72463950f0f4e1e17471942e23752b00ab52af943fa"
+  },
+  {
+    "path": "src/app/scene_sync/tests.rs",
+    "owner": "application",
+    "sourceSha256": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf"
+  },
+  {
+    "path": "src/app/scene_sync/tombs.rs",
+    "owner": "application",
+    "sourceSha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d"
+  },
+  {
+    "path": "src/app/scene_text.rs",
+    "owner": "application",
+    "sourceSha256": "7294f84b7b73e0db7adbeb62ebab58020032c3d92e0cb6d4763a48f70e66e8d5",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### A document title is an object",
+      "paragraph": "`state/text.rs::annotate_document` measures newly added BRep and surface bounds and places a nameplate above them. `scene_text.rs` registers it as a text row with its own identity. Hiding document geometry and deleting all selected rows therefore have different effects: hide can leave the title visible, while Delete removes the separately selected title too. Undo restores the joined transaction."
+    }
+  },
+  {
+    "path": "src/app/selection.rs",
+    "owner": "application",
+    "sourceSha256": "67f5e1a5bcf8006d07bc3f090b8fade23dfc163a2de8b41185b46fd969b4268b"
+  },
+  {
+    "path": "src/app/session_io.rs",
+    "owner": "application",
+    "sourceSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be"
+  },
+  {
+    "path": "src/app/sheet_query.rs",
+    "owner": "application",
+    "sourceSha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+    "explanation": {
+      "page": "journey/completion-streaming.md",
+      "heading": "### Resolve sheet identity without loading every record",
+      "paragraph": "Sheet geometry can carry an entity ID while its human-readable metadata remains in a side table. `sheet_query.rs` validates an `SHM1` header, the record count, fixed-size offset/length records and bounded JSON blobs. The table revision applies to later record reads too."
+    }
+  },
+  {
+    "path": "src/app/snap.rs",
+    "owner": "application",
+    "sourceSha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd"
+  },
+  {
+    "path": "src/app/splitting.rs",
+    "owner": "application",
+    "sourceSha256": "a0dbae4879d78824672f8fac79480a54eaeba01503a7083cc2b6bc0128605976"
+  },
+  {
+    "path": "src/app/stage/actions.rs",
+    "owner": "mathematics",
+    "sourceSha256": "b5ce046152cd3795108f9a252b80c36ddfe8c7feb1c34bd9144c8d356851464b"
+  },
+  {
+    "path": "src/app/stage/application.rs",
+    "owner": "application",
+    "sourceSha256": "52b8b21b64ca83ead25f0e33555fd47d59a238e8384e01a39fc275518ee6776b"
+  },
+  {
+    "path": "src/app/stage/check.rs",
+    "owner": "mathematics",
+    "sourceSha256": "af16790646943f02d4a57f6c7104578455adf480eed6932836336b9a3f9ff93d"
+  },
+  {
+    "path": "src/app/stage/deck.rs",
+    "owner": "mathematics",
+    "sourceSha256": "b4628a578378372cf4cb5558bd45fa6de718f0cb41016622e37846a8be9d01b1",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Deck data and errors",
+      "paragraph": "An index names chapter files. The chapter parser expands short keys and author blocks into actions. It carries the chapter name into errors; playback adds the step context. Unknown names and unsupported TeX must be reported rather than silently dropping the requested content. The overlap check uses laid-out ink bounds, not string lengths."
+    }
+  },
+  {
+    "path": "src/app/stage/draw.rs",
+    "owner": "mathematics",
+    "sourceSha256": "e0c095450c0fee8659a577be4fa41dff8609b81745ac4801a2f49ecb216ec43b"
+  },
+  {
+    "path": "src/app/stage/eval.rs",
+    "owner": "mathematics",
+    "sourceSha256": "32d9122344a1b35e78050095f402d7651f2c88cdf3e78d2d75e5312bd19b1f21"
+  },
+  {
+    "path": "src/app/stage/font.rs",
+    "owner": "mathematics",
+    "sourceSha256": "6645dbf2bedf6d3d372da3f8acf2b018bea725d89fa0291b7d62ffd8c17c500c",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Font metrics and TeX",
+      "paragraph": "Ink bounds and horizontal advance describe different things. Advancing by ink width would collapse deliberate spaces around glyphs. The font's OpenType MATH table supplies fraction gaps, script offsets and delimiter construction. A tall delimiter can use a larger glyph or an assembly of extender pieces."
+    }
+  },
+  {
+    "path": "src/app/stage/geometry.rs",
+    "owner": "mathematics",
+    "sourceSha256": "8cf47a513ba7e62566d483960658b77c6af9ecd0b4c0c1eec00a9471ba71bc3f"
+  },
+  {
+    "path": "src/app/stage/layout.rs",
+    "owner": "mathematics",
+    "sourceSha256": "4ebcd476d756971c9a613bc17f998a07b4bbfde1a4d851a6796259e47478c748",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Column and equals alignment",
+      "paragraph": "Follow `relayout`: stacking determines vertical positions; fitting determines a common usable scale; equals alignment offsets each expression by its own `Expr::align`. Left-aligning `x=1` and `x+y=2` cannot align their equals signs because their left sides have different widths. Rows lay out formulas and matrices together."
+    }
+  },
+  {
+    "path": "src/app/stage/math_mode.rs",
+    "owner": "mathematics",
+    "sourceSha256": "c2f4202757d8be7f9496b3e3e992c19851a0b342c8d9dee74604ce23d812e33e"
+  },
+  {
+    "path": "src/app/stage/matrix.rs",
+    "owner": "mathematics",
+    "sourceSha256": "a478d50c41e1eb4966562107235664ee797f5567423aaa1bfccb0427544b55fd",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Matrices and addresses",
+      "paragraph": "Each matrix cell has a rounded fill and zero or more glyph primitives. Groups such as `0,1`, `0,:`, `:,1`, `cells` and `entries` retain primitive indices. A later action can address a row without guessing coordinates. Entry ink is chosen for contrast against its cell fill."
+    }
+  },
+  {
+    "path": "src/app/stage/mod.rs",
+    "owner": "mathematics",
+    "sourceSha256": "dc53a36f5cea2e53450dea8a416028a57c68c01500fe1ed16f0146ebb055f2e1"
+  },
+  {
+    "path": "src/app/stage/mode.rs",
+    "owner": "application",
+    "sourceSha256": "88e02c592060d51c1fb03a704348839f3421ccb0dd82b927c7210e806a29be4b"
+  },
+  {
+    "path": "src/app/stage/morph.rs",
+    "owner": "mathematics",
+    "sourceSha256": "630f4c05c1becb397e9ca42a5f7a51a2db8329a56e648088c1d7ce613cab090d",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Matching transform",
+      "paragraph": "Matched primitives interpolate their positions and sizes. Unmatched old primitives fade out; unmatched new primitives fade in. Longest-common-subsequence matching preserves the order of repeated symbols. In `x+y` becoming `x+y+z`, the existing symbols retain their identity while the new term appears."
+    }
+  },
+  {
+    "path": "src/app/stage/net.rs",
+    "owner": "mathematics",
+    "sourceSha256": "ed05913412f3f89692c644cebefccb4267415e45fb883c03ad0e1097edb788a8"
+  },
+  {
+    "path": "src/app/stage/object.rs",
+    "owner": "mathematics",
+    "sourceSha256": "49ba380ec63351e3db9c8dd65c0680e0c09dc7494fcb02815df8c909c8eaefc6"
+  },
+  {
+    "path": "src/app/stage/paint.rs",
+    "owner": "mathematics",
+    "sourceSha256": "be4eb804a3a204bf6393f4942d94849c85c665e09152cebcfb657c4e375d876e",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Frame and letterbox",
+      "paragraph": "The design space is 1600 \u00c3\u2014 900. An 800 \u00c3\u2014 800 viewport fits it at half scale, leaving 175 points above and below. `pt` maps authored coordinates into screen points; `slide` reverses that mapping for input. Upright composition gives the scene and column separate mappings. It does not change the formula's authored coordinates."
+    }
+  },
+  {
+    "path": "src/app/stage/presentation.rs",
+    "owner": "mathematics",
+    "sourceSha256": "a8ecbd44d4090efa0e5de8bd0fd131dd6e1ea4b8410f5e182a125b7228906158"
+  },
+  {
+    "path": "src/app/stage/presentation_tests.rs",
+    "owner": "mathematics",
+    "sourceSha256": "bb48da53f3314e5b173d8e7ff8ac7e4671143d9f5277dee03473f3bf0835a28e"
+  },
+  {
+    "path": "src/app/stage/run.rs",
+    "owner": "mathematics",
+    "sourceSha256": "92501f32ea13bebed0f35006be924709a1c719e803343886c0bf476ffcbf266a",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Steps, slides and stepping backward",
+      "paragraph": "Advancing first finishes any running step. Going backward rebuilds the chapter and replays actions without animation up to the requested position. It does not invert every mutation. Replay restores removed objects, colours and transforms using the same action semantics as forward navigation."
+    }
+  },
+  {
+    "path": "src/app/stage/spatial.rs",
+    "owner": "application",
+    "sourceSha256": "95f4bbaf98e9a39d1548a72b06f1fa21aaeacdb8393508bc3d27dea5cc796252"
+  },
+  {
+    "path": "src/app/stage/tests.rs",
+    "owner": "mathematics",
+    "sourceSha256": "54bde7512f9757e27a6cd410768bda421a952921c6b5f70c3d558b5c18b15000"
+  },
+  {
+    "path": "src/app/stage/tex.rs",
+    "owner": "mathematics",
+    "sourceSha256": "de2b9d5716171c01ec91111e140b0e20928d981bdf14654f2c3cc3f3542424d3",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Font metrics and TeX",
+      "paragraph": "A fraction has separate numerator and denominator boxes. Layout positions them around the math axis and emits a rule between them. A square root needs a radical and an overbar; it is not a Unicode character pasted before a string."
+    }
+  },
+  {
+    "path": "src/app/stage/tween.rs",
+    "owner": "mathematics",
+    "sourceSha256": "31f13764cc04bb045a1c6247f3cdceedfcb64734a69bc8531b116ec82b69c3c1",
+    "explanation": {
+      "page": "journey/completion-mathematics.md",
+      "heading": "### Clock, actions and drawing",
+      "paragraph": "A transition starting at 100 ms with duration 200 ms reaches its midpoint at 200 ms and its endpoint at 300 ms. Easing changes the speed along that interval. Retargeting starts from the sampled current value, so an interruption does not jump back to an old starting value."
+    }
+  },
+  {
+    "path": "src/app/stage/view.rs",
+    "owner": "mathematics",
+    "sourceSha256": "25ed3b8aad6f6251f3a7c02fe6f8506bae72eb1eb4c75b299dc7b1642ecda63c"
+  },
+  {
+    "path": "src/app/stream.rs",
+    "owner": "application",
+    "sourceSha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299"
+  },
+  {
+    "path": "src/app/surface_preview.rs",
+    "owner": "application",
+    "sourceSha256": "d7527df1c881b721e3077a432f1a1e524b9cbc3e7b653d67d089f45dc4b0de02"
+  },
+  {
+    "path": "src/app/touch.rs",
+    "owner": "application",
+    "sourceSha256": "7c566eb2a676000ba25b90a82512ea976c8252079fa05c3c21db2481669f300f"
+  },
+  {
+    "path": "src/app/ui/command_line.rs",
+    "owner": "application",
+    "sourceSha256": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0"
+  },
+  {
+    "path": "src/app/ui/command_line/tests.rs",
+    "owner": "application",
+    "sourceSha256": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4"
+  },
+  {
+    "path": "src/app/ui/graph.rs",
+    "owner": "application",
+    "sourceSha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9"
+  },
+  {
+    "path": "src/app/ui/layers.rs",
+    "owner": "application",
+    "sourceSha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba"
+  },
+  {
+    "path": "src/app/ui/mod.rs",
+    "owner": "application",
+    "sourceSha256": "c5bb203005cfb26e5ee108986c5465d770e37d077b5b2f69bc39f6a88c2a3d72"
+  },
+  {
+    "path": "src/app/ui/number_box.rs",
+    "owner": "application",
+    "sourceSha256": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7"
+  },
+  {
+    "path": "src/app/ui/overlay.rs",
+    "owner": "application",
+    "sourceSha256": "99e66230fe357a9922134146603afb7043628bff4a0a4e69b16fe52863812739"
+  },
+  {
+    "path": "src/app/ui/phone.rs",
+    "owner": "application",
+    "sourceSha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182"
+  },
+  {
+    "path": "src/app/ui/pointer.rs",
+    "owner": "application",
+    "sourceSha256": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e"
+  },
+  {
+    "path": "src/app/ui/theme.rs",
+    "owner": "application",
+    "sourceSha256": "a45673d3ff48b2114846750a22e2ced36f22dbfd7b1e11752914ecbd54b71f3d"
+  },
+  {
+    "path": "src/app/validate.rs",
+    "owner": "decoding",
+    "sourceSha256": "c7e6e4fbe33ea7af6898a18b92758df01f46cb43ea2aacd09d5da346a57623be",
+    "explanation": {
+      "page": "journey/completion-decoding.md",
+      "heading": "### Protobuf fields and validation",
+      "paragraph": "A protobuf field header contains a field number and wire type encoded as a varint. `validate::varint` returns a decoded value and consumed length only for a complete, representable encoding. `Reader::field` then calculates where the value begins and the next field starts. Fixed-width values, varints and length-delimited messages need different advances. Unsupported wire types, invalid field numbers and lengths beyond the enclosing message are errors."
+    }
+  },
+  {
+    "path": "src/app/walk/application_tests.rs",
+    "owner": "application",
+    "sourceSha256": "ebc773030fe2290de9c7773461c646669632c0966213e3be433a3a692c1df123"
+  },
+  {
+    "path": "src/app/walk/bounds.rs",
+    "owner": "geometry",
+    "sourceSha256": "d096f1b8f4eb435d32fecc40ecd63ef3f966f364a2dc0ec2a4c44154e7f4529b"
+  },
+  {
+    "path": "src/app/walk/brep.rs",
+    "owner": "geometry",
+    "sourceSha256": "3b2a570728e23c8c1e5a2edd86221708bdd18134d3a0f334e3b9827d661ca63a"
+  },
+  {
+    "path": "src/app/walk/brep/application_tests.rs",
+    "owner": "application",
+    "sourceSha256": "d759194a7b1300dd6fe4bc4438778f84f08fe787a75f1edc06e1eb7425d617a8"
+  },
+  {
+    "path": "src/app/walk/brep_edges.rs",
+    "owner": "geometry",
+    "sourceSha256": "360e6c481e269853b2c6af4f8d9ff6b64d1a706871cb34d19361f550ff272d47"
+  },
+  {
+    "path": "src/app/walk/brep_orient.rs",
+    "owner": "geometry",
+    "sourceSha256": "7d819164969180839f1c344ca653e77ed0d8693f694702b85baf7047f2b37315"
+  },
+  {
+    "path": "src/app/walk/brep_shapes.rs",
+    "owner": "geometry",
+    "sourceSha256": "e8f417ea6574c5f3151401b62f674fe37bd825ea4cf1a3b23d8b3ea9381ef97a"
+  },
+  {
+    "path": "src/app/walk/cloud.rs",
+    "owner": "geometry",
+    "sourceSha256": "84313f8cf50c315742e31ecab2080efe9c0487eb57e6a835241aaa5e3c846ed0"
+  },
+  {
+    "path": "src/app/walk/cloud/resident.rs",
+    "owner": "geometry",
+    "sourceSha256": "15b06db4cbef9bd3a1cd05af8a43a6861b0685845498d63ae91bde683b695377",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`walk/cloud/resident.rs` converts kernel positions, colors and complete normal arrays into typed cloud rows. Missing normals use the explicit `NO_NORMALS` sentinel; a partial normal array must not be indexed as if it covered every point. The file's point-size override wins over the cloud's own setting. Bounds come from the converted points and participate in the same placed-row fitting as other geometry."
+    }
+  },
+  {
+    "path": "src/app/walk/cloud/stream.rs",
+    "owner": "application",
+    "sourceSha256": "9eba837026da0f2b4f0981c77e635587f4d7e9fb31ffe11df89ac1e8da6b7af3"
+  },
+  {
+    "path": "src/app/walk/curves.rs",
+    "owner": "geometry",
+    "sourceSha256": "fc35bdd392da229cca1d5a0fdce0e39b0432ea2f13338adf0ac323cd878f743a"
+  },
+  {
+    "path": "src/app/walk/display.rs",
+    "owner": "geometry",
+    "sourceSha256": "162ba279e5091ece84a831fbe8734b83dff3e159775b855a24cefabb0f95a685"
+  },
+  {
+    "path": "src/app/walk/display_features.rs",
+    "owner": "geometry",
+    "sourceSha256": "a9f2310994bdef6ead1789330e0d5e66779ef20507f8e0c8dc116ea4f5df1829"
+  },
+  {
+    "path": "src/app/walk/encode.rs",
+    "owner": "geometry",
+    "sourceSha256": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83"
+  },
+  {
+    "path": "src/app/walk/frames.rs",
+    "owner": "geometry",
+    "sourceSha256": "7b0b034a6a704085a86f6cc8bb54614ee519cfd4d5e0d794b86c68ad6c41edaf"
+  },
+  {
+    "path": "src/app/walk/frames/application_tests.rs",
+    "owner": "application",
+    "sourceSha256": "d0ed65130ed5185f3de8ecc8657656bfc54a3053f9c1ec711a3ad3804587a064"
+  },
+  {
+    "path": "src/app/walk/matrix.rs",
+    "owner": "geometry",
+    "sourceSha256": "b6735b4df9b65e9d377f15ae371a410994693aa5043e3ca46c02676c79a70aeb"
+  },
+  {
+    "path": "src/app/walk/mesh.rs",
+    "owner": "geometry",
+    "sourceSha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060"
+  },
+  {
+    "path": "src/app/walk/mesh_ink.rs",
+    "owner": "geometry",
+    "sourceSha256": "8d9ac0dd2e5c4b4ac38ee3e1cb7fb39b99c10f399b4e45065f65d395265b9803"
+  },
+  {
+    "path": "src/app/walk/mesh_topology.rs",
+    "owner": "geometry",
+    "sourceSha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc"
+  },
+  {
+    "path": "src/app/walk/mod.rs",
+    "owner": "geometry",
+    "sourceSha256": "4e55c5b51fc19ec17a560254d47aa453a9daf17f0129f1ee34629e1673aa40a2"
+  },
+  {
+    "path": "src/app/walk/plane.rs",
+    "owner": "geometry",
+    "sourceSha256": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d"
+  },
+  {
+    "path": "src/app/walk/points.rs",
+    "owner": "geometry",
+    "sourceSha256": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330"
+  },
+  {
+    "path": "src/app/walk/sheet.rs",
+    "owner": "geometry",
+    "sourceSha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f"
+  },
+  {
+    "path": "src/app/yielding.rs",
+    "owner": "decoding",
+    "sourceSha256": "fa51e17c1f5834307b4b87ba5e483b9c2c21ba2122c88932116260ff90e0ad3e",
+    "explanation": {
+      "page": "journey/completion-decoding.md",
+      "heading": "### Yielding without threads",
+      "paragraph": "Converting 25,000 objects triggers a yield. An async function can pause without moving the parser to another thread. A promise resolved by a zero-delay browser timer lets the browser process other work before conversion continues. Awaiting that promise resumes the same logical operation."
+    }
+  },
+  {
+    "path": "src/camera.rs",
+    "owner": "camera",
+    "sourceSha256": "76793d7e307fdb36a20148fa0e54e143da9af2fd0245186d37148a3ab26544b9",
+    "explanation": {
+      "page": "journey/completion-camera.md",
+      "heading": "### Motion and fitting",
+      "paragraph": "`ray` unprojects a screen position into a world-space origin and direction. `zoom_at` compares the cursor's target-plane intersection before and after changing distance, then adjusts the target so that point remains under the cursor. Parallel rays and invalid viewport dimensions cannot produce a valid intersection. Picking later consumes this same ray implementation."
+    }
+  },
+  {
+    "path": "src/command_dock/mod.rs",
+    "owner": "dock",
+    "sourceSha256": "a54df69dcadec39f2d03f8f6e99025bd8737184d9ba9a6431f27f300ffe9ca25",
+    "explanation": {
+      "page": "journey/completion-dock.md",
+      "heading": "### Focus, completion and cancellation",
+      "paragraph": "Completion retains both a prefix and a highlighted index. Keeping the prefix separate from the displayed inline suffix lets browsing change the proposed completion without treating every proposal as newly typed input. Cursor operations use character indices, not UTF-8 byte offsets. `spelled` counts non-space characters when matching a compact command name to its displayed spelling."
+    }
+  },
+  {
+    "path": "src/command_dock/theme.rs",
+    "owner": "dock",
+    "sourceSha256": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+    "explanation": {
+      "page": "journey/completion-dock.md",
+      "heading": "### Panel, history and fonts",
+      "paragraph": "Read [the theme](../../src/command_dock/theme.rs). The font list starts with Noto Sans and adds the two symbol fallbacks for both proportional and monospace text. The white visual theme explicitly sets selection, cursor and widget colours. Cursor blinking is disabled because the production interface renders on demand; a static focused field does not require an endless animation loop."
+    }
+  },
+  {
+    "path": "src/command_dock/view.rs",
+    "owner": "dock",
+    "sourceSha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+    "explanation": {
+      "page": "journey/completion-dock.md",
+      "heading": "### Panel, history and fonts",
+      "paragraph": "Read [the view functions](../../src/command_dock/view.rs). The folded panel has a fixed height; expanded history uses a resizable bottom panel with bounded height. The history area sticks to its newest entry and leaves room for the input row. Keeping these rectangles in logical points makes the same pointer positions work at different display densities."
+    }
+  },
+  {
+    "path": "src/engine/diagnostics.rs",
+    "owner": "rows",
+    "sourceSha256": "2f9dfe697b1bf3fa3305dd53a2b2c0ee5f86ee0f22f6379524f1440af1daa9f3"
+  },
+  {
+    "path": "src/engine/gpu/ambient_warm.rs",
+    "owner": "geometry",
+    "sourceSha256": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585"
+  },
+  {
+    "path": "src/engine/gpu/arena.rs",
+    "owner": "geometry",
+    "sourceSha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441"
+  },
+  {
+    "path": "src/engine/gpu/backdrop.rs",
+    "owner": "geometry",
+    "sourceSha256": "4b90b3cb92cdcc90c88c06791137f81684830c6d14d6864142863965292055ea"
+  },
+  {
+    "path": "src/engine/gpu/backdrop/application_tests.rs",
+    "owner": "application",
+    "sourceSha256": "b7e7738b097340cde9a1ea7780a0f2672c9bb6f79aa27807e7484807d9247899"
+  },
+  {
+    "path": "src/engine/gpu/buffers.rs",
+    "owner": "rows",
+    "sourceSha256": "8c14a571bdf888857fa499e6531f9091743ec6c09fe37ab12e373c3635eb94a7",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Ownership and allocation",
+      "paragraph": "`buffers.rs` separates three operations. `append` grows by roughly one half when necessary and returns whether the handle changed. `reserve` can allocate room for a known batch plus its expected remainder. `fill` sends repeated rows in chunks bounded by `WRITE_CHUNK`, instead of allocating a second CPU array as large as the entire scene. The `Pod` bound permits byte uploads of the row type; its byte size must still match the buffer stride."
+    }
+  },
+  {
+    "path": "src/engine/gpu/clip.rs",
+    "owner": "geometry",
+    "sourceSha256": "ee32a1e79f4a4fa8625787b5b6a9e86b46ad9cff45dcd66cd73e47e7d90230a7",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### A section cap needs depth and identity too",
+      "paragraph": "`clip.rs` represents a kept half-space as a normal and offset. It tests whether object bounds cross a clipping plane, including slack for GPU precision, and builds per-plane resources. `clip.wgsl` supplies shared clipping calculations. Solid crossings behind a plane determine where a section exists; an open surface must not be treated as a closed solid merely because it intersects the plane."
+    }
+  },
+  {
+    "path": "src/engine/gpu/clip/editing_tests.rs",
+    "owner": "application",
+    "sourceSha256": "a2a33bd4ec7227c92019a4e9bb9f43e26e0e88839d470b45c9be81d842576e54"
+  },
+  {
+    "path": "src/engine/gpu/clip/pipelines.rs",
+    "owner": "geometry",
+    "sourceSha256": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73"
+  },
+  {
+    "path": "src/engine/gpu/clip/tests.rs",
+    "owner": "application",
+    "sourceSha256": "f7bae7652025a8f4b05537e3a92956922c64f7d655998fd37b2119ac30e9c3a9"
+  },
+  {
+    "path": "src/engine/gpu/cloud.rs",
+    "owner": "geometry",
+    "sourceSha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`gpu/cloud.rs` separates source-relative point indices from GPU allocation rows. Each uploaded `Chunk` records its source interval and GPU start. `row_of` returns no row for a point that is not resident. A cloud can therefore grow in chunks without pretending that every source point already occupies a GPU row. `CloudDraw` also records octree-node and normal offsets; they are independent arrays with independent bases."
+    }
+  },
+  {
+    "path": "src/engine/gpu/context.rs",
+    "owner": "geometry",
+    "sourceSha256": "e90e75e6513d2571719624df9f7af7fc30500813470a0bd3d3c706ec5fcfebfe"
+  },
+  {
+    "path": "src/engine/gpu/device.rs",
+    "owner": "frame",
+    "sourceSha256": "ced1cff229cd47c5cc3de6d7713b7049ce2181cac444226bd27053b397774a20",
+    "explanation": {
+      "page": "journey/completion-frame.md",
+      "heading": "### Device, queue and failure",
+      "paragraph": "`open` checks adapter capabilities, bounds requested storage-buffer limits, requests the device, and configures a nonzero surface size. Its `Option<Surface>` also permits native headless use. `?` returns a failed request to the caller instead of constructing a partially initialized GPU. Fatal callbacks retain the first error in shared synchronized state; the application can stop submitting work and report that original failure."
+    }
+  },
+  {
+    "path": "src/engine/gpu/faces.rs",
+    "owner": "geometry",
+    "sourceSha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71"
+  },
+  {
+    "path": "src/engine/gpu/frame.rs",
+    "owner": "geometry",
+    "sourceSha256": "9d6dddc0b3f1a4c17f4da8adef89114ef2950a00351947a457eacabfa4f19d97"
+  },
+  {
+    "path": "src/engine/gpu/glyphs.rs",
+    "owner": "geometry",
+    "sourceSha256": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970"
+  },
+  {
+    "path": "src/engine/gpu/hull.rs",
+    "owner": "rows",
+    "sourceSha256": "6546c2c6e49f166cd132b819585bbd5182c180fb882dbe2456a77a3cf376e751"
+  },
+  {
+    "path": "src/engine/gpu/hull/geometry.rs",
+    "owner": "rows",
+    "sourceSha256": "9d2db6b2a1db2974a49f27962838fc2bd1ce2154b4b9108d2b5b40009811a4c7"
+  },
+  {
+    "path": "src/engine/gpu/hull/upload.rs",
+    "owner": "geometry",
+    "sourceSha256": "70d7356c0fceed1027de05c258644aa84d57e8a431c722366daf460b19eea59d"
+  },
+  {
+    "path": "src/engine/gpu/instance.rs",
+    "owner": "rows",
+    "sourceSha256": "acc28f2185fcf71681fdc4316c431412e7d12dfd31ad2ec414fe8993389a58fd"
+  },
+  {
+    "path": "src/engine/gpu/instance/layout.rs",
+    "owner": "rows",
+    "sourceSha256": "a093d3e4a8959ad5411d63a50826346e9db19d5196982fdcb964bb32dc6793e8",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "## Prerequisites and ownership",
+      "paragraph": "`ObjectRow` is convenient CPU input: a double-precision placement, bounds, tint, flags and optional extreme points. `Instance` is the shader-facing contract. `#[repr(C)]` fixes field order, and the `Pod` derive rejects fields that cannot safely be uploaded as bytes. The size assertion pins its 112-byte stride. Padding has a purpose: the fourth word after spacing carries the packed edge colour."
+    }
+  },
+  {
+    "path": "src/engine/gpu/instance/validation.rs",
+    "owner": "geometry",
+    "sourceSha256": "64bca08af9086edbf4177c8f2582f0dac266c26805efbe4374743d50a1490a7e"
+  },
+  {
+    "path": "src/engine/gpu/instanced.rs",
+    "owner": "geometry",
+    "sourceSha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db"
+  },
+  {
+    "path": "src/engine/gpu/lane.rs",
+    "owner": "geometry",
+    "sourceSha256": "b42d937e91e0ad5bfd33469285cf99309a78e854177fd8bd504cf50d8b352371",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Give every lane the same resource contract",
+      "paragraph": "`lane.rs` separates resetting row counts from releasing allocations. Retargeting changes color format or sample count and may rebuild pipelines. Appending takes this lane's typed data from `Upload`; drawing receives the current shared bindings and view. `bytes` accounts for buffers and textures, so a feature cannot disappear from resource reporting merely because it draws through a trait object."
+    }
+  },
+  {
+    "path": "src/engine/gpu/lod.rs",
+    "owner": "geometry",
+    "sourceSha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Render resident cloud points",
+      "paragraph": "`gpu/lod.rs` walks the resident cloud's octree using projected spacing, camera distance, object scale and viewport height. Small clouds, missing octrees and an explicitly disabled LOD threshold draw every resident point. For larger clouds, a coarse node can be sufficient at a distant view while nearby nodes need their children. Residency bounds each selected range: display LOD cannot draw a point that has not been uploaded. The streaming chapter separately handles source queries outside that resident prefix."
+    }
+  },
+  {
+    "path": "src/engine/gpu/matrices.rs",
+    "owner": "geometry",
+    "sourceSha256": "00f606b5056037de1bf3923c7874202bd1877af7591759713e48ca46a3d5a1de"
+  },
+  {
+    "path": "src/engine/gpu/mod.rs",
+    "owner": "frame",
+    "sourceSha256": "56a8e0538e0981ccc17f5baf98ed9f60acb42d3db2b1c9cf44ab6188731ecdf1"
+  },
+  {
+    "path": "src/engine/gpu/objects.rs",
+    "owner": "rows",
+    "sourceSha256": "86bf47207c6bac7336c9cb2ffb18051235321c7c48110e705e6fa26eef3b8202"
+  },
+  {
+    "path": "src/engine/gpu/objects/gpu_tests.rs",
+    "owner": "geometry",
+    "sourceSha256": "bb4c2ecf595208587734c525c95f02066d52cac0d2e4ba743ba1721b584ed924"
+  },
+  {
+    "path": "src/engine/gpu/objects/ink.rs",
+    "owner": "geometry",
+    "sourceSha256": "bc6acfc40f024100e098d03f8a989559f985eae40bdc7162227e55d470e6d5e5"
+  },
+  {
+    "path": "src/engine/gpu/objects/lane.rs",
+    "owner": "geometry",
+    "sourceSha256": "82590ecc2d6016b1cbccda7b00e6dd3c2be6f80f15ed563162d7b911c77103f2"
+  },
+  {
+    "path": "src/engine/gpu/objects/table.rs",
+    "owner": "rows",
+    "sourceSha256": "b63255c98016c145a613f5af464510afbb3a0e9d9f34792d8dbf8636433c1c2f",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Ownership and allocation",
+      "paragraph": "`InstanceTable::append` replaces the empty placeholder on the first upload. A widget row must remain last, so appending scene objects first removes that row and rebuilds the retained prefix. The table retains CPU rows because editing one field must preserve every other field. `write_at` uploads only the changed row; chunked writes keep individual transfers bounded. A geometry revision lets downstream caches distinguish a real geometry or visibility change from unchanged state."
+    }
+  },
+  {
+    "path": "src/engine/gpu/pacing.rs",
+    "owner": "geometry",
+    "sourceSha256": "9e5916950f6658ad02b28aae1e009cfdc4546c4a4c4ba24c59c9194a7675b427",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Presentation and pacing",
+      "paragraph": "`FramePacing` prevents old camera frames accumulating behind a busy queue. `ready` records that a redraw is waiting, then rechecks completion to avoid losing a wakeup between those two operations. `submitted` installs a queue-completion callback; that callback clears the pending flag and requests a redraw only if one was waiting. The flags are shared through `Arc` because completion outlives the submitting call. Their acquire/release operations make the completion and waiter state visible across callbacks."
+    }
+  },
+  {
+    "path": "src/engine/gpu/pass.rs",
+    "owner": "geometry",
+    "sourceSha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`Pass` extends the lane lifecycle with hooks around these stages. `PASSES` registers instancing, clipping, ambient occlusion and surface outlines. During a mutable hook, `each_pass` temporarily replaces that pass with `Nothing`; the hook can then borrow the rest of `Gpu` without two mutable references to the same object. The original pass is restored afterwards. A later pass registers once rather than inserting calls throughout the frame loop."
+    }
+  },
+  {
+    "path": "src/engine/gpu/patch.rs",
+    "owner": "geometry",
+    "sourceSha256": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100"
+  },
+  {
+    "path": "src/engine/gpu/pick.rs",
+    "owner": "geometry",
+    "sourceSha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0"
+  },
+  {
+    "path": "src/engine/gpu/planes.rs",
+    "owner": "geometry",
+    "sourceSha256": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61"
+  },
+  {
+    "path": "src/engine/gpu/present.rs",
+    "owner": "geometry",
+    "sourceSha256": "98e20200ffcd612032d034ff8bf6d87ec81dd7e0cb4b6c35f45192f0ece58c16",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Presentation and pacing",
+      "paragraph": "`present.rs` writes shared uniforms, prepares the widget and text, and acquires a surface texture. Success and suboptimal acquisition proceed; any other acquisition result reconfigures the surface and skips that attempt. A successfully acquired frame is encoded, submitted and presented. Optional passes can compile further pipelines after presentation. Pending pipeline work or a visibility report may require a later redraw even when the user has stopped moving the mouse."
+    }
+  },
+  {
+    "path": "src/engine/gpu/render.rs",
+    "owner": "geometry",
+    "sourceSha256": "024ab39d6ee379297f209120f510063dd0037cabc69780b9b0afb1a7e67b5921",
+    "explanation": {
+      "page": "journey/completion-geometry.md",
+      "heading": "### Pass order and visibility",
+      "paragraph": "`render.rs` first prepares registered passes, builds triangle visibility lists and projects cloud points. The face stage draws background, section caps, solid faces and cloud resolve while writing depth. Ambient occlusion and outline masks consume that result. The ink stage then draws borders, curves, registered lanes, markers and text. Selected mesh edges appear below the selection outline; selected curves appear above it. The widget uses its own depth so it remains usable over the scene."
+    }
+  },
+  {
+    "path": "src/engine/gpu/segments.rs",
+    "owner": "geometry",
+    "sourceSha256": "f44565ff517b0a9bbc7d0248b537a46edde66861d24509f76abf6ee3b346550c"
+  },
+  {
+    "path": "src/engine/gpu/slots.rs",
+    "owner": "geometry",
+    "sourceSha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd"
+  },
+  {
+    "path": "src/engine/gpu/splat.rs",
+    "owner": "geometry",
+    "sourceSha256": "378f8b97c64859e1a0d4c45f58dd01f4f0af844645dd8af31eac69954e35276f"
+  },
+  {
+    "path": "src/engine/gpu/splat/cloud_witness.rs",
+    "owner": "application",
+    "sourceSha256": "e21b20cf6f512eda92957d41f81aa8b7154fa164884772ede0aa499443f2822a"
+  },
+  {
+    "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
+    "owner": "application",
+    "sourceSha256": "982f3d3ef796d537386887d3a95610f9194580af04cabb1a7b54109121016175"
+  },
+  {
+    "path": "src/engine/gpu/ssao.rs",
+    "owner": "geometry",
+    "sourceSha256": "d8204411fdc934639f91c676485aa915f3474ac266d847db9517285a62c1deb4"
+  },
+  {
+    "path": "src/engine/gpu/ssao/pipelines.rs",
+    "owner": "geometry",
+    "sourceSha256": "3c87e0aa194178f974ba21f2b00e34394339dd9f0ce41a06fee52774b273b569"
+  },
+  {
+    "path": "src/engine/gpu/ssao/tests.rs",
+    "owner": "application",
+    "sourceSha256": "193e7577b6dabe892c02baee6fb25279fddb58640a8de66c73500b783234473f"
+  },
+  {
+    "path": "src/engine/gpu/surface_outline.rs",
+    "owner": "geometry",
+    "sourceSha256": "25a9c85dcc0d431e2d88a65cc5de033c7b25a6414b894740d9b06d0371b5210d",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Shade and outline the resulting surface coverage",
+      "paragraph": "`surface_outline.rs` renders coverage masks, resolves multisampled coverage when needed, and builds coarse and dilated masks to skip empty regions. `face_coverage.wgsl` produces coverage; `surface_outline.wgsl` composites the border using a bounded offset table. Selection outlines and ordinary borders can then use the appropriate masks without confusing object IDs with coverage values."
+    }
+  },
+  {
+    "path": "src/engine/gpu/surface_outline/tests.rs",
+    "owner": "application",
+    "sourceSha256": "99b0843e70ab243ba97eb8983f7685b66cb62af9fd22d4af3e68981bacf06f5c"
+  },
+  {
+    "path": "src/engine/gpu/targets.rs",
+    "owner": "geometry",
+    "sourceSha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140"
+  },
+  {
+    "path": "src/engine/gpu/text.rs",
+    "owner": "geometry",
+    "sourceSha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Prepare GPU data only when its inputs change",
+      "paragraph": "`TextLane::prepare` keys work by document revision, font revision and relevant camera/canvas facts. If every label is fixed on screen, the key omits camera motion while retaining canvas dimensions. Otherwise projection changes require preparation. A matching key increments the skipped-preparation counter and retains the buffers."
+    }
+  },
+  {
+    "path": "src/engine/gpu/text_outline.rs",
+    "owner": "geometry",
+    "sourceSha256": "8444903f4b6c8132375822bd8d95eb5e06b51e023cb3487a730e90c5b3b842a1",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Prepare GPU data only when its inputs change",
+      "paragraph": "Sheet lettering is different again: `text_outline.rs` draws existing arena geometry as unlit fills with color and identity pipelines, using `text_outline.wgsl`. It does not reshape those outlines as label strings. `glyphs.rs` and `glyph.wgsl` draw the renderer's geometry glyph lane, which also differs from the glyphon atlas used for ordinary labels."
+    }
+  },
+  {
+    "path": "src/engine/gpu/text_plane.rs",
+    "owner": "geometry",
+    "sourceSha256": "c359f7b06e9db8bdc940f880007cbee6e66f51feb8878e771454f9798cfdc524",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Prepare GPU data only when its inputs change",
+      "paragraph": "`text_plane.rs` caches a texture for each world-plane label, keyed by the inputs needed to rasterize it, and draws textured geometry in the world. Dropping a cached plane destroys its texture. `text_plane.wgsl` supplies that color/identity path. `text_plate.rs` builds clipped background rectangles, places depth-tested rectangles before overlays, and retains color and ID pipelines. Its `text_plate.wgsl` shader therefore supports selectable plates as well as their visible backgrounds."
+    }
+  },
+  {
+    "path": "src/engine/gpu/text_plate.rs",
+    "owner": "geometry",
+    "sourceSha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1"
+  },
+  {
+    "path": "src/engine/gpu/timing.rs",
+    "owner": "geometry",
+    "sourceSha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc"
+  },
+  {
+    "path": "src/engine/gpu/triangle_tiles.rs",
+    "owner": "geometry",
+    "sourceSha256": "45b5bb3a8427700f764febc1df363841a167e50949781d3ddbac76b1bd6ce3c3",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Project once, then restrict each visibility query",
+      "paragraph": "`project_triangles.wgsl` transforms triangles into screen-space records described by `projected_triangle.wgsl`. Each record carries clipped coverage, edge equations, bounds and depth information. `triangle_tiles.rs` manages those buffers and binds the current geometry, object transforms and slot table. If an allocation moves, it rebuilds the binding that holds the old handle."
+    }
+  },
+  {
+    "path": "src/engine/gpu/ui.rs",
+    "owner": "painting",
+    "sourceSha256": "bcd2014f8a5c3cefae45889453d46c4d8080fe3885e2d2edaad1b294696907b2",
+    "explanation": {
+      "page": "journey/completion-painting.md",
+      "heading": "### Upload and lifetime",
+      "paragraph": "`prepare` frees textures retired by the previous frame, uploads the current texture deltas, and tessellates shapes into clipped triangles. The returned texture-free list is saved for the next frame. This delay keeps a texture alive while the current frame still references it. Vertex and index buffers are updated before the draw pass uses them; callback command buffers are submitted together with the upload encoder."
+    }
+  },
+  {
+    "path": "src/engine/gpu/upload.rs",
+    "owner": "geometry",
+    "sourceSha256": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f"
+  },
+  {
+    "path": "src/engine/gpu/upload_padding.rs",
+    "owner": "geometry",
+    "sourceSha256": "2717e93264332c30f966e0099dda529a2d6d966f57a8890ab357ef709463f9b0"
+  },
+  {
+    "path": "src/engine/gpu/vectors.rs",
+    "owner": "geometry",
+    "sourceSha256": "1d00e493774cb5b67c60555f484de5ba393a61cadf8349ca3aa82b085ecac04a"
+  },
+  {
+    "path": "src/engine/gpu/view.rs",
+    "owner": "geometry",
+    "sourceSha256": "eb0238ffaccef5a505b185d6233fe58233a395c0e24cb44788275a678148543c"
+  },
+  {
+    "path": "src/engine/gpu/widget.rs",
+    "owner": "geometry",
+    "sourceSha256": "89e1986353d281db23313eb5f3d3c294fd4a7b5e42c6051d76e22ecdf3a44003"
+  },
+  {
+    "path": "src/engine/gpu/widget_mesh.rs",
+    "owner": "geometry",
+    "sourceSha256": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306"
+  },
+  {
+    "path": "src/engine/mod.rs",
+    "owner": "frame",
+    "sourceSha256": "d3fd163e8b7b946364db2f3ef7b0b8687a2a861b54bf9d9d1899267551ecc140"
+  },
+  {
+    "path": "src/engine/performance.rs",
+    "owner": "rows",
+    "sourceSha256": "1a3d117f8e09ce3cc2dbfa5a446637e3429616f4cb0f03071e5708a009def7d8"
+  },
+  {
+    "path": "src/engine/pipelines/bindings.rs",
+    "owner": "rows",
+    "sourceSha256": "7799e0467c095eea09730a0fc7c34847dfd8409dc1280ddda0bf171d35a77509",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Describe bindings before supplying resources",
+      "paragraph": "`pipelines/bindings.rs` builds individual layout entries. A buffer entry declares its shader stages and uniform or storage access, with no dynamic offset and no declared minimum size. A texture entry declares a two-dimensional view, sample type and whether it is multisampled. These declarations do not allocate resources. A depth texture and an unsigned integer identity texture can have the same dimensions while requiring different binding types."
+    }
+  },
+  {
+    "path": "src/engine/pipelines/core.rs",
+    "owner": "rows",
+    "sourceSha256": "e8772a78252be84671a26723a24e29d5afd5611f0c976464e48be8e72cfc5fc4",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Compile a shared description on first use",
+      "paragraph": "`pipelines/core.rs::Lazy<T>` owns an `Rc<LazyCell<T, ...>>`. `Rc` lets several owners share one value on the current thread. `LazyCell` calls its stored `FnOnce` constructor only when dereferenced; `FnOnce` permits consuming the captured pipeline description. Cloning the wrapper shares that cell instead of recompiling. Equality and hashing compare the shared allocation's identity, so two references to one lazy shader are the same key even before compilation."
+    }
+  },
+  {
+    "path": "src/engine/pipelines/geometry.rs",
+    "owner": "geometry",
+    "sourceSha256": "7ad7d6f1d08e751f0a3d4707fc6726c4f14139d366a1fe86289997b033ccdb88"
+  },
+  {
+    "path": "src/engine/pipelines/layouts.rs",
+    "owner": "rows",
+    "sourceSha256": "def1eace1cc86a381eaf2f3cb018e7bce20c3e5367e9beab52c99c4202606836",
+    "explanation": {
+      "page": "journey/completion-rows.md",
+      "heading": "### Describe bindings before supplying resources",
+      "paragraph": "`pipelines/layouts.rs` combines those entries into the renderer's shared contracts. The line group supplies pen/view settings and clipping planes. The object group supplies row data and relative translations. The ink variant additionally declares single-sample and multisampled depth/identity textures, projected triangles and tile lists. A shader's group and binding numbers must match this contract; reordering a Rust array without preserving its explicit binding numbers changes which resource a shader reads."
+    }
+  },
+  {
+    "path": "src/engine/pipelines/mod.rs",
+    "owner": "rows",
+    "sourceSha256": "b6c6fd7c934d74e2206d8524433aefae7c582a77f747ace5d4a0ccc91655f015"
+  },
+  {
+    "path": "src/engine/text.rs",
+    "owner": "geometry",
+    "sourceSha256": "c1744228a1cdddd628fed1c6fdad4bc5acdf07178a351cb68015e767bf92f70e",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Validate a replacement before changing the document",
+      "paragraph": "For a changed set, a map of prior runs by ID lets unchanged layout reuse its shaped buffer. Moving or recoloring a label does not require reshaping its glyph sequence. Changing text or metrics does. Replacing fonts validates the new sources and reshapes against the new font system, advancing both font and document revisions. Cache reuse follows the inputs that determine layout, not whether a label happened to be drawn last frame."
+    }
+  },
+  {
+    "path": "src/engine/text/application_tests.rs",
+    "owner": "application",
+    "sourceSha256": "1bedc6e27b3e8d90874603475d4040ff8c2ed9afb31785923da0faa9bc1e63ed"
+  },
+  {
+    "path": "src/lib.rs",
+    "owner": "frame",
+    "sourceSha256": "52947baf8d0dec30cf1a18343e6842f48393fb126bb7df844444b0104a6a4d91"
+  },
+  {
+    "path": "src/selftest.rs",
+    "owner": "application",
+    "sourceSha256": "87131f0c1ddd8bdc620dcd205815f6dd86894aac0df780dce6c393d7fb8cb8fc"
+  },
+  {
+    "path": "src/selftest/lifecycle.rs",
+    "owner": "application",
+    "sourceSha256": "21a28b047fb48eeea41512ddff63199dffeb4a73f3c13369aa910a91f1cf95ec"
+  },
+  {
+    "path": "src/selftest/oracle.rs",
+    "owner": "application",
+    "sourceSha256": "30883e82ae484fdcf5b6abb70c02900bde7d721d097563659a711d738b201021"
+  },
+  {
+    "path": "src/selftest/profile.rs",
+    "owner": "application",
+    "sourceSha256": "3f00d2715d9b5b3498e07af727b4b13dfde6fcfba83c7fd0a945999ea9bbeff1"
+  },
+  {
+    "path": "src/selftest/stroke_witness.rs",
+    "owner": "application",
+    "sourceSha256": "d7d2bd03edc3e7f384eff7034cad2018b94f10732bd996dec34aa910d96b50e4"
+  },
+  {
+    "path": "src/shaders/ambient_composite.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8"
+  },
+  {
+    "path": "src/shaders/ambient_depth.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac"
+  },
+  {
+    "path": "src/shaders/ambient_geometry.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "1c5912fa54065258945357e5d555d6c36a98076a46bc10c6cba4f1c7997e8ce5"
+  },
+  {
+    "path": "src/shaders/arrow.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "cdfc4ae2bb668430f5742ba33213b96f584b2b9a5e6e317dafdf8beaf7c18662"
+  },
+  {
+    "path": "src/shaders/background.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6"
+  },
+  {
+    "path": "src/shaders/cap.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "1892c0314d7ed98949f6f56711e2cb002ec29b2c1c1c46ff9c4b31357ef7bde9",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### A section cap needs depth and identity too",
+      "paragraph": "`cap.wgsl` draws the section's hatch/color, writes the plane's depth and a cap primitive marker, and supplies the covered sample mask. Other clipping planes still constrain that mask. Caps therefore participate in visibility and selection rather than being a flat color pasted over the final frame. Plane origin and hatch direction keep hatch coordinates tied to the authored section."
+    }
+  },
+  {
+    "path": "src/shaders/clip.wgsl",
+    "owner": "rows",
+    "sourceSha256": "975782a36e64719e00eba623a42f28a39919c03035a71525e384d97ad3837544"
+  },
+  {
+    "path": "src/shaders/face_coverage.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16"
+  },
+  {
+    "path": "src/shaders/glyph.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "f02c43132ae3cd3612262275c3dc71f751c0507e86a3ede948d0fd1fc2314cc4"
+  },
+  {
+    "path": "src/shaders/grid.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "094166f31a5f73bcf7a3957f077a2e299362b1e66520d3325b93a81e8bc922ea"
+  },
+  {
+    "path": "src/shaders/ink_visibility.wgsl",
+    "owner": "rows",
+    "sourceSha256": "17111b9fc09de6d3f344f39f83f31d4dfbb8c57f92fe1763f635f73cb0a3a475",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Compare ink with the right surface",
+      "paragraph": "`triangle.wgsl` writes surface color, depth and primitive identity. `ink_visibility.wgsl` consumes the single-sample or multisampled versions of those attachments and the tile lists. It accounts for local depth slope and the geometric sag between a curved edge and its faceted surface; a fixed global depth offset would either hide legitimate edges or expose strokes through unrelated geometry."
+    }
+  },
+  {
+    "path": "src/shaders/matrix.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "0f319930e6a82b89909f4d71447b2d1b2d82cd11f2c4071f5f62e635e83ce620"
+  },
+  {
+    "path": "src/shaders/normals.wgsl",
+    "owner": "rows",
+    "sourceSha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733"
+  },
+  {
+    "path": "src/shaders/physical.wgsl",
+    "owner": "rows",
+    "sourceSha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35"
+  },
+  {
+    "path": "src/shaders/plane.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "868de66d5ecfe9c614cc1c030169f97f7e502820d3b72cf4eb9831cd50414478"
+  },
+  {
+    "path": "src/shaders/project_triangles.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "d430e2c245d94f667ebe20b3263c03f8ec61bb46c5e03c5229fa01c3f6b0bf94",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Project once, then restrict each visibility query",
+      "paragraph": "`project_triangles.wgsl` transforms triangles into screen-space records described by `projected_triangle.wgsl`. Each record carries clipped coverage, edge equations, bounds and depth information. `triangle_tiles.rs` manages those buffers and binds the current geometry, object transforms and slot table. If an allocation moves, it rebuilds the binding that holds the old handle."
+    }
+  },
+  {
+    "path": "src/shaders/projected_triangle.wgsl",
+    "owner": "rows",
+    "sourceSha256": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73"
+  },
+  {
+    "path": "src/shaders/ribbon.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "daaa9f018f0b1e5391cc1d3edc21d65457138602fdfb32f11340d0eb287cc89d"
+  },
+  {
+    "path": "src/shaders/scan_triangle_tiles.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "5fb767bd32a68fb56546c4d59341c394bce1b4c84b4bc2110f2623b178a6e80a",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Project once, then restrict each visibility query",
+      "paragraph": "The exclusive prefix sum gives each tile the sum of earlier counts, which becomes its list offset. Workgroup memory lets 256 invocations cooperate; barriers ensure that one iteration reads a completed prior iteration. Further scan passes combine block totals and add those offsets to each tile. Counts saturate at capacity instead of wrapping into apparently valid small offsets."
+    }
+  },
+  {
+    "path": "src/shaders/scene.wgsl",
+    "owner": "rows",
+    "sourceSha256": "cd77cd9c125e2fd9cf80e33589d445f684e04cf11f80b9b7f763bad85a898505"
+  },
+  {
+    "path": "src/shaders/slot_table.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc"
+  },
+  {
+    "path": "src/shaders/sphere.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a"
+  },
+  {
+    "path": "src/shaders/splat.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "375bed442852f6bd755df5f802bdfeed77fb8dd5a13ce87069d098aebba6d16f"
+  },
+  {
+    "path": "src/shaders/splat_resolve.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "511ff9ed8a46fa07338d7335b8b8a54d4f808c06d8a823688d8d78e7360f417f"
+  },
+  {
+    "path": "src/shaders/ssao.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f"
+  },
+  {
+    "path": "src/shaders/surface_outline.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "446689ea45e5cf0fd03011250271a296eddf4942ad9e0dfd4432c8b57b089885",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Shade and outline the resulting surface coverage",
+      "paragraph": "`surface_outline.rs` renders coverage masks, resolves multisampled coverage when needed, and builds coarse and dilated masks to skip empty regions. `face_coverage.wgsl` produces coverage; `surface_outline.wgsl` composites the border using a bounded offset table. Selection outlines and ordinary borders can then use the appropriate masks without confusing object IDs with coverage values."
+    }
+  },
+  {
+    "path": "src/shaders/text_outline.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e"
+  },
+  {
+    "path": "src/shaders/text_plane.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "8694a4d32e4676415b28fa4727bf4c1645862e80f4cc4e65e41c79ab1e5451c3"
+  },
+  {
+    "path": "src/shaders/text_plate.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd"
+  },
+  {
+    "path": "src/shaders/triangle.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b"
+  },
+  {
+    "path": "src/shaders/triangle_tiles.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "21bf7777d18bf7e506f97c0a31d4ab5a64bf6e062ffe0698dd67402806876c0f",
+    "explanation": {
+      "page": "journey/completion-visibility.md",
+      "heading": "### Project once, then restrict each visibility query",
+      "paragraph": "The screen is divided into tiles. Tile width grows when necessary to bound total tile count. `triangle_tiles.wgsl` draws a four-corner rectangle over the tiles touched by a triangle's bounds, then rejects tiles outside its edge equations. This uses rasterization to find relevant tiles rather than testing every triangle for every ink pixel."
+    }
+  },
+  {
+    "path": "src/shaders/vector.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "687667c6a41be239a3ac75cbb2707ec567d156014c5564c8f7369b4cf62017bf"
+  },
+  {
+    "path": "src/shaders/widget.wgsl",
+    "owner": "geometry",
+    "sourceSha256": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0"
+  },
+  {
+    "path": "src/state.rs",
+    "owner": "application",
+    "sourceSha256": "87a222b7b03305ca3274e0bd50f1a696da62da31d766b548fe36d09e7057fca9",
+    "explanation": {
+      "page": "journey/completion-application.md",
+      "heading": "### One owner for changing state",
+      "paragraph": "`State` owns the window handle, GPU, camera, loaded scene and selection. These objects need a common lifetime: a document upload changes both scene rows and GPU buffers, and a selection result changes both application state and its next image. `Arc<Window>` keeps the window alive while asynchronous setup and redraw callbacks retain handles to it; it does not make the scene a shared mutable object."
+    }
+  },
+  {
+    "path": "src/state/box_select.rs",
+    "owner": "application",
+    "sourceSha256": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d"
+  },
+  {
+    "path": "src/state/clipping.rs",
+    "owner": "application",
+    "sourceSha256": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148"
+  },
+  {
+    "path": "src/state/cloud_query.rs",
+    "owner": "application",
+    "sourceSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999"
+  },
+  {
+    "path": "src/state/drag.rs",
+    "owner": "application",
+    "sourceSha256": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061"
+  },
+  {
+    "path": "src/state/drawing.rs",
+    "owner": "application",
+    "sourceSha256": "27029dc6c96a8679a8e2ebb4c612ab7db41b208bc77cf8376bbe513a9129f145"
+  },
+  {
+    "path": "src/state/edit.rs",
+    "owner": "application",
+    "sourceSha256": "e9069c10379cad51566f3cf4e8a11e1a57ab4c6b58542e4a62c39dfa0cfa1ea0"
+  },
+  {
+    "path": "src/state/features.rs",
+    "owner": "application",
+    "sourceSha256": "ee1c73729eb9c1f04561f0be52fc1050332a0fba5726086bc25c68c1bb18e9f7"
+  },
+  {
+    "path": "src/state/hydrate.rs",
+    "owner": "application",
+    "sourceSha256": "2a91e85f2d8e2ee2665ff145745a6d97e77e23df029b7a2ef9d5d9b83069a29a",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Restore editable geometry only when needed",
+      "paragraph": "A display can retain rows after releasing its kernel geometry. `locked_reason` distinguishes a permanently read-only streamed shell from a released document whose source can be fetched again. Requested operations enter a small `Resume` queue. The returned `Hydrated` value carries a document index and token; an old token is ignored after replacement or another release."
+    }
+  },
+  {
+    "path": "src/state/number_box.rs",
+    "owner": "application",
+    "sourceSha256": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1"
+  },
+  {
+    "path": "src/state/panel.rs",
+    "owner": "application",
+    "sourceSha256": "64ab32057ea1909cb802154294d9e56f3d53c261ca5ea63d8b5ad9d3bf8078d9"
+  },
+  {
+    "path": "src/state/sheet_query.rs",
+    "owner": "application",
+    "sourceSha256": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038"
+  },
+  {
+    "path": "src/state/splitting.rs",
+    "owner": "application",
+    "sourceSha256": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924"
+  },
+  {
+    "path": "src/state/text.rs",
+    "owner": "application",
+    "sourceSha256": "fab03acef3a6796e15211bba69b00b60c9e512448d3ea34c7817d00c5763feb2",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### A document title is an object",
+      "paragraph": "`state/text.rs::annotate_document` measures newly added BRep and surface bounds and places a nameplate above them. `scene_text.rs` registers it as a text row with its own identity. Hiding document geometry and deleting all selected rows therefore have different effects: hide can leave the title visible, while Delete removes the separately selected title too. Undo restores the joined transaction."
+    }
+  },
+  {
+    "path": "src/state/tool.rs",
+    "owner": "application",
+    "sourceSha256": "044fd2c8f01f1ce7995d89f04022de261609f9e65e552b4d3485c74f190c2889"
+  },
+  {
+    "path": "src/text_quality.rs",
+    "owner": "application",
+    "sourceSha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc"
+  }
+]

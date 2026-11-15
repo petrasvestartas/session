@@ -32,9 +32,31 @@ Cargo runs the retained production `build.rs` before compiling this checkpoint. 
 
 `GpuCtx` holds cloneable device and queue handles plus a shared pipeline cache. A device creates resources; a queue copies bytes and submits commands. Cloning a handle does not create a second GPU. `GrowBuf` records row length, capacity, stride and permitted usage. Growth allocates more space, copies existing bytes, and replaces the buffer handle. Any bind group referencing the old buffer must then be rebuilt. Keeping capacity separate from length allows an empty scene to retain reusable allocation.
 
+`buffers.rs` separates three operations. `append` grows by roughly one half when necessary and returns whether the handle changed. `reserve` can allocate room for a known batch plus its expected remainder. `fill` sends repeated rows in chunks bounded by `WRITE_CHUNK`, instead of allocating a second CPU array as large as the entire scene. The `Pod` bound permits byte uploads of the row type; its byte size must still match the buffer stride.
+
+The device has both a maximum allocation size and, for storage buffers, a maximum binding size. `fits` checks the stricter applicable limit before admitting more rows. The growth helpers deliberately retain a requested size larger than that limit: they do not silently truncate a scene. The caller must reject that request. Predict what a request for 1,200 rows does on a 1,000-row limit: the helper returns 1,200, so omitting the admission check produces an invalid allocation rather than a partial successful upload.
+
+`reset` keeps the allocation and forgets the logical rows. `release` destroys the old allocation and replaces it with one placeholder row. `packed` instead records GPU copies of selected ranges into one contiguous replacement; its caller must submit those commands and update dependent bindings. These operations distinguish an empty document, memory release and compaction. They must not be used interchangeably merely because all three can reduce the visible row count.
+
+`Template` uploads a small immutable vertex/index mesh once and binds it for repeated instances. `uniform_buffer` initializes a single shader-readable value, while `resource_group` associates concrete resources with explicit binding numbers. Rust's const-generic array length keeps that entry list on the stack; the shader layout still determines which binding numbers and resource types are valid.
+
 `InstanceTable::append` replaces the empty placeholder on the first upload. A widget row must remain last, so appending scene objects first removes that row and rebuilds the retained prefix. The table retains CPU rows because editing one field must preserve every other field. `write_at` uploads only the changed row; chunked writes keep individual transfers bounded. A geometry revision lets downstream caches distinguish a real geometry or visibility change from unchanged state.
 
 The binding layout describes which buffers shaders may read, their visibility and storage type; the bind group supplies actual buffer handles. Pipeline descriptions are cached and lazily compiled, so constructing row storage does not compile every scene shader. Timing diagnostics report through the engine callback without requiring application panels. Rendering later explains shader composition and target-specific pipeline keys using this retained implementation.
+
+### Describe bindings before supplying resources
+
+`pipelines/bindings.rs` builds individual layout entries. A buffer entry declares its shader stages and uniform or storage access, with no dynamic offset and no declared minimum size. A texture entry declares a two-dimensional view, sample type and whether it is multisampled. These declarations do not allocate resources. A depth texture and an unsigned integer identity texture can have the same dimensions while requiring different binding types.
+
+`pipelines/layouts.rs` combines those entries into the renderer's shared contracts. The line group supplies pen/view settings and clipping planes. The object group supplies row data and relative translations. The ink variant additionally declares single-sample and multisampled depth/identity textures, projected triangles and tile lists. A shader's group and binding numbers must match this contract; reordering a Rust array without preserving its explicit binding numbers changes which resource a shader reads.
+
+### Compile a shared description on first use
+
+`pipelines/core.rs::Lazy<T>` owns an `Rc<LazyCell<T, ...>>`. `Rc` lets several owners share one value on the current thread. `LazyCell` calls its stored `FnOnce` constructor only when dereferenced; `FnOnce` permits consuming the captured pipeline description. Cloning the wrapper shares that cell instead of recompiling. Equality and hashing compare the shared allocation's identity, so two references to one lazy shader are the same key even before compilation.
+
+`Cache` keeps shader, layout and pipeline maps behind `RefCell`. This permits mutation through a shared cache reference, with borrowing checked at runtime. A map borrow must end before another operation needs an incompatible borrow. `Cell` holds small copied counters and the clipping switch without exposing a reference to their contents. These types solve ownership within one thread; they do not make the cache safe to share freely across threads.
+
+The pipeline key retains entry points, bind-group layouts, vertex layouts, primitive topology, color/depth choices, scene sampling, clipping specialization and the target's format/sample count. Returning to an existing combination reuses its cached pipeline. A new target requires a different key even if the source geometry is unchanged. `compile_all` forces every requested lazy pipeline; constructing a cache or registering a lane alone does not do that work. Predict whether cloning a lazy shader increments compilation counters: it does not, because the constructor has not been forced again.
 
 ### Placement and bounds
 

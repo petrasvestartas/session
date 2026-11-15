@@ -1,0 +1,198 @@
+{
+  "scope": "Cumulative own-source application world-plane text and live manifest browser checks; scoped acceptance only.",
+  "buildReceipt": "completion-application-windows-20261115.json",
+  "runs": [
+    {
+      "run": "application-world01",
+      "result": {
+        "test": "world-text.cjs",
+        "exitCode": 0,
+        "source": "dfea4d6ff396318d3f38db57eaac5b58794953cd5f3fbfe11602529f77b18fa8",
+        "scope": "Maintained assertions with current View Top and View Names dock commands against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 21152,
+        "elapsedSeconds": 8.847,
+        "peakJobCommitBytes": 727429120,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/application-world01/captures/plane-iso-dpr1.png",
+          "sha256": "c4831ccec72f031d993d3a1f5e89fd74e47a4066b92392ffe41a5a28c0c12469",
+          "bytes": 26907
+        },
+        {
+          "path": "target/application-world01/captures/plane-iso-dpr2.png",
+          "sha256": "46291c49282114395ea814c705ed80581d0227ed211ad4d101d0d5d63817f81c",
+          "bytes": 69348
+        },
+        {
+          "path": "target/application-world01/captures/plane-selected-dpr1.png",
+          "sha256": "b15bccf65984f3e356497bc34ed2eba7ea3d63198299c90000ea10c2b59b3353",
+          "bytes": 22031
+        },
+        {
+          "path": "target/application-world01/captures/plane-selected-dpr2.png",
+          "sha256": "72cedaa46c8eecb15eaa07128efdd75b4db6f239faee66e0a802f602c69297e6",
+          "bytes": 58933
+        },
+        {
+          "path": "target/application-world01/captures/plane-top-dpr1.png",
+          "sha256": "7417fd3b4847697b048578f0faa34e62f8580594300ff91d9602ad4c80a3301c",
+          "bytes": 17709
+        },
+        {
+          "path": "target/application-world01/captures/plane-top-dpr2.png",
+          "sha256": "e6454deebb436cae792959d1407a576a587bb276e2ea8d5c121806cae16a615f",
+          "bytes": 48295
+        },
+        {
+          "path": "target/application-world01/captures/world-text.json",
+          "sha256": "a87d0bd7c825cefa6da845dbda6ad63e91b368bc22f7185f0e5c051e40402499",
+          "bytes": 41541
+        },
+        {
+          "path": "target/application-world01/check.log",
+          "sha256": "93c6fdc4f7f55d31e15bd62d4ffdf4b349f7979f493c07e3820a97f212f309cb",
+          "bytes": 107
+        },
+        {
+          "path": "target/application-world01/command.json",
+          "sha256": "07fc9d1e67704b55eb93a47ba5513d1dad2d5d8895b07b1f07a4bfa25dd623a5",
+          "bytes": 422
+        },
+        {
+          "path": "target/application-world01/resources.json",
+          "sha256": "27dfa20f4e74ddd81bf61e5f95a0f9302228eae6490daad7a0ba9c0c4492dbd2",
+          "bytes": 1916
+        },
+        {
+          "path": "target/application-world01/result.json",
+          "sha256": "6e1e1d6b201dfafc7fca3a75b5a32591c37cb42c2360373dcc9fd5c374c7cdda",
+          "bytes": 323
+        },
+        {
+          "path": "target/application-world01/started.json",
+          "sha256": "eb76a3d25df2b07e0c03fb58a0f397afdc0a3f69ddd7e0d8928bedae00b97f54",
+          "bytes": 838873
+        }
+      ]
+    },
+    {
+      "run": "application-live01",
+      "result": {
+        "test": "live-revision.cjs",
+        "exitCode": 0,
+        "source": "b96f1d3350b3144b669d19f93f937c4dec925144f1583b0baa0a58efbc018838",
+        "fixtureSha256": "1d53ea1f6aaa533a566febe4f9e7ca77f1e9d7e4bf52bf473d408695090fa1f4",
+        "scope": "Maintained live revision assertions with supported browser environment overrides against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 44356,
+        "elapsedSeconds": 6.92,
+        "peakJobCommitBytes": 796405760,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/application-live01/check.log",
+          "sha256": "2f3bb83ab3417854ba4e46fdb6998af4f3d14d1a786d6ccb93f369c782610176",
+          "bytes": 39
+        },
+        {
+          "path": "target/application-live01/command.json",
+          "sha256": "869efcfefbaca8d85467f21e02ec5838bf72d9232f762d895002cc27bb0467bb",
+          "bytes": 420
+        },
+        {
+          "path": "target/application-live01/resources.json",
+          "sha256": "7c4c76e1b4435795ab0a960f30f54807d08d23b77203232b268836d08292a485",
+          "bytes": 1913
+        },
+        {
+          "path": "target/application-live01/result.json",
+          "sha256": "f4328c1fd3c69ff3f8beef3960c1acd70d6e3780f506b814811ed63117d7512f",
+          "bytes": 422
+        },
+        {
+          "path": "target/application-live01/started.json",
+          "sha256": "19c888716791ba81bd34e02009a35263d5cc2d4d682398be56c22602b2d87418",
+          "bytes": 838873
+        }
+      ]
+    },
+    {
+      "run": "application-live02",
+      "result": {
+        "test": "live-revision.cjs",
+        "exitCode": 0,
+        "source": "8ea8089cd04f572b08d5f1fc36b63c3e0f45f203990ba75afafffcd0bd2c246f",
+        "fixtureSha256": "1d53ea1f6aaa533a566febe4f9e7ca77f1e9d7e4bf52bf473d408695090fa1f4",
+        "scope": "Maintained live revision assertions with supported browser environment overrides against cumulative own-source bundle; Windows D3D11 Chrome flags supplied through supported environment"
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 31132,
+        "elapsedSeconds": 8.434,
+        "peakJobCommitBytes": 873418752,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/application-live02/captures/changed-manifest.png",
+          "sha256": "c26bbd1e3c100302bd5845e2e2f1e69e0825875a4b25eff6e35598146e359e32",
+          "bytes": 154939
+        },
+        {
+          "path": "target/application-live02/captures/live-revision.json",
+          "sha256": "c5ce395044a3f5cdd5eff826f33513e8d69f7351ffc788392f5bc3b29cb4bc20",
+          "bytes": 25889
+        },
+        {
+          "path": "target/application-live02/check.log",
+          "sha256": "2f3bb83ab3417854ba4e46fdb6998af4f3d14d1a786d6ccb93f369c782610176",
+          "bytes": 39
+        },
+        {
+          "path": "target/application-live02/command.json",
+          "sha256": "ce4c1b31aa85aba8f89d44e4f418d3e03ffeb91206f884852bdf261282a55ba8",
+          "bytes": 420
+        },
+        {
+          "path": "target/application-live02/resources.json",
+          "sha256": "62a468ac553fc606f42e92b3c679635527a481ec573e414e3b153de828819520",
+          "bytes": 1914
+        },
+        {
+          "path": "target/application-live02/result.json",
+          "sha256": "fd40a0f30cac63b541a73db395dae0c66b4b08daa592ad62de0ae84de24e0a2c",
+          "bytes": 422
+        },
+        {
+          "path": "target/application-live02/started.json",
+          "sha256": "6976ba7d9e14bab789cfbb108829abf3b447179d48bf4fa5950b0a7fe768cc69",
+          "bytes": 838873
+        }
+      ]
+    }
+  ],
+  "worldText": {
+    "assertions": "DPR1/2 authoredXY/height32/world[0,0,10], projected baseline tilt/top alignment, shape reuse, glyph/backing pixels, selection, hide/unpickable/show.",
+    "review": "Owner viewed all six screenshots. Root independent original review b8f3552d761a9b5ccd7b4d06cdaca44626845750a2db1a2e128c6eefa6b64e8f.",
+    "changes": "5/T input replaced with typed View Top/View Names and history confirmation. Original assertion conditions retained."
+  },
+  "liveRevision": {
+    "unchanged": "Four completed polls alternate strong/weak/missing ETag; one immutable geometry download and one adoption.",
+    "changed": "Fifth poll adds revision-two world-plane label; final stored diagnostics records two adoptions, one geometry download and exact camera-pose retention.",
+    "review": "Owner and Root viewed floor screenshot; tiny added label is NOT a pixel-legibility proof. Adoption is established by inspection. Root proof a9fa923c353530a546b7fd2d521a425d8c7f2f4c163efe0522aaeeae152ce7b1.",
+    "changes": "Browser environment overrides preserve defaults; added changed-manifest assertions retain original unchanged-poll assertions."
+  },
+  "limits": [
+    "No adapter/backend query: ANGLE flag alone does not establish Dawn backend or hardware acceptance.",
+    "Full-font delivery, notification delivery, replaced geometry and replacement races remain separate.",
+    "No production behavior changed; metadata raw-byte failure remains open."
+  ]
+}

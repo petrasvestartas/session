@@ -1,0 +1,387 @@
+{
+  "scope": "Nine retention/teaching tooling tests, strict documentation build, and fourteen desktop/upright page checks. Not complete course acceptance.",
+  "runs": [
+    {
+      "run": "completion-docs17",
+      "result": {
+        "scope": "Nine teaching/retention regression tests and strict site, including corrected stale painting/dock intros and59 source prose witnesses; no whole-course acceptance",
+        "commands": [
+          {
+            "name": "teaching-tests",
+            "exitCode": 0
+          },
+          {
+            "name": "strict-site",
+            "exitCode": 0
+          }
+        ],
+        "postguards": "passed",
+        "outputs": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 47252,
+        "elapsedSeconds": 51.976,
+        "peakJobCommitBytes": 1546158080,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/completion-docs17/command.json",
+          "sha256": "ef38b0b8702c5d7837bf4c69e16f74085b549db43697bbaddc31da123f2d4dd0",
+          "bytes": 406
+        },
+        {
+          "path": "target/completion-docs17/delivery.json",
+          "sha256": "97ed18d33ea2622bf279e58813e0ff5784556c1afb4ea0ca2fdaa36a9aa6b822",
+          "bytes": 210
+        },
+        {
+          "path": "target/completion-docs17/plan.json",
+          "sha256": "483441bae40c487ee88a0cf0d0bc2953007fe71ba95347252e86bf2c52bd67f6",
+          "bytes": 1412931
+        },
+        {
+          "path": "target/completion-docs17/resources.json",
+          "sha256": "ade1dbb7524883b7d4e0b6da23d21e9bd5c8d28c1c7c801c549fb98592afc908",
+          "bytes": 1881
+        },
+        {
+          "path": "target/completion-docs17/result.json",
+          "sha256": "1788cdae6ea3e216eeaa357290bbdd0128027c7e2f08e4782595622e8b39064a",
+          "bytes": 384
+        },
+        {
+          "path": "target/completion-docs17/strict-site.log",
+          "sha256": "40b9f80684e79aeafb490669ff70252876557825bfbcd360591f8988bc2ef9f2",
+          "bytes": 484061
+        },
+        {
+          "path": "target/completion-docs17/teaching-tests.log",
+          "sha256": "ce69f1976633c7d89aa40fc87a456de430a8510e16d0de09408983225eb6f146",
+          "bytes": 969
+        }
+      ]
+    },
+    {
+      "run": "completion-docs-browser18",
+      "result": {
+        "passed": true,
+        "scope": "Home plus six updated painting/dock/rows/geometry/text/streaming pages, desktop/upright rendering and fixed build timestamp only. Kernel API delivery remains separate browser15 evidence; no viewer, hardware or subject acceptance",
+        "stamp": "2026-11-15T18:44:43.352Z",
+        "records": [
+          {
+            "route": "readme",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "readme-1280.png"
+          },
+          {
+            "route": "painting",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "painting-1280.png"
+          },
+          {
+            "route": "dock",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "dock-1280.png"
+          },
+          {
+            "route": "rows",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "rows-1280.png"
+          },
+          {
+            "route": "geometry",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "geometry-1280.png"
+          },
+          {
+            "route": "text",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "text-1280.png"
+          },
+          {
+            "route": "streaming",
+            "viewport": {
+              "width": 1280,
+              "height": 800
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 1058.078125,
+              "y": 774.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "streaming-1280.png"
+          },
+          {
+            "route": "readme",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "readme-390.png"
+          },
+          {
+            "route": "painting",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "painting-390.png"
+          },
+          {
+            "route": "dock",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "dock-390.png"
+          },
+          {
+            "route": "rows",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "rows-390.png"
+          },
+          {
+            "route": "geometry",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "geometry-390.png"
+          },
+          {
+            "route": "text",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "text-390.png"
+          },
+          {
+            "route": "streaming",
+            "viewport": {
+              "width": 390,
+              "height": 844
+            },
+            "time": "2026-11-15T18:44:43.352Z",
+            "box": {
+              "x": 168.078125,
+              "y": 818.609375,
+              "width": 185.921875,
+              "height": 21.390625
+            },
+            "file": "streaming-390.png"
+          }
+        ],
+        "deliveries": [],
+        "errors": []
+      },
+      "resources": {
+        "exitCode": 0,
+        "processId": 12080,
+        "elapsedSeconds": 3.359,
+        "peakJobCommitBytes": 498229248,
+        "processors": 2
+      },
+      "artifacts": [
+        {
+          "path": "target/completion-docs-browser18/dock-1280.png",
+          "sha256": "12d6e232fe5fdb9f2e2d82b3994ecb9be0cdb7ede8c947ee592edd06c8807b72",
+          "bytes": 108323
+        },
+        {
+          "path": "target/completion-docs-browser18/dock-390.png",
+          "sha256": "1b0a0c3f5938b6c8b76e7d15a61921174d3b71b21f8def4ee0bf8d0c36acbb4b",
+          "bytes": 44248
+        },
+        {
+          "path": "target/completion-docs-browser18/geometry-1280.png",
+          "sha256": "0398eeccad9584816a0562e8d1f722d7a37223731f3447571d52a7ca3bee3423",
+          "bytes": 145617
+        },
+        {
+          "path": "target/completion-docs-browser18/geometry-390.png",
+          "sha256": "ef815e3dd357f4866edf9f9b9f0f6877e71c861df42148fe2545aec79299af54",
+          "bytes": 48919
+        },
+        {
+          "path": "target/completion-docs-browser18/painting-1280.png",
+          "sha256": "2ecf554f7cd9c150effb2b52ceb1659adf53044471fc31fc71d9173d7feba529",
+          "bytes": 109169
+        },
+        {
+          "path": "target/completion-docs-browser18/painting-390.png",
+          "sha256": "27c0f85b78b4cda7990d932f4a4c372ad31176c3a5f1973720a5c6325f4df2a2",
+          "bytes": 41650
+        },
+        {
+          "path": "target/completion-docs-browser18/readme-1280.png",
+          "sha256": "0638b30bb6bad988f2b11d58ccc53e4d3302a792aaf7dfed9d601d5fce2e91be",
+          "bytes": 103607
+        },
+        {
+          "path": "target/completion-docs-browser18/readme-390.png",
+          "sha256": "b6754038df0c2c10656fc3566619bcfd362039df8c9d10fda07b18f7d1cbb3ff",
+          "bytes": 32775
+        },
+        {
+          "path": "target/completion-docs-browser18/result.json",
+          "sha256": "282040d40212d1913da57d473e6019cb6eba7f26197d825e2599045c0aa33405",
+          "bytes": 4793
+        },
+        {
+          "path": "target/completion-docs-browser18/rows-1280.png",
+          "sha256": "a662d4d8984c0d943ba161fa6e44464e393c8056bf10fb68a1787f2555974633",
+          "bytes": 140074
+        },
+        {
+          "path": "target/completion-docs-browser18/rows-390.png",
+          "sha256": "4cf6fbad2adc434dbe0fd8c09970caaef97fbaf992f40f7bda8cf16584c9740d",
+          "bytes": 47435
+        },
+        {
+          "path": "target/completion-docs-browser18/streaming-1280.png",
+          "sha256": "328b29487cd8a1a1c3f17ab81cb7aa56a1eafba06e25593c6bfecd13c31af685",
+          "bytes": 146457
+        },
+        {
+          "path": "target/completion-docs-browser18/streaming-390.png",
+          "sha256": "9921432225923b7bc9d8e847cf437d84e0c6ad6c79a77815a2791611b6974cda",
+          "bytes": 46307
+        },
+        {
+          "path": "target/completion-docs-browser18/text-1280.png",
+          "sha256": "15df8834606cdfdaaf8b2f88d51610968bd218a029a69f7dcfa71930eee4a64e",
+          "bytes": 115190
+        },
+        {
+          "path": "target/completion-docs-browser18/text-390.png",
+          "sha256": "97c021f5af8fee7076279adb3fe2ffa59b4bc51da478dc369e24fef1ebdbc882",
+          "bytes": 39424
+        }
+      ]
+    }
+  ],
+  "visualReview": "Owner viewed all fourteen original browser18 images. Desktop 1280x800 and upright viewport 390x844; fixed bottom-right UTC build time visible. Upright viewport is not a physical phone.",
+  "teaching": {
+    "sources": 351,
+    "proseWitnesses": 59,
+    "missing": 292,
+    "commandExitCode": 1,
+    "errors": 0,
+    "scope": "Source-bound paragraph witnesses, not human teaching acceptance; incomplete command correctly fails."
+  },
+  "limits": [
+    "No runtime production change in this batch. Earlier runtime checks retain their own source scopes.",
+    "No kernel API delivery checks in browser18; six earlier checks remain separate browser15 evidence.",
+    "Historical course migration, complete source teaching and final course acceptance remain open."
+  ]
+}

@@ -81,6 +81,21 @@
       "subject": "application chapters",
       "scope": "Strictdocs/68tooling executions and40page-viewport checks with build UTC stamp; actual newchapter visual review scoped.",
       "path": "session_viewer/docs/journey/release/completion-application-docs-windows-20261115.json"
+    },
+    {
+      "subject": "text and streamed selection",
+      "scope": "Maintained browser checks against cumulative own-source application; scopes and remaining limitations in receipt, not whole-course acceptance",
+      "path": "session_viewer/docs/journey/release/completion-text-streaming-windows-20261115.json"
+    },
+    {
+      "subject": "world-plane text and live manifest revisions",
+      "scope": "Maintained browser checks against cumulative own-source application; scopes and remaining limitations in receipt, not whole-course acceptance",
+      "path": "session_viewer/docs/journey/release/completion-world-live-windows-20261115.json"
+    },
+    {
+      "subject": "source teaching ledger and updated documentation",
+      "scope": "Nine retention/teaching tooling tests, strict documentation build, and fourteen desktop/upright page checks. Not complete course acceptance.",
+      "path": "session_viewer/docs/journey/release/completion-teaching-docs-windows-20261115.json"
     }
   ],
   "open": [

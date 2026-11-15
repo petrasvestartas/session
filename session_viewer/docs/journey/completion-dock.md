@@ -2,7 +2,7 @@
 
 Type and complete commands, choose an option, and expand retained command history using the production command dock.
 
-This is a draft cumulative candidate after [mathematics](completion-mathematics.md). Its new assembly has not yet compiled or passed browser acceptance.
+This cumulative candidate follows [mathematics](completion-mathematics.md). Its wasm build and desktop/upright browser interactions pass; complete subject acceptance remains pending.
 
 ## Prerequisites and ownership
 

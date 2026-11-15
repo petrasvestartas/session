@@ -1,4 +1,4 @@
-/** Exhaustive streamed F10 regression. Virtual source ranges avoid writing a 192 MB fixture. */
+/** Exhaustive streamed control-selection regression. Virtual source ranges avoid writing a 192 MB fixture. */
 const assert = require('node:assert/strict');
 const http = require('node:http');
 const fs = require('node:fs/promises');
@@ -42,6 +42,19 @@ function projected(snapshot,position) {
   const p=mul(snapshot.mvp,mul(snapshot.model||[1,0,0,0,0,1,0,0,0,0,1,0,...snapshot.origin.map(v=>-v),1],[...position,1]));
   return [(p[0]/p[3]+1)*snapshot.canvas[0]/2,(1-p[1]/p[3])*snapshot.canvas[1]/2];
 }
+async function command(page, text) {
+  const canvas=page.locator('#canvas');
+  const ui=JSON.parse(await canvas.getAttribute('data-viewer-ui'));
+  const {rect}=ui.controls.find(control=>control.key==='command/input');
+  await page.mouse.click((rect[0]+rect[2])/2,rect[3]-2);
+  await page.waitForTimeout(100);
+  if(ui.command) await page.keyboard.press('Control+a');
+  await page.keyboard.type(text,{delay:20});
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(300);
+  const after=JSON.parse(await canvas.getAttribute('data-viewer-ui'));
+  assert(JSON.stringify(after.history).includes(text),`Command history must confirm ${text}`);
+}
 async function main(){
   const dpr=Number(process.env.VIEWER_DPR||1);
   const output=process.env.VIEWER_TEST_OUTPUT||`/tmp/session-viewer-streamed-controls-dpr${dpr}`;await fs.mkdir(output,{recursive:true});
@@ -72,13 +85,13 @@ async function main(){
     const metadataReads=requests.filter(r=>r.start>=fixture.coordsAt+TOTAL*24&&r.start<fixture.idsAt);
     assert.equal(metadataReads.length,2,'one color header and one cached window locate all seven LOD arrays and the ID header');
     assert.deepEqual(metadataReads.map(r=>r.length),[16,65536],'metadata does not fetch the full fixed32 ID payload');
-    await page.locator('#canvas').focus();await page.keyboard.press('5');await page.waitForTimeout(250);
+    await command(page,'View Top');
     // The four root samples locate the parent; no source-control selection is injected.
     let snapshot=await page.evaluate(inspect),xy=projected(snapshot,[-1000,-1000,0]);
     const rect=await page.locator('#canvas').boundingBox();
     await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
     await page.waitForFunction(()=>window.fixtureInspect()?.selected===0,null,{timeout:15000});
-    await page.keyboard.press('F10');await page.waitForFunction(controls,null,{timeout:10000});
+    await command(page,'Controls');await page.waitForFunction(controls,null,{timeout:10000});
     snapshot=await page.evaluate(inspect);xy=projected(snapshot,[0,0,0]);
     const before=requests.length;
     await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
@@ -88,7 +101,7 @@ async function main(){
     releaseTail();releaseTail=null;
     await page.waitForFunction(selectedSource,null,{timeout:20000});
     snapshot=await page.evaluate(inspect);
-    assert.equal(snapshot.cloud_points,250000,'F10 must retain bounded display residency');
+    assert.equal(snapshot.cloud_points,250000,'Control selection must retain bounded display residency');
     assert.equal(snapshot.markers,1,'only the actual selected source marker remains');
     assert.deepEqual(snapshot.controls[0].position,[-1,0,10],'front source point occludes closer-to-cursor points within and across pages');
     const queryReads=requests.slice(before);
@@ -107,6 +120,16 @@ async function main(){
     },{png:capture.toString('base64'),at:projected(snapshot,[-1,0,10])});
     assert(yellow>=8,'the actual nonresident source point must be visibly yellow');
     await fs.writeFile(path.join(output,'selected-original.png'),capture);
+    // Leave the selected-control drag gesture before starting a second source query.
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>window.fixtureInspect()?.selection==='Object');
+    snapshot=await page.evaluate(inspect);xy=projected(snapshot,[-1000,-1000,0]);
+    await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
+    await page.waitForFunction(()=>window.fixtureInspect()?.selected===0);
+    await command(page,'Controls');await page.waitForFunction(controls);
+    snapshot=await page.evaluate(inspect);
+    assert.equal(snapshot.selection.Controls.selected,null,'Cancellation probe begins without a draggable selected control');
+    xy=projected(snapshot,[0,0,0]);
     // A delayed page must never restore a selection after Escape invalidates its generation.
     delayRemote=true;await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
     for(let i=0;i<100&&!delayed;i++)await page.waitForTimeout(20);

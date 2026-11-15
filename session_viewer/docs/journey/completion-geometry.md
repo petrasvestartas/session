@@ -100,6 +100,20 @@ This order explains the experiment: O removes solid face colour while leaving th
 
 Triangle visibility storage has bounded capacity. The renderer starts with a small pool, reads overflow reports asynchronously and grows toward a ceiling. The current frame cannot assume that an unreceived report is complete. The convergence and capacity tests exercise that policy; a small box scene alone cannot prove it.
 
+### Render resident cloud points
+
+`walk/cloud/resident.rs` converts kernel positions, colors and complete normal arrays into typed cloud rows. Missing normals use the explicit `NO_NORMALS` sentinel; a partial normal array must not be indexed as if it covered every point. The file's point-size override wins over the cloud's own setting. Bounds come from the converted points and participate in the same placed-row fitting as other geometry.
+
+`gpu/cloud.rs` separates source-relative point indices from GPU allocation rows. Each uploaded `Chunk` records its source interval and GPU start. `row_of` returns no row for a point that is not resident. A cloud can therefore grow in chunks without pretending that every source point already occupies a GPU row. `CloudDraw` also records octree-node and normal offsets; they are independent arrays with independent bases.
+
+`gpu/lod.rs` walks the resident cloud's octree using projected spacing, camera distance, object scale and viewport height. Small clouds, missing octrees and an explicitly disabled LOD threshold draw every resident point. For larger clouds, a coarse node can be sufficient at a distant view while nearby nodes need their children. Residency bounds each selected range: display LOD cannot draw a point that has not been uploaded. The streaming chapter separately handles source queries outside that resident prefix.
+
+`gpu/splat.rs` turns selected ranges into bounded draw records. A record carries the combined camera/object matrix, point and normal offsets, radius information, tint, owner row and selected point. Its 160-byte Rust layout matches the shader's 40-word stride. Cumulative point counts let `splat.wgsl` locate a record by binary search when a single draw spans several runs. Six generated vertices form each point's quad; the shader computes its actual coverage and depth.
+
+The point pass owns color and depth textures, allocated when needed and recreated when size or sample count changes. Its preparation key includes the camera matrix, point-size/LOD choices, uploaded count and object-change revision. A matching key reuses the point image. Merely receiving another redraw request does not justify repeating all projection work.
+
+`splat_resolve.wgsl` copies valid point color and reverse-Z depth into the scene. Empty point pixels have zero depth and are discarded. Optional eye-dome lighting compares neighboring logarithmic depths to darken depth boundaries. The ID pass instead writes the object row and point row, so picking and visible color have distinct outputs while using the same point coverage. Original source IDs are resolved by the later source-query adapter; a temporary GPU row is not that persistent identity.
+
 ### Text resources
 
 `engine/text.rs` owns validated labels and shaped runs. Placement distinguishes CSS-sized overlays, camera-anchored labels and world-plane text. Shaping depends on text, font and metrics; changing colour or moving a label should reuse the shaped glyphs. Replacing fonts changes the font revision and invalidates the appropriate caches.

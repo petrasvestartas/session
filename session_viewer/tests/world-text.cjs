@@ -46,7 +46,21 @@ function project(state, point) {
   return [clip[0]/clip[3],clip[1]/clip[3]];
 }
 
-/** Verify authored axes, real perspective foreshortening, white/black pixels and T independence. */
+async function command(page, text) {
+  const canvas=page.locator('#canvas');
+  const ui=JSON.parse(await canvas.getAttribute('data-viewer-ui'));
+  const {rect}=ui.controls.find(control=>control.key==='command/input');
+  await page.mouse.click((rect[0]+rect[2])/2,rect[3]-2);
+  await page.waitForTimeout(100);
+  if(ui.command) await page.keyboard.press('Control+a');
+  await page.keyboard.type(text,{delay:20});
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(300);
+  const after=JSON.parse(await canvas.getAttribute('data-viewer-ui'));
+  assert(JSON.stringify(after.history).includes(text),`Command history must confirm ${text}`);
+}
+
+/** Verify authored axes, real perspective foreshortening, white/black pixels and View Names independence. */
 async function main() {
   const output = process.env.VIEWER_TEST_OUTPUT || '/tmp/session-viewer-world-text';
   await fs.mkdir(output,{recursive:true});
@@ -77,14 +91,14 @@ async function main() {
       assert(pixels.black > 1000 && pixels.whiteInBlack > 30);
       const a = project(first,label.world), b = project(first,[label.world[0]+100,label.world[1],label.world[2]]);
       assert(Math.abs(a[1]-b[1]) > .01,'fixed baseline tilts in the isometric camera');
-      await page.keyboard.press('5'); await page.waitForTimeout(120);
+      await command(page, 'View Top');
       const top = await page.evaluate(snapshot);
       assert.deepEqual(plane(top).world,label.world); assert.deepEqual(plane(top).plane,label.plane);
       const c = project(top,label.world), d = project(top,[label.world[0]+100,label.world[1],label.world[2]]);
       assert(Math.abs(c[1]-d[1]) < .0001,'world-X baseline becomes horizontal from above');
       assert.equal(top.text.shape_count,first.text.shape_count);
-      await page.keyboard.press('t'); await page.waitForTimeout(100);
-      assert.equal(plane(await page.evaluate(snapshot)).text,label.text,'T only toggles selected-item annotations');
+      await command(page, 'View Names');
+      assert.equal(plane(await page.evaluate(snapshot)).text,label.text,'View Names only toggles selected-item annotations');
       await page.locator('#canvas').screenshot({path:path.join(output,`plane-top-dpr${dpr}.png`)});
       const unit = label.plane[2] / label.font_size;
       const center = label.world.map((value, axis) => value + label.plane[0][axis]*label.line_box[0]*unit/2 - label.plane[1][axis]*label.line_box[1]*unit/2);
@@ -108,6 +122,6 @@ async function main() {
     }
   } finally { await browser.close(); }
   await fs.writeFile(path.join(output,'world-text.json'),JSON.stringify(reports,null,2) + '\n');
-  console.log('PASS fixed world text: authored plane, orbit projection, white/black pixels,DPR1/2,T independence');
+  console.log('PASS fixed world text: authored plane, orbit projection, white/black pixels,DPR1/2,View Names independence');
 }
 main().catch(function failed(error) { console.error(error); process.exitCode = 1; });

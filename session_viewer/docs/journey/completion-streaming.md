@@ -60,9 +60,13 @@ Replacement loading stages results and uses the load generation described in the
 
 ## Run and observe
 
-Use the cumulative application and a recorded local scene manifest. Load the small comparison fixture first: it should finish as an ordinary document, without pretending to exercise streaming. For a large cloud or sheet, use a fixture and range-capable server from the repository's streaming checks. Set a bounded point/segment ceiling, then inspect the report: resident counts should stop at that ceiling while the source remains larger.
+Serve the cumulative application's `production.html` build. From `session_viewer`, run `node tests/streamed-controls.cjs` through the resource guard, with `VIEWER_URL` pointing to that server and `VIEWER_TEST_OUTPUT` naming a new capture directory. Set `CHROME_BIN`, `VIEWER_HEADLESS` and `VIEWER_CHROME_ARGS` for the recorded local WebGPU configuration; `NODE_PATH` locates Playwright.
+
+The check supplies its own range-capable virtual source of 6,065,539 points without writing a full large file. Only 250,000 points become resident. It types `View Top`, selects the cloud and types `Controls`, then queries beyond the displayed prefix. The expected visible result is one yellow source point at `[-1,0,10]`, with original ID `0xfedcba98`; the inspector must still report 250,000 resident points. The held final page proves that an earlier candidate is not committed before all eligible source points have been checked.
 
 Select a source point or sheet entity, then change the view or selection before its query finishes. The earlier answer must not replace the new selection. Record range responses, source revision and visible result together. A server returning the entire file for every range is not a successful streaming test.
+
+Run `node tests/live-revision.cjs` with the same browser environment. Four polls alternate strong, weak and absent ETags while serving identical manifest bytes. The geometry downloads once and the scene is adopted once. The server then adds an authored text item: the next poll adopts that changed manifest, retains the camera and reuses the immutable geometry. Inspect the recorded text-label state to distinguish adoption from an unchanged poll; the small label's presence in inspection is not a pixel-legibility assertion for the floor view.
 
 ## Predict and try
 
@@ -76,4 +80,4 @@ The prefix is a bounded representation that can grow or differ from source order
 
 ## Validation
 
-The cumulative endpoint compiles these adapters and retains their native validation tests. Existing small comparison-fixture browser checks do not exercise range ceilings, live replacement or query cancellation. Those scenarios require their dedicated source fixtures and response evidence; they remain open rather than being inferred from a successful ordinary document load.
+The actual streamed-controls browser check passes at DPR 1 and 2: bounded residency and range reads, exact nonresident source ID, exhaustive eligible-page completion, a visible yellow point and cancellation of an asynchronous query. Before cancellation it creates a fresh control selection; clicking an already selected handle would exercise dragging. The earlier input/setup failures remain recorded. Live revision checking separately verifies four unchanged polls and one changed-manifest adoption, with one geometry download and an unchanged camera. Notification delivery, replacement geometry, sheet metadata delivery and physical-device acceptance remain separate requirements.
