@@ -54,6 +54,10 @@ The materialized Cargo manifest compiles these sources directly. Its `build.rs` 
 
 `production.html` is the production startup page. Its Trunk rules package the protobuf fixtures, text resources, stage assets, decks, diagnostics and documentation. Build the strict documentation site before materializing this final checkpoint: packaging an absent site is an error. The page's early requests and the loader's ownership of those requests are covered in the loading chapter.
 
+### Register state and frame responsibilities
+
+`Features` owns optional interaction state across frames: drafts, active drags, pending splits, query generations, snapping and hierarchy state. Ordered function lists declare work before and after pick answers, handlers that may consume a pick before ordinary selection, and hooks that expand a clicked row into a group. A feature registers its state and hooks at these boundaries instead of rewriting the event loop. Order is behavior: a pending drag must receive its delayed answer before ordinary selection interprets it.
+
 ## Run and observe
 
 Materialize `application` using the completion-checkpoint command in [Maintaining](../maintaining.md). Build its `production.html` entry with Trunk and serve the emitted `dist/index.html`. Use a recorded scene manifest whose files are available to the server; the repository's default local manifest is not a guarantee that private scene files exist on another machine.

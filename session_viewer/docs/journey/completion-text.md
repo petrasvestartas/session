@@ -56,6 +56,10 @@ The `text_quality.rs` diagnostic page compares the actual text lane with browser
 
 The application theme reexports the completed command-dock fonts and visuals instead of maintaining another style implementation. Its bundled font list orders the main scene-label subset first, then fallback and symbol subsets. This lets the UI and label consumers start from the same owned static bytes while full-font loading remains an asynchronous responsibility of the font adapter.
 
+### Place authored text in a world plane
+
+The Text verb accepts 1 to 80 characters and opens a placement tool. Its initial height comes from the previous successful placement or a rounded camera-distance scale; Height changes it before the insertion point is accepted. The tool chooses signs and order of the construction-plane axes to read toward the current view, then creates a world-plane white-on-black label. The lower-left insertion point is lifted by the line-box height to locate the text anchor. Accepting creates one undoable text object and remembers its height; subsequent camera motion does not convert it into a screen-sized label.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture. Its black rounded title says `viewer comparison`. Zoom and orbit: the title follows its world anchor while keeping screen-sized text. Open Layers and hide the document geometry; the title remains. Restore visibility, then use Select All, Delete and Undo: the geometry and title return together.

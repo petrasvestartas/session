@@ -106,6 +106,10 @@ Typed `Move 0 1000 0` bypasses point collection and directly applies the checked
 
 `state/clipping.rs` gathers each clipping plane from its current GPU row placement, so preview dragging moves the cut immediately. Hiding its rectangle does not disable its cut; the host reports that distinction when a plane becomes hidden. The first active cut verifies previously walked mesh solid orientation, sharing the result for instances of one geometry. Creation enforces the maximum plane count and uses document history, whereas On/Off and fill change rendering state. Flipping replaces the selected plane geometry and synchronizes its rows.
 
+### Exercise the command field frame by frame
+
+The command-field tests feed egui press/release events and individual text characters through real frames. Typing `Orient 3 Points` one character at a time must retain its spaces rather than prematurely accepting a completion. Option browsing begins from the typed value: Down after `Snap Off` selects `Snap End`. Up and Down cycle options, Left and Right leave the command unchanged, and Enter either runs the accepted choice or leaves the expanded text according to the command contract. This tests UI semantics without claiming browser IME or phone keyboard acceptance.
+
 ## Run and observe
 
 Run the `application` checkpoint's `production.html` entry with the recorded comparison fixture. Enter `Line 0,0,0 3000,0,0`, then `Fit`. A new line appears and is selected. Expand the new Created layer to see its hierarchy row; new layers start collapsed. Enter `Move 0 1000 0`, `Undo`, then `Redo`; the line alternates between its original and translated position. Existing comparison geometry stays in place.

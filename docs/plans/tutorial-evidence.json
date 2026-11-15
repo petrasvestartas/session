@@ -126,6 +126,11 @@
       "subject": "document, context and input teaching",
       "scope": "271 witnesses,80 missing;19 tooling tests,active audit,strict site and12 reviewed desktop/upright documentation captures;4 Next clicks. No new viewer runtime acceptance.",
       "path": "session_viewer/docs/journey/release/completion-adapters-teaching-windows-20261115.json"
+    },
+    {
+      "subject": "scene synchronization, diagnostics and editing teaching",
+      "scope": "315 witnesses36 missing;19 tooling tests,active-audit,strictsite and16 reviewed documentation captures,4Next clicks. No new runtime acceptance.",
+      "path": "session_viewer/docs/journey/release/completion-sync-teaching-windows-20261115.json"
     }
   ],
   "open": [

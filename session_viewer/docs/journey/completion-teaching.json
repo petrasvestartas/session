@@ -352,22 +352,42 @@
   {
     "path": "src/app/command/verbs/explode.rs",
     "owner": "application",
-    "sourceSha256": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac"
+    "sourceSha256": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "Explode accepts whole editable leaf objects and collects their parts before modifying documents, bounding the total output count. Each supported source is replaced under the same parent with its local placement and inherited presentation state; the new parts become selected. Document transactions join one scene edit so Undo can restore the originals together. Unsupported sources can be reported alongside supported results, while a parent with child objects is refused rather than silently detaching its descendants."
+    }
   },
   {
     "path": "src/app/command/verbs/extend.rs",
     "owner": "application",
-    "sourceSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3"
+    "sourceSha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "Extend separates a two-parameter domain edit from interactive boundary or positive-distance modes. The interactive tool retains boundary choices and samples candidate open curves for screen-space endpoint picking. Each successful endpoint click commits a geometry edit and returns Repeat, refreshing that candidate for the next click. Escape restores selection and boundary highlighting; it does not undo already committed extensions. Each of those clicks has its own Undo operation."
+    }
   },
   {
     "path": "src/app/command/verbs/extend/reach.rs",
     "owner": "application",
-    "sourceSha256": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34"
+    "sourceSha256": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "Extension geometry works in the curve frame. A line or polyline end follows its outward unit tangent to a specified distance or the nearest boundary strictly ahead; near-zero crossings are ignored. Closed polylines and NURBS curves have no free end. NURBS growth uses its curve-specific length or boundary procedure and returns both the complete new curve and a sampled added tail for feedback. Straight-end intersection can use mesh boundaries; the NURBS boundary branch uses curve and plane cutters."
+    }
   },
   {
     "path": "src/app/command/verbs/extrude.rs",
     "owner": "application",
-    "sourceSha256": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428"
+    "sourceSha256": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "Extrusion preserves the distinction between an open surface and a capped solid. A suitable closed planar profile with a nonflat offset can receive caps; open, bent or flat cases retain their explicit skip reason. A capped NURBS profile builds a side face with a seam and two planar cap faces. The cap pcurves are affine projections of weighted control points into the patch parameters; winding determines boundary orientation. Sharing top, bottom and seam edges connects the faces topologically instead of merely drawing coincident surfaces."
+    }
   },
   {
     "path": "src/app/command/verbs/face.rs",
@@ -872,7 +892,12 @@
   {
     "path": "src/app/command/verbs/split.rs",
     "owner": "application",
-    "sourceSha256": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a"
+    "sourceSha256": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "The Split verb is a thin action adapter: it starts or confirms `State::split_command` and declares that executing the verb preserves the pending split. The state adapter owns target and cutter selection. Keeping the verb free of another selection state prevents Enter from clearing the very cutters it must confirm."
+    }
   },
   {
     "path": "src/app/command/verbs/tetrahedron.rs",
@@ -887,7 +912,12 @@
   {
     "path": "src/app/command/verbs/text.rs",
     "owner": "application",
-    "sourceSha256": "e083f13a0cb4da2a4fd6c3bf13e733bf81fa6768a563c7c74959d65c8ea5797f"
+    "sourceSha256": "e083f13a0cb4da2a4fd6c3bf13e733bf81fa6768a563c7c74959d65c8ea5797f",
+    "explanation": {
+      "page": "journey/completion-text.md",
+      "heading": "### Place authored text in a world plane",
+      "paragraph": "The Text verb accepts 1 to 80 characters and opens a placement tool. Its initial height comes from the previous successful placement or a rounded camera-distance scale; Height changes it before the insertion point is accepted. The tool chooses signs and order of the construction-plane axes to read toward the current view, then creates a world-plane white-on-black label. The lower-left insertion point is lifted by the line-box height to locate the text anchor. Accepting creates one undoable text object and remembers its height; subsequent camera motion does not convert it into a screen-sized label."
+    }
   },
   {
     "path": "src/app/command/verbs/torus.rs",
@@ -902,12 +932,22 @@
   {
     "path": "src/app/command/verbs/trim.rs",
     "owner": "application",
-    "sourceSha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d"
+    "sourceSha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "Interactive Trim progresses through targets, cutters and removable parts. Targets belong to one editable document and cannot also cut themselves. Clicking parts changes the preview; confirmation computes all retained geometry and commits it through the scene. Cancellation restores previews and the original selection, and a refused commit also removes preview changes. The typed two-number form instead keeps a curve parameter interval through the common geometry-edit action. These forms share the command name but collect different inputs."
+    }
   },
   {
     "path": "src/app/command/verbs/trim/parts.rs",
     "owner": "application",
-    "sourceSha256": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b"
+    "sourceSha256": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Cut and extend without confusing preview with history",
+      "paragraph": "The trimming geometry layer represents curve intervals, grouped BRep faces or mesh sides in the target frame. Curves retain sorted cut parameters, with closed curves wrapping the final interval; face parts retain hit meshes and section curves separately from topology. A mesh uses the first applicable cutting plane, including the fence represented by a straight cutter. Fewer than two curve parts is reported as not crossed. Display outlines are sampled for interaction and do not replace the authoritative retained geometry."
+    }
   },
   {
     "path": "src/app/command/verbs/undo.rs",
@@ -942,12 +982,22 @@
   {
     "path": "src/app/coords.rs",
     "owner": "application",
-    "sourceSha256": "cf9dfa81ccdd29980dc5f4bbec1fb03f87a932503154ebe23854ba190dea8a27"
+    "sourceSha256": "cf9dfa81ccdd29980dc5f4bbec1fb03f87a932503154ebe23854ba190dea8a27",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Resolve coordinates before constructing geometry",
+      "paragraph": "`coords::place` resolves this value using the fixed construction plane when one is selected. Plane coordinates are measured along its orthonormal axes from its origin. An offset uses those axes without adding the plane origin. In View mode, absolute coordinates remain world coordinates while picked points land on the view's drawing plane. Parsing text and deciding its reference frame are separate operations."
+    }
   },
   {
     "path": "src/app/cplane.rs",
     "owner": "application",
-    "sourceSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff"
+    "sourceSha256": "5d111336f0eec327868d60ac582f053a2be2901010542146de791d3387ab43ff",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Resolve coordinates before constructing geometry",
+      "paragraph": "`CPlane::from_3_points` normalizes the origin-to-x direction, crosses it with the third direction to obtain a normal, then derives the perpendicular y axis. Collinear input has no frame and is rejected. `local` projects onto the axes; `world` expands along them. A named square-on view selects its facing world plane; an oblique view defaults to the ground. A grazing ray cannot provide a stable plane intersection and needs the explicitly handled fallback."
+    }
   },
   {
     "path": "src/app/decode.rs",
@@ -962,7 +1012,12 @@
   {
     "path": "src/app/deform.rs",
     "owner": "application",
-    "sourceSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe"
+    "sourceSha256": "fa4a31723cc29e85f01958ff780bcba97df8b063611547a725c5c0247c36aebe",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Edit subobjects by their stable keys",
+      "paragraph": "`deform.rs::Target` distinguishes a control point, edge and face. A mesh face includes its hole rims; vertex keys are deduplicated before transformation. Mesh edge numbering follows first appearance rather than an arbitrary hash-map iteration. Surface controls use checked `(u,v)` indices, and boundary selection identifies a side of the control grid."
+    }
   },
   {
     "path": "src/app/edit.rs",
@@ -972,7 +1027,12 @@
   {
     "path": "src/app/feedback.rs",
     "owner": "application",
-    "sourceSha256": "ef3c9a65cc9c6be9299f998ecd71f3b29782ea0dc8c82307741f8a21f7506e4e"
+    "sourceSha256": "ef3c9a65cc9c6be9299f998ecd71f3b29782ea0dc8c82307741f8a21f7506e4e",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Report feedback without replacing another message",
+      "paragraph": "The feedback adapter mirrors status to the browser status element and command model, while native execution logs it. An empty status may restore a recovered-run notice; download progress replaces only an empty message or its own previous progress, preserving unrelated feedback. Fatal errors emit a diagnostic and reveal the error panel. Panel updates copy presentation models, command history records canonical text, and keyboard requests delegate to the browser input owner. These adapters expose state; a successful call alone does not prove that a user saw or acted on the message."
+    }
   },
   {
     "path": "src/app/fetch.rs",
@@ -1072,12 +1132,22 @@
   {
     "path": "src/app/inspection.rs",
     "owner": "application",
-    "sourceSha256": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce"
+    "sourceSha256": "01897843f1f53ed9e90646d5e3607b68c691af70e1c84ca5c269319409c119ce",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Distinguish measured payload from total memory",
+      "paragraph": "With `inspect=1`, the inspection adapter publishes JSON on the canvas as `data-viewer-inspection`. It connects visible state to object identities, camera matrices, selection, tool state, lane counts, retained allocations and timing counters. Buffer capacity, estimated texture bytes and known source payload are reported separately; private egui and glyphon resources are explicitly outside the totals. Tests must pair these snapshots with the action and image: an allocated ribbon count can remain unchanged after deletion because retained storage is not the live-object count."
+    }
   },
   {
     "path": "src/app/inspection/source_memory.rs",
     "owner": "application",
-    "sourceSha256": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d"
+    "sourceSha256": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Distinguish measured payload from total memory",
+      "paragraph": "The source-memory cache retains weak session references and recounts when document session pointers change. It counts each shared session and geometry value once, adding vector and string capacities, exposed slice lengths, occupied map entries and known value sizes. Dead collection slots remain counted; history bytes are reported separately. Allocator overhead, spare map capacity and private nested caches are not available to this walker, so `known_bytes` is a scoped payload estimate rather than process RSS or total heap use."
+    }
   },
   {
     "path": "src/app/interactions.rs",
@@ -1127,7 +1197,12 @@
   {
     "path": "src/app/live.rs",
     "owner": "application",
-    "sourceSha256": "6d5a0f0ffc90647a8b4ccaec4a5b88818c6e36769b527f70f626337ab72b2c46"
+    "sourceSha256": "6d5a0f0ffc90647a8b4ccaec4a5b88818c6e36769b527f70f626337ab72b2c46",
+    "explanation": {
+      "page": "journey/completion-streaming.md",
+      "heading": "### Adopt only a complete live replacement",
+      "paragraph": "A live-source tick runs after the polling interval or a change notification. It revalidates the manifest and mutable files, retaining decoded immutable revision URLs. A changed manifest or file marks a replacement pending; a failed read or an incomplete set of decoded documents keeps the last valid scene visible. A complete replacement reuses cached sessions where possible and drops files no longer listed. The notification relay connects after the first scene is ready. Notifications request an earlier check; they do not supply trusted geometry or bypass decoding."
+    }
   },
   {
     "path": "src/app/live_revision.rs",
@@ -1162,7 +1237,12 @@
   {
     "path": "src/app/mesh_preview.rs",
     "owner": "application",
-    "sourceSha256": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f"
+    "sourceSha256": "f3d0f365cb0cee67d71d49b84c59d29b228e2a575c527ab0b5d3e9010a73130f",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Keep fast previews subordinate to the document",
+      "paragraph": "The mesh-preview cache maps uploaded vertices, pipes and markers back to source vertex keys. Face-colored meshes can have one GPU vertex per triangle corner, so the mapping follows that expanded order. Unsupported ribbons, mismatched counts or ambiguous marker positions refuse capture. A gesture includes selected vertices and their affected neighboring faces: selected positions move, while affected normals use temporary flat shading and edge-facing tests are relaxed. Restoring uses the captured rows; the committed kernel mesh remains authoritative."
+    }
   },
   {
     "path": "src/app/mod.rs",
@@ -1187,12 +1267,22 @@
   {
     "path": "src/app/modeling.rs",
     "owner": "application",
-    "sourceSha256": "7aa4202bc1756cee495ce0f2daefe9c2c320e651294322898c03624b761f9e04"
+    "sourceSha256": "7aa4202bc1756cee495ce0f2daefe9c2c320e651294322898c03624b761f9e04",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Keep fast previews subordinate to the document",
+      "paragraph": "The modeling adapter adds constructed geometry to the current editable layer, falling back to a Created document that it makes on demand. It compensates for document and layer placement so world-coordinate constructions stay where the user placed them. Multiple results, attached attributes and consumed input objects are grouped into the scene history operation. Geometry construction returns identities; scene synchronization remains responsible for display rows and upload."
+    }
   },
   {
     "path": "src/app/range_gate.rs",
     "owner": "application",
-    "sourceSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a"
+    "sourceSha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Bound asynchronous range requests",
+      "paragraph": "`RangeGate` limits concurrent range reads to three and queues excess requests in FIFO order. Polling an entry either obtains a permit, stores a waker or returns no permit after closure. Dropping a permit hands its slot to the oldest waiter; dropping a queued entry removes it, or passes on a slot already granted to it. Closing a scene wakes waiters so they can stop. This gate bounds admission; it does not itself abort an already running network request."
+    }
   },
   {
     "path": "src/app/route.rs",
@@ -1232,77 +1322,152 @@
   {
     "path": "src/app/scene_release.rs",
     "owner": "application",
-    "sourceSha256": "303762b672d80c9988dd590010870ae4aa06b52a6e41cdc23c9ebbfa23d35c41"
+    "sourceSha256": "303762b672d80c9988dd590010870ae4aa06b52a6e41cdc23c9ebbfa23d35c41",
+    "explanation": {
+      "page": "journey/completion-loading.md",
+      "heading": "### Restore released geometry before editing",
+      "paragraph": "A released document retains its tree, transforms, names, shape summaries and visible rows while dropping kernel geometry. Documents created here or holding undo history are not released. Each release receives a token unique across scene instances, so an old response cannot hydrate a replacement scene. Picking or snapping requests an idle release once; an explicit edit may retry a failed fetch. Hydration checks that displayed identities still exist, with definition and shape checks for instances, before installing the session and rebuilding node caches. This is an identity compatibility check, not a byte-for-byte comparison of server geometry."
+    }
   },
   {
     "path": "src/app/scene_rows.rs",
     "owner": "application",
-    "sourceSha256": "ef35eb991a7c449f9cda4482e52f11a1ba21d5b9263ea35aff04f9e372f8daf4"
+    "sourceSha256": "ef35eb991a7c449f9cda4482e52f11a1ba21d5b9263ea35aff04f9e372f8daf4",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Stage updates without confusing identity and storage",
+      "paragraph": "The row bookkeeping separates identity from storage. Owner sentinels distinguish text, free IDs, the hidden sink and retained tombs from document indices. `Footprint` stores a single lane inline or indexes reusable multi-lane spans; preview capacity can exceed the live contents. `Staged` keeps retire, bury, cloud release, lane kill, patch, geometry and placement work in distinct lists for upload ordering. A freed span slot is bookkeeping reuse, not permission to draw its old GPU contents."
+    }
   },
   {
     "path": "src/app/scene_sync.rs",
     "owner": "application",
-    "sourceSha256": "b43a8e86a8bae9e996db38320f6ba9f51906b542d1c6bc83a43c4fe2060e777c"
+    "sourceSha256": "b43a8e86a8bae9e996db38320f6ba9f51906b542d1c6bc83a43c4fe2060e777c",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Stage updates without confusing identity and storage",
+      "paragraph": "`Scene::sync` drains pending notes and hints, merges repeated identities, refreshes stale node caches, expands descendant work and reconciles each identity once. A removed drawable is buried or killed; a newly drawable identity is revived or created. Existing geometry is walked again only for a geometry invalidation; otherwise its placement is staged. Tomb and row-ID pools settle after reconciliation. The hierarchy revision advances when rows appear or disappear, keeping panel refresh separate from ordinary placement updates."
+    }
   },
   {
     "path": "src/app/scene_sync/allocation.rs",
     "owner": "application",
-    "sourceSha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13"
+    "sourceSha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Stage updates without confusing identity and storage",
+      "paragraph": "Allocation can reuse an identity's grave only when every lane count matches, shifting vertex references to the old location before staging the patch. Otherwise it appends after uploaded and pending rows. Retiring content assigns its lanes to the hidden sink and accounts for dead storage. Preview allocations add roughly half again as much capacity so nearby drag frames can patch in place. Shrinking faces, printed strokes and text clears their tails with the appropriate vertex base; other unused lane rows are killed."
+    }
   },
   {
     "path": "src/app/scene_sync/commands_tests.rs",
     "owner": "application",
-    "sourceSha256": "59345b4f6b949658bbad2e664428ceda88af722b9b146cced8e7784e088d81f9"
+    "sourceSha256": "59345b4f6b949658bbad2e664428ceda88af722b9b146cced8e7784e088d81f9",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Compare incremental edits with a fresh scene",
+      "paragraph": "The command regressions check allocation behavior as well as final geometry. A 200-frame growing-curve preview may request new rows at most 16 times, bounds dead storage by the allocation sizes, and must return to its original span on cancellation. The edit-cost test times 40 create/delete/undo cycles in scenes of 1,000 and 100,000 objects and permits the larger case less than four times the smaller duration plus 50 milliseconds. This is a regression threshold for incremental work, not a device-independent latency promise."
+    }
   },
   {
     "path": "src/app/scene_sync/compaction.rs",
     "owner": "application",
-    "sourceSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a"
+    "sourceSha256": "1f1e4598b7b7498f3ed7ed7baa9eb0656cf5d6baee2a92bae01400e5109d7f6a",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Delete, undo and reuse memory",
+      "paragraph": "`scene_sync/compaction.rs` addresses accumulated dead storage. Editable-lane compaction starts only after dead bytes reach 16 MiB and dead plus retained tomb bytes outweigh live bytes. Cloud compaction has a separate threshold because its buffers and point counts differ. Repacking updates buffer bindings and invalidates dependent splat state. It is not enough to change the CPU count while leaving the GPU bound to the previous buffers."
+    }
   },
   {
     "path": "src/app/scene_sync/editing_tests.rs",
     "owner": "application",
-    "sourceSha256": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826"
+    "sourceSha256": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Compare incremental edits with a fresh scene",
+      "paragraph": "The editing regressions make retained storage observable: deleting a 100-point cloud buries its row and charges its point bytes to the tomb budget; undo stages an unbury rather than uploading points again. Setting the budget one byte below that allocation forces release. A compaction case then proves that undo can recreate the same identity after retained rows are gone. Multi-document deletion must form one history step, so one Undo restores all affected identities."
+    }
   },
   {
     "path": "src/app/scene_sync/nodes.rs",
     "owner": "application",
-    "sourceSha256": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4"
+    "sourceSha256": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Resolve only the affected tree paths",
+      "paragraph": "Node resolution tries a supplied hint, the history note, the row cache and a known parent before batching unresolved names into one tree search per document. Cache entries are weak and checked against the current tree identity; a replacement tree refills the cache. Removed objects need no search unless descendant work is required. Subtree expansion merges affected child identities instead of treating each as an unrelated edit. World placement multiplies file placement by transforms from the tree root down to the object; a detached object uses its own transform after file placement."
+    }
   },
   {
     "path": "src/app/scene_sync/notes.rs",
     "owner": "application",
-    "sourceSha256": "adedbfe50553859f2c4987abc8fc2476e61a427781b8f830aa7d344028ddb1fc"
+    "sourceSha256": "adedbfe50553859f2c4987abc8fc2476e61a427781b8f830aa7d344028ddb1fc",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Resolve only the affected tree paths",
+      "paragraph": "History notes describe invalidation in application order. An Add records presence and forward geometry, while undoing a Remove restores geometry and revisits descendants. Replace invalidates geometry; a transform invalidates placement and its subtree. The marker transform used to retain an Add Edge transaction is skipped. Tree changes include geometry only when inherited color changes. Weak node and tomb references carry useful context without extending the lifetime of deleted history."
+    }
   },
   {
     "path": "src/app/scene_sync/panel_tests.rs",
     "owner": "application",
-    "sourceSha256": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4"
+    "sourceSha256": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Compare incremental edits with a fresh scene",
+      "paragraph": "The hierarchy regression creates a point, deletes it and undoes the deletion, refreshing the panel after each synchronized edit. It asserts that the same row disappears and returns. A separate comparison checks that a group action targets exactly the tree descendants mapped to scene rows. Thus a correctly rendered hierarchy is insufficient if its action targets are stale."
+    }
   },
   {
     "path": "src/app/scene_sync/preview.rs",
     "owner": "application",
-    "sourceSha256": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e"
+    "sourceSha256": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Stage updates without confusing identity and storage",
+      "paragraph": "A drag preview is captured by walking the selected editable object alone and requiring its lane counts to match the current span. The cache belongs to that row and span; moving the allocation invalidates reuse. A surface update reevaluates cached parameters, patches vertices and pipes, updates geometry bounds and reports the enlarged bounds to the GPU. Failure to match the row, span, geometry or placement returns false so the caller can take the ordinary redraw path."
+    }
   },
   {
     "path": "src/app/scene_sync/split_tests.rs",
     "owner": "application",
-    "sourceSha256": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70"
+    "sourceSha256": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Compare incremental edits with a fresh scene",
+      "paragraph": "The randomized synchronization tests apply 150 edits for each fixed seed and compare with the fresh-scene oracle after every step, reporting the seed and step on failure. A second set uses a 4,096-byte tomb cap to exercise releases and reconstruction. Cache-disabled and cache-enabled sequences must produce the same document rows and lane spans while the cache reduces searches. Other sequences preserve hidden and color overrides through compaction and confirm that editing ordinary objects leaves streamed shells unchanged. These CPU assertions remain distinct from the explicitly ignored GPU tests in the same module."
+    }
   },
   {
     "path": "src/app/scene_sync/testing.rs",
     "owner": "application",
-    "sourceSha256": "9716dce2aeebcced6e6aa72463950f0f4e1e17471942e23752b00ab52af943fa"
+    "sourceSha256": "9716dce2aeebcced6e6aa72463950f0f4e1e17471942e23752b00ab52af943fa",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Compare incremental edits with a fresh scene",
+      "paragraph": "The CPU `settle` helper models upload bookkeeping without creating a GPU: it retires and buries rows, patches edge ownership, drains new tables, and applies geometry, unbury and placement updates. `verify` rebuilds the same documents and compares editable identities, lane counts, exact placement and bounds bits, hulls, spacing, faces and flags. It masks only the sheet-classification bit when the original load classification differs from the fresh walk. Pipe owners must resolve or belong to a batch or tomb; retained and dead counts must fit uploaded storage. This catches synchronization errors, but cannot prove GPU uploads or pixels."
+    }
   },
   {
     "path": "src/app/scene_sync/tests.rs",
     "owner": "application",
-    "sourceSha256": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf"
+    "sourceSha256": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf",
+    "explanation": {
+      "page": "journey/completion-debugging.md",
+      "heading": "### Compare incremental edits with a fresh scene",
+      "paragraph": "The scene-sync fixture combines nested placed groups, an object parent with a placed child, curve and mesh geometry, and an element with baked features. Two placements share one kernel session, alongside another document and read-only streamed shells. This exposes identity, inherited-transform and ownership mistakes that a single flat object cannot. The common check synchronizes changes, settles the CPU upload model, then compares the result with a fresh walk. A seeded integer generator makes edit sequences reproducible."
+    }
   },
   {
     "path": "src/app/scene_sync/tombs.rs",
     "owner": "application",
-    "sourceSha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d"
+    "sourceSha256": "28a67ed93264bb00966ce931838d1e5be57ec819e5bc7f562b1515a9a904d26d",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Stage updates without confusing identity and storage",
+      "paragraph": "Reviving a tomb requires the same underlying kernel object and the same interaction and attribute display settings; sheet geometry also requires matching placement. If these conditions differ, the old allocation becomes a grave and the object is walked again. Dead history references release their tombs first, then the oldest retained tombs are released until the byte cap is met. This separates an undoable object identity from a reusable allocation and prevents obsolete geometry from returning merely because a GUID matches."
+    }
   },
   {
     "path": "src/app/scene_text.rs",
@@ -1327,7 +1492,12 @@
   {
     "path": "src/app/session_io.rs",
     "owner": "application",
-    "sourceSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be"
+    "sourceSha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Save authoritative documents and scene metadata",
+      "paragraph": "The session archive begins with a versioned magic header, followed by protobuf document byte arrays and JSON scene metadata. Saving refuses streamed or unretained documents and enforces a 512 MiB limit. It stamps visibility and locking into the document protobufs and stores placements, colors, text and grouping separately. Opening validates the header, inventory, indices, finite placement and decoded kernel data before rebuilding rows; identity overrides are installed first so the initial rows inherit them. Old archives without separate edge colors reuse face colors. Serialization preserves the represented scene, but this design does not promise byte-identical nested JSON or retain GPU allocation addresses."
+    }
   },
   {
     "path": "src/app/sheet_query.rs",
@@ -1592,7 +1762,12 @@
   {
     "path": "src/app/surface_preview.rs",
     "owner": "application",
-    "sourceSha256": "d7527df1c881b721e3077a432f1a1e524b9cbc3e7b653d67d089f45dc4b0de02"
+    "sourceSha256": "d7527df1c881b721e3077a432f1a1e524b9cbc3e7b653d67d089f45dc4b0de02",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Keep fast previews subordinate to the document",
+      "paragraph": "A surface preview retains every uploaded vertex's surface index and UV, original controls and explicit pipe-end vertex indices. It reevaluates only surfaces whose controls changed, retaining unchanged vertices and rejecting nonfinite positions. Updated normals include face orientation, and pipe-facing data is rebuilt from the adjacent surface normals. Coincident positions can represent different UV samples, so position alone cannot identify a boundary endpoint after deformation. The result returns vertices, pipes and bounds for the scene adapter to patch."
+    }
   },
   {
     "path": "src/app/touch.rs",
@@ -1612,12 +1787,22 @@
   {
     "path": "src/app/ui/command_line/tests.rs",
     "owner": "application",
-    "sourceSha256": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4"
+    "sourceSha256": "f42ad65f70e9889f3d09e62bab1a04043f7f1d611f49ba7adb835394a3ed52e4",
+    "explanation": {
+      "page": "journey/completion-commands.md",
+      "heading": "### Exercise the command field frame by frame",
+      "paragraph": "The command-field tests feed egui press/release events and individual text characters through real frames. Typing `Orient 3 Points` one character at a time must retain its spaces rather than prematurely accepting a completion. Option browsing begins from the typed value: Down after `Snap Off` selects `Snap End`. Up and Down cycle options, Left and Right leave the command unchanged, and Enter either runs the accepted choice or leaves the expanded text according to the command contract. This tests UI semantics without claiming browser IME or phone keyboard acceptance."
+    }
   },
   {
     "path": "src/app/ui/graph.rs",
     "owner": "application",
-    "sourceSha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9"
+    "sourceSha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep UI ownership explicit",
+      "paragraph": "The graph adapter draws a foldable edge count and two endpoint columns, virtualizing visible rows with `show_rows`. Labels truncate within their own half-width, while a tooltip retains both GUIDs. Clicking an edge returns its action key for the state layer to select both objects; painting the table itself does not change the document. The total edge count can exceed the displayed list, so a short table is not evidence that other graph edges were deleted."
+    }
   },
   {
     "path": "src/app/ui/layers.rs",
@@ -1627,7 +1812,12 @@
   {
     "path": "src/app/ui/mod.rs",
     "owner": "application",
-    "sourceSha256": "c5bb203005cfb26e5ee108986c5465d770e37d077b5b2f69bc39f6a88c2a3d72"
+    "sourceSha256": "c5bb203005cfb26e5ee108986c5465d770e37d077b5b2f69bc39f6a88c2a3d72",
+    "explanation": {
+      "page": "journey/completion-documents.md",
+      "heading": "### Keep UI ownership explicit",
+      "paragraph": "The UI host invokes registered panel hooks to fill models, draw widgets and apply actions after egui finishes. Registration fixes drawing order, with the number box before the command line so it can consume Escape first. Panels report key, history and Escape ownership separately: an empty command field need not capture scene Undo. The host uses one egui layout pass so text events are not replayed, and records control rectangles for inspection without making those records the action implementation."
+    }
   },
   {
     "path": "src/app/ui/number_box.rs",
@@ -3017,7 +3207,12 @@
   {
     "path": "src/state/box_select.rs",
     "owner": "application",
-    "sourceSha256": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d"
+    "sourceSha256": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Keep selection requests tied to their initiating gesture",
+      "paragraph": "A box-selection gesture stores both corners in device pixels. Left-to-right means a window that contains whole objects; right-to-left means a crossing that touches them, drawn with a dashed outline. Starting is refused while drawing or splitting owns input. Release applies Ctrl removal before Shift addition and reports both matched and resulting selected counts. The overlay visualizes the pending region; selection changes only when the gesture finishes."
+    }
   },
   {
     "path": "src/state/clipping.rs",
@@ -3032,7 +3227,12 @@
   {
     "path": "src/state/cloud_query.rs",
     "owner": "application",
-    "sourceSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999"
+    "sourceSha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Keep selection requests tied to their initiating gesture",
+      "paragraph": "The cloud-query state adapter starts only in streamed-cloud control mode and assigns each request a generation. It combines camera projection with cloud placement and converts the CSS selection aperture into device pixels. Source pages produce temporary GPU-pick candidates while displayed LOD remains bounded; after eligible pages are checked, the winner is resolved to its original source ID. View or selection changes cancel the query. Batches with another generation or a cancelled token cannot replace the current selection."
+    }
   },
   {
     "path": "src/state/drag.rs",
@@ -3047,12 +3247,22 @@
   {
     "path": "src/state/edit.rs",
     "owner": "application",
-    "sourceSha256": "e9069c10379cad51566f3cf4e8a11e1a57ab4c6b58542e4a62c39dfa0cfa1ea0"
+    "sourceSha256": "e9069c10379cad51566f3cf4e8a11e1a57ab4c6b58542e4a62c39dfa0cfa1ea0",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Keep fast previews subordinate to the document",
+      "paragraph": "A gizmo drag retains original placements, the selected subobject target and source geometry. Its center comes from the selection bounds or the selected controls transformed into world space. Pointer motion previews; release first restores original display placements, then commits the final delta through whole-object or subobject editing. A rejected subobject edit restores source rendering. Cancellation restores cached GPU geometry or rewalks the source, restores group placements and clears the gesture. A click without a drag opens the numeric handle input instead of creating an edit."
+    }
   },
   {
     "path": "src/state/features.rs",
     "owner": "application",
-    "sourceSha256": "ee1c73729eb9c1f04561f0be52fc1050332a0fba5726086bc25c68c1bb18e9f7"
+    "sourceSha256": "ee1c73729eb9c1f04561f0be52fc1050332a0fba5726086bc25c68c1bb18e9f7",
+    "explanation": {
+      "page": "journey/completion-application.md",
+      "heading": "### Register state and frame responsibilities",
+      "paragraph": "`Features` owns optional interaction state across frames: drafts, active drags, pending splits, query generations, snapping and hierarchy state. Ordered function lists declare work before and after pick answers, handlers that may consume a pick before ordinary selection, and hooks that expand a clicked row into a group. A feature registers its state and hooks at these boundaries instead of rewriting the event loop. Order is behavior: a pending drag must receive its delayed answer before ordinary selection interprets it."
+    }
   },
   {
     "path": "src/state/hydrate.rs",
@@ -3082,7 +3292,12 @@
   {
     "path": "src/state/sheet_query.rs",
     "owner": "application",
-    "sourceSha256": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038"
+    "sourceSha256": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038",
+    "explanation": {
+      "page": "journey/completion-input.md",
+      "heading": "### Keep selection requests tied to their initiating gesture",
+      "paragraph": "Picking a sheet entity highlights its edge within the parent row rather than selecting the whole sheet; picking the same entity again clears selection. A new generation identifies its optional metadata request. Matching responses cache the side table and expose the entity name and kind; stale or cancelled responses are ignored. A missing metadata URL still permits selection by entity ID, while a metadata error is reported without inventing a name."
+    }
   },
   {
     "path": "src/state/splitting.rs",
@@ -3102,7 +3317,12 @@
   {
     "path": "src/state/tool.rs",
     "owner": "application",
-    "sourceSha256": "044fd2c8f01f1ce7995d89f04022de261609f9e65e552b4d3485c74f190c2889"
+    "sourceSha256": "044fd2c8f01f1ce7995d89f04022de261609f9e65e552b4d3485c74f190c2889",
+    "explanation": {
+      "page": "journey/completion-modeling.md",
+      "heading": "### Continue a tool without borrowing its host twice",
+      "paragraph": "`state/tool.rs` saves original row placements for previews. Cursor motion applies temporary placements; accepting input uses the normal edit transaction. Cancelling restores those placements and keeps selection. Thus ten preview moves followed by Escape do not create ten undo entries. `choices.rs` and `options.rs` provide option selection through the same tool contract, including command-line buttons for touch input."
+    }
   },
   {
     "path": "src/text_quality.rs",

@@ -100,6 +100,34 @@ The number-box panel copies the current handle prompt into a UI model, paints th
 
 The numeric-input state adapter projects the active gizmo handle to CSS coordinates and supplies its title, units and neutral-value hint. Parsing an empty or neutral value can close the box without changing geometry. A valid value becomes the handle transform and uses the common apply operation with a move, rotate or scale history label. Invalid parsing keeps the prompt available for correction; an apply failure reports status after closure. A tap that opens the box requests the phone keyboard through feedback.
 
+### Resolve only the affected tree paths
+
+History notes describe invalidation in application order. An Add records presence and forward geometry, while undoing a Remove restores geometry and revisits descendants. Replace invalidates geometry; a transform invalidates placement and its subtree. The marker transform used to retain an Add Edge transaction is skipped. Tree changes include geometry only when inherited color changes. Weak node and tomb references carry useful context without extending the lifetime of deleted history.
+
+Node resolution tries a supplied hint, the history note, the row cache and a known parent before batching unresolved names into one tree search per document. Cache entries are weak and checked against the current tree identity; a replacement tree refills the cache. Removed objects need no search unless descendant work is required. Subtree expansion merges affected child identities instead of treating each as an unrelated edit. World placement multiplies file placement by transforms from the tree root down to the object; a detached object uses its own transform after file placement.
+
+### Stage updates without confusing identity and storage
+
+`Scene::sync` drains pending notes and hints, merges repeated identities, refreshes stale node caches, expands descendant work and reconciles each identity once. A removed drawable is buried or killed; a newly drawable identity is revived or created. Existing geometry is walked again only for a geometry invalidation; otherwise its placement is staged. Tomb and row-ID pools settle after reconciliation. The hierarchy revision advances when rows appear or disappear, keeping panel refresh separate from ordinary placement updates.
+
+The row bookkeeping separates identity from storage. Owner sentinels distinguish text, free IDs, the hidden sink and retained tombs from document indices. `Footprint` stores a single lane inline or indexes reusable multi-lane spans; preview capacity can exceed the live contents. `Staged` keeps retire, bury, cloud release, lane kill, patch, geometry and placement work in distinct lists for upload ordering. A freed span slot is bookkeeping reuse, not permission to draw its old GPU contents.
+
+Allocation can reuse an identity's grave only when every lane count matches, shifting vertex references to the old location before staging the patch. Otherwise it appends after uploaded and pending rows. Retiring content assigns its lanes to the hidden sink and accounts for dead storage. Preview allocations add roughly half again as much capacity so nearby drag frames can patch in place. Shrinking faces, printed strokes and text clears their tails with the appropriate vertex base; other unused lane rows are killed.
+
+A drag preview is captured by walking the selected editable object alone and requiring its lane counts to match the current span. The cache belongs to that row and span; moving the allocation invalidates reuse. A surface update reevaluates cached parameters, patches vertices and pipes, updates geometry bounds and reports the enlarged bounds to the GPU. Failure to match the row, span, geometry or placement returns false so the caller can take the ordinary redraw path.
+
+Reviving a tomb requires the same underlying kernel object and the same interaction and attribute display settings; sheet geometry also requires matching placement. If these conditions differ, the old allocation becomes a grave and the object is walked again. Dead history references release their tombs first, then the oldest retained tombs are released until the byte cap is met. This separates an undoable object identity from a reusable allocation and prevents obsolete geometry from returning merely because a GUID matches.
+
+### Keep UI ownership explicit
+
+The UI host invokes registered panel hooks to fill models, draw widgets and apply actions after egui finishes. Registration fixes drawing order, with the number box before the command line so it can consume Escape first. Panels report key, history and Escape ownership separately: an empty command field need not capture scene Undo. The host uses one egui layout pass so text events are not replayed, and records control rectangles for inspection without making those records the action implementation.
+
+The graph adapter draws a foldable edge count and two endpoint columns, virtualizing visible rows with `show_rows`. Labels truncate within their own half-width, while a tooltip retains both GUIDs. Clicking an edge returns its action key for the state layer to select both objects; painting the table itself does not change the document. The total edge count can exceed the displayed list, so a short table is not evidence that other graph edges were deleted.
+
+### Save authoritative documents and scene metadata
+
+The session archive begins with a versioned magic header, followed by protobuf document byte arrays and JSON scene metadata. Saving refuses streamed or unretained documents and enforces a 512 MiB limit. It stamps visibility and locking into the document protobufs and stores placements, colors, text and grouping separately. Opening validates the header, inventory, indices, finite placement and decoded kernel data before rebuilding rows; identity overrides are installed first so the initial rows inherit them. Old archives without separate edge colors reuse face colors. Serialization preserves the represented scene, but this design does not promise byte-identical nested JSON or retain GPU allocation addresses.
+
 ## Run and observe
 
 Run the cumulative `application` checkpoint with the recorded comparison fixture. Enter `Layers All`. The panel should list the loaded document and its four objects. Toggle the document's visibility: its geometry disappears while the document remains listed. Toggle it back: the same geometry returns. Enter `Select All`: five rows are selected, including the title. Enter `Delete`, then `Undo`; the four objects and their title return with their identity and placement preserved.

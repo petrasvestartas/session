@@ -58,6 +58,14 @@ A display can retain rows after releasing its kernel geometry. `locked_reason` d
 
 On success, the host restores the kernel document and attempts waiting operations. Controls resume only if the relevant row is still selected; Save and a complete rewalk wait until all needed documents are resident. On failure, it clears pending resumptions and shows the document name with the error. This prevents an old fetch from executing an edit against a different current selection.
 
+### Restore released geometry before editing
+
+A released document retains its tree, transforms, names, shape summaries and visible rows while dropping kernel geometry. Documents created here or holding undo history are not released. Each release receives a token unique across scene instances, so an old response cannot hydrate a replacement scene. Picking or snapping requests an idle release once; an explicit edit may retry a failed fetch. Hydration checks that displayed identities still exist, with definition and shape checks for instances, before installing the session and rebuilding node caches. This is an identity compatibility check, not a byte-for-byte comparison of server geometry.
+
+### Bound asynchronous range requests
+
+`RangeGate` limits concurrent range reads to three and queues excess requests in FIFO order. Polling an entry either obtains a permit, stores a waker or returns no permit after closure. Dropping a permit hands its slot to the oldest waiter; dropping a queued entry removes it, or passes on a slot already granted to it. Closing a scene wakes waiters so they can stop. This gate bounds admission; it does not itself abort an already running network request.
+
 ## Run and observe
 
 Build and serve the cumulative `application` checkpoint's `production.html`. Open `/?stage=decks/equilibrium/index.yaml&data=off`. The stage loads fonts and chapter content, then displays its first slide. Advance and step backward without reloading the page. Open the ordinary comparison-scene route separately: it should show the document and dock rather than a stage.

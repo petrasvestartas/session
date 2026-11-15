@@ -50,6 +50,30 @@ The performance controller distinguishes wheel bursts and drag frames from resti
 
 The browser host uses completion pacing to avoid accumulating obsolete frames. A continuously moving camera and a quiet settled frame therefore answer different performance questions. Consult [phone performance](../phone-performance.md) for the current resource and driver boundaries; desktop emulation cannot establish phone memory pressure or touch-keyboard behavior.
 
+### Compare incremental edits with a fresh scene
+
+The scene-sync fixture combines nested placed groups, an object parent with a placed child, curve and mesh geometry, and an element with baked features. Two placements share one kernel session, alongside another document and read-only streamed shells. This exposes identity, inherited-transform and ownership mistakes that a single flat object cannot. The common check synchronizes changes, settles the CPU upload model, then compares the result with a fresh walk. A seeded integer generator makes edit sequences reproducible.
+
+The CPU `settle` helper models upload bookkeeping without creating a GPU: it retires and buries rows, patches edge ownership, drains new tables, and applies geometry, unbury and placement updates. `verify` rebuilds the same documents and compares editable identities, lane counts, exact placement and bounds bits, hulls, spacing, faces and flags. It masks only the sheet-classification bit when the original load classification differs from the fresh walk. Pipe owners must resolve or belong to a batch or tomb; retained and dead counts must fit uploaded storage. This catches synchronization errors, but cannot prove GPU uploads or pixels.
+
+The hierarchy regression creates a point, deletes it and undoes the deletion, refreshing the panel after each synchronized edit. It asserts that the same row disappears and returns. A separate comparison checks that a group action targets exactly the tree descendants mapped to scene rows. Thus a correctly rendered hierarchy is insufficient if its action targets are stale.
+
+The editing regressions make retained storage observable: deleting a 100-point cloud buries its row and charges its point bytes to the tomb budget; undo stages an unbury rather than uploading points again. Setting the budget one byte below that allocation forces release. A compaction case then proves that undo can recreate the same identity after retained rows are gone. Multi-document deletion must form one history step, so one Undo restores all affected identities.
+
+The command regressions check allocation behavior as well as final geometry. A 200-frame growing-curve preview may request new rows at most 16 times, bounds dead storage by the allocation sizes, and must return to its original span on cancellation. The edit-cost test times 40 create/delete/undo cycles in scenes of 1,000 and 100,000 objects and permits the larger case less than four times the smaller duration plus 50 milliseconds. This is a regression threshold for incremental work, not a device-independent latency promise.
+
+The randomized synchronization tests apply 150 edits for each fixed seed and compare with the fresh-scene oracle after every step, reporting the seed and step on failure. A second set uses a 4,096-byte tomb cap to exercise releases and reconstruction. Cache-disabled and cache-enabled sequences must produce the same document rows and lane spans while the cache reduces searches. Other sequences preserve hidden and color overrides through compaction and confirm that editing ordinary objects leaves streamed shells unchanged. These CPU assertions remain distinct from the explicitly ignored GPU tests in the same module.
+
+### Report feedback without replacing another message
+
+The feedback adapter mirrors status to the browser status element and command model, while native execution logs it. An empty status may restore a recovered-run notice; download progress replaces only an empty message or its own previous progress, preserving unrelated feedback. Fatal errors emit a diagnostic and reveal the error panel. Panel updates copy presentation models, command history records canonical text, and keyboard requests delegate to the browser input owner. These adapters expose state; a successful call alone does not prove that a user saw or acted on the message.
+
+### Distinguish measured payload from total memory
+
+With `inspect=1`, the inspection adapter publishes JSON on the canvas as `data-viewer-inspection`. It connects visible state to object identities, camera matrices, selection, tool state, lane counts, retained allocations and timing counters. Buffer capacity, estimated texture bytes and known source payload are reported separately; private egui and glyphon resources are explicitly outside the totals. Tests must pair these snapshots with the action and image: an allocated ribbon count can remain unchanged after deletion because retained storage is not the live-object count.
+
+The source-memory cache retains weak session references and recounts when document session pointers change. It counts each shared session and geometry value once, adding vector and string capacities, exposed slice lengths, occupied map entries and known value sizes. Dead collection slots remain counted; history bytes are reported separately. Allocator overhead, spare map capacity and private nested caches are not available to this walker, so `known_bytes` is a scoped payload estimate rather than process RSS or total heap use.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture and `inspect=1`. In browser developer tools, evaluate `window.viewerDiagnostics.read()` after readiness, then orbit and fit the scene. Save the report beside a screenshot and note the actual adapter. The visible geometry should respond while the report retains startup/load context without a failure.

@@ -58,6 +58,10 @@ The state adapter selects the visible entity immediately, then fetches its name 
 
 Replacement loading stages results and uses the load generation described in the loading chapter. Camera and UI state must not be reset merely because a poll returned unchanged content. A notification, successful GET and adopted new scene are three distinct events to observe.
 
+### Adopt only a complete live replacement
+
+A live-source tick runs after the polling interval or a change notification. It revalidates the manifest and mutable files, retaining decoded immutable revision URLs. A changed manifest or file marks a replacement pending; a failed read or an incomplete set of decoded documents keeps the last valid scene visible. A complete replacement reuses cached sessions where possible and drops files no longer listed. The notification relay connects after the first scene is ready. Notifications request an earlier check; they do not supply trusted geometry or bypass decoding.
+
 ## Run and observe
 
 Serve the cumulative application's `production.html` build. From `session_viewer`, run `node tests/streamed-controls.cjs` through the resource guard, with `VIEWER_URL` pointing to that server and `VIEWER_TEST_OUTPUT` naming a new capture directory. Set `CHROME_BIN`, `VIEWER_HEADLESS` and `VIEWER_CHROME_ARGS` for the recorded local WebGPU configuration; `NODE_PATH` locates Playwright.

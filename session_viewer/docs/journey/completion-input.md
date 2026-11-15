@@ -82,6 +82,14 @@ The phone adapter routes whole-text messages to the last registered open panel f
 
 `ui/overlay.rs` converts device-pixel preview coordinates to egui points before painting drawing lines, filled regions, dashed strokes and square point marks. The label chip measures its text galley, adds padding and draws centered white text on black. These temporary overlays visualize the active tool or measurement; they are not persistent document objects or GPU-pickable geometry. Keeping the conversion at this boundary avoids applying the display scale twice.
 
+### Keep selection requests tied to their initiating gesture
+
+A box-selection gesture stores both corners in device pixels. Left-to-right means a window that contains whole objects; right-to-left means a crossing that touches them, drawn with a dashed outline. Starting is refused while drawing or splitting owns input. Release applies Ctrl removal before Shift addition and reports both matched and resulting selected counts. The overlay visualizes the pending region; selection changes only when the gesture finishes.
+
+The cloud-query state adapter starts only in streamed-cloud control mode and assigns each request a generation. It combines camera projection with cloud placement and converts the CSS selection aperture into device pixels. Source pages produce temporary GPU-pick candidates while displayed LOD remains bounded; after eligible pages are checked, the winner is resolved to its original source ID. View or selection changes cancel the query. Batches with another generation or a cancelled token cannot replace the current selection.
+
+Picking a sheet entity highlights its edge within the parent row rather than selecting the whole sheet; picking the same entity again clears selection. A new generation identifies its optional metadata request. Matching responses cache the side table and expose the entity name and kind; stale or cancelled responses are ignored. A missing metadata URL still permits selection by entity ID, while a metadata error is reported without inventing a name.
+
 ## Run and observe
 
 Run the cumulative application with the comparison fixture. Drag with the right button to orbit, use the wheel to zoom, and enter `Fit` to restore the framing. Open `Layers All` and click an object's row: its selection highlight and gizmo should appear. Type a command in the dock and verify that its letters do not trigger scene shortcuts.
