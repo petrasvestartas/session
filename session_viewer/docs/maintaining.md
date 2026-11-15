@@ -61,6 +61,8 @@ On Windows the canonical native frame harness selects Microsoft WARP through DX1
 
 ## Preserve the destination
 
+The current completion batch is defined in `journey/completion-batch.json`; `course -- destination` checks its commit, all production source owners, build inputs and working source drift. Its 17 proposed subject groups are planned ownership, not accepted teaching or a proven minimal runnable sequence. This check does not change the historical inventory or replace structural, ownership or endpoint-parity checks. The execution plan and continuation record live in `docs/plans/tutorial-completion.md` and `docs/plans/tutorial-continuation.md` at the session repository root.
+
 The inventory selected by `journey/course.json` fingerprints source and key inputs. `structure` fails on missing or changed source. Review an intentional change before updating the baseline; a refreshed hash is not evidence of teaching or execution. `parity` reconstructs the last active journey checkpoint and compares every file under `src/` with production after removing teaching comments. It reports missing, extra and changed files together; `parity --details` names them. No path aliases or source exclusions hide differences. The historical lesson 37 comparison remains available as `reference-parity`. Neither comparison establishes runtime acceptance.
 
 The earlier reconstruction in `typing/manifest.json` remains readable without Python. The TypeScript model replays every addition and its tests compare all final file hashes. Its large sections are reference material while the complete smaller sequence is developed. Do not connect incompatible checkpoints through Next links.

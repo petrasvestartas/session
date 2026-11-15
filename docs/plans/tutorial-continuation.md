@@ -1,0 +1,14 @@
+# Tutorial continuation
+
+- Destination: session `87f844e41d08ef104fc071d5bc18163ffe9a4353`; parent `edcdc079726e5332ba0692039c80f8fe6472e3cf`.
+- Published evidence: records checkpoint has 73 native tests, wasm compilation and reviewed desktop/upright browser checks. Mathematics has separate standalone and cumulative receipts. These do not establish full-course acceptance.
+- Publication: all four workflows for `87f844e41` succeeded, including follow-up Pages `43651153236`.
+- Current work: destination contract and 328 planned source owners implemented; six contract tests pass. Device setup and GPU egui painting are decoupled from later application/scene modules and independently typecheck on native and wasm. The first-error diagnostic test passes; its GPU-adapter test is ignored. The browser launcher now delegates through winit's existing ApplicationHandler interface and independently typechecks on wasm. A focused sweep passed 53 course tests and the strict site build. These checks do not establish full viewer/browser regression acceptance; the application shell/host boundary remains pending. No new subject accepted under the revised architecture yet.
+- Last measured failures: 1,298 active checkpoints; 96 unconsolidated subjects; 4,801 later-subject rewrites across 306 files; endpoint parity 299 missing, 709 extra and 5 changed files. Historical inventory has 25 missing files, 79 changed hashes and 3 changed inputs. Do not refresh these numbers without running the corresponding check.
+- Ownership: tutorial main worktree `C:/pc/tmp/session-tutorial-main-20261113`; shared physical session checkout and untracked `journey/code/17-editor-3.rs` belong to other work and must remain untouched. Root/image owner controls its capture lane and production cache protection.
+- Storage: protection manifest is `current-viewer-protected-cache-20261114-28.json`. Its four-file retirement closed the previous existence guards at `2026-11-14T22:05:14.530Z`. The 94-file tutorial WASM proposal remains unexecuted. Read current coordination notes before a heavy job.
+- Next command, from `session_tests`: `node --import ./scripts/typescript.mjs scripts/course.ts destination`.
+- Expected current destination failures: intentional unaccepted edits to `src/engine/gpu/device.rs`, `src/engine/gpu/mod.rs`, `src/engine/gpu/ui.rs`, `src/app/ui/mod.rs`, `src/app/mod.rs`, `src/app/launch.rs` and `src/lib.rs` (seven paths). Do not update the pin to hide them.
+- Next implementation: isolate the browser application shell from concrete `State` and message variants, using the pinned production behavior as the regression contract. Keep the existing course visible until replacement checkpoints pass; preserve the historical route and fixtures.
+
+The complete plan is [tutorial-completion.md](tutorial-completion.md). Resume implementation after the destination check; do not restart the historical checkpoint audit.

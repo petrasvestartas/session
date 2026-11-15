@@ -1,0 +1,2127 @@
+{
+  "commit": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "status": "planned",
+  "subjects": [
+    {
+      "id": "frame",
+      "title": "Rust, browser startup and the first GPU frame",
+      "prerequisites": []
+    },
+    {
+      "id": "painting",
+      "title": "Shaders and first egui painting",
+      "prerequisites": [
+        "frame"
+      ]
+    },
+    {
+      "id": "mathematics",
+      "title": "A complete two-dimensional mathematics presentation",
+      "prerequisites": [
+        "painting"
+      ]
+    },
+    {
+      "id": "dock",
+      "title": "Command input, completion and focus",
+      "prerequisites": [
+        "mathematics"
+      ]
+    },
+    {
+      "id": "camera",
+      "title": "Camera, projection and fitting",
+      "prerequisites": [
+        "dock"
+      ]
+    },
+    {
+      "id": "rows",
+      "title": "Local sources, scene rows and placement",
+      "prerequisites": [
+        "camera"
+      ]
+    },
+    {
+      "id": "geometry",
+      "title": "Kernel geometry, BRep, curves and matrix display",
+      "prerequisites": [
+        "rows"
+      ]
+    },
+    {
+      "id": "strokes",
+      "title": "Strokes, trims, clearance and arrows",
+      "prerequisites": [
+        "geometry"
+      ]
+    },
+    {
+      "id": "documents",
+      "title": "Decoding, documents and hierarchy",
+      "prerequisites": [
+        "geometry"
+      ]
+    },
+    {
+      "id": "selection",
+      "title": "Picking, navigation and selection",
+      "prerequisites": [
+        "documents",
+        "strokes"
+      ]
+    },
+    {
+      "id": "editing",
+      "title": "Commands, transactions and geometry editing",
+      "prerequisites": [
+        "selection"
+      ]
+    },
+    {
+      "id": "labels",
+      "title": "Fonts, projected labels and text geometry",
+      "prerequisites": [
+        "geometry"
+      ]
+    },
+    {
+      "id": "rendering",
+      "title": "Frame passes, resource ownership and pacing",
+      "prerequisites": [
+        "strokes",
+        "labels"
+      ]
+    },
+    {
+      "id": "loading",
+      "title": "Loading, streaming and source lifetime",
+      "prerequisites": [
+        "documents",
+        "rendering"
+      ]
+    },
+    {
+      "id": "phone",
+      "title": "Panels, keyboard, mouse and touch",
+      "prerequisites": [
+        "editing",
+        "loading"
+      ]
+    },
+    {
+      "id": "stage",
+      "title": "Mathematics in the real scene",
+      "prerequisites": [
+        "mathematics",
+        "strokes",
+        "labels",
+        "loading",
+        "phone"
+      ]
+    },
+    {
+      "id": "debugging",
+      "title": "Self-tests, shader probes and device performance",
+      "prerequisites": [
+        "stage"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "src/app/agent.rs",
+      "blob": "d9df76ae0ad29bcab325c65c22a9796a185e42c3",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/clipping.rs",
+      "blob": "e7677688afbb4531ce79866f86620a7c8667ad99",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/cloud_query.rs",
+      "blob": "3feb1e83ce3885ddbc89d03a3c1a11150c775e54",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/mod.rs",
+      "blob": "6654ff7fcb56d07c6a73302c44587279f2820f19",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tests.rs",
+      "blob": "9cd37e5ecdd8fd2c747ae0c0e2d7499e689415b2",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool.rs",
+      "blob": "3e159dbde0e9df9f32ecafb67f2a70a3a3edacc4",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool/choices.rs",
+      "blob": "b901418b03d047235dbe4cdd94e215520b521c7d",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool/cut.rs",
+      "blob": "100e83af56481b6f173b53c528f0a0ffc0f5ebd9",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool/gather.rs",
+      "blob": "4dabb71f47e1c68c4fbfd9d9f807bb0834dc6eb4",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool/options.rs",
+      "blob": "a2f7a072e4869cd61fa3c1eb229eaf091fc501d1",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool/shape.rs",
+      "blob": "4add47af55583a08b00896e86dbaaec4772330bb",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/tool/surfacing.rs",
+      "blob": "88fbddca7a5025663b0e6b20732f8410d18b58ea",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/add_edge.rs",
+      "blob": "e279c75e237b1ea6888c9da23905c1dcd40705b3",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/add_group.rs",
+      "blob": "c75066a6a3abad25b2e94e818fa7cabfda061453",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/arctic.rs",
+      "blob": "6a0e2ba73847b51a63da75cb6e6d439dad6de6f1",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/area.rs",
+      "blob": "3d6c0a0e4b3bc0b365f2be1ebd3ebfc9e4ecd358",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/arrow.rs",
+      "blob": "6e3a861d3e0831a93b2f4c26c8d881a2afbd90f4",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/arrowhead.rs",
+      "blob": "c4b3555a63160fe11b2f86eddd378ca8882baee6",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/attributes.rs",
+      "blob": "07f3428efa8dfcd4e62a38564def39f05a7e7812",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/block_with_hole.rs",
+      "blob": "573d117df7954f7b71fc4fe1dfc764831099f5de",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/bounding_box.rs",
+      "blob": "285b62399c38308a696dfc631c3fff1aaafdc69f",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/box.rs",
+      "blob": "87c5b65275b889a42a0eae27ebe99192fabc9c86",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/capsule.rs",
+      "blob": "8b4cbd4393fcbbc23b62c95bb2a35653c49e0a28",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/clipping_plane.rs",
+      "blob": "9e60658a4cb7c2421520121ce9608e73b5b6acca",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/close.rs",
+      "blob": "43ec395bdd2d97ee042ee2a65ba5d6360e4b5a39",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/cone.rs",
+      "blob": "ecd276a6abcbea0ed09c5307e53dbeadca0b6ba8",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/construction_plane.rs",
+      "blob": "87ed1a7957311013b68e8f98b42e17e5100c8dfb",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/controls.rs",
+      "blob": "fb75fc8d2b320b978b33d26a73ca32ba7b1382ba",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/copy.rs",
+      "blob": "27f519c8cd6d365f499172bb1eb96a67224e816a",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/curve.rs",
+      "blob": "49386173c7c994f883af03781e723f60e6fb091d",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/cylinder.rs",
+      "blob": "08c29349efdf719b671e8b28f30c7ab95a831091",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/delete.rs",
+      "blob": "d40021f5dbb47316625f42e2213b3865d9bc0189",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/dodecahedron.rs",
+      "blob": "7a5d6d6f75fe8dfed422479a85b675750bdb4c29",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/edge.rs",
+      "blob": "2f9447c12dde8331dbfcb41803677c15fa66e810",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/escape.rs",
+      "blob": "bc9e4bee3cedce209f15c19ecd2ee8630a9d5ef1",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/explode.rs",
+      "blob": "bb552d9d7dfb25ad08601f7947515c304bf190c0",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/extend.rs",
+      "blob": "3993613ac1f7e6fe7c4930f6d3efb0cd2b083639",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/extend/reach.rs",
+      "blob": "25255b0abbbd7f2e680fb679e5854b62a1ce4be3",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/extrude.rs",
+      "blob": "ed04c92a235b8828dccb593ac69a7c8583d003e0",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/face.rs",
+      "blob": "1e33ee2644a58686c230a9b992380081f52c8e2c",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/fit.rs",
+      "blob": "cdd1408b227e8e5ceeba11ba77babd287d50e2fe",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/geometry.rs",
+      "blob": "8b8f4f539ce9a34fe185470b2aa783d855dd176b",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/grid_snap.rs",
+      "blob": "91dc3e4b57b2792af90b6c1a3c21fc9a4cd9caf5",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/hide.rs",
+      "blob": "bbbd793e4a3b2c12a86f66ebdbd0b8e689466a96",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/icosahedron.rs",
+      "blob": "434980ea37043a3f8d30ec2fbdbad29442570c47",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/interactions.rs",
+      "blob": "38bb28bedfa28cf016f37313611d1c406900aace",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/layers.rs",
+      "blob": "3a7f814ed08c0df535f9754805cf6b4a982b8aa4",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/length.rs",
+      "blob": "97b30c595ca92d752a72dc141aaf0054e7033b2b",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/length_bounding_box.rs",
+      "blob": "b9629f00615cfc371c9aefe61f181a008f708090",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/line.rs",
+      "blob": "2b5645533bf43110376ecba62ff813247e998cc9",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/loft.rs",
+      "blob": "e1579fb9b20cec3001e307972decd02a80dda7e6",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/measure.rs",
+      "blob": "0193cfdb4a7d87f6a794e96589ab1f0b1ba4d8f1",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/measure_distance.rs",
+      "blob": "2137e791117f71502d60267aa88142f3468eb933",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/mod.rs",
+      "blob": "ac3ca9b309b003f35d04ca225eec14dc1c24e41f",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/move.rs",
+      "blob": "185b12fc1c823de2f990640347c158d25b879a5b",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_curve_arc.rs",
+      "blob": "0d48c9da3eea55f917a53cad99faa6bca10ec179",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_curve_circle.rs",
+      "blob": "810d911242f92fb4a62d79df157d058fd713f5e4",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_curve_ellipse.rs",
+      "blob": "9817762d60160f05a29c948b4db641bc1b3cb866",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_curve_parabola.rs",
+      "blob": "78dead9966cee0f8b7b1a703c7bca056072154b7",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_surface_4_points.rs",
+      "blob": "669eac865f2627dfdc613bb8471f0a93c9f36933",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_surface_loft.rs",
+      "blob": "bb523cb8b6b397b8d6071671d18906bb28c1a0d5",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_surface_network.rs",
+      "blob": "d8abf4fae13c460a3d20324470e7fbd5b5d06113",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_surface_revolve.rs",
+      "blob": "9b3e50ab1f99547241d0c21db7e76120ed0e6be9",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_surface_sweep1.rs",
+      "blob": "fa7f84ce35743b90ec09d275ad11128b38eb50ef",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/nurbs_surface_sweep2.rs",
+      "blob": "94a8e91fd97ee8bd1a619215e8374c834c8e4d0f",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/object.rs",
+      "blob": "15c34739395b05a281cc359d3b6922f34adb5b9a",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/octahedron.rs",
+      "blob": "d97a9248c695fb2d7c1c1bfedc7775f7e7cdd60c",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/opacity.rs",
+      "blob": "6c80351f1472a58b7c6db8650a09e4a74d576afe",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/open.rs",
+      "blob": "74a16f6fc2deb138c93c6a31823e7e301f34ab13",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/orient_3_points.rs",
+      "blob": "67d94b93f85c6c663156eeea44fbaf5d36070e6d",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/outline.rs",
+      "blob": "642ded02a6331c759f7611ab12197b2773181d51",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/point.rs",
+      "blob": "d1f916212cfb4b63435c490533d379ee1f2fb662",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/polyline.rs",
+      "blob": "cc464439d2715166fdadd14bdde601f1a64aabee",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/project_to_plane.rs",
+      "blob": "0de5b95b1ace542b1005d915d5c43e62f9e2ee9d",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/pyramid.rs",
+      "blob": "42724f42ed18d8199217800cee1d4c7b79fc9277",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/quad_sphere.rs",
+      "blob": "dbcbe7296daf0d6ca5aa365365c1cf39d640fb02",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/redo.rs",
+      "blob": "c19867bad3afe45e09526edbee7bd665494c0b40",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/report.rs",
+      "blob": "be2f4de166cf7d60958e0ce573f2493e46cc571f",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/rotate.rs",
+      "blob": "39c1a315175bd60aa7c94e0b37a29c802c523907",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/save.rs",
+      "blob": "8086b9da1521718526b71a4a6f8d33ce0879b47d",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/scale.rs",
+      "blob": "a67f648ef7d571c034ef4dc37c195f46cd9191ff",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/select_all.rs",
+      "blob": "4cc76d08fea86d30c547cfc77e71d71fd9d636be",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/select_by_name.rs",
+      "blob": "ffbe872a72a9ea9b3449b758c3090e6a86b0959e",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/select_lasso.rs",
+      "blob": "315c8946554c9af31dbf1f8321ae1f71f6131158",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/select_small.rs",
+      "blob": "9529969505c9d755e1c3e267e04162efc28331c2",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/selecting.rs",
+      "blob": "45a2b209a7b3c8b4e5f46af6b634fd71dcc693fb",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/show.rs",
+      "blob": "00e4bf00650c3bb61a284a884424adb278f47a3b",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/snap.rs",
+      "blob": "42905dcf783701c03200e9bd49a1606158d02342",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/sphere.rs",
+      "blob": "8887b683b64460cbffb1b15fab96719b42b06967",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/split.rs",
+      "blob": "b425c7a5727dcd5ad594e4fb890e84662dd21a5e",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/tetrahedron.rs",
+      "blob": "806c93e495c2769e390c6dc75371645a272e51da",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/text.rs",
+      "blob": "78eed05345b59da3fda2a7ec4fcafc25d32027b9",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/torus.rs",
+      "blob": "a1445f979e406e1614c7c40111fe508770a4f306",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/trim.rs",
+      "blob": "77ac5ac359b9d2f579ba1ebfd19edc268609caba",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/trim/parts.rs",
+      "blob": "8b6360261835d1240dd593eaddbb2211234574e7",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/undo.rs",
+      "blob": "c749710e8393dfb52538a85fc3666eff1d95ebac",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/view.rs",
+      "blob": "0593630984644a396822e824ed88305db4253c23",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/command/verbs/volume.rs",
+      "blob": "6c62693daff2072069c72465a3379b837a108a01",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/coords.rs",
+      "blob": "6dcd01c25e774174e683e911a0ccb0c2df0120bb",
+      "subject": "camera",
+      "teaching": null
+    },
+    {
+      "path": "src/app/cplane.rs",
+      "blob": "8519e153698717a283be95213182f48387e61d6d",
+      "subject": "camera",
+      "teaching": null
+    },
+    {
+      "path": "src/app/decode.rs",
+      "blob": "d33a7333dc4d590181ada4d238369b5eb0c2d5e5",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/deform.rs",
+      "blob": "3a04ec8e9c3518c5dc3c96b6b19c978458b0161f",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/edit.rs",
+      "blob": "40afb2e382a6828dde9ab29d791faf5b42ec7933",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/feedback.rs",
+      "blob": "dbae75300aeaf3916e0a00db5417430a2740022b",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/app/fetch.rs",
+      "blob": "c7b88bfe5a3df446b116b97d952a91fd7d0ce08e",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/fonts.rs",
+      "blob": "c7989794acc6ca627e835d70e272a4e36f05b8e3",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/app/gesture/box_select.rs",
+      "blob": "e20f325519befe05de3f71f37e8fbebece7c9321",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/gesture/control.rs",
+      "blob": "df2a2269deb6944f4fd802c985ff6955c43f1af0",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/gesture/gizmo.rs",
+      "blob": "aa54a84491e0fdc316659ea886038202d4e6f250",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/gesture/mod.rs",
+      "blob": "1e8db91511f41c45eccb2ecd1f5148ae62d3abd5",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/gesture/object.rs",
+      "blob": "a14590f35c5bc75d9d003ba6e5992caf1599396e",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/gizmo.rs",
+      "blob": "a7d2641fe89cdf628142ffc56f3d4bcb13f9eba2",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/hierarchy.rs",
+      "blob": "1a50b94a51e44a2589242fdf24f485b7ce379b31",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/input.rs",
+      "blob": "d50a0258c82f4abc2673ecdbcde5c1b41d29ace4",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/inspection.rs",
+      "blob": "91b7985d812bc8f45c0957ae5d37ae428bb675da",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/app/inspection/source_memory.rs",
+      "blob": "d82cc653af9739e6f6ef6ee29a115dcd682ba1dd",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/app/interactions.rs",
+      "blob": "0c7636671b11251ca793761ad84ac19857becb81",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/keys.rs",
+      "blob": "d0d29d7af138327ac05ce8b7e1505da6ed5059eb",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/knobs.rs",
+      "blob": "070cfa709efb6de41b6056b488b9a2164268e1dd",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/app/layers.rs",
+      "blob": "5255d63ecb307732da6807574d275558ec1774c3",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/live.rs",
+      "blob": "b068736a350f5b77cd61cce1ab1bd2c72c153ec3",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/live_revision.rs",
+      "blob": "e37d7653795637c32af9bb2f1ce8c7875129dcca",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/loader.rs",
+      "blob": "99041dd9c2a3f6040222d88646a797eb64b5e733",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/manifest.rs",
+      "blob": "7e1e27ef86054d3d49d2d44faa1089eb94b96d82",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/mesh_preview.rs",
+      "blob": "000fa0318278bf4138cfc2876ec8191e990f6af8",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/mod.rs",
+      "blob": "ccd49a0c18e5414192ea896c5bf836bfafc19db5",
+      "subject": "frame",
+      "teaching": null
+    },
+    {
+      "path": "src/app/mode.rs",
+      "blob": "09f5e706be71f5fa9439717774d86be0a7d893eb",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/modeling.rs",
+      "blob": "2549780752f11dbc615c8e2f59afaa0fcbf37c65",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/range_gate.rs",
+      "blob": "ae46d6a688aedd89687a50a26fbd63bb827c3156",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/route.rs",
+      "blob": "1008c895b88cdfc7fae6767b5014643007161c84",
+      "subject": "frame",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene.rs",
+      "blob": "74cf270ea4907c86c3b38616056964d38a0399ca",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_display.rs",
+      "blob": "c533235b73dfc273cdb0692b2d1d6378e26c0a13",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_instances.rs",
+      "blob": "eb2dca623780a5ae0cfdd45a72c1b8eec8d6d44b",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_release.rs",
+      "blob": "0bc4f074a82c8fdfb98b54f5b48223abb1ace9a4",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_rows.rs",
+      "blob": "2ddd288d1474170b512889fdd606ae32027f2f71",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync.rs",
+      "blob": "c65d3cfc3cf9da6833786cb558e817b94dac0f74",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/allocation.rs",
+      "blob": "311a41aa434e01bff44d0ca376e9bc612e3782fc",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/commands_tests.rs",
+      "blob": "f231bc126cbe6e680f5069875bdc3336f3209de6",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/compaction.rs",
+      "blob": "66666e077081e3223fd6fa784d456b04303ca116",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/editing_tests.rs",
+      "blob": "9902cd59e1bacecb2706eb33f9cd6ed3799618b7",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/nodes.rs",
+      "blob": "3cee78a2afb1d67e852e4478b44bd62a49839c0c",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/notes.rs",
+      "blob": "07c0b9a405456ecf722b47232811162676aaba12",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/panel_tests.rs",
+      "blob": "4722c448fe2bd4aba4e0f7ced956e9764cc16204",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/preview.rs",
+      "blob": "d5496e5a501c1c8512677d517453aa53e57f573e",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/split_tests.rs",
+      "blob": "dfc6c3909a0b96a98d777956f97960926d5066d3",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/testing.rs",
+      "blob": "7933a8f9a9482001ceb31602229011c6b03acdf9",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/tests.rs",
+      "blob": "467981e798cf1bd3d7c0505cf74b1f275ad360c5",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_sync/tombs.rs",
+      "blob": "b71bea0055880fbd2c670584ed9c9c30add27aeb",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/scene_text.rs",
+      "blob": "db777ae47a0587e97837694dc6c216df1651d3c2",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/app/selection.rs",
+      "blob": "905432db498a6efbeaadfd0df7c477b2d1335232",
+      "subject": "selection",
+      "teaching": null
+    },
+    {
+      "path": "src/app/session_io.rs",
+      "blob": "b2afcb4086a5e9dc1252afafd085c27a2130cbbf",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/sheet_query.rs",
+      "blob": "46e7a5302224359acbb53bfe617bce4b45370b06",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/snap.rs",
+      "blob": "a820fca6f01ea3be84c6509f8b40085a8ac11c32",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/splitting.rs",
+      "blob": "b2155bf8c169c7693ee716eed14113023d9e2f72",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/actions.rs",
+      "blob": "97d817bb1c60348720975c98028f163aa8b5902b",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/check.rs",
+      "blob": "5d2786b9e7bfc632cfb754c8ce9f450634f86014",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/deck.rs",
+      "blob": "40f04e559ed1f03c9dcf50e2ad5a5f6a33f1af61",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/draw.rs",
+      "blob": "95deb705ed2d4310b3b61ad8fb82e965ac03f35d",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/eval.rs",
+      "blob": "c461cf317cd3ba7d0af94b6a132e564e845c9ef3",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/font.rs",
+      "blob": "a819f3d879ed72828c3e24cbe93d1f9cb4ae3e4b",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/geometry.rs",
+      "blob": "1c44405e9c3307bb5764cd9dfb9a2186e480a4be",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/layout.rs",
+      "blob": "e59039312aebf333dd328616792c32c10839a3bf",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/math_mode.rs",
+      "blob": "ec822938133c69c081c8e73cfe0a04bb25900f01",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/matrix.rs",
+      "blob": "d2148d021f1707fdac0bce2545e1bf2a6e496865",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/mod.rs",
+      "blob": "1cb8b10dff0ec10650df1ee3f31458e5eccb3639",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/mode.rs",
+      "blob": "0b42111c9cfe0fca344310d5e614cfcdb50618b3",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/morph.rs",
+      "blob": "4ff8b516a9f468182381dc6241212cb7063f330f",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/net.rs",
+      "blob": "72b2bec008e151b9ffea00dfb096fb6b3e1efa44",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/object.rs",
+      "blob": "f71d1f310e34fc543198523eb84c89aa6f60b0fe",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/paint.rs",
+      "blob": "3aa726c973651e3fc5780e5ff8e9d735d0ed4718",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/presentation.rs",
+      "blob": "c81bf814aaa431f67a51c87933aaed238744f1b7",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/presentation_tests.rs",
+      "blob": "985150405eab053ea16dbebb6cd8c4980e5310dd",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/run.rs",
+      "blob": "8fefeb826b634f73118f5f7f344aa88635aabe82",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/spatial.rs",
+      "blob": "4368e019d5d64df5ec9821cba1b3f6464fe85e9b",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/tests.rs",
+      "blob": "52807e556c9d004a9ce9d84f1f6e11e266b1b46a",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/tex.rs",
+      "blob": "3612fdabf8435c0e4083f06be4e9d647113d2cbe",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/tween.rs",
+      "blob": "7b37db795852349ac53af3d5f968b46c66a26b6d",
+      "subject": "mathematics",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stage/view.rs",
+      "blob": "b9ac4124e9647c072a842cd6c8d8dc637215e1a6",
+      "subject": "stage",
+      "teaching": null
+    },
+    {
+      "path": "src/app/stream.rs",
+      "blob": "95e61e79436c7ccca0766dc3c8f7aa905e2555f8",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/app/surface_preview.rs",
+      "blob": "6af100e28e7cce1adc36d4c9aef196c3278fe44a",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/app/touch.rs",
+      "blob": "568f2a71b5383bcd9ee142790bd2d34390312cd6",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/command_line.rs",
+      "blob": "649dae8ca9f36265a062b7c262773c87c84e2abe",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/command_line/tests.rs",
+      "blob": "f155029a8efbc00bdea028acefb61e349aaf00b3",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/graph.rs",
+      "blob": "7005345198ceb9f93a52b637c986b155bab50a0c",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/layers.rs",
+      "blob": "96cf5b84935e0060737b6b232deb59b1901fe099",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/mod.rs",
+      "blob": "8c5946c3a2e2aeb84c030f181c95f7312f89eb51",
+      "subject": "painting",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/number_box.rs",
+      "blob": "02e2fc0852aea1546a7e14cd78c2b6d7925e0bd1",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/overlay.rs",
+      "blob": "bdf414960ec0221cfc4aed8e5c4f14c33539e3c6",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/phone.rs",
+      "blob": "6eed2a91c9ea49505b8ca7e953a02c5e5d47df95",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/pointer.rs",
+      "blob": "d3bb47b0a0374bc0f3b365785a4e0de62a6a0b06",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/app/ui/theme.rs",
+      "blob": "883490ae1441ede299dcce49ffc2231cb8dbfa30",
+      "subject": "painting",
+      "teaching": null
+    },
+    {
+      "path": "src/app/validate.rs",
+      "blob": "c2059a094c9777176cbab4fbb4dd7e1dd3c208a2",
+      "subject": "documents",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/bounds.rs",
+      "blob": "9ef343dd08a47e6a61718f185f3e11097758cea3",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/brep.rs",
+      "blob": "5ebbacb851bf7aef46c46acb8cb62c2c126134a8",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/brep_edges.rs",
+      "blob": "4a944fce1e40953b92c5374884927e2b66ccc787",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/brep_orient.rs",
+      "blob": "b86e98df752ec982a1191c0c66ac9967935eae40",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/brep_shapes.rs",
+      "blob": "338e1330961592cd67776b80860e55e6b77f5916",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/cloud.rs",
+      "blob": "accfd2a92b0367b095199370b6d77b4ccec27899",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/curves.rs",
+      "blob": "9c4dffc8a1927d05cc7c8a48c7d6546d525fb15b",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/display.rs",
+      "blob": "8c1c9ebf9c2d0aa49cbe9a00a592e666e69667e1",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/display_features.rs",
+      "blob": "1edae7245767a5da915526bf17f21a26ea586fbf",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/encode.rs",
+      "blob": "74d471b8da483147f9b0388852038d86f250e569",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/frames.rs",
+      "blob": "a1229f0dbfebfdc0a5e18f0f9811a2ddb63c30c1",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/matrix.rs",
+      "blob": "39a3c7c05baea7271faf19a12b5e21ff342c8c34",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/mesh.rs",
+      "blob": "cd4bcf44faed2ae2fd1fa24bd7bec7228b53042e",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/mesh_ink.rs",
+      "blob": "ea4036476569dbdc1e6311cc3c644aec1e58b300",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/mesh_topology.rs",
+      "blob": "b13ff42ffa0d1a62c99a3495cff352fba0073371",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/mod.rs",
+      "blob": "ba668304af3492a826a069c25ac1a27ccfaa3d3f",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/plane.rs",
+      "blob": "7df69bff3292e30dd2d7f87606a43bb5fe8b1baf",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/points.rs",
+      "blob": "1b4f3f0e08086cea1722df5378e1c093eec95d48",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/app/walk/sheet.rs",
+      "blob": "ca700f03cef7d97f62c9247834d710f77c29ecca",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/camera.rs",
+      "blob": "f8df1495654a703f47264d3547e099257754155b",
+      "subject": "camera",
+      "teaching": null
+    },
+    {
+      "path": "src/command_dock/mod.rs",
+      "blob": "65e186e05399694e46c6f69d1e6de2c19493b1cb",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/command_dock/theme.rs",
+      "blob": "9cf69cc6e6d8bca04417b40c10f33752fa2cae38",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/command_dock/view.rs",
+      "blob": "1692e65714cbf740d63e78178bfdd1cec20f9469",
+      "subject": "dock",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/ambient_warm.rs",
+      "blob": "0433895a88892ded1ad1300dc885fd58c6f39f7e",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/arena.rs",
+      "blob": "0bfa0cfa2849109d5f8c219a20287779c2540baf",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/backdrop.rs",
+      "blob": "775c59096ca1afd2d0859abff76c6730758652be",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/buffers.rs",
+      "blob": "bf98a5ee31de8052c3f8bed1257c87306c149e5d",
+      "subject": "frame",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/clip.rs",
+      "blob": "f7c49345742f30d70c41d3aaa3080536e40ee257",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/clip/editing_tests.rs",
+      "blob": "6459ede34aaf069e404f4a65538d4ef4d9deef42",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/clip/pipelines.rs",
+      "blob": "46a71635e08653477fe9ec66f2170cdd3e0e2efc",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/clip/tests.rs",
+      "blob": "d78df03e9f033a500dac3e83e7f76587682b1761",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/cloud.rs",
+      "blob": "7b7caf7558655ee665f03271474f5924e89d2512",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/device.rs",
+      "blob": "b3b8e22f4d1e4a683243f8642f7bc43a68d26319",
+      "subject": "frame",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/faces.rs",
+      "blob": "69f7f9adb7a9d56190256f189d04f6a56955754f",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/frame.rs",
+      "blob": "42464d236243a32aac9074971883eb4b82b5026c",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/glyphs.rs",
+      "blob": "f0891d3a0c5e138dc38a075f771f2eb1c4ebc20c",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/hull.rs",
+      "blob": "06da92fa231cd6e8f22e1af2abb20282ae8690d1",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/instance.rs",
+      "blob": "597b329cb78fa0e8f80d94f4cf3b3d0345fa3acb",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/instanced.rs",
+      "blob": "3142a6a462ea4f0cb55e78b196d82ca141e352f4",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/lane.rs",
+      "blob": "89bd9bd7ed7656f33b7404d4c952bb439455891c",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/lod.rs",
+      "blob": "1dba72a5550cf0f04869c1eb7092f6d7d6c48937",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/matrices.rs",
+      "blob": "cf3167feeafff63869e077e51d0213cba3f3c80f",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/mod.rs",
+      "blob": "e91cee0fec1f052611433977f8c083c3714a27ef",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/objects.rs",
+      "blob": "3442de1101eeec43960126813def976d8d1c8bb9",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/pacing.rs",
+      "blob": "ade6767742f434dc5bf6d30def55c11784428a6f",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/pass.rs",
+      "blob": "5ace82c2510fb4214b671d9ab79169ac57c6f399",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/patch.rs",
+      "blob": "e5b4163901dbdffa5cf65829577fc31be4a8400a",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/pick.rs",
+      "blob": "543fbfdb236f46b1f18acb69500641eb3747812c",
+      "subject": "selection",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/planes.rs",
+      "blob": "98dc262d782b783cc8f52d214512fbd3ad64340d",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/present.rs",
+      "blob": "d2d7bac6d45dae9562efe027480fcec1a1185815",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/render.rs",
+      "blob": "1c43188cb9c7311592d9385a423f671e87b16284",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/segments.rs",
+      "blob": "7e42506aa270fccca8ab773ed08f3c5e2104946a",
+      "subject": "strokes",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/slots.rs",
+      "blob": "96d4a0996a3abdb312b67d4fd9681d666aa034b5",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/splat.rs",
+      "blob": "f11dbeb583d965bf41c4e75f2865a240631e063f",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/splat/cloud_witness.rs",
+      "blob": "4e6431307fa8d6e2968eb404d2a9d29028b0aba2",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/splat/cloud_witness/lod.rs",
+      "blob": "7dd3125a47083feeb75a5db78d2a3e0a71ca7ac3",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/ssao.rs",
+      "blob": "aceadfb1317590b96c315d5bf6a05a56f17cd866",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/ssao/pipelines.rs",
+      "blob": "4906c091dd9f9b12a744699bba1b2d43b9ab4e22",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/ssao/tests.rs",
+      "blob": "6e7d0096ad8694002bfcce9c90eb8e4fe2e4a6b2",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/surface_outline.rs",
+      "blob": "5547457e503ed14ce3f2bafe88d40ff7f3d4b5a0",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/surface_outline/tests.rs",
+      "blob": "363d4c34f27b1a21338b016b2175b3371e2163ff",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/targets.rs",
+      "blob": "16cf58138cfb0f46362690d9758ff325064c11b5",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/text.rs",
+      "blob": "eb2bb3304707fa8c89ad396266aef2d4724117a5",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/text_outline.rs",
+      "blob": "4f726477c321dc25f179856b2a89aeb1d8567b55",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/text_plane.rs",
+      "blob": "187276a86b10812ff4db38efc4fc7b27151813ec",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/text_plate.rs",
+      "blob": "892315952d251971a0800c829d0be2cba7ec7c7d",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/timing.rs",
+      "blob": "7aafe3f6cae06d292280747b96577c48da7ab5a5",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/triangle_tiles.rs",
+      "blob": "1f93c96570ab79018ffe19d24a99ce595411344e",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/ui.rs",
+      "blob": "ccadcc751a3f8cd5db067ce8f6375936c1a92877",
+      "subject": "painting",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/upload.rs",
+      "blob": "a43500cb7a3ef5072c07b739ee20982a28583a3a",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/upload_padding.rs",
+      "blob": "64c7fe6887482b0712153256e1af3348a770173b",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/vectors.rs",
+      "blob": "14646289d47f952e27130c86ad0676fc24e6e889",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/view.rs",
+      "blob": "77c4af37a097925ec08409ed2f2c2bcc154acd66",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/widget.rs",
+      "blob": "9d66f4ae6aabae30be50cbcf0d416b80d2fa61c5",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/gpu/widget_mesh.rs",
+      "blob": "c3d76133d69ec89bc42564d6059017708b0bd071",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/mod.rs",
+      "blob": "3e004608f101a750a0ec553e7ea7d4b6cb9e1928",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/performance.rs",
+      "blob": "e6af038591d822d5ace13133eb7cbefd258fa3f3",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/pipelines/bindings.rs",
+      "blob": "859d7fae58dbc6e4f6b10107d53bb5b0065ecddb",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/pipelines/layouts.rs",
+      "blob": "b33fe466af0153fe4067c03b847b58fc545edb02",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/pipelines/mod.rs",
+      "blob": "26f6e0e5b4bec820688cf2e79426cdd214e539e7",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/engine/text.rs",
+      "blob": "310f8eda4ad08abc01de82b2f5d51af86f40a302",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/lib.rs",
+      "blob": "aaa6e619ba43b9da2271a10180ef835f2e1510ab",
+      "subject": "frame",
+      "teaching": null
+    },
+    {
+      "path": "src/selftest.rs",
+      "blob": "66ad0652d89b01bc599986ee2e2c9da374c0d310",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/selftest/lifecycle.rs",
+      "blob": "a281e5a46b064d324d4844c33fe0411b1ce41d3f",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/selftest/oracle.rs",
+      "blob": "875f7470b5b3bfd2d46014493b13ca18a17990f4",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/selftest/profile.rs",
+      "blob": "79010e58eba29bd3f52f6475ac43f84ecc15caf1",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/selftest/stroke_witness.rs",
+      "blob": "8f5e9a4700b873a73d3404f7e54b5f1af9f89eb8",
+      "subject": "debugging",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/ambient_composite.wgsl",
+      "blob": "58f6815ab50614e68d89ce9b001a735a3d7cbf2f",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/ambient_depth.wgsl",
+      "blob": "9a03913ded83f2721cc3014bc226b01f438aa5cd",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/ambient_geometry.wgsl",
+      "blob": "09a3ecd0a9d975e8fc67c5312c04035ced5c9bd2",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/arrow.wgsl",
+      "blob": "d0650f056b854f5f425a6b49e349fdec895583de",
+      "subject": "strokes",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/background.wgsl",
+      "blob": "158d922c38f322ce1cd479478ab3e6754d34500a",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/cap.wgsl",
+      "blob": "4e9beb1f00cd0b6dc99bb60fc497ddc1f3e7d82f",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/clip.wgsl",
+      "blob": "a2a7d815ead128f354f0ba34e5e78f133d836ee2",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/face_coverage.wgsl",
+      "blob": "114dcdf00465e3ea739d9ce5ea3589ac3e230790",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/glyph.wgsl",
+      "blob": "d6508b10cf5cd6347367d447bdd8f18da19f006c",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/grid.wgsl",
+      "blob": "a58a0303accc4c6c40abfe21275fe5b923ce5203",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/ink_visibility.wgsl",
+      "blob": "ab66cf22835f78a62b65f831ba39cc5428deebe7",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/matrix.wgsl",
+      "blob": "7ba973d5f0e9e8973e0d29edc49d02c0c501fc07",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/normals.wgsl",
+      "blob": "0e047acc3a849e825516a6d471fbf6deb33edad5",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/physical.wgsl",
+      "blob": "e6f3450cc9f9b34c6cb20dd71ef990a063e0feae",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/plane.wgsl",
+      "blob": "5d2ff82650e28f14926ba2758adebf6c36daf19b",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/project_triangles.wgsl",
+      "blob": "3596852277c8e8b523bb9dac40d10625a4ef8ac4",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/projected_triangle.wgsl",
+      "blob": "7acaa01819988fc9f6a0e2ddc621cec7dee9a6de",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/ribbon.wgsl",
+      "blob": "497a71706fc856833915dd56219018123c8532ea",
+      "subject": "strokes",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/scan_triangle_tiles.wgsl",
+      "blob": "66f9bd3e993630e81eafa15f493730d18533b6a4",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/scene.wgsl",
+      "blob": "5ccc2d633b26b9122643d4db18652474bba022f7",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/slot_table.wgsl",
+      "blob": "6023f670456379daf35bbee3756f1190994ad7c5",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/sphere.wgsl",
+      "blob": "56d82de62a5f0481dde8452e7a14ad98dad97fff",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/splat.wgsl",
+      "blob": "f05171f9684e2a2c52c47971bc07031ecfdec44c",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/splat_resolve.wgsl",
+      "blob": "2c629f82bc1ab29aefd8af7176486670835af27c",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/ssao.wgsl",
+      "blob": "f8f64afa43e2460e5de6b390c58fe23aa8bdf503",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/surface_outline.wgsl",
+      "blob": "caba814efd7663ad1dd94839953a27eadb332123",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/text_outline.wgsl",
+      "blob": "c69517165750f5234bcf81b051f7b412500ac0cb",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/text_plane.wgsl",
+      "blob": "9918640c1cf60957a2e421d61df58fca20fc739e",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/text_plate.wgsl",
+      "blob": "a46507c922448c6b424f9ae6967633a40d5847a1",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/triangle.wgsl",
+      "blob": "cfa9837d48e8e49b5c27af0f41fdff7d75e0a94e",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/triangle_tiles.wgsl",
+      "blob": "4a743ffb8878c192488749261e4e046eadb89099",
+      "subject": "rendering",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/vector.wgsl",
+      "blob": "ab51a8c2fb58a1d6100c85f04f661004b974539e",
+      "subject": "geometry",
+      "teaching": null
+    },
+    {
+      "path": "src/shaders/widget.wgsl",
+      "blob": "364cd5ad257068916739bd711488c8d2f3e57028",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state.rs",
+      "blob": "e2c2d1e01df28aa6007f42991741620faf4e14bc",
+      "subject": "rows",
+      "teaching": null
+    },
+    {
+      "path": "src/state/box_select.rs",
+      "blob": "3e76cf51034fb1fca7213cca3164522e185e5b6b",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/clipping.rs",
+      "blob": "3efe28332046121bf33b8a6af715ea4215631b96",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/cloud_query.rs",
+      "blob": "5fb341617a9cbca5f92b932042fa22bf681065be",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/state/drag.rs",
+      "blob": "7394d9c928d56656960670b1ecb3ac07345054de",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/drawing.rs",
+      "blob": "f35f5653b2c3a594507182f3293c065d6ee5e4bf",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/edit.rs",
+      "blob": "2854f1c4033eef711564102b062d543926421f92",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/features.rs",
+      "blob": "d4c93b87083ec2358a18b915902e7f17052fa175",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/hydrate.rs",
+      "blob": "58c6fc42d04729d9d1c845eeddd917cd60970159",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/state/number_box.rs",
+      "blob": "e65c0b2e12cb5dea6389f5be33ffec97075cbcf3",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/panel.rs",
+      "blob": "407631d39da727df9461a4629e5d22a06bda324f",
+      "subject": "phone",
+      "teaching": null
+    },
+    {
+      "path": "src/state/sheet_query.rs",
+      "blob": "f0253be202427b55b59c9501a3d985a196b88341",
+      "subject": "loading",
+      "teaching": null
+    },
+    {
+      "path": "src/state/splitting.rs",
+      "blob": "c238a19e832d441430b13e32f89f2f4cb1233de6",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/state/text.rs",
+      "blob": "4ea9cc1cf709b1062f2f2aeef599a447312419a5",
+      "subject": "labels",
+      "teaching": null
+    },
+    {
+      "path": "src/state/tool.rs",
+      "blob": "1a5c4f0f515ca1fa28f5832ac56502f607341561",
+      "subject": "editing",
+      "teaching": null
+    },
+    {
+      "path": "src/text_quality.rs",
+      "blob": "c370b29c3dab21e4a4b7b952ca2ce7b0fd58bde8",
+      "subject": "debugging",
+      "teaching": null
+    }
+  ],
+  "inputs": [
+    {
+      "path": "Cargo.toml",
+      "blob": "08e464cd4563841b533af5f9668b17aa16d560ef"
+    },
+    {
+      "path": "Cargo.lock",
+      "blob": "dff5b8d68fda0c1b8d5a1f71a3a66f0085f6c0b2"
+    },
+    {
+      "path": "build.rs",
+      "blob": "dd992f73962f6cc1bb59f9894b541fea40f7f439"
+    },
+    {
+      "path": "index.html",
+      "blob": "55ace1ef6c97dc48b70f6a0e02fb005d99e28198"
+    },
+    {
+      "path": "Trunk.toml",
+      "blob": "95044585da1227e9ffa65cf6b8ebb269827948ae"
+    },
+    {
+      "path": ".cargo/config.toml",
+      "blob": "dabc655734daed45eab96c8d2c46d76985152a8f"
+    }
+  ]
+}

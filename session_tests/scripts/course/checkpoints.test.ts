@@ -1,4 +1,5 @@
 import './cumulative-math.test.ts';
+import './destination.test.ts';
 import {historicalExpected} from './historical-math.ts';
 import {changedBlocks, lineContext} from './line-diff.ts';
 import {instructions, replaceImplementation} from './render.ts';

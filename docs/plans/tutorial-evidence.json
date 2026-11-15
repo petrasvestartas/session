@@ -1,0 +1,29 @@
+{
+  "destination": "87f844e41d08ef104fc071d5bc18163ffe9a4353",
+  "scope": "Index existing evidence without transferring acceptance to changed sources or claiming finished subject ownership.",
+  "evidence": [
+    {
+      "subject": "mathematics",
+      "scope": "Standalone browser harness",
+      "path": "session_viewer/docs/lessons/03a-math/full-browser-evidence.json"
+    },
+    {
+      "subject": "mathematics",
+      "scope": "Separate cumulative native, wasm and emulated desktop/upright browser acceptance",
+      "path": "session_viewer/docs/journey/release/cumulative-mathematics-registration-windows-20261114.json"
+    },
+    {
+      "subject": "documents",
+      "scope": "Records checkpoint: 73 native tests, wasm build and reviewed browser interactions; ownership conflicts remain",
+      "path": "session_viewer/docs/journey/release/records-runtime-windows-20261114.json"
+    }
+  ],
+  "open": [
+    "Application shell and GPU dependency boundaries",
+    "Executable cumulative subject sequence",
+    "Finished ownership and actual per-file teaching",
+    "Structural and production endpoint parity",
+    "Full cumulative browser and device acceptance",
+    "Production changes since the pinned destination"
+  ]
+}

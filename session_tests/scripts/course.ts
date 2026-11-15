@@ -16,6 +16,7 @@ import {referenceStructure} from './course/reference-checks.ts';
 import {courseBook, readingBook} from '../src/courseBook.ts';
 import {auditOwnership} from './course/ownership.ts';
 import {collapseSubject} from './course/subjects.ts';
+import {destination} from './course/destination.ts';
 
 function book() {
     return courseBook(course().steps, JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8')));
@@ -40,7 +41,11 @@ function main() {
     const [action, selected, ...args] = process.argv.slice(2);
     const name = ['check', 'dependencies', 'reference'].includes(action) ? lessonId(selected) : selected;
     const lock = path.join(docs, 'journey/release/Cargo.lock');
-    if (action === 'init') {
+    if (action === 'destination') {
+        const result = destination();
+        console.log(JSON.stringify(result, null, 2));
+        if (result.errors.length) process.exitCode = 1;
+    } else if (action === 'init') {
         fs.mkdirSync(path.dirname(work), {recursive: true});
         fs.mkdirSync(work);
         fs.copyFileSync(lock, path.join(work, 'Cargo.lock'));
@@ -186,7 +191,7 @@ function main() {
     } else {
         console.log('npm run course -- init | check LESSON | dependencies LESSON | save NAME | restore NAME | reference LESSON --output NEW_FOLDER');
         console.log('Use a book number such as 22.2.3 or an existing lesson ID. List shows book numbers; list --ids shows internal IDs.');
-        console.log('Authoring: dock-preview | generate | structure | ownership [--details] | subject-audit ID|--all | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity [--details] | reference-parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
+        console.log('Authoring: destination | dock-preview | generate | structure | ownership [--details] | subject-audit ID|--all | verify ID|--all [--stored] | verify-reference ID|--all [--stored] | parity [--details] | reference-parity | foundations | diagrams [--check] | serve [PORT] | capture ID|--all | list');
     }
 }
 
